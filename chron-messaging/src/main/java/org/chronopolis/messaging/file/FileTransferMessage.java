@@ -2,8 +2,11 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.chronopolis.base.message;
+package org.chronopolis.messaging.file;
 
+import org.chronopolis.messaging.base.ChronBody;
+import org.chronopolis.messaging.base.ChronMessage2;
+import org.chronopolis.messaging.base.ChronHeader;
 import java.io.IOException;
 import org.chronopolis.messaging.MessageType;
 

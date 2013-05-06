@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.chronopolis.base.message;
+package org.chronopolis.messaging.base;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

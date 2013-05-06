@@ -2,7 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.chronopolis.base.message;
+package org.chronopolis.messaging.collection;
+
+import org.chronopolis.messaging.base.ChronMessage2;
 
 /**
  *
