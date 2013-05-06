@@ -14,11 +14,11 @@ import java.util.Map;
  */
 public abstract class ChronMessage {
     // Header Types
-
     private String src;
     private String returnKey;
     private String correlationId;
     private Date date;
+
     // Body Types
     private MessageType messageName;
     private Map<String, String> messageArgs;

@@ -13,7 +13,8 @@ package org.chronopolis.messaging;
 public enum ProcessType {
 
     INGEST("ingest"),
-    DISTRIBUTE("distribute");
+    DISTRIBUTE("distribute"),
+    QUERY("query");
     private String name;
 
     private ProcessType(String name) {

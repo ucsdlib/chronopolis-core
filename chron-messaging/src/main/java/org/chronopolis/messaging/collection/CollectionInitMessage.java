@@ -15,21 +15,18 @@ import org.chronopolis.messaging.MessageType;
  * @author shake
  */
 public class CollectionInitMessage extends ChronMessage2 {
+    private final MessageType type = MessageType.DISTRIBUTE_COLL_INIT; 
     private static final String DEPOSIT_KEY = "depositor";
     private static final String COLLECTION_KEY = "collection";
     private static final String TOKENSTORE_KEY = "token-store";
-    private static final String PERIOD_KEY = "audit.period";
+    private static final String PERIOD_KEY = "audit-period";
 
     public CollectionInitMessage() {
-        this.type = MessageType.O_DISTRIBUTE_COLL_INIT;
+        this.body = new ChronBody(type);
+        this.header = new ChronHeader();
     }
-    
-    public CollectionInitMessage(MessageType type) {
-        this.type = type;
-    } 
 
     public CollectionInitMessage(MessageType type, ChronHeader header, ChronBody body) {
-        this.type = type;
         this.header = header;
         this.body = new ChronBody(type, body.getBody());
     }

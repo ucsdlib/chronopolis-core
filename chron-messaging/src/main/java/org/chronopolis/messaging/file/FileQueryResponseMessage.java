@@ -10,22 +10,21 @@ import org.chronopolis.messaging.base.ChronHeader;
 import org.chronopolis.messaging.base.ChronMessage2;
 
 /**
- * Used by the Distribution Service to ask other nodes the status of 
- * a particular file[s]
  *
  * @author shake
  */
-public class FileQueryMessage extends ChronMessage2 {
-    private final MessageType type = MessageType.FILE_QUERY;
+public class FileQueryResponseMessage extends ChronMessage2 {
+    private static final MessageType type = MessageType.FILE_QUERY_RESPONSE;
     private final String DEPOSITOR_KEY = "depositor";
     private final String PROTOCOL_KEY = "protocol";
-    private final String LOCATION_KEY = "location";
     private final String FILENAME_KEY = "filename";
+    private final String LOCATION_KEY = "location";
 
-    public FileQueryMessage() {
+    public FileQueryResponseMessage() {
         this.body = new ChronBody(type);
         this.header = new ChronHeader();
     }
+    
 
     @Override
     public void processMessage() {

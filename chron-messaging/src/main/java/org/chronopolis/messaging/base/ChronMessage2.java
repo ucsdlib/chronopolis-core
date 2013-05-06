@@ -22,9 +22,9 @@ import org.chronopolis.messaging.MessageType;
  * TODO: Header sets in this class too
  */
 public abstract class ChronMessage2 {
-    public MessageType type;
-    public ChronHeader header;
-    public ChronBody body;
+    // public MessageType type;
+    protected ChronHeader header;
+    protected ChronBody body;
     
     public void setHeader(Map<String, Object> header) {
         this.header = new ChronHeader(header);
