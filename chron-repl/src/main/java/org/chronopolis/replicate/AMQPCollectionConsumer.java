@@ -12,8 +12,8 @@ import com.rabbitmq.client.QueueingConsumer;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import org.chronopolis.base.message.ChronBody;
-import org.chronopolis.base.message.CollectionInitMessage;
+import org.chronopolis.messaging.base.ChronBody;
+import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.json.simple.JSONObject;
 
 /**
@@ -44,7 +44,7 @@ public class AMQPCollectionConsumer {
             //manifestURL = obj.remove("manifest"); 
             CollectionInitMessage cim = new CollectionInitMessage();
             cim.setHeader(delivery.getProperties().getHeaders());
-            cim.setBody(cim.type, body);
+            cim.setBody(cim.getType(), body);
 
             // Register collection with ACE
             // POST obj to localhost:8080/ace-am/rest/collection

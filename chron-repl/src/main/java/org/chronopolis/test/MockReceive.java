@@ -14,10 +14,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.security.NoSuchAlgorithmException;
-import org.chronopolis.base.message.ChronBody;
-import org.chronopolis.base.message.ChronHeader;
-import org.chronopolis.base.message.FileTransferMessage;
+import org.chronopolis.messaging.base.ChronBody;
+import org.chronopolis.messaging.base.ChronHeader;
 import org.chronopolis.messaging.ChronMessage;
+import org.chronopolis.messaging.file.FileTransferMessage;
 import org.chronopolis.messaging.MessageType;
 
 /**
@@ -55,7 +55,7 @@ public class MockReceive extends Thread {
 
     public void consume() throws IOException, InterruptedException, ClassNotFoundException, NoSuchAlgorithmException {
 		System.out.println("Starting consume");
-        MessageType type = MessageType.O_DISTRIBUTE_TRANSFER_REQUEST;
+        MessageType type = MessageType.DISTRIBUTE_TRANSFER_REQUEST;
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("adapt-mq.umiacs.umd.edu");
         factory.setVirtualHost(VHOST);
