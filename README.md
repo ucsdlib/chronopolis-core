@@ -1,9 +1,23 @@
-chronopolis-test
+chronopolis-Core
 ================
 
-I'm just testing out git to see what it's like. This repo will probably be ignored, but to
-compenstate here's a table:
+Hello. If you're just looking for documentation check out [chronopolis-doc](chronopolis-doc).
 
-| Table | Table |
-| ----- | ----- |
-| Hello | World |
+The basic layout of the project is as follows:
+
+    Core Chronopolis /
+         |    chron-common     // Common code to be shared between services
+         |    chron-repl       // Distribution Service ( needs to be renamed)
+         |    chron-intake     // Doesn't exist yet
+         |    duracloud-intake // REST Service for duracloud intake
+         |    chron-ingest     // Ingest Service, doesn't exist. will make soon
+         |    chron-messaging  // AMQP Infrastructure. Centralized so that no service
+                               // needs to define it's own messages
+         |    chron-amqp-core  // Can probably be removed
+         |    chron-notifier   // REST Service for chron stuff (intake I think)
+         |    chron-bagit      // BagIt stuff, should probably be moved into a separate repo
+
+
+Todo: 
+
+Lots of stuff
