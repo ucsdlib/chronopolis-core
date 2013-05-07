@@ -1,7 +1,7 @@
-chronopolis-Core
+Chronopolis-Core
 ================
 
-Hello. If you're just looking for documentation check out [chronopolis-doc](chronopolis-doc).
+Hello. If you're just looking for documentation check out [chronopolis-doc][1].
 
 The basic layout of the project is as follows:
 
@@ -21,3 +21,6 @@ The basic layout of the project is as follows:
 Todo: 
 
 Lots of stuff
+
+
+[1]: https://chron-git.umiacs.umd.edu/chron-core/chronopolis-doc
