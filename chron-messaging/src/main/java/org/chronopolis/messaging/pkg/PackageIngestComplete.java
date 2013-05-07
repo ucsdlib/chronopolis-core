@@ -14,9 +14,9 @@ import org.chronopolis.messaging.base.ChronMessage2;
  * @author shake
  */
 public class PackageIngestComplete extends ChronMessage2 {
-    private final MessageType type = MessageType.PACKAGE_INGEST_COMPLETE;
 
     public PackageIngestComplete() {
+        super(MessageType.PACKAGE_INGEST_COMPLETE);
         this.body = new ChronBody(type);
         this.header = new ChronHeader();
     }

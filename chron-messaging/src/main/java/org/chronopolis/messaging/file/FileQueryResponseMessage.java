@@ -14,13 +14,14 @@ import org.chronopolis.messaging.base.ChronMessage2;
  * @author shake
  */
 public class FileQueryResponseMessage extends ChronMessage2 {
-    private static final MessageType type = MessageType.FILE_QUERY_RESPONSE;
+    protected MessageType type;
     private final String DEPOSITOR_KEY = "depositor";
     private final String PROTOCOL_KEY = "protocol";
     private final String FILENAME_KEY = "filename";
     private final String LOCATION_KEY = "location";
 
     public FileQueryResponseMessage() {
+        super(MessageType.FILE_QUERY_RESPONSE);
         this.body = new ChronBody(type);
         this.header = new ChronHeader();
     }

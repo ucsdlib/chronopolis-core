@@ -18,7 +18,6 @@ import org.chronopolis.messaging.MessageType;
  */
 @Deprecated
 public class FileTransferMessage extends ChronMessage2 {
-    private static final MessageType type = MessageType.DISTRIBUTE_INIT_ACK;
 	private static final String DEPOSIT_KEY = "depositor";
 	private static final String DIGEST_KEY = "digest";
 	private static final String DIGEST_TYPE_KEY = "digest-type";
@@ -26,12 +25,14 @@ public class FileTransferMessage extends ChronMessage2 {
 	private static final String LOCATION_KEY = "location";
 	
 	public FileTransferMessage(MessageType type) {
+        super(MessageType.DISTRIBUTE_INIT_ACK);
 		this.body = new ChronBody(type);
 		this.header = new ChronHeader();
 	}
 
 	public FileTransferMessage(MessageType type, ChronHeader header, ChronBody body) {
 		// TODO: Parse all three
+        super(MessageType.DISTRIBUTE_INIT_ACK);
         this.header = header;
         this.body = new ChronBody(type, body.getBody());
 	}
