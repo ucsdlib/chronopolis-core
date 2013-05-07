@@ -10,9 +10,9 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.MessageProperties;
 import java.io.IOException;
-import org.chronopolis.base.message.FileTransferMessage;
 import org.chronopolis.messaging.MessageBuilder;
 import org.chronopolis.messaging.MessageType;
+import org.chronopolis.messaging.file.FileTransferMessage;
 
 /**
  *
@@ -33,7 +33,7 @@ public class MockMessage {
     
     public void testMessage( ) throws IOException {
         MessageBuilder mb = new MessageBuilder();
-        mb.setMessageName(MessageType.O_DISTRIBUTE_COLL_INIT);
+        mb.setMessageName(MessageType.DISTRIBUTE_COLL_INIT);
 		//MessageType.O_DISTRIBUTE_TRANSFER_REQUEST;
         
         mb.set(DEPOSITOR, "test_deposit");
@@ -41,7 +41,7 @@ public class MockMessage {
         mb.set(TOKENSTORE, "tokensTore");
         mb.set(AUDITPERIOD, "132");
         
-        FileTransferMessage ftm = new FileTransferMessage(MessageType.O_DISTRIBUTE_TRANSFER_REQUEST);
+        FileTransferMessage ftm = new FileTransferMessage(MessageType.DISTRIBUTE_TRANSFER_REQUEST);
         ftm.setDepositor("test_deposit");
         ftm.setDigest("test-digest");
         ftm.setDigestType("SHA-256");

@@ -25,6 +25,11 @@ public abstract class ChronMessage2 {
     // public MessageType type;
     protected ChronHeader header;
     protected ChronBody body;
+    protected final MessageType type;
+
+    public ChronMessage2(MessageType type) {
+        this.type = type;
+    }
     
     public void setHeader(Map<String, Object> header) {
         this.header = new ChronHeader(header);
@@ -32,6 +37,10 @@ public abstract class ChronMessage2 {
 
     public void setBody(MessageType type,ChronBody body) {
         this.body = new ChronBody(type, body);
+    }
+
+    public MessageType getType() { 
+        return this.type;
     }
 
     /*
