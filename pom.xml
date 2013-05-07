@@ -52,6 +52,7 @@
         <module>duracloud-intake</module>
 	    <module>chron-bagit</module>
         <module>chron-notifier</module>
+        <module>chron-common</module>
     </modules>
     <!--<reporting>
         <plugins>
