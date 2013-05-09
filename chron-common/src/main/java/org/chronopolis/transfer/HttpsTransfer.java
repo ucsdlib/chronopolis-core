@@ -14,12 +14,12 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author shake
  */
-public class HttpsTransfer {
+public class HttpsTransfer extends FileTransfer {
     /**
      *
      * @param response
      */
-    public void getFile(HttpServletResponse response) { 
-
+    public int getFile(HttpServletResponse response) { 
+        return 0;
     }
 }

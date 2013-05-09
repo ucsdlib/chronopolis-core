@@ -11,9 +11,9 @@ import org.chronopolis.exception.RSyncException;
  *
  * @author shake
  */
-public class RSyncTransfer {
+public class RSyncTransfer extends FileTransfer {
 
-    public static int rsyncTransfer(String user, String host, String remote, String local) throws IOException, InterruptedException {
+    public int getFile(String user, String host, String remote, String local) throws IOException, InterruptedException {
         // Taken from http://stackoverflow.com/questions/1246255/any-good-rsync-library-for-java
         // Need to test/modify command 
         // Currently uses passwordless SSH keys to login to sword
