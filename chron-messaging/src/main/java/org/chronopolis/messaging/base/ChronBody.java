@@ -16,7 +16,8 @@ import org.chronopolis.messaging.MessageType;
  */
 public class ChronBody implements Serializable {
     // The body is just a map of keys to values
-    // We may want to change it to <String, Object> 
+    // We may want to change it to <String, Object> because we will send back a 
+    // list of failed objects
     private Map<String, String> body = new ConcurrentHashMap<>();
     private MessageType type;
     
@@ -46,6 +47,10 @@ public class ChronBody implements Serializable {
         }
 
         body.put(key, value);
+    }
+
+    public Object get(String key) {
+        return body.get(key);
     }
 
     public Map<String, String> getBody() {
