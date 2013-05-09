@@ -29,11 +29,6 @@ public enum MessageType {
     // with them
     DISTRIBUTE_COLL_INIT(MessageState.ORIGIN, ProcessType.DISTRIBUTE, "init", Indicator.QUERY,
             "depositor", "collection", "tokenStore", "audit.period"),
-    DISTRIBUTE_INIT_ACK(MessageState.RESPONSE, ProcessType.DISTRIBUTE, "fin", Indicator.ACK),
-    DISTRIBUTE_TRANSFER_REQUEST(MessageState.ORIGIN, ProcessType.DISTRIBUTE, "transfer", Indicator.QUERY,
-            "depositor", "filename", "digest-type", "digest", "location"),
-    DISTRIBUTE_TRANSFER_ACK(MessageState.ORIGIN, ProcessType.DISTRIBUTE, "complete", Indicator.ACK),
-    DISTRIBUTE_TRANSFER_NAK(MessageState.ORIGIN, ProcessType.DISTRIBUTE, "complete", Indicator.NAK),
     // Distribute <--> Distribute,
     // Will query other nodes to ask for files and get a response
     FILE_QUERY(MessageState.ORIGIN, ProcessType.QUERY, "avail", Indicator.QUERY,
@@ -41,9 +36,24 @@ public enum MessageType {
     FILE_QUERY_RESPONSE(MessageState.RESPONSE, ProcessType.QUERY, "transfer", Indicator.ACK,
             "available", "protocol", "location"),
     PACKAGE_INGEST_READY(MessageState.ORIGIN, ProcessType.INGEST, "init", Indicator.QUERY, 
-            "package-name", "other args"),
+            "package-name", "location", "depositor", "size"),
     PACKAGE_INGEST_COMPLETE(MessageState.RESPONSE, ProcessType.INGEST, "fin", Indicator.ACK,
-            "status"),
+            "status", "failed-items"),
+    PACKAGE_INGEST_STATUS_QUERY(MessageState.RESPONSE, ProcessType.INGEST, "query", Indicator.ACK,
+            "package-name", "depositor"), 
+    PACKAGE_INGEST_STATUS_RESPONSE(MessageState.RESPONSE, ProcessType.INGEST, "response", Indicator.ACK,
+            "status", "completion_percent"), 
+
+    // Deprecated Messages
+    @Deprecated
+    DISTRIBUTE_INIT_ACK(MessageState.RESPONSE, ProcessType.DISTRIBUTE, "fin", Indicator.ACK),
+    @Deprecated
+    DISTRIBUTE_TRANSFER_REQUEST(MessageState.ORIGIN, ProcessType.DISTRIBUTE, "transfer", Indicator.QUERY,
+            "depositor", "filename", "digest-type", "digest", "location"),
+    @Deprecated
+    DISTRIBUTE_TRANSFER_ACK(MessageState.ORIGIN, ProcessType.DISTRIBUTE, "complete", Indicator.ACK),
+    @Deprecated
+    DISTRIBUTE_TRANSFER_NAK(MessageState.ORIGIN, ProcessType.DISTRIBUTE, "complete", Indicator.NAK),
     ;
     private MessageState state;
     private ProcessType process;
