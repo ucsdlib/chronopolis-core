@@ -50,10 +50,12 @@
         <module>chron-repl</module>
         <module>chron-amqp-core</module>
         <module>duracloud-intake</module>
-	    <module>chron-bagit</module>
+        <module>chron-bagit</module>
         <module>chron-notifier</module>
         <module>chron-common</module>
-    </modules>
+    <module>chron-intake-shell</module>
+    <module>chron-ingest-shell</module>
+  </modules>
     <!--<reporting>
         <plugins>
             <plugin>
@@ -66,4 +68,3 @@
         </plugins>
     </reporting>-->
 </project>
-
