@@ -50,5 +50,19 @@ public class ChronHeader {
 		return header;
 	}
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("origin : ");
+        sb.append(origin);
+        sb.append(", return-key : ");
+        sb.append(returnKey);
+        sb.append(", date : ");
+        sb.append(date);
+        sb.append(", correlation-id");
+        sb.append(correlationId);
+        return sb.toString();
+    }
+
     
 }

@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
 /**
+ * TODO: Move to HttpsTransfer
  *
  * @author shake
  */
