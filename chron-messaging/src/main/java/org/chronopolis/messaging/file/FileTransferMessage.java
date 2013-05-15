@@ -8,6 +8,7 @@ import org.chronopolis.messaging.base.ChronBody;
 import org.chronopolis.messaging.base.ChronMessage2;
 import org.chronopolis.messaging.base.ChronHeader;
 import java.io.IOException;
+import java.util.Map;
 import org.chronopolis.messaging.MessageType;
 
 /**
@@ -111,6 +112,10 @@ public class FileTransferMessage extends ChronMessage2 {
 
     @Override
     public void processMessage() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public Map<String, Object> getHeaderMap() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 	

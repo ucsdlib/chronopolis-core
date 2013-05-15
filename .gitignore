@@ -1,2 +1,8 @@
 /chron-common/target/
 /chron-messaging/target/
+/chron-repl/target/
+/chron-amqp-core/target/
+/duracloud-intake/target/
+/chron-bagit/target/
+/chron-intake-shell/target/
+/chron-ingest-shell/target/

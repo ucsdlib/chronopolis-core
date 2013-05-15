@@ -7,7 +7,9 @@ package org.chronopolis.messaging.base;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 import org.chronopolis.messaging.MessageType;
 
 /**
@@ -54,6 +56,8 @@ public abstract class ChronMessage2 {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(baos);
         oos.writeObject(body);
+        header.setDate(new Date().toString());
+        header.setCorrelationId(UUID.randomUUID().toString());
         return baos.toByteArray();
     }
 
@@ -62,6 +66,10 @@ public abstract class ChronMessage2 {
 
     public final Map<String, Object> getHeader() {
         return header.getHeader();
+    }
+
+    public final ChronHeader getChronHeader() {
+        return header;
     }
 
 }

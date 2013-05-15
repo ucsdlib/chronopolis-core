@@ -25,7 +25,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import org.json.simple.JSONObject;
 import org.apache.log4j.Logger;
-import org.chronopolis.base.message.ChronBody;
+import org.chronopolis.messaging.base.ChronBody;
 
 /**
  *

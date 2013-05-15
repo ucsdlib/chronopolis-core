@@ -18,14 +18,14 @@ public class ChronBody implements Serializable {
     // The body is just a map of keys to values
     // We may want to change it to <String, Object> because we will send back a 
     // list of failed objects
-    private Map<String, String> body = new ConcurrentHashMap<>();
+    private Map<String, Object> body = new ConcurrentHashMap<>();
     private MessageType type;
     
     public ChronBody(MessageType type) {
         this.type = type;
     }
 
-    public ChronBody(MessageType type, Map<String, String> body) {
+    public ChronBody(MessageType type, Map<String, Object> body) {
         if (!type.getArgs().containsAll(body.keySet())) {
             throw new IllegalArgumentException("Invalid Key");
         }
@@ -41,7 +41,7 @@ public class ChronBody implements Serializable {
         this.body.putAll(body.getBody());
     }
 
-    public void addContent(String key, String value) {
+    public void addContent(String key, Object value) {
         if ( !type.getArgs().contains(key)) {
             throw new IllegalArgumentException("Type of value " + key + " not allowed");
         }
@@ -53,7 +53,7 @@ public class ChronBody implements Serializable {
         return body.get(key);
     }
 
-    public Map<String, String> getBody() {
+    public Map<String, Object> getBody() {
        return body; 
     }
 }

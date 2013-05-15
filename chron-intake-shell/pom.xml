@@ -1,26 +1,71 @@
 <?xml version="1.0"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.chronopolis</groupId>
+        <artifactId>chronopolis</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
     <groupId>org.chronopolis</groupId>
-    <artifactId>chronopolis</artifactId>
+    <artifactId>chron-intake-shell</artifactId>
     <version>1.0-SNAPSHOT</version>
-  </parent>
-  <groupId>org.chronopolis</groupId>
-  <artifactId>chron-intake-shell</artifactId>
-  <version>1.0-SNAPSHOT</version>
-  <name>chron-intake-shell</name>
-  <url>http://maven.apache.org</url>
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
-  <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+    <packaging>jar</packaging>
+    <name>chron-intake-shell</name>
+    <url>https://chron-git.umiacs.umd.edu/chron-core/</url>
+
+    <build> 
+        <plugins>
+            <plugin> 
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>org.chronopolis.intake.IntakeProducer</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>   
+
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>3.8.1</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.chronopolis</groupId>
+            <artifactId>chron-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.chronopolis</groupId>
+            <artifactId>chron-messaging</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.chronopolis</groupId>
+            <artifactId>chron-amqp-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 </project>
