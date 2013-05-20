@@ -11,7 +11,7 @@ The basic layout of the project is as follows:
          |    chron-intake       // Doesn't exist yet
          |    duracloud-intake   // REST Service for duracloud intake
          |    chron-ingest-shell // Temp Ingest service for message flows
-         |    chron-ingest-shell // Temp Intake service for making mesasge flows
+         |    chron-intake-shell // Temp Intake service for making mesasge flows
          |    chron-messaging    // AMQP Infrastructure. Centralized so that no service
                                  // needs to define it's own messages
          |    chron-amqp-core    // Basic amqp producer/consumers. May be able to move to
