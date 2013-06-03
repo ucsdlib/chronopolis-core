@@ -62,7 +62,7 @@
         <module>chron-amqp-core</module>
         <module>duracloud-intake</module>
         <module>chron-bagit</module>
-        <module>chron-notifier</module>
+        <!--<module>chron-notifier</module>-->
         <module>chron-common</module>
         <module>chron-intake-shell</module>
         <module>chron-ingest-shell</module>

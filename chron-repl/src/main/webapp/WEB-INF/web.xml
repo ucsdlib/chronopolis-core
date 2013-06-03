@@ -1,22 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
     <display-name>chron-repl</display-name>
-    <listener>
+    <!--<listener>
         <listener-class>org.chronopolis.replicate.AMQPContext</listener-class>
-    </listener>
+    </listener>-->
     <listener>
         <listener-class>org.chronopolis.logging.LogContext</listener-class>
     </listener>
-    <listener>
+    <!--<listener>
         <listener-class>org.chronopolis.test.MockContext</listener-class>
+    </listener> would not deploy -->
+    <listener>
+        <description>ServletContextListener</description>
+        <listener-class>org.chronopolis.replicate.db.PersistenceContextListener</listener-class>
     </listener>
     <servlet>
         <servlet-name>MockServlet</servlet-name>
         <servlet-class>org.chronopolis.test.MockServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>MyEntityServlet</servlet-name>
+        <servlet-class>org.chronopolis.replicate.servlet.MyEntityServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>MockServlet</servlet-name>
         <url-pattern>/MockServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>MyEntityServlet</servlet-name>
+        <url-pattern>/MyEntityServlet</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
@@ -26,4 +38,10 @@
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
+    <resource-ref>
+        <description>DB Connection</description>
+        <res-ref-name>jdbc/chonrepldb</res-ref-name>
+        <res-type>javax.sql.DataSource</res-type>
+        <res-auth>Container</res-auth>
+    </resource-ref>
 </web-app>
