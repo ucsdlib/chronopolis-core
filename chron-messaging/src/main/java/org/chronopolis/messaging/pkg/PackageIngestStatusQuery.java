@@ -17,9 +17,4 @@ public class PackageIngestStatusQuery extends ChronMessage2 {
         super(MessageType.PACKAGE_INGEST_STATUS_QUERY);
     }
 
-    @Override
-    public void processMessage() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
 }

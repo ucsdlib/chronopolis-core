@@ -110,11 +110,6 @@ public class FileTransferMessage extends ChronMessage2 {
 	}
 	 */
 
-    @Override
-    public void processMessage() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
     public Map<String, Object> getHeaderMap() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }

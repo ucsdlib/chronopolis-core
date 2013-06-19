@@ -23,9 +23,4 @@ public class PackageIngestComplete extends ChronMessage2 {
         this.header = new ChronHeader();
     }
 
-    @Override
-    public void processMessage() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
 }

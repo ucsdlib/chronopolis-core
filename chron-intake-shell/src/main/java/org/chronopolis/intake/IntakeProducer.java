@@ -26,12 +26,13 @@ public class IntakeProducer {
         SEND_INTAKE_REQUEST, QUIT, UNKNOWN;
         
         private static PRODUCER_OPTION fromString(String text) {
-            if ("S".equals(text)) {
-                return SEND_INTAKE_REQUEST;
-            } else if ("Q".equals(text)) {
-                return QUIT;
-            } else {
-                return UNKNOWN;
+            switch (text) {
+                case "S":
+                    return SEND_INTAKE_REQUEST;
+                case "Q":
+                    return QUIT;
+                default:
+                    return UNKNOWN;
             }
         }
     }

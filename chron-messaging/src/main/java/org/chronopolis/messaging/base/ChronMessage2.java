@@ -61,9 +61,6 @@ public abstract class ChronMessage2 {
         return baos.toByteArray();
     }
 
-    // Basic method all subclasses will inherit to process their message
-    public abstract void processMessage();
-
     public final Map<String, Object> getHeader() {
         return header.getHeader();
     }

@@ -12,6 +12,7 @@ import java.io.IOException;
 import org.chronopolis.messaging.base.ChronMessage2;
 
 /**
+ * Note: This totally does not work... yet.
  *
  * @author shake
  */

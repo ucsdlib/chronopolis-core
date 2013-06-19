@@ -11,7 +11,13 @@ import org.chronopolis.messaging.MessageType;
 
 
 /**
- *
+ * Message an Ingest Node users to tell a Replicating Node to initialize a new 
+ * collection
+ * 
+ * Initializing will involve two parts for the Replicating Node:
+ *    - Creating an ACE collection
+ *    - Grabbing the data from the staging area
+ * 
  * @author shake
  */
 public class CollectionInitMessage extends ChronMessage2 {
@@ -46,11 +52,6 @@ public class CollectionInitMessage extends ChronMessage2 {
 
     public void setAuditPeriod(String auditPeriod) {
         body.addContent(PERIOD_KEY, auditPeriod);
-    }
-
-    @Override
-    public void processMessage() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }
