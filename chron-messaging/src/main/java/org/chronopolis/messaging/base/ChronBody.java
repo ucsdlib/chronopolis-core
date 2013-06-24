@@ -53,6 +53,10 @@ public class ChronBody implements Serializable {
         return body.get(key);
     }
 
+    public MessageType getType() {
+        return type;
+    }
+
     public Map<String, Object> getBody() {
        return body; 
     }

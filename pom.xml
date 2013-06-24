@@ -43,6 +43,9 @@
             <url>http://download.java.net/maven/2</url>
         </repository>
     </repositories>
+
+    <!-- Should update this to have <dependencyManagement> tags as well -->
+
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
@@ -56,6 +59,7 @@
             <version>1.2.14</version>
         </dependency>
     </dependencies>
+
     <modules>
         <module>chron-messaging</module>
         <module>chron-repl</module>
@@ -66,7 +70,8 @@
         <module>chron-common</module>
         <module>chron-intake-shell</module>
         <module>chron-ingest-shell</module>
-    </modules>
+        <module>chron-logger</module>
+  </modules>
     <!--<reporting>
         <plugins>
             <plugin>

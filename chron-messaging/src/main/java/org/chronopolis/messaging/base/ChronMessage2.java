@@ -23,7 +23,7 @@ import org.chronopolis.messaging.MessageType;
  * TODO: Create class prototypes here
  * TODO: Header sets in this class too
  */
-public abstract class ChronMessage2 {
+public class ChronMessage2 {
     // public MessageType type;
     protected ChronHeader header;
     protected ChronBody body;
@@ -67,6 +67,10 @@ public abstract class ChronMessage2 {
 
     public final ChronHeader getChronHeader() {
         return header;
+    }
+
+    public final ChronBody getChronBody() {
+        return body;
     }
 
 }
