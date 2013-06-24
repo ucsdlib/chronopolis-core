@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.chronopolis.amqp.AMQPProducer;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
 
 /**
@@ -41,7 +40,7 @@ public class IntakeProducer {
         String vhost = "chronopolis";
         String exchange = "chronopolis-control";
         String routingKey = "ingest.package-ready.umiacs";
-        AMQPProducer producer = new AMQPProducer("chronopolis", "adapt-mq.umiacs.umd.edu", "chronopolis-exchange");
+        //AMQPProducer producer = new AMQPProducer("chronopolis", "adapt-mq.umiacs.umd.edu", "chronopolis-exchange");
         
         PackageReadyMessage msg = new PackageReadyMessage(); 
         msg.setDepositor("chronopolis");
