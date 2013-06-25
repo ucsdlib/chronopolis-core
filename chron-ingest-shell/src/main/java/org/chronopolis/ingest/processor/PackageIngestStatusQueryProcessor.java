@@ -6,7 +6,7 @@ package org.chronopolis.ingest.processor;
 
 import org.chronopolis.messaging.base.ChronMessage2;
 import org.chronopolis.messaging.base.ChronProcessor;
-import org.chronopolis.messaging.pkg.PackageIngestStatusQuery;
+import org.chronopolis.messaging.pkg.PackageIngestStatusQueryMessage;
 
 /**
  *
@@ -16,7 +16,7 @@ public class PackageIngestStatusQueryProcessor implements ChronProcessor {
 
     @Override
     public void process(ChronMessage2 chronMessage) {
-        if ( !(chronMessage instanceof PackageIngestStatusQuery) ) {
+        if ( !(chronMessage instanceof PackageIngestStatusQueryMessage) ) {
             // Error out
         }
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.

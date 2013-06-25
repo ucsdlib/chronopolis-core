@@ -7,6 +7,11 @@ package org.chronopolis.messaging.base;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.chronopolis.messaging.MessageConstant.CORRELATION_ID;
+import static org.chronopolis.messaging.MessageConstant.ORIGIN;
+import static org.chronopolis.messaging.MessageConstant.DATE;
+import static org.chronopolis.messaging.MessageConstant.RETURN_KEY;
+
 /**
  *
  * @author shake
@@ -23,27 +28,38 @@ public class ChronHeader {
 
 	public ChronHeader(Map<String, Object> header) {
 		// TODO: Parse header to make sure we have all the requirements
-        this.header.putAll(header);
+        origin = (String) header.get(ORIGIN.toString());
+        returnKey = (String) header.get(RETURN_KEY.toString());
+        correlationId = (String) header.get(CORRELATION_ID.toString());
+        date = (String) header.get(DATE.toString());
+        putAll();
 	}
+
+    private void putAll() {
+        header.put(ORIGIN.toString(), origin);
+        header.put(RETURN_KEY.toString(), returnKey);
+        header.put(CORRELATION_ID.toString(), correlationId);
+        header.put(DATE.toString(), date);
+    } 
 
     public void setOrigin(String origin) {
         this.origin = origin;
-        header.put("origin", origin);
+        header.put(ORIGIN.toString(), origin);
     }
 
     public void setReturnKey(String returnKey) {
         this.returnKey = returnKey;
-        header.put("returnKey", returnKey);
+        header.put(RETURN_KEY.toString(), returnKey);
     } 
 
     public void setCorrelationId(String correlationId) {
         this.correlationId = correlationId;
-        header.put("correlationId", correlationId);
+        header.put(CORRELATION_ID.toString(), correlationId);
     }
 
     public void setDate(String date) {
         this.date = date;
-        header.put("date", date);
+        header.put(DATE.toString(), date);
     }
 
 	public Map<String, Object> getHeader() {

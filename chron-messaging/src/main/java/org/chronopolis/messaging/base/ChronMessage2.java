@@ -11,6 +11,13 @@ import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 import org.chronopolis.messaging.MessageType;
+import org.chronopolis.messaging.collection.CollectionInitMessage;
+import org.chronopolis.messaging.file.FileQueryMessage;
+import org.chronopolis.messaging.file.FileQueryResponseMessage;
+import org.chronopolis.messaging.pkg.PackageIngestCompleteMessage;
+import org.chronopolis.messaging.pkg.PackageIngestStatusQueryMessage;
+import org.chronopolis.messaging.pkg.PackageIngestStatusResponseMessage;
+import org.chronopolis.messaging.pkg.PackageReadyMessage;
 
 /**
  * I got confused with some of the other classes so I made this package to
@@ -41,6 +48,18 @@ public class ChronMessage2 {
         this.body = new ChronBody(type, body);
     }
 
+    public final Map<String, Object> getHeader() {
+        return header.getHeader();
+    }
+
+    public final ChronHeader getChronHeader() {
+        return header;
+    }
+
+    public final ChronBody getChronBody() {
+        return body;
+    }
+
     public MessageType getType() { 
         return this.type;
     }
@@ -61,16 +80,36 @@ public class ChronMessage2 {
         return baos.toByteArray();
     }
 
-    public final Map<String, Object> getHeader() {
-        return header.getHeader();
+    public static ChronMessage2 getMessage(MessageType type) {
+        switch (type) {
+            case FILE_QUERY:
+                return new FileQueryMessage(); 
+            case FILE_QUERY_RESPONSE:
+                return new FileQueryResponseMessage();
+            case DISTRIBUTE_COLL_INIT:
+                return new CollectionInitMessage();
+            case PACKAGE_INGEST_READY:
+                return new PackageReadyMessage();
+            case PACKAGE_INGEST_COMPLETE:
+                return new PackageIngestCompleteMessage();
+            case PACKAGE_INGEST_STATUS_QUERY:
+                return new PackageIngestStatusQueryMessage();
+            case PACKAGE_INGEST_STATUS_RESPONSE:
+                return new PackageIngestStatusResponseMessage();
+
+            default:
+                throw new UnexpectedMessageTypeException(type.toString());
+
+        }
+
     }
 
-    public final ChronHeader getChronHeader() {
-        return header;
+    private static class UnexpectedMessageTypeException extends RuntimeException {
+
+        public UnexpectedMessageTypeException(String toString) {
+            super(toString);
+        }
     }
 
-    public final ChronBody getChronBody() {
-        return body;
-    }
 
 }

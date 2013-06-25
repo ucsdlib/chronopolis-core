@@ -13,11 +13,11 @@ import org.chronopolis.messaging.base.ChronMessage2;
  *
  * @author shake
  */
-public class PackageIngestComplete extends ChronMessage2 {
+public class PackageIngestCompleteMessage extends ChronMessage2 {
     private final String STATUS_KEY = "status";
     private final String FAILED_KEY = "failed-items";
 
-    public PackageIngestComplete() {
+    public PackageIngestCompleteMessage() {
         super(MessageType.PACKAGE_INGEST_COMPLETE);
         this.body = new ChronBody(type);
         this.header = new ChronHeader();
