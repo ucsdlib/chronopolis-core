@@ -11,8 +11,8 @@ import org.chronopolis.messaging.base.ChronMessage2;
  *
  * @author shake
  */
-public class PackageIngestStatusResponse extends ChronMessage2 {
-    public PackageIngestStatusResponse() {
+public class PackageIngestStatusResponseMessage extends ChronMessage2 {
+    public PackageIngestStatusResponseMessage() {
         super(MessageType.PACKAGE_INGEST_STATUS_RESPONSE);
     }
 
