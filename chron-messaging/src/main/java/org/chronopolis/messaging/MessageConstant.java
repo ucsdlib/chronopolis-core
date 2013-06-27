@@ -13,7 +13,21 @@ public enum MessageConstant {
     ORIGIN("origin"),
     RETURN_KEY("returnKey"),
     CORRELATION_ID("correlationId"),
-    DATE("date");
+    DATE("date"),
+
+    // Message vals
+    DEPOSITOR("depositor"),
+    COLLECTION("collection"),
+    TOKEN_STORE("token-store"),
+    AUDIT_PERIOD("audit-period"),
+    DIGEST("digest"),
+    DIGEST_TYPE("digest-type"),
+    PACKAGE_NAME("package-name"),
+    FILENAME("filename"),
+    LOCATION("location"),
+    PROTOCOL("protocol"),
+    SIZE("size"),
+    ;
     
     private final String text;
 

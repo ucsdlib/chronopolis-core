@@ -7,3 +7,4 @@
 /chron-intake-shell/target/
 /chron-ingest-shell/target/
 /chron-logger/target/
+/amqp-test/target/

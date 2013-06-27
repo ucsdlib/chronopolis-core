@@ -9,6 +9,11 @@ import org.chronopolis.messaging.base.ChronBody;
 import org.chronopolis.messaging.base.ChronHeader;
 import org.chronopolis.messaging.base.ChronMessage2;
 
+import static org.chronopolis.messaging.MessageConstant.DEPOSITOR;
+import static org.chronopolis.messaging.MessageConstant.PROTOCOL;
+import static org.chronopolis.messaging.MessageConstant.LOCATION;
+import static org.chronopolis.messaging.MessageConstant.FILENAME;
+
 /**
  * Used by the Distribution Service to ask other nodes the status of 
  * a particular file[s]
@@ -16,11 +21,6 @@ import org.chronopolis.messaging.base.ChronMessage2;
  * @author shake
  */
 public class FileQueryMessage extends ChronMessage2 {
-    protected MessageType type;
-    private final String DEPOSITOR_KEY = "depositor";
-    private final String PROTOCOL_KEY = "protocol";
-    private final String LOCATION_KEY = "location";
-    private final String FILENAME_KEY = "filename";
 
     public FileQueryMessage() {
         super(MessageType.FILE_QUERY);

@@ -6,7 +6,6 @@ package org.chronopolis.amqp;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.logging.Level;
 import org.apache.log4j.Logger;
 import org.chronopolis.messaging.base.ChronMessage2;
 import org.springframework.amqp.core.Message;
@@ -32,9 +31,10 @@ public class TopicProducer implements ChronProducer {
     public void send(ChronMessage2 message, String routingKey) {
         boolean done = false;
         int numTries = 0;
+        log.debug("Preparing message " + message.toString());
         MessageProperties props = new MessageProperties();
         props.setDeliveryMode(MessageDeliveryMode.PERSISTENT);
-        props.setContentType("application/json");
+        // props.setContentType("application/json");
 
         if ( null == routingKey ) { 
             routingKey = defaultRoutingKey;
@@ -51,7 +51,7 @@ public class TopicProducer implements ChronProducer {
                 Message msg = new Message(message.createMessage(), props);
                 log.info("Sending "+ message.getType() + " to " + routingKey);
 
-                template.send(msg);
+                template.send(routingKey, msg);
                 done = true;
             }
         } catch (IOException ex) {

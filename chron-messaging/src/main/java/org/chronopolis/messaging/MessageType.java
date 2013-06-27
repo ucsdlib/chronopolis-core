@@ -15,6 +15,8 @@ import java.util.List;
  * Stage -
  * Indicator - The type of message
  * Args - The parameters of the message
+ * 
+ * TODO: Replace Args w/ MessageConstant... constants...
  *
  * @author toaster
  */
@@ -28,7 +30,7 @@ public enum MessageType {
     // Do these messages need a query and response? There is only an ack associated
     // with them
     DISTRIBUTE_COLL_INIT(MessageState.ORIGIN, ProcessType.DISTRIBUTE, "init", Indicator.QUERY,
-            "depositor", "collection", "tokenStore", "audit.period"),
+            "depositor", "collection", "token-store", "audit-period"),
     // Distribute <--> Distribute,
     // Will query other nodes to ask for files and get a response
     FILE_QUERY(MessageState.ORIGIN, ProcessType.QUERY, "avail", Indicator.QUERY,
@@ -42,7 +44,7 @@ public enum MessageType {
     PACKAGE_INGEST_STATUS_QUERY(MessageState.RESPONSE, ProcessType.INGEST, "query", Indicator.ACK,
             "package-name", "depositor"), 
     PACKAGE_INGEST_STATUS_RESPONSE(MessageState.RESPONSE, ProcessType.INGEST, "response", Indicator.ACK,
-            "status", "completion_percent"), 
+            "status", "completion-percent"), 
 
     // Deprecated Messages
     @Deprecated

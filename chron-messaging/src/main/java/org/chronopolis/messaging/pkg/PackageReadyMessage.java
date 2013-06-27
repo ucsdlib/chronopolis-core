@@ -8,10 +8,12 @@ import org.chronopolis.messaging.MessageType;
 import org.chronopolis.messaging.base.ChronBody;
 import org.chronopolis.messaging.base.ChronHeader;
 import org.chronopolis.messaging.base.ChronMessage2;
-import org.chronopolis.messaging.collection.CollectionInitMessage;
-import org.chronopolis.transfer.FileTransfer;
-import org.chronopolis.transfer.RSyncTransfer;
-import org.chronopolis.transfer.HttpsTransfer;
+
+import static org.chronopolis.messaging.MessageConstant.PACKAGE_NAME;
+import static org.chronopolis.messaging.MessageConstant.LOCATION;
+import static org.chronopolis.messaging.MessageConstant.DEPOSITOR;
+import static org.chronopolis.messaging.MessageConstant.SIZE;
+import static org.chronopolis.messaging.MessageConstant.PROTOCOL;
 
 /**
  * Relay the state of the collection
@@ -19,11 +21,6 @@ import org.chronopolis.transfer.HttpsTransfer;
  * @author shake
  */
 public class PackageReadyMessage extends ChronMessage2 {
-    private final String NAME_KEY = "package-name";
-    private final String LOCATION_KEY = "location";
-    private final String DEPOSITOR_KEY = "depositor";
-    private final String SIZE_KEY = "size";
-    private final String PROTOCOL_KEY = "protocol";
     
     public PackageReadyMessage() {
         super(MessageType.PACKAGE_INGEST_READY);
@@ -33,44 +30,44 @@ public class PackageReadyMessage extends ChronMessage2 {
 
     /*
     public void setProtocol(String protocol) {
-        body.addContent(PROTOCOL_KEY, protocol);
+        body.addContent(PROTOCOL.toString(), protocol);
     }
     
     private String getProtocol() {
-        return (String)body.get(PROTOCOL_KEY);
+        return (String)body.get(PROTOCOL.toString());
     }
     */
     
     public void setPackageName(String packageName) {
-        body.addContent(NAME_KEY, packageName);
+        body.addContent(PACKAGE_NAME.toString(), packageName);
     }
     
     public String getPackageName() {
-        return (String)body.get(NAME_KEY);
+        return (String)body.get(PACKAGE_NAME.toString());
     }
     
     public void setDepositor(String depositor) {
-        body.addContent(DEPOSITOR_KEY, depositor);
+        body.addContent(DEPOSITOR.toString(), depositor);
     }
     
     public String getDepositor() {
-        return (String)body.get(DEPOSITOR_KEY);
+        return (String)body.get(DEPOSITOR.toString());
     }
     
     public void setLocation(String location) {
-        body.addContent(LOCATION_KEY, location);
+        body.addContent(LOCATION.toString(), location);
     }
     
     public String getLocation() {
-        return (String)body.get(LOCATION_KEY);
+        return (String)body.get(LOCATION.toString());
     }
     
     public void setSize(long size) {
-        body.addContent(SIZE_KEY, size);
+        body.addContent(SIZE.toString(), size);
     }
     
     public long getSize() {
-        return (long)body.get(SIZE_KEY);
+        return (long)body.get(SIZE.toString());
     }
     
     @Override

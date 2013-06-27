@@ -13,7 +13,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
+import org.springframework.context.support.GenericXmlApplicationContext;
 
 /**
  * Totally based off of Andrew's Producer for DPN
@@ -21,6 +23,13 @@ import org.chronopolis.messaging.pkg.PackageReadyMessage;
  * @author shake
  */
 public class IntakeProducer {
+
+    private ChronProducer producer;
+
+    public IntakeProducer(ChronProducer producer) {
+        this.producer = producer;
+    }
+    
     private enum PRODUCER_OPTION {
         SEND_INTAKE_REQUEST, QUIT, UNKNOWN;
         
@@ -63,12 +72,14 @@ public class IntakeProducer {
         channel.exchangeDeclare(exchange, "topic", true);
 
 		byte[] message = msg.createMessage();
+        /*
 		BasicProperties props = new BasicProperties
 									.Builder()
 									.headers(msg.getHeader())
 									.build();
+                                    */
         channel.basicPublish(exchange, routingKey, 
-                             props, message);
+                             null, message);
         System.out.println("Waiting on ack?");
 		channel.close();
 		connection.close();
@@ -82,11 +93,13 @@ public class IntakeProducer {
             
             if ( option.equals(PRODUCER_OPTION.SEND_INTAKE_REQUEST)) {
                 System.out.println("Sending message weee");
+                /*
                 try {
                     sendIntakeRequest();
                 } catch (IOException ex) {
                     Logger.getLogger(IntakeProducer.class.getName()).log(Level.SEVERE, null, ex);
                 }
+                */
             } else if (option.equals(PRODUCER_OPTION.QUIT)) {
                 done = true;
             } else {
@@ -127,7 +140,14 @@ public class IntakeProducer {
     
     public static void main(String [] args) {
         System.out.println("Hello wrld");
-        IntakeProducer producer = new IntakeProducer();
+    
+        GenericXmlApplicationContext text = new GenericXmlApplicationContext(
+                "classpath:/rabbit-context.xml");
+
+        ChronProducer p = (ChronProducer) text.getBean("producer");
+
+        
+        IntakeProducer producer = new IntakeProducer(p);
         producer.run();
         
         System.out.println("Shutting down, shutting shutting down");

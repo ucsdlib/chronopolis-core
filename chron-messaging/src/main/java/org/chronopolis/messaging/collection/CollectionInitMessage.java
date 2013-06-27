@@ -9,6 +9,10 @@ import org.chronopolis.messaging.base.ChronMessage2;
 import org.chronopolis.messaging.base.ChronHeader;
 import org.chronopolis.messaging.MessageType;
 
+import static org.chronopolis.messaging.MessageConstant.DEPOSITOR;
+import static org.chronopolis.messaging.MessageConstant.COLLECTION;
+import static org.chronopolis.messaging.MessageConstant.TOKEN_STORE;
+import static org.chronopolis.messaging.MessageConstant.AUDIT_PERIOD;
 
 /**
  * Message an Ingest Node users to tell a Replicating Node to initialize a new 
@@ -21,11 +25,6 @@ import org.chronopolis.messaging.MessageType;
  * @author shake
  */
 public class CollectionInitMessage extends ChronMessage2 {
-    private static final String DEPOSIT_KEY = "depositor";
-    private static final String COLLECTION_KEY = "collection";
-    private static final String TOKENSTORE_KEY = "token-store";
-    private static final String PERIOD_KEY = "audit-period";
-
     public CollectionInitMessage() {
         super(MessageType.DISTRIBUTE_COLL_INIT);
         this.body = new ChronBody(type);
@@ -39,19 +38,19 @@ public class CollectionInitMessage extends ChronMessage2 {
     }
 
     public void setDepositor(String depositor) {
-        body.addContent(DEPOSIT_KEY, depositor);
+        body.addContent(DEPOSITOR.toString(), depositor);
     }
 
     public void setCollection(String collection) {
-        body.addContent(COLLECTION_KEY, collection);
+        body.addContent(COLLECTION.toString(), collection);
     }
 
     public void setTokenStore(String tokenStore) {
-        body.addContent(TOKENSTORE_KEY, tokenStore);
+        body.addContent(TOKEN_STORE.toString(), tokenStore);
     }
 
     public void setAuditPeriod(String auditPeriod) {
-        body.addContent(PERIOD_KEY, auditPeriod);
+        body.addContent(AUDIT_PERIOD.toString(), auditPeriod);
     }
 
 }

@@ -1,0 +1,77 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xsi:schemaLocation="http://www.springframework.org/schema/rabbit
+                           http://www.springframework.org/schema/rabbit/spring-rabbit-1.1.xsd
+                           http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans-3.2.xsd"/>
+
+  <!--Node properties-->
+  <!--
+  <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+    <property name="locations">
+      <list>
+        <value>classpath:node.properties</value>
+        <value>file:node.properties</value>
+      </list>
+    </property>
+    <property name="ignoreResourceNotFound" value="true"/>
+  </bean>
+
+  <bean id="nodeProperties"
+        class="org.duraspace.dpn.message.common.domain.NodeProperties">
+    <constructor-arg value="${node.name}"/>
+    <constructor-arg value="${node.exchange}"/>
+    <constructor-arg value="${node.inbound-routing-key}"/>
+    <constructor-arg value="${node.broadcast-routing-key}"/>
+	<constructor-arg value="${node.dpn-stage}"/>
+    <constructor-arg value="${node.ttl}"/>
+  </bean>
+  -->
+
+
+    <!--
+  <bean id="msgFactory" class="org.duraspace.dpn.message.producer.util.MessageFactory">
+    <constructor-arg ref="nodeProperties"/>
+  </bean>
+  -->
+
+  <!--Low-level Rabbit Connection Factory-->
+  <bean id="rabbitConnFactory" class="com.rabbitmq.client.ConnectionFactory">
+    <!--heartbeat every 60 seconds-->
+    <property name="requestedHeartbeat" value="60"/>
+    <!--connection timeout after 5 min-->
+    <property name="connectionTimeout" value="300"/>
+    <proproperty name="virtualHost" value="chronopolis">
+  </bean>
+
+  <!--Application-level Connection Factory, wrapping the Rabbit Connection Factory-->
+  <bean id="connectionFactory"
+        class="org.springframework.amqp.rabbit.connection.CachingConnectionFactory">
+    <constructor-arg ref="rabbitConnFactory"/>
+    <property name="publisherConfirms" value="true"/>
+    <property name="publisherReturns" value="true"/>
+    <property name="connectionListeners">
+      <list>
+        <bean class="org.chronopolis.amqp.ConnectionListenerImpl"/>
+      </list>
+    </property>
+    <!--Example of providing a list of brokers to the connection factory-->
+    <property name="addresses" value="adapt-mq.umiacs.umd.edu"/>
+  </bean>
+
+  <!--Admin configures queues/exchanges in the remote broker-->
+  <rabbit:admin connection-factory="connectionFactory"/>
+
+  <!--Entry-point for making direct 'send' requests to the broker-->
+  <rabbit:template id="rabbitTemplate" exchange="chronopolis-control"
+                   connection-factory="connectionFactory"
+                   mandatory="true"/>
+
+
+  <!--Message Producer-->
+  <bean id="producer" class="org.chronopolis.amqp.TopicProducer">
+    <constructor-arg index="0" ref="rabbitTemplate"/>
+  </bean>
+
+</beans>
