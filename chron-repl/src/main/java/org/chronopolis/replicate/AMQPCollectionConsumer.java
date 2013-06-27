@@ -44,7 +44,7 @@ public class AMQPCollectionConsumer {
             //manifestURL = obj.remove("manifest"); 
             CollectionInitMessage cim = new CollectionInitMessage();
             cim.setHeader(delivery.getProperties().getHeaders());
-            cim.setBody(cim.getType(), body);
+            cim.setBody(body);
 
             // Register collection with ACE
             // POST obj to localhost:8080/ace-am/rest/collection

@@ -94,7 +94,7 @@ public class AMQPLogger implements Runnable {
                 ChronBody body = (ChronBody) o;
                 ChronHeader header = new ChronHeader(delivery.getProperties().getHeaders());
                 ChronMessage2 msg = new ChronMessage2(body.getType());
-                msg.setBody(msg.getType(), body);
+                msg.setBody(body);
                 msg.setHeader(header.getHeader());
                 processor.process(msg);
             }

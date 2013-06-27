@@ -85,7 +85,7 @@ public class IngestConsumer {
 			ChronBody body = (ChronBody) o;
             ChronHeader header = new ChronHeader(delivery.getProperties().getHeaders());
             PackageReadyMessage msg = new PackageReadyMessage();
-            msg.setBody(msg.getType(), body);
+            msg.setBody(body);
             msg.setHeader(header.getHeader());
 
             System.out.println("Recieved message\nHeaders { " + header.toString() + " }"

@@ -59,7 +59,7 @@ public class ChronMessageListener implements MessageListener {
             ChronBody cBody = (ChronBody) o;
 
             message = ChronMessage2.getMessage(cBody.getType());
-            message.setBody(message.getType(), cBody);
+            message.setBody(cBody);
             message.setHeader(props.getHeaders());
             
         } catch (IOException ex) {

@@ -25,11 +25,6 @@
         <property name="addresses" value="adapt-mq.umiacs.umd.edu"/>
     </bean>
     
-    <!--
-    <rabbit:connection-factory id="connectionFactory"
-                               host="adapt-mq.umiacs.umd.edu"/>
-                               -->
-
     <rabbit:admin connection-factory="connectionFactory"/>
 
     <rabbit:template id="rabbitTemplate" exchange="chronopolis-control" 
@@ -37,7 +32,6 @@
                      mandatory="true" />
 
     <!--
-    <rabbit:template id="amqpTemplate" connection-factory="connectionFactory"/>
                      confirm-callback="confirmCallback"
                      return-callback=""/> 
                      -->
