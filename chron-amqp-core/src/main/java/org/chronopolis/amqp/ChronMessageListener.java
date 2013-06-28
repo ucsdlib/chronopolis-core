@@ -2,10 +2,11 @@ package org.chronopolis.amqp;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import org.apache.log4j.Logger;
 import org.chronopolis.messaging.base.ChronBody;
 import org.chronopolis.messaging.base.ChronMessage2;
 import org.chronopolis.messaging.base.ChronProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.MessageProperties;
@@ -23,7 +24,7 @@ import org.springframework.amqp.core.MessageProperties;
  */
 public class ChronMessageListener implements MessageListener {
     private ChronProcessor processor;
-    private Logger log = Logger.getLogger(ChronMessageListener.class);
+    private Logger log = LoggerFactory.getLogger(ChronMessageListener.class);
     
     public ChronMessageListener(ChronProcessor processor) {
         this.processor = processor;
@@ -53,12 +54,15 @@ public class ChronMessageListener implements MessageListener {
             ois = new ObjectInputStream(bais);
             Object o = ois.readObject();
             if ( !(o instanceof ChronBody)) {
+                log.info("Recieved object not of type ChronBody");
                 throw new IllegalArgumentException("Message body is not a chron body!");
             }
 
             ChronBody cBody = (ChronBody) o;
+            log.debug("Recieved Body of ChronMessage of type {} ", cBody.getType().toString());
 
             message = ChronMessage2.getMessage(cBody.getType());
+            System.out.println("Message Type: " + cBody.getType().toString());
             message.setBody(cBody);
             message.setHeader(props.getHeaders());
             

@@ -29,13 +29,13 @@
 
     <!-- Set up our queues and bindings in the exchange -->
     <rabbit:queue id="queue.test" name="test.umiacs" durable="true"/>
-    <rabbit:queue id="queue.broadcast" name="package.ingest.broadcast" durable="true"/>
-    <rabbit:queue id="queue.direct" name="package.ingest.umiacs" durable="true"/>
+    <rabbit:queue id="queue.broadcast" name="broadcast.umiacs" durable="true"/>
+    <rabbit:queue id="queue.direct" name="direct.umiacs" durable="true"/>
 
     <rabbit:topic-exchange id="federatedExchange" name="chronopolis-control"> 
         <rabbit:bindings>
             <rabbit:binding queue="queue.test" pattern="test.umiacs"/>
-            <rabbit:binding queue="queue.broadcast" pattern="package.ingest.broadcast"/>
+            <rabbit:binding queue="queue.broadcast" pattern="*.*.*"/>
             <rabbit:binding queue="queue.direct" pattern="package.ingest.umiacs"/>
         </rabbit:bindings>
     </rabbit:topic-exchange>
@@ -47,7 +47,10 @@
         <constructor-arg ref="msgProcessor" />
     </bean>
 
-    <rabbit:listener-container connection-factory="connectionFactory"> 
+    <bean id="errorHandler" class="org.chronopolis.amqp.error.ErrorHandlerImpl"/>
+
+    <rabbit:listener-container connection-factory="connectionFactory"
+                               error-handler="errorHandler"> 
         <rabbit:listener ref="msgListener"
             queues="queue.test,queue.broadcast,queue.direct"/>
     </rabbit:listener-container>
@@ -60,7 +63,6 @@
                      confirm-callback="confirmCallback"
                      return-callback=""/> 
                      -->
-    <rabbit:queue name="myqueue" />
 
     <bean id="producer" class="org.chronopolis.amqp.TopicProducer">
         <constructor-arg index="0" ref="rabbitTemplate"/>

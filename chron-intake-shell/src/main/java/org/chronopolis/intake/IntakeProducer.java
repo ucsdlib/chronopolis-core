@@ -93,7 +93,6 @@ public class IntakeProducer {
             PRODUCER_OPTION option = inputOption();
             
             if ( option.equals(PRODUCER_OPTION.SEND_INTAKE_REQUEST)) {
-                System.out.println("Sending message weee");
                 PackageReadyMessage msg = MessageFactory.DefaultPackageReadyMessage();
                 producer.send(msg,"package.ingest.broadcast"); 
                 /*

@@ -6,8 +6,9 @@ package org.chronopolis.amqp;
 
 import java.io.IOException;
 import java.util.Map;
-import org.apache.log4j.Logger;
 import org.chronopolis.messaging.base.ChronMessage2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
@@ -19,7 +20,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
  */
 public class TopicProducer implements ChronProducer {
 
-    private final Logger log = Logger.getLogger(TopicProducer.class);
+    private final Logger log = LoggerFactory.getLogger(TopicProducer.class);
 
     private RabbitTemplate template;
     private String defaultRoutingKey;
@@ -31,7 +32,7 @@ public class TopicProducer implements ChronProducer {
     public void send(ChronMessage2 message, String routingKey) {
         boolean done = false;
         int numTries = 0;
-        log.debug("Preparing message " + message.toString());
+        log.debug("Preparing message {}",  message.toString());
         MessageProperties props = new MessageProperties();
         props.setDeliveryMode(MessageDeliveryMode.PERSISTENT);
         // props.setContentType("application/json");
@@ -45,11 +46,14 @@ public class TopicProducer implements ChronProducer {
             for ( String key : headers.keySet()) {
                 props.setHeader(key, headers.get(key));
             }
+        }else {
+            log.error("Message headers not valid!");
+            throw new RuntimeException("Invalid headers");
         }
         try {
             while ( !done && numTries < 3 ) {
                 Message msg = new Message(message.createMessage(), props);
-                log.info("Sending "+ message.getType() + " to " + routingKey);
+                log.info("Sending {} to {} ", message.getType(), routingKey);
 
                 template.send(routingKey, msg);
                 done = true;

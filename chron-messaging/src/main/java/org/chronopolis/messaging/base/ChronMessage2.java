@@ -75,7 +75,7 @@ public class ChronMessage2 {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(baos);
         oos.writeObject(body);
-        header.setDate(new Date().toString());
+        // header.setDate(new Date().toString());
         header.setCorrelationId(UUID.randomUUID().toString());
         return baos.toByteArray();
     }

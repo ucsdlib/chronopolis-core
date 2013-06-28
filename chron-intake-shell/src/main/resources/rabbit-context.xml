@@ -35,7 +35,6 @@
                      confirm-callback="confirmCallback"
                      return-callback=""/> 
                      -->
-    <rabbit:queue name="myqueue" />
 
     <bean id="producer" class="org.chronopolis.amqp.TopicProducer">
         <constructor-arg index="0" ref="rabbitTemplate"/>

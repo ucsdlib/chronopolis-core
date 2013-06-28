@@ -36,6 +36,9 @@ public class ChronHeader {
 	}
 
     private void putAll() {
+        if ( header == null ) { 
+            header = new ConcurrentHashMap<>();
+        }
         header.put(ORIGIN.toString(), origin);
         header.put(RETURN_KEY.toString(), returnKey);
         header.put(CORRELATION_ID.toString(), correlationId);
