@@ -14,6 +14,7 @@ import java.io.InputStreamReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.chronopolis.amqp.ChronProducer;
+import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
 import org.springframework.context.support.GenericXmlApplicationContext;
 
@@ -93,6 +94,8 @@ public class IntakeProducer {
             
             if ( option.equals(PRODUCER_OPTION.SEND_INTAKE_REQUEST)) {
                 System.out.println("Sending message weee");
+                PackageReadyMessage msg = MessageFactory.DefaultPackageReadyMessage();
+                producer.send(msg,"package.ingest.broadcast"); 
                 /*
                 try {
                     sendIntakeRequest();

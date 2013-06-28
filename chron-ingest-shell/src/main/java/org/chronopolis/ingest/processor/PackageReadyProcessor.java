@@ -17,6 +17,7 @@ public class PackageReadyProcessor implements ChronProcessor {
 
     @Override
     public void process(ChronMessage2 chronMessage) {
+        System.out.println("Processing " + chronMessage.getType().toString());
         if ( !(chronMessage instanceof PackageReadyMessage)) {
             // Error out
         }

@@ -62,7 +62,6 @@
         <dependency>
             <groupId>org.chronopolis</groupId>
             <artifactId>chron-amqp-core</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>

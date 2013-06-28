@@ -4,20 +4,10 @@
  */
 package org.chronopolis.ingest;
 
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.QueueingConsumer;
-import com.rabbitmq.client.ShutdownListener;
-import com.rabbitmq.client.ShutdownSignalException;
-import java.io.ByteArrayInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.chronopolis.messaging.base.ChronBody;
-import org.chronopolis.messaging.base.ChronHeader;
-import org.chronopolis.messaging.pkg.PackageReadyMessage;
+import java.io.InputStreamReader;
+import org.springframework.context.support.GenericXmlApplicationContext;
 
 /**
  *
@@ -25,6 +15,17 @@ import org.chronopolis.messaging.pkg.PackageReadyMessage;
  */
 public class IngestConsumer {
 
+    private static String readLine() {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            return reader.readLine();
+        } catch (IOException ex) {
+            throw new RuntimeException("Can't read from STDIN");
+        }
+    }
+
+
+    /*
     public void consume() throws IOException, InterruptedException, ClassNotFoundException {
         String vhost = "chronopolis";
         String exchange = "chronopolis-control";
@@ -94,13 +95,25 @@ public class IngestConsumer {
             channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
         } 
     }
+    */
     
     public static void main(String [] args) {
-        IngestConsumer consumer = new IngestConsumer();
-        try {
-            consumer.consume();
-        } catch (IOException | InterruptedException | ClassNotFoundException ex) {
-            Logger.getLogger(IngestConsumer.class.getName()).log(Level.SEVERE, null, ex);
+        GenericXmlApplicationContext context = new GenericXmlApplicationContext(
+                "classpath:/rabbit-context.xml");
+        boolean done = false;
+        while (!done) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ex) {
+            }
+            System.out.println("Enter 'q' to exti: ");
+            if ("q".equalsIgnoreCase(readLine())) {
+                System.out.println("Shutdting dinow");
+                done = true;
+            }
         }
+
+        context.close();
+        System.out.println("Closed for business");
     }
 }
