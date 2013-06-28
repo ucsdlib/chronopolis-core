@@ -8,8 +8,10 @@
   <fileSets>
     <fileSet>
       <directory>src/main/resources</directory>
+      <outputDirectory>/</outputDirectory>
       <includes>
         <include>*.properties</include>
+        <include>rabbit-context.xml</include>
       </includes>
     </fileSet>
   </fileSets>

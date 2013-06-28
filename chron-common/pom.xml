@@ -10,7 +10,7 @@
     <groupId>org.chronopolis</groupId>
     <artifactId>chron-common</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>chron-common</name>
+    <name>Common</name>
     <url>http://maven.apache.org</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

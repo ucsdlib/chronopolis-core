@@ -10,19 +10,11 @@
     <packaging>jar</packaging>
 
     <artifactId>chron-amqp-core</artifactId>
-    <name>chron-amqp-core</name>
+    <name>AMQP Core</name>
 
     <url>http://maven.apache.org</url>
 
     <dependencies>
-        <!--
-        <dependency>
-            <groupId>com.rabbitmq</groupId>
-            <artifactId>amqp-client</artifactId>
-            <version>3.0.2</version>
-        </dependency>
-        -->
-
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>
             <artifactId>json-simple</artifactId>
@@ -36,7 +28,6 @@
         <dependency>
             <groupId>org.springframework.amqp</groupId>
             <artifactId>spring-rabbit</artifactId>
-            <version>1.1.4.RELEASE</version>
         </dependency>
     </dependencies>
 

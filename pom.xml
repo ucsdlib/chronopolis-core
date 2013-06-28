@@ -77,6 +77,12 @@
                 <version>1.2.14</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.springframework.amqp</groupId>
+                <artifactId>spring-rabbit</artifactId>
+                <version>1.1.4.RELEASE</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
@@ -90,6 +96,10 @@
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.amqp</groupId>
+            <artifactId>spring-rabbit</artifactId>
         </dependency>
     </dependencies>
 

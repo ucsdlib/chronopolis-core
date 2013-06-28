@@ -11,12 +11,15 @@
     <artifactId>chron-ingest-shell</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>chron-ingest-shell</name>
+    <name>Ingest Shell</name>
     <url>http://maven.apache.org</url>
+
     <build> 
         <plugins>
-            <plugin> 
-                <artifactId>maven-assembly-plugin</artifactId>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -24,17 +27,32 @@
                         </manifest>
                     </archive>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.dstovall</groupId>
+                <artifactId>onejar-maven-plugin</artifactId>
+                <version>1.4.4</version>
                 <executions>
                     <execution>
-                        <phase>package</phase>
+                        <configuration>
+                            <attachToBuild>true</attachToBuild>
+                        </configuration>
                         <goals>
-                            <goal>single</goal>
+                            <goal>one-jar</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
-    </build>
+    </build>   
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>onejar-maven-plugin.googlecode.com</id>
+            <url>http://onejar-maven-plugin.googlecode.com/svn/mavenrepo</url>
+        </pluginRepository>
+    </pluginRepositories>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>

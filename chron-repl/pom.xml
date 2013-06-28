@@ -7,7 +7,7 @@
     <packaging>war</packaging>
     <version>1.0-SNAPSHOT</version>
 
-    <name>chron-repl</name>
+    <name>Replication Service</name>
     <url>http://maven.apache.org</url>
 
     <dependencies>

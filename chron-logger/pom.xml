@@ -13,7 +13,7 @@
     <packaging>war</packaging>
     <version>1.0-SNAPSHOT</version>
 
-    <name>chron-logger</name>
+    <name>Message Logger</name>
     <url>http://maven.apache.org</url>
 
     <dependencies>
@@ -32,7 +32,6 @@
         <dependency>
             <groupId>org.chronopolis</groupId>
             <artifactId>chron-messaging</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.rabbitmq</groupId>
