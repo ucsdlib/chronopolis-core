@@ -4,7 +4,6 @@
  */
 package org.chronopolis.messaging.logger.processor;
 
-import com.rabbitmq.client.ConnectionFactory;
 import java.util.Map;
 import org.chronopolis.messaging.base.ChronMessage2;
 import org.chronopolis.messaging.base.ChronProcessor;
@@ -23,5 +22,5 @@ public class GenericMessageProcessor implements ChronProcessor {
 
 
     }
-    
+
 }

@@ -2,6 +2,7 @@ package org.chronopolis.amqp;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import org.chronopolis.messaging.MessageType;
 import org.chronopolis.messaging.base.ChronBody;
 import org.chronopolis.messaging.base.ChronMessage2;
 import org.chronopolis.messaging.base.ChronProcessor;
@@ -22,14 +23,21 @@ import org.springframework.amqp.core.MessageProperties;
  * 
  * @author toaster
  */
-public class ChronMessageListener implements MessageListener {
-    private ChronProcessor processor;
+public abstract class ChronMessageListener implements MessageListener {
+	// private ChronProcessor processor;
+	// private Map<MessageType, ChronProcessor> processors;
     private Logger log = LoggerFactory.getLogger(ChronMessageListener.class);
     
-    public ChronMessageListener(ChronProcessor processor) {
-        this.processor = processor;
+	/*
+    public ChronMessageListener(ChronProcessor... processors) {
+		this.processors = new HashMap<>();
+		for ( ChronProcessor p : processors ) {
+			this.processors.put(p.getMessageType(), p);
+		}
     }
+	*/
     
+	@Override
     public void onMessage(Message msg) {
         MessageProperties props = msg.getMessageProperties();
         byte[] body = msg.getBody();
@@ -74,7 +82,10 @@ public class ChronMessageListener implements MessageListener {
 
         // Sanity Check
         if ( null != message ) {
+			ChronProcessor processor = getProcessor(message.getType());
             processor.process(message);
         }
     }
+
+	public abstract ChronProcessor getProcessor(MessageType type);
 }

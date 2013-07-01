@@ -21,5 +21,5 @@ public class PackageIngestStatusQueryProcessor implements ChronProcessor {
         }
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
+
 }
