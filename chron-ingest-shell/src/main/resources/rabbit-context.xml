@@ -40,11 +40,16 @@
         </rabbit:bindings>
     </rabbit:topic-exchange>
 
-    <bean id="msgProcessor" class="org.chronopolis.ingest.processor.PackageReadyProcessor">
+    <bean id="packageReadyProcessor" class="org.chronopolis.ingest.processor.PackageReadyProcessor">
+        <constructor-arg ref="producer"/>
+    </bean>
+    <bean id="packageStatusProcessor" class="org.chronopolis.ingest.processor.PackageIngestStatusQueryProcessor">
+        <constructor-arg ref="producer"/> 
     </bean>
 
-    <bean id="msgListener" class="org.chronopolis.amqp.ChronMessageListener">
-        <constructor-arg ref="msgProcessor" />
+    <bean id="msgListener" class="org.chronopolis.ingest.IngestMessageListener">
+        <constructor-arg ref="packageStatusProcessor"/>
+        <constructor-arg ref="packageReadyProcessor"/>
     </bean>
 
     <bean id="errorHandler" class="org.chronopolis.amqp.error.ErrorHandlerImpl"/>

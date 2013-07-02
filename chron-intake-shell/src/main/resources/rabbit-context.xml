@@ -24,9 +24,26 @@
         </property>
         <property name="addresses" value="adapt-mq.umiacs.umd.edu"/>
     </bean>
+
+    <!-- Set up our queues and bindings in the exchange -->
+    <!-- Need to fill out for intake -->
+
+    <!-- Set up our Processors and Listener -->
+    <bean id="packageIngestCompleteProcessor" class="org.chronopolis.intake.processor.PackageIngestCompleteProcessor">
+        <constructor-arg ref="producer"/>
+    </bean>
+    <bean id="packageIngestStatusProcessor" class="org.chronopolis.intake.processor.PackageIngestStatusResponseProcessor">
+        <constructor-arg ref="producer"/> 
+    </bean>
+
+    <bean id="msgListener" class="org.chronopolis.ingest.IntakeMessageListener">
+        <constructor-arg ref="packageIngestCompleteProcessor"/>
+        <constructor-arg ref="packageIngestStatusProcessor"/>
+    </bean>
     
     <rabbit:admin connection-factory="connectionFactory"/>
 
+    <!-- Create the producer -->
     <rabbit:template id="rabbitTemplate" exchange="chronopolis-control" 
                      connection-factory="connectionFactory"
                      mandatory="true" />

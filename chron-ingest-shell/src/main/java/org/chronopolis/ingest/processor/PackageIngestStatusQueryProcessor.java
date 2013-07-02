@@ -4,8 +4,10 @@
  */
 package org.chronopolis.ingest.processor;
 
+import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.messaging.base.ChronMessage2;
 import org.chronopolis.messaging.base.ChronProcessor;
+import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.messaging.pkg.PackageIngestStatusQueryMessage;
 
 /**
@@ -14,12 +16,19 @@ import org.chronopolis.messaging.pkg.PackageIngestStatusQueryMessage;
  */
 public class PackageIngestStatusQueryProcessor implements ChronProcessor {
 
+    private ChronProducer producer;
+
+    public PackageIngestStatusQueryProcessor(ChronProducer producer) {
+        this.producer = producer;
+    }
+    
     @Override
     public void process(ChronMessage2 chronMessage) {
         if ( !(chronMessage instanceof PackageIngestStatusQueryMessage) ) {
             // Error out
         }
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+        // Will need to make a query object for the replication services if we want this
     }
 
 }

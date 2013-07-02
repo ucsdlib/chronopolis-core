@@ -4,8 +4,10 @@
  */
 package org.chronopolis.ingest.processor;
 
+import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.messaging.base.ChronMessage2;
 import org.chronopolis.messaging.base.ChronProcessor;
+import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
 import org.chronopolis.transfer.FileTransfer;
 
@@ -14,6 +16,12 @@ import org.chronopolis.transfer.FileTransfer;
  * @author shake
  */
 public class PackageReadyProcessor implements ChronProcessor {
+
+    private ChronProducer producer;
+
+    public PackageReadyProcessor(ChronProducer producer) {
+        this.producer = producer;
+    }
 
     @Override
     public void process(ChronMessage2 chronMessage) {
@@ -27,7 +35,7 @@ public class PackageReadyProcessor implements ChronProcessor {
         // 3: validate and create token store
         
         // String protocol = getProtocol();
-        FileTransfer transferObj = null;
+        //FileTransfer transferObj = null;
         
         /*
         if (protocol.equals("rsync")) {
@@ -40,7 +48,7 @@ public class PackageReadyProcessor implements ChronProcessor {
         */
         
         // Should end up being the location for a download
-        String tokenStore = "https://chron-monitor.umiacs.umd.edu/tokenStore001";
+        //String tokenStore = "https://chron-monitor.umiacs.umd.edu/tokenStore001";
         
         // Sending the next message will be done in the ingest consumer?
         // CollectionInitMessage collectionInitRequest = new CollectionInitMessage();
@@ -50,6 +58,10 @@ public class PackageReadyProcessor implements ChronProcessor {
         // collectionInitRequest.setTokenStore(tokenStore);
         
         // Send message
+        ChronMessage2 msg = MessageFactory.DefaultCollectionInitMessage();
+
+        // Hold the routing key here temporarily
+        producer.send(msg, "collection.init.broadcast");
     }
 
 }

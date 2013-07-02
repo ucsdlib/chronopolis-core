@@ -4,8 +4,10 @@
  */
 package org.chronopolis.intake.processor;
 
+import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.messaging.base.ChronMessage2;
 import org.chronopolis.messaging.base.ChronProcessor;
+import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.messaging.pkg.PackageIngestCompleteMessage;
 
 /**
@@ -14,12 +16,19 @@ import org.chronopolis.messaging.pkg.PackageIngestCompleteMessage;
  */
 public class PackageIngestCompleteProcessor implements ChronProcessor {
 
+    private ChronProducer producer;
+
+    public PackageIngestCompleteProcessor(ChronProducer producer) {
+        this.producer = producer;
+    }
+
     @Override
     public void process(ChronMessage2 chronMessage) {
         if ( !(chronMessage instanceof PackageIngestCompleteMessage) ) {
 
         }
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+        ChronMessage2 msg = MessageFactory.DefaultPackageIngestCompleteMessage();
     }
 
     

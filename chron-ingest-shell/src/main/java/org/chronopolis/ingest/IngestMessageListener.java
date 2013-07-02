@@ -24,7 +24,14 @@ public class IngestMessageListener extends ChronMessageListener {
 
 	@Override
 	public ChronProcessor getProcessor(MessageType type) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        switch (type) {
+            case PACKAGE_INGEST_READY:
+                return packageReadyProcessor;
+            case PACKAGE_INGEST_STATUS_QUERY:
+                return packageIngestStatusQueryProcessor;
+            default:
+                throw new RuntimeException("Unexpected MessageType: " + type.name());
+        }
 	}
 	
 }
