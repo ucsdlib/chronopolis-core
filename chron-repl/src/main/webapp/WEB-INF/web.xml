@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
     <display-name>chron-repl</display-name>
-    <!--<listener>
-        <listener-class>org.chronopolis.replicate.AMQPContext</listener-class>
-    </listener>-->
+    
+    <!-- Spring Context Stuffs -->    
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>/WEB-INF/spring/application-context.xml</param-value>
+    </context-param>
+
+
     <listener>
         <listener-class>org.chronopolis.logging.LogContext</listener-class>
     </listener>
-    <!--<listener>
-        <listener-class>org.chronopolis.test.MockContext</listener-class>
-    </listener> would not deploy -->
     <listener>
         <description>ServletContextListener</description>
         <listener-class>org.chronopolis.replicate.db.PersistenceContextListener</listener-class>

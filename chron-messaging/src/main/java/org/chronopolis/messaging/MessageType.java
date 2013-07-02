@@ -29,8 +29,10 @@ public enum MessageType {
     // Ingest <--> Distribute Messages,
     // Do these messages need a query and response? There is only an ack associated
     // with them
-    DISTRIBUTE_COLL_INIT(MessageState.ORIGIN, ProcessType.DISTRIBUTE, "init", Indicator.QUERY,
+    COLLECTION_INIT(MessageState.ORIGIN, ProcessType.DISTRIBUTE, "init", Indicator.QUERY,
             "depositor", "collection", "token-store", "audit-period"),
+    COLLECTION_INIT_COMPLETE(MessageState.RESPONSE, ProcessType.DISTRIBUTE, "fin", Indicator.ACK, 
+            "collection", "attribute", "error-list"),
     // Distribute <--> Distribute,
     // Will query other nodes to ask for files and get a response
     FILE_QUERY(MessageState.ORIGIN, ProcessType.QUERY, "avail", Indicator.QUERY,
@@ -84,7 +86,7 @@ public enum MessageType {
             case "r-ingest-avail-nak":
                 return INGEST_AVAIL_NAK;
             case "o-distribute-coll-init":
-                return DISTRIBUTE_COLL_INIT;
+                return COLLECTION_INIT;
             case "r-distribute-init-ack":
                 return DISTRIBUTE_INIT_ACK;
             case "o-distribute-transfer-request":

@@ -1,0 +1,82 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xsi:schemaLocation="http://www.springframework.org/schema/rabbit
+                           http://www.springframework.org/schema/rabbit/spring-rabbit-1.1.xsd
+                           http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+    <bean id="rabbitConnectionFactory" class="com.rabbitmq.client.ConnectionFactory">
+        <property name="requestedHeartbeat" value="60"/>
+        <property name="connectionTimeout" value="300"/>
+        <property name="virtualHost" value="chronopolis"/>
+    </bean>
+
+    <bean id="connectionFactory"
+          class="org.springframework.amqp.rabbit.connection.CachingConnectionFactory">
+        <constructor-arg ref="rabbitConnectionFactory"/>
+        <property name="publisherConfirms" value="true"/>
+        <property name="publisherReturns" value="true"/>
+        <property name="connectionListeners">
+            <list>
+                <bean class="org.chronopolis.amqp.ConnectionListenerImpl"/>
+            </list>
+        </property>
+        <property name="addresses" value="adapt-mq.umiacs.umd.edu"/>
+    </bean>
+    
+    <rabbit:admin connection-factory="connectionFactory"/>
+
+    <!-- Set up our queues and bindings in the exchange -->
+    <rabbit:queue id="queue.test" name="test.umiacs" durable="true"/>
+    <rabbit:queue id="queue.broadcast" name="broadcast.umiacs" durable="true"/>
+    <rabbit:queue id="queue.direct" name="direct.umiacs" durable="true"/>
+
+    <rabbit:topic-exchange id="federatedExchange" name="chronopolis-control"> 
+        <rabbit:bindings>
+            <rabbit:binding queue="queue.test" pattern="test.umiacs"/>
+            <rabbit:binding queue="queue.broadcast" pattern="collection.init.broadcast"/>
+            <rabbit:binding queue="queue.direct" pattern="file.query.umiacs"/>
+        </rabbit:bindings>
+    </rabbit:topic-exchange>
+
+
+    <!-- Set up our processors/listener -->
+    <bean id="fileQueryProcessor" class="org.chronopolis.replicate.processor.FileQueryProcessor">
+        <constructor-arg ref="producer"/>
+    </bean>
+    <bean id="fileQueryResponseProcessor" class="org.chronopolis.replicate.processor.FileQueryResponseProcessor">
+        <constructor-arg ref="producer"/> 
+    </bean>
+    <bean id="collectionInitProcessor" class="org.chronopolis.replicate.processor.CollectionInitProcessor">
+        <constructor-arg ref="producer"/> 
+    </bean>
+
+    <bean id="msgListener" class="org.chronopolis.replicate.ReplicateMessageListener">
+        <constructor-arg ref="fileQueryProcessor"/>
+        <constructor-arg ref="fileQueryResponseProcessor"/>
+        <constructor-arg ref="collectionInitProcessor"/>
+    </bean>
+
+    <bean id="errorHandler" class="org.chronopolis.amqp.error.ErrorHandlerImpl"/>
+
+    <rabbit:listener-container connection-factory="connectionFactory"
+                               error-handler="errorHandler"> 
+        <rabbit:listener ref="msgListener"
+            queues="queue.test,queue.broadcast,queue.direct"/>
+    </rabbit:listener-container>
+
+    <rabbit:template id="rabbitTemplate" exchange="chronopolis-control" 
+                     connection-factory="connectionFactory"
+                     mandatory="true" />
+
+    <!--
+                     confirm-callback="confirmCallback"
+                     return-callback=""/> 
+                     -->
+
+    <bean id="producer" class="org.chronopolis.amqp.TopicProducer">
+        <constructor-arg index="0" ref="rabbitTemplate"/>
+    </bean>
+
+</beans>

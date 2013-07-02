@@ -29,6 +29,8 @@ import org.chronopolis.messaging.pkg.PackageReadyMessage;
  * TODO: Make MessageType static in each type of message
  * TODO: Create class prototypes here
  * TODO: Header sets in this class too
+ * TODO: Do we need to encapsulate the Header? Why not just have the vals in this class?
+ *       What was I even thinking?
  */
 public class ChronMessage2 {
     // public MessageType type;
@@ -86,7 +88,7 @@ public class ChronMessage2 {
                 return new FileQueryMessage(); 
             case FILE_QUERY_RESPONSE:
                 return new FileQueryResponseMessage();
-            case DISTRIBUTE_COLL_INIT:
+            case COLLECTION_INIT:
                 return new CollectionInitMessage();
             case PACKAGE_INGEST_READY:
                 return new PackageReadyMessage();

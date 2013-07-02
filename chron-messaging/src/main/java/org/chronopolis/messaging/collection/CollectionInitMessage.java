@@ -26,13 +26,13 @@ import static org.chronopolis.messaging.MessageConstant.AUDIT_PERIOD;
  */
 public class CollectionInitMessage extends ChronMessage2 {
     public CollectionInitMessage() {
-        super(MessageType.DISTRIBUTE_COLL_INIT);
+        super(MessageType.COLLECTION_INIT);
         this.body = new ChronBody(type);
         this.header = new ChronHeader();
     }
 
     public CollectionInitMessage(ChronHeader header, ChronBody body) {
-        super(MessageType.DISTRIBUTE_COLL_INIT);
+        super(MessageType.COLLECTION_INIT);
         this.header = header;
         this.body = new ChronBody(type, body.getBody());
     }

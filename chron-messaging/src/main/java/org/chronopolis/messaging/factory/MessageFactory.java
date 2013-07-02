@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
 import org.chronopolis.messaging.base.ChronHeader;
+import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.file.FileQueryMessage;
 import org.chronopolis.messaging.file.FileQueryResponseMessage;
@@ -43,13 +44,21 @@ public class MessageFactory {
         return msg;
     }
 
+    public static CollectionInitCompleteMessage DefaultCollectionInitCompleteMessage() {
+        CollectionInitCompleteMessage msg = new CollectionInitCompleteMessage();
+        setHeaders(msg.getChronHeader());
+        return msg;
+    }
+
     public static FileQueryMessage DefaultFileQueryMessage() { 
         FileQueryMessage msg = new FileQueryMessage();
+        setHeaders(msg.getChronHeader());
         return msg;
     } 
 
     public static FileQueryResponseMessage DefaultFileQueryResponseMessage() {
         FileQueryResponseMessage msg = new FileQueryResponseMessage();  
+        setHeaders(msg.getChronHeader());
         return msg;
     }
 
@@ -65,16 +74,19 @@ public class MessageFactory {
 
     public static PackageIngestCompleteMessage DefaultPackageIngestCompleteMessage() {
         PackageIngestCompleteMessage msg = new PackageIngestCompleteMessage();
+        setHeaders(msg.getChronHeader());
         return msg;
     }
 
     public static PackageIngestStatusQueryMessage DefaultPackageIngestStatusQueryMessage() {
         PackageIngestStatusQueryMessage msg = new PackageIngestStatusQueryMessage();
+        setHeaders(msg.getChronHeader());
         return msg;
     }
 
     public static PackageIngestStatusResponseMessage DefaultPackageIngestStatusResponseMessage() {
         PackageIngestStatusResponseMessage msg = new PackageIngestStatusResponseMessage();  
+        setHeaders(msg.getChronHeader());
         return msg;
     }
     

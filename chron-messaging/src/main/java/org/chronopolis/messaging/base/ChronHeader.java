@@ -69,6 +69,14 @@ public class ChronHeader {
 		return header;
 	}
 
+    public String getReturnKey() {
+        return (String) header.get(RETURN_KEY.toString());
+    }
+
+    public String getCorrelationId() {
+        return (String) header.get(CORRELATION_ID.toString());
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -83,5 +91,4 @@ public class ChronHeader {
         return sb.toString();
     }
 
-    
 }

@@ -33,7 +33,7 @@ public class MockMessage {
     
     public void testMessage( ) throws IOException {
         MessageBuilder mb = new MessageBuilder();
-        mb.setMessageName(MessageType.DISTRIBUTE_COLL_INIT);
+        mb.setMessageName(MessageType.COLLECTION_INIT);
 		//MessageType.O_DISTRIBUTE_TRANSFER_REQUEST;
         
         mb.set(DEPOSITOR, "test_deposit");
