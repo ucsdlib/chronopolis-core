@@ -20,6 +20,7 @@ public class ReplicateMessageListener extends ChronMessageListener {
     public ReplicateMessageListener(ChronProcessor fileQueryProcessor,
                                     ChronProcessor fileQueryResponseProcessor,
                                     ChronProcessor collectionInitProcessor) {
+        System.out.println("Hello Spring Context World!");
         this.fileQueryProcessor = fileQueryProcessor;
         this.fileQueryResponseProcessor = fileQueryResponseProcessor;
         this.collectionInitProcessor = collectionInitProcessor;
@@ -27,6 +28,8 @@ public class ReplicateMessageListener extends ChronMessageListener {
 
     @Override
     public ChronProcessor getProcessor(MessageType type) {
+        System.out.println("I'm in the processor yippe");
+        
         switch (type) {
             case COLLECTION_INIT:
                 return collectionInitProcessor;

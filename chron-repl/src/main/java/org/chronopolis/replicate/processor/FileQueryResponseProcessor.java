@@ -4,6 +4,7 @@
  */
 package org.chronopolis.replicate.processor;
 
+import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.messaging.base.ChronMessage2;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.file.FileQueryResponseMessage;
@@ -13,6 +14,11 @@ import org.chronopolis.messaging.file.FileQueryResponseMessage;
  * @author shake
  */
 public class FileQueryResponseProcessor implements ChronProcessor {
+    private ChronProducer producer;
+
+    public FileQueryResponseProcessor(ChronProducer producer) {
+        this.producer = producer;
+    }
 
     public void process(ChronMessage2 chronMessage) {
         if ( !(chronMessage instanceof FileQueryResponseMessage)) {

@@ -36,7 +36,7 @@
         <constructor-arg ref="producer"/> 
     </bean>
 
-    <bean id="msgListener" class="org.chronopolis.ingest.IntakeMessageListener">
+    <bean id="msgListener" class="org.chronopolis.intake.IntakeMessageListener">
         <constructor-arg ref="packageIngestCompleteProcessor"/>
         <constructor-arg ref="packageIngestStatusProcessor"/>
     </bean>

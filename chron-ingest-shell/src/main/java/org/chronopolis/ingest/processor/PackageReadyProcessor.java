@@ -9,7 +9,7 @@ import org.chronopolis.messaging.base.ChronMessage2;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
-import org.chronopolis.transfer.FileTransfer;
+import org.chronopolis.common.transfer.FileTransfer;
 
 /**
  *

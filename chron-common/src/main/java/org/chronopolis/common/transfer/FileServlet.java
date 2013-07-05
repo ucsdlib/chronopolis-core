@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package org.chronopolis.transfer;
+package org.chronopolis.common.transfer;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

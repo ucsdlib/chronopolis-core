@@ -28,14 +28,14 @@
     <rabbit:admin connection-factory="connectionFactory"/>
 
     <!-- Set up our queues and bindings in the exchange -->
-    <rabbit:queue id="queue.test" name="test.umiacs" durable="true"/>
-    <rabbit:queue id="queue.broadcast" name="broadcast.umiacs" durable="true"/>
-    <rabbit:queue id="queue.direct" name="direct.umiacs" durable="true"/>
+    <rabbit:queue id="queue.test" name="test.ingest.umiacs" durable="true"/>
+    <rabbit:queue id="queue.broadcast" name="broadcast.ingest.umiacs" durable="true"/>
+    <rabbit:queue id="queue.direct" name="direct.ingest.umiacs" durable="true"/>
 
     <rabbit:topic-exchange id="federatedExchange" name="chronopolis-control"> 
         <rabbit:bindings>
             <rabbit:binding queue="queue.test" pattern="test.umiacs"/>
-            <rabbit:binding queue="queue.broadcast" pattern="*.*.*"/>
+            <rabbit:binding queue="queue.broadcast" pattern="package.ingest.broadcast"/>
             <rabbit:binding queue="queue.direct" pattern="package.ingest.umiacs"/>
         </rabbit:bindings>
     </rabbit:topic-exchange>

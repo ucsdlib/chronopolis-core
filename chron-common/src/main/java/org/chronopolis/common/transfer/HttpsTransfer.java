@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.chronopolis.transfer;
+package org.chronopolis.common.transfer;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletResponse;

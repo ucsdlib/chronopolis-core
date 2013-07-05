@@ -28,9 +28,9 @@
     <rabbit:admin connection-factory="connectionFactory"/>
 
     <!-- Set up our queues and bindings in the exchange -->
-    <rabbit:queue id="queue.test" name="test.umiacs" durable="true"/>
-    <rabbit:queue id="queue.broadcast" name="broadcast.umiacs" durable="true"/>
-    <rabbit:queue id="queue.direct" name="direct.umiacs" durable="true"/>
+    <rabbit:queue id="queue.test" name="test.repl.umiacs" durable="true"/>
+    <rabbit:queue id="queue.broadcast" name="broadcast.repl.umiacs" durable="true"/>
+    <rabbit:queue id="queue.direct" name="direct.repl.umiacs" durable="true"/>
 
     <rabbit:topic-exchange id="federatedExchange" name="chronopolis-control"> 
         <rabbit:bindings>
