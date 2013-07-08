@@ -4,9 +4,9 @@
  */
 package org.chronopolis.messaging.collection;
 
+import java.util.Map;
 import org.chronopolis.messaging.base.ChronBody;
 import org.chronopolis.messaging.base.ChronMessage2;
-import org.chronopolis.messaging.base.ChronHeader;
 import org.chronopolis.messaging.MessageType;
 
 import static org.chronopolis.messaging.MessageConstant.DEPOSITOR;
@@ -30,8 +30,9 @@ public class CollectionInitMessage extends ChronMessage2 {
         this.body = new ChronBody(type);
     }
 
-    public CollectionInitMessage(ChronHeader header, ChronBody body) {
+    public CollectionInitMessage(Map<String, Object> header, ChronBody body) {
         super(MessageType.COLLECTION_INIT);
+        setHeader(header);
         this.body = new ChronBody(type, body.getBody());
     }
 

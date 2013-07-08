@@ -7,7 +7,6 @@ package org.chronopolis.messaging.factory;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
-import org.chronopolis.messaging.base.ChronHeader;
 import org.chronopolis.messaging.base.ChronMessage2;
 import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionInitMessage;

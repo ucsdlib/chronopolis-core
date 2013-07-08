@@ -6,7 +6,6 @@ package org.chronopolis.messaging.file;
 
 import org.chronopolis.messaging.base.ChronBody;
 import org.chronopolis.messaging.base.ChronMessage2;
-import org.chronopolis.messaging.base.ChronHeader;
 import java.io.IOException;
 import java.util.Map;
 import org.chronopolis.messaging.MessageType;
@@ -30,9 +29,10 @@ public class FileTransferMessage extends ChronMessage2 {
 		this.body = new ChronBody(type);
 	}
 
-	public FileTransferMessage(MessageType type, ChronHeader header, ChronBody body) {
+	public FileTransferMessage(MessageType type, Map<String, Object> header, ChronBody body) {
 		// TODO: Parse all three
         super(MessageType.DISTRIBUTE_INIT_ACK);
+        setHeader(header);
         this.body = new ChronBody(type, body.getBody());
 	}
 	
