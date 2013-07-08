@@ -15,11 +15,14 @@ import org.chronopolis.messaging.base.ChronProcessor;
 public class IngestMessageListener extends ChronMessageListener {
 	private ChronProcessor packageIngestStatusQueryProcessor;
 	private ChronProcessor packageReadyProcessor;
+	private ChronProcessor collectionInitCompleteProcessor;
 
 	public IngestMessageListener(ChronProcessor packageIngestStatusQueryProcessor,
-								 ChronProcessor packageReadyProcessor) {
+								 ChronProcessor packageReadyProcessor,
+                                 ChronProcessor collectionInitCompleteProcessor) {
 		this.packageIngestStatusQueryProcessor = packageIngestStatusQueryProcessor;
 		this.packageReadyProcessor = packageReadyProcessor;
+        this.collectionInitCompleteProcessor = collectionInitCompleteProcessor;
 	}
 
 	@Override
@@ -29,6 +32,8 @@ public class IngestMessageListener extends ChronMessageListener {
                 return packageReadyProcessor;
             case PACKAGE_INGEST_STATUS_QUERY:
                 return packageIngestStatusQueryProcessor;
+            case COLLECTION_INIT_COMPLETE:
+                return collectionInitCompleteProcessor;
             default:
                 throw new RuntimeException("Unexpected MessageType: " + type.name());
         }

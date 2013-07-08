@@ -49,16 +49,16 @@ public class PackageReadyProcessor implements ChronProcessor {
         
         // Should end up being the location for a download
         //String tokenStore = "https://chron-monitor.umiacs.umd.edu/tokenStore001";
-        
+        // Send message
+        ChronMessage2 msg = MessageFactory.DefaultCollectionInitMessage();
+
         // Sending the next message will be done in the ingest consumer?
         // CollectionInitMessage collectionInitRequest = new CollectionInitMessage();
         // collectionInitRequest.setAuditPeriod("somedefinedperiod");
         // collectionInitRequest.setCollection(getPackageName());
         // collectionInitRequest.setDepositor(getDepositor());
         // collectionInitRequest.setTokenStore(tokenStore);
-        
-        // Send message
-        ChronMessage2 msg = MessageFactory.DefaultCollectionInitMessage();
+
 
         // Hold the routing key here temporarily
         producer.send(msg, "collection.init.broadcast");

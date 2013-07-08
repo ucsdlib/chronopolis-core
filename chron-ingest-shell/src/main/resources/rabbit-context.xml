@@ -46,10 +46,14 @@
     <bean id="packageStatusProcessor" class="org.chronopolis.ingest.processor.PackageIngestStatusQueryProcessor">
         <constructor-arg ref="producer"/> 
     </bean>
+    <bean id="collectionInitCompleteProcessor" class="org.chronopolis.ingest.processor.CollectionInitCompleteProcessor">
+        <constructor-arg ref="producer"/>
+    </bean>
 
     <bean id="msgListener" class="org.chronopolis.ingest.IngestMessageListener">
         <constructor-arg ref="packageStatusProcessor"/>
         <constructor-arg ref="packageReadyProcessor"/>
+        <constructor-arg ref="collectionInitCompleteProcessor"/>
     </bean>
 
     <bean id="errorHandler" class="org.chronopolis.amqp.error.ErrorHandlerImpl"/>
