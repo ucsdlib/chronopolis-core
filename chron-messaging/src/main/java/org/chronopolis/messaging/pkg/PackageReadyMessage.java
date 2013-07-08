@@ -6,7 +6,6 @@ package org.chronopolis.messaging.pkg;
 
 import org.chronopolis.messaging.MessageType;
 import org.chronopolis.messaging.base.ChronBody;
-import org.chronopolis.messaging.base.ChronHeader;
 import org.chronopolis.messaging.base.ChronMessage2;
 
 import static org.chronopolis.messaging.MessageConstant.PACKAGE_NAME;
@@ -25,7 +24,6 @@ public class PackageReadyMessage extends ChronMessage2 {
     public PackageReadyMessage() {
         super(MessageType.PACKAGE_INGEST_READY);
         this.body = new ChronBody(type);
-        this.header = new ChronHeader();
     }
 
     /*

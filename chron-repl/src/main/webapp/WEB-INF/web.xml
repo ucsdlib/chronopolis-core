@@ -20,10 +20,6 @@
         <listener-class>org.chronopolis.replicate.db.PersistenceContextListener</listener-class>
     </listener>
     <servlet>
-        <servlet-name>MockServlet</servlet-name>
-        <servlet-class>org.chronopolis.test.MockServlet</servlet-class>
-    </servlet>
-    <servlet>
         <servlet-name>MyEntityServlet</servlet-name>
         <servlet-class>org.chronopolis.replicate.servlet.MyEntityServlet</servlet-class>
     </servlet>

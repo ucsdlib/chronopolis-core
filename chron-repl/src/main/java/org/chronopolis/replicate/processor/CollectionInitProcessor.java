@@ -25,10 +25,12 @@ public class CollectionInitProcessor implements ChronProcessor {
     public void process(ChronMessage2 chronMessage) {
         if(!(chronMessage instanceof CollectionInitMessage)) {
             // Error out
+            return;
         }
 
+        // Because I'm bad at reading - Collection Init Complete Message
         ChronMessage2 response = MessageFactory.DefaultCollectionInitCompleteMessage();
-        producer.send(response, chronMessage.getChronHeader().getReturnKey());
+        producer.send(response, chronMessage.getReturnKey());
         
         /*
          * This is from the old FileConsumer class

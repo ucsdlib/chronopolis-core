@@ -28,32 +28,12 @@ public class FileTransferMessage extends ChronMessage2 {
 	public FileTransferMessage(MessageType type) {
         super(MessageType.DISTRIBUTE_INIT_ACK);
 		this.body = new ChronBody(type);
-		this.header = new ChronHeader();
 	}
 
 	public FileTransferMessage(MessageType type, ChronHeader header, ChronBody body) {
 		// TODO: Parse all three
         super(MessageType.DISTRIBUTE_INIT_ACK);
-        this.header = header;
         this.body = new ChronBody(type, body.getBody());
-	}
-	
-    // Methods for setting header information
-    
-	public void setSource(String source) {
-		header.setOrigin(source);
-	}
-
-	public void setCorrelationId(String correlationId) {
-		header.setCorrelationId(correlationId);
-	}
-	
-	public void setReturnKey(String returnKey) {
-		header.setReturnKey(returnKey);
-	}
-
-	private void setTimestamp(String timestamp) {
-		header.setDate(timestamp);
 	}
 	
     // Methods for the message body

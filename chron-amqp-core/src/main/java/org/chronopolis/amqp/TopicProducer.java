@@ -29,6 +29,7 @@ public class TopicProducer implements ChronProducer {
         this.template = template;
     }
 
+    @Override
     public void send(ChronMessage2 message, String routingKey) {
         boolean done = false;
         int numTries = 0;
@@ -41,7 +42,7 @@ public class TopicProducer implements ChronProducer {
             routingKey = defaultRoutingKey;
         }
         
-        Map<String, Object> headers = message.getChronHeader().getHeader();
+        Map<String, Object> headers = message.getHeader();
         if ( headers != null && !headers.isEmpty()) {
             for ( String key : headers.keySet()) {
                 props.setHeader(key, headers.get(key));
