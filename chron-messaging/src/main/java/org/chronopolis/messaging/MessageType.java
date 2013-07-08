@@ -26,23 +26,27 @@ public enum MessageType {
     INGEST_INIT_QUERY(MessageState.ORIGIN, ProcessType.INGEST, "init", Indicator.QUERY, "size", "protocol"),
     INGEST_AVAIL_ACK(MessageState.RESPONSE, ProcessType.INGEST, "avail", Indicator.ACK),
     INGEST_AVAIL_NAK(MessageState.RESPONSE, ProcessType.INGEST, "avail", Indicator.NAK),
+
     // Ingest <--> Distribute Messages,
     // Do these messages need a query and response? There is only an ack associated
     // with them
     COLLECTION_INIT(MessageState.ORIGIN, ProcessType.DISTRIBUTE, "init", Indicator.QUERY,
             "depositor", "collection", "token-store", "audit-period"),
-    COLLECTION_INIT_COMPLETE(MessageState.RESPONSE, ProcessType.DISTRIBUTE, "fin", Indicator.ACK, 
+    COLLECTION_INIT_COMPLETE(MessageState.RESPONSE, ProcessType.DISTRIBUTE, "ack", Indicator.ACK, 
             "collection", "attribute", "error-list"),
+
     // Distribute <--> Distribute,
     // Will query other nodes to ask for files and get a response
     FILE_QUERY(MessageState.ORIGIN, ProcessType.QUERY, "avail", Indicator.QUERY,
             "depositor", "protocol", "location", "filename"),
     FILE_QUERY_RESPONSE(MessageState.RESPONSE, ProcessType.QUERY, "transfer", Indicator.ACK,
             "available", "protocol", "location"),
+
+    // Intake <--> Ingest  
     PACKAGE_INGEST_READY(MessageState.ORIGIN, ProcessType.INGEST, "init", Indicator.QUERY, 
             "package-name", "location", "depositor", "size"),
-    PACKAGE_INGEST_COMPLETE(MessageState.RESPONSE, ProcessType.INGEST, "fin", Indicator.ACK,
-            "status", "failed-items"),
+    PACKAGE_INGEST_COMPLETE(MessageState.RESPONSE, ProcessType.INGEST, "ack", Indicator.ACK,
+            "package-name", "status", "failed-items"),
     PACKAGE_INGEST_STATUS_QUERY(MessageState.RESPONSE, ProcessType.INGEST, "query", Indicator.ACK,
             "package-name", "depositor"), 
     PACKAGE_INGEST_STATUS_RESPONSE(MessageState.RESPONSE, ProcessType.INGEST, "response", Indicator.ACK,
@@ -50,7 +54,7 @@ public enum MessageType {
 
     // Deprecated Messages
     @Deprecated
-    DISTRIBUTE_INIT_ACK(MessageState.RESPONSE, ProcessType.DISTRIBUTE, "fin", Indicator.ACK),
+    DISTRIBUTE_INIT_ACK(MessageState.RESPONSE, ProcessType.DISTRIBUTE, "ack", Indicator.ACK),
     @Deprecated
     DISTRIBUTE_TRANSFER_REQUEST(MessageState.ORIGIN, ProcessType.DISTRIBUTE, "transfer", Indicator.QUERY,
             "depositor", "filename", "digest-type", "digest", "location"),

@@ -61,6 +61,8 @@ public class PackageReadyProcessor implements ChronProcessor {
 
 
         // Hold the routing key here temporarily
+        // Will be from the properties soon
+        msg.setReturnKey("collection.ingest.umiacs");
         producer.send(msg, "collection.init.broadcast");
     }
 

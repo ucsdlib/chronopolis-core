@@ -25,7 +25,8 @@ public class CollectionInitCompleteProcessor implements ChronProcessor {
     public void process(ChronMessage2 chronMessage) {
         ChronMessage2 response = MessageFactory.DefaultPackageIngestCompleteMessage();
 
-        producer.send(response, "collection.init.byah");
+        // Once again, hold the routing key temporarily
+        producer.send(response, "package.intake.umiacs");
     }
     
 }

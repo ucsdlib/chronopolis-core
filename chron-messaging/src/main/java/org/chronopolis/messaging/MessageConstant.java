@@ -27,6 +27,12 @@ public enum MessageConstant {
     LOCATION("location"),
     PROTOCOL("protocol"),
     SIZE("size"),
+    STATUS("status"),
+    FAILED_ITEMS("failed-items"),
+
+    // Misc 
+    STATUS_SUCCESS("success"),
+    STATUS_FAIL("failed"),
     ;
     
     private final String text;
