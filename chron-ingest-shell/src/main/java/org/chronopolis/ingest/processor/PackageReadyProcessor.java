@@ -23,6 +23,14 @@ public class PackageReadyProcessor implements ChronProcessor {
         this.producer = producer;
     }
 
+    /* Once we've confirmed that a package is in our staging area we want to do
+     * a few things:
+     * 1 - Check if the package is a bag
+     *   .5 - If not, create a bag
+     * 2 - Create ACE Tokens 
+     * 3 - Send out the collection init message
+     * 
+     */
     @Override
     public void process(ChronMessage2 chronMessage) {
         System.out.println("Processing " + chronMessage.getType().toString());
