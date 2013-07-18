@@ -39,14 +39,11 @@ public class IngestConsumer {
         boolean done = false;
         ChronProducer p = (ChronProducer) context.getBean("producer");
         while (!done) {
-            BagValidator validator = new BagValidator(Paths.get("/scratch/staging/acadis_database_02-02-2013"));
-			System.out.println("Hullo!");
+            BagValidator validator = new BagValidator(Paths.get("/scratch1/staging/acadis_database_02-02-2013"));
             Future<Boolean> f = validator.getFuture();
-            System.out.println(f.isDone());
             try {
                 Boolean o = f.get();
                 System.out.println(o);
-                
             } catch (InterruptedException ex) {
                 Logger.getLogger(IngestConsumer.class.getName()).log(Level.SEVERE, null, ex);
             } catch (ExecutionException ex) {

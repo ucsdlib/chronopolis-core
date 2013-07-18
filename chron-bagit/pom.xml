@@ -16,6 +16,11 @@
     <url>http://maven.apache.org</url>
 
     <dependencies>
+        <dependency>
+            <groupId>edu.umiacs.ace</groupId>
+            <artifactId>ace-ims-api</artifactId>
+            <version>1.8</version>
+        </dependency>
     </dependencies>
 
     <build>

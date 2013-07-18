@@ -42,6 +42,11 @@
             <name>Repository hosting the jee6 artifacts</name>
             <url>http://download.java.net/maven/2</url>
         </repository>
+        <repository>
+            <url>https://scm.umiacs.umd.edu/maven/adapt/content/repositories/releases/</url>
+            <id>adapt-sonatype</id>
+            <name>ADAPT Project Repository</name>
+        </repository>
     </repositories>
 
     <dependencyManagement>
