@@ -4,6 +4,8 @@
  */
 package org.chronopolis.ingest.processor;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.messaging.base.ChronMessage2;
 import org.chronopolis.messaging.base.ChronProcessor;
@@ -37,28 +39,29 @@ public class PackageReadyProcessor implements ChronProcessor {
         if ( !(chronMessage instanceof PackageReadyMessage)) {
             // Error out
         }
+
+        PackageReadyMessage msg = (PackageReadyMessage) chronMessage;
+
+        String pathname = msg.getLocation();
+        String filename = msg.getPackageName();
+        Path toBag = Paths.get(pathname, filename);
+
+        // Probably want to validate the bag first so let's pretend we have some
+        // nice way to do that
+
+        // BagValidator.validateFormat(toBag);
+
+        // BagValidator.validateManifestAndGetTokens(toBag);
+
+        
         // Things to do:
-        // 1: Validate message
-        // 2: Grab bag
-        // 3: validate and create token store
         
         // String protocol = getProtocol();
-        //FileTransfer transferObj = null;
-        
-        /*
-        if (protocol.equals("rsync")) {
-            transferObj = new RSyncTransfer();
-        } else if (protocol.equals("https")) {
-            transferObj = new HttpsTransfer();
-        } else {
-            // Unsupported protocol
-        }
-        */
         
         // Should end up being the location for a download
         //String tokenStore = "https://chron-monitor.umiacs.umd.edu/tokenStore001";
         // Send message
-        ChronMessage2 msg = MessageFactory.DefaultCollectionInitMessage();
+        ChronMessage2 response = MessageFactory.DefaultCollectionInitMessage();
 
         // Sending the next message will be done in the ingest consumer?
         // CollectionInitMessage collectionInitRequest = new CollectionInitMessage();
@@ -70,8 +73,8 @@ public class PackageReadyProcessor implements ChronProcessor {
 
         // Hold the routing key here temporarily
         // Will be from the properties soon
-        msg.setReturnKey("collection.ingest.umiacs");
-        producer.send(msg, "collection.init.broadcast");
+        response.setReturnKey("collection.ingest.umiacs");
+        producer.send(response, "collection.init.broadcast");
     }
 
 }

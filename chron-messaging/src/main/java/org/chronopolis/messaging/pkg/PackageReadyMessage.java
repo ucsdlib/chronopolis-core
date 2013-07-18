@@ -12,7 +12,6 @@ import static org.chronopolis.messaging.MessageConstant.PACKAGE_NAME;
 import static org.chronopolis.messaging.MessageConstant.LOCATION;
 import static org.chronopolis.messaging.MessageConstant.DEPOSITOR;
 import static org.chronopolis.messaging.MessageConstant.SIZE;
-import static org.chronopolis.messaging.MessageConstant.PROTOCOL;
 
 /**
  * Relay the state of the collection
@@ -26,16 +25,6 @@ public class PackageReadyMessage extends ChronMessage2 {
         this.body = new ChronBody(type);
     }
 
-    /*
-    public void setProtocol(String protocol) {
-        body.addContent(PROTOCOL.toString(), protocol);
-    }
-    
-    private String getProtocol() {
-        return (String)body.get(PROTOCOL.toString());
-    }
-    */
-    
     public void setPackageName(String packageName) {
         body.addContent(PACKAGE_NAME.toString(), packageName);
     }
@@ -75,8 +64,6 @@ public class PackageReadyMessage extends ChronMessage2 {
         sb.append(getPackageName());
         sb.append(", depositor : ");
         sb.append(getDepositor());
-        sb.append(", protocol : ");
-        //sb.append(getProtocol());
         sb.append(", location : ");
         sb.append(getLocation());
         sb.append(", size : ");

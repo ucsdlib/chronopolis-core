@@ -7,7 +7,13 @@ package org.chronopolis.ingest;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Paths;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.chronopolis.amqp.ChronProducer;
+import org.chronopolis.bagit.BagValidator;
 import org.springframework.context.support.GenericXmlApplicationContext;
 
 /**
@@ -33,11 +39,24 @@ public class IngestConsumer {
         boolean done = false;
         ChronProducer p = (ChronProducer) context.getBean("producer");
         while (!done) {
+            BagValidator validator = new BagValidator(Paths.get("/scratch/staging/acadis_database_02-02-2013"));
+			System.out.println("Hullo!");
+            Future<Boolean> f = validator.getFuture();
+            System.out.println(f.isDone());
+            try {
+                Boolean o = f.get();
+                System.out.println(o);
+                
+            } catch (InterruptedException ex) {
+                Logger.getLogger(IngestConsumer.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ExecutionException ex) {
+                Logger.getLogger(IngestConsumer.class.getName()).log(Level.SEVERE, null, ex);
+            }
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException ex) {
             }
-            System.out.println("Enter 'q' to exti: ");
+            System.out.println("Enter 'q' to exit: ");
             if ("q".equalsIgnoreCase(readLine())) {
                 System.out.println("Shutdting dinow");
                 done = true;
