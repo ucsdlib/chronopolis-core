@@ -135,17 +135,6 @@ public class BagValidator {
                 Path toFile = entry.getKey();
                 String registeredDigest = entry.getValue();
                 
-                /*
-                 * FileInputStream fis = new FileInputStream(toFile.toFile());
-                 * DigestInputStream dis = new DigestInputStream(fis, md);
-                 * dis.on(true);
-                 * int off = 0;
-                 * int toread = (1024 <= dis.available() ? 1024 : dis.available());
-                 * byte []buf = new byte[dis.available()];
-                 * while ( dis.read(buf, off, toread) > 0) {
-                 * toread = (1024 <= dis.available() ? 1024 : dis.available());
-                 * }
-                 */
                 md.reset();
                 byte[] calculatedDigest = doDigest(toFile);
                 String digest = byteToHex(calculatedDigest);

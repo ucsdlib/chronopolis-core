@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.bagit.BagValidator;
+import org.chronopolis.common.transfer.HttpsTransfer;
 import org.springframework.context.support.GenericXmlApplicationContext;
 
 /**
@@ -44,7 +45,6 @@ public class IngestConsumer {
             Future<Boolean> f = validator.getFuture();
             try {
                 Boolean o = f.get();
-                System.out.println(o);
                 if ( o ) {
                     /*
                     Map<Path, String> digests = validator.getValidDigests();
@@ -54,7 +54,13 @@ public class IngestConsumer {
                     */
                     Path manifest = validator.getManifest(Paths.get("/scratch1/tokens/"));
                     System.out.println(manifest.toString());
+                    System.out.println("Downloading manifest");
+                    StringBuilder url = new StringBuilder("http://localhost/staging/tokens/");
+                    url.append(manifest.getFileName());
+                    HttpsTransfer xfer = new HttpsTransfer();
+                    xfer.getFile(url.toString());
                 }
+
             } catch (InterruptedException ex) {
                 Logger.getLogger(IngestConsumer.class.getName()).log(Level.SEVERE, null, ex);
             } catch (ExecutionException ex) {

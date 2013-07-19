@@ -4,55 +4,66 @@
  */
 package org.chronopolis.common.transfer;
 
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletResponse;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * TODO: Stop requests that are sent w/ http
  *       Move other code over and what not
- *       
+ *
  *
  * @author shake
  */
 public class HttpsTransfer extends FileTransfer {
+    private final Logger log = LoggerFactory.getLogger(HttpsTransfer.class);
     /**
      *
      * @param response
      */
-    public int getFile(HttpServletResponse response) { 
-        return 0;
+    public int getFile(String uri) throws IOException {
+        // Make HTTP Connection
+        URL url = new URL(uri);
+        ReadableByteChannel rbc = Channels.newChannel(url.openStream());
+        Path output = Paths.get("/scratch1/storage",
+                uri.substring(uri.lastIndexOf("/", uri.length())));
+        Path parent = output.getParent();
+        parent.toFile().mkdirs();
+        output.toFile().createNewFile();
+        FileOutputStream fos = new FileOutputStream(output.toString());
+        FileChannel fc = fos.getChannel();
+        fc.transferFrom(rbc, 0, 1<<24);
+        
         /*
-         *         // Break out to new class 
-        try {
-            // Make HTTP Connection
-            URL url = new URL(site);
-            ReadableByteChannel rbc = Channels.newChannel(url.openStream());
-
-            FileOutputStream fos = new FileOutputStream(filename);
-            FileChannel fc = fos.getChannel();
-            ByteBuffer buf = ByteBuffer.allocate(blockSize);
-
-            // Write file and update digest
-            while ( rbc.read(buf) > 0 ) {
-                // Do we want to throw an exception if write < 0?
-                byte[] out = buf.array();
-                int write = fc.write(buf);
-                md.update(out);
-                // buf.clear(); // I believe read takes care of this, will test later
-            }
-            fc.close();
-
-            // Check digests
-            // byte[] calculatedDigest = md.digest()
-            // convert to String
-            // compare
-            // return 1 if false
-
-
-
-        } catch (IOException ex) {
-            LOG.fatal(ex);
-        }
+         * // We may want to use the Files creation methods. will test performance later
+         * OutputStream fos = Files.newOutputStream(output, CREATE);
+         * 
+         * // Also some digest stuff
+         * ByteBuffer buf = ByteBuffer.allocate(blockSize);
+         * 
+         * // Write file and update digest
+         * while ( rbc.read(buf) > 0 ) {
+         * // Do we want to throw an exception if write < 0?
+         * byte[] out = buf.array();
+         * int write = fc.write(buf);
+         * md.update(out);
+         * // buf.clear(); // I believe read takes care of this, will test later
+         * }
+         * fc.close();
          */
+        
+        // Check digests
+        // byte[] calculatedDigest = md.digest()
+        // convert to String
+        // compare
+        // return 1 if false
+        return 0;
     }
 }
