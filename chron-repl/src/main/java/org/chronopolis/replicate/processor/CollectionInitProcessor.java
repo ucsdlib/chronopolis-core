@@ -4,7 +4,13 @@
  */
 package org.chronopolis.replicate.processor;
 
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.chronopolis.amqp.ChronProducer;
+import org.chronopolis.common.props.GenericProperties;
+import org.chronopolis.common.transfer.HttpsTransfer;
 import org.chronopolis.messaging.base.ChronMessage2;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
@@ -17,57 +23,34 @@ import org.chronopolis.messaging.factory.MessageFactory;
 public class CollectionInitProcessor implements ChronProcessor {
 
     private ChronProducer producer;
+    private GenericProperties props;
 
-    public CollectionInitProcessor(ChronProducer producer) {
+    public CollectionInitProcessor(ChronProducer producer, GenericProperties props) {
         this.producer = producer;
+        this.props = props;
     }
 
+    // TODO: Register token store in to ACE
+    // TODO: Download tokens from manifest
+    // TODO: Stuff
     public void process(ChronMessage2 chronMessage) {
         if(!(chronMessage instanceof CollectionInitMessage)) {
             // Error out
             return;
         }
 
+        CollectionInitMessage msg = (CollectionInitMessage) chronMessage;
+
+        HttpsTransfer xfer = new HttpsTransfer();
+        try { 
+            xfer.getFile(msg.getTokenStore(), Paths.get(props.getStage()));
+        } catch (IOException ex) {
+            Logger.getLogger(CollectionInitProcessor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
         // Because I'm bad at reading - Collection Init Complete Message
         ChronMessage2 response = MessageFactory.DefaultCollectionInitCompleteMessage();
         producer.send(response, chronMessage.getReturnKey());
-        
-        /*
-         * This is from the old FileConsumer class
-         * I'm saving it here for a short time until I get this sorted out
-         * Actually it should go in the HttpDownload class... oh well maybe later 
-         * 
-         * 
-        
-       // Register collection with ACE
-       // POST obj to localhost:8080/ace-am/rest/collection
-
-       // Load token store (File xfer? Yea probably the best)
-        
-        String depositor = (String) obj.get("depositor");
-        String site = (String) obj.get("url");
-
-        // Maybe full path instead
-        String filename = (String) obj.get("filename");
-        String digestType = (String) obj.get("digest-type");
-        String digest = (String) obj.get("digest");
-
-        System.out.println("Pulling file: " + filename);
-        System.out.println("Digest to check against: " + digest);
-        System.out.println("Digest method: " + digestType);
-        System.out.println("Depositor: " + depositor);
-        System.out.println("URL: " + site);
-
-
-        MessageDigest md = null;// MessageDigest.getInstance(digestType);
-
-        // Stop here while we don't have a server to pull from
-        if (null != obj) {
-            System.out.println("Returning 0");
-            return 0;
-        }
-
-        */
     }
     
 }

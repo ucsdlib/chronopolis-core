@@ -28,13 +28,15 @@ public class HttpsTransfer extends FileTransfer {
      *
      * @param response
      */
-    public int getFile(String uri) throws IOException {
+    public int getFile(String uri, Path stage) throws IOException {
         // Make HTTP Connection
         URL url = new URL(uri);
         ReadableByteChannel rbc = Channels.newChannel(url.openStream());
-        Path output = Paths.get("/scratch1/storage",
+        Path output = Paths.get(stage.toString(),
                 uri.substring(uri.lastIndexOf("/", uri.length())));
         Path parent = output.getParent();
+        System.out.println(parent.toString());
+        System.out.println(output.toString());
         parent.toFile().mkdirs();
         output.toFile().createNewFile();
         FileOutputStream fos = new FileOutputStream(output.toString());

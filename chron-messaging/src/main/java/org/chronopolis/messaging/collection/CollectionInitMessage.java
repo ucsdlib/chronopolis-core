@@ -40,16 +40,33 @@ public class CollectionInitMessage extends ChronMessage2 {
         body.addContent(DEPOSITOR.toString(), depositor);
     }
 
+    public String getDepositor() {
+        return (String) body.get(DEPOSITOR.toString());
+    }
+
     public void setCollection(String collection) {
         body.addContent(COLLECTION.toString(), collection);
+    }
+
+    public String getCollection() {
+        return (String) body.get(COLLECTION.toString());
     }
 
     public void setTokenStore(String tokenStore) {
         body.addContent(TOKEN_STORE.toString(), tokenStore);
     }
 
-    public void setAuditPeriod(String auditPeriod) {
+    public String getTokenStore() {
+        return (String) body.get(TOKEN_STORE.toString());
+
+    }
+
+    public void setAuditPeriod(long auditPeriod) {
         body.addContent(AUDIT_PERIOD.toString(), auditPeriod);
+    }
+
+    public long getAuditPeriod() {
+        return (long) body.get(AUDIT_PERIOD.toString());
     }
 
 }

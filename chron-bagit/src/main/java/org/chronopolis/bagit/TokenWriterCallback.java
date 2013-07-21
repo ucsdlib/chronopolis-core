@@ -42,16 +42,16 @@ public class TokenWriterCallback implements RequestBatchCallback {
         // denote that it is actually the tokens
         this.collectionName = collectionName+"-tokens";
     }
-
+    
     public Map<String, AceToken> getTokens() {
         return tokenMap;
     }
-
+    
     public void writeToFile(Path stage) throws IOException {
         manifest = Paths.get(stage.toString(), collectionName);
         try (OutputStream os = Files.newOutputStream(manifest, CREATE)) {
             AceTokenWriter writer = new AceTokenWriter(os);
-
+            
             for ( Map.Entry<String, AceToken> token : tokenMap.entrySet()) {
                 writer.startToken(token.getValue());
                 writer.addIdentifier(token.getKey());
@@ -63,17 +63,17 @@ public class TokenWriterCallback implements RequestBatchCallback {
     }
     
     @Override
-    public void tokensReceived(List<TokenRequest> requests, 
-                               List<TokenResponse> responses) {
+    public void tokensReceived(List<TokenRequest> requests,
+    List<TokenResponse> responses) {
         //Map<String, String> tokenMap = new HashMap<>();
         AceTokenBuilder builder = new AceTokenBuilder();
         
         /*
-        for ( TokenRequest tr : requests) {
-            tokenMap.put(tr.getName(), tr.getHashValue());
-        }
-        */
-
+         * for ( TokenRequest tr : requests) {
+         * tokenMap.put(tr.getName(), tr.getHashValue());
+         * }
+         */
+        
         for ( TokenResponse tr : responses ) {
             
             if ( tr.getStatusCode() == StatusCode.SUCCESS) {
@@ -82,7 +82,7 @@ public class TokenWriterCallback implements RequestBatchCallback {
                 builder.setIms("ims.umiacs.umd.edu"); // hard coded cause I'm a punk
                 builder.setImsService(tr.getTokenClassName());
                 builder.setRound(tr.getRoundId());
-
+                
                 for ( ProofElement p : tr.getProofElements()) {
                     List<String> hashElements = p.getHashes();
                     builder.startProofLevel(hashElements.size()+1);
@@ -90,27 +90,27 @@ public class TokenWriterCallback implements RequestBatchCallback {
                     for(String hash : hashElements) {
                         builder.addLevelHash(HashValue.asBytes(hash));
                     }
-                } 
-
+                }
+                
                 AceToken token = builder.createToken();
                 tokenMap.put(tr.getName(), token);
             }
         }
         
     }
-
+    
     @Override
     public void exceptionThrown(List<TokenRequest> list, Throwable thrwbl) {
         System.out.println("Some other exception!");
         System.out.println(Strings.exceptionAsString(thrwbl));
     }
-
+    
     @Override
     public void unexpectedException(Throwable thrwbl) {
         System.out.println("Unexpected Error!");
         System.out.println(Strings.exceptionAsString(thrwbl));
     }
-
+    
     public Path getManifestPath() throws InterruptedException {
         return manifest;
     }

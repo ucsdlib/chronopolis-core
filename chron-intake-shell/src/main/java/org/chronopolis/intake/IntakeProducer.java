@@ -7,7 +7,9 @@ package org.chronopolis.intake;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Paths;
 import org.chronopolis.amqp.ChronProducer;
+import org.chronopolis.common.props.GenericProperties;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
 import org.springframework.context.support.GenericXmlApplicationContext;
@@ -18,9 +20,10 @@ import org.springframework.context.support.GenericXmlApplicationContext;
  * @author shake
  */
 public class IntakeProducer {
-
+    
     private ChronProducer producer;
-
+    private GenericProperties props;
+    
     public IntakeProducer(ChronProducer producer) {
         this.producer = producer;
     }
@@ -39,7 +42,7 @@ public class IntakeProducer {
             }
         }
     }
-
+    
     public void run() {
         boolean done = false;
         while (!done) {
@@ -47,7 +50,13 @@ public class IntakeProducer {
             
             if ( option.equals(PRODUCER_OPTION.SEND_INTAKE_REQUEST)) {
                 PackageReadyMessage msg = MessageFactory.DefaultPackageReadyMessage();
-                producer.send(msg,"package.ingest.broadcast"); 
+                String location = "acadis_database_02-02-2013";
+                msg.setLocation(location);
+                msg.setPackageName(location);
+                msg.setDepositor("chron");
+                //msg.setSize(Paths.get(props.getStage(), location).toFile().getTotalSpace());
+                msg.setSize(400);
+                producer.send(msg,"package.ingest.broadcast");
             } else if (option.equals(PRODUCER_OPTION.QUIT)) {
                 done = true;
             } else {
@@ -88,12 +97,12 @@ public class IntakeProducer {
     
     public static void main(String [] args) {
         System.out.println("Hello wrld");
-    
+        
         GenericXmlApplicationContext text = new GenericXmlApplicationContext(
                 "classpath:/rabbit-context.xml");
-
+        
         ChronProducer p = (ChronProducer) text.getBean("producer");
-
+        
         
         IntakeProducer producer = new IntakeProducer(p);
         producer.run();

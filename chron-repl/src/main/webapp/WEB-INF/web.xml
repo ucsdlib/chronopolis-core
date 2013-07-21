@@ -24,10 +24,6 @@
         <servlet-class>org.chronopolis.replicate.servlet.MyEntityServlet</servlet-class>
     </servlet>
     <servlet-mapping>
-        <servlet-name>MockServlet</servlet-name>
-        <url-pattern>/MockServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
         <servlet-name>MyEntityServlet</servlet-name>
         <url-pattern>/MyEntityServlet</url-pattern>
     </servlet-mapping>

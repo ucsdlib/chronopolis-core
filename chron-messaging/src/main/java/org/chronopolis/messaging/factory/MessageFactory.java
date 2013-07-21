@@ -36,7 +36,7 @@ public class MessageFactory {
 
     public static CollectionInitMessage DefaultCollectionInitMessage() {
         CollectionInitMessage msg = new CollectionInitMessage();
-        msg.setAuditPeriod("90");
+        msg.setAuditPeriod(90);
         msg.setCollection("default-collection");
         msg.setDepositor("default-depositor");
         msg.setTokenStore("https://default/tokenstore");

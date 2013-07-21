@@ -1,5 +1,7 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+    http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -14,12 +16,19 @@
     <version>1.0-SNAPSHOT</version>
 
     <url>http://maven.apache.org</url>
+    <repositories>
+        <repository>
+            <url>https://scm.umiacs.umd.edu/maven/adapt/content/repositories/releases/</url>
+            <id>adapt-sonatype</id>
+            <name>ADAPT Project Repository</name>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
             <groupId>edu.umiacs.ace</groupId>
             <artifactId>ace-ims-api</artifactId>
-            <version>1.8</version>
+            <version>1.9-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
