@@ -183,7 +183,11 @@ public class BagValidator {
 		
 		for ( Map.Entry<Path, String> entry : validDigests.entrySet()) {
 			TokenRequest req = new TokenRequest();
-			req.setName(entry.getKey().getFileName().toString());
+            // We want the relative path for ACE so let's get it
+            Path full = entry.getKey();
+            Path relative = full.subpath(toBag.getNameCount(), full.getNameCount());
+
+			req.setName(relative.toString());
 			req.setHashValue(entry.getValue());
 			batch.add(req);
 		}

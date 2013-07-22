@@ -28,7 +28,6 @@
         <dependency>
             <groupId>edu.umiacs.ace</groupId>
             <artifactId>ace-ims-api</artifactId>
-            <version>1.9-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
