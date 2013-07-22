@@ -24,6 +24,7 @@ import static org.chronopolis.messaging.MessageConstant.CORRELATION_ID;
 import static org.chronopolis.messaging.MessageConstant.ORIGIN;
 import static org.chronopolis.messaging.MessageConstant.DATE;
 import static org.chronopolis.messaging.MessageConstant.RETURN_KEY;
+import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 
 /**
  * I got confused with some of the other classes so I made this package to
@@ -108,6 +109,8 @@ public class ChronMessage2 {
                 return new FileQueryResponseMessage();
             case COLLECTION_INIT:
                 return new CollectionInitMessage();
+            case COLLECTION_INIT_COMPLETE:
+                return new CollectionInitCompleteMessage();
             case PACKAGE_INGEST_READY:
                 return new PackageReadyMessage();
             case PACKAGE_INGEST_COMPLETE:
