@@ -28,8 +28,6 @@ public class ReplicateMessageListener extends ChronMessageListener {
 
     @Override
     public ChronProcessor getProcessor(MessageType type) {
-        System.out.println("I'm in the processor yippe");
-        
         switch (type) {
             case COLLECTION_INIT:
                 return collectionInitProcessor;

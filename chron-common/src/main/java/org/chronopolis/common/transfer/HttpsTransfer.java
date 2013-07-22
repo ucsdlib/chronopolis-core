@@ -28,10 +28,12 @@ public class HttpsTransfer extends FileTransfer {
      *
      * @param response
      */
-    public int getFile(String uri, Path stage) throws IOException {
+    public Path getFile(String uri, Path stage) throws IOException {
         // Make HTTP Connection
+        System.out.println("Setting up url");
         URL url = new URL(uri);
         ReadableByteChannel rbc = Channels.newChannel(url.openStream());
+        System.out.println("Now the other stuff");
         Path output = Paths.get(stage.toString(),
                 uri.substring(uri.lastIndexOf("/", uri.length())));
         Path parent = output.getParent();
@@ -61,11 +63,6 @@ public class HttpsTransfer extends FileTransfer {
          * fc.close();
          */
         
-        // Check digests
-        // byte[] calculatedDigest = md.digest()
-        // convert to String
-        // compare
-        // return 1 if false
-        return 0;
+        return output;
     }
 }

@@ -39,9 +39,10 @@ public class PackageReadyProcessor implements ChronProcessor {
     /* Once we've confirmed that a package is in our staging area we want to do
      * a few things:
      * 1 - Check if the package is a bag
-     *   .5 - If not, create a bag
-     * 2 - Create ACE Tokens 
-     * 3 - Send out the collection init message
+     *   .5 - If not, create a bag (this is probably going to be done by intake)
+     * 2 - Check manifests
+     * 3 - Create ACE Tokens 
+     * 4 - Send out the collection init message
      * 
      */
     @Override

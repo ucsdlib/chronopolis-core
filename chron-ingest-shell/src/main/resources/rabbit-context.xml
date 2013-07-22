@@ -46,13 +46,15 @@
     <!-- Set up our queues and bindings in the exchange -->
     <rabbit:queue id="queue.test" name="test.ingest.umiacs" durable="true"/>
     <rabbit:queue id="queue.broadcast" name="broadcast.ingest.umiacs" durable="true"/>
-    <rabbit:queue id="queue.direct" name="direct.ingest.umiacs" durable="true"/>
+    <rabbit:queue id="queue.direct-ingest" name="direct.ingest.umiacs" durable="true"/>
+    <rabbit:queue id="queue.direct-collection" name="direct.collection.umiacs" durable="true"/>
 
     <rabbit:topic-exchange id="federatedExchange" name="chronopolis-control"> 
         <rabbit:bindings>
             <rabbit:binding queue="queue.test" pattern="test.umiacs"/>
             <rabbit:binding queue="queue.broadcast" pattern="package.ingest.broadcast"/>
-            <rabbit:binding queue="queue.direct" pattern="package.ingest.umiacs"/>
+            <rabbit:binding queue="queue.direct-ingest" pattern="package.ingest.umiacs"/>
+            <rabbit:binding queue="queue.direct-collection" pattern="collection.ingest.umiacs"/>
         </rabbit:bindings>
     </rabbit:topic-exchange>
 
@@ -78,7 +80,7 @@
     <rabbit:listener-container connection-factory="connectionFactory"
                                error-handler="errorHandler"> 
         <rabbit:listener ref="msgListener"
-                     queues="queue.test,queue.broadcast,queue.direct"/>
+                     queues="queue.test,queue.broadcast,queue.direct-ingest,queue.direct-collection"/>
     </rabbit:listener-container>
 
     <rabbit:template id="rabbitTemplate" exchange="chronopolis-control" 
