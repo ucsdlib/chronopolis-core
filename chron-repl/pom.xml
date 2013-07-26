@@ -95,6 +95,12 @@
             <groupId>edu.umiacs.ace</groupId>
             <artifactId>ace-common</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore-nio</artifactId>
+            <version>4.2.4</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -19,7 +19,7 @@
 
 	<bean id="properties" class="org.chronopolis.common.props.GenericProperties">
 		<constructor-arg value="chron"/>
-		<constructor-arg value="/scratch1/storage/"/>
+		<constructor-arg value="/tmp/storage/"/>
 	</bean>
 
 

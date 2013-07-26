@@ -76,8 +76,7 @@ public class CollectionInitProcessor implements ChronProcessor {
                 for ( String identifier : entry.getIdentifiers() ) {
                     System.out.println("Downloading: " + identifier);
                     Path download = Paths.get(collPath.toString(), identifier);
-                    System.out.println(url+identifier);
-                    xfer.getFile(url+download.toString(), download);
+                    xfer.getFile(url+identifier, download);
                 }
             }
         } catch (IOException ex) {
