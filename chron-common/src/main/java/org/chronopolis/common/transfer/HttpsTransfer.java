@@ -30,20 +30,16 @@ public class HttpsTransfer extends FileTransfer {
      */
     public Path getFile(String uri, Path stage) throws IOException {
         // Make HTTP Connection
-        System.out.println("Setting up url");
         URL url = new URL(uri);
         ReadableByteChannel rbc = Channels.newChannel(url.openStream());
-        System.out.println("Now the other stuff");
         Path output = Paths.get(stage.toString(),
-                uri.substring(uri.lastIndexOf("/", uri.length())));
+                                                 uri.substring(uri.lastIndexOf("/", uri.length())));
         Path parent = output.getParent();
-        System.out.println(parent.toString());
-        System.out.println(output.toString());
         parent.toFile().mkdirs();
         output.toFile().createNewFile();
         FileOutputStream fos = new FileOutputStream(output.toString());
         FileChannel fc = fos.getChannel();
-        fc.transferFrom(rbc, 0, 1<<24);
+        fc.transferFrom(rbc, 0, Long.MAX_VALUE);
         
         /*
          * // We may want to use the Files creation methods. will test performance later

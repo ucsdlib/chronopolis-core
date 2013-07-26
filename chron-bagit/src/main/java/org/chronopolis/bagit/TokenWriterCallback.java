@@ -24,21 +24,30 @@ import java.util.List;
 import java.util.Map;
 
 import static java.nio.file.StandardOpenOption.CREATE;
+import java.util.concurrent.Callable;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * TODO: Write to output stream
+ * TODO: Callback ugliness 
  *
  * @author shake
  */
-public class TokenWriterCallback implements RequestBatchCallback {
+public class TokenWriterCallback implements RequestBatchCallback, Callable<Path>{
+    private final Logger log = LoggerFactory.getLogger(TokenWriterCallback.class);
     // Because I have a ghetto spin lock, we need this to be volatile so that all
     // changes are seen
     private volatile HashMap<String, AceToken> tokenMap;
+    private LinkedBlockingQueue<TokenResponse> tokenCallbacks;
     private String collectionName;
     private Path manifest;
+    private Path stage = Paths.get("/tmp");
     
     public TokenWriterCallback(String collectionName) {
         tokenMap = new HashMap<>();
+        this.tokenCallbacks = new LinkedBlockingQueue<>();
         // denote that it is actually the tokens
         this.collectionName = collectionName+"-tokens";
     }
@@ -46,57 +55,58 @@ public class TokenWriterCallback implements RequestBatchCallback {
     public Map<String, AceToken> getTokens() {
         return tokenMap;
     }
-    
-    public void writeToFile(Path stage) throws IOException {
+
+    public void setStage(Path stage) {
+        this.stage = stage;
+    }
+
+    @Override
+    public Path call() {
         manifest = Paths.get(stage.toString(), collectionName);
-        try (OutputStream os = Files.newOutputStream(manifest, CREATE)) {
+        try (OutputStream os = Files.newOutputStream(manifest, CREATE)){
+            TokenResponse response;
             AceTokenWriter writer = new AceTokenWriter(os);
-            
-            for ( Map.Entry<String, AceToken> token : tokenMap.entrySet()) {
-                writer.startToken(token.getValue());
-                writer.addIdentifier(token.getKey());
+            while ((response = tokenCallbacks.poll(2, TimeUnit.MINUTES)) != null) {
+                AceToken  token = buildFromResponse(response);
+                writer.startToken(token);
+                writer.addIdentifier(collectionName);
                 writer.writeTokenEntry();
             }
-            writer.close();
+                writer.close();
+        } catch (InterruptedException | IOException ex) {
+            log.error("Error w/ manifest {} ", ex);
         }
-        System.out.println("Finished writing to file");
+        return manifest;
+    }
+    
+    private AceToken buildFromResponse(TokenResponse response) {
+        AceTokenBuilder builder = new AceTokenBuilder();
+        builder.setDate(response.getTimestamp().toGregorianCalendar().getTime());
+        builder.setDigestAlgorithm(response.getDigestService());
+        builder.setIms("ims.umiacs.umd.edu"); // hard coded cause I'm a punk
+        builder.setImsService(response.getTokenClassName());
+        builder.setRound(response.getRoundId());
+        
+        for ( ProofElement p : response.getProofElements()) {
+            List<String> hashElements = p.getHashes();
+            builder.startProofLevel(hashElements.size()+1);
+            builder.setLevelInheritIndex(p.getIndex());
+            for(String hash : hashElements) {
+                builder.addLevelHash(HashValue.asBytes(hash));
+            }
+        }
+        
+        return builder.createToken();
     }
     
     @Override
     public void tokensReceived(List<TokenRequest> requests,
     List<TokenResponse> responses) {
-        //Map<String, String> tokenMap = new HashMap<>();
-        AceTokenBuilder builder = new AceTokenBuilder();
-        
-        /*
-         * for ( TokenRequest tr : requests) {
-         * tokenMap.put(tr.getName(), tr.getHashValue());
-         * }
-         */
-        
         for ( TokenResponse tr : responses ) {
-            
             if ( tr.getStatusCode() == StatusCode.SUCCESS) {
-                builder.setDate(tr.getTimestamp().toGregorianCalendar().getTime());
-                builder.setDigestAlgorithm(tr.getDigestService());
-                builder.setIms("ims.umiacs.umd.edu"); // hard coded cause I'm a punk
-                builder.setImsService(tr.getTokenClassName());
-                builder.setRound(tr.getRoundId());
-                
-                for ( ProofElement p : tr.getProofElements()) {
-                    List<String> hashElements = p.getHashes();
-                    builder.startProofLevel(hashElements.size()+1);
-                    builder.setLevelInheritIndex(p.getIndex());
-                    for(String hash : hashElements) {
-                        builder.addLevelHash(HashValue.asBytes(hash));
-                    }
-                }
-                
-                AceToken token = builder.createToken();
-                tokenMap.put(tr.getName(), token);
+                tokenCallbacks.add(tr);
             }
         }
-        
     }
     
     @Override
@@ -114,5 +124,5 @@ public class TokenWriterCallback implements RequestBatchCallback {
     public Path getManifestPath() throws InterruptedException {
         return manifest;
     }
-    
+
 }
