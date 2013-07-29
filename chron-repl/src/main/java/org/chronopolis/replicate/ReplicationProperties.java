@@ -4,7 +4,7 @@
  */
 package org.chronopolis.replicate;
 
-import org.chronopolis.common.props.GenericProperties;
+import org.chronopolis.common.properties.GenericProperties;
 
 /**
  *

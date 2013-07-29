@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.LinkedBlockingQueue;
-import org.chronopolis.common.props.GenericProperties;
+import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.common.transfer.HttpsTransfer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

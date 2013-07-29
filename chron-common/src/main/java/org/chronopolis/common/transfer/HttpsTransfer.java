@@ -33,7 +33,7 @@ public class HttpsTransfer extends FileTransfer {
         URL url = new URL(uri);
         ReadableByteChannel rbc = Channels.newChannel(url.openStream());
         Path output = Paths.get(stage.toString(),
-                                                 uri.substring(uri.lastIndexOf("/", uri.length())));
+                                uri.substring(uri.lastIndexOf("/", uri.length())));
         Path parent = output.getParent();
         parent.toFile().mkdirs();
         output.toFile().createNewFile();

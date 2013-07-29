@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.chronopolis.common.props;
+package org.chronopolis.common.properties;
 
 /**
  *  Base layout for a properties file

@@ -5,6 +5,8 @@
 /duracloud-intake/target/
 /chron-bagit/target/
 /chron-intake-shell/target/
+/chron-intake-shell/intake.properties
 /chron-ingest-shell/target/
+/chron-ingest-shell/ingest.properties
 /chron-logger/target/
 /amqp-test/target/

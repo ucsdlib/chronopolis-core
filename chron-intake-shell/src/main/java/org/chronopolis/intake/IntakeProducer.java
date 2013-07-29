@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import org.chronopolis.amqp.ChronProducer;
-import org.chronopolis.common.props.GenericProperties;
+import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
 import org.springframework.context.support.GenericXmlApplicationContext;
