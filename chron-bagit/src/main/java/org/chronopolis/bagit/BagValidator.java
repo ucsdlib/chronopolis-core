@@ -80,6 +80,7 @@ public class BagValidator {
     
     // This goes all over the 80 character limit... trying to decide what to do
     // about that
+    // TODO: If manifest is made from MD5 digests, convert them to SHA-256
     private class ManifestValidator implements Callable<Boolean> {
         HashMap<Path, String> registeredDigests = new HashMap<>();
         HashSet<Path> manifests = new HashSet<>();
@@ -162,11 +163,10 @@ public class BagValidator {
             FileInputStream fis = new FileInputStream(path.toFile());
             try (DigestInputStream dis = new DigestInputStream(fis, md)) {
                 dis.on(true);
-                int off = 0;
-                int toread = (1024 <= dis.available() ? 1024 : dis.available());
-                byte []buf = new byte[dis.available()];
-                while ( dis.read(buf, off, toread) > 0) {
-                    toread = (1024 <= dis.available() ? 1024 : dis.available());
+                int bufferSize = 1024; // should move into some type of settings
+                byte []buf = new byte[bufferSize];
+                while ( dis.read(buf) > 0) {
+                    // spin
                 }
             }
             return md.digest();
