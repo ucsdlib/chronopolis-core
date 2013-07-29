@@ -14,6 +14,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.logging.Level;
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
@@ -26,6 +28,7 @@ import org.chronopolis.messaging.base.ChronMessage2;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
+import org.chronopolis.replicate.ReplicationProperties;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,20 +44,24 @@ public class CollectionInitProcessor implements ChronProcessor {
 
     private ChronProducer producer;
     private GenericProperties props;
+    private ReplicationProperties replProps; 
 
     public CollectionInitProcessor(ChronProducer producer, GenericProperties props) {
         this.producer = producer;
         this.props = props;
     }
 
-    private void doPost(String url, int port, String user, String pass, JSONObject json) 
+    private void doPost(String url, String user, String pass, JSONObject json) 
                         throws UnsupportedEncodingException, IOException {
-        HttpClient client = new DefaultHttpClient();
+        DefaultHttpClient client = new DefaultHttpClient();
         HttpPost post = new HttpPost(url);
+        HttpHost host = new HttpHost(replProps.getAceFqdn(), replProps.getAcePort());
+        client.getCredentialsProvider().setCredentials(
+                new AuthScope(host.getHostName(), host.getPort()), 
+                new UsernamePasswordCredentials(user, pass));
         StringEntity entity = new StringEntity(json.toString(), 
                                                ContentType.APPLICATION_JSON);
         post.setEntity(entity);
-        HttpHost host = new HttpHost(url, port);
         client.execute(host, post);
     }
 
