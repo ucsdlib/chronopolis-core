@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
  * TODO: Stop requests that are sent w/ http
  *       Move other code over and what not
  *
+ * Still considering making this a class w/ static methods
  *
  * @author shake
  */

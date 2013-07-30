@@ -16,13 +16,11 @@ import java.util.logging.Level;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.chronopolis.amqp.ChronProducer;
-import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.common.transfer.HttpsTransfer;
 import org.chronopolis.messaging.base.ChronMessage2;
 import org.chronopolis.messaging.base.ChronProcessor;
@@ -43,22 +41,24 @@ public class CollectionInitProcessor implements ChronProcessor {
     private final Logger log = LoggerFactory.getLogger(CollectionInitProcessor.class);
 
     private ChronProducer producer;
-    private GenericProperties props;
-    private ReplicationProperties replProps; 
+    private ReplicationProperties props; 
 
-    public CollectionInitProcessor(ChronProducer producer, GenericProperties props) {
+    public CollectionInitProcessor(ChronProducer producer, ReplicationProperties props) {
         this.producer = producer;
         this.props = props;
     }
 
-    private void doPost(String url, String user, String pass, JSONObject json) 
-                        throws UnsupportedEncodingException, IOException {
+    private void doPost(String url, JSONObject json) throws IOException,
+                        UnsupportedEncodingException {
         DefaultHttpClient client = new DefaultHttpClient();
         HttpPost post = new HttpPost(url);
-        HttpHost host = new HttpHost(replProps.getAceFqdn(), replProps.getAcePort());
+        HttpHost host = new HttpHost(props.getAceFqdn(), props.getAcePort());
         client.getCredentialsProvider().setCredentials(
-                new AuthScope(host.getHostName(), host.getPort()), 
-                new UsernamePasswordCredentials(user, pass));
+                new AuthScope(host.getHostName(), 
+                              host.getPort()), 
+                new UsernamePasswordCredentials(props.getAceUser(), 
+                                                props.getAcePass())
+        );
         StringEntity entity = new StringEntity(json.toString(), 
                                                ContentType.APPLICATION_JSON);
         post.setEntity(entity);
@@ -135,6 +135,8 @@ public class CollectionInitProcessor implements ChronProcessor {
         } catch (JSONException ex) {
             java.util.logging.Logger.getLogger(CollectionInitProcessor.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        // doPost(url, obj);
 
         // Because I'm bad at reading - Collection Init Complete Message
         System.out.println("Sending response");

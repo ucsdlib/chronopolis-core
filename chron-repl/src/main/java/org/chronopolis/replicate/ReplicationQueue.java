@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Class which will fire off downloads
+ * Do we want the queue to be static so that all threads can poll from it?
  *
  * @author shake
  */
