@@ -5,6 +5,7 @@
 package org.chronopolis.bagit;
 
 import java.nio.file.Path;
+import org.chronopolis.bagit.util.PayloadOxum;
 
 /**
  * TODO: Fill out bag-info fields
@@ -16,7 +17,7 @@ public class BagInfoValidator implements Validator {
     private final String bagInfoRE = "bag-info.txt";
     private final String oxumRE = "Payload-Oxum";
     private final Path bagInfoPath;
-    private String payloadOxum;
+    private PayloadOxum payloadOxum;
 
     public BagInfoValidator(Path bag) {
         this.bagInfoPath = bag.resolve(bagInfoRE);
@@ -29,11 +30,14 @@ public class BagInfoValidator implements Validator {
     
     @Override
     public boolean isValid() {
+        String dataDir = "data";
         Boolean valid = true;
         // Do we want to short circuit and return?
         if ( !exists() ) {
             valid = false;
         }
+        Path bagPath = bagInfoPath.getParent();
+
 
         return valid;
     }
