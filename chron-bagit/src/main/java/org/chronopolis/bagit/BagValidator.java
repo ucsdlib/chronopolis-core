@@ -31,6 +31,7 @@ import java.util.concurrent.ExecutionException;
 
 /**
  * Immutable variables call me Immutable Variable man
+ * TODO: Make list of Validators for easy iteration
  *
  * @author shake
  */
@@ -49,6 +50,7 @@ public class BagValidator {
     private TokenWriterCallback callback = null;
     private TokenRequestBatch batch = null;
     // Only SHA-256 digests in here
+    // Could probably wrap this in a class and force it to check the size
     private Map<Path, String> validDigests;
     
     
@@ -76,6 +78,10 @@ public class BagValidator {
             }
         }
         return str.toString();
+    }
+
+    public void checkAll() {
+
     }
     
     // This goes all over the 80 character limit... trying to decide what to do
@@ -163,9 +169,9 @@ public class BagValidator {
             FileInputStream fis = new FileInputStream(path.toFile());
             try (DigestInputStream dis = new DigestInputStream(fis, md)) {
                 dis.on(true);
-                int bufferSize = 1024; // should move into some type of settings
+                int bufferSize = 1048576; // should move into some type of settings
                 byte []buf = new byte[bufferSize];
-                while ( dis.read(buf) > 0) {
+                while ( dis.read(buf) != -1) {
                     // spin
                 }
             }
@@ -178,7 +184,9 @@ public class BagValidator {
         return validDigests;
     }
     
-    public Path getManifest(Path stage) throws InterruptedException, IOException, ExecutionException {
+    public Path getManifest(Path stage) throws InterruptedException, 
+                                               IOException, 
+                                               ExecutionException {
         createIMSConnection();
         callback.setStage(stage);
         Future<Path> manifestPath = manifestRunner.submit(callback);
