@@ -5,28 +5,16 @@
 package org.chronopolis.bagit;
 
 import edu.umiacs.ace.ims.api.IMSService;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.charset.Charset;
-import java.nio.file.Paths;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import edu.umiacs.ace.ims.api.TokenRequestBatch;
 import edu.umiacs.ace.ims.ws.TokenRequest;
-import java.io.FileNotFoundException;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -45,145 +33,55 @@ public class BagValidator {
     
     private final ExecutorService manifestRunner = Executors.newCachedThreadPool();
     private final Path toBag;
-    private ManifestValidator validator;
-    private Future<Boolean> validManifest;
     private TokenWriterCallback callback = null;
     private TokenRequestBatch batch = null;
     // Only SHA-256 digests in here
     // Could probably wrap this in a class and force it to check the size
     private Map<Path, String> validDigests;
+
+    // All our various validators
+    private BagInfoValidator bagInfoValidator;
+    private BagitValidator bagitValidator;
+    private ManifestValidator manifestValidator;
+    private Future<Boolean> validManifest;
     
     
     public BagValidator(Path toBag) {
         this.toBag = toBag;
-        validator = new ManifestValidator();
         callback = new TokenWriterCallback(toBag.getFileName().toString());
-        validManifest = manifestRunner.submit(validator);
         validDigests = new HashMap<>();
+
+        bagInfoValidator = new BagInfoValidator(toBag);
+        bagitValidator = new BagitValidator(toBag);
+        manifestValidator = new ManifestValidator(toBag);
+        validManifest = manifestRunner.submit(manifestValidator);
     }
     
     public static boolean ValidateBagFormat(Path toBag) {
         return true;
     }
     
-    public Future<Boolean> getFuture() {
+    public Future<Boolean> getValidManifest() {
         return validManifest;
     }
+
     
-    private String byteToHex(byte[] bytes) {
-        StringBuilder str = new StringBuilder(new BigInteger(1, bytes).toString(16));
-        if ( str.length() < bytes.length*2) {
-            for ( int i=0; i < bytes.length*2-str.length(); i++) {
-                str.insert(0, "0");
-            }
-        }
-        return str.toString();
+    // Need to figure out exactly how we want to do these...
+    public void checkBagitFiles() {
+        bagInfoValidator.isValid();
+        bagitValidator.isValid();
     }
 
-    public void checkAll() {
-
-    }
-    
-    // This goes all over the 80 character limit... trying to decide what to do
-    // about that
-    // TODO: If manifest is made from MD5 digests, convert them to SHA-256
-    private class ManifestValidator implements Callable<Boolean> {
-        HashMap<Path, String> registeredDigests = new HashMap<>();
-        HashSet<Path> manifests = new HashSet<>();
-        MessageDigest md;
-        
-        private void findManifests() throws IOException {
-            try (DirectoryStream<Path> directory = Files.newDirectoryStream(toBag, manifest)) {
-                for ( Path p : directory) {
-                    manifests.add(p);
-                }
-            }
-        }
-        
-        // TODO: Add the digests of all missed files
-        //       Something like for ( Path p : toBag if p not in validDigests )
-        private void populateDigests() throws IOException, NoSuchAlgorithmException {
-            for ( Path toManifest : manifests) {
-                String digestType = toManifest.getFileName().toString().split("-")[1];
-                // There's still the .txt on the end so just match
-                // Actually I could do starts with
-                // or strip the .txt but that would create a new object
-                if ( digestType.contains("sha256")) {
-                    md = MessageDigest.getInstance("SHA-256");
-                }
-                
-                try (BufferedReader reader = Files.newBufferedReader(toManifest,
-                        Charset.forName("UTF-8"))) {
-                    String line;
-                    while ( (line = reader.readLine()) != null) {
-                        String[] split = line.split("\\s+", 2);
-                        String digest = split[0];
-                        String file = split[1];
-                        registeredDigests.put(Paths.get(toBag.toString(), file), digest);
-                    }
-                }
-            }
-        }
-        
-        @Override
-        public Boolean call() throws Exception {
-            boolean valid = true;
-            findManifests();
-            populateDigests();
-            
-            if ( md == null ) {
-                System.out.println("Digest is null -- probably no match above");
-                md = MessageDigest.getInstance("SHA-256");
-            }
-            
-            // And check the digests
-            // There really has to be a better way to do this... default block
-            // size for DigestInputStream is 8 so I'm using 1024 instead.
-            for ( Map.Entry<Path, String> entry : registeredDigests.entrySet()) {
-                Path toFile = entry.getKey();
-                String registeredDigest = entry.getValue();
-                
-                md.reset();
-                byte[] calculatedDigest = doDigest(toFile);
-                String digest = byteToHex(calculatedDigest);
-                if ( registeredDigest.equals(digest)) {
-                    validDigests.put(entry.getKey(), entry.getValue());
-                }
-                valid = registeredDigest.equals(digest);
-            }
-            
-            System.out.println("Finished validation; Digesting manifests");
-            
-            for ( Path p : manifests) {
-                md.reset();
-                byte[] manifestDigest = doDigest(p);
-                String digest = byteToHex(manifestDigest);
-                validDigests.put(p, digest);
-            }
-            
-            return valid;
-        }
-        
-        
-        private byte[] doDigest(Path path) throws FileNotFoundException, IOException {
-            FileInputStream fis = new FileInputStream(path.toFile());
-            try (DigestInputStream dis = new DigestInputStream(fis, md)) {
-                dis.on(true);
-                int bufferSize = 1048576; // should move into some type of settings
-                byte []buf = new byte[bufferSize];
-                while ( dis.read(buf) != -1) {
-                    // spin
-                }
-            }
-            return md.digest();
-        }
-        
+    public void setValidDigests(Map<Path, String> validDigests) {
+        this.validDigests = validDigests;
     }
     
     public Map<Path, String> getValidDigests(){
         return validDigests;
     }
     
+    // Maybe we should push this into something else as well
+    // Since it doesn't have to do much with validation, only runs after
     public Path getManifest(Path stage) throws InterruptedException, 
                                                IOException, 
                                                ExecutionException {

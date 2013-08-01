@@ -103,5 +103,20 @@ public class PayloadOxum {
     public String toString() {
         return octetCount+"."+numFiles;
     }
+
+    public void setFromString(String val) {
+        if ( !val.contains(("."))) {
+            throw new RuntimeException("Error parsing payload, please use the following format: octetCount.fileCount");
+        }
+
+        String[] payload = val.split(".");
+
+        if ( payload.length != 2 ) {
+            throw new RuntimeException("Too many values in the PayloadOxum");
+        }
+
+        octetCount = Long.parseLong(payload[0]);
+        numFiles = Long.parseLong(payload[1]);
+    }
     
 }

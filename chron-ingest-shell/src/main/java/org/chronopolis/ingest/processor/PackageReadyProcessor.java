@@ -60,7 +60,7 @@ public class PackageReadyProcessor implements ChronProcessor {
         Path manifest = null;
 
         BagValidator validator = new BagValidator(toBag);
-        Future<Boolean> f = validator.getFuture();
+        Future<Boolean> f = validator.getValidManifest();
         try {
             Boolean valid = f.get();
 

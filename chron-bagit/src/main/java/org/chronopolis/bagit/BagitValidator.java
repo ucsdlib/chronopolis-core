@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  *
  * @author shake
  */
-public class BagiItValidator implements Validator {
+public class BagitValidator implements Validator {
     // As defined in the bagit spec
     private final String bagitRE = "bagit.txt";
     private final String versionRE = "BagIt-Version";
@@ -26,7 +26,7 @@ public class BagiItValidator implements Validator {
 
     private String bagVersion;
 
-    public BagiItValidator(Path bag) {
+    public BagitValidator(Path bag) {
         this.bagitPath = bag.resolve(bagitRE);
     }
 
@@ -66,7 +66,7 @@ public class BagiItValidator implements Validator {
                 }
             }
         } catch (IOException ex) {
-            Logger.getLogger(BagiItValidator.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(BagitValidator.class.getName()).log(Level.SEVERE, null, ex);
         }
         return valid;
     }

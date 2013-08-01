@@ -76,7 +76,7 @@ public class ManifestValidator implements Callable<Boolean> {
         }
     }
     
-    // May want to break this out
+    // May want to break this out so other classes can do digests easily if needed
     private byte[] doDigest(Path path) throws FileNotFoundException, IOException {
         FileInputStream fis = new FileInputStream(path.toFile());
         try (DigestInputStream dis = new DigestInputStream(fis, md)) {
