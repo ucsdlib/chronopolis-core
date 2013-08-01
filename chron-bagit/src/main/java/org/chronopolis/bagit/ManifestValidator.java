@@ -24,16 +24,17 @@ import org.chronopolis.bagit.util.DigestUtil;
 
 /**
  *  TODO: If manifest is made from MD5 digests, convert them to SHA-256
- * 
+ *
  * @author shake
  */
 public class ManifestValidator implements Callable<Boolean> {
     private final String manifestRE = "*manifest-*.txt";
     private final Path bag;
     
-    // Hm... do we really want/need both? 
+    // Hm... do we really want/need both?
     private HashMap<Path, String> registeredDigests = new HashMap<>();
     private HashMap<Path, String> validDigests = new HashMap<>();
+    private HashSet<Path> corruptedFiles = new HashSet<>();
     private HashSet<Path> manifests = new HashSet<>();
     private MessageDigest md;
     
@@ -42,8 +43,8 @@ public class ManifestValidator implements Callable<Boolean> {
     }
     
     private void findManifests() throws IOException {
-        try (DirectoryStream<Path> directory = Files.newDirectoryStream(bag, 
-                                                                        manifestRE)) {
+        try (DirectoryStream<Path> directory = Files.newDirectoryStream(bag,
+                manifestRE)) {
             for ( Path p : directory) {
                 manifests.add(p);
             }
@@ -102,23 +103,41 @@ public class ManifestValidator implements Callable<Boolean> {
         }
         
         // And check the digests
-        // There really has to be a better way to do this... default block
-        // size for DigestInputStream is 8 so I'm using 1024 instead.
         for ( Map.Entry<Path, String> entry : registeredDigests.entrySet()) {
-            Path toFile = entry.getKey();
+            Path file = entry.getKey();
             String registeredDigest = entry.getValue();
+            byte[] calculatedDigest;
             
             md.reset();
-            byte[] calculatedDigest = doDigest(toFile);
-            String digest = DigestUtil.byteToHex(calculatedDigest);
-            if ( registeredDigest.equals(digest)) {
-                getValidDigests().put(entry.getKey(), entry.getValue());
+
+            // catch all
+            // some duplicated code but whatever
+            if ( !md.getAlgorithm().equals("SHA-256") ) {
+                calculatedDigest = DigestUtil.convertToSHA256(file, md, registeredDigest);
+
+                if ( calculatedDigest == null ) {
+                    corruptedFiles.add(file);
+                    valid = false;
+                } else {
+                    String digest = DigestUtil.byteToHex(calculatedDigest);
+                    validDigests.put(file, digest);
+                }
+            } else {
+                calculatedDigest = DigestUtil.doDigest(file, md);
+                String digest = DigestUtil.byteToHex(calculatedDigest);
+                if ( !registeredDigest.equals(digest)) { 
+                    corruptedFiles.add(file);
+                    valid = false;
+                } else {
+                    getValidDigests().put(file, entry.getValue());
+                }
             }
-            valid = registeredDigest.equals(digest);
         }
         
         System.out.println("Finished validation; Digesting manifests");
         
+        // I guess we're just assuming that the digests are valid...
+        // Actually if the manifest-alg.txt is invalid the tagmanifest will catch it
         for ( Path p : manifests) {
             md.reset();
             byte[] manifestDigest = doDigest(p);
@@ -128,12 +147,16 @@ public class ManifestValidator implements Callable<Boolean> {
         
         return valid;
     }
-
+    
     /**
      * @return the validDigests
      */
     public HashMap<Path, String> getValidDigests() {
         return validDigests;
+    }
+
+    public HashSet<Path> getCorruptedFiles() {
+        return corruptedFiles;
     }
     
 }
