@@ -5,13 +5,11 @@
 package org.chronopolis.bagit.util;
 
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 
 /**
  * Let's calculate the oxum in this class
@@ -55,17 +53,50 @@ public class PayloadOxum {
         this.numFiles = numFiles;
     }
 
-    // Todo: Traverse all dirs
     public void calculateOxum(Path directory) throws IOException {
-        List<DirectoryStream<Path>> dirs = new ArrayList<>();
-        DirectoryStream<Path> dir = Files.newDirectoryStream(directory);
-        for ( Path p : dir ) {
-            if ( p.toFile().isFile() ) {
-                octetCount += p.toFile().length();
-                ++numFiles;
+        // Walk the file tree
+        // and have the visitor increment our payload
+        Files.walkFileTree(directory, new SimpleFileVisitor<Path>(){ 
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                if ( attrs.isRegularFile() ) {
+                    System.out.println(file);
+                    ++numFiles;
+                    octetCount += attrs.size();
+                }
+                return FileVisitResult.CONTINUE;
             }
+        });
+    }
+
+    
+    @Override
+    public boolean equals(Object other) {
+        if ( other == null ) {
+            return false;
+        }
+        if ( !(other instanceof PayloadOxum)) {
+            return false;
+        }
+        PayloadOxum ot = (PayloadOxum)other;
+
+        if ( octetCount != ot.getOctetCount()) {
+            return false;
+        }
+        if ( numFiles != ot.getNumFiles()) {
+            return false;
         }
 
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 53 * hash + (int) (this.octetCount ^ (this.octetCount >>> 32));
+        hash = 53 * hash + (int) (this.numFiles ^ (this.numFiles >>> 32));
+        return hash;
     }
 
     @Override
