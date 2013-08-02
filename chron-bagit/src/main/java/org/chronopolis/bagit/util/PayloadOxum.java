@@ -60,7 +60,6 @@ public class PayloadOxum {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                 if ( attrs.isRegularFile() ) {
-                    System.out.println(file);
                     ++numFiles;
                     octetCount += attrs.size();
                 }
