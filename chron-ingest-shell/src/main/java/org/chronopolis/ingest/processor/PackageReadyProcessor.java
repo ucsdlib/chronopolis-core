@@ -11,6 +11,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.bagit.BagValidator;
+import org.chronopolis.bagit.ManifestValidator;
+import org.chronopolis.bagit.ManifestValidator.ManifestError;
 import org.chronopolis.messaging.base.ChronMessage2;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.factory.MessageFactory;
@@ -69,7 +71,12 @@ public class PackageReadyProcessor implements ChronProcessor {
                 manifest = validator.getManifest(Paths.get(props.getTokenStage()));
 
             } else {
-                throw new RuntimeException("Invalid bag");
+                ManifestValidator mv = validator.getManifestValidator();
+                StringBuilder err = new StringBuilder("Invalid bag (bad digests)\n");
+                for (ManifestError e : mv.getCorruptedFiles()) {
+                    err.append(e.getPath()).append(" { ").append(e.getExpected()).append(" !=  ").append(e.getFound()).append(" }").append("\n");
+                }
+                throw new RuntimeException(err.toString());
             }
 
             // BagValidator.validateFormat(toBag);
@@ -80,7 +87,7 @@ public class PackageReadyProcessor implements ChronProcessor {
         }
 
         if ( manifest == null ) {
-            throw new RuntimeException("Invalid bag");
+            throw new RuntimeException("Error creating manifest");
         }
 
         

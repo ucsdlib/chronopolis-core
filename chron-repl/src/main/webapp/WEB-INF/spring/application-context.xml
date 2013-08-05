@@ -19,13 +19,13 @@
     </bean>
 
     <bean id="properties" class="org.chronopolis.replicate.ReplicationProperties">
-        <constructor-arg value="${nodeName}"/>
-        <constructor-arg value="${stage}"/>
-        <constructor-arg value="${aceFqdn}"/>
-        <constructor-arg value="${acePath}"/>
-        <constructor-arg value="${aceUser}"/>
-        <constructor-arg value="${acePass}"/>
-        <constructor-arg value="${acePort}"/>
+        <constructor-arg value="chron"/>
+        <constructor-arg value="/tmp/bags/"/>
+        <constructor-arg value="localhost"/>
+        <constructor-arg value="ace-am"/>
+        <constructor-arg value="admin"/>
+        <constructor-arg value="admin"/>
+        <constructor-arg value="8080"/>
     </bean>
 
 

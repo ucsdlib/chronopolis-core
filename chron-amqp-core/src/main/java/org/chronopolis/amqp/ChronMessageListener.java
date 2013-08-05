@@ -83,7 +83,11 @@ public abstract class ChronMessageListener implements MessageListener {
         // Sanity Check
         if ( null != message ) {
 			ChronProcessor processor = getProcessor(message.getType());
-            processor.process(message);
+            try { 
+                processor.process(message);
+            } catch (Exception e){
+                log.error("Unexpected processing error {} ", e);
+            }
         }
     }
 

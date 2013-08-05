@@ -62,11 +62,12 @@ public class TokenWriterCallback implements RequestBatchCallback, Callable<Path>
 
     @Override
     public Path call() {
+        System.out.println("Hey we're in the callback, we're going to poll for a while now");
         manifest = Paths.get(stage.toString(), collectionName);
         try (OutputStream os = Files.newOutputStream(manifest, CREATE)){
             TokenResponse response;
             AceTokenWriter writer = new AceTokenWriter(os);
-            while ((response = tokenCallbacks.poll(2, TimeUnit.MINUTES)) != null) {
+            while ((response = tokenCallbacks.poll(30, TimeUnit.SECONDS)) != null) {
                 AceToken  token = buildFromResponse(response);
                 writer.startToken(token);
                 writer.addIdentifier(collectionName);

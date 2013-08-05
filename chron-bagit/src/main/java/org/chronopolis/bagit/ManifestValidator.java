@@ -34,7 +34,7 @@ public class ManifestValidator implements Callable<Boolean> {
     // Hm... do we really want/need both?
     private HashMap<Path, String> registeredDigests = new HashMap<>();
     private HashMap<Path, String> validDigests = new HashMap<>();
-    private HashSet<Path> corruptedFiles = new HashSet<>();
+    private HashSet<ManifestError> corruptedFiles = new HashSet<>();
     private HashSet<Path> manifests = new HashSet<>();
     private MessageDigest md;
     
@@ -114,9 +114,8 @@ public class ManifestValidator implements Callable<Boolean> {
             // some duplicated code but whatever
             if ( !md.getAlgorithm().equals("SHA-256") ) {
                 calculatedDigest = DigestUtil.convertToSHA256(file, md, registeredDigest);
-
                 if ( calculatedDigest == null ) {
-                    corruptedFiles.add(file);
+                    corruptedFiles.add(new ManifestError(file, registeredDigest, null));
                     valid = false;
                 } else {
                     String digest = DigestUtil.byteToHex(calculatedDigest);
@@ -126,10 +125,10 @@ public class ManifestValidator implements Callable<Boolean> {
                 calculatedDigest = DigestUtil.doDigest(file, md);
                 String digest = DigestUtil.byteToHex(calculatedDigest);
                 if ( !registeredDigest.equals(digest)) { 
-                    corruptedFiles.add(file);
+                    corruptedFiles.add(new ManifestError(file, registeredDigest, digest));
                     valid = false;
                 } else {
-                    getValidDigests().put(file, entry.getValue());
+                    validDigests.put(file, entry.getValue());
                 }
             }
         }
@@ -155,8 +154,32 @@ public class ManifestValidator implements Callable<Boolean> {
         return validDigests;
     }
 
-    public HashSet<Path> getCorruptedFiles() {
+    public HashSet<ManifestError> getCorruptedFiles() {
         return corruptedFiles;
     }
     
+    public class ManifestError {
+        Path p;
+        String expected;
+        String found;
+
+        public ManifestError(Path p, String expected, String found) {
+            this.p = p;
+            this.expected = expected;
+            this.found = found;
+        }
+
+        public Path getPath() {
+            return p;
+        }
+
+        public String getExpected() {
+            return expected;
+            
+        }
+
+        public String getFound() {
+            return found;
+        }
+    }
 }

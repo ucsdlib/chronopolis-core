@@ -26,7 +26,11 @@ public class ReplicationProperties extends GenericProperties{
         this.acePath = acePath;
         this.aceUser = aceUser;
         this.acePass = acePass;
-        this.acePort = Integer.getInteger(acePort);
+        if ( acePort == null ) {
+            System.out.println("WHATTHEFUCKINGSHIT");
+        } else {
+            System.out.println("WHATTHEFUCKINGSHIT");
+        }
     }
 
     /**

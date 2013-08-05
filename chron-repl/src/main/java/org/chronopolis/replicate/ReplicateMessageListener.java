@@ -4,6 +4,7 @@
  */
 package org.chronopolis.replicate;
 
+import org.apache.log4j.Logger;
 import org.chronopolis.amqp.ChronMessageListener;
 import org.chronopolis.messaging.MessageType;
 import org.chronopolis.messaging.base.ChronProcessor;
@@ -13,6 +14,7 @@ import org.chronopolis.messaging.base.ChronProcessor;
  * @author shake
  */
 public class ReplicateMessageListener extends ChronMessageListener {
+    private static final Logger log = Logger.getLogger(ReplicateMessageListener.class);
     private ChronProcessor fileQueryProcessor;
     private ChronProcessor fileQueryResponseProcessor;
     private ChronProcessor collectionInitProcessor;
@@ -21,6 +23,7 @@ public class ReplicateMessageListener extends ChronMessageListener {
                                     ChronProcessor fileQueryResponseProcessor,
                                     ChronProcessor collectionInitProcessor) {
         System.out.println("Hello Spring Context World!");
+        log.info("Hello Spring Context World!");
         this.fileQueryProcessor = fileQueryProcessor;
         this.fileQueryResponseProcessor = fileQueryResponseProcessor;
         this.collectionInitProcessor = collectionInitProcessor;

@@ -6,7 +6,6 @@ package org.chronopolis.bagit;
 
 import edu.umiacs.ace.ims.api.IMSService;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -68,8 +67,8 @@ public class BagValidator {
     
     // Need to figure out exactly how we want to do these...
     public void checkBagitFiles() {
-        bagInfoValidator.isValid();
-        bagitValidator.isValid();
+        getBagInfoValidator().isValid();
+        getBagitValidator().isValid();
     }
 
     public void setValidDigests(Map<Path, String> validDigests) {
@@ -111,6 +110,27 @@ public class BagValidator {
                 callback,
                 1000,
                 5000);
+    }
+
+    /**
+     * @return the bagInfoValidator
+     */
+    public BagInfoValidator getBagInfoValidator() {
+        return bagInfoValidator;
+    }
+
+    /**
+     * @return the bagitValidator
+     */
+    public BagitValidator getBagitValidator() {
+        return bagitValidator;
+    }
+
+    /**
+     * @return the manifestValidator
+     */
+    public ManifestValidator getManifestValidator() {
+        return manifestValidator;
     }
     
 }

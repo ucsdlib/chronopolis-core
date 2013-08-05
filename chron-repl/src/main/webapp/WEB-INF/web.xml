@@ -6,9 +6,17 @@
         <param-name>contextConfigLocation</param-name>
         <param-value>/WEB-INF/spring/application-context.xml</param-value>
     </context-param>
+    <context-param>
+        <param-name>log4jConfigLocation</param-name>
+        <param-value>/WEB-INF/spring/log4j.properties</param-value>
+    </context-param>
     <listener>
         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
     </listener>
+    <listener>
+        <listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
+    </listener>
+    <!--
     <listener>
         <listener-class>org.chronopolis.logging.LogContext</listener-class>
     </listener>
@@ -20,6 +28,7 @@
         <description>ReplicationQueue listener</description>
         <listener-class>org.chronopolis.replicate.ReplicationContextListener</listener-class>
     </listener>
+    -->
     <servlet>
         <servlet-name>MyEntityServlet</servlet-name>
         <servlet-class>org.chronopolis.replicate.servlet.MyEntityServlet</servlet-class>

@@ -15,7 +15,7 @@
 		</property>
 	</bean>
 
-	<bean id="properties" class="org.chronopolis.common.props.GenericProperties">
+	<bean id="properties" class="org.chronopolis.common.properties.GenericProperties">
 		<constructor-arg value="${nodeName}"/>
 		<constructor-arg value="${stage}"/>
 	</bean>

@@ -84,7 +84,7 @@
                 <version>1.8.1</version>
             </dependency>
 
-            <!-- For the duracloud intake service -->
+            <!-- For tomcat services -->
             <dependency>
                 <groupId>log4j</groupId>
                 <artifactId>log4j</artifactId>
@@ -125,7 +125,7 @@
             <dependency>
                 <groupId>org.json</groupId>
                 <artifactId>json</artifactId>
-                <version>20090211</version>
+                <version>20130802</version>
             </dependency>
 
         </dependencies>
@@ -140,10 +140,22 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.chronopolis</groupId>
+                    <artifactId>chron-repl</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.chronopolis</groupId>
+                    <artifactId>chron-repl</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.amqp</groupId>

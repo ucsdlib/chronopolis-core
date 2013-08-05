@@ -4,8 +4,8 @@
  */
 package org.chronopolis.bagit.util;
 
+import edu.umiacs.util.Strings;
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -25,9 +25,7 @@ public class DigestUtil {
     public static String byteToHex(byte[] bytes) {
         StringBuilder str = new StringBuilder(new BigInteger(1, bytes).toString(16));
         if ( str.length() < bytes.length*2) {
-            for ( int i=0; i < bytes.length*2-str.length(); i++) {
-                str.insert(0, "0");
-            }
+            str.insert(0, Strings.repeat('0', bytes.length*2-str.length()));
         }
         return str.toString();
     }
