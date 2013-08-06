@@ -25,6 +25,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.Logger;
 import org.chronopolis.amqp.ChronProducer;
@@ -205,12 +207,13 @@ public class CollectionInitProcessor implements ChronProcessor {
 
             // Now let's POST the token store
             // Not sure if this will work yet
-            FileEntity fileEntity = new FileEntity(manifest.toFile(), 
-                                                   ContentType.MULTIPART_FORM_DATA);
+            FileBody body = new FileBody(manifest.toFile());
+            MultipartEntity mpEntity = new MultipartEntity();
+            mpEntity.addPart("tokenstore", body);
             uri.delete(mark, uri.length());
             uri.append("rest/tokenstore/");
             uri.append(id);
-            doPost(uri.toString(), fileEntity);
+            doPost(uri.toString(), mpEntity);
         } catch (JSONException ex) {
             log.error("Error creating json", ex);
         } catch (IOException ex) {
