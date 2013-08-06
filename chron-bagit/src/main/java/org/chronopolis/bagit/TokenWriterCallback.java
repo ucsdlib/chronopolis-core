@@ -31,7 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * TODO: Callback ugliness 
+ * 
  *
  * @author shake
  */
@@ -62,18 +62,22 @@ public class TokenWriterCallback implements RequestBatchCallback, Callable<Path>
 
     @Override
     public Path call() {
-        System.out.println("Hey we're in the callback, we're going to poll for a while now");
+        if ( !stage.toFile().exists() ) {
+            stage.toFile().mkdirs();
+        }
         manifest = Paths.get(stage.toString(), collectionName);
         try (OutputStream os = Files.newOutputStream(manifest, CREATE)){
             TokenResponse response;
             AceTokenWriter writer = new AceTokenWriter(os);
+            log.debug("Polling for token response");
             while ((response = tokenCallbacks.poll(30, TimeUnit.SECONDS)) != null) {
-                AceToken  token = buildFromResponse(response);
+                AceToken token = buildFromResponse(response);
+                System.out.println(token.getRound());
                 writer.startToken(token);
                 writer.addIdentifier(collectionName);
                 writer.writeTokenEntry();
             }
-                writer.close();
+            writer.close();
         } catch (InterruptedException | IOException ex) {
             log.error("Error w/ manifest {} ", ex);
         }

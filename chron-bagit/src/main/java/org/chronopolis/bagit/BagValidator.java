@@ -7,7 +7,6 @@ package org.chronopolis.bagit;
 import edu.umiacs.ace.ims.api.IMSService;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -15,6 +14,8 @@ import java.util.concurrent.Future;
 import edu.umiacs.ace.ims.api.TokenRequestBatch;
 import edu.umiacs.ace.ims.ws.TokenRequest;
 import java.util.concurrent.ExecutionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Immutable variables call me Immutable Variable man
@@ -23,6 +24,7 @@ import java.util.concurrent.ExecutionException;
  * @author shake
  */
 public class BagValidator {
+    public final Logger log = LoggerFactory.getLogger(BagValidator.class);
     
     // Files to check for in the bag
     public final String bagInfo = "bag-info.txt";
@@ -48,18 +50,18 @@ public class BagValidator {
     public BagValidator(Path toBag) {
         this.toBag = toBag;
         callback = new TokenWriterCallback(toBag.getFileName().toString());
-        validDigests = new HashMap<>();
 
         bagInfoValidator = new BagInfoValidator(toBag);
         bagitValidator = new BagitValidator(toBag);
         manifestValidator = new ManifestValidator(toBag);
         validManifest = manifestRunner.submit(manifestValidator);
+        validDigests = manifestValidator.getValidDigests();
     }
     
     public static boolean ValidateBagFormat(Path toBag) {
         return true;
     }
-    
+
     public Future<Boolean> getValidManifest() {
         return validManifest;
     }
@@ -81,19 +83,27 @@ public class BagValidator {
     
     // Maybe we should push this into something else as well
     // Since it doesn't have to do much with validation, only runs after
-    public Path getManifest(Path stage) throws InterruptedException, 
+    public Path getAceManifest(Path stage) throws InterruptedException, 
                                                IOException, 
                                                ExecutionException {
+        if ( !validManifest.isDone() ) {
+            throw new RuntimeException("Not finished validating manifest for bag");
+        }
+        if ( stage == null ) { 
+            throw new RuntimeException("Stage cannot be null");
+        }
+
         createIMSConnection();
         callback.setStage(stage);
         Future<Path> manifestPath = manifestRunner.submit(callback);
         
+        log.info("Have {} entries", validDigests.entrySet().size());
         for ( Map.Entry<Path, String> entry : validDigests.entrySet()) {
             TokenRequest req = new TokenRequest();
             // We want the relative path for ACE so let's get it
             Path full = entry.getKey();
             Path relative = full.subpath(toBag.getNameCount(), full.getNameCount());
-            
+             
             req.setName(relative.toString());
             req.setHashValue(entry.getValue());
             batch.add(req);

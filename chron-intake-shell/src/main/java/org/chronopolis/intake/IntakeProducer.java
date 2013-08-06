@@ -50,7 +50,7 @@ public class IntakeProducer {
             
             if ( option.equals(PRODUCER_OPTION.SEND_INTAKE_REQUEST)) {
                 PackageReadyMessage msg = MessageFactory.DefaultPackageReadyMessage();
-                String location = "RNDB_RCI_Jan2013_2013-01-29";
+                String location = "acadis_database_02-02-2013";
                 msg.setLocation(location);
                 msg.setPackageName(location);
                 msg.setDepositor("chron");

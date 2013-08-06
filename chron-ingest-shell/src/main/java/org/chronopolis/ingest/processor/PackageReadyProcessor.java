@@ -68,13 +68,14 @@ public class PackageReadyProcessor implements ChronProcessor {
 
             if ( valid ) {
                 log.info("Bag is valid; continuing to make manifest");
-                manifest = validator.getManifest(Paths.get(props.getTokenStage()));
-
+                manifest = validator.getAceManifest(Paths.get(props.getTokenStage()));
+                log.info("Manifest is located at " + manifest.toString());
             } else {
                 ManifestValidator mv = validator.getManifestValidator();
                 StringBuilder err = new StringBuilder("Invalid bag (bad digests)\n");
                 for (ManifestError e : mv.getCorruptedFiles()) {
-                    err.append(e.getPath()).append(" { ").append(e.getExpected()).append(" !=  ").append(e.getFound()).append(" }").append("\n");
+                    err.append(e.getPath()).append(" { ").append(e.getExpected())
+                       .append(" !=  ").append(e.getFound()).append(" }").append("\n");
                 }
                 throw new RuntimeException(err.toString());
             }

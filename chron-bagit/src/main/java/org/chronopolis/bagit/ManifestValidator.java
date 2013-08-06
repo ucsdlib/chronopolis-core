@@ -75,6 +75,7 @@ public class ManifestValidator implements Callable<Boolean> {
                 }
             }
         }
+
     }
     
     // May want to break this out so other classes can do digests easily if needed
@@ -133,15 +134,24 @@ public class ManifestValidator implements Callable<Boolean> {
             }
         }
         
-        System.out.println("Finished validation; Digesting manifests");
-        
         // I guess we're just assuming that the digests are valid...
         // Actually if the manifest-alg.txt is invalid the tagmanifest will catch it
-        for ( Path p : manifests) {
+        // Also we probably only want to do this if it is valid
+        DirectoryStream.Filter filter = new DirectoryStream.Filter<Path>() {
+            @Override
+            public boolean accept(Path t) throws IOException {
+                return !registeredDigests.containsKey(t) 
+                       && !t.toFile().isDirectory();
+            }
+        };  
+
+        DirectoryStream<Path> dStream = Files.newDirectoryStream(bag, filter);
+        for ( Path p : dStream ) {
+            System.out.println(p);
             md.reset();
             byte[] manifestDigest = doDigest(p);
             String digest = DigestUtil.byteToHex(manifestDigest);
-            getValidDigests().put(p, digest);
+            validDigests.put(p, digest);
         }
         
         return valid;
