@@ -10,3 +10,4 @@
 /chron-ingest-shell/ingest.properties
 /chron-logger/target/
 /amqp-test/target/
+/duracloud-rest/target/
