@@ -20,17 +20,13 @@ public class ReplicationProperties extends GenericProperties{
 
     public ReplicationProperties(String nodeName, String stage, String aceFqdn, 
                                  String acePath, String aceUser, String acePass, 
-                                 String acePort) {
+                                 Integer acePort) {
         super(nodeName, stage);
         this.aceFqdn = aceFqdn;
         this.acePath = acePath;
         this.aceUser = aceUser;
         this.acePass = acePass;
-        if ( acePort == null ) {
-            System.out.println("WHATTHEFUCKINGSHIT");
-        } else {
-            System.out.println("WHATTHEFUCKINGSHIT");
-        }
+        this.acePort = acePort;
     }
 
     /**

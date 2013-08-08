@@ -19,7 +19,7 @@ import javax.persistence.NamedQuery;
 // use the NamedQueries wrapper if you need more than one query
 // Entity.queryname is a convention for naming, but not required
 // :name is the supplied query, this can be an entity and set in Query.setParameter
-@NamedQuery(name="MyEntity.findByName", query="SELECT m FROM MyEntity m WHERE name = :name")
+@NamedQuery(name="MyEntity.findByName", query="SELECT m FROM MyEntity m WHERE m.name = :name")
 public class MyEntity implements Serializable, IDEntity {
     private static final long serialVersionUID = 1L;
     @Id
@@ -27,6 +27,7 @@ public class MyEntity implements Serializable, IDEntity {
     private Long id;
     private String name;
 
+    @Override
     public Long getId() {
         return id;
     }

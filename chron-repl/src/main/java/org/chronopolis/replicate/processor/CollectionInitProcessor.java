@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.logging.Level;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -23,7 +22,6 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
-import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
@@ -76,7 +74,7 @@ public class CollectionInitProcessor implements ChronProcessor {
     }
 
     // Helper to get the id of the newly created collection
-    // Maybe I should have ACE return a jsinfoon blob on a successful collection creation 
+    // Maybe I should have ACE return a json blob on a successful collection creation 
     private  int getCollectionId(String collection, String group) throws IOException, 
                                                                          JSONException {
         DefaultHttpClient client = new DefaultHttpClient();
@@ -180,9 +178,13 @@ public class CollectionInitProcessor implements ChronProcessor {
             JSONObject proxyVals = new JSONObject();
             proxyVals.put("key", "proxy.data");
             proxyVals.put("value", "false");
+            JSONObject auditPeriod = new JSONObject();
+            auditPeriod.put("key", "audit.period");
+            auditPeriod.put("value", msg.getAuditPeriod());
             JSONObject settings = new JSONObject().put("entry", 
                                                    new JSONArray().put(auditVals)
-                                                                  .put(proxyVals));
+                                                                  .put(proxyVals)
+                                                                  .put(auditPeriod));
             JSONObject coll = new JSONObject();
             coll.put("digestAlgorithm", "SHA-256");
             coll.put("settings", settings);
@@ -221,7 +223,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         }
         
         // Because I'm bad at reading - Collection Init Complete Message
-        System.out.println("Sending response");
+        log.info("Sending response");
         ChronMessage2 response = MessageFactory.DefaultCollectionInitCompleteMessage();
         producer.send(response, chronMessage.getReturnKey());
     }

@@ -16,7 +16,7 @@ import org.apache.log4j.Logger;
 public class Dba {
 
     private static volatile boolean initialized = false;
-    private static final Boolean lock = new Boolean(true);
+    private static final Boolean lock = true;
     private static EntityManagerFactory emf = null;
     protected Logger logger = Logger.getLogger(Dba.class);
     private EntityManager outer;
@@ -37,6 +37,10 @@ public class Dba {
 
         initialize();
         openEm(readOnly);
+    }
+
+    public final void openEm() {
+        this.openEm(false);
     }
 
     public final void openEm(boolean readOnly) {
