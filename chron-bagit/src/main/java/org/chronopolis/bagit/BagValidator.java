@@ -41,9 +41,9 @@ public class BagValidator {
     private Map<Path, String> validDigests;
 
     // All our various validators
-    private BagInfoValidator bagInfoValidator;
-    private BagitValidator bagitValidator;
-    private ManifestValidator manifestValidator;
+    private BagInfoProcessor bagInfoValidator;
+    private BagitProcessor bagitValidator;
+    private ManifestProcessor manifestValidator;
     private Future<Boolean> validManifest;
     
     
@@ -51,9 +51,9 @@ public class BagValidator {
         this.toBag = toBag;
         callback = new TokenWriterCallback(toBag.getFileName().toString());
 
-        bagInfoValidator = new BagInfoValidator(toBag);
-        bagitValidator = new BagitValidator(toBag);
-        manifestValidator = new ManifestValidator(toBag);
+        bagInfoValidator = new BagInfoProcessor(toBag);
+        bagitValidator = new BagitProcessor(toBag);
+        manifestValidator = new ManifestProcessor(toBag);
         validManifest = manifestRunner.submit(manifestValidator);
         validDigests = manifestValidator.getValidDigests();
     }
@@ -69,8 +69,8 @@ public class BagValidator {
     
     // Need to figure out exactly how we want to do these...
     public void checkBagitFiles() {
-        getBagInfoValidator().isValid();
-        getBagitValidator().isValid();
+        getBagInfoValidator().valid();
+        getBagitValidator().valid();
     }
 
     public void setValidDigests(Map<Path, String> validDigests) {
@@ -125,21 +125,21 @@ public class BagValidator {
     /**
      * @return the bagInfoValidator
      */
-    public BagInfoValidator getBagInfoValidator() {
+    public BagInfoProcessor getBagInfoValidator() {
         return bagInfoValidator;
     }
 
     /**
      * @return the bagitValidator
      */
-    public BagitValidator getBagitValidator() {
+    public BagitProcessor getBagitValidator() {
         return bagitValidator;
     }
 
     /**
      * @return the manifestValidator
      */
-    public ManifestValidator getManifestValidator() {
+    public ManifestProcessor getManifestValidator() {
         return manifestValidator;
     }
     

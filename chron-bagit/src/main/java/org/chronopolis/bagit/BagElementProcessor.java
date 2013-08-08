@@ -8,6 +8,7 @@ package org.chronopolis.bagit;
  *
  * @author shake
  */
-public interface Validator {
-    public boolean isValid();
+public interface BagElementProcessor {
+    public boolean valid();
+    public void create();
 }

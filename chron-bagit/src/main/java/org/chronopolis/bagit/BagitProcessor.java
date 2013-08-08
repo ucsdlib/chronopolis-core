@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  *
  * @author shake
  */
-public class BagitValidator implements Validator {
+public class BagitProcessor implements BagElementProcessor {
     // As defined in the bagit spec
     private final String bagitRE = "bagit.txt";
     private final String versionRE = "BagIt-Version";
@@ -26,7 +26,7 @@ public class BagitValidator implements Validator {
 
     private String bagVersion;
 
-    public BagitValidator(Path bag) {
+    public BagitProcessor(Path bag) {
         this.bagitPath = bag.resolve(bagitRE);
     }
 
@@ -36,7 +36,7 @@ public class BagitValidator implements Validator {
     }
 
     @Override
-    public boolean isValid() {
+    public boolean valid() {
         boolean valid = exists();
         try {
             try (BufferedReader reader = Files.newBufferedReader(bagitPath, Charset.forName("UTF-8"))) {
@@ -66,7 +66,7 @@ public class BagitValidator implements Validator {
                 }
             }
         } catch (IOException ex) {
-            Logger.getLogger(BagitValidator.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(BagitProcessor.class.getName()).log(Level.SEVERE, null, ex);
         }
         return valid;
     }
@@ -83,6 +83,11 @@ public class BagitValidator implements Validator {
      */
     public String getTagFileEncoding() {
         return tagFileEncoding;
+    }
+
+    @Override
+    public void create() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 

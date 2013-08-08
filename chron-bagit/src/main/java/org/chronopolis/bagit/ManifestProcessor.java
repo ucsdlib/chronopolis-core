@@ -27,7 +27,7 @@ import org.chronopolis.bagit.util.DigestUtil;
  *
  * @author shake
  */
-public class ManifestValidator implements Callable<Boolean> {
+public class ManifestProcessor implements Callable<Boolean>, BagElementProcessor {
     private final String manifestRE = "*manifest-*.txt";
     private final Path bag;
     
@@ -37,9 +37,11 @@ public class ManifestValidator implements Callable<Boolean> {
     private HashSet<ManifestError> corruptedFiles = new HashSet<>();
     private HashSet<Path> manifests = new HashSet<>();
     private MessageDigest md;
+    private boolean valid;
     
-    public ManifestValidator(Path bag) {
+    public ManifestProcessor(Path bag) {
         this.bag = bag;
+        
     }
     
     private void findManifests() throws IOException {
@@ -94,7 +96,7 @@ public class ManifestValidator implements Callable<Boolean> {
     
     @Override
     public Boolean call() throws Exception {
-        boolean valid = true;
+        valid = true;
         findManifests();
         populateDigests();
         
@@ -166,6 +168,18 @@ public class ManifestValidator implements Callable<Boolean> {
 
     public HashSet<ManifestError> getCorruptedFiles() {
         return corruptedFiles;
+    }
+
+    @Override
+    public boolean valid() {
+       while ( Thread.currentThread().isAlive()) {
+       }
+       return valid;
+    }
+
+    @Override
+    public void create() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
     public class ManifestError {

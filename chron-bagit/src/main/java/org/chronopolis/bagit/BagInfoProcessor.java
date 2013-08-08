@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.chronopolis.bagit.util.BagMetaElement;
 import org.chronopolis.bagit.util.PayloadOxum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,17 +19,22 @@ import org.slf4j.LoggerFactory;
  *
  * @author shake
  */
-public class BagInfoValidator implements Validator {
+public class BagInfoProcessor implements BagElementProcessor {
     // As defined by the bagit spec
     private final String bagInfoRE = "bag-info.txt";
     private final String oxumRE = "Payload-Oxum";
     private final Path bagInfoPath;
     private PayloadOxum payloadOxum;
 
-    private final Logger log = LoggerFactory.getLogger(BagInfoValidator.class);
+    private final Logger log = LoggerFactory.getLogger(BagInfoProcessor.class);
 
-    public BagInfoValidator(Path bag) {
+    public BagInfoProcessor(Path bag) {
         this.bagInfoPath = bag.resolve(bagInfoRE);
+        try {
+            initBagInfo();
+        } catch (IOException ex) {
+            log.error("Could not read bag-info.txt {}", ex);
+        }
     }
 
     private boolean exists() {
@@ -37,7 +43,7 @@ public class BagInfoValidator implements Validator {
 
     
     @Override
-    public boolean isValid() {
+    public boolean valid() {
         String dataDir = "data";
         Boolean valid = true;
         PayloadOxum calculatedOxum = new PayloadOxum();
@@ -51,7 +57,6 @@ public class BagInfoValidator implements Validator {
 
         // Set up the oxums
         try {
-            initBagInfo();
             calculatedOxum.calculateOxum(bagPath.resolve(dataDir));
         } catch (IOException ex) {
             log.error("Could not read data directory to resolve payload\n{}", ex);
@@ -72,12 +77,29 @@ public class BagInfoValidator implements Validator {
         String line;
         while ( (line = reader.readLine()) != null ) {
             if ( line.contains(oxumRE) ) {
-                String[] bagPayload = line.split(":");
-                String key = bagPayload[0];
-                String val = bagPayload[1];
-                payloadOxum.setFromString(val);
+                BagMetaElement payload = BagMetaElement.ParseBagMetaElement(line);
+                switch (payload.getKey()) {
+                    case "PayloadOxum":
+                        payloadOxum.setFromString(payload.getValue());
+                        break;
+                    case "External-Identifier":
+                        System.out.println("this is just here to be here");
+                        break;
+                    default:
+                        break;
+                }
             }
         }
+    }
+
+    @Override
+    public void create() {
+        if ( !exists() ) {
+            // full creation
+        } else {
+            // only what we need
+        }
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }

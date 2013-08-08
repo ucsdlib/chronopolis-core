@@ -11,8 +11,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.bagit.BagValidator;
-import org.chronopolis.bagit.ManifestValidator;
-import org.chronopolis.bagit.ManifestValidator.ManifestError;
+import org.chronopolis.bagit.ManifestProcessor;
+import org.chronopolis.bagit.ManifestProcessor.ManifestError;
 import org.chronopolis.messaging.base.ChronMessage2;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.factory.MessageFactory;
@@ -71,7 +71,7 @@ public class PackageReadyProcessor implements ChronProcessor {
                 manifest = validator.getAceManifest(Paths.get(props.getTokenStage()));
                 log.info("Manifest is located at " + manifest.toString());
             } else {
-                ManifestValidator mv = validator.getManifestValidator();
+                ManifestProcessor mv = validator.getManifestValidator();
                 StringBuilder err = new StringBuilder("Invalid bag (bad digests)\n");
                 for (ManifestError e : mv.getCorruptedFiles()) {
                     err.append(e.getPath()).append(" { ").append(e.getExpected())
