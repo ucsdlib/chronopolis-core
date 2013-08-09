@@ -5,11 +5,11 @@ package org.chronopolis.bagit.util;
  *
  * @author shake
  */
-public class BagMetaElement {
+public class BagMetaElement<T> {
     private String key;
-    private String value;
+    private T value;
 
-    public BagMetaElement(String key, String value) {
+    public BagMetaElement(String key, T value) {
         this.key = key;
         this.value = value;
     }
@@ -49,20 +49,22 @@ public class BagMetaElement {
     /**
      * @return the value
      */
-    public String getValue() {
+    public T getValue() {
         return value;
     }
 
     /**
      * @param value the value to set
      */
-    public void setValue(String value) {
+    public void setValue(T value) {
         this.value = value;
     }
 
     @Override
     public String toString() {
-        return key+": "+value;
+        StringBuilder builder = new StringBuilder(key).append(": ")
+                                                      .append(value);
+        return builder.toString();
     }
     
 }

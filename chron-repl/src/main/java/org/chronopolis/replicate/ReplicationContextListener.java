@@ -21,6 +21,7 @@ public class ReplicationContextListener implements ServletContextListener {
     // Check out this awesome variable name
     private Future beep;
 
+    @Override
     public void contextInitialized(ServletContextEvent sce) {
         log.info("Starting up Replication context");
         ReplicationQueue queue = new ReplicationQueue();
@@ -28,6 +29,7 @@ public class ReplicationContextListener implements ServletContextListener {
         //service.execute(queue);
     }
 
+    @Override
     public void contextDestroyed(ServletContextEvent sce) {
         log.info("Shutting down Replication context");
         if ( !beep.isCancelled()) {

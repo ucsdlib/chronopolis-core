@@ -52,7 +52,7 @@ public class ReplicationQueue implements Runnable {
         } else if ( stage == null ) {
             System.out.println("Null stage");
         } else if (xfer == null ) {
-            System.out.println("Seriously this was fucking initialized already");
+            System.out.println("This shouldn't happen");
         }
         return xfer.getFile(url, stage);
     }

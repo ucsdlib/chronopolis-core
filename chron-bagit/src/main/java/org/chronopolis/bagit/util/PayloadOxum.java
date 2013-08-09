@@ -54,6 +54,10 @@ public class PayloadOxum {
     }
 
     public void calculateOxum(Path directory) throws IOException {
+        // Clear old oxum
+        numFiles = 0;
+        octetCount = 0;
+
         // Walk the file tree
         // and have the visitor increment our payload
         Files.walkFileTree(directory, new SimpleFileVisitor<Path>(){ 
@@ -116,6 +120,13 @@ public class PayloadOxum {
 
         octetCount = Long.parseLong(payload[0]);
         numFiles = Long.parseLong(payload[1]);
+    }
+
+    public BagMetaElement toBagMetaElement() {
+        String payloadRE = "Payload-Oxum";
+        BagMetaElement payloadOxum = new BagMetaElement(payloadRE, 
+                                                        this.toString());
+        return payloadOxum;
     }
     
 }
