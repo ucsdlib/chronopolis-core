@@ -30,7 +30,10 @@ public class ReplicationQueue implements Runnable {
         ReplicationQueue.props = props;
     }
 
-    private static String buildURL(String base, String collection, String group, String file) {
+    private static String buildURL(String base, 
+                                   String collection, 
+                                   String group, 
+                                   String file) {
         StringBuilder uriBuilder = new StringBuilder(base);
 
         if ( group != null && !group.isEmpty()) {
@@ -57,7 +60,10 @@ public class ReplicationQueue implements Runnable {
         return xfer.getFile(url, stage);
     }
 
-    public static void getFileAsync(String base, String collection, String group, String file) {
+    public static void getFileAsync(String base, 
+                                    String collection, 
+                                    String group, 
+                                    String file) {
         ReplicationDownload rFile = new ReplicationDownload(base, collection, group, file);
         try {
             log.info("Queueing " + file);
@@ -67,6 +73,7 @@ public class ReplicationQueue implements Runnable {
         }
     }
 
+    @Override
     public void run() {
         while ( !Thread.currentThread().isInterrupted() ) {
             Path file = null;
@@ -94,7 +101,10 @@ public class ReplicationQueue implements Runnable {
         private String file;
         private String base;
 
-        private ReplicationDownload(String collection, String group, String file, String base) {
+        private ReplicationDownload(String base, 
+                                    String collection, 
+                                    String group, 
+                                    String file) {
             this.collection = collection;
             this.group = group;
             this.file = file;

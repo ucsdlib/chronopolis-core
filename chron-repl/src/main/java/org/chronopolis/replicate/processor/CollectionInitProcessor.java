@@ -16,6 +16,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -34,6 +35,7 @@ import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.ReplicationQueue;
+import org.chronopolis.replicate.util.URIUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -47,62 +49,53 @@ public class CollectionInitProcessor implements ChronProcessor {
 
     private ChronProducer producer;
     private ReplicationProperties props; 
-    private final int SSL_PORT = 443;
 
     public CollectionInitProcessor(ChronProducer producer, ReplicationProperties props) {
         this.producer = producer;
         this.props = props;
     }
 
-    // Helper to POST to ACE
-    private HttpResponse doPost(String url, HttpEntity entity) throws IOException,
-                                                                      UnsupportedEncodingException {
-        log.info("Posting to " + url + " with " + entity.toString());
+    private HttpResponse executeRequest(HttpRequest req) throws IOException {
         DefaultHttpClient client = new DefaultHttpClient();
-        HttpPost post = new HttpPost(url);
         HttpHost host = new HttpHost(props.getAceFqdn(), props.getAcePort());
 
         client.getCredentialsProvider().setCredentials(
-                new AuthScope(host.getHostName(), 
-                              host.getPort()), 
+                new AuthScope(host.getHostName(),host.getPort()), 
                 new UsernamePasswordCredentials(props.getAceUser(), 
-                                                props.getAcePass())
-        );
+                                                props.getAcePass()));
 
+        
+        return client.execute(host, req);
+    }
+
+    // Helper to POST to ACE
+    private HttpResponse doPost(String url, 
+                                HttpEntity entity) throws IOException,
+                                                          UnsupportedEncodingException {
+        log.info("Posting to " + url + " with " + entity.toString());
+        HttpPost post = new HttpPost(url);
         post.setEntity(entity);
-        return client.execute(host, post);
+        return executeRequest(post);
     }
 
     // Helper to get the id of the newly created collection
     // Maybe I should have ACE return a json blob on a successful collection creation 
-    private  int getCollectionId(String collection, String group) throws IOException, 
-                                                                         JSONException {
-        DefaultHttpClient client = new DefaultHttpClient();
-        StringBuilder uri = new StringBuilder("http://");
-        uri.append(props.getAceFqdn());
-        if ( props.getAcePort() != SSL_PORT ) {
-            uri.append(":").append(props.getAcePort()).append("/");
-        } else {
-            uri.append("/");
-        }
-        uri.append(props.getAcePath()).append("/");
-        uri.append("rest/collection/json/");
-        uri.append(collection).append("/");
-        uri.append(group);
+    private  int getCollectionId(String collection, 
+                                 String group) throws IOException, 
+                                                      JSONException {
+        String uri = URIUtil.buildACECollectionGet(props.getAceFqdn(), 
+                                                   props.getAcePort(), 
+                                                   props.getAcePath(), 
+                                                   collection, 
+                                                   group);
         HttpGet get = new HttpGet(uri.toString());
-        HttpHost host = new HttpHost(props.getAceFqdn(), props.getAcePort());
-        log.info(uri.toString());
-        client.getCredentialsProvider().setCredentials(
-                new AuthScope(host.getHostName(), host.getPort()), 
-                new UsernamePasswordCredentials(props.getAceUser(), 
-                                                props.getAcePass()));
-        HttpResponse response = client.execute(get);
-        log.info(response.getStatusLine());
-        log.info(response.getEntity().getContentType());
+
+        HttpResponse response = executeRequest(get);
         if ( response.getStatusLine().getStatusCode() != 200) {
             throw new RuntimeException("Could not get collection!");
         }
         BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+
         // The JSON builder is kind of broken
         // luckily we only get a single line back from ACE
         String r = reader.readLine();
@@ -142,14 +135,17 @@ public class CollectionInitProcessor implements ChronProcessor {
                                           StandardOpenOption.READ), 
                                           "UTF-8");
             // Will be
-            // base + depositor + collection
+            // baseURL + depositor (group) + collection + file
             String url = "http://localhost/bags/"+msg.getCollection()+"/";
             while ( reader.hasNext()) {
                 TokenStoreEntry entry = reader.next();
                 for ( String identifier : entry.getIdentifiers() ) {
                     log.debug("Downloading " + identifier);
-                    Path download = Paths.get(collPath.toString(), identifier);
-                    //xfer.getFile(url+identifier, download);
+                    //Path download = Paths.get(collPath.toString(), identifier);
+                    ReplicationQueue.getFileAsync(url, 
+                                                  msg.getCollection(), 
+                                                  msg.getDepositor(), 
+                                                  identifier);
                 }
             }
         } catch (IOException ex) {
@@ -157,19 +153,6 @@ public class CollectionInitProcessor implements ChronProcessor {
             return;
         }
 
-        // Do we want to force https?
-        StringBuilder uri = new StringBuilder("http://");
-        uri.append(props.getAceFqdn());
-        if ( props.getAcePort() != SSL_PORT ) {
-            uri.append(":").append(props.getAcePort()).append("/");
-        } else {
-            uri.append("/");
-        }
-        uri.append(props.getAcePath()).append("/");
-        int mark = uri.length();
-        // and the restful path now...
-        uri.append("rest/collection/");
-        
         try {
             // Build and POST our collection
             JSONObject auditVals = new JSONObject();
@@ -194,8 +177,10 @@ public class CollectionInitProcessor implements ChronProcessor {
             coll.put("storage", "local");
             StringEntity entity = new StringEntity(coll.toString(), 
                                                    ContentType.APPLICATION_JSON);
-
-            HttpResponse req = doPost(uri.toString(), entity);
+            String uri = URIUtil.buildACECollectionPost(props.getAceFqdn(), 
+                                                        props.getAcePort(), 
+                                                        props.getAcePath());
+            HttpResponse req = doPost(uri, entity);
             // 2 things
             // 1: Unhardcode
             // 2: Log also
@@ -208,14 +193,14 @@ public class CollectionInitProcessor implements ChronProcessor {
             int id = getCollectionId(msg.getCollection(), msg.getDepositor());
 
             // Now let's POST the token store
-            // Not sure if this will work yet
             FileBody body = new FileBody(manifest.toFile());
             MultipartEntity mpEntity = new MultipartEntity();
             mpEntity.addPart("tokenstore", body);
-            uri.delete(mark, uri.length());
-            uri.append("rest/tokenstore/");
-            uri.append(id);
-            doPost(uri.toString(), mpEntity);
+            uri = URIUtil.buildACETokenStorePost(props.getAceFqdn(), 
+                                                 props.getAcePort(), 
+                                                 props.getAcePath(), 
+                                                 id);
+            doPost(uri, mpEntity);
         } catch (JSONException ex) {
             log.error("Error creating json", ex);
         } catch (IOException ex) {
