@@ -27,7 +27,7 @@ import org.chronopolis.bagit.util.DigestUtil;
  *
  * @author shake
  */
-public class ManifestProcessor implements Callable<Boolean>, BagElementProcessor {
+public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
     private final String manifestRE = "*manifest-*.txt";
     private final Path bag;
     

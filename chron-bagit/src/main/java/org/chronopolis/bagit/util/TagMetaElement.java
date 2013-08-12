@@ -1,20 +1,20 @@
 package org.chronopolis.bagit.util;
 
 /**
- * Simple class to create key: value pairs found in bagit elements
+ * Simple class to create key: value pairs found in bagit tag files 
  *
  * @author shake
  */
-public class BagMetaElement<T> {
+public class TagMetaElement<T> {
     private String key;
     private T value;
 
-    public BagMetaElement(String key, T value) {
+    public TagMetaElement(String key, T value) {
         this.key = key;
         this.value = value;
     }
 
-    public static BagMetaElement ParseBagMetaElement(String line) {
+    public static TagMetaElement ParseBagMetaElement(String line) {
         if ( line == null || line.isEmpty() ) {
             throw new RuntimeException("Cannot parse empty line");
         }
@@ -27,7 +27,7 @@ public class BagMetaElement<T> {
 
         String key = elements[0];
         String value = elements[1];
-        BagMetaElement metadata = new BagMetaElement(key, value);
+        TagMetaElement metadata = new TagMetaElement(key, value);
         
         return metadata;
     }

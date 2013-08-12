@@ -11,16 +11,19 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.chronopolis.bagit.util.BagMetaElement;
+import org.chronopolis.bagit.util.BagFileWriter;
+import org.chronopolis.bagit.util.TagMetaElement;
 
 /**
  * Validate and create bagit.txt files
  *
  * @author shake
  */
-public class BagitProcessor implements BagElementProcessor {
+public class BagitProcessor implements TagProcessor {
     // As defined in the bagit spec
     private final String bagitRE = "bagit.txt";
     private final String bagVersionRE = "BagIt-Version";
@@ -47,7 +50,7 @@ public class BagitProcessor implements BagElementProcessor {
             try (BufferedReader reader = Files.newBufferedReader(bagitPath, Charset.forName("UTF-8"))) {
                 String line;
                 while ( (line = reader.readLine()) != null ) {
-                    BagMetaElement<String> element = BagMetaElement.ParseBagMetaElement(line);
+                    TagMetaElement<String> element = TagMetaElement.ParseBagMetaElement(line);
 
                     // TODO: Maybe make it it's own method so I can just say
                     // valid = parseLine(tmp)
@@ -87,6 +90,16 @@ public class BagitProcessor implements BagElementProcessor {
         return tagFileEncoding;
     }
 
+    private void fullCreate() {
+        List<TagMetaElement> elements = new ArrayList<>();
+        if (null == bagVersion || bagVersion.isEmpty()) {
+            bagVersion = currentBagVersion;
+        }
+        elements.add(new TagMetaElement(bagVersionRE, bagVersion));
+        elements.add(new TagMetaElement(tagFileRE, tagFileEncoding));
+        BagFileWriter.write(bagitPath, elements, StandardOpenOption.CREATE);
+    }
+
     private void partialCreate() {
         // Since UTF-8 is defined fr the Tag-File, this is the only thing we 
         // need to check
@@ -111,18 +124,19 @@ public class BagitProcessor implements BagElementProcessor {
         if ( exists() ) {
             partialCreate();
         } else {
-
+            fullCreate();
         }
     }
 
     // By using a StringBuilder, we don't have to worry about null strings
     public String bagVersionAsString() {
-        BagMetaElement element = new BagMetaElement(bagVersionRE, bagVersion);
+        TagMetaElement element = new TagMetaElement(bagVersionRE, bagVersion);
         return element.toString();
     }
 
     public String tagFileEncodingToString() {
-        BagMetaElement element = new BagMetaElement(tagFileRE, tagFileEncoding);
+        TagMetaElement element = new TagMetaElement(tagFileRE, tagFileEncoding);
         return element.toString();
     }
+
 }

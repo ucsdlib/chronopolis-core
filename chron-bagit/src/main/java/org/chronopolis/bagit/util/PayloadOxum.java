@@ -122,9 +122,9 @@ public class PayloadOxum {
         numFiles = Long.parseLong(payload[1]);
     }
 
-    public BagMetaElement toBagMetaElement() {
+    public TagMetaElement toBagMetaElement() {
         String payloadRE = "Payload-Oxum";
-        BagMetaElement payloadOxum = new BagMetaElement(payloadRE, 
+        TagMetaElement payloadOxum = new TagMetaElement(payloadRE, 
                                                         this.toString());
         return payloadOxum;
     }
