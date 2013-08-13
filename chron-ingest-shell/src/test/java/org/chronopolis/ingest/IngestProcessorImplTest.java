@@ -2,15 +2,13 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.chronopolis.chron.ingest.shell;
+package org.chronopolis.ingest;
 
-import org.chronopolis.ingest.IngestMessageListener;
 import org.chronopolis.ingest.processor.CollectionInitCompleteProcessor;
 import org.chronopolis.ingest.processor.PackageIngestStatusQueryProcessor;
 import org.chronopolis.ingest.processor.PackageReadyProcessor;
 import org.chronopolis.messaging.base.ChronMessage2;
 import org.chronopolis.messaging.base.ChronProcessor;
-import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.easymock.EasyMock;
 import org.junit.Before;

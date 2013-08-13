@@ -13,10 +13,10 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.chronopolis.bagit.util.BagFileWriter;
 import org.chronopolis.bagit.util.TagMetaElement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Validate and create bagit.txt files
@@ -24,101 +24,117 @@ import org.chronopolis.bagit.util.TagMetaElement;
  * @author shake
  */
 public class BagitProcessor implements TagProcessor {
+    private final Logger log = LoggerFactory.getLogger(BagitProcessor.class);
+    
     // As defined in the bagit spec
     private final String bagitRE = "bagit.txt";
     private final String bagVersionRE = "BagIt-Version";
     private final String tagFileRE = "Tag-File-Character-Encoding";
     private final String currentBagVersion = "0.97";
-    private final Path bagitPath;
-
-    // Why not just make these BagMetaElements?
     private final String tagFileEncoding = "UTF-8";
-    private String bagVersion;
-
+    private final Path bagitPath;
+    
+    // Why not just make these TagMetaElements?
+    private TagMetaElement<String> bagVersion;
+    private TagMetaElement<String> tagEncoding;
+    
     public BagitProcessor(Path bag) {
         this.bagitPath = bag.resolve(bagitRE);
+        init();
     }
-
+    
     private boolean exists() {
         return bagitPath.toFile().exists();
     }
-
-    @Override
-    public boolean valid() {
-        boolean valid = exists();
-        try {
+    
+    private void init() {
+        if (exists()) {
             try (BufferedReader reader = Files.newBufferedReader(bagitPath, Charset.forName("UTF-8"))) {
                 String line;
                 while ( (line = reader.readLine()) != null ) {
                     TagMetaElement<String> element = TagMetaElement.ParseBagMetaElement(line);
-
-                    // TODO: Maybe make it it's own method so I can just say
-                    // valid = parseLine(tmp)
+                    
                     switch (element.getKey()) {
                         case bagVersionRE:
-                            bagVersion = element.getValue();
+                            bagVersion = element;
                             break;
                         case tagFileRE:
-                            // Make sure we're using UTF-8
-                            if ( !element.getValue().equals(tagFileEncoding)) {
-                                valid = false;
-                            }
+                            tagEncoding = element;
                             break;
                         default:
-                            valid = false;
+                            // We should have some flag that says we had unknown
+                            // value
                             break;
                     }
                 }
+                
+            }catch (IOException ex) {
+                log.error("Error reading bagit.txt\n{}", ex);
             }
-        } catch (IOException ex) {
-            Logger.getLogger(BagitProcessor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    @Override
+    public boolean valid() {
+        boolean valid = exists();
+        if ( bagVersion == null || 
+             bagVersion.getValue() == null || 
+             !bagVersion.getValue().equals(currentBagVersion) ) { 
+            valid = false;
+        }
+        if ( tagEncoding == null || 
+             tagEncoding.getValue() == null ||
+             !tagEncoding.getValue().equals(tagFileEncoding)) { 
+            valid = false;
         }
         return valid;
     }
-
+    
     /**
      * @return the bagVersion
      */
     public String getBagVersion() {
-        return bagVersion;
+        return bagVersion.getValue();
     }
-
+    
     /**
      * @return the tagFileEncoding
      */
     public String getTagFileEncoding() {
         return tagFileEncoding;
     }
-
+    
     private void fullCreate() {
         List<TagMetaElement> elements = new ArrayList<>();
-        if (null == bagVersion || bagVersion.isEmpty()) {
-            bagVersion = currentBagVersion;
+        if ( bagVersion == null ) {
+            bagVersion = new TagMetaElement(bagVersionRE, currentBagVersion);
         }
-        elements.add(new TagMetaElement(bagVersionRE, bagVersion));
-        elements.add(new TagMetaElement(tagFileRE, tagFileEncoding));
+        //elements.add(new TagMetaElement(bagVersionRE, bagVersion));
+        //elements.add(new TagMetaElement(tagFileRE, tagFileEncoding));
+        elements.add(bagVersion);
+        elements.add(tagEncoding);
         BagFileWriter.write(bagitPath, elements, StandardOpenOption.CREATE);
     }
-
+    
     private void partialCreate() {
-        // Since UTF-8 is defined fr the Tag-File, this is the only thing we 
+        // Since UTF-8 is defined fr the Tag-File, this is the only thing we
         // need to check
-        if ( bagVersion == null ){ 
-            bagVersion = currentBagVersion;
+        if ( bagVersion == null ){
+            bagVersion = new TagMetaElement(bagVersionRE, currentBagVersion);
         }
         String version = bagVersionAsString();
-
+        
         try {
-            BufferedWriter writer = Files.newBufferedWriter(bagitPath, 
-                                          Charset.forName(tagFileEncoding), 
-                                          StandardOpenOption.WRITE);
+            BufferedWriter writer = Files.newBufferedWriter(bagitPath,
+                    Charset.forName(tagFileEncoding),
+                    StandardOpenOption.WRITE);
             writer.write(version, 0, version.length());
         } catch (IOException ex) {
-            Logger.getLogger(BagitProcessor.class.getName()).log(Level.SEVERE, null, ex);
+            log.error("Error writing bagit.txt\n{}",ex);
         }
-
+        
     }
-
+    
     @Override
     public void create() {
         if ( exists() ) {
@@ -127,13 +143,13 @@ public class BagitProcessor implements TagProcessor {
             fullCreate();
         }
     }
-
+    
     // By using a StringBuilder, we don't have to worry about null strings
     public String bagVersionAsString() {
         TagMetaElement element = new TagMetaElement(bagVersionRE, bagVersion);
         return element.toString();
     }
-
+    
     public String tagFileEncodingToString() {
         TagMetaElement element = new TagMetaElement(tagFileRE, tagFileEncoding);
         return element.toString();
