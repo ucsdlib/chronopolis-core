@@ -25,8 +25,8 @@ public class TagMetaElement<T> {
                     + "\nkey: value");
         }
 
-        String key = elements[0];
-        String value = elements[1];
+        String key = elements[0].trim();
+        String value = elements[1].trim();
         TagMetaElement metadata = new TagMetaElement(key, value);
         
         return metadata;

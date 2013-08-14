@@ -45,6 +45,7 @@ public class BagInfoProcessor implements TagProcessor {
     private final Logger log = LoggerFactory.getLogger(BagInfoProcessor.class);
 
     public BagInfoProcessor(Path bag) {
+        payloadOxum = new PayloadOxum();
         this.bagInfoPath = bag.resolve(bagInfoRE);
         initialized = false;
         initBagInfo();
@@ -55,12 +56,17 @@ public class BagInfoProcessor implements TagProcessor {
     }
 
     
+    /* The only thing we really need to validate against is the Payload Oxum
+     * So we walk the file tree and make sure it's there 
+     * 
+     */
     @Override
     public boolean valid() {
         String dataDir = "data";
         Boolean valid = true;
         PayloadOxum calculatedOxum = new PayloadOxum();
         Path bagPath = bagInfoPath.getParent();
+        System.out.println("SADFJASDFJ");
 
         // Do we want to short circuit and return?
         // ....probably
@@ -68,19 +74,24 @@ public class BagInfoProcessor implements TagProcessor {
             valid = false;
         }
 
-        // Set up the oxums
-        try {
-            calculatedOxum.calculateOxum(bagPath.resolve(dataDir));
-            System.out.println(calculatedOxum.toString());
-        } catch (IOException ex) {
-            log.error("Could not read data directory to resolve payload\n{}", ex);
-        }
-
-        // And validate
-        if (!payloadOxum.equals(calculatedOxum)) {
+        if (payloadOxum == null || payloadOxum.getNumFiles() == 0 || 
+            payloadOxum.getOctetCount() == 0) {
             valid = false;
-        }
+        } else {
+            // Set up the oxums
+            try {
+                System.out.println("Setting up our payload");
+                calculatedOxum.calculateOxum(bagPath.resolve(dataDir));
+            } catch (IOException ex) {
+                log.error("Could not read data directory to resolve payload\n{}", ex);
+                valid = false;
+            }
 
+            // And validate
+            if (!payloadOxum.equals(calculatedOxum)) {
+                valid = false;
+            }
+        }
 
         return valid;
     }
@@ -98,19 +109,23 @@ public class BagInfoProcessor implements TagProcessor {
         String line;
         try {
             while ( (line = reader.readLine()) != null ) {
-                if ( line.contains(oxumRE) ) {
-                    TagMetaElement<String> payload = TagMetaElement.ParseBagMetaElement(line);
-                    switch (payload.getKey()) {
-                        case "PayloadOxum":
-                            payloadOxum.setFromString(payload.getValue());
-                            break;
-                        case "External-Identifier":
-                            System.out.println("this is just here to be here");
-                            break;
-                        default:
-                            log.error("Unexpected value in bag-info.txt");
-                            break;
-                    }
+                TagMetaElement<String> payload = TagMetaElement.ParseBagMetaElement(line);
+                switch (payload.getKey()) {
+                    case oxumRE:
+                        payloadOxum.setFromString(payload.getValue());
+                        break;
+                    case bagSizeRE:
+                        bagSize = TagMetaElement.ParseBagMetaElement(line);
+                        break;
+                    case baggingDateRE:
+                        baggingDate = TagMetaElement.ParseBagMetaElement(line);
+                        break;
+                    case "External-Identifier":
+                        System.out.println("this is just here to be here");
+                        break;
+                    default:
+                        log.error("Unexpected value in bag-info.txt");
+                        break;
                 }
             }
         } catch (IOException ex) {

@@ -112,14 +112,16 @@ public class PayloadOxum {
             throw new RuntimeException("Error parsing payload, please use the following format: octetCount.fileCount");
         }
 
-        String[] payload = val.split(".");
+        String[] payload = val.split("\\.");
 
         if ( payload.length != 2 ) {
-            throw new RuntimeException("Too many values in the PayloadOxum");
+            throw new RuntimeException("Could not parse PayloadOxum, " +
+                                       "expected 2 vals and found " + 
+                                       payload.length);
         }
 
-        octetCount = Long.parseLong(payload[0]);
-        numFiles = Long.parseLong(payload[1]);
+        octetCount = Long.parseLong(payload[0].trim());
+        numFiles = Long.parseLong(payload[1].trim());
     }
 
     public TagMetaElement toBagMetaElement() {

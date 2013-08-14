@@ -5,11 +5,8 @@
 package org.chronopolis.bagit;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.io.PipedReader;
-import java.io.PipedWriter;
 import java.nio.charset.Charset;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -17,6 +14,7 @@ import java.nio.file.Path;
 //import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Assert;
 
 import org.chronopolis.bagit.util.TagMetaElement;
 
@@ -40,7 +38,6 @@ public class BagitTest extends TestUtil {
     private final String tagFileRE = "Tag-File-Character-Encoding";
     private final String currentBagVersion = "0.97";
     private final String tagFileEncoding = "UTF-8";
-    BagitProcessor bagitProcessor;
     Path bagitPath;
     File mockFile;
     FileSystem mockFileSystem;
@@ -61,46 +58,51 @@ public class BagitTest extends TestUtil {
     
     @Before
     public void setUp() {
-        //bagitProcessor = EasyMock.createMock(BagitProcessor.class);
         bagitPath = PowerMock.createMock(Path.class);
         mockFile = PowerMock.createMock(File.class);
+        mockFileSystem = PowerMock.createMock(FileSystem.class);
     }
 
     @Test
     public void testValid() throws IOException {
+        BagitProcessor bagitProcessor;
         TagMetaElement version = new TagMetaElement(bagVersionRE, currentBagVersion);
         TagMetaElement encoding = new TagMetaElement(tagFileRE, tagFileEncoding); 
         BufferedReader reader = createReader(version, encoding);
         setupExpects(reader);
         bagitProcessor = new BagitProcessor(bagitPath);
-        assert(bagitProcessor.valid());
+        Assert.assertTrue(bagitProcessor.valid());
     }
 
     @Test
     public void testMissingTagEncoding() throws IOException {
+        BagitProcessor bagitProcessor;
         TagMetaElement version = new TagMetaElement(bagVersionRE, currentBagVersion);
         BufferedReader reader = createReader(version);
         setupExpects(reader);
         bagitProcessor = new BagitProcessor(bagitPath);
-        assert(!bagitProcessor.valid());
+        Assert.assertFalse(bagitProcessor.valid());
     }
 
     @Test
     public void testMissingVersion() throws IOException {
+        BagitProcessor bagitProcessor;
         TagMetaElement encoding = new TagMetaElement(tagFileRE, tagFileEncoding);
         BufferedReader reader = createReader(encoding);
         setupExpects(reader);
         bagitProcessor = new BagitProcessor(bagitPath);
-        assert(!bagitProcessor.valid());
+        Assert.assertFalse(bagitProcessor.valid());
     }
 
-    //@Test
+    @Test
     public void testEmptyValues() throws IOException {
+        BagitProcessor bagitProcessor;
         TagMetaElement version = new TagMetaElement(bagVersionRE, "");
         TagMetaElement encoding = new TagMetaElement(tagFileRE, ""); 
         BufferedReader reader = createReader(version, encoding);
         setupExpects(reader);
-        assert(!bagitProcessor.valid());
+        bagitProcessor = new BagitProcessor(bagitPath);
+        Assert.assertFalse(bagitProcessor.valid());
     }
 
     
