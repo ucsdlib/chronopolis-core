@@ -5,11 +5,9 @@
 package org.chronopolis.bagit;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.text.DateFormat;
@@ -17,7 +15,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
 import org.chronopolis.bagit.util.BagFileWriter;
 import org.chronopolis.bagit.util.TagMetaElement;
 import org.chronopolis.bagit.util.PayloadOxum;
@@ -74,6 +71,7 @@ public class BagInfoProcessor implements TagProcessor {
         // Set up the oxums
         try {
             calculatedOxum.calculateOxum(bagPath.resolve(dataDir));
+            System.out.println(calculatedOxum.toString());
         } catch (IOException ex) {
             log.error("Could not read data directory to resolve payload\n{}", ex);
         }
