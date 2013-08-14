@@ -37,8 +37,8 @@ public class BagInfoProcessor implements TagProcessor {
     private final Path bagInfoPath;
     private final DateFormat dateFormat = new SimpleDateFormat("YYYY-MM-DD");
     private PayloadOxum payloadOxum;
-    private TagMetaElement bagSize;
-    private TagMetaElement baggingDate;
+    private TagMetaElement<String> bagSize;
+    private TagMetaElement<String> baggingDate;
     
     private boolean initialized;
 
@@ -66,7 +66,6 @@ public class BagInfoProcessor implements TagProcessor {
         Boolean valid = true;
         PayloadOxum calculatedOxum = new PayloadOxum();
         Path bagPath = bagInfoPath.getParent();
-        System.out.println("SADFJASDFJ");
 
         // Do we want to short circuit and return?
         // ....probably
@@ -74,8 +73,8 @@ public class BagInfoProcessor implements TagProcessor {
             valid = false;
         }
 
-        if (payloadOxum == null || payloadOxum.getNumFiles() == 0 || 
-            payloadOxum.getOctetCount() == 0) {
+        if (getPayloadOxum() == null || getPayloadOxum().getNumFiles() == 0 || 
+            getPayloadOxum().getOctetCount() == 0) {
             valid = false;
         } else {
             // Set up the oxums
@@ -115,10 +114,10 @@ public class BagInfoProcessor implements TagProcessor {
                         payloadOxum.setFromString(payload.getValue());
                         break;
                     case bagSizeRE:
-                        bagSize = TagMetaElement.ParseBagMetaElement(line);
+                        setBagSize((TagMetaElement<String>) TagMetaElement.ParseBagMetaElement(line));
                         break;
                     case baggingDateRE:
-                        baggingDate = TagMetaElement.ParseBagMetaElement(line);
+                        setBaggingDate((TagMetaElement<String>) TagMetaElement.ParseBagMetaElement(line));
                         break;
                     case "External-Identifier":
                         System.out.println("this is just here to be here");
@@ -138,19 +137,19 @@ public class BagInfoProcessor implements TagProcessor {
 
         List<TagMetaElement> metaElements = new ArrayList<>();
         Path payloadPath = bagInfoPath.getParent().resolve("data");
-        bagSize = new TagMetaElement(bagSizeRE, 0);
-        baggingDate = new TagMetaElement(baggingDateRE, 
-                                         dateFormat.format(new Date()));
+        setBagSize((TagMetaElement<String>) new TagMetaElement(bagSizeRE, 0));
+        setBaggingDate((TagMetaElement<String>) new TagMetaElement(baggingDateRE, 
+                                         dateFormat.format(new Date())));
         try {
-            payloadOxum.calculateOxum(payloadPath);
+            getPayloadOxum().calculateOxum(payloadPath);
         } catch (IOException ex) {
             log.error("Error creating payloadOxum for path {} \n {}",
                       payloadPath,
                       ex);
         }
-        metaElements.add(payloadOxum.toBagMetaElement());
-        metaElements.add(bagSize);
-        metaElements.add(baggingDate);
+        metaElements.add(getPayloadOxum().toBagMetaElement());
+        metaElements.add(getBagSize());
+        metaElements.add(getBaggingDate());
         BagFileWriter.write(bagInfoPath, 
                             metaElements, 
                             StandardOpenOption.CREATE_NEW);
@@ -160,14 +159,14 @@ public class BagInfoProcessor implements TagProcessor {
     // need to add elements
     private void partialCreate() {
         List<TagMetaElement> metaElements = new ArrayList<>();
-        if ( payloadOxum.getNumFiles() == 0 || payloadOxum.getOctetCount() == 0) {
+        if ( getPayloadOxum().getNumFiles() == 0 || getPayloadOxum().getOctetCount() == 0) {
             Path payloadPath = bagInfoPath.getParent().resolve("data");
             try {
-                payloadOxum.calculateOxum(payloadPath);
+                getPayloadOxum().calculateOxum(payloadPath);
             } catch (IOException ex) {
                 log.error("Error calculating payload Oxum {} ", ex);
             }
-            metaElements.add(payloadOxum.toBagMetaElement());
+            metaElements.add(getPayloadOxum().toBagMetaElement());
 
         }
 
@@ -183,6 +182,48 @@ public class BagInfoProcessor implements TagProcessor {
         } else {
             fullCreate();
         }
+    }
+
+    /**
+     * @return the payloadOxum
+     */
+    public PayloadOxum getPayloadOxum() {
+        return payloadOxum;
+    }
+
+    /**
+     * @return the bagSize
+     */
+    public TagMetaElement getBagSize() {
+        return bagSize;
+    }
+
+    /**
+     * @return the baggingDate
+     */
+    public TagMetaElement getBaggingDate() {
+        return baggingDate;
+    }
+
+    /**
+     * @param payloadOxum the payloadOxum to set
+     */
+    public void setPayloadOxum(PayloadOxum payloadOxum) {
+        this.payloadOxum = payloadOxum;
+    }
+
+    /**
+     * @param bagSize the bagSize to set
+     */
+    public void setBagSize(TagMetaElement<String> bagSize) {
+        this.bagSize = bagSize;
+    }
+
+    /**
+     * @param baggingDate the baggingDate to set
+     */
+    public void setBaggingDate(TagMetaElement<String> baggingDate) {
+        this.baggingDate = baggingDate;
     }
     
 }
