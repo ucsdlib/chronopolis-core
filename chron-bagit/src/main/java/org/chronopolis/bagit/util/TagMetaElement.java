@@ -19,7 +19,7 @@ public class TagMetaElement<T> {
             throw new RuntimeException("Cannot parse empty line");
         }
         String[] elements = line.split(":");
-        if ( elements.length < 0 || elements.length > 2) {
+        if ( elements.length != 2) {
             throw new RuntimeException("Cannot parse line, invalid format"
                     + "\nLine should be "
                     + "\nkey: value");

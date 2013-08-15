@@ -14,7 +14,10 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.chronopolis.bagit.util.BagFileWriter;
 import org.chronopolis.bagit.util.TagMetaElement;
 import org.chronopolis.bagit.util.PayloadOxum;
@@ -29,16 +32,31 @@ import org.slf4j.LoggerFactory;
  * @author shake
  */
 public class BagInfoProcessor implements TagProcessor {
+    //
+    private static final String OR = "|";
     // As defined by the bagit spec
-    private final String bagInfoRE = "bag-info.txt";
-    private final String bagSizeRE = "Bag-Size";
-    private final String baggingDateRE = "Bagging-Date";
-    private final String oxumRE = "Payload-Oxum";
+    private final String sourceRE           = "Source-Organization";
+    private final String addressRE          = "Organization-Address";
+    private final String contactNameRE      = "Contact-Name";
+    private final String contactPhoneRE     = "Contact-Phone";
+    private final String contactMailRE      = "Contact-Email";
+    private final String externalDescRE     = "External-Description";
+    private final String baggingDateRE      = "Bagging-Date";
+    private final String externalIdRE       = "External-Identifier";
+    private final String bagSizeRE          = "Bag-Size";
+    private final String oxumRE             = "Payload-Oxum";
+    private final String bagGroupRE         = "Bag-Group";
+    private final String bagCountRE         = "Bag-Count";
+    private final String internalSenderIdRE = "Internal-Sender-Identification";
+    private final String internalSenderDesc = "Internal-Sender-Description";
+
+    // And now the other stuff
+    private final String bagInfoName = "bag-info.txt";
+    private Pattern fullRegex;
     private final Path bagInfoPath;
     private final DateFormat dateFormat = new SimpleDateFormat("YYYY-MM-DD");
     private PayloadOxum payloadOxum;
-    private TagMetaElement<String> bagSize;
-    private TagMetaElement<String> baggingDate;
+    private HashMap<String, TagMetaElement> elements;
     
     private boolean initialized;
 
@@ -46,9 +64,26 @@ public class BagInfoProcessor implements TagProcessor {
 
     public BagInfoProcessor(Path bag) {
         payloadOxum = new PayloadOxum();
-        this.bagInfoPath = bag.resolve(bagInfoRE);
+        this.bagInfoPath = bag.resolve(bagInfoName);
         initialized = false;
-        initBagInfo();
+        elements = new HashMap<>();
+        
+        // Hm...
+        fullRegex = Pattern.compile(sourceRE + OR +
+                                    addressRE + OR +
+                                    contactNameRE + OR +
+                                    contactPhoneRE + OR +
+                                    contactMailRE + OR + 
+                                    externalDescRE + OR +
+                                    baggingDateRE + OR +
+                                    externalIdRE + OR + 
+                                    bagSizeRE + OR + 
+                                    oxumRE + OR + 
+                                    bagGroupRE + OR +
+                                    bagCountRE + OR + 
+                                    internalSenderIdRE + OR +
+                                    internalSenderDesc);
+        init();
     }
 
     private boolean exists() {
@@ -95,41 +130,50 @@ public class BagInfoProcessor implements TagProcessor {
         return valid;
     }
 
-    private void initBagInfo() {
-        BufferedReader reader = null;
+    private void init() {
+        BufferedReader reader;
         try {
-            reader = Files.newBufferedReader(bagInfoPath, Charset.forName("UTF-8"));
+            reader = Files.newBufferedReader(bagInfoPath,
+                                             Charset.forName("UTF-8"));
         } catch (IOException ex) {
-            log.info("No bag-info.txt found \n {}", ex);
+            log.info("No bag info file found");
             initialized = true;
             return;
         }
 
         String line;
         try {
-            while ( (line = reader.readLine()) != null ) {
-                TagMetaElement<String> payload = TagMetaElement.ParseBagMetaElement(line);
-                switch (payload.getKey()) {
-                    case oxumRE:
-                        payloadOxum.setFromString(payload.getValue());
+            while ((line = reader.readLine())!=null) {
+                // Set where we are in the file
+                reader.mark(80);
+                StringBuilder fullElement = new StringBuilder(line);
+                String extra; 
+                while ( (extra = reader.readLine()) != null) {
+                    Matcher m = fullRegex.matcher(extra);
+                    if ( m.find()) {
                         break;
-                    case bagSizeRE:
-                        setBagSize((TagMetaElement<String>) TagMetaElement.ParseBagMetaElement(line));
-                        break;
-                    case baggingDateRE:
-                        setBaggingDate((TagMetaElement<String>) TagMetaElement.ParseBagMetaElement(line));
-                        break;
-                    case "External-Identifier":
-                        System.out.println("this is just here to be here");
-                        break;
-                    default:
-                        log.error("Unexpected value in bag-info.txt");
-                        break;
+                    } else {
+                        System.out.println("No match on the line, appending " + extra);
+                        fullElement.append(" ");
+                        fullElement.append(extra.trim());
+                        // Update the mark
+                        reader.mark(80);
+                    }
                 }
+                TagMetaElement<String> payload = TagMetaElement.ParseBagMetaElement(fullElement.toString());
+                if ( elements.get(payload.getKey()) != null ) {
+                    throw new RuntimeException("Multiple values of " + payload.getKey()
+                            + " found in bag-info. Exiting.");
+                }
+                elements.put(payload.getKey(), payload);
+
+                // Make sure we start at the next element
+                reader.reset();
             }
         } catch (IOException ex) {
-            log.error("Error reading bag-info.txt \n {}", ex);
+            log.error("Error reading from bag-info.txt");
         }
+
         initialized = true;
     }
 
@@ -175,7 +219,7 @@ public class BagInfoProcessor implements TagProcessor {
     @Override
     public void create() {
         if ( !initialized ) {
-            initBagInfo();
+            init();
         }
         if ( exists() ) {
             partialCreate();
@@ -195,14 +239,14 @@ public class BagInfoProcessor implements TagProcessor {
      * @return the bagSize
      */
     public TagMetaElement getBagSize() {
-        return bagSize;
+        return elements.get(bagSizeRE);
     }
 
     /**
      * @return the baggingDate
      */
     public TagMetaElement getBaggingDate() {
-        return baggingDate;
+        return elements.get(baggingDateRE);
     }
 
     /**
@@ -216,14 +260,14 @@ public class BagInfoProcessor implements TagProcessor {
      * @param bagSize the bagSize to set
      */
     public void setBagSize(TagMetaElement<String> bagSize) {
-        this.bagSize = bagSize;
+        elements.put(bagSize.getKey(), bagSize);
     }
 
     /**
      * @param baggingDate the baggingDate to set
      */
     public void setBaggingDate(TagMetaElement<String> baggingDate) {
-        this.baggingDate = baggingDate;
+        elements.put(baggingDate.getKey(), baggingDate);
     }
     
 }
