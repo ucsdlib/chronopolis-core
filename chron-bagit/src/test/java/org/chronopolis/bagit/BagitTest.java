@@ -66,8 +66,8 @@ public class BagitTest extends TestUtil {
     @Test
     public void testValid() throws IOException {
         BagitProcessor bagitProcessor;
-        TagMetaElement version = new TagMetaElement(bagVersionRE, currentBagVersion);
-        TagMetaElement encoding = new TagMetaElement(tagFileRE, tagFileEncoding); 
+        TagMetaElement version = new TagMetaElement(bagVersionRE, currentBagVersion, true);
+        TagMetaElement encoding = new TagMetaElement(tagFileRE, tagFileEncoding, true); 
         BufferedReader reader = createReader(version, encoding);
         setupExpects(reader);
         bagitProcessor = new BagitProcessor(bagitPath);
@@ -77,7 +77,7 @@ public class BagitTest extends TestUtil {
     @Test
     public void testMissingTagEncoding() throws IOException {
         BagitProcessor bagitProcessor;
-        TagMetaElement version = new TagMetaElement(bagVersionRE, currentBagVersion);
+        TagMetaElement version = new TagMetaElement(bagVersionRE, currentBagVersion, true);
         BufferedReader reader = createReader(version);
         setupExpects(reader);
         bagitProcessor = new BagitProcessor(bagitPath);
@@ -87,7 +87,7 @@ public class BagitTest extends TestUtil {
     @Test
     public void testMissingVersion() throws IOException {
         BagitProcessor bagitProcessor;
-        TagMetaElement encoding = new TagMetaElement(tagFileRE, tagFileEncoding);
+        TagMetaElement encoding = new TagMetaElement(tagFileRE, tagFileEncoding, true);
         BufferedReader reader = createReader(encoding);
         setupExpects(reader);
         bagitProcessor = new BagitProcessor(bagitPath);
@@ -97,8 +97,8 @@ public class BagitTest extends TestUtil {
     @Test
     public void testEmptyValues() throws IOException {
         BagitProcessor bagitProcessor;
-        TagMetaElement version = new TagMetaElement(bagVersionRE, "");
-        TagMetaElement encoding = new TagMetaElement(tagFileRE, ""); 
+        TagMetaElement version = new TagMetaElement(bagVersionRE, "", true);
+        TagMetaElement encoding = new TagMetaElement(tagFileRE, "", true); 
         BufferedReader reader = createReader(version, encoding);
         setupExpects(reader);
         bagitProcessor = new BagitProcessor(bagitPath);

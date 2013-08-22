@@ -7,9 +7,10 @@ package org.chronopolis.bagit.util;
  */
 public class TagMetaElement<T> {
     private String key;
+    private boolean inFile;
     private T value;
 
-    public TagMetaElement(String key, T value) {
+    public TagMetaElement(String key, T value, boolean inFile) {
         this.key = key;
         this.value = value;
     }
@@ -27,7 +28,7 @@ public class TagMetaElement<T> {
 
         String key = elements[0].trim();
         String value = elements[1].trim();
-        TagMetaElement metadata = new TagMetaElement(key, value);
+        TagMetaElement metadata = new TagMetaElement(key, value, true);
         
         return metadata;
     }

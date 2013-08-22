@@ -107,7 +107,7 @@ public class BagitProcessor implements TagProcessor {
     private void fullCreate() {
         List<TagMetaElement> elements = new ArrayList<>();
         if ( bagVersion == null ) {
-            bagVersion = new TagMetaElement(bagVersionRE, currentBagVersion);
+            bagVersion = new TagMetaElement(bagVersionRE, currentBagVersion, false);
         }
         //elements.add(new TagMetaElement(bagVersionRE, bagVersion));
         //elements.add(new TagMetaElement(tagFileRE, tagFileEncoding));
@@ -120,7 +120,7 @@ public class BagitProcessor implements TagProcessor {
         // Since UTF-8 is defined fr the Tag-File, this is the only thing we
         // need to check
         if ( bagVersion == null ){
-            bagVersion = new TagMetaElement(bagVersionRE, currentBagVersion);
+            bagVersion = new TagMetaElement(bagVersionRE, currentBagVersion, false);
         }
         String version = bagVersionAsString();
         
@@ -146,12 +146,12 @@ public class BagitProcessor implements TagProcessor {
     
     // By using a StringBuilder, we don't have to worry about null strings
     public String bagVersionAsString() {
-        TagMetaElement element = new TagMetaElement(bagVersionRE, bagVersion);
+        TagMetaElement element = new TagMetaElement(bagVersionRE, bagVersion, true);
         return element.toString();
     }
     
     public String tagFileEncodingToString() {
-        TagMetaElement element = new TagMetaElement(tagFileRE, tagFileEncoding);
+        TagMetaElement element = new TagMetaElement(tagFileRE, tagFileEncoding, true);
         return element.toString();
     }
 

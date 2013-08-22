@@ -19,6 +19,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 public class PayloadOxum {
     private long octetCount;
     private long numFiles;
+    private boolean inFile;
 
     public PayloadOxum() {
         this.octetCount = 0;
@@ -127,8 +128,23 @@ public class PayloadOxum {
     public TagMetaElement toBagMetaElement() {
         String payloadRE = "Payload-Oxum";
         TagMetaElement payloadOxum = new TagMetaElement(payloadRE, 
-                                                        this.toString());
+                                                        this.toString(),
+                                                        inFile);
         return payloadOxum;
+    }
+
+    /**
+     * @return the inFile
+     */
+    public boolean isInFile() {
+        return inFile;
+    }
+
+    /**
+     * @param inFile the inFile to set
+     */
+    public void setInFile(boolean inFile) {
+        this.inFile = inFile;
     }
     
 }

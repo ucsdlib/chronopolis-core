@@ -73,10 +73,11 @@ public class BagInfoTest {
     @Test
     public void testInit() throws IOException {
         String date = dateFormat.format(new Date());
-        TagMetaElement size = new TagMetaElement(bagSizeRE, "1 M");
+        TagMetaElement size = new TagMetaElement(bagSizeRE, "1 M", true);
         TagMetaElement bagDate = new TagMetaElement(baggingDateRE, 
-                                                    date);
-        TagMetaElement oxum = new TagMetaElement(oxumRE, "1048576.1");
+                                                    date,
+                                                    true);
+        TagMetaElement oxum = new TagMetaElement(oxumRE, "1048576.1", true);
         BufferedReader reader = createReader(size, bagDate, oxum);
         setupExpects(reader);
         replayMocks();
@@ -98,7 +99,7 @@ public class BagInfoTest {
     public void testValid() throws IOException, Exception {
         long octet = 1048576;
         long files = 1;
-        TagMetaElement oxum = new TagMetaElement(oxumRE, "1048576.1");
+        TagMetaElement oxum = new TagMetaElement(oxumRE, "1048576.1", true);
         BufferedReader reader = createReader(oxum);
         setupExpects(reader);
         EasyMock.expect(bagInfoPath.getParent()).andReturn(bagInfoPath);
@@ -121,7 +122,7 @@ public class BagInfoTest {
 
     @Test
     public void testInvalidFile() throws IOException, Exception {
-        TagMetaElement oxum = new TagMetaElement(oxumRE, "0.0");
+        TagMetaElement oxum = new TagMetaElement(oxumRE, "0.0", true);
         BufferedReader reader = createReader(oxum);
         setupExpects(reader);
         replayMocks();

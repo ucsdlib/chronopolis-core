@@ -149,6 +149,10 @@ public class BagInfoProcessor implements TagProcessor {
                 StringBuilder fullElement = new StringBuilder(line);
                 String extra; 
                 while ( (extra = reader.readLine()) != null) {
+                    // Do we need this? 
+                    // We can take arbitrary values anyways so maybe the best 
+                    // thing would be to check for spaces
+                    // Maybe we should just match on [A-Za-z\-]*:
                     Matcher m = fullRegex.matcher(extra);
                     if ( m.find()) {
                         break;
@@ -181,9 +185,10 @@ public class BagInfoProcessor implements TagProcessor {
 
         List<TagMetaElement> metaElements = new ArrayList<>();
         Path payloadPath = bagInfoPath.getParent().resolve("data");
-        setBagSize((TagMetaElement<String>) new TagMetaElement(bagSizeRE, 0));
+        setBagSize((TagMetaElement<String>) new TagMetaElement(bagSizeRE, 0, false));
         setBaggingDate((TagMetaElement<String>) new TagMetaElement(baggingDateRE, 
-                                         dateFormat.format(new Date())));
+                                                                   dateFormat.format(new Date()),
+                                                                   false));
         try {
             getPayloadOxum().calculateOxum(payloadPath);
         } catch (IOException ex) {
@@ -211,9 +216,7 @@ public class BagInfoProcessor implements TagProcessor {
                 log.error("Error calculating payload Oxum {} ", ex);
             }
             metaElements.add(getPayloadOxum().toBagMetaElement());
-
         }
-
     }
 
     @Override
@@ -268,6 +271,17 @@ public class BagInfoProcessor implements TagProcessor {
      */
     public void setBaggingDate(TagMetaElement<String> baggingDate) {
         elements.put(baggingDate.getKey(), baggingDate);
+    }
+
+    public void setCustomValue(String key, String value) {
+        if ( key == null || key.isEmpty()) {
+            log.error("Cannot have null key");
+        }
+        if ( value == null || value.isEmpty()) {
+            log.error("Cannot have null value");
+        }
+
+        elements.put(key, new TagMetaElement<>(key, value, false));
     }
     
 }
