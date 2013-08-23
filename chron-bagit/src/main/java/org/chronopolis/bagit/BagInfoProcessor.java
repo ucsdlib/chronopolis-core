@@ -108,8 +108,9 @@ public class BagInfoProcessor implements TagProcessor {
             valid = false;
         }
 
-        if (getPayloadOxum() == null || getPayloadOxum().getNumFiles() == 0 || 
-            getPayloadOxum().getOctetCount() == 0) {
+        if (payloadOxum == null || payloadOxum.getNumFiles() == 0 || 
+            payloadOxum.getOctetCount() == 0) {
+            System.out.println("Bunch of null stuff");
             valid = false;
         } else {
             // Set up the oxums
@@ -123,6 +124,8 @@ public class BagInfoProcessor implements TagProcessor {
 
             // And validate
             if (!payloadOxum.equals(calculatedOxum)) {
+                log.error("Payload in bag does not equal calculated payload: {} -> {}",
+                           payloadOxum.toString(), calculatedOxum.toString());
                 valid = false;
             }
         }
@@ -178,6 +181,12 @@ public class BagInfoProcessor implements TagProcessor {
             log.error("Error reading from bag-info.txt");
         }
 
+        // also init our payload properly
+        TagMetaElement<String> oxum = elements.get(oxumRE);    
+        if ( oxum != null ) {
+            payloadOxum.setFromString(oxum.getValue());
+        }
+        
         initialized = true;
     }
 

@@ -5,14 +5,19 @@
 package org.chronopolis.bagit;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -21,6 +26,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import org.chronopolis.bagit.util.DigestUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *  TODO: If manifest is made from MD5 digests, convert them to SHA-256
@@ -28,6 +35,7 @@ import org.chronopolis.bagit.util.DigestUtil;
  * @author shake
  */
 public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
+    private final Logger log = LoggerFactory.getLogger(ManifestProcessor.class);
     private final String manifestRE = "*manifest-*.txt";
     private final Path bag;
     
@@ -40,6 +48,11 @@ public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
     private boolean valid;
     
     public ManifestProcessor(Path bag) {
+        try {
+            this.md = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException ex) {
+            log.error("Error initializing default digest: {}", ex);
+        }
         this.bag = bag;
         
     }
@@ -73,11 +86,12 @@ public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
                     String[] split = line.split("\\s+", 2);
                     String digest = split[0];
                     String file = split[1];
+                    log.debug("Registering digest for {} : {} ", file, digest);
                     registeredDigests.put(Paths.get(bag.toString(), file), digest);
                 }
             }
         }
-
+        
     }
     
     // May want to break this out so other classes can do digests easily if needed
@@ -112,7 +126,7 @@ public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
             byte[] calculatedDigest;
             
             md.reset();
-
+            
             // catch all
             // some duplicated code but whatever
             if ( !md.getAlgorithm().equals("SHA-256") ) {
@@ -127,7 +141,7 @@ public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
             } else {
                 calculatedDigest = DigestUtil.doDigest(file, md);
                 String digest = DigestUtil.byteToHex(calculatedDigest);
-                if ( !registeredDigest.equals(digest)) { 
+                if ( !registeredDigest.equals(digest)) {
                     corruptedFiles.add(new ManifestError(file, registeredDigest, digest));
                     valid = false;
                 } else {
@@ -142,16 +156,16 @@ public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
         DirectoryStream.Filter filter = new DirectoryStream.Filter<Path>() {
             @Override
             public boolean accept(Path t) throws IOException {
-                return !registeredDigests.containsKey(t) 
-                       && !t.toFile().isDirectory();
+                return !registeredDigests.containsKey(t)
+                        && !t.toFile().isDirectory();
             }
-        };  
-
+        };
+        
         DirectoryStream<Path> dStream = Files.newDirectoryStream(bag, filter);
         for ( Path p : dStream ) {
             System.out.println(p);
             md.reset();
-            byte[] manifestDigest = doDigest(p);
+            byte[] manifestDigest = DigestUtil.doDigest(p, md);
             String digest = DigestUtil.byteToHex(manifestDigest);
             validDigests.put(p, digest);
         }
@@ -165,43 +179,110 @@ public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
     public HashMap<Path, String> getValidDigests() {
         return validDigests;
     }
-
+    
     public HashSet<ManifestError> getCorruptedFiles() {
         return corruptedFiles;
     }
-
+    
     @Override
     public boolean valid() {
-       while ( Thread.currentThread().isAlive()) {
-       }
-       return valid;
+        while ( Thread.currentThread().isAlive()) {
+        }
+        return valid;
     }
-
+    
     @Override
     public void create() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        // teeangemutantninjaturtles
+        // hard codin like a maw fucka
+        HashMap<Path, String> dataDigests; 
+        HashMap<Path, String> tagDigests; 
+        Path manifest = bag.resolve("manifest-sha256.txt");
+        Path tagManifest = bag.resolve("tagmanifest-sha256.txt");
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException ex) {
+            log.error("Could not get sha-256 algorithm for digesting {}", ex);
+        }
+        log.info("Building digests for bag {}", bag);
+        // First digest everything in the data dir
+        dataDigests = digestDirectory(bag.resolve("data"), false);
+        
+        // Now write our manifest
+        writeDigests(manifest, dataDigests);
+        
+        // Now we can do the tag files (yay)
+        tagDigests = digestDirectory(bag, true);
+        
+        // And write the tagmanifest
+        writeDigests(tagManifest, tagDigests);
+    }
+
+    private void writeDigests(Path manifest, HashMap<Path, String> digests) {
+        try (BufferedWriter writer = Files.newBufferedWriter(manifest,
+                Charset.forName("UTF-8"),
+                StandardOpenOption.CREATE_NEW)) {
+            for ( Map.Entry<Path, String> entry : digests.entrySet()) {
+                writer.append(entry.getValue() + "  ");
+                writer.append(bag.relativize(entry.getKey()).toString());
+                writer.newLine();
+            }
+        } catch (IOException ex) {
+            log.error("Error writing {}:\n{}", manifest, ex);
+        }
+    }
+
+    private HashMap<Path, String> digestDirectory(Path dir, final boolean skipData) {
+        final HashMap<Path, String> digests = new HashMap<>();
+        try {
+            Files.walkFileTree(bag, new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult preVisitDirectory(Path p,
+                    BasicFileAttributes attrs) {
+                        if ( skipData && p.endsWith("data") ) {
+                            log.info("Skipping data directory");
+                            return FileVisitResult.SKIP_SUBTREE;
+                        }
+                        return FileVisitResult.CONTINUE;
+                        
+                    }
+                    @Override
+                    public FileVisitResult visitFile(Path p, BasicFileAttributes attrs) {
+                        if ( attrs.isRegularFile() ) {
+                            log.debug("visiting {}", p);
+                            byte[] digest = DigestUtil.doDigest(p, md);
+                            digests.put(p, DigestUtil.byteToHex(digest));
+                        }
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+        } catch (IOException ex) {
+            log.error("Error walking file tree for {}:\n{}", dir, ex);
+        }
+
+        return digests;
     }
     
     public class ManifestError {
         Path p;
         String expected;
         String found;
-
+        
         public ManifestError(Path p, String expected, String found) {
             this.p = p;
             this.expected = expected;
             this.found = found;
         }
-
+        
         public Path getPath() {
             return p;
         }
-
+        
         public String getExpected() {
             return expected;
             
         }
-
+        
         public String getFound() {
             return found;
         }

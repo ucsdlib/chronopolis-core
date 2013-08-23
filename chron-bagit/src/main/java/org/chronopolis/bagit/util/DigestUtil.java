@@ -16,12 +16,15 @@ import java.nio.file.StandardOpenOption;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author shake
  */
 public class DigestUtil {
+    private static final Logger log = LoggerFactory.getLogger(DigestUtil.class);
     public static String byteToHex(byte[] bytes) {
         StringBuilder str = new StringBuilder(new BigInteger(1, bytes).toString(16));
         if ( str.length() < bytes.length*2) {
@@ -30,9 +33,13 @@ public class DigestUtil {
         return str.toString();
     }
     
-    public static byte[] doDigest(Path path, MessageDigest md) throws FileNotFoundException, 
-                                                                      IOException {
-        FileInputStream fis = new FileInputStream(path.toFile());
+    public static byte[] doDigest(Path path, MessageDigest md) { 
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream(path.toFile());
+        } catch (FileNotFoundException ex) {
+            log.error("Error digesting {}, not found:\n {}", path, ex);
+        }
         try (DigestInputStream dis = new DigestInputStream(fis, md)) {
             dis.on(true);
             int bufferSize = 1048576; // should move into some type of settings
@@ -40,6 +47,8 @@ public class DigestUtil {
             while ( dis.read(buf) != -1) {
                 // spin
             }
+        } catch (IOException ex) {
+            log.error("IO Error while digesting {}:\n{}", path, ex);
         }
         return md.digest();
     }
