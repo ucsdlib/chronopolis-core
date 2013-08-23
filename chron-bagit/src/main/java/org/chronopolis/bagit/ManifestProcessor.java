@@ -6,8 +6,6 @@ package org.chronopolis.bagit;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
@@ -18,7 +16,6 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
@@ -59,7 +56,7 @@ public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
     
     private void findManifests() throws IOException {
         try (DirectoryStream<Path> directory = Files.newDirectoryStream(bag,
-                manifestRE)) {
+                                                                        manifestRE)) {
             for ( Path p : directory) {
                 manifests.add(p);
             }
@@ -68,7 +65,8 @@ public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
     
     // TODO: Add the digests of all missed files
     //       Something like for ( Path p : toBag if p not in validDigests )
-    private void populateDigests() throws IOException, NoSuchAlgorithmException {
+    private MessageDigest populateDigests() throws IOException, NoSuchAlgorithmException {
+        MessageDigest manifestDigest = null;
         for ( Path toManifest : manifests) {
             String digestType = toManifest.getFileName().toString().split("-")[1];
             // There's still the .txt on the end so just match
@@ -76,7 +74,9 @@ public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
             // or strip the .txt but that would create a new object
             // Also need to move these out
             if ( digestType.contains("sha256")) {
-                md = MessageDigest.getInstance("SHA-256");
+                manifestDigest = MessageDigest.getInstance("SHA-256");
+            } else if ( digestType.contains("md5")) {
+                manifestDigest= MessageDigest.getInstance("MD5");
             }
             
             try (BufferedReader reader = Files.newBufferedReader(toManifest,
@@ -91,32 +91,20 @@ public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
                 }
             }
         }
-        
-    }
-    
-    // May want to break this out so other classes can do digests easily if needed
-    private byte[] doDigest(Path path) throws FileNotFoundException, IOException {
-        FileInputStream fis = new FileInputStream(path.toFile());
-        try (DigestInputStream dis = new DigestInputStream(fis, md)) {
-            dis.on(true);
-            int bufferSize = 1048576; // should move into some type of settings
-            byte []buf = new byte[bufferSize];
-            while ( dis.read(buf) != -1) {
-                // spin
-            }
-        }
-        return md.digest();
+
+        return manifestDigest;
     }
     
     @Override
     public Boolean call() throws Exception {
         valid = true;
         findManifests();
-        populateDigests();
+        // registered digest
+        MessageDigest rd = populateDigests();
         
-        if ( md == null ) {
+        if ( rd == null ) {
             System.out.println("Digest is null -- probably no match above");
-            md = MessageDigest.getInstance("SHA-256");
+            rd = MessageDigest.getInstance("SHA-256");
         }
         
         // And check the digests
@@ -125,12 +113,12 @@ public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
             String registeredDigest = entry.getValue();
             byte[] calculatedDigest;
             
-            md.reset();
+            rd.reset();
             
             // catch all
             // some duplicated code but whatever
-            if ( !md.getAlgorithm().equals("SHA-256") ) {
-                calculatedDigest = DigestUtil.convertToSHA256(file, md, registeredDigest);
+            if ( !rd.getAlgorithm().equals("SHA-256") ) {
+                calculatedDigest = DigestUtil.convertToSHA256(file, rd, registeredDigest);
                 if ( calculatedDigest == null ) {
                     corruptedFiles.add(new ManifestError(file, registeredDigest, null));
                     valid = false;
@@ -139,7 +127,7 @@ public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
                     validDigests.put(file, digest);
                 }
             } else {
-                calculatedDigest = DigestUtil.doDigest(file, md);
+                calculatedDigest = DigestUtil.doDigest(file, rd);
                 String digest = DigestUtil.byteToHex(calculatedDigest);
                 if ( !registeredDigest.equals(digest)) {
                     corruptedFiles.add(new ManifestError(file, registeredDigest, digest));
@@ -192,6 +180,11 @@ public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
     }
     
     @Override
+    /**
+     * Build and write the manifest-sha256.txt and tagmanifest-sha256.txt files.
+     * Will fail if the files exist, and blah blah blah
+     * 
+     */
     public void create() {
         // teeangemutantninjaturtles
         // hard codin like a maw fucka
@@ -199,11 +192,6 @@ public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
         HashMap<Path, String> tagDigests; 
         Path manifest = bag.resolve("manifest-sha256.txt");
         Path tagManifest = bag.resolve("tagmanifest-sha256.txt");
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException ex) {
-            log.error("Could not get sha-256 algorithm for digesting {}", ex);
-        }
         log.info("Building digests for bag {}", bag);
         // First digest everything in the data dir
         dataDigests = digestDirectory(bag.resolve("data"), false);
@@ -235,27 +223,33 @@ public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
     private HashMap<Path, String> digestDirectory(Path dir, final boolean skipData) {
         final HashMap<Path, String> digests = new HashMap<>();
         try {
+            md = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException ex) {
+            log.error("Could not initialized intance for SHA-256 digest\n{}", ex);
+        }
+        try {
             Files.walkFileTree(bag, new SimpleFileVisitor<Path>() {
-                    @Override
-                    public FileVisitResult preVisitDirectory(Path p,
-                    BasicFileAttributes attrs) {
-                        if ( skipData && p.endsWith("data") ) {
-                            log.info("Skipping data directory");
-                            return FileVisitResult.SKIP_SUBTREE;
-                        }
-                        return FileVisitResult.CONTINUE;
-                        
+                @Override
+                public FileVisitResult preVisitDirectory(Path p,
+                                                         BasicFileAttributes attrs) {
+                    if ( skipData && p.endsWith("data") ) {
+                        log.info("Skipping data directory");
+                        return FileVisitResult.SKIP_SUBTREE;
                     }
-                    @Override
-                    public FileVisitResult visitFile(Path p, BasicFileAttributes attrs) {
-                        if ( attrs.isRegularFile() ) {
-                            log.debug("visiting {}", p);
-                            byte[] digest = DigestUtil.doDigest(p, md);
-                            digests.put(p, DigestUtil.byteToHex(digest));
-                        }
                         return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFile(Path p, 
+                                                 BasicFileAttributes attrs) {
+                    if ( attrs.isRegularFile() ) {
+                        log.debug("visiting {}", p);
+                        byte[] digest = DigestUtil.doDigest(p, md);
+                        digests.put(p, DigestUtil.byteToHex(digest));
                     }
-                });
+                    return FileVisitResult.CONTINUE;
+                }
+            });
         } catch (IOException ex) {
             log.error("Error walking file tree for {}:\n{}", dir, ex);
         }
