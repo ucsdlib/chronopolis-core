@@ -4,73 +4,43 @@
  */
 package org.chronopolis.bagit;
 
-import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.FileSystem;
-import java.nio.file.Files;
+import java.net.URL;
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
-import java.nio.file.spi.FileSystemProvider;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.powermock.api.easymock.PowerMock;
 
 /**
+ * TODO: Create bags for various scenarios
  *
  * @author shake
  */
 public class ManifestTest {
-    
-    ManifestProcessor mp;
-    FileSystem mockFS;
-    PathMatcher mockPathMatcher;
-    FileSystemProvider mockFSP;
-    Path mockPath;
+   
+    ManifestProcessor processor;
+    URL validSha;
+    URL validMd5;
+    URL shaMissingTag;
+    URL md5MissingTag;
+    URL invalidSha;
+    URL invalidMd5;
+    URL shaMissingAll;
+
 
     @Before
     public void setup() {
-        mockPath = PowerMock.createMock(Path.class);
-        mockFS = PowerMock.createMock(FileSystem.class);
-        mockPathMatcher = PowerMock.createMock(PathMatcher.class);
-        mockFSP = PowerMock.createMock(FileSystemProvider.class);
-        mp = new ManifestProcessor(mockPath);
     }
 
 
-    //@Test
-    public void testValidManifest() throws Exception {
-        String hello = "hello";
-        PowerMock.mockStatic(Files.class);
-        EasyMock.expect(Files.newDirectoryStream(mockPath, "*manifest-*.txt")).andReturn(new MockDirectoryStream());
-        /*
-        EasyMock.expect(mockPath.getFileSystem()).andReturn(mockFS);
-        EasyMock.expect(mockFS.getPathMatcher("glob:*manifest-*.txt")).andReturn(mockPathMatcher);
-        EasyMock.expect(mockFS.provider()).andReturn(mockFSP);
-        */
-        PowerMock.replay(mockPath, Files.class, mockFS, mockPathMatcher, mockFSP);
-        
-        Boolean v = mp.call();
-        Assert.assertTrue(v);
+    @Test
+    public void testValidShaManifest() throws Exception {
+        URL bag = getClass().getResource("/bags/validbag-256/");
+        Path bagPath = Paths.get(bag.toURI());
+        processor = new ManifestProcessor(bagPath);
+        boolean valid = processor.call();
+        Assert.assertTrue(valid);
     }
 
 
-    public class MockDirectoryStream implements DirectoryStream {
-
-        @Override
-        public Iterator iterator() {
-            ArrayList<Path> dirList = new ArrayList<>();
-            dirList.add(Paths.get("manifest-sha256.txt"));
-            return dirList.iterator();
-        }
-
-        @Override
-        public void close() throws IOException {
-        }
-
-    } 
 }
