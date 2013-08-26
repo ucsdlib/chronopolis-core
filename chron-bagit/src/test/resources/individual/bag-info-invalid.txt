@@ -1,0 +1,4 @@
+Source-Organization: Chronopolis 
+Bagging-Date: 2013-08-26
+Bag-Size: 18 K
+Payload-Oxum: 20.1

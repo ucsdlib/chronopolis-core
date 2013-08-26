@@ -42,5 +42,14 @@ public class ManifestTest {
         Assert.assertTrue(valid);
     }
 
+    @Test
+    public void testValidMd5Manifest() throws Exception {
+        URL bag = getClass().getResource("/bags/validbag-md5/");
+        Path bagPath = Paths.get(bag.toURI());
+        processor = new ManifestProcessor(bagPath);
+        boolean valid = processor.call();
+        Assert.assertTrue(valid);
+    }
+
 
 }

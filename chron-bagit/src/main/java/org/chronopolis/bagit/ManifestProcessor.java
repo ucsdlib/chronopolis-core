@@ -31,9 +31,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author shake
  */
-public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
+public class ManifestProcessor implements Callable<Boolean> {
     private final Logger log = LoggerFactory.getLogger(ManifestProcessor.class);
-    private final String manifestRE = "*manifest-*.txt";
+    private final String manifestRE = "manifest-*.txt";
     private final Path bag;
     
     // Hm... do we really want/need both?
@@ -54,6 +54,12 @@ public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
         
     }
     
+    /**
+     * TODO: This could be bad if we have manifests of differing digests....
+     * 
+     * 
+     * @throws IOException 
+     */
     private void findManifests() throws IOException {
         try (DirectoryStream<Path> directory = Files.newDirectoryStream(bag,
                                                                         manifestRE)) {
@@ -72,7 +78,6 @@ public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
             // There's still the .txt on the end so just match
             // Actually I could do starts with
             // or strip the .txt but that would create a new object
-            // Also need to move these out
             if ( digestType.contains("sha256")) {
                 manifestDigest = MessageDigest.getInstance("SHA-256");
             } else if ( digestType.contains("md5")) {
@@ -87,6 +92,8 @@ public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
                     String digest = split[0];
                     String file = split[1];
                     log.debug("Registering digest for {} : {} ", file, digest);
+                    // This is where things could get bad for differing digests
+                    // because when we validate it will go boom
                     registeredDigests.put(Paths.get(bag.toString(), file), digest);
                 }
             }
@@ -168,20 +175,16 @@ public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
         return validDigests;
     }
     
+    /**
+     * 
+     * @return All errors found when checking against the manifest
+     */
     public HashSet<ManifestError> getCorruptedFiles() {
         return corruptedFiles;
     }
     
-    @Override
-    public boolean valid() {
-        while ( Thread.currentThread().isAlive()) {
-        }
-        return valid;
-    }
-    
-    @Override
     /**
-     * Build and write the manifest-sha256.txt and tagmanifest-sha256.txt files.
+     * Build and write the manifest-sha256.txt.
      * Will fail if the files exist, and blah blah blah
      * 
      */
@@ -189,23 +192,23 @@ public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
         // teeangemutantninjaturtles
         // hard codin like a maw fucka
         HashMap<Path, String> dataDigests; 
-        HashMap<Path, String> tagDigests; 
         Path manifest = bag.resolve("manifest-sha256.txt");
-        Path tagManifest = bag.resolve("tagmanifest-sha256.txt");
         log.info("Building digests for bag {}", bag);
         // First digest everything in the data dir
         dataDigests = digestDirectory(bag.resolve("data"), false);
         
         // Now write our manifest
         writeDigests(manifest, dataDigests);
-        
-        // Now we can do the tag files (yay)
-        tagDigests = digestDirectory(bag, true);
-        
-        // And write the tagmanifest
-        writeDigests(tagManifest, tagDigests);
     }
 
+    /**
+     * This method will fail if the file already exists, and makes no attempt
+     * to append missing files to the manifest
+     * 
+     * 
+     * @param manifest the path of the manifest file to create
+     * @param digests the digests to write to the file 
+     */
     private void writeDigests(Path manifest, HashMap<Path, String> digests) {
         try (BufferedWriter writer = Files.newBufferedWriter(manifest,
                 Charset.forName("UTF-8"),
@@ -220,6 +223,14 @@ public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
         }
     }
 
+    /**
+     *  Digest an entire directory, returning a map of the files and their 
+     *  respective digests
+     * 
+     * @param dir The path which points to the root of the bag
+     * @param skipData boolean to skip the data directory found in bagit stores
+     * @return Map of digests
+     */
     private HashMap<Path, String> digestDirectory(Path dir, final boolean skipData) {
         final HashMap<Path, String> digests = new HashMap<>();
         try {
@@ -256,12 +267,47 @@ public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
 
         return digests;
     }
+
+    /**
+     * Get all the files which did not have registered digests
+     * 
+     * @return Set of files which are orphans
+     */
+    public HashSet<Path> getOrphans() {
+        final HashSet<Path> orphans = new HashSet<>();
+        try {
+            Files.walkFileTree(bag, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path p, BasicFileAttributes a) {
+                    if ( !registeredDigests.containsKey(p) ) {
+                        orphans.add(p);
+                    } 
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException ex) {
+            log.error("Could not build orphans, error walking file tree {}", ex);
+        }
+        
+        return orphans;
+    }
     
+    /**
+     * Class to encapsulate errors found in a manifest
+     * 
+     */
     public class ManifestError {
         Path p;
         String expected;
         String found;
         
+        /**
+         * Create a new ManifestError object 
+         * 
+         * @param p The path of the file
+         * @param expected The expected digest from the manifest
+         * @param found The digest found when checking the file
+         */
         public ManifestError(Path p, String expected, String found) {
             this.p = p;
             this.expected = expected;
@@ -280,5 +326,30 @@ public class ManifestProcessor implements Callable<Boolean>, TagProcessor {
         public String getFound() {
             return found;
         }
+    }
+
+    public class TagManifestProcessor extends ManifestProcessor {
+        private final String manifestRE;
+        
+        public TagManifestProcessor(Path bag){ 
+            super(bag);
+            this.manifestRE = "tagmanifest-*.txt";
+        }
+
+        @Override
+        public void create() {
+            if (bag.resolve("manifest-sha256.txt").toFile().exists()) {
+                throw new RuntimeException("Must create manifest-sha256 before" +
+                                           "creating the tagmanifest");
+            }
+            log.info("Building tagmanifest for {}", bag);
+            Path tagManifest = bag.resolve("tagmanifest-sha256.txt");
+            HashMap<Path, String> tagDigests; 
+
+            // create the digests and write them
+            tagDigests = digestDirectory(bag, true);
+            writeDigests(tagManifest, tagDigests);
+        }
+
     }
 }

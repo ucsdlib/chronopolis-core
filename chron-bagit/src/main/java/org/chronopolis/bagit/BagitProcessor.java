@@ -32,13 +32,15 @@ public class BagitProcessor implements TagProcessor {
     private final String tagFileRE = "Tag-File-Character-Encoding";
     private final String currentBagVersion = "0.97";
     private final String tagFileEncoding = "UTF-8";
-    private final Path bagitPath;
-    
-    // Why not just make these TagMetaElements?
+
+    // Everything else
+    private Path bagitPath;
     private TagMetaElement<String> bagVersion;
     private TagMetaElement<String> tagEncoding;
+    private int unknownTags;
     
     public BagitProcessor(Path bag) {
+        this.unknownTags = 0;
         this.bagitPath = bag.resolve(bagitRE);
         init();
     }
@@ -47,8 +49,20 @@ public class BagitProcessor implements TagProcessor {
         return bagitPath.toFile().exists();
     }
     
+    /**
+     * Set the bagit path and then initialize if it exists
+     * 
+     * @param bagit The path to the bagit.txt file
+     */
+    public void setBagitPath(Path bagit) {
+        this.bagitPath = bagit;
+        init();
+    }
+    
     private void init() {
         if (exists()) {
+            // Reset in case we have already initialized
+            unknownTags = 0;
             try (BufferedReader reader = Files.newBufferedReader(bagitPath, Charset.forName("UTF-8"))) {
                 String line;
                 while ( (line = reader.readLine()) != null ) {
@@ -64,6 +78,7 @@ public class BagitProcessor implements TagProcessor {
                         default:
                             // We should have some flag that says we had unknown
                             // value
+                            unknownTags++;
                             break;
                     }
                 }
@@ -87,6 +102,9 @@ public class BagitProcessor implements TagProcessor {
              !tagEncoding.getValue().equals(tagFileEncoding)) { 
             valid = false;
         }
+        if ( unknownTags > 0 ) {
+            valid = false;
+        }
         return valid;
     }
     
@@ -107,10 +125,10 @@ public class BagitProcessor implements TagProcessor {
     private void fullCreate() {
         List<TagMetaElement> elements = new ArrayList<>();
         if ( bagVersion == null ) {
-            bagVersion = new TagMetaElement(bagVersionRE, currentBagVersion, false);
+            bagVersion = new TagMetaElement(bagVersionRE, 
+                                            currentBagVersion, 
+                                            false);
         }
-        //elements.add(new TagMetaElement(bagVersionRE, bagVersion));
-        //elements.add(new TagMetaElement(tagFileRE, tagFileEncoding));
         elements.add(bagVersion);
         elements.add(tagEncoding);
         BagFileWriter.write(bagitPath, elements, StandardOpenOption.CREATE);
@@ -120,7 +138,9 @@ public class BagitProcessor implements TagProcessor {
         // Since UTF-8 is defined fr the Tag-File, this is the only thing we
         // need to check
         if ( bagVersion == null ){
-            bagVersion = new TagMetaElement(bagVersionRE, currentBagVersion, false);
+            bagVersion = new TagMetaElement(bagVersionRE, 
+                                            currentBagVersion, 
+                                            false);
         }
         String version = bagVersionAsString();
         
@@ -146,13 +166,11 @@ public class BagitProcessor implements TagProcessor {
     
     // By using a StringBuilder, we don't have to worry about null strings
     public String bagVersionAsString() {
-        TagMetaElement element = new TagMetaElement(bagVersionRE, bagVersion, true);
-        return element.toString();
+        return bagVersion.toString();
     }
     
     public String tagFileEncodingToString() {
-        TagMetaElement element = new TagMetaElement(tagFileRE, tagFileEncoding, true);
-        return element.toString();
+        return tagEncoding.toString();
     }
 
 }

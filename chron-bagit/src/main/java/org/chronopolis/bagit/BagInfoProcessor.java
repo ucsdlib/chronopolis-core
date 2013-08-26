@@ -53,7 +53,7 @@ public class BagInfoProcessor implements TagProcessor {
     // And now the other stuff
     private final String bagInfoName = "bag-info.txt";
     private Pattern fullRegex;
-    private final Path bagInfoPath;
+    private Path bagInfoPath;
     private final DateFormat dateFormat = new SimpleDateFormat("YYYY-MM-DD");
     private PayloadOxum payloadOxum;
     private HashMap<String, TagMetaElement> elements;
@@ -62,13 +62,19 @@ public class BagInfoProcessor implements TagProcessor {
 
     private final Logger log = LoggerFactory.getLogger(BagInfoProcessor.class);
 
+    /**
+     * Initialize a BagInfoProcessor 
+     * 
+     * @param bag The path to the root of a bag
+     */
     public BagInfoProcessor(Path bag) {
-        payloadOxum = new PayloadOxum();
+        this.payloadOxum = new PayloadOxum();
         this.bagInfoPath = bag.resolve(bagInfoName);
-        initialized = false;
-        elements = new HashMap<>();
+        this.initialized = false;
+        this.elements = new HashMap<>();
         
         // Hm...
+        /*
         fullRegex = Pattern.compile(sourceRE + OR +
                                     addressRE + OR +
                                     contactNameRE + OR +
@@ -83,6 +89,19 @@ public class BagInfoProcessor implements TagProcessor {
                                     bagCountRE + OR + 
                                     internalSenderIdRE + OR +
                                     internalSenderDesc);
+                                    */
+        this.fullRegex = Pattern.compile("^[A-Za-z\\-]*:");
+        init();
+    }
+
+    /**
+     * Set the path for the processor. Reinitializes the processor.
+     * @param bagInfoPath
+     */
+    public void setBagInfoPath(Path bagInfoPath) {
+        this.bagInfoPath = bagInfoPath;
+        elements.clear();
+        initialized = false;
         init();
     }
 
@@ -91,8 +110,8 @@ public class BagInfoProcessor implements TagProcessor {
     }
 
     
-    /* The only thing we really need to validate against is the Payload Oxum
-     * So we walk the file tree and make sure it's there 
+    /*
+     * The only thing we really need to validate against is the Payload Oxum
      * 
      */
     @Override
@@ -110,12 +129,10 @@ public class BagInfoProcessor implements TagProcessor {
 
         if (payloadOxum == null || payloadOxum.getNumFiles() == 0 || 
             payloadOxum.getOctetCount() == 0) {
-            System.out.println("Bunch of null stuff");
             valid = false;
         } else {
             // Set up the oxums
             try {
-                System.out.println("Setting up our payload");
                 calculatedOxum.calculateOxum(bagPath.resolve(dataDir));
             } catch (IOException ex) {
                 log.error("Could not read data directory to resolve payload\n{}", ex);
@@ -155,12 +172,11 @@ public class BagInfoProcessor implements TagProcessor {
                     // Do we need this? 
                     // We can take arbitrary values anyways so maybe the best 
                     // thing would be to check for spaces
-                    // Maybe we should just match on [A-Za-z\-]*:
+                    // Or maybe we should just match on [A-Za-z\-]*:
                     Matcher m = fullRegex.matcher(extra);
                     if ( m.find()) {
                         break;
                     } else {
-                        System.out.println("No match on the line, appending " + extra);
                         fullElement.append(" ");
                         fullElement.append(extra.trim());
                         // Update the mark
