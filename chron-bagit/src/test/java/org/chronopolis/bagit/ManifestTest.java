@@ -7,6 +7,8 @@ package org.chronopolis.bagit;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
+import org.chronopolis.bagit.ManifestProcessor.ManifestError;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,6 +21,7 @@ import org.junit.Test;
 public class ManifestTest {
    
     ManifestProcessor processor;
+    TagManifestProcessor tagProcessor;
     URL validSha;
     URL validMd5;
     URL shaMissingTag;
@@ -30,25 +33,89 @@ public class ManifestTest {
 
     @Before
     public void setup() {
+        validSha = getClass().getResource("/bags/validbag-256/");
+        validMd5 = getClass().getResource("/bags/validbag-md5/");
+        invalidSha = getClass().getResource("/bags/invalidbag-256/");
+        invalidMd5 = getClass().getResource("/bags/invalidbag-md5/");
+        shaMissingTag = getClass().getResource("/bags/bag-notagmanifest-256/");
+        md5MissingTag = getClass().getResource("/bags/bag-notagmanifest-md5/");
+        shaMissingAll = getClass().getResource("/bags/bag-nomanifest/");
     }
 
 
     @Test
     public void testValidShaManifest() throws Exception {
-        URL bag = getClass().getResource("/bags/validbag-256/");
-        Path bagPath = Paths.get(bag.toURI());
+        Path bagPath = Paths.get(validSha.toURI());
         processor = new ManifestProcessor(bagPath);
+        tagProcessor = new TagManifestProcessor(bagPath);
         boolean valid = processor.call();
+        Assert.assertTrue(valid);
+        valid = tagProcessor.call();
         Assert.assertTrue(valid);
     }
 
     @Test
     public void testValidMd5Manifest() throws Exception {
-        URL bag = getClass().getResource("/bags/validbag-md5/");
-        Path bagPath = Paths.get(bag.toURI());
+        Path bagPath = Paths.get(validMd5.toURI());
         processor = new ManifestProcessor(bagPath);
+        tagProcessor = new TagManifestProcessor(bagPath);
         boolean valid = processor.call();
         Assert.assertTrue(valid);
+        valid = tagProcessor.call();
+        Assert.assertTrue(valid);
+    }
+
+    @Test
+    public void testInvalidShaManifest() throws Exception {
+        Path bagPath = Paths.get(invalidSha.toURI());
+        processor = new ManifestProcessor(bagPath);
+        tagProcessor = new TagManifestProcessor(bagPath);
+        boolean valid = processor.call();
+        Assert.assertFalse(valid);
+
+        // Because the manifest is now corrupted, the digest in the tagmanifest
+        // will not match
+        valid = tagProcessor.call();
+        Assert.assertFalse(valid);
+
+        // We only need to test any error stuff here, doing so in the
+        // md5 test would just be redundant
+        HashSet<ManifestError> errors = processor.getCorruptedFiles();
+        Assert.assertEquals(1, errors.size());
+    }
+
+    @Test
+    public void testInvalidMd5Manifest() throws Exception {
+        Path bagPath = Paths.get(invalidMd5.toURI());
+        processor = new ManifestProcessor(bagPath);
+        tagProcessor = new TagManifestProcessor(bagPath);
+        boolean valid = processor.call();
+        Assert.assertFalse(valid);
+        valid = tagProcessor.call();
+        Assert.assertFalse(valid);
+    }
+
+    @Test
+    public void testNoTagManifestSha() throws Exception {
+    }
+
+    @Test
+    public void testNoTagManifestMd5() throws Exception {
+    }
+
+    @Test
+    public void testNoManifests() throws Exception {
+        Path bagPath = Paths.get(shaMissingAll.toURI());
+        processor = new ManifestProcessor(bagPath);
+        tagProcessor = new TagManifestProcessor(bagPath);
+        boolean valid = processor.call();
+        Assert.assertFalse(valid);
+        valid = tagProcessor.call();
+        Assert.assertFalse(valid);
+    }
+
+    @Test
+    public void testOrphans() {
     }
 
 

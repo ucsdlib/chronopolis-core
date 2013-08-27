@@ -34,10 +34,12 @@ import org.slf4j.LoggerFactory;
 public class ManifestProcessor implements Callable<Boolean> {
     private final Logger log = LoggerFactory.getLogger(ManifestProcessor.class);
     private final String manifestRE = "manifest-*.txt";
-    private final Path bag;
+    protected final Path bag;
     
-    // Hm... do we really want/need both?
+    // Can contain any type of digest (will probably only be either md5 or sha256)
     private HashMap<Path, String> registeredDigests = new HashMap<>();
+
+    // Contains only sha256 digests
     private HashMap<Path, String> validDigests = new HashMap<>();
     private HashSet<ManifestError> corruptedFiles = new HashSet<>();
     private HashSet<Path> manifests = new HashSet<>();
@@ -81,7 +83,7 @@ public class ManifestProcessor implements Callable<Boolean> {
             if ( digestType.contains("sha256")) {
                 manifestDigest = MessageDigest.getInstance("SHA-256");
             } else if ( digestType.contains("md5")) {
-                manifestDigest= MessageDigest.getInstance("MD5");
+                manifestDigest = MessageDigest.getInstance("MD5");
             }
             
             try (BufferedReader reader = Files.newBufferedReader(toManifest,
@@ -108,6 +110,10 @@ public class ManifestProcessor implements Callable<Boolean> {
         findManifests();
         // registered digest
         MessageDigest rd = populateDigests();
+        
+        if ( manifests.isEmpty() ) { 
+            valid = false;
+        }
         
         if ( rd == null ) {
             System.out.println("Digest is null -- probably no match above");
@@ -148,6 +154,7 @@ public class ManifestProcessor implements Callable<Boolean> {
         // I guess we're just assuming that the digests are valid...
         // Actually if the manifest-alg.txt is invalid the tagmanifest will catch it
         // Also we probably only want to do this if it is valid
+        // Also we probably don't need this anymore
         DirectoryStream.Filter filter = new DirectoryStream.Filter<Path>() {
             @Override
             public boolean accept(Path t) throws IOException {
@@ -209,7 +216,7 @@ public class ManifestProcessor implements Callable<Boolean> {
      * @param manifest the path of the manifest file to create
      * @param digests the digests to write to the file 
      */
-    private void writeDigests(Path manifest, HashMap<Path, String> digests) {
+    protected void writeDigests(Path manifest, HashMap<Path, String> digests) {
         try (BufferedWriter writer = Files.newBufferedWriter(manifest,
                 Charset.forName("UTF-8"),
                 StandardOpenOption.CREATE_NEW)) {
@@ -231,7 +238,7 @@ public class ManifestProcessor implements Callable<Boolean> {
      * @param skipData boolean to skip the data directory found in bagit stores
      * @return Map of digests
      */
-    private HashMap<Path, String> digestDirectory(Path dir, final boolean skipData) {
+    protected HashMap<Path, String> digestDirectory(Path dir, final boolean skipData) {
         final HashMap<Path, String> digests = new HashMap<>();
         try {
             md = MessageDigest.getInstance("SHA-256");
@@ -326,30 +333,5 @@ public class ManifestProcessor implements Callable<Boolean> {
         public String getFound() {
             return found;
         }
-    }
-
-    public class TagManifestProcessor extends ManifestProcessor {
-        private final String manifestRE;
-        
-        public TagManifestProcessor(Path bag){ 
-            super(bag);
-            this.manifestRE = "tagmanifest-*.txt";
-        }
-
-        @Override
-        public void create() {
-            if (bag.resolve("manifest-sha256.txt").toFile().exists()) {
-                throw new RuntimeException("Must create manifest-sha256 before" +
-                                           "creating the tagmanifest");
-            }
-            log.info("Building tagmanifest for {}", bag);
-            Path tagManifest = bag.resolve("tagmanifest-sha256.txt");
-            HashMap<Path, String> tagDigests; 
-
-            // create the digests and write them
-            tagDigests = digestDirectory(bag, true);
-            writeDigests(tagManifest, tagDigests);
-        }
-
     }
 }
