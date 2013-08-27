@@ -15,6 +15,7 @@ import org.junit.Test;
 
 /**
  * TODO: Create bags for various scenarios
+ * TODO: Combine some of the sha/md5 tests to reduce code dup
  *
  * @author shake
  */
@@ -29,6 +30,7 @@ public class ManifestTest {
     URL invalidSha;
     URL invalidMd5;
     URL shaMissingAll;
+    URL orphanBag;
 
 
     @Before
@@ -40,6 +42,7 @@ public class ManifestTest {
         shaMissingTag = getClass().getResource("/bags/bag-notagmanifest-256/");
         md5MissingTag = getClass().getResource("/bags/bag-notagmanifest-md5/");
         shaMissingAll = getClass().getResource("/bags/bag-nomanifest/");
+        orphanBag = getClass().getResource("/bags/orphans-256");
     }
 
 
@@ -96,14 +99,31 @@ public class ManifestTest {
     }
 
     @Test
+    // TODO: Test creation
     public void testNoTagManifestSha() throws Exception {
+        Path bagPath = Paths.get(shaMissingTag.toURI());
+        processor = new ManifestProcessor(bagPath);
+        tagProcessor = new TagManifestProcessor(bagPath);
+        boolean valid = processor.call();
+        Assert.assertTrue(valid);
+        valid = tagProcessor.call();
+        Assert.assertFalse(valid);
     }
 
     @Test
+    // TODO: Test creation
     public void testNoTagManifestMd5() throws Exception {
+        Path bagPath = Paths.get(md5MissingTag.toURI());
+        processor = new ManifestProcessor(bagPath);
+        tagProcessor = new TagManifestProcessor(bagPath);
+        boolean valid = processor.call();
+        Assert.assertTrue(valid);
+        valid = tagProcessor.call();
+        Assert.assertFalse(valid);
     }
 
     @Test
+    // TODO: Test creation of manifests
     public void testNoManifests() throws Exception {
         Path bagPath = Paths.get(shaMissingAll.toURI());
         processor = new ManifestProcessor(bagPath);
@@ -112,10 +132,24 @@ public class ManifestTest {
         Assert.assertFalse(valid);
         valid = tagProcessor.call();
         Assert.assertFalse(valid);
+
     }
 
     @Test
-    public void testOrphans() {
+    public void testOrphans() throws Exception {
+        Path bagPath = Paths.get(orphanBag.toURI());
+        processor = new ManifestProcessor(bagPath);
+        tagProcessor = new TagManifestProcessor(bagPath);
+        boolean valid = processor.call();
+        Assert.assertTrue(valid);
+        valid = tagProcessor.call();
+        Assert.assertTrue(valid);
+
+        HashSet<Path> orphanedFiles = processor.getOrphans();
+        HashSet<Path> orphanedTags = tagProcessor.getOrphans();
+        Assert.assertEquals(2, orphanedFiles.size());
+
+        Assert.assertEquals(1, orphanedTags.size());
     }
 
 

@@ -33,16 +33,16 @@ import org.slf4j.LoggerFactory;
  */
 public class ManifestProcessor implements Callable<Boolean> {
     private final Logger log = LoggerFactory.getLogger(ManifestProcessor.class);
-    private final String manifestRE = "manifest-*.txt";
+    protected final String manifestRE;
     protected final Path bag;
     
     // Can contain any type of digest (will probably only be either md5 or sha256)
-    private HashMap<Path, String> registeredDigests = new HashMap<>();
+    protected HashMap<Path, String> registeredDigests = new HashMap<>();
 
     // Contains only sha256 digests
     private HashMap<Path, String> validDigests = new HashMap<>();
     private HashSet<ManifestError> corruptedFiles = new HashSet<>();
-    private HashSet<Path> manifests = new HashSet<>();
+    protected HashSet<Path> manifests = new HashSet<>();
     private MessageDigest md;
     private boolean valid;
     
@@ -52,8 +52,20 @@ public class ManifestProcessor implements Callable<Boolean> {
         } catch (NoSuchAlgorithmException ex) {
             log.error("Error initializing default digest: {}", ex);
         }
+
+        this.manifestRE = "manifest-*.txt";
         this.bag = bag;
-        
+    }
+
+    public ManifestProcessor(Path bag, String manifestRE) {
+        try {
+            this.md = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException ex) {
+            log.error("Error initializing default digest: {}", ex);
+        }
+
+        this.bag = bag;
+        this.manifestRE = manifestRE;
     }
     
     /**
@@ -116,7 +128,6 @@ public class ManifestProcessor implements Callable<Boolean> {
         }
         
         if ( rd == null ) {
-            System.out.println("Digest is null -- probably no match above");
             rd = MessageDigest.getInstance("SHA-256");
         }
         
@@ -165,7 +176,6 @@ public class ManifestProcessor implements Callable<Boolean> {
         
         DirectoryStream<Path> dStream = Files.newDirectoryStream(bag, filter);
         for ( Path p : dStream ) {
-            System.out.println(p);
             md.reset();
             byte[] manifestDigest = DigestUtil.doDigest(p, md);
             String digest = DigestUtil.byteToHex(manifestDigest);
@@ -235,7 +245,7 @@ public class ManifestProcessor implements Callable<Boolean> {
      *  respective digests
      * 
      * @param dir The path which points to the root of the bag
-     * @param skipData boolean to skip the data directory found in bagit stores
+     * @param skipData boolean to skip the data directory found in bags 
      * @return Map of digests
      */
     protected HashMap<Path, String> digestDirectory(Path dir, final boolean skipData) {
@@ -283,10 +293,11 @@ public class ManifestProcessor implements Callable<Boolean> {
     public HashSet<Path> getOrphans() {
         final HashSet<Path> orphans = new HashSet<>();
         try {
-            Files.walkFileTree(bag, new SimpleFileVisitor<Path>() {
+            Files.walkFileTree(bag.resolve("data"), new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path p, BasicFileAttributes a) {
-                    if ( !registeredDigests.containsKey(p) ) {
+                    if ( a.isRegularFile() && !registeredDigests.containsKey(p) ) {
+                        log.debug("Adding orphan: {}", p);
                         orphans.add(p);
                     } 
                     return FileVisitResult.CONTINUE;
