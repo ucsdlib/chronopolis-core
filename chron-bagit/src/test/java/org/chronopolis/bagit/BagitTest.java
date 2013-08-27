@@ -4,104 +4,65 @@
  */
 package org.chronopolis.bagit;
 
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.FileSystem;
-import java.nio.file.Files;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 //import org.easymock.EasyMock;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.Assert;
-
-import org.chronopolis.bagit.util.TagMetaElement;
-
-
-import static org.chronopolis.bagit.TestUtil.createReader;
-import org.easymock.EasyMock;
-import org.junit.runner.RunWith;
-import org.powermock.api.easymock.PowerMock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 
 /**
  *
  * @author shake
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(BagitProcessor.class)
 public class BagitTest extends TestUtil {
-    private final String bagVersionRE = "BagIt-Version";
-    private final String tagFileRE = "Tag-File-Character-Encoding";
-    private final String currentBagVersion = "0.97";
-    private final String tagFileEncoding = "UTF-8";
     Path bagitPath;
-    File mockFile;
-    FileSystem mockFileSystem;
-
-
-    private void setupExpects(BufferedReader reader) throws IOException {
-        EasyMock.expect(bagitPath.resolve("bagit.txt")).andReturn(bagitPath);
-        EasyMock.expect(bagitPath.toFile()).andReturn(mockFile).times(2);
-        EasyMock.expect(mockFile.exists()).andReturn(Boolean.TRUE).times(3);
-        EasyMock.expect(bagitPath.getFileSystem()).andReturn(mockFileSystem);
-        PowerMock.mockStatic(Files.class);
-        EasyMock.expect(Files.newBufferedReader(bagitPath, 
-                                                Charset.forName("UTF-8")))
-                                                .andReturn(reader);
-        
-        PowerMock.replay(bagitPath, mockFile, Files.class);
-    }
-    
-    @Before
-    public void setUp() {
-        bagitPath = PowerMock.createMock(Path.class);
-        mockFile = PowerMock.createMock(File.class);
-        mockFileSystem = PowerMock.createMock(FileSystem.class);
-    }
 
     @Test
-    public void testValid() throws IOException {
-        BagitProcessor bagitProcessor;
-        TagMetaElement version = new TagMetaElement(bagVersionRE, currentBagVersion, true);
-        TagMetaElement encoding = new TagMetaElement(tagFileRE, tagFileEncoding, true); 
-        BufferedReader reader = createReader(version, encoding);
-        setupExpects(reader);
-        bagitProcessor = new BagitProcessor(bagitPath);
+    public void testValid() throws URISyntaxException {
+        URL bag = getClass().getResource("/individual/bagit-valid.txt");
+        bagitPath = Paths.get(bag.toURI());
+        BagitProcessor bagitProcessor = new BagitProcessor(bagitPath);
+        bagitProcessor.setBagitPath(bagitPath);
         Assert.assertTrue(bagitProcessor.valid());
     }
 
     @Test
-    public void testMissingTagEncoding() throws IOException {
-        BagitProcessor bagitProcessor;
-        TagMetaElement version = new TagMetaElement(bagVersionRE, currentBagVersion, true);
-        BufferedReader reader = createReader(version);
-        setupExpects(reader);
-        bagitProcessor = new BagitProcessor(bagitPath);
+    public void testInvalid() throws URISyntaxException {
+        URL bag = getClass().getResource("/individual/bagit-invalid.txt");
+        bagitPath = Paths.get(bag.toURI());
+        BagitProcessor bagitProcessor = new BagitProcessor(bagitPath);
+        bagitProcessor.setBagitPath(bagitPath);
         Assert.assertFalse(bagitProcessor.valid());
     }
 
     @Test
-    public void testMissingVersion() throws IOException {
-        BagitProcessor bagitProcessor;
-        TagMetaElement encoding = new TagMetaElement(tagFileRE, tagFileEncoding, true);
-        BufferedReader reader = createReader(encoding);
-        setupExpects(reader);
-        bagitProcessor = new BagitProcessor(bagitPath);
+    public void testMissingTagEncoding() throws URISyntaxException {
+        URL bag = getClass().getResource("/individual/bagit-noencoding.txt");
+        bagitPath = Paths.get(bag.toURI());
+        BagitProcessor bagitProcessor = new BagitProcessor(bagitPath);
+        bagitProcessor.setBagitPath(bagitPath);
         Assert.assertFalse(bagitProcessor.valid());
     }
 
     @Test
-    public void testEmptyValues() throws IOException {
-        BagitProcessor bagitProcessor;
-        TagMetaElement version = new TagMetaElement(bagVersionRE, "", true);
-        TagMetaElement encoding = new TagMetaElement(tagFileRE, "", true); 
-        BufferedReader reader = createReader(version, encoding);
-        setupExpects(reader);
-        bagitProcessor = new BagitProcessor(bagitPath);
+    public void testMissingVersion() throws URISyntaxException {
+        URL bag = getClass().getResource("/individual/bagit-noversion.txt");
+        bagitPath = Paths.get(bag.toURI());
+        BagitProcessor bagitProcessor = new BagitProcessor(bagitPath);
+        bagitProcessor.setBagitPath(bagitPath);
+        Assert.assertFalse(bagitProcessor.valid());
+    }
+
+    @Test
+    public void testEmptyValues() throws URISyntaxException {
+        URL bag = getClass().getResource("/individual/bagit-emptyvals.txt");
+        bagitPath = Paths.get(bag.toURI());
+        BagitProcessor bagitProcessor = new BagitProcessor(bagitPath);
+        bagitProcessor.setBagitPath(bagitPath);
         Assert.assertFalse(bagitProcessor.valid());
     }
 

@@ -4,31 +4,15 @@
  */
 package org.chronopolis.bagit;
 
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.Charset;
-import java.nio.file.FileSystem;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import org.chronopolis.bagit.util.TagMetaElement;
-import org.easymock.EasyMock;
-import org.junit.Before;
 import org.junit.Test;
 
-import static org.chronopolis.bagit.TestUtil.createReader;
 import org.chronopolis.bagit.util.PayloadOxum;
 import org.junit.Assert;
-import org.junit.runner.RunWith;
-import org.powermock.api.easymock.PowerMock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  *
@@ -39,7 +23,6 @@ public class BagInfoTest {
     private final String bagSizeRE = "Bag-Size";
     private final String baggingDateRE = "Bagging-Date";
     private final String oxumRE = "Payload-Oxum";
-    private final DateFormat dateFormat = new SimpleDateFormat("YYYY-MM-DD");
     private Path bagInfoPath;
 
     @Test
@@ -49,7 +32,6 @@ public class BagInfoTest {
         bagInfoProcessor = new BagInfoProcessor(bagPath);
         bagInfoProcessor.setBagInfoPath(bagPath);
 
-
         Assert.assertEquals(1, bagInfoProcessor.getPayloadOxum().getNumFiles());
         Assert.assertEquals(18, 
                             bagInfoProcessor.getPayloadOxum().getOctetCount());
@@ -57,7 +39,7 @@ public class BagInfoTest {
         Assert.assertEquals("18 K", bagInfoProcessor.getBagSize().getValue());
         Assert.assertEquals(baggingDateRE, 
                             bagInfoProcessor.getBaggingDate().getKey());
-        //Assert.assertEquals(date, bagInfoProcessor.getBaggingDate().getValue());
+        Assert.assertEquals("2013-08-26", bagInfoProcessor.getBaggingDate().getValue());
     }
 
     
@@ -73,8 +55,8 @@ public class BagInfoTest {
         PayloadOxum actualOxum = new PayloadOxum();
         actualOxum.calculateOxum(Paths.get(oxum.toURI()));
         bagInfoProcessor.setPayloadOxum(actualOxum);
-        /*
-        */
+        // Our validator will try and calculate the actual payload, so I made
+        // a data directory in the individual folder for such purpose
         boolean valid = bagInfoProcessor.valid();
          
         Assert.assertTrue(valid);
