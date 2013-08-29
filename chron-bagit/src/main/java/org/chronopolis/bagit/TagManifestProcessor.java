@@ -61,6 +61,7 @@ public class TagManifestProcessor extends ManifestProcessor {
                 @Override
                 // This is the same as the manifest processor... 
                 // wonder if there is a good way to combine them
+                // Also make sure to skip ourself
                 public FileVisitResult visitFile(Path p, 
                                                  BasicFileAttributes attrs) {
                     if ( attrs.isRegularFile() ) { 
@@ -74,7 +75,7 @@ public class TagManifestProcessor extends ManifestProcessor {
                 
             });
         } catch (IOException ex) {
-            log.error("Error getting orphans for tag manifest {}", ex);
+            log.error("Error getting orphans for tag manifest: {}", ex);
         }
         return orphans;
     }

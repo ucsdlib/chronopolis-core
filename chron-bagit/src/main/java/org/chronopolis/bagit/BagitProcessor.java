@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import org.chronopolis.bagit.util.BagFileWriter;
 import org.chronopolis.bagit.util.TagMetaElement;
 import org.slf4j.Logger;
@@ -38,10 +39,12 @@ public class BagitProcessor implements TagProcessor {
     private TagMetaElement<String> bagVersion;
     private TagMetaElement<String> tagEncoding;
     private int unknownTags;
+    private boolean initialized;
     
     public BagitProcessor(Path bag) {
         this.unknownTags = 0;
         this.bagitPath = bag.resolve(bagitRE);
+        this.initialized = false;
         init();
     }
     
@@ -82,9 +85,9 @@ public class BagitProcessor implements TagProcessor {
                             break;
                     }
                 }
-                
+                initialized = true; 
             }catch (IOException ex) {
-                log.error("Error reading bagit.txt\n{}", ex);
+                log.error("Error reading bagit.txt: {}", ex);
             }
         }
     }
@@ -150,17 +153,34 @@ public class BagitProcessor implements TagProcessor {
                     StandardOpenOption.WRITE);
             writer.write(version, 0, version.length());
         } catch (IOException ex) {
-            log.error("Error writing bagit.txt\n{}",ex);
+            log.error("Error writing bagit.txt: {}",ex);
         }
         
     }
     
     @Override
     public void create() {
-        if ( exists() ) {
-            partialCreate();
-        } else {
-            fullCreate();
+        if ( !initialized ) { 
+            init();
+        }
+
+        if ( bagVersion == null ) {
+            bagVersion = new TagMetaElement(bagVersionRE, currentBagVersion, false);
+        }
+        if ( tagEncoding == null ) {
+            tagEncoding = new TagMetaElement(tagFileRE, tagFileEncoding, false);
+        }
+
+        // I'm a bum so let's overwrite it
+        // Maybe I'll make an append which solely appends
+        try (BufferedWriter writer = Files.newBufferedWriter(bagitPath, 
+                                                             Charset.forName("UTF-8"), 
+                                                             StandardOpenOption.CREATE)) {
+            writer.write(bagVersion.toString());
+            writer.newLine();
+            writer.write(tagEncoding.toString());
+        } catch (IOException ex) {
+            log.error("Error writing bagit.txt: {}", ex);
         }
     }
     

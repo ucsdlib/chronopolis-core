@@ -4,11 +4,13 @@
  */
 package org.chronopolis.bagit;
 
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import org.chronopolis.bagit.ManifestProcessor.ManifestError;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,6 +45,32 @@ public class ManifestTest {
         md5MissingTag = getClass().getResource("/bags/bag-notagmanifest-md5/");
         shaMissingAll = getClass().getResource("/bags/bag-nomanifest/");
         orphanBag = getClass().getResource("/bags/orphans-256");
+    }
+
+    @After
+    public void tearDown() throws URISyntaxException {
+        // Make sure we clean up any files which were made during testing
+        Path tagManifest = Paths.get(shaMissingTag.toURI())
+                                .resolve("tagmanifest-sha256.txt");
+        if ( tagManifest.toFile().exists()) {
+           tagManifest.toFile().delete();
+        }
+        tagManifest = Paths.get(md5MissingTag.toURI())
+                           .resolve("tagmanifest-sha256.txt");
+        if ( tagManifest.toFile().exists()) {
+           tagManifest.toFile().delete();
+        }
+        Path manifest = Paths.get(shaMissingAll.toURI())
+                             .resolve("manifest-sha256.txt");
+        tagManifest = Paths.get(shaMissingAll.toURI())
+                           .resolve("tagmanifest-sha256.txt");
+        if ( manifest.toFile().exists()) {
+           manifest.toFile().delete();
+        }
+        if ( tagManifest.toFile().exists()) {
+            tagManifest.toFile().delete();
+        }
+
     }
 
 

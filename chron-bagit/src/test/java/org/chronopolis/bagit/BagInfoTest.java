@@ -15,6 +15,7 @@ import org.chronopolis.bagit.util.PayloadOxum;
 import org.junit.Assert;
 
 /**
+ * TODO: Test creation
  *
  * @author shake
  */
@@ -22,8 +23,6 @@ public class BagInfoTest {
     BagInfoProcessor bagInfoProcessor;
     private final String bagSizeRE = "Bag-Size";
     private final String baggingDateRE = "Bagging-Date";
-    private final String oxumRE = "Payload-Oxum";
-    private Path bagInfoPath;
 
     @Test
     public void testInit() throws IOException, URISyntaxException {

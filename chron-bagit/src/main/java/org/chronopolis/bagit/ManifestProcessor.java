@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *  TODO: If manifest is made from MD5 digests, convert them to SHA-256
+ * TODO: If manifest is made from MD5 digests, convert them to SHA-256
  *
  * @author shake
  */
@@ -71,7 +71,6 @@ public class ManifestProcessor implements Callable<Boolean> {
     /**
      * TODO: This could be bad if we have manifests of differing digests....
      * 
-     * 
      * @throws IOException 
      */
     private void findManifests() throws IOException {
@@ -96,6 +95,8 @@ public class ManifestProcessor implements Callable<Boolean> {
                 manifestDigest = MessageDigest.getInstance("SHA-256");
             } else if ( digestType.contains("md5")) {
                 manifestDigest = MessageDigest.getInstance("MD5");
+            } else if ( digestType.contains("sha1")) {
+                manifestDigest = MessageDigest.getInstance("SHA-1");
             }
             
             try (BufferedReader reader = Files.newBufferedReader(toManifest,
@@ -210,6 +211,10 @@ public class ManifestProcessor implements Callable<Boolean> {
         // hard codin like a maw fucka
         HashMap<Path, String> dataDigests; 
         Path manifest = bag.resolve("manifest-sha256.txt");
+        if ( manifest.toFile().exists() ) {
+            log.error("Manifest already exists, if you'd like to create yet SOL");
+            throw new RuntimeException("Manifest already exists");
+        }
         log.info("Building digests for bag {}", bag);
         // First digest everything in the data dir
         dataDigests = digestDirectory(bag.resolve("data"), false);
@@ -236,7 +241,7 @@ public class ManifestProcessor implements Callable<Boolean> {
                 writer.newLine();
             }
         } catch (IOException ex) {
-            log.error("Error writing {}:\n{}", manifest, ex);
+            log.error("Error writing {}: {}", manifest, ex);
         }
     }
 
@@ -253,7 +258,7 @@ public class ManifestProcessor implements Callable<Boolean> {
         try {
             md = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException ex) {
-            log.error("Could not initialized intance for SHA-256 digest\n{}", ex);
+            log.error("Could not initialized intance for SHA-256 digest: {}", ex);
         }
         try {
             Files.walkFileTree(bag, new SimpleFileVisitor<Path>() {
@@ -279,7 +284,7 @@ public class ManifestProcessor implements Callable<Boolean> {
                 }
             });
         } catch (IOException ex) {
-            log.error("Error walking file tree for {}:\n{}", dir, ex);
+            log.error("Error walking file tree for {}: {}", dir, ex);
         }
 
         return digests;

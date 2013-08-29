@@ -5,6 +5,7 @@
 package org.chronopolis.bagit;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -12,13 +13,10 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.chronopolis.bagit.util.BagFileWriter;
 import org.chronopolis.bagit.util.TagMetaElement;
 import org.chronopolis.bagit.util.PayloadOxum;
 import org.slf4j.Logger;
@@ -135,13 +133,13 @@ public class BagInfoProcessor implements TagProcessor {
             try {
                 calculatedOxum.calculateOxum(bagPath.resolve(dataDir));
             } catch (IOException ex) {
-                log.error("Could not read data directory to resolve payload\n{}", ex);
+                log.error("Could not read data directory to resolve payload: {}", ex);
                 valid = false;
             }
 
             // And validate
             if (!payloadOxum.equals(calculatedOxum)) {
-                log.error("Payload in bag does not equal calculated payload: {} -> {}",
+                log.error("Payload in bag does not equal calculated payload:\nexpected {}\nfound {}",
                            payloadOxum.toString(), calculatedOxum.toString());
                 valid = false;
             }
@@ -156,7 +154,7 @@ public class BagInfoProcessor implements TagProcessor {
             reader = Files.newBufferedReader(bagInfoPath,
                                              Charset.forName("UTF-8"));
         } catch (IOException ex) {
-            log.info("No bag info file found");
+            log.info("No bag info file found: {}", ex);
             initialized = true;
             return;
         }
@@ -194,7 +192,7 @@ public class BagInfoProcessor implements TagProcessor {
                 reader.reset();
             }
         } catch (IOException ex) {
-            log.error("Error reading from bag-info.txt");
+            log.error("Error reading from bag-info.txt: {}", ex);
         }
 
         // also init our payload properly
@@ -206,53 +204,25 @@ public class BagInfoProcessor implements TagProcessor {
         initialized = true;
     }
 
-    private void fullCreate() {
-
-        List<TagMetaElement> metaElements = new ArrayList<>();
-        Path payloadPath = bagInfoPath.getParent().resolve("data");
-        setBagSize((TagMetaElement<String>) new TagMetaElement(bagSizeRE, 0, false));
-        setBaggingDate((TagMetaElement<String>) new TagMetaElement(baggingDateRE, 
-                                                                   dateFormat.format(new Date()),
-                                                                   false));
-        try {
-            getPayloadOxum().calculateOxum(payloadPath);
-        } catch (IOException ex) {
-            log.error("Error creating payloadOxum for path {} \n {}",
-                      payloadPath,
-                      ex);
-        }
-        metaElements.add(getPayloadOxum().toBagMetaElement());
-        metaElements.add(getBagSize());
-        metaElements.add(getBaggingDate());
-        BagFileWriter.write(bagInfoPath, 
-                            metaElements, 
-                            StandardOpenOption.CREATE_NEW);
-    }
-
-    // Do we want to rewrite the whole file or figure out where in the file we 
-    // need to add elements
-    private void partialCreate() {
-        List<TagMetaElement> metaElements = new ArrayList<>();
-        if ( getPayloadOxum().getNumFiles() == 0 || getPayloadOxum().getOctetCount() == 0) {
-            Path payloadPath = bagInfoPath.getParent().resolve("data");
-            try {
-                getPayloadOxum().calculateOxum(payloadPath);
-            } catch (IOException ex) {
-                log.error("Error calculating payload Oxum {} ", ex);
-            }
-            metaElements.add(getPayloadOxum().toBagMetaElement());
-        }
-    }
-
     @Override
     public void create() {
         if ( !initialized ) {
             init();
         }
-        if ( exists() ) {
-            partialCreate();
-        } else {
-            fullCreate();
+
+        // I don't really feel like trying to figure out when to append/etc
+        // so let's just write the entire thing
+        // Maybe we'll get lucky and have it be sorted by how it comes in but
+        // probably not
+        try (BufferedWriter writer = Files.newBufferedWriter(bagInfoPath, 
+                                                             Charset.forName("UTF-8"), 
+                                                             StandardOpenOption.CREATE)) {
+            for (Map.Entry<String, TagMetaElement> element : elements.entrySet()) {
+                writer.write(element.getValue().toString());
+                writer.newLine();
+            }
+        } catch (IOException ex) {
+            log.error("Error writing bag-info.txt: {}", ex);
         }
     }
 

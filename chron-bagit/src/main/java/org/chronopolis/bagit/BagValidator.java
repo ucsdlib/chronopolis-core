@@ -28,7 +28,8 @@ public class BagValidator {
     
     // Files to check for in the bag
     public final String bagInfo = "bag-info.txt";
-    public final String manifest = "*manifest-*.txt";
+    public final String manifest = "manifest-*.txt";
+    public final String tagManifest = "tagmanifest-*.txt";
     public final String charset = "UTF-8";
     public final String bagit = "bagit.txt";
     
