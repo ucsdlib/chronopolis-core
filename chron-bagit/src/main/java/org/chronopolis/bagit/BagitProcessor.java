@@ -13,7 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
-import org.chronopolis.bagit.util.BagFileWriter;
+import org.chronopolis.bagit.util.BagWriter;
 import org.chronopolis.bagit.util.TagMetaElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,7 +133,7 @@ public class BagitProcessor implements TagProcessor {
         }
         elements.add(bagVersion);
         elements.add(tagEncoding);
-        BagFileWriter.write(bagitPath, elements, StandardOpenOption.CREATE);
+        BagWriter.write(bagitPath, elements, StandardOpenOption.CREATE);
     }
     
     private void partialCreate() {

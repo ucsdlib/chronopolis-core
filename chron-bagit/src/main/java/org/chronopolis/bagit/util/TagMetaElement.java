@@ -63,6 +63,7 @@ public class TagMetaElement<T> {
 
     @Override
     public String toString() {
+        // TODO: Break up at 79 characters
         StringBuilder builder = new StringBuilder(key).append(": ")
                                                       .append(value);
         return builder.toString();

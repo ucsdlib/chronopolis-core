@@ -19,9 +19,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author shake
  */
-public class BagFileWriter {
+public class BagWriter {
     private static final Logger log = 
-            LoggerFactory.getLogger(BagFileWriter.class);
+            LoggerFactory.getLogger(BagWriter.class);
     
     public static void write(Path file,
                              List<TagMetaElement> elements,
