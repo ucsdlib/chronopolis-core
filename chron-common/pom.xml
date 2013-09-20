@@ -48,5 +48,9 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
         </dependency>
+        <dependency>
+            <groupId>edu.umiacs.ace</groupId>
+            <artifactId>ace-ims-api</artifactId>
+        </dependency>
     </dependencies>
 </project>

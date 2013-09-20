@@ -4,16 +4,11 @@
  */
 package org.chronopolis.bagit;
 
-import edu.umiacs.ace.ims.api.IMSService;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import edu.umiacs.ace.ims.api.TokenRequestBatch;
-import edu.umiacs.ace.ims.ws.TokenRequest;
-import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,8 +18,8 @@ import org.slf4j.LoggerFactory;
  *
  * @author shake
  */
-public class BagValidator {
-    public final Logger log = LoggerFactory.getLogger(BagValidator.class);
+public class Bag {
+    public final Logger log = LoggerFactory.getLogger(Bag.class);
     
     // Files to check for in the bag
     public final String bagInfo = "bag-info.txt";
@@ -34,9 +29,9 @@ public class BagValidator {
     public final String bagit = "bagit.txt";
     
     private final ExecutorService manifestRunner = Executors.newCachedThreadPool();
-    private final Path toBag;
-    private TokenWriterCallback callback = null;
-    private TokenRequestBatch batch = null;
+    private final Path bag;
+    //private TokenWriterCallback callback = null;
+    //private TokenRequestBatch batch = null;
     // Only SHA-256 digests in here
     // Could probably wrap this in a class and force it to check the size
     private Map<Path, String> validDigests;
@@ -48,9 +43,9 @@ public class BagValidator {
     private Future<Boolean> validManifest;
     
     
-    public BagValidator(Path toBag) {
-        this.toBag = toBag;
-        callback = new TokenWriterCallback(toBag.getFileName().toString());
+    public Bag(Path toBag) {
+        this.bag = toBag;
+        //callback = new TokenWriterCallback(bag.getFileName().toString());
 
         bagInfoValidator = new BagInfoProcessor(toBag);
         bagitValidator = new BagitProcessor(toBag);
@@ -84,6 +79,7 @@ public class BagValidator {
     
     // Maybe we should push this into something else as well
     // Since it doesn't have to do much with validation, only runs after
+    /*
     public Path getAceManifest(Path stage) throws InterruptedException, 
                                                IOException, 
                                                ExecutionException {
@@ -103,7 +99,7 @@ public class BagValidator {
             TokenRequest req = new TokenRequest();
             // We want the relative path for ACE so let's get it
             Path full = entry.getKey();
-            Path relative = full.subpath(toBag.getNameCount(), full.getNameCount());
+            Path relative = full.subpath(bag.getNameCount(), full.getNameCount());
              
             req.setName(relative.toString());
             req.setHashValue(entry.getValue());
@@ -122,6 +118,7 @@ public class BagValidator {
                 1000,
                 5000);
     }
+    */
 
     /**
      * @return the bagInfoValidator

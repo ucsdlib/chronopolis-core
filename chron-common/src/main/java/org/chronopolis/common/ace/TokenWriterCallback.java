@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.chronopolis.bagit;
+package org.chronopolis.common.ace;
 
 import edu.umiacs.ace.exception.StatusCode;
 import edu.umiacs.ace.ims.api.RequestBatchCallback;

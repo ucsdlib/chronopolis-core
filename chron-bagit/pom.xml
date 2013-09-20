@@ -25,10 +25,12 @@
     </repositories>
 
     <dependencies>
+        <!--
         <dependency>
             <groupId>edu.umiacs.ace</groupId>
             <artifactId>ace-ims-api</artifactId>
         </dependency>
+        -->
     </dependencies>
 
     <build>

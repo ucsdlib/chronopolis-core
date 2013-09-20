@@ -10,7 +10,7 @@ import java.nio.file.Paths;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import org.chronopolis.amqp.ChronProducer;
-import org.chronopolis.bagit.BagValidator;
+import org.chronopolis.bagit.Bag;
 import org.chronopolis.bagit.ManifestProcessor;
 import org.chronopolis.bagit.ManifestProcessor.ManifestError;
 import org.chronopolis.messaging.base.ChronMessage2;
@@ -61,15 +61,15 @@ public class PackageReadyProcessor implements ChronProcessor {
         Path toBag = Paths.get(props.getStage(), location);
         Path manifest = null;
 
-        BagValidator validator = new BagValidator(toBag);
+        Bag validator = new Bag(toBag);
         Future<Boolean> f = validator.getValidManifest();
         try {
             Boolean valid = f.get();
 
             if ( valid ) {
                 log.info("Bag is valid; continuing to make manifest");
-                manifest = validator.getAceManifest(Paths.get(props.getTokenStage()));
-                log.info("Manifest is located at " + manifest.toString());
+                //manifest = validator.getAceManifest(Paths.get(props.getTokenStage()));
+                //log.info("Manifest is located at " + manifest.toString());
             } else {
                 ManifestProcessor mv = validator.getManifestValidator();
                 StringBuilder err = new StringBuilder("Invalid bag (bad digests)\n");
@@ -80,10 +80,10 @@ public class PackageReadyProcessor implements ChronProcessor {
                 throw new RuntimeException(err.toString());
             }
 
-            // BagValidator.validateFormat(toBag);
+            // Bag.validateFormat(toBag);
 
-            // BagValidator.validateManifestAndGetTokens(toBag);
-        } catch (InterruptedException | ExecutionException | IOException ex) {
+            // Bag.validateManifestAndGetTokens(toBag);
+        } catch (InterruptedException | ExecutionException ex) {
             log.error("Error occured {} ", ex);
         }
 
