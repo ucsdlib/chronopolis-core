@@ -181,5 +181,6 @@
         <module>chron-ingest-shell</module>
         <module>chron-logger</module>
     <module>duracloud-rest</module>
+    <module>replication-shell</module>
   </modules>
 </project>

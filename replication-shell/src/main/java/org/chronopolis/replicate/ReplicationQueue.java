@@ -8,9 +8,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.LinkedBlockingQueue;
-import org.apache.log4j.Logger;
 import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.common.transfer.HttpsTransfer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class which will fire off downloads
@@ -19,7 +20,7 @@ import org.chronopolis.common.transfer.HttpsTransfer;
  * @author shake
  */
 public class ReplicationQueue implements Runnable {
-    private static final Logger log = Logger.getLogger(ReplicationQueue.class);
+    private static final Logger log = LoggerFactory.getLogger(ReplicationQueue.class);
     private static final String SLASH =  "/"; // Not the guitarist
     private static LinkedBlockingQueue<ReplicationDownload> downloadQueue = new LinkedBlockingQueue<>();
     private static HttpsTransfer xfer = new HttpsTransfer();
@@ -66,7 +67,7 @@ public class ReplicationQueue implements Runnable {
                                     String file) {
         ReplicationDownload rFile = new ReplicationDownload(base, collection, group, file);
         try {
-            log.info("Queueing " + file);
+            log.info("Queueing {}", file);
             downloadQueue.put(rFile);
         } catch (InterruptedException ex) {
             log.error("Thread interrupted " + ex);

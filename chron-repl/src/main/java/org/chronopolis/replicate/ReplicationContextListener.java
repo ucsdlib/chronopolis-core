@@ -24,8 +24,8 @@ public class ReplicationContextListener implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         log.info("Starting up Replication context");
-        ReplicationQueue queue = new ReplicationQueue();
-        beep = serv.submit(queue);
+        //ReplicationQueue queue = new ReplicationQueue();
+        //beep = serv.submit(queue);
         //service.execute(queue);
     }
 
