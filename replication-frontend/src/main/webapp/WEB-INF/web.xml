@@ -31,7 +31,7 @@
     -->
     <servlet>
         <servlet-name>MyEntityServlet</servlet-name>
-        <servlet-class>org.chronopolis.replicate.servlet.MyEntityServlet</servlet-class>
+        <servlet-class>org.chronopolis.replicate.frontend.MyEntityServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>MyEntityServlet</servlet-name>

@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.chronopolis.replicate;
+package org.chronopolis.replicate.context;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -10,6 +10,7 @@ import java.util.concurrent.Future;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import org.apache.log4j.Logger;
+import org.chronopolis.replicate.ReplicationQueue;
 
 /**
  *
@@ -24,9 +25,9 @@ public class ReplicationContextListener implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         log.info("Starting up Replication context");
-        //ReplicationQueue queue = new ReplicationQueue();
-        //beep = serv.submit(queue);
-        //service.execute(queue);
+        ReplicationQueue queue = new ReplicationQueue();
+        beep = serv.submit(queue);
+        serv.execute(queue);
     }
 
     @Override

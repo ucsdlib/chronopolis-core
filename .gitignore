@@ -12,3 +12,4 @@
 /amqp-test/target/
 /duracloud-rest/target/
 /replication-shell/target/
+/replication-frontend/target/

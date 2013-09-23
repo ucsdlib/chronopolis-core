@@ -172,7 +172,7 @@
 
     <modules>
         <module>chron-messaging</module>
-        <module>chron-repl</module>
+        <module>replication-frontend</module>
         <module>chron-amqp-core</module>
         <module>chron-bagit</module>
         <!--<module>chron-notifier</module>-->
@@ -180,7 +180,7 @@
         <module>chron-intake-shell</module>
         <module>chron-ingest-shell</module>
         <module>chron-logger</module>
-    <module>duracloud-rest</module>
-    <module>replication-shell</module>
+        <module>duracloud-rest</module>
+        <module>replication-shell</module>
   </modules>
 </project>
