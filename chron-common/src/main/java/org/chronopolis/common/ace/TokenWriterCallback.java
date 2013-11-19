@@ -31,14 +31,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * TODO: I noticed when testing that not all of the manifest files were correct,
+ *       so we should check the validity of the AceTokenWriter
  * 
  *
  * @author shake
  */
 public class TokenWriterCallback implements RequestBatchCallback, Callable<Path>{
     private final Logger log = LoggerFactory.getLogger(TokenWriterCallback.class);
-    // Because I have a ghetto spin lock, we need this to be volatile so that all
-    // changes are seen
+    // I don't think this needs to be volatile anymore since we use a future
     private volatile HashMap<String, AceToken> tokenMap;
     private LinkedBlockingQueue<TokenResponse> tokenCallbacks;
     private String collectionName;
@@ -72,7 +73,6 @@ public class TokenWriterCallback implements RequestBatchCallback, Callable<Path>
             log.debug("Polling for token response");
             while ((response = tokenCallbacks.poll(30, TimeUnit.SECONDS)) != null) {
                 AceToken token = buildFromResponse(response);
-                System.out.println(token.getRound());
                 writer.startToken(token);
                 writer.addIdentifier(collectionName);
                 writer.writeTokenEntry();
@@ -113,6 +113,8 @@ public class TokenWriterCallback implements RequestBatchCallback, Callable<Path>
             }
         }
     }
+
+    // TODO: Properly handle these exceptions
     
     @Override
     public void exceptionThrown(List<TokenRequest> list, Throwable thrwbl) {

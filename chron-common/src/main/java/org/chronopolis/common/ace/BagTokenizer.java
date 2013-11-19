@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
  */
 public class BagTokenizer {
     private final Logger log = LoggerFactory.getLogger(BagTokenizer.class);
-    private final ExecutorService manifestRunner = Executors.newCachedThreadPool();
+    private final ExecutorService manifestService = Executors.newCachedThreadPool();
     private final Path bag;
     private TokenWriterCallback callback = null;
     private TokenRequestBatch batch = null;
@@ -35,10 +35,28 @@ public class BagTokenizer {
         this.bag = bag;
         callback = new TokenWriterCallback(this.bag.getFileName().toString());
     }
-    // Maybe we should push this into something else as well
-    // Since it doesn't have to do much with validation, only runs after
 
-    public Path getAceManifest(Path stage) throws InterruptedException,
+    /**
+     * Create an ACE Token Manifest, validating that files are correct as we go
+     * along
+     * 
+     * @return The path to the token manifest
+     */
+    public Path getAceManifestWithValidation() {
+        return null;
+    }
+
+    /**
+     * Create an ACE Token Manifest from the manifest-alg.txt and tagmanifest-alg.txt
+     * files.
+     * 
+     * @param stage The token stage
+     * @return The path to the token manifest
+     * @throws InterruptedException
+     * @throws IOException
+     * @throws ExecutionException 
+     */
+    public Path getAceManifestWithoutValidation(Path stage) throws InterruptedException,
             IOException,
             ExecutionException {
         // temp while I figure out what to do
@@ -55,7 +73,7 @@ public class BagTokenizer {
 
         createIMSConnection();
         callback.setStage(stage);
-        Future<Path> manifestPath = manifestRunner.submit(callback);
+        Future<Path> manifestPath = manifestService.submit(callback);
 
         log.info("Have {} entries", validDigests.entrySet().size());
         for (Map.Entry<Path, String> entry : validDigests.entrySet()) {
