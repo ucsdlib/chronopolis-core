@@ -13,11 +13,10 @@ import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.bagit.Bag;
 import org.chronopolis.bagit.ManifestProcessor;
 import org.chronopolis.bagit.ManifestProcessor.ManifestError;
-import org.chronopolis.messaging.base.ChronMessage2;
+import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
-import org.chronopolis.common.transfer.FileTransfer;
 import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.slf4j.Logger;
@@ -48,7 +47,7 @@ public class PackageReadyProcessor implements ChronProcessor {
      * 
      */
     @Override
-    public void process(ChronMessage2 chronMessage) {
+    public void process(ChronMessage chronMessage) {
         System.out.println("Processing " + chronMessage.getType().toString());
         if ( !(chronMessage instanceof PackageReadyMessage)) {
             // Error out

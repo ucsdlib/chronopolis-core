@@ -5,7 +5,7 @@
 package org.chronopolis.intake.processor;
 
 import org.chronopolis.amqp.ChronProducer;
-import org.chronopolis.messaging.base.ChronMessage2;
+import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.pkg.PackageIngestStatusResponseMessage;
 
@@ -22,7 +22,7 @@ public class PackageIngestStatusResponseProcessor implements ChronProcessor {
     }
 
     @Override
-    public void process(ChronMessage2 chronMessage) {
+    public void process(ChronMessage chronMessage) {
         if ( !(chronMessage instanceof PackageIngestStatusResponseMessage)) {
             // Error out
         }

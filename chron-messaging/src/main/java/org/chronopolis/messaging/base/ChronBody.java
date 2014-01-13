@@ -14,6 +14,7 @@ import org.chronopolis.messaging.MessageType;
  * send the contents in the AMQP message.
  * @author shake
  */
+
 public class ChronBody implements Serializable {
     // The body is just a map of keys to values
     // We may want to change it to <String, Object> because we will send back a 

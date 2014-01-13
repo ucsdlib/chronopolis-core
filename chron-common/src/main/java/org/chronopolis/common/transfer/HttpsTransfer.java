@@ -17,13 +17,12 @@ import org.slf4j.LoggerFactory;
 
 /**
  * TODO: Stop requests that are sent w/ http
- *       Move other code over and what not
- *
- * Still considering making this a class w/ static methods
+ * TODO: Common interface for different transfer types? 
+ *       
  *
  * @author shake
  */
-public class HttpsTransfer extends FileTransfer {
+public class HttpsTransfer {
     private final Logger log = LoggerFactory.getLogger(HttpsTransfer.class);
     /**
      *
@@ -41,24 +40,6 @@ public class HttpsTransfer extends FileTransfer {
         FileOutputStream fos = new FileOutputStream(output.toString());
         FileChannel fc = fos.getChannel();
         fc.transferFrom(rbc, 0, Long.MAX_VALUE);
-        
-        /*
-         * // We may want to use the Files creation methods. will test performance later
-         * OutputStream fos = Files.newOutputStream(output, CREATE);
-         * 
-         * // Also some digest stuff
-         * ByteBuffer buf = ByteBuffer.allocate(blockSize);
-         * 
-         * // Write file and update digest
-         * while ( rbc.read(buf) > 0 ) {
-         * // Do we want to throw an exception if write < 0?
-         * byte[] out = buf.array();
-         * int write = fc.write(buf);
-         * md.update(out);
-         * // buf.clear(); // I believe read takes care of this, will test later
-         * }
-         * fc.close();
-         */
         
         return output;
     }

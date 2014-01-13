@@ -6,13 +6,13 @@ package org.chronopolis.messaging.collection;
 
 import org.chronopolis.messaging.MessageType;
 import org.chronopolis.messaging.base.ChronBody;
-import org.chronopolis.messaging.base.ChronMessage2;
+import org.chronopolis.messaging.base.ChronMessage;
 
 /**
  *
  * @author shake
  */
-public class CollectionInitCompleteMessage extends ChronMessage2 {
+public class CollectionInitCompleteMessage extends ChronMessage {
 
     public CollectionInitCompleteMessage() {
         super(MessageType.COLLECTION_INIT_COMPLETE);

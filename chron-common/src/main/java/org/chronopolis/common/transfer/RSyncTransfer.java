@@ -8,10 +8,12 @@ import java.io.IOException;
 import org.chronopolis.common.exception.RSyncException;
 
 /**
+ * TODO: If the rsync cannot connect it will simply hang. 
+ *       We need some sort of prevention against that.
  *
  * @author shake
  */
-public class RSyncTransfer extends FileTransfer {
+public class RSyncTransfer {
 
     public int getFile(String user, String host, String remote, String local) throws IOException, InterruptedException {
         // Taken from http://stackoverflow.com/questions/1246255/any-good-rsync-library-for-java

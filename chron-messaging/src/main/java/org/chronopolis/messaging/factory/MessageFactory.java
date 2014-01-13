@@ -7,7 +7,7 @@ package org.chronopolis.messaging.factory;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
-import org.chronopolis.messaging.base.ChronMessage2;
+import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.file.FileQueryMessage;
@@ -27,7 +27,7 @@ public class MessageFactory {
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat(
             "yyyy-MM-dd'T'HH:mm:ssz");
     
-    private static void setHeaders(ChronMessage2 msg) {
+    private static void setHeaders(ChronMessage msg) {
         msg.setDate(dateFormat.format(new Date()));
         msg.setReturnKey("key.umiacs");
         msg.setOrigin("umiacs");

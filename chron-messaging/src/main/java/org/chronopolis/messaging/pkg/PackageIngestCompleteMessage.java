@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.chronopolis.messaging.MessageType;
 import org.chronopolis.messaging.base.ChronBody;
-import org.chronopolis.messaging.base.ChronMessage2;
+import org.chronopolis.messaging.base.ChronMessage;
 
 import static org.chronopolis.messaging.MessageConstant.PACKAGE_NAME;
 import static org.chronopolis.messaging.MessageConstant.FAILED_ITEMS;
@@ -17,7 +17,7 @@ import static org.chronopolis.messaging.MessageConstant.STATUS;
  *
  * @author shake
  */
-public class PackageIngestCompleteMessage extends ChronMessage2 {
+public class PackageIngestCompleteMessage extends ChronMessage {
 
     public PackageIngestCompleteMessage() {
         super(MessageType.PACKAGE_INGEST_COMPLETE);

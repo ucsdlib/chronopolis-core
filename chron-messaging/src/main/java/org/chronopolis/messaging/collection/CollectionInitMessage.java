@@ -6,7 +6,7 @@ package org.chronopolis.messaging.collection;
 
 import java.util.Map;
 import org.chronopolis.messaging.base.ChronBody;
-import org.chronopolis.messaging.base.ChronMessage2;
+import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.MessageType;
 
 import static org.chronopolis.messaging.MessageConstant.DEPOSITOR;
@@ -24,7 +24,7 @@ import static org.chronopolis.messaging.MessageConstant.AUDIT_PERIOD;
  * 
  * @author shake
  */
-public class CollectionInitMessage extends ChronMessage2 {
+public class CollectionInitMessage extends ChronMessage {
     public CollectionInitMessage() {
         super(MessageType.COLLECTION_INIT);
         this.body = new ChronBody(type);

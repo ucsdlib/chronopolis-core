@@ -5,7 +5,7 @@
 package org.chronopolis.intake.processor;
 
 import org.chronopolis.amqp.ChronProducer;
-import org.chronopolis.messaging.base.ChronMessage2;
+import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.pkg.PackageIngestCompleteMessage;
 import org.slf4j.Logger;
@@ -27,7 +27,7 @@ public class PackageIngestCompleteProcessor implements ChronProcessor {
     }
 
     @Override
-    public void process(ChronMessage2 chronMessage) {
+    public void process(ChronMessage chronMessage) {
         if ( !(chronMessage instanceof PackageIngestCompleteMessage) ) {
 
         }

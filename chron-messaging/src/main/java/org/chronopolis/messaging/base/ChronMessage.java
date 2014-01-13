@@ -1,17 +1,13 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.chronopolis.messaging.base;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import org.chronopolis.messaging.MessageType;
+import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.file.FileQueryMessage;
 import org.chronopolis.messaging.file.FileQueryResponseMessage;
@@ -24,23 +20,16 @@ import static org.chronopolis.messaging.MessageConstant.CORRELATION_ID;
 import static org.chronopolis.messaging.MessageConstant.ORIGIN;
 import static org.chronopolis.messaging.MessageConstant.DATE;
 import static org.chronopolis.messaging.MessageConstant.RETURN_KEY;
-import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 
 /**
- * I got confused with some of the other classes so I made this package to
- * do testing in. This class represents what a message consists of -- the Type
+ * This class represents what a message consists of -- the Type
  * for enforcing the correct args, the header, and the body.
+ * 
+ * TODO: Header sets in this class too
+ * 
  * @author shake
  */
-/*
- * TODO: Make MessageType static in each type of message
- * TODO: Create class prototypes here
- * TODO: Header sets in this class too
- * TODO: Do we need to encapsulate the Header? Why not just have the vals in this class?
- *       What was I even thinking?
- */
-public class ChronMessage2 {
-    // protected ChronHeader header;
+public class ChronMessage {
     protected ChronBody body;
     protected final MessageType type;
 
@@ -50,7 +39,7 @@ public class ChronMessage2 {
     private String correlationId;
     private String date;
 
-    public ChronMessage2(MessageType type) {
+    public ChronMessage(MessageType type) {
         this.type = type;
     }
     
@@ -101,7 +90,7 @@ public class ChronMessage2 {
     }
 
     // Helper for returning the type of message we want
-    public static ChronMessage2 getMessage(MessageType type) {
+    public static ChronMessage getMessage(MessageType type) {
         switch (type) {
             case FILE_QUERY:
                 return new FileQueryMessage(); 

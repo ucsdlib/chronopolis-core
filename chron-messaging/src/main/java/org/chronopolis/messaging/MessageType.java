@@ -51,18 +51,8 @@ public enum MessageType {
             "package-name", "depositor"), 
     PACKAGE_INGEST_STATUS_RESPONSE(MessageState.RESPONSE, ProcessType.INGEST, "response", Indicator.ACK,
             "status", "completion-percent"), 
-
-    // Deprecated Messages
-    @Deprecated
-    DISTRIBUTE_INIT_ACK(MessageState.RESPONSE, ProcessType.DISTRIBUTE, "ack", Indicator.ACK),
-    @Deprecated
-    DISTRIBUTE_TRANSFER_REQUEST(MessageState.ORIGIN, ProcessType.DISTRIBUTE, "transfer", Indicator.QUERY,
-            "depositor", "filename", "digest-type", "digest", "location"),
-    @Deprecated
-    DISTRIBUTE_TRANSFER_ACK(MessageState.ORIGIN, ProcessType.DISTRIBUTE, "complete", Indicator.ACK),
-    @Deprecated
-    DISTRIBUTE_TRANSFER_NAK(MessageState.ORIGIN, ProcessType.DISTRIBUTE, "complete", Indicator.NAK),
     ;
+
     private MessageState state;
     private ProcessType process;
     private String stage;
@@ -91,14 +81,6 @@ public enum MessageType {
                 return INGEST_AVAIL_NAK;
             case "o-distribute-coll-init":
                 return COLLECTION_INIT;
-            case "r-distribute-init-ack":
-                return DISTRIBUTE_INIT_ACK;
-            case "o-distribute-transfer-request":
-                return DISTRIBUTE_TRANSFER_REQUEST;
-            case "r-distribute-transfer-ack":
-                return DISTRIBUTE_TRANSFER_ACK;
-            case "r-distribute-transfer-nak":
-                return DISTRIBUTE_TRANSFER_NAK;
             default:
                 throw new IllegalArgumentException("unknown message name: " + message);
                 

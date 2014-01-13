@@ -6,7 +6,7 @@ package org.chronopolis.amqp;
 
 import java.io.IOException;
 import java.util.Map;
-import org.chronopolis.messaging.base.ChronMessage2;
+import org.chronopolis.messaging.base.ChronMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
@@ -30,7 +30,7 @@ public class TopicProducer implements ChronProducer {
     }
 
     @Override
-    public void send(ChronMessage2 message, String routingKey) {
+    public void send(ChronMessage message, String routingKey) {
         boolean done = false;
         int numTries = 0;
         log.debug("Preparing message {}",  message.toString());

@@ -5,13 +5,13 @@
 package org.chronopolis.messaging.pkg;
 
 import org.chronopolis.messaging.MessageType;
-import org.chronopolis.messaging.base.ChronMessage2;
+import org.chronopolis.messaging.base.ChronMessage;
 
 /**
  *
  * @author shake
  */
-public class PackageIngestStatusResponseMessage extends ChronMessage2 {
+public class PackageIngestStatusResponseMessage extends ChronMessage {
     public PackageIngestStatusResponseMessage() {
         super(MessageType.PACKAGE_INGEST_STATUS_RESPONSE);
     }

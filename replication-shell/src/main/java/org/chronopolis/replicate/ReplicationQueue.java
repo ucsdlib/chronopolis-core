@@ -50,7 +50,7 @@ public class ReplicationQueue implements Runnable {
         return uriBuilder.toString();
     }
     
-    public static Path getImmediateFile(String url, Path stage) throws IOException {
+    public static Path getFileImmediate(String url, Path stage) throws IOException {
         if ( url == null ) {
             System.out.println("Null url");
         } else if ( stage == null ) {

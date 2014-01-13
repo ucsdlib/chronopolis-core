@@ -4,7 +4,7 @@
  */
 package org.chronopolis.amqp;
 
-import org.chronopolis.messaging.base.ChronMessage2;
+import org.chronopolis.messaging.base.ChronMessage;
 
 /**
  *
@@ -17,6 +17,6 @@ public interface ChronProducer {
      * @param message       message to be sent
      * @param routingKey    key for the route
      */
-    public void send(ChronMessage2 message, String routingKey);
+    public void send(ChronMessage message, String routingKey);
     
 }

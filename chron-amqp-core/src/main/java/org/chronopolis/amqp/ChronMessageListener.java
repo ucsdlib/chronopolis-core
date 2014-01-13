@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import org.chronopolis.messaging.MessageType;
 import org.chronopolis.messaging.base.ChronBody;
-import org.chronopolis.messaging.base.ChronMessage2;
+import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +41,7 @@ public abstract class ChronMessageListener implements MessageListener {
     public void onMessage(Message msg) {
         MessageProperties props = msg.getMessageProperties();
         byte[] body = msg.getBody();
-        ChronMessage2 message = null;
+        ChronMessage message = null;
 
         if ( null == body ) {
             throw new IllegalArgumentException("Message body is null!");
@@ -69,7 +69,7 @@ public abstract class ChronMessageListener implements MessageListener {
             ChronBody cBody = (ChronBody) o;
             log.debug("Recieved Body of ChronMessage of type {} ", cBody.getType().toString());
 
-            message = ChronMessage2.getMessage(cBody.getType());
+            message = ChronMessage.getMessage(cBody.getType());
             System.out.println("Message Type: " + cBody.getType().toString());
             message.setBody(cBody);
             message.setHeader(props.getHeaders());

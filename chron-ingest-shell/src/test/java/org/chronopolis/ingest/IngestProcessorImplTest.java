@@ -7,7 +7,7 @@ package org.chronopolis.ingest;
 import org.chronopolis.ingest.processor.CollectionInitCompleteProcessor;
 import org.chronopolis.ingest.processor.PackageIngestStatusQueryProcessor;
 import org.chronopolis.ingest.processor.PackageReadyProcessor;
-import org.chronopolis.messaging.base.ChronMessage2;
+import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.easymock.EasyMock;
@@ -36,7 +36,7 @@ public class IngestProcessorImplTest {
     
     @Test
     public void testListener() throws Exception {
-        ChronMessage2 msg = MessageFactory.DefaultCollectionInitCompleteMessage();
+        ChronMessage msg = MessageFactory.DefaultCollectionInitCompleteMessage();
 
         ChronProcessor p = listener.getProcessor(msg.getType());
         p.process(msg);

@@ -29,7 +29,7 @@ import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.Logger;
 import org.chronopolis.amqp.ChronProducer;
-import org.chronopolis.messaging.base.ChronMessage2;
+import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
@@ -107,7 +107,7 @@ public class CollectionInitProcessor implements ChronProcessor {
     // TODO: Register token store in to ACE
     // TODO: Stuff
     @Override
-    public void process(ChronMessage2 chronMessage) {
+    public void process(ChronMessage chronMessage) {
         if(!(chronMessage instanceof CollectionInitMessage)) {
             // Error out
             System.out.println("Error");
@@ -122,7 +122,7 @@ public class CollectionInitProcessor implements ChronProcessor {
 
         try { 
             log.info("Downloading manifest " + msg.getTokenStore());
-            manifest = ReplicationQueue.getImmediateFile(msg.getTokenStore(), bagPath);
+            manifest = ReplicationQueue.getFileImmediate(msg.getTokenStore(), bagPath);
         } catch (IOException ex) {
             System.out.println("I/O Error in grabbing tokens");
             log.error("Error downloading manifest \n{}", ex);
@@ -155,6 +155,7 @@ public class CollectionInitProcessor implements ChronProcessor {
 
         try {
             // Build and POST our collection
+            // TODO: Functionize 
             JSONObject auditVals = new JSONObject();
             auditVals.put("key", "audit.tokens");
             auditVals.put("value", "true");
@@ -209,7 +210,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         
         // Because I'm bad at reading - Collection Init Complete Message
         log.info("Sending response");
-        ChronMessage2 response = MessageFactory.DefaultCollectionInitCompleteMessage();
+        ChronMessage response = MessageFactory.DefaultCollectionInitCompleteMessage();
         producer.send(response, chronMessage.getReturnKey());
     }
     

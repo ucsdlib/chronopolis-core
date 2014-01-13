@@ -5,7 +5,7 @@
 package org.chronopolis.ingest.processor;
 
 import org.chronopolis.amqp.ChronProducer;
-import org.chronopolis.messaging.base.ChronMessage2;
+import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.factory.MessageFactory;
 
@@ -22,8 +22,8 @@ public class CollectionInitCompleteProcessor implements ChronProcessor {
     }
 
     @Override
-    public void process(ChronMessage2 chronMessage) {
-        ChronMessage2 response = MessageFactory.DefaultPackageIngestCompleteMessage();
+    public void process(ChronMessage chronMessage) {
+        ChronMessage response = MessageFactory.DefaultPackageIngestCompleteMessage();
 
         // Once again, hold the routing key temporarily
         producer.send(response, "package.intake.umiacs");

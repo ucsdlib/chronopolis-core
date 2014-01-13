@@ -6,7 +6,7 @@ package org.chronopolis.messaging.pkg;
 
 import org.chronopolis.messaging.MessageType;
 import org.chronopolis.messaging.base.ChronBody;
-import org.chronopolis.messaging.base.ChronMessage2;
+import org.chronopolis.messaging.base.ChronMessage;
 
 import static org.chronopolis.messaging.MessageConstant.PACKAGE_NAME;
 import static org.chronopolis.messaging.MessageConstant.LOCATION;
@@ -18,7 +18,7 @@ import static org.chronopolis.messaging.MessageConstant.SIZE;
  *
  * @author shake
  */
-public class PackageReadyMessage extends ChronMessage2 {
+public class PackageReadyMessage extends ChronMessage {
     
     public PackageReadyMessage() {
         super(MessageType.PACKAGE_INGEST_READY);
