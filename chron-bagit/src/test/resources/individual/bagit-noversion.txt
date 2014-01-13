@@ -1,1 +1,0 @@
-Tag-File-Character-Encoding: Latin-1 

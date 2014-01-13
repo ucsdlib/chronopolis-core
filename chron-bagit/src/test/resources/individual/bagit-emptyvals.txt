@@ -1,2 +1,0 @@
-BagIt-Version:   
-Tag-File-Character-Encoding:   

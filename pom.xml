@@ -8,6 +8,19 @@
     <packaging>pom</packaging>
 
     <name>Core Chronopolis</name>
+
+    <modules>
+        <module>chron-messaging</module>
+        <module>replication-frontend</module>
+        <module>chron-amqp-core</module>
+        <module>chron-common</module>
+        <module>chron-intake-shell</module>
+        <module>chron-ingest-shell</module>
+        <module>chron-logger</module>
+        <module>replication-shell</module>
+  </modules>
+
+
     <build>
         <plugins>
             <plugin>
@@ -170,17 +183,4 @@
         </dependency>
     </dependencies>
 
-    <modules>
-        <module>chron-messaging</module>
-        <module>replication-frontend</module>
-        <module>chron-amqp-core</module>
-        <module>chron-bagit</module>
-        <!--<module>chron-notifier</module>-->
-        <module>chron-common</module>
-        <module>chron-intake-shell</module>
-        <module>chron-ingest-shell</module>
-        <module>chron-logger</module>
-        <module>duracloud-rest</module>
-        <module>replication-shell</module>
-  </modules>
 </project>
