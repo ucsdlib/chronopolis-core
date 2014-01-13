@@ -18,8 +18,12 @@ public class ReplicationProperties extends GenericProperties{
     private String acePass;
     private int acePort = 8080;
 
-    public ReplicationProperties(String nodeName, String stage, String aceFqdn, 
-                                 String acePath, String aceUser, String acePass, 
+    public ReplicationProperties(String nodeName, 
+                                 String stage, 
+                                 String aceFqdn, 
+                                 String acePath, 
+                                 String aceUser, 
+                                 String acePass, 
                                  Integer acePort) {
         super(nodeName, stage);
         this.aceFqdn = aceFqdn;
