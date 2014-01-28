@@ -19,6 +19,7 @@ import org.chronopolis.messaging.pkg.PackageReadyMessage;
 
 /**
  * TODO: Order based on length of method names heh
+ * TODO: Move to JodaTime
  *
  * @author shake
  */
@@ -44,11 +45,22 @@ public class MessageFactory {
         return msg;
     }
 
+    public CollectionInitMessage collectionInitMessage(long auditPeriod, String collection, String depositor, String tokenStore) {
+        CollectionInitMessage msg = new CollectionInitMessage();
+        msg.setAuditPeriod(auditPeriod);
+        msg.setCollection(collection);
+        msg.setDepositor(depositor);
+        msg.setTokenStore(tokenStore);
+        setHeaders(msg);
+        return msg;
+    }
+
     public static CollectionInitCompleteMessage DefaultCollectionInitCompleteMessage() {
         CollectionInitCompleteMessage msg = new CollectionInitCompleteMessage();
         setHeaders(msg);
         return msg;
     }
+
 
     public static FileQueryMessage DefaultFileQueryMessage() { 
         FileQueryMessage msg = new FileQueryMessage();

@@ -58,9 +58,14 @@
         </rabbit:bindings>
     </rabbit:topic-exchange>
 
+    <bean id="messageFactory" class="org.chronopolis.messaging.factory.MessageFactory">
+
+    </bean>
+
     <bean id="packageReadyProcessor" class="org.chronopolis.ingest.processor.PackageReadyProcessor">
         <constructor-arg ref="producer"/>
         <constructor-arg ref="properties"/>
+        <constructor-arg ref="messageFactory"/>
     </bean>
     <bean id="packageStatusProcessor" class="org.chronopolis.ingest.processor.PackageIngestStatusQueryProcessor">
         <constructor-arg ref="producer"/> 
