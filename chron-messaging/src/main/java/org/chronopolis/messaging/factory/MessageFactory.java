@@ -39,7 +39,7 @@ public class MessageFactory {
         msg.setAuditPeriod(90);
         msg.setCollection("default-collection");
         msg.setDepositor("default-depositor");
-        msg.setTokenStore("https://default/tokenstore");
+        msg.setTokenStore("https://localhost/tokenstore");
         setHeaders(msg);
         return msg;
     }
@@ -67,10 +67,27 @@ public class MessageFactory {
         msg.setDepositor("default-depositor");
         msg.setLocation("default-location");
         msg.setPackageName("default-package-name");
+        msg.setFixityAlgorithm("sha-256");
         msg.setSize(1024);
         setHeaders(msg);
         return msg;
-    } 
+    }
+
+    public PackageReadyMessage packageReadyMessage(String depositor,
+                                                   String fixityAlg,
+                                                   String location,
+                                                   String packageName,
+                                                   long size) {
+        PackageReadyMessage msg = new PackageReadyMessage();
+        msg.setDepositor(depositor);
+        msg.setFixityAlgorithm(fixityAlg);
+        msg.setLocation(location);
+        msg.setPackageName(packageName);
+        msg.setSize(size);
+        setHeaders(msg);
+        return msg;
+    }
+
 
     public static PackageIngestCompleteMessage DefaultPackageIngestCompleteMessage() {
         PackageIngestCompleteMessage msg = new PackageIngestCompleteMessage();

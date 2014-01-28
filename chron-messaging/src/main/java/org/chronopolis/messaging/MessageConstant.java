@@ -5,15 +5,16 @@
 package org.chronopolis.messaging;
 
 /**
+ * TODO: Organize alphabetically
  *
  * @author shake
  */
 public enum MessageConstant {
     // Headers
-    ORIGIN("origin"),
-    RETURN_KEY("returnKey"),
     CORRELATION_ID("correlationId"),
     DATE("date"),
+    ORIGIN("origin"),
+    RETURN_KEY("returnKey"),
 
     // Message vals
     DEPOSITOR("depositor"),
@@ -29,6 +30,12 @@ public enum MessageConstant {
     SIZE("size"),
     STATUS("status"),
     FAILED_ITEMS("failed-items"),
+    FIXITY_ALGORITHM("fixity-algorithm"),
+
+    // Supported Algorithms (should we move to their own enum?)
+    // can retrieve message digest -> enum.digestName() -> SHA-256
+    // and retrieve manifest name  -> enum.manifestName() -> sha256
+    SHA_256("sha256"),
 
     // Misc 
     STATUS_SUCCESS("success"),

@@ -14,3 +14,7 @@
 /replication-shell/target/
 /replication-frontend/target/
 /jpatest/nbproject/private/
+
+## Intellij stuff
+/.idea/
+*.iml

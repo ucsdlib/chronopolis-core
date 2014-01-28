@@ -8,13 +8,11 @@ import org.chronopolis.messaging.MessageType;
 import org.chronopolis.messaging.base.ChronBody;
 import org.chronopolis.messaging.base.ChronMessage;
 
-import static org.chronopolis.messaging.MessageConstant.PACKAGE_NAME;
-import static org.chronopolis.messaging.MessageConstant.LOCATION;
-import static org.chronopolis.messaging.MessageConstant.DEPOSITOR;
-import static org.chronopolis.messaging.MessageConstant.SIZE;
+import static org.chronopolis.messaging.MessageConstant.*;
 
 /**
- * Relay the state of the collection
+ * Message for packages which are ready to be ingested into
+ * Chronopolis
  *
  * @author shake
  */
@@ -56,6 +54,14 @@ public class PackageReadyMessage extends ChronMessage {
     public long getSize() {
         return (long)body.get(SIZE.toString());
     }
+
+    public String getFixityAlgorithm() {
+        return (String)body.get(FIXITY_ALGORITHM.toString());
+    }
+
+    public void setFixityAlgorithm(String algorithm) {
+        body.addContent(FIXITY_ALGORITHM.toString(), algorithm);
+    }
     
     @Override
     public String toString() {
@@ -68,6 +74,8 @@ public class PackageReadyMessage extends ChronMessage {
         sb.append(getLocation());
         sb.append(", size : ");
         sb.append(getSize());
+        sb.append(", fixity : ");
+        sb.append(getFixityAlgorithm());
         return sb.toString();
     }
     
