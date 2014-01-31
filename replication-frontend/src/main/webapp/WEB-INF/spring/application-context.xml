@@ -22,6 +22,9 @@
         <constructor-arg value="chron"/>
         <constructor-arg value="/tmp/bags/"/>
         <constructor-arg value="localhost"/>
+        <constructor-arg value="exchange"/>
+        <constructor-arg value="inbound"/>
+        <constructor-arg value="broadcast"/>
         <constructor-arg value="ace-am"/>
         <constructor-arg value="admin"/>
         <constructor-arg value="admin"/>

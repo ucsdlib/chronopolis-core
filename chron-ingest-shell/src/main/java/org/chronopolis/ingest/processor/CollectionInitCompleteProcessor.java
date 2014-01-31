@@ -16,14 +16,16 @@ import org.chronopolis.messaging.factory.MessageFactory;
 public class CollectionInitCompleteProcessor implements ChronProcessor {
 
     private ChronProducer producer;
+    private MessageFactory messageFactory;
 
-    public CollectionInitCompleteProcessor(ChronProducer producer) {
+    public CollectionInitCompleteProcessor(ChronProducer producer, MessageFactory messageFactory) {
         this.producer = producer;
+        this.messageFactory = messageFactory;
     }
 
     @Override
     public void process(ChronMessage chronMessage) {
-        ChronMessage response = MessageFactory.DefaultPackageIngestCompleteMessage();
+        ChronMessage response = messageFactory.DefaultPackageIngestCompleteMessage();
 
         // Once again, hold the routing key temporarily
         producer.send(response, "package.intake.umiacs");

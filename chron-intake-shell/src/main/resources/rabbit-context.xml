@@ -18,7 +18,14 @@
 	<bean id="properties" class="org.chronopolis.common.properties.GenericProperties">
 		<constructor-arg value="${nodeName}"/>
 		<constructor-arg value="${stage}"/>
+        <constructor-arg value="${exchange}"/>
+        <constructor-arg value="${inboundKey}"/>
+        <constructor-arg value="${broadcastKey}"/>
 	</bean>
+
+    <bean id="factory" class="org.chronopolis.messaging.factory.MessageFactory">
+        <constructor-arg ref="properties"/>
+    </bean>
 
     <bean id="rabbitConnectionFactory" class="com.rabbitmq.client.ConnectionFactory">
         <property name="requestedHeartbeat" value="60"/>

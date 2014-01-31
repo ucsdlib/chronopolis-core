@@ -32,7 +32,9 @@ public class PackageReadyProcessor implements ChronProcessor {
     private MessageFactory messageFactory;
 
 
-    public PackageReadyProcessor(ChronProducer producer, IngestProperties props, MessageFactory messageFactory) {
+    public PackageReadyProcessor(ChronProducer producer,
+                                 IngestProperties props,
+                                 MessageFactory messageFactory) {
         this.producer = producer;
         this.props = props;
         this.messageFactory = messageFactory;
@@ -49,6 +51,7 @@ public class PackageReadyProcessor implements ChronProcessor {
     @Override
     public void process(ChronMessage chronMessage) {
         System.out.println("Processing " + chronMessage.getType().toString());
+        boolean success = true;
         if ( !(chronMessage instanceof PackageReadyMessage)) {
             // Error out
             log.error("Invalid message type");
@@ -63,8 +66,9 @@ public class PackageReadyProcessor implements ChronProcessor {
         String fixityAlg = msg.getFixityAlgorithm();
         String depositor = msg.getDepositor();
         Path toBag = Paths.get(props.getStage(), location);
+        Path tokenStage = Paths.get(props.getTokenStage());
 
-        tokenizer = new BagTokenizer(toBag, fixityAlg);
+        tokenizer = new BagTokenizer(toBag, tokenStage, fixityAlg);
         Path manifest = null;
 
         try {
@@ -75,20 +79,19 @@ public class PackageReadyProcessor implements ChronProcessor {
 
 
         // Should end up being the location for a download
-        // String tokenStore = "https://chron-monitor.umiacs.umd.edu/tokenStore001";
-
-        // Send message
         StringBuilder tokenStore = new StringBuilder("http://localhost/tokens/");
         tokenStore.append(manifest.getFileName().toString());
-        CollectionInitMessage response = messageFactory.collectionInitMessage(120,
-                packageName,
-                depositor,
-                manifest.toString());
 
-        // Hold the routing key here temporarily
-        // Will be from the properties soon
-        response.setReturnKey("collection.ingest.umiacs");
-        producer.send(response, "collection.init.broadcast");
+        if ( success ) {
+            // Send message
+            CollectionInitMessage response = messageFactory.collectionInitMessage(120,
+                    packageName,
+                    depositor,
+                    tokenStore.toString());
+
+            // Hold the routing key here temporarily
+            producer.send(response, "collection.init.broadcast");
+        }
     }
 
 }

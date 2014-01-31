@@ -12,10 +12,16 @@ package org.chronopolis.common.properties;
 public class GenericProperties {
 	private String nodeName;
 	private String stage;
-	
-	public GenericProperties(String nodeName, String stage) {
+    private String exchange;
+    private String inboundKey;
+    private String broadcastKey;
+
+	public GenericProperties(String nodeName, String stage, String exchange, String inboundKey, String broadcastKey) {
 		this.nodeName = nodeName;
 		this.stage = stage;
+        this.setExchange(exchange);
+        this.setInboundKey(inboundKey);
+        this.setBroadcastKey(broadcastKey);
 	}
 
 	/**
@@ -45,4 +51,28 @@ public class GenericProperties {
 	public void setStage(String stage) {
 		this.stage = stage;
 	}
-} 
+
+    public String getExchange() {
+        return exchange;
+    }
+
+    public void setExchange(String exchange) {
+        this.exchange = exchange;
+    }
+
+    public String getInboundKey() {
+        return inboundKey;
+    }
+
+    public void setInboundKey(String inboundKey) {
+        this.inboundKey = inboundKey;
+    }
+
+    public String getBroadcastKey() {
+        return broadcastKey;
+    }
+
+    public void setBroadcastKey(String broadcastKey) {
+        this.broadcastKey = broadcastKey;
+    }
+}

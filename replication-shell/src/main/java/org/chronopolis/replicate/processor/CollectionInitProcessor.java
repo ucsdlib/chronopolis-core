@@ -48,10 +48,14 @@ public class CollectionInitProcessor implements ChronProcessor {
     private static final Logger log = Logger.getLogger(CollectionInitProcessor.class);
 
     private ChronProducer producer;
-    private ReplicationProperties props; 
+    private MessageFactory messageFactory;
+    private ReplicationProperties props;
 
-    public CollectionInitProcessor(ChronProducer producer, ReplicationProperties props) {
+    public CollectionInitProcessor(ChronProducer producer,
+                                   MessageFactory messageFactory,
+                                   ReplicationProperties props) {
         this.producer = producer;
+        this.messageFactory = messageFactory;
         this.props = props;
     }
 
@@ -210,7 +214,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         
         // Because I'm bad at reading - Collection Init Complete Message
         log.info("Sending response");
-        ChronMessage response = MessageFactory.DefaultCollectionInitCompleteMessage();
+        ChronMessage response = messageFactory.DefaultCollectionInitCompleteMessage();
         producer.send(response, chronMessage.getReturnKey());
     }
     

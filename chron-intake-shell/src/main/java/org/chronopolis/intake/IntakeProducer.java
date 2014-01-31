@@ -12,6 +12,7 @@ import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
+import org.springframework.amqp.core.Message;
 import org.springframework.context.support.GenericXmlApplicationContext;
 
 /**
@@ -23,9 +24,11 @@ public class IntakeProducer {
     
     private ChronProducer producer;
     private GenericProperties props;
+    private MessageFactory messageFactory;
     
-    public IntakeProducer(ChronProducer producer) {
+    public IntakeProducer(ChronProducer producer, MessageFactory messageFactory) {
         this.producer = producer;
+        this.messageFactory = messageFactory;
     }
     
     private enum PRODUCER_OPTION {
@@ -49,7 +52,7 @@ public class IntakeProducer {
             PRODUCER_OPTION option = inputOption();
             
             if ( option.equals(PRODUCER_OPTION.SEND_INTAKE_REQUEST)) {
-                PackageReadyMessage msg = MessageFactory.DefaultPackageReadyMessage();
+                PackageReadyMessage msg = messageFactory.DefaultPackageReadyMessage();
                 String location = "acadis_database_02-02-2013";
                 msg.setLocation(location);
                 msg.setPackageName(location);
@@ -102,9 +105,10 @@ public class IntakeProducer {
                 "classpath:/rabbit-context.xml");
         
         ChronProducer p = (ChronProducer) text.getBean("producer");
+        MessageFactory factory = (MessageFactory) text.getBean("messageFactory");
         
         
-        IntakeProducer producer = new IntakeProducer(p);
+        IntakeProducer producer = new IntakeProducer(p, factory);
         producer.run();
         
         System.out.println("Shutting down, shutting shutting down");

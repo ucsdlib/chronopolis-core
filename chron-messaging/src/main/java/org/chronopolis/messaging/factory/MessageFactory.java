@@ -7,6 +7,8 @@ package org.chronopolis.messaging.factory;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
+
+import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
@@ -18,8 +20,9 @@ import org.chronopolis.messaging.pkg.PackageIngestStatusResponseMessage;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
 
 /**
- * TODO: Order based on length of method names heh
+ * TODO: Order based on length of method names
  * TODO: Move to JodaTime
+ * TODO: Remove default methods
  *
  * @author shake
  */
@@ -27,15 +30,28 @@ public class MessageFactory {
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat(
             "yyyy-MM-dd'T'HH:mm:ssz");
-    
-    private static void setHeaders(ChronMessage msg) {
+    private final GenericProperties properties;
+
+    public MessageFactory(GenericProperties properties) {
+        this.properties = properties;
+    }
+
+    // TODO: delete this method
+    private void setHeaders(ChronMessage msg) {
         msg.setDate(dateFormat.format(new Date()));
-        msg.setReturnKey("key.umiacs");
-        msg.setOrigin("umiacs");
+        msg.setReturnKey(properties.getInboundKey());
+        msg.setOrigin(properties.getNodeName());
         msg.setCorrelationId(UUID.randomUUID().toString());
     }
 
-    public static CollectionInitMessage DefaultCollectionInitMessage() {
+    private void setHeaders(ChronMessage msg, String correlationId) {
+        msg.setDate(dateFormat.format(new Date()));
+        msg.setReturnKey(properties.getInboundKey());
+        msg.setOrigin(properties.getNodeName());
+        msg.setCorrelationId(correlationId);
+    }
+
+    public CollectionInitMessage DefaultCollectionInitMessage() {
         CollectionInitMessage msg = new CollectionInitMessage();
         msg.setAuditPeriod(90);
         msg.setCollection("default-collection");
@@ -55,26 +71,26 @@ public class MessageFactory {
         return msg;
     }
 
-    public static CollectionInitCompleteMessage DefaultCollectionInitCompleteMessage() {
+    public CollectionInitCompleteMessage DefaultCollectionInitCompleteMessage() {
         CollectionInitCompleteMessage msg = new CollectionInitCompleteMessage();
         setHeaders(msg);
         return msg;
     }
 
 
-    public static FileQueryMessage DefaultFileQueryMessage() { 
+    public FileQueryMessage DefaultFileQueryMessage() {
         FileQueryMessage msg = new FileQueryMessage();
         setHeaders(msg);
         return msg;
     } 
 
-    public static FileQueryResponseMessage DefaultFileQueryResponseMessage() {
+    public FileQueryResponseMessage DefaultFileQueryResponseMessage() {
         FileQueryResponseMessage msg = new FileQueryResponseMessage();  
         setHeaders(msg);
         return msg;
     }
 
-    public static PackageReadyMessage DefaultPackageReadyMessage() {
+    public PackageReadyMessage DefaultPackageReadyMessage() {
         PackageReadyMessage msg = new PackageReadyMessage();
         msg.setDepositor("default-depositor");
         msg.setLocation("default-location");
@@ -101,19 +117,19 @@ public class MessageFactory {
     }
 
 
-    public static PackageIngestCompleteMessage DefaultPackageIngestCompleteMessage() {
+    public PackageIngestCompleteMessage DefaultPackageIngestCompleteMessage() {
         PackageIngestCompleteMessage msg = new PackageIngestCompleteMessage();
         setHeaders(msg);
         return msg;
     }
 
-    public static PackageIngestStatusQueryMessage DefaultPackageIngestStatusQueryMessage() {
+    public PackageIngestStatusQueryMessage DefaultPackageIngestStatusQueryMessage() {
         PackageIngestStatusQueryMessage msg = new PackageIngestStatusQueryMessage();
         setHeaders(msg);
         return msg;
     }
 
-    public static PackageIngestStatusResponseMessage DefaultPackageIngestStatusResponseMessage() {
+    public PackageIngestStatusResponseMessage DefaultPackageIngestStatusResponseMessage() {
         PackageIngestStatusResponseMessage msg = new PackageIngestStatusResponseMessage();  
         setHeaders(msg);
         return msg;

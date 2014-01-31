@@ -37,14 +37,16 @@ public class BagTokenizer {
     private final Logger log = LoggerFactory.getLogger(BagTokenizer.class);
     private final ExecutorService manifestService = Executors.newCachedThreadPool();
     private final Path bag;
+    private final Path tokenStage;
     private final String fixityAlgorithm;
     private final Set<Path> manifests;
     private TokenWriterCallback callback = null;
     private TokenRequestBatch batch = null;
 
 
-    public BagTokenizer(Path bag, String fixityAlgorithm) {
+    public BagTokenizer(Path bag, Path tokenStage, String fixityAlgorithm) {
         this.bag = bag;
+        this.tokenStage = tokenStage;
         this.fixityAlgorithm = fixityAlgorithm;
         this.manifests = new HashSet<>();
         this.callback = new TokenWriterCallback(this.bag.getFileName().toString());
@@ -117,7 +119,7 @@ public class BagTokenizer {
 
         // Token creation
         createIMSConnection();
-        callback.setStage(Paths.get("/tmp")); // TODO: Token stage
+        callback.setStage(tokenStage); // TODO: Token stage
         Future<Path> manifest = manifestService.submit(callback);
         for ( Map.Entry<Path, String> entry : digests.entrySet()) {
             TokenRequest req = new TokenRequest();

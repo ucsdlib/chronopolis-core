@@ -4,6 +4,7 @@
  */
 package org.chronopolis.ingest;
 
+import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.ingest.processor.CollectionInitCompleteProcessor;
 import org.chronopolis.ingest.processor.PackageIngestStatusQueryProcessor;
 import org.chronopolis.ingest.processor.PackageReadyProcessor;
@@ -21,6 +22,8 @@ import org.junit.Test;
 public class IngestProcessorImplTest {
 
     private IngestMessageListener listener;
+    private GenericProperties properties;
+    private MessageFactory messageFactory;
     private CollectionInitCompleteProcessor cicProcessor; 
     private PackageIngestStatusQueryProcessor pisqProcessor; 
     private PackageReadyProcessor prProcessor; 
@@ -32,11 +35,13 @@ public class IngestProcessorImplTest {
         cicProcessor = EasyMock.createMock(CollectionInitCompleteProcessor.class);
 
         listener = new IngestMessageListener(pisqProcessor, prProcessor, cicProcessor);
+        properties = new GenericProperties("node", "stage", "exchange", "inbound", "broadcast");
+        messageFactory = new MessageFactory(properties);
     }
     
     @Test
     public void testListener() throws Exception {
-        ChronMessage msg = MessageFactory.DefaultCollectionInitCompleteMessage();
+        ChronMessage msg = messageFactory.DefaultCollectionInitCompleteMessage();
 
         ChronProcessor p = listener.getProcessor(msg.getType());
         p.process(msg);

@@ -21,8 +21,14 @@ public class IngestProperties extends GenericProperties{
 	 * @param tokenStage
 	 * @param imsHostName
 	 */
-	public IngestProperties(String nodeName, String bagStage, String tokenStage, String imsHostName) {
-		super(nodeName, bagStage);
+	public IngestProperties(String nodeName,
+                            String bagStage,
+                            String exchange,
+                            String inboundKey,
+                            String broadcastKey,
+                            String tokenStage,
+                            String imsHostName) {
+		super(nodeName, bagStage, exchange, inboundKey, broadcastKey);
 		this.tokenStage = tokenStage;
 		this.imsHostName = imsHostName;
 	}
@@ -56,7 +62,7 @@ public class IngestProperties extends GenericProperties{
 	}
 
 	private String getErrorMessage() {
-		return "Somein's wrong with yo properties";
+		return "Error in ingest.properties";
 	}
 	 
 }
