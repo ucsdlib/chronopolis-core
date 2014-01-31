@@ -31,6 +31,7 @@ public enum MessageConstant {
     STATUS("status"),
     FAILED_ITEMS("failed-items"),
     FIXITY_ALGORITHM("fixity-algorithm"),
+    MESSAGE_ATT("message-att"),
 
     // Supported Algorithms (should we move to their own enum?)
     // can retrieve message digest -> enum.digestName() -> SHA-256

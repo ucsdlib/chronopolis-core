@@ -41,7 +41,7 @@ public class IngestConsumer {
             
             System.out.println("Enter 'q' to exit: ");
             if ("q".equalsIgnoreCase(readLine())) {
-                System.out.println("Shutdting dinow");
+                System.out.println("Shutting down");
                 done = true;
             }
         }

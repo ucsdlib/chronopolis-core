@@ -41,6 +41,7 @@ public class ChronMessage {
 
     public ChronMessage(MessageType type) {
         this.type = type;
+        this.body = new ChronBody(type);
     }
     
     public void setHeader(Map<String, Object> header) {

@@ -26,6 +26,8 @@ public class ChronBody implements Serializable {
         this.type = type;
     }
 
+    /*
+    Might not need this...
     public ChronBody(MessageType type, Map<String, Object> body) {
         if (!type.getArgs().containsAll(body.keySet())) {
             throw new IllegalArgumentException("Invalid Key");
@@ -33,6 +35,7 @@ public class ChronBody implements Serializable {
         this.body.putAll(body);
         this.type = type;
     }
+    */
 
     public ChronBody(MessageType type, ChronBody body) {
         if(!type.getArgs().containsAll(body.getBody().keySet())) {

@@ -32,7 +32,9 @@ public enum MessageType {
     // with them
     COLLECTION_INIT(MessageState.ORIGIN, ProcessType.DISTRIBUTE, "init", Indicator.QUERY,
             "depositor", "collection", "token-store", "audit-period"),
-    COLLECTION_INIT_COMPLETE(MessageState.RESPONSE, ProcessType.DISTRIBUTE, "ack", Indicator.ACK, 
+    COLLECTION_INIT_REPLY(MessageState.ORIGIN, ProcessType.DISTRIBUTE, "avail", Indicator.QUERY,
+            "message-att"),
+    COLLECTION_INIT_COMPLETE(MessageState.RESPONSE, ProcessType.DISTRIBUTE, "ack", Indicator.ACK,
             "collection", "attribute", "error-list"),
 
     // Distribute <--> Distribute,

@@ -83,6 +83,9 @@ public class PackageReadyProcessor implements ChronProcessor {
         tokenStore.append(manifest.getFileName().toString());
 
         if ( success ) {
+
+
+
             // Send message
             CollectionInitMessage response = messageFactory.collectionInitMessage(120,
                     packageName,
@@ -91,6 +94,8 @@ public class PackageReadyProcessor implements ChronProcessor {
 
             // Hold the routing key here temporarily
             producer.send(response, "collection.init.broadcast");
+        } else {
+
         }
     }
 
