@@ -9,15 +9,13 @@ import java.util.Date;
 import java.util.UUID;
 
 import org.chronopolis.common.properties.GenericProperties;
+import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.file.FileQueryMessage;
 import org.chronopolis.messaging.file.FileQueryResponseMessage;
-import org.chronopolis.messaging.pkg.PackageIngestCompleteMessage;
-import org.chronopolis.messaging.pkg.PackageIngestStatusQueryMessage;
-import org.chronopolis.messaging.pkg.PackageIngestStatusResponseMessage;
-import org.chronopolis.messaging.pkg.PackageReadyMessage;
+import org.chronopolis.messaging.pkg.*;
 
 /**
  * TODO: Order based on length of method names
@@ -113,6 +111,16 @@ public class MessageFactory {
         msg.setPackageName(packageName);
         msg.setSize(size);
         setHeaders(msg);
+        return msg;
+    }
+
+    public PackageReadyReplyMessage packageReadyReplyMessage(String packageName,
+                                                             Indicator indicator,
+                                                             String correlationId) {
+        PackageReadyReplyMessage msg = new PackageReadyReplyMessage();
+        msg.setMessageAtt(indicator);
+        msg.setPackageName(packageName);
+        setHeaders(msg, correlationId);
         return msg;
     }
 

@@ -47,6 +47,8 @@ public enum MessageType {
     // Intake <--> Ingest  
     PACKAGE_INGEST_READY(MessageState.ORIGIN, ProcessType.INGEST, "init", Indicator.QUERY, 
             "package-name", "location", "depositor", "size"),
+    PACKAGE_INGEST_READY_REPLY(MessageState.ORIGIN, ProcessType.INGEST, "ack", Indicator.QUERY,
+            "package-name", "message-att"),
     PACKAGE_INGEST_COMPLETE(MessageState.RESPONSE, ProcessType.INGEST, "ack", Indicator.ACK,
             "package-name", "status", "failed-items"),
     PACKAGE_INGEST_STATUS_QUERY(MessageState.RESPONSE, ProcessType.INGEST, "query", Indicator.ACK,
