@@ -53,12 +53,10 @@ public class IntakeProducer {
             
             if ( option.equals(PRODUCER_OPTION.SEND_INTAKE_REQUEST)) {
                 PackageReadyMessage msg = messageFactory.DefaultPackageReadyMessage();
-                String location = "acadis_database_02-02-2013";
-                msg.setLocation(location);
-                msg.setPackageName(location);
-                msg.setDepositor("chron");
-                //msg.setSize(Paths.get(props.getStage(), location).toFile().getTotalSpace());
-                msg.setSize(400);
+                msg = messageFactory.packageReadyMessage("chron",
+                        "SHA-256",
+                        "acadis_database_02-02-2013",
+                        "acadis_db", 400);
                 producer.send(msg,"package.ingest.broadcast");
             } else if (option.equals(PRODUCER_OPTION.QUIT)) {
                 done = true;

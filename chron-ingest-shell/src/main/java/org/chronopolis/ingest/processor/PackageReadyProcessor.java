@@ -8,12 +8,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.common.ace.BagTokenizer;
+import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
 import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
+import org.chronopolis.messaging.pkg.PackageReadyReplyMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +23,6 @@ import org.slf4j.LoggerFactory;
  * Processor for collections which are ready to be ingested into chronopolis
  * Creates ace tokens and relays the necessary information to the replicating nodes
  *
- * TODO: Send a confirmation to the intake service as well
  *
  * @author shake
  */
@@ -82,21 +83,31 @@ public class PackageReadyProcessor implements ChronProcessor {
         StringBuilder tokenStore = new StringBuilder("http://localhost/tokens/");
         tokenStore.append(manifest.getFileName().toString());
 
+        Indicator replyInd = null;
+
         if ( success ) {
+            replyInd = Indicator.ACK;
 
-
-
-            // Send message
-            CollectionInitMessage response = messageFactory.collectionInitMessage(120,
+            // Start the replication
+            CollectionInitMessage response = messageFactory.collectionInitMessage(
+                    120,
                     packageName,
                     depositor,
                     tokenStore.toString());
 
-            // Hold the routing key here temporarily
+            // TODO: Update routing key
             producer.send(response, "collection.init.broadcast");
         } else {
-
+            replyInd = Indicator.NAK;
         }
+
+        // Tell the intake service if we succeeded or not
+        PackageReadyReplyMessage reply = messageFactory.packageReadyReplyMessage(
+                packageName,
+                replyInd,
+                msg.getCorrelationId());
+
+        producer.send(reply, msg.getReturnKey());
     }
 
 }

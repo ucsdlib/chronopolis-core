@@ -16,12 +16,15 @@ public class IntakeMessageListener extends ChronMessageListener {
 
 	private ChronProcessor packageIngestCompleteProcessor;
 	private ChronProcessor packageIngestStatusResponseProcessor;
+    private ChronProcessor packageReadyReplyProcessor;
 
 	public IntakeMessageListener(ChronProcessor packageIngestCompleteProcessor,
-								 ChronProcessor packageIngestStatusResponseProcessor) {
+								 ChronProcessor packageIngestStatusResponseProcessor,
+                                 ChronProcessor packageReadyReplyProcessor) {
 	
 		this.packageIngestCompleteProcessor = packageIngestCompleteProcessor;
 		this.packageIngestStatusResponseProcessor = packageIngestStatusResponseProcessor;
+        this.packageReadyReplyProcessor = packageReadyReplyProcessor;
 	}
 
 	@Override
@@ -31,6 +34,8 @@ public class IntakeMessageListener extends ChronMessageListener {
 				return packageIngestCompleteProcessor;
 			case PACKAGE_INGEST_STATUS_RESPONSE:
 				return packageIngestStatusResponseProcessor;
+            case PACKAGE_INGEST_READY_REPLY:
+                return packageReadyReplyProcessor;
 			default:
 				throw new RuntimeException("Unexpected message type: " + type.name());
 
