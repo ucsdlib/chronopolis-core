@@ -6,13 +6,19 @@ import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import com.rabbitmq.tools.json.JSONSerializable;
 import org.chronopolis.messaging.MessageType;
 import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.collection.CollectionInitReplyMessage;
+import org.chronopolis.messaging.exception.InvalidMessageException;
 import org.chronopolis.messaging.file.FileQueryMessage;
 import org.chronopolis.messaging.file.FileQueryResponseMessage;
 import org.chronopolis.messaging.pkg.*;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import static org.chronopolis.messaging.MessageConstant.CORRELATION_ID;
 import static org.chronopolis.messaging.MessageConstant.ORIGIN;
@@ -49,6 +55,11 @@ public class ChronMessage {
     }
 
     public void setBody(ChronBody body) {
+        if ( type != body.getType() ) {
+            throw new RuntimeException("Cannot set body of differing message type ("
+                    + body.getType() + ")");
+        }
+
         this.body = new ChronBody(type, body);
     }
 
@@ -85,6 +96,17 @@ public class ChronMessage {
             setCorrelationId(UUID.randomUUID().toString());
         }
         return baos.toByteArray();
+    }
+
+    public final String toJson() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setSerializationConfig(objectMapper.getSerializationConfig()
+                .withSerializationInclusion(JsonSerialize.Inclusion.NON_NULL));
+        try {
+            return objectMapper.writeValueAsString(body);
+        } catch (IOException e) {
+            throw new InvalidMessageException(body.toString(), e);
+        }
     }
 
     // Helper for returning the type of message we want

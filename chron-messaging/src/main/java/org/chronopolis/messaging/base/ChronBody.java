@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.chronopolis.messaging.MessageType;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
 
 /**
  * The body of the chron message. It needs to be serializable so that we can
@@ -15,20 +16,20 @@ import org.chronopolis.messaging.MessageType;
  * @author shake
  */
 
+@JsonDeserialize(using = ChronBodyDeserializer.class)
 public class ChronBody implements Serializable {
     // The body is just a map of keys to values
     // We may want to change it to <String, Object> because we will send back a 
     // list of failed objects
     private Map<String, Object> body = new ConcurrentHashMap<>();
-    private MessageType type;
+    private final MessageType type;
     
     public ChronBody(MessageType type) {
         this.type = type;
     }
 
     /*
-    Might not need this...
-    public ChronBody(MessageType type, Map<String, Object> body) {
+    public ChronBody(Map<String, Object> body, MessageType type) {
         if (!type.getArgs().containsAll(body.keySet())) {
             throw new IllegalArgumentException("Invalid Key");
         }
@@ -36,6 +37,14 @@ public class ChronBody implements Serializable {
         this.type = type;
     }
     */
+
+    public void setBody(Map<String, Object> body) {
+        if ( !type.getArgs().containsAll(body.keySet())) {
+            throw new IllegalArgumentException("Body contains invalid keys");
+        }
+
+        this.body = body;
+    }
 
     public ChronBody(MessageType type, ChronBody body) {
         if(!type.getArgs().containsAll(body.getBody().keySet())) {
