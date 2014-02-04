@@ -80,24 +80,6 @@ public class ChronMessage {
         return this.type;
     }
 
-    /*
-     * We want this method to return a byte array for use by RabbitMQ. The byte
-     * array consists ObjectOutputStream with a ChronBody as the data. In addition,
-     * the CorrelationID and Timestamp should be generated at this time for
-     * the ChronHeader
-     *
-     */
-    public final byte[] createMessage() throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(baos);
-        oos.writeObject(body);
-        // header.setDate(new Date().toString());
-        if ( correlationId == null ) {
-            setCorrelationId(UUID.randomUUID().toString());
-        }
-        return baos.toByteArray();
-    }
-
     public final String toJson() {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.setSerializationConfig(objectMapper.getSerializationConfig()
@@ -143,6 +125,40 @@ public class ChronMessage {
         public UnexpectedMessageTypeException(String toString) {
             super(toString);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if ( !(o instanceof ChronMessage) || o == null) {
+            return false;
+        }
+
+        return equals((ChronMessage) o);
+    }
+
+    public boolean equals(ChronMessage other) {
+        if ( !this.type.equals(other.type)) {
+            return false;
+        }
+
+        if (!correlationId.equals(other.correlationId)) {
+            return false;
+        }
+        if (!date.equals(other.date)) {
+            return false;
+        }
+        if (!returnKey.equals(other.returnKey)) {
+            return false;
+        }
+        if (!origin.equals(other.origin)) {
+            return false;
+        }
+        if (!body.equals(other.body)) {
+            return false;
+        }
+
+        return true;
+
     }
 
     // Header methods 

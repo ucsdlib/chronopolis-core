@@ -136,9 +136,16 @@
             </dependency>
 
             <dependency>
+                <!-- Should we switch to a different json lib? -->
                 <groupId>org.json</groupId>
                 <artifactId>json</artifactId>
                 <version>20130802</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.codehaus.jackson</groupId>
+                <artifactId>jackson-mapper-asl</artifactId>
+                <version>1.9.11</version>
             </dependency>
 
             <!-- Stuff -->

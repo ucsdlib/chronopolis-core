@@ -77,14 +77,32 @@ public enum MessageType {
         }
         
         switch (message.toLowerCase()) {
-            case "o-ingest-init-query":
+            case "o_ingest_init_query":
                 return INGEST_INIT_QUERY;
-            case "r-ingest-avail-ack":
+            case "r_ingest_avail_ack":
                 return INGEST_AVAIL_ACK;
-            case "r-ingest-avail-nak":
+            case "r_ingest_avail_nak":
                 return INGEST_AVAIL_NAK;
-            case "o-distribute-coll-init":
+            case "collection_init":
                 return COLLECTION_INIT;
+            case "collection_init_complete":
+                return COLLECTION_INIT_COMPLETE;
+            case "collection_init_reply":
+                return COLLECTION_INIT_REPLY;
+            case "file_query":
+                return FILE_QUERY;
+            case "file_query_response":
+                return FILE_QUERY_RESPONSE;
+            case "package_ingest_complete":
+                return PACKAGE_INGEST_COMPLETE;
+            case "package_ingest_ready":
+                return PACKAGE_INGEST_READY;
+            case "package_ingest_ready_reply":
+                return PACKAGE_INGEST_READY_REPLY;
+            case "package_ingest_status_query":
+                return PACKAGE_INGEST_STATUS_QUERY;
+            case "package_ingest_status_response":
+                return PACKAGE_INGEST_STATUS_RESPONSE;
             default:
                 throw new IllegalArgumentException("unknown message name: " + message);
                 
@@ -142,4 +160,5 @@ public enum MessageType {
     public Indicator getIndicator() {
         return indicator;
     }
+
 }

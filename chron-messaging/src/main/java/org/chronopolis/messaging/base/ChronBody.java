@@ -6,6 +6,7 @@ package org.chronopolis.messaging.base;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import org.chronopolis.messaging.MessageType;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
@@ -40,6 +41,7 @@ public class ChronBody implements Serializable {
 
     public void setBody(Map<String, Object> body) {
         if ( !type.getArgs().containsAll(body.keySet())) {
+            System.out.println("oops");
             throw new IllegalArgumentException("Body contains invalid keys");
         }
 
@@ -72,5 +74,13 @@ public class ChronBody implements Serializable {
 
     public Map<String, Object> getBody() {
        return body; 
+    }
+
+    public boolean equals(ChronBody other) {
+        if (!body.equals(other.body)) {
+            return false;
+        }
+
+        return true;
     }
 }

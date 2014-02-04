@@ -30,7 +30,19 @@ public class ChronBodyDeserializer extends JsonDeserializer<ChronBody> {
         Iterator<String> fieldNames = jsonBody.getFieldNames();
         while ( fieldNames.hasNext() ) {
             String key = fieldNames.next();
-            Object val = jsonBody.get(key);
+            JsonNode bodyNode = jsonBody.get(key);
+            Object val = null;
+
+            // Since json has a limited representation of objects, we only need
+            // to worry about a few. TODO: Worry about arrays
+            if ( bodyNode.isTextual() ) {
+               val = bodyNode.asText();
+            } else if (bodyNode.isInt()) {
+               val = bodyNode.asLong();
+            } else if (bodyNode.isBoolean()) {
+                val = bodyNode.asBoolean();
+            }
+
             body.put(key, val);
         }
 

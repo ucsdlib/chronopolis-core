@@ -11,7 +11,7 @@ package org.chronopolis.messaging;
  */
 public enum MessageConstant {
     // Headers
-    CORRELATION_ID("correlation=id"),
+    CORRELATION_ID("correlation-id"),
     DATE("date"),
     ORIGIN("origin"),
     RETURN_KEY("return-key"),
