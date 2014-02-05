@@ -78,6 +78,11 @@ public class ChronBody implements Serializable {
 
     public boolean equals(ChronBody other) {
         if (!body.equals(other.body)) {
+            for (Map.Entry<String, Object> e : body.entrySet()) {
+                String k = e.getKey();
+                Object v = e.getValue();
+                System.out.println(k + " : " + v + " == " + other.get(k) + " ? " + v.equals(other.get(k)));
+            }
             return false;
         }
 

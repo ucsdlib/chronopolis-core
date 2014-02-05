@@ -54,12 +54,12 @@ public class CollectionInitMessage extends ChronMessage {
 
     }
 
-    public void setAuditPeriod(long auditPeriod) {
+    public void setAuditPeriod(int auditPeriod) {
         body.addContent(AUDIT_PERIOD.toString(), auditPeriod);
     }
 
-    public long getAuditPeriod() {
-        return (long) body.get(AUDIT_PERIOD.toString());
+    public int getAuditPeriod() {
+        return (int) body.get(AUDIT_PERIOD.toString());
     }
 
 }

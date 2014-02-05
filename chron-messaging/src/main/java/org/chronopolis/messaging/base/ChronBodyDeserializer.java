@@ -6,6 +6,7 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -25,26 +26,12 @@ public class ChronBodyDeserializer extends JsonDeserializer<ChronBody> {
         String type = null;
         JsonNode node = jp.getCodec().readTree(jp);
 
+        // Only worry about creating the proper enum from the json, let
+        // jackson handle the rest
         type = node.get("type").asText();
         JsonNode jsonBody = node.get("body");
-        Iterator<String> fieldNames = jsonBody.getFieldNames();
-        while ( fieldNames.hasNext() ) {
-            String key = fieldNames.next();
-            JsonNode bodyNode = jsonBody.get(key);
-            Object val = null;
-
-            // Since json has a limited representation of objects, we only need
-            // to worry about a few. TODO: Worry about arrays
-            if ( bodyNode.isTextual() ) {
-               val = bodyNode.asText();
-            } else if (bodyNode.isInt()) {
-               val = bodyNode.asLong();
-            } else if (bodyNode.isBoolean()) {
-                val = bodyNode.asBoolean();
-            }
-
-            body.put(key, val);
-        }
+        ObjectMapper mapper = new ObjectMapper();
+        body = mapper.readValue(jsonBody, Map.class);
 
         MessageType messageType = MessageType.decode(type);
         chronBody = new ChronBody(messageType);

@@ -59,7 +59,7 @@ public class MessageFactory {
         return msg;
     }
 
-    public CollectionInitMessage collectionInitMessage(long auditPeriod, String collection, String depositor, String tokenStore) {
+    public CollectionInitMessage collectionInitMessage(int auditPeriod, String collection, String depositor, String tokenStore) {
         CollectionInitMessage msg = new CollectionInitMessage();
         msg.setAuditPeriod(auditPeriod);
         msg.setCollection(collection);
@@ -103,7 +103,7 @@ public class MessageFactory {
                                                    String fixityAlg,
                                                    String location,
                                                    String packageName,
-                                                   long size) {
+                                                   int size) {
         PackageReadyMessage msg = new PackageReadyMessage();
         msg.setDepositor(depositor);
         msg.setFixityAlgorithm(fixityAlg);

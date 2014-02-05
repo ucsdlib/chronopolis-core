@@ -47,12 +47,12 @@ public class PackageReadyMessage extends ChronMessage {
         return (String)body.get(LOCATION.toString());
     }
     
-    public void setSize(long size) {
+    public void setSize(int size) {
         body.addContent(SIZE.toString(), size);
     }
     
     public long getSize() {
-        return (long)body.get(SIZE.toString());
+        return (int) body.get(SIZE.toString());
     }
 
     public String getFixityAlgorithm() {
