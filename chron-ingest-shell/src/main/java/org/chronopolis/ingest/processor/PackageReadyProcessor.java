@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.common.ace.BagTokenizer;
+import org.chronopolis.common.digest.Digest;
 import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;

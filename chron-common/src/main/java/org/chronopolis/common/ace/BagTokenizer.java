@@ -23,6 +23,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.chronopolis.common.digest.Digest;
 import org.chronopolis.common.digest.DigestUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,7 @@ public class BagTokenizer {
     private final ExecutorService manifestService = Executors.newCachedThreadPool();
     private final Path bag;
     private final Path tokenStage;
-    private final String fixityAlgorithm;
+    private final Digest fixityAlgorithm;
     private final Set<Path> manifests;
     private TokenWriterCallback callback = null;
     private TokenRequestBatch batch = null;
@@ -47,15 +48,19 @@ public class BagTokenizer {
     public BagTokenizer(Path bag, Path tokenStage, String fixityAlgorithm) {
         this.bag = bag;
         this.tokenStage = tokenStage;
-        this.fixityAlgorithm = fixityAlgorithm;
+        this.fixityAlgorithm = Digest.fromString(fixityAlgorithm);
         this.manifests = new HashSet<>();
         this.callback = new TokenWriterCallback(this.bag.getFileName().toString());
         addManifests();
     }
 
     private void addManifests() {
-        Path tagManifest = bag.resolve("tagmanifest-"+fixityAlgorithm+".txt");
-        Path manifest = bag.resolve("manifest-"+fixityAlgorithm+".txt");
+        Path tagManifest = bag.resolve("tagmanifest-"
+                + fixityAlgorithm.getBagitIdentifier()
+                + ".txt");
+        Path manifest = bag.resolve("manifest-"
+                + fixityAlgorithm.getBagitIdentifier()
+                + ".txt");
 
         if ( !tagManifest.toFile().exists() ) {
             throw new RuntimeException("TagManifest does not exist!");
@@ -88,7 +93,7 @@ public class BagTokenizer {
                     String [] split = line.split("\\s+", 1);
                     String digest = split[0];
                     Path path = Paths.get(bag.toString(), split[1]);
-                    String calculatedDigest = DigestUtil.digest(path, fixityAlgorithm);
+                    String calculatedDigest = DigestUtil.digest(path, fixityAlgorithm.getName());
                     if ( digest.equals(calculatedDigest) ) {
                         digests.put(path, digest);
                     } else {
@@ -101,7 +106,7 @@ public class BagTokenizer {
 
             // This only runs against 2 files, don't really need to try and be clever
             if (manifest.toString().contains("tagmanifest")){
-                String tagDigest = DigestUtil.digest(manifest, fixityAlgorithm);
+                String tagDigest = DigestUtil.digest(manifest, fixityAlgorithm.getName());
                 digests.put(manifest, tagDigest);
             }
         }
