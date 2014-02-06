@@ -66,6 +66,7 @@ public class PackageReadyProcessor implements ChronProcessor {
         String location = msg.getLocation();
         String packageName = msg.getPackageName();
         String fixityAlg = msg.getFixityAlgorithm();
+        Digest fixity = Digest.fromString(msg.getFixityAlgorithm());
         String depositor = msg.getDepositor();
         Path toBag = Paths.get(props.getStage(), location);
         Path tokenStage = Paths.get(props.getTokenStage());
@@ -94,7 +95,8 @@ public class PackageReadyProcessor implements ChronProcessor {
                     120,
                     packageName,
                     depositor,
-                    tokenStore.toString());
+                    tokenStore.toString(),
+                    fixity);
 
             // TODO: Update routing key
             producer.send(response, "collection.init.broadcast");

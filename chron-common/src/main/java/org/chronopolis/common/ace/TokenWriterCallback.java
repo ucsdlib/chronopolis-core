@@ -71,6 +71,7 @@ public class TokenWriterCallback implements RequestBatchCallback, Callable<Path>
             TokenResponse response;
             AceTokenWriter writer = new AceTokenWriter(os);
             log.debug("Polling for token response");
+            // 30 seconds for testing, will probably want it to be longer later on
             while ((response = tokenCallbacks.poll(30, TimeUnit.SECONDS)) != null) {
                 AceToken token = buildFromResponse(response);
                 writer.startToken(token);

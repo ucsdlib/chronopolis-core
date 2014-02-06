@@ -102,6 +102,7 @@ public class BagTokenizer {
                 }
             } catch (IOException e) {
                 log.error("Error reading file " + manifest.toString());
+                throw new RuntimeException("Could not create ace manifest");
             }
 
             // This only runs against 2 files, don't really need to try and be clever

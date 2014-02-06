@@ -4,14 +4,12 @@
  */
 package org.chronopolis.messaging.collection;
 
+import org.chronopolis.common.digest.Digest;
 import org.chronopolis.messaging.base.ChronBody;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.MessageType;
 
-import static org.chronopolis.messaging.MessageConstant.DEPOSITOR;
-import static org.chronopolis.messaging.MessageConstant.COLLECTION;
-import static org.chronopolis.messaging.MessageConstant.TOKEN_STORE;
-import static org.chronopolis.messaging.MessageConstant.AUDIT_PERIOD;
+import static org.chronopolis.messaging.MessageConstant.*;
 
 /**
  * Message an Ingest Node users to tell a Replicating Node to initialize a new 
@@ -60,6 +58,14 @@ public class CollectionInitMessage extends ChronMessage {
 
     public int getAuditPeriod() {
         return (int) body.get(AUDIT_PERIOD.toString());
+    }
+
+    public String getFixityAlgorithm() {
+        return (String) body.get(FIXITY_ALGORITHM.toString());
+    }
+
+    public void setFixityAlgorithm(Digest fixityAlgorithm) {
+        body.addContent(FIXITY_ALGORITHM.toString(), fixityAlgorithm.getName());
     }
 
 }

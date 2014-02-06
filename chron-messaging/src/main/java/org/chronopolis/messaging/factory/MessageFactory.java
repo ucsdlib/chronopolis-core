@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
 
+import org.chronopolis.common.digest.Digest;
 import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.base.ChronMessage;
@@ -59,12 +60,17 @@ public class MessageFactory {
         return msg;
     }
 
-    public CollectionInitMessage collectionInitMessage(int auditPeriod, String collection, String depositor, String tokenStore) {
+    public CollectionInitMessage collectionInitMessage(int auditPeriod,
+                                                       String collection,
+                                                       String depositor,
+                                                       String tokenStore,
+                                                       Digest fixityAlgorithm) {
         CollectionInitMessage msg = new CollectionInitMessage();
         msg.setAuditPeriod(auditPeriod);
         msg.setCollection(collection);
         msg.setDepositor(depositor);
         msg.setTokenStore(tokenStore);
+        msg.setFixityAlgorithm(fixityAlgorithm);
         setHeaders(msg);
         return msg;
     }

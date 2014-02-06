@@ -33,12 +33,7 @@ public enum MessageConstant {
     FIXITY_ALGORITHM("fixity-algorithm"),
     MESSAGE_ATT("message-att"),
 
-    // Supported Algorithms (should we move to their own enum?)
-    // can retrieve message digest -> enum.digestName() -> SHA-256
-    // and retrieve manifest name  -> enum.manifestName() -> sha256
-    SHA_256("sha256"),
-
-    // Misc 
+    // Misc
     STATUS_SUCCESS("success"),
     STATUS_FAIL("failed"),
     ;
