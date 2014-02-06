@@ -22,11 +22,11 @@ public class URIUtil {
                                                String collection,
                                                String group) {
         StringBuilder sb = buildAceUri(fqdn, port, acePath);
-        sb.append(COLLECTION_PATH);
-        sb.append(SLASH);
-        sb.append(collection);
-        sb.append(SLASH);
-        sb.append(group);
+        sb.append(COLLECTION_PATH)
+        .append(SLASH)
+        .append(collection)
+        .append(SLASH)
+        .append(group);
         return sb.toString();
     }
     

@@ -124,6 +124,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         Path manifest;
         Path bagPath = Paths.get(props.getStage(), msg.getDepositor());
         Path collPath = Paths.get(bagPath.toString(), msg.getCollection());
+        String fixityAlg = msg.getFixityAlgorithm();
 
         try { 
             log.info("Downloading manifest " + msg.getTokenStore());
@@ -174,8 +175,9 @@ public class CollectionInitProcessor implements ChronProcessor {
                                                    new JSONArray().put(auditVals)
                                                                   .put(proxyVals)
                                                                   .put(auditPeriod));
+
             JSONObject coll = new JSONObject();
-            coll.put("digestAlgorithm", "SHA-256");
+            coll.put("digestAlgorithm", fixityAlg);
             coll.put("settings", settings);
             coll.put("directory", collPath.toString());
             coll.put("name", msg.getCollection());
@@ -188,7 +190,6 @@ public class CollectionInitProcessor implements ChronProcessor {
                                                         props.getAcePath());
             HttpResponse req = doPost(uri, entity);
             // 2 things
-            // 1: Unhardcode
             // 2: Log also
             log.info(req.getStatusLine().toString());
             if ( req.getStatusLine().getStatusCode() != 200 ) {

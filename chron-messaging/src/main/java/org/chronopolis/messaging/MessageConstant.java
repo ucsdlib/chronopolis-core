@@ -26,6 +26,8 @@ public enum MessageConstant {
     PACKAGE_NAME("package-name"),
     FILENAME("filename"),
     LOCATION("location"),
+    BAG_LOCATION("bag-location"),
+    TOKEN_STORE_LOCATION("token-store-location"),
     PROTOCOL("protocol"),
     SIZE("size"),
     STATUS("status"),

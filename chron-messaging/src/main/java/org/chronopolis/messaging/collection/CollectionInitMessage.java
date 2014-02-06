@@ -49,7 +49,22 @@ public class CollectionInitMessage extends ChronMessage {
 
     public String getTokenStore() {
         return (String) body.get(TOKEN_STORE.toString());
+    }
 
+    public void setBagLocation(String bagLocation) {
+        body.addContent(BAG_LOCATION.toString(), bagLocation);
+    }
+
+    public String getbagLocation() {
+        return (String) body.get(BAG_LOCATION.toString());
+    }
+
+    public void setProtocol(String protocol) {
+        body.addContent(PROTOCOL.toString(), protocol);
+    }
+
+    public String getProtocol() {
+        return (String) body.get(PROTOCOL.toString());
     }
 
     public void setAuditPeriod(int auditPeriod) {
