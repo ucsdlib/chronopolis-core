@@ -65,7 +65,7 @@ public abstract class ChronMessageListener implements MessageListener {
             try { 
                 processor.process(message);
             } catch (Exception e){
-                log.error("Unexpected processing error {} ", e);
+                log.error("Unexpected processing error '{}' ", e);
             }
         }
     }

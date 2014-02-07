@@ -54,7 +54,7 @@ public class MessageFactoryTest{
     public void testPackageReadyMessage() throws Exception {
         PackageReadyMessage message = messageFactory.packageReadyMessage(
                 "test-depositor",
-                "test-fixity",
+                Digest.SHA_256,
                 "test-location",
                 "test-package-name",
                 10

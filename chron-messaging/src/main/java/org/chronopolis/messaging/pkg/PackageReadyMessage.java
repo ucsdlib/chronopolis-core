@@ -4,6 +4,7 @@
  */
 package org.chronopolis.messaging.pkg;
 
+import org.chronopolis.common.digest.Digest;
 import org.chronopolis.messaging.MessageType;
 import org.chronopolis.messaging.base.ChronBody;
 import org.chronopolis.messaging.base.ChronMessage;
@@ -59,8 +60,8 @@ public class PackageReadyMessage extends ChronMessage {
         return (String)body.get(FIXITY_ALGORITHM.toString());
     }
 
-    public void setFixityAlgorithm(String algorithm) {
-        body.addContent(FIXITY_ALGORITHM.toString(), algorithm);
+    public void setFixityAlgorithm(Digest algorithm) {
+        body.addContent(FIXITY_ALGORITHM.toString(), algorithm.getName());
     }
     
     @Override

@@ -71,13 +71,16 @@ public class PackageReadyProcessor implements ChronProcessor {
         Path toBag = Paths.get(props.getStage(), location);
         Path tokenStage = Paths.get(props.getTokenStage());
 
+        System.out.println( chronMessage.toString() );
+        System.out.println( "bag path: " + toBag.toFile());
+
         tokenizer = new BagTokenizer(toBag, tokenStage, fixityAlg);
         Path manifest = null;
 
         try {
             manifest = tokenizer.getAceManifestWithValidation();
         } catch (Exception e) {
-            log.error("Error creating manifest " + e);
+            log.error("Error creating manifest '{}' ", e);
         }
 
 
@@ -91,6 +94,8 @@ public class PackageReadyProcessor implements ChronProcessor {
             replyInd = Indicator.ACK;
 
             // Start the replication
+            // TODO: Test creating ACE Tokens first, then deal with replication
+            /*
             CollectionInitMessage response = messageFactory.collectionInitMessage(
                     120,
                     packageName,
@@ -100,6 +105,7 @@ public class PackageReadyProcessor implements ChronProcessor {
 
             // TODO: Update routing key
             producer.send(response, "collection.init.broadcast");
+            */
         } else {
             replyInd = Indicator.NAK;
         }

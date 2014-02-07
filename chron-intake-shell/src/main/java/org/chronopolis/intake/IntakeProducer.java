@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import org.chronopolis.amqp.ChronProducer;
+import org.chronopolis.common.digest.Digest;
 import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
@@ -17,6 +18,7 @@ import org.springframework.context.support.GenericXmlApplicationContext;
 
 /**
  * Totally based off of Andrew's Producer for DPN
+ * TODO: This is blocking when trying to quit... figure out why... prime culprit is the producer
  *
  * @author shake
  */
@@ -52,11 +54,10 @@ public class IntakeProducer {
             PRODUCER_OPTION option = inputOption();
             
             if ( option.equals(PRODUCER_OPTION.SEND_INTAKE_REQUEST)) {
-                PackageReadyMessage msg = messageFactory.DefaultPackageReadyMessage();
-                msg = messageFactory.packageReadyMessage("chron",
-                        "SHA-256",
-                        "acadis_database_02-02-2013",
-                        "acadis_db", 400);
+                PackageReadyMessage msg = messageFactory.packageReadyMessage("chron",
+                        Digest.SHA_256,
+                        "myDPNBag",
+                        "test-dpn", 400);
                 producer.send(msg,"package.ingest.broadcast");
             } else if (option.equals(PRODUCER_OPTION.QUIT)) {
                 done = true;
@@ -64,6 +65,7 @@ public class IntakeProducer {
                 System.out.println("Unknown?");
             }
         }
+        System.out.println("Leaving");
     }
     
     private PRODUCER_OPTION inputOption() {

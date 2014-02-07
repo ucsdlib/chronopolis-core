@@ -99,14 +99,14 @@ public class MessageFactory {
         msg.setDepositor("default-depositor");
         msg.setLocation("default-location");
         msg.setPackageName("default-package-name");
-        msg.setFixityAlgorithm("sha-256");
+        msg.setFixityAlgorithm(Digest.fromString("SHA-256"));
         msg.setSize(1024);
         setHeaders(msg);
         return msg;
     }
 
     public PackageReadyMessage packageReadyMessage(String depositor,
-                                                   String fixityAlg,
+                                                   Digest fixityAlg,
                                                    String location,
                                                    String packageName,
                                                    int size) {
