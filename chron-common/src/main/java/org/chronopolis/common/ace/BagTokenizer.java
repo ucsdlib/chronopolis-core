@@ -90,7 +90,8 @@ public class BagTokenizer {
             try {
                 BufferedReader br = Files.newBufferedReader(manifest, Charset.forName("UTF-8"));
                 while ( (line = br.readLine()) != null ) {
-                    String [] split = line.split("\\s+", 1);
+                    System.out.println(line);
+                    String [] split = line.split("\\s+", 2);
                     String digest = split[0];
                     Path path = Paths.get(bag.toString(), split[1]);
                     String calculatedDigest = DigestUtil.digest(path, fixityAlgorithm.getName());
@@ -123,6 +124,7 @@ public class BagTokenizer {
             return null;
         }
 
+        log.info("Creating tokens");
         // Token creation
         createIMSConnection();
         callback.setStage(tokenStage); // TODO: Token stage
