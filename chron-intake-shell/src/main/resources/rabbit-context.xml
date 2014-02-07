@@ -56,10 +56,13 @@
     <bean id="packageIngestStatusProcessor" class="org.chronopolis.intake.processor.PackageIngestStatusResponseProcessor">
         <constructor-arg ref="producer"/> 
     </bean>
+    <bean id="packageReadyReplyProcessor" class="org.chronopolis.intake.processor.PackageReadyReplyProcessor">
+    </bean>
 
     <bean id="msgListener" class="org.chronopolis.intake.IntakeMessageListener">
         <constructor-arg ref="packageIngestCompleteProcessor"/>
         <constructor-arg ref="packageIngestStatusProcessor"/>
+        <constructor-arg ref="packageReadyReplyProcessor"/>
     </bean>
     
     <rabbit:admin connection-factory="connectionFactory"/>

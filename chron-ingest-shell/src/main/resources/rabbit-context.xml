@@ -62,7 +62,7 @@
     </rabbit:topic-exchange>
 
     <bean id="messageFactory" class="org.chronopolis.messaging.factory.MessageFactory">
-
+        <constructor-arg ref="properties"/>
     </bean>
 
     <bean id="packageReadyProcessor" class="org.chronopolis.ingest.processor.PackageReadyProcessor">
@@ -75,6 +75,7 @@
     </bean>
     <bean id="collectionInitCompleteProcessor" class="org.chronopolis.ingest.processor.CollectionInitCompleteProcessor">
         <constructor-arg ref="producer"/>
+        <constructor-arg ref="messageFactory"/>
     </bean>
 
     <bean id="msgListener" class="org.chronopolis.ingest.IngestMessageListener">
