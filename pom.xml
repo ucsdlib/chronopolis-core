@@ -43,6 +43,41 @@
                     </descriptors>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>1.0-beta-1</version>
+                <executions>
+                    <execution>
+                        <configuration>
+                            <rules>
+                                <bannedDependencies>
+                                    <searchTransitive>true</searchTransitive>
+                                    <excludes>
+                                        <exclude>commons-logging</exclude>
+                                        <exclude>log4j:log4j</exclude>
+                                        <exclude>org.slf4j:slf4j-jcl</exclude>
+                                        <exclude>org.slf4j:slf4j-jdk14</exclude>
+                                        <exclude>org.slf4j:slf4j-log4j12</exclude>
+                                        <exclude>org.slf4j:slf4j-log4j13</exclude>
+                                        <exclude>org.slf4j:slf4j-nop</exclude>
+                                        <exclude>org.slf4j:slf4j-simple</exclude>
+                                    </excludes>
+                                <message>
+                                    This project uses SLF4J (with Logback runtime binding)
+                                    for logging only. All other logging frameworks and
+                                    bindings are disallowed. They may be excluded manually
+                                    in the parent project's dependencyManagement section.
+                                </message>
+                                </bannedDependencies>
+                            </rules>
+                        </configuration>
+
+                    </execution>
+                </executions>
+
+            </plugin>
         </plugins>
     </build>
     <properties>
@@ -183,6 +218,10 @@
                     <artifactId>chron-repl</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.amqp</groupId>
