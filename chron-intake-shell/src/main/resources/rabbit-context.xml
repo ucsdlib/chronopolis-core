@@ -23,7 +23,7 @@
         <constructor-arg value="${broadcastKey}"/>
 	</bean>
 
-    <bean id="factory" class="org.chronopolis.messaging.factory.MessageFactory">
+    <bean id="messageFactory" class="org.chronopolis.messaging.factory.MessageFactory">
         <constructor-arg ref="properties"/>
     </bean>
 

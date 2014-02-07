@@ -17,6 +17,7 @@ import java.util.List;
  * Args - The parameters of the message
  * 
  * TODO: Replace Args w/ MessageConstant... constants...
+ * TODO: Trim the fat (origin/response, indicator, etc)
  *
  * @author toaster
  */
@@ -31,7 +32,7 @@ public enum MessageType {
     // Do these messages need a query and response? There is only an ack associated
     // with them
     COLLECTION_INIT(MessageState.ORIGIN, ProcessType.DISTRIBUTE, "init", Indicator.QUERY,
-            "depositor", "collection", "token-store", "audit-period"),
+            "depositor", "collection", "token-store", "bag-location", "protocol", "audit-period", "fixity-algorithm"),
     COLLECTION_INIT_REPLY(MessageState.ORIGIN, ProcessType.DISTRIBUTE, "avail", Indicator.QUERY,
             "message-att"),
     COLLECTION_INIT_COMPLETE(MessageState.RESPONSE, ProcessType.DISTRIBUTE, "ack", Indicator.ACK,
@@ -46,7 +47,7 @@ public enum MessageType {
 
     // Intake <--> Ingest  
     PACKAGE_INGEST_READY(MessageState.ORIGIN, ProcessType.INGEST, "init", Indicator.QUERY, 
-            "package-name", "location", "depositor", "size"),
+            "package-name", "location", "depositor", "size", "fixity-algorithm"),
     PACKAGE_INGEST_READY_REPLY(MessageState.ORIGIN, ProcessType.INGEST, "ack", Indicator.QUERY,
             "package-name", "message-att"),
     PACKAGE_INGEST_COMPLETE(MessageState.RESPONSE, ProcessType.INGEST, "ack", Indicator.ACK,
