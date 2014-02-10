@@ -90,7 +90,7 @@ public class BagTokenizer {
             try {
                 BufferedReader br = Files.newBufferedReader(manifest, Charset.forName("UTF-8"));
                 while ( (line = br.readLine()) != null ) {
-                    System.out.println(line);
+                    log.trace("Processing '{}'", line);
                     String [] split = line.split("\\s+", 2);
                     String digest = split[0];
                     Path path = Paths.get(bag.toString(), split[1]);
@@ -98,6 +98,8 @@ public class BagTokenizer {
                     if ( digest.equals(calculatedDigest) ) {
                         digests.put(path, digest);
                     } else {
+                        log.error("Bad manifest for '{}', found '{}' but expected '{}'",
+                                path.toString(), calculatedDigest, digest);
                         badFiles.add(path);
                     }
                 }
@@ -133,11 +135,14 @@ public class BagTokenizer {
             TokenRequest req = new TokenRequest();
             Path full = entry.getKey();
             Path relative = full.subpath(bag.getNameCount(), full.getNameCount());
+            log.trace("Adding '{}' to batch", relative.toString());
 
             req.setName(relative.toString());
             req.setHashValue(entry.getValue());
             batch.add(req);
         }
+        log.info("Closing token request");
+        batch.close();
 
         return manifest.get();
     }
@@ -183,6 +188,8 @@ public class BagTokenizer {
             req.setHashValue(entry.getValue());
             batch.add(req);
         }
+        System.out.println("Telling the batch to close");
+        batch.close();
 
         return manifestPath.get();
     }
