@@ -34,12 +34,14 @@ public class IntakeProducer {
     }
     
     private enum PRODUCER_OPTION {
-        SEND_INTAKE_REQUEST, QUIT, UNKNOWN;
+        SEND_STATIC_INTAKE_REQUEST, CREATE_INTAKE_REQUEST, QUIT, UNKNOWN;
         
         private static PRODUCER_OPTION fromString(String text) {
             switch (text) {
+                case "C":
+                    return CREATE_INTAKE_REQUEST;
                 case "S":
-                    return SEND_INTAKE_REQUEST;
+                    return SEND_STATIC_INTAKE_REQUEST;
                 case "Q":
                     return QUIT;
                 default:
@@ -53,12 +55,16 @@ public class IntakeProducer {
         while (!done) {
             PRODUCER_OPTION option = inputOption();
             
-            if ( option.equals(PRODUCER_OPTION.SEND_INTAKE_REQUEST)) {
-                PackageReadyMessage msg = messageFactory.packageReadyMessage("chron",
-                        Digest.SHA_256,
-                        "myDPNBag",
-                        "test-dpn", 400);
-                producer.send(msg,"package.ingest.broadcast");
+            if ( option.equals(PRODUCER_OPTION.SEND_STATIC_INTAKE_REQUEST)) {
+                sendMessage("chron", "myDPNBag", "test-dpn");
+            } else if (option.equals(PRODUCER_OPTION.CREATE_INTAKE_REQUEST)) {
+                String depositor, bagName;
+                System.out.print("Depositor: ");
+                depositor = readLine();
+                System.out.print("bag-name");
+                bagName = readLine();
+
+                sendMessage(depositor, bagName, bagName);
             } else if (option.equals(PRODUCER_OPTION.QUIT)) {
                 done = true;
             } else {
@@ -66,6 +72,14 @@ public class IntakeProducer {
             }
         }
         System.out.println("Leaving");
+    }
+
+    private void sendMessage(String depositor, String location, String bagName) {
+        PackageReadyMessage msg = messageFactory.packageReadyMessage(depositor,
+                Digest.SHA_256,
+                location,
+                bagName, 400);
+        producer.send(msg,"package.ingest.broadcast");
     }
     
     private PRODUCER_OPTION inputOption() {
