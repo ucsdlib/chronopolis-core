@@ -23,6 +23,7 @@
         <constructor-arg value="${broadcastKey}"/>
         <constructor-arg value="${tokenStage}" />
         <constructor-arg value="${imsHostName}"/>
+        <constructor-arg value="${tokenServer}"/>
     </bean>
 
     <bean id="rabbitConnectionFactory" class="com.rabbitmq.client.ConnectionFactory">

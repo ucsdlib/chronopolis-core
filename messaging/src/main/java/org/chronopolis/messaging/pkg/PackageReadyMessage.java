@@ -63,21 +63,5 @@ public class PackageReadyMessage extends ChronMessage {
     public void setFixityAlgorithm(Digest algorithm) {
         body.addContent(FIXITY_ALGORITHM.toString(), algorithm.getName());
     }
-    
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("package-name : ");
-        sb.append(getPackageName());
-        sb.append(", depositor : ");
-        sb.append(getDepositor());
-        sb.append(", location : ");
-        sb.append(getLocation());
-        sb.append(", size : ");
-        sb.append(getSize());
-        sb.append(", fixity : ");
-        sb.append(getFixityAlgorithm());
-        return sb.toString();
-    }
-    
+
 }

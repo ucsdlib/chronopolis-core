@@ -165,7 +165,8 @@ public class ChronMessage {
         StringBuilder sb = new StringBuilder();
         sb.append("{").append("\n\ttype:").append(type.toString()).append("\n");
         for ( Map.Entry<String, Object> entry : body.getBody().entrySet() ) {
-            sb.append("\t").append(entry.getKey()).append(":").append(entry.getValue()).append("\n");
+            sb.append("\t").append(entry.getKey()).append(":")
+              .append(entry.getValue()).append(",\n");
         }
         sb.append("}");
         return sb.toString();
