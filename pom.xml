@@ -10,13 +10,13 @@
     <name>Core Chronopolis</name>
 
     <modules>
-        <module>chron-messaging</module>
+        <module>messaging</module>
         <module>replication-frontend</module>
-        <module>chron-amqp-core</module>
-        <module>chron-common</module>
-        <module>chron-intake-shell</module>
-        <module>chron-ingest-shell</module>
-        <module>chron-logger</module>
+        <module>amqp-core</module>
+        <module>common</module>
+        <module>intake-shell</module>
+        <module>ingest-shell</module>
+        <module>logger</module>
         <module>replication-shell</module>
   </modules>
 
@@ -44,6 +44,7 @@
                 </configuration>
             </plugin>
 
+            <!--
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
@@ -51,33 +52,11 @@
                 <executions>
                     <execution>
                         <configuration>
-                            <rules>
-                                <bannedDependencies>
-                                    <searchTransitive>true</searchTransitive>
-                                    <excludes>
-                                        <exclude>commons-logging</exclude>
-                                        <exclude>log4j:log4j</exclude>
-                                        <exclude>org.slf4j:slf4j-jcl</exclude>
-                                        <exclude>org.slf4j:slf4j-jdk14</exclude>
-                                        <exclude>org.slf4j:slf4j-log4j12</exclude>
-                                        <exclude>org.slf4j:slf4j-log4j13</exclude>
-                                        <exclude>org.slf4j:slf4j-nop</exclude>
-                                        <exclude>org.slf4j:slf4j-simple</exclude>
-                                    </excludes>
-                                <message>
-                                    This project uses SLF4J (with Logback runtime binding)
-                                    for logging only. All other logging frameworks and
-                                    bindings are disallowed. They may be excluded manually
-                                    in the parent project's dependencyManagement section.
-                                </message>
-                                </bannedDependencies>
-                            </rules>
                         </configuration>
-
                     </execution>
                 </executions>
-
             </plugin>
+            -->
         </plugins>
     </build>
     <properties>
