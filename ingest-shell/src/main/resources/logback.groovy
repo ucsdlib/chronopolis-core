@@ -21,7 +21,6 @@ appender("CONSOLE", ConsoleAppender) {
 }
 
 appender("FILE", FileAppender) {
-    println("This is a test")
     file = "ingest.log"
     append = true
     encoder(PatternLayoutEncoder) {

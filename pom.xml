@@ -122,7 +122,7 @@
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
-                <version>1.7.5</version>
+                <version>1.6.4</version>
             </dependency>
 
             <dependency>
@@ -137,10 +137,12 @@
                 <version>1.0.13</version>
             </dependency>
 
+            <!-- Groovy MUST be >= 1.8.6 or else it will throw weird errors -->
             <dependency>
                 <groupId>org.codehaus.groovy</groupId>
                 <artifactId>groovy</artifactId>
-                <version>1.8.3</version>
+                <version>1.8.6</version>
+                <scope>runtime</scope>
             </dependency>
 
             <!-- misc spring -->
@@ -216,6 +218,7 @@
             <groupId>org.springframework.amqp</groupId>
             <artifactId>spring-rabbit</artifactId>
         </dependency>
+
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
@@ -227,7 +230,6 @@
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy</artifactId>
-            <scope>runtime</scope>
         </dependency>
     </dependencies>
 

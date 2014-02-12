@@ -14,10 +14,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -98,8 +95,11 @@ public class BagTokenizer {
                     if ( digest.equals(calculatedDigest) ) {
                         digests.put(path, digest);
                     } else {
+                        Object[] stf = new Object[]{
+                                path.toString(), calculatedDigest, digest
+                        };
                         log.error("Bad manifest for '{}', found '{}' but expected '{}'",
-                                path.toString(), calculatedDigest, digest);
+                                stf);
                         badFiles.add(path);
                     }
                 }

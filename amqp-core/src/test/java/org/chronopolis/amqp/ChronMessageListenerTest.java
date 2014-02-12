@@ -57,8 +57,8 @@ public class ChronMessageListenerTest extends TestCase {
         ChronProcessor p1 = listener.getProcessor(MessageType.COLLECTION_INIT);
         ChronProcessor p2 = listener.getProcessor(MessageType.COLLECTION_INIT_COMPLETE);
 
-        assertNull(p2);
         assertEquals(processor, p1);
+        assertNull(p2);
     }
 
 }
