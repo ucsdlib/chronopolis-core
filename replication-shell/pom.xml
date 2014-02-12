@@ -30,7 +30,7 @@
 
         <dependency>
             <groupId>org.chronopolis</groupId>
-            <artifactId>chron-amqp-core</artifactId>
+            <artifactId>amqp-core</artifactId>
         </dependency>
 
         <!-- http stuffs -->

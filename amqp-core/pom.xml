@@ -9,7 +9,7 @@
     </parent>
     <packaging>jar</packaging>
 
-    <artifactId>chron-amqp-core</artifactId>
+    <artifactId>amqp-core</artifactId>
     <name>AMQP Core</name>
 
     <url>http://maven.apache.org</url>
