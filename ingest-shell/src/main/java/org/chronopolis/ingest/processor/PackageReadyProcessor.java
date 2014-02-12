@@ -91,7 +91,6 @@ public class PackageReadyProcessor implements ChronProcessor {
             replyInd = Indicator.ACK;
 
             // Start the replication
-            // TODO: Test creating ACE Tokens first, then deal with replication
             CollectionInitMessage response = messageFactory.collectionInitMessage(
                     120,
                     packageName,

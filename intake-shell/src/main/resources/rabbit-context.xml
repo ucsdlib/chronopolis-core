@@ -47,7 +47,7 @@
     </bean>
 
     <!-- Set up our queues and bindings in the exchange -->
-    <!-- Need to fill out for intake -->
+    <!-- TODO: Fill out queues/bindings for intake -->
 
     <!-- Set up our Processors and Listener -->
     <bean id="packageIngestCompleteProcessor" class="org.chronopolis.intake.processor.PackageIngestCompleteProcessor">
