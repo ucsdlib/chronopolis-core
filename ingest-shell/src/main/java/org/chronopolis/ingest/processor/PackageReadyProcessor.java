@@ -99,7 +99,7 @@ public class PackageReadyProcessor implements ChronProcessor {
                     fixity);
 
             // TODO: Update routing key
-            producer.send(response, "collection.init.broadcast");
+            producer.send(response, "replicate.broadcast");
         } else {
             replyInd = Indicator.NAK;
         }
