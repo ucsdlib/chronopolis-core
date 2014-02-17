@@ -18,7 +18,6 @@ import org.springframework.context.support.GenericXmlApplicationContext;
 
 /**
  * Totally based off of Andrew's Producer for DPN
- * TODO: This is blocking when trying to quit... figure out why... prime culprit is the producer
  *
  * @author shake
  */
@@ -124,6 +123,8 @@ public class IntakeProducer {
         
         IntakeProducer producer = new IntakeProducer(p, factory);
         producer.run();
+
+        text.close();
         
         System.out.println("Shutting down, shutting shutting down");
     }
