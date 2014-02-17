@@ -219,6 +219,7 @@
             <artifactId>spring-rabbit</artifactId>
         </dependency>
 
+        <!-- logging -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>

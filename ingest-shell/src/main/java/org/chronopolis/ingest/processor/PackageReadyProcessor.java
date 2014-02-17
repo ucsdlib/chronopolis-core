@@ -52,7 +52,6 @@ public class PackageReadyProcessor implements ChronProcessor {
      */
     @Override
     public void process(ChronMessage chronMessage) {
-        System.out.println("Processing " + chronMessage.getType().toString());
         boolean success = true;
         if ( !(chronMessage instanceof PackageReadyMessage)) {
             // Error out
@@ -78,12 +77,16 @@ public class PackageReadyProcessor implements ChronProcessor {
             manifest = tokenizer.getAceManifestWithValidation();
         } catch (Exception e) {
             log.error("Error creating manifest '{}' ", e);
+            success = false;
         }
 
 
         // Should end up being the location for a download
         StringBuilder tokenStore = new StringBuilder(props.getTokenServer());
-        tokenStore.append(manifest.getFileName().toString());
+        tokenStore.append(":").append(manifest.toString());
+        StringBuilder bagLocation = new StringBuilder(props.getTokenServer());
+        bagLocation.append(":").append(toBag.toString());
+
 
         Indicator replyInd;
 
@@ -91,11 +94,14 @@ public class PackageReadyProcessor implements ChronProcessor {
             replyInd = Indicator.ACK;
 
             // Start the replication
+            // TODO: Get a way to choose the protocol. Will be changing for testing.
             CollectionInitMessage response = messageFactory.collectionInitMessage(
                     120,
                     packageName,
                     depositor,
+                    "rsync",
                     tokenStore.toString(),
+                    bagLocation.toString(),
                     fixity);
 
             // TODO: Update routing key

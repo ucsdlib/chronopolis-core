@@ -9,7 +9,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.LinkedBlockingQueue;
 import org.chronopolis.common.properties.GenericProperties;
+import org.chronopolis.common.transfer.FileTransfer;
 import org.chronopolis.common.transfer.HttpsTransfer;
+import org.chronopolis.common.transfer.RSyncTransfer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +52,7 @@ public class ReplicationQueue implements Runnable {
         return uriBuilder.toString();
     }
     
-    public static Path getFileImmediate(String url, Path stage) throws IOException {
+    public static Path getFileImmediate(String url, Path stage, String protocol) throws IOException {
         if ( url == null ) {
             System.out.println("Null url");
         } else if ( stage == null ) {
@@ -58,14 +60,28 @@ public class ReplicationQueue implements Runnable {
         } else if (xfer == null ) {
             System.out.println("This shouldn't happen");
         }
-        return xfer.getFile(url, stage);
+        FileTransfer transfer;
+
+        if (protocol.equalsIgnoreCase("rsync")) {
+            // TODO: Send any authentication information here
+            transfer = new RSyncTransfer("shake");
+        } else if (protocol.equalsIgnoreCase("https")) {
+            transfer = new HttpsTransfer();
+        } else {
+            log.error("Invalid transfer type '{}'", protocol);
+            // probably throw exception here
+            return null;
+        }
+
+        return transfer.getFile(url, stage);
     }
 
     public static void getFileAsync(String base, 
                                     String collection, 
                                     String group, 
-                                    String file) {
-        ReplicationDownload rFile = new ReplicationDownload(base, collection, group, file);
+                                    String file,
+                                    String protocol) {
+        ReplicationDownload rFile = new ReplicationDownload(base, collection, group, file, protocol);
         try {
             log.info("Queueing {}", file);
             downloadQueue.put(rFile);
@@ -83,13 +99,11 @@ public class ReplicationQueue implements Runnable {
                 Path collPath = Paths.get(props.getStage(), dl.getGroup(), dl.getCollection());
                 String url = buildURL(dl.getBase(), dl.getCollection(), dl.getGroup(), dl.getFile());
                 file = xfer.getFile(url, collPath);
-            } catch (IOException ex) {
-                log.info("Unable to download file: {} ", ex);
             } finally {
                 // Requeue if necessary
                 if ( file == null ) {
                     log.info("Requeuing " + dl.getFile());
-                    getFileAsync(dl.getBase(), dl.getCollection(), dl.getGroup(), dl.getFile());
+                    getFileAsync(dl.getBase(), dl.getCollection(), dl.getGroup(), dl.getFile(), dl.getProtocol());
                 }
             }
         }
@@ -101,15 +115,18 @@ public class ReplicationQueue implements Runnable {
         private String group;
         private String file;
         private String base;
+        private String protocol;
 
         private ReplicationDownload(String base, 
                                     String collection, 
                                     String group, 
-                                    String file) {
+                                    String file,
+                                    String protocol) {
             this.collection = collection;
             this.group = group;
             this.file = file;
             this.base = base;
+            this.protocol = protocol;
         }
 
         public String getCollection() {
@@ -126,6 +143,10 @@ public class ReplicationQueue implements Runnable {
 
         public String getBase() {
             return base;
+        }
+
+        public String getProtocol() {
+            return protocol;
         }
     }
 } 

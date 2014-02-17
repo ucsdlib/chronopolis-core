@@ -39,6 +39,8 @@ public class GenericProperties {
 	}
 
 	/**
+     * TODO: Return a Path instead of a string?
+     *
 	 * @return the stage
 	 */
 	public String getStage() {

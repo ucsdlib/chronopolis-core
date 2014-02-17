@@ -27,8 +27,10 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.log4j.Logger;
 import org.chronopolis.amqp.ChronProducer;
+import org.chronopolis.common.transfer.FileTransfer;
+import org.chronopolis.common.transfer.HttpsTransfer;
+import org.chronopolis.common.transfer.RSyncTransfer;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
@@ -40,13 +42,15 @@ import org.chronopolis.replicate.util.URIUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author shake
  */
 public class CollectionInitProcessor implements ChronProcessor {
-    private static final Logger log = Logger.getLogger(CollectionInitProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(CollectionInitProcessor.class);
 
     private ChronProducer producer;
     private MessageFactory messageFactory;
@@ -119,21 +123,32 @@ public class CollectionInitProcessor implements ChronProcessor {
             return;
         }
 
+        log.trace("Received collection init message");
         CollectionInitMessage msg = (CollectionInitMessage) chronMessage;
 
         Path manifest;
         Path bagPath = Paths.get(props.getStage(), msg.getDepositor());
         Path collPath = Paths.get(bagPath.toString(), msg.getCollection());
         String fixityAlg = msg.getFixityAlgorithm();
+        String protocol = msg.getProtocol();
 
         try { 
             log.info("Downloading manifest " + msg.getTokenStore());
-            manifest = ReplicationQueue.getFileImmediate(msg.getTokenStore(), bagPath);
+            manifest = ReplicationQueue.getFileImmediate(msg.getTokenStore(), bagPath, protocol);
         } catch (IOException ex) {
             log.error("Error downloading manifest \n{}", ex);
             return;
         }
 
+        FileTransfer transfer;
+        if ( protocol.equalsIgnoreCase("https")) {
+            transfer = new HttpsTransfer();
+        } else {
+            transfer = new RSyncTransfer("shake");
+        }
+
+        transfer.getFile(msg.getBagLocation(), Paths.get(props.getStage()));
+        /*
         TokenStoreReader reader;
         try {
             reader = new TokenStoreReader(Files.newInputStream(manifest, 
@@ -141,22 +156,28 @@ public class CollectionInitProcessor implements ChronProcessor {
                                           "UTF-8");
             // Will be
             // baseURL + depositor (group) + collection + file
-            String url = "http://localhost/bags/"+msg.getCollection()+"/";
+            String url = msg.getTokenStore();
             while ( reader.hasNext()) {
                 TokenStoreEntry entry = reader.next();
                 for ( String identifier : entry.getIdentifiers() ) {
                     log.debug("Downloading " + identifier);
                     //Path download = Paths.get(collPath.toString(), identifier);
+                    /*
+                     * Let's get this to work with downloads first, then worry about
+                     * multithreading later
                     ReplicationQueue.getFileAsync(url, 
                                                   msg.getCollection(), 
                                                   msg.getDepositor(), 
-                                                  identifier);
+                                                  identifier,
+                                                  protocol);
+                                                  /
                 }
             }
         } catch (IOException ex) {
             log.error("IO Exception while reading token store \n{}", ex);
             return;
         }
+        */
 
         try {
             log.trace("Building ACE json");

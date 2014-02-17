@@ -63,13 +63,17 @@ public class MessageFactory {
     public CollectionInitMessage collectionInitMessage(int auditPeriod,
                                                        String collection,
                                                        String depositor,
+                                                       String protocol,
                                                        String tokenStore,
+                                                       String bagLocation,
                                                        Digest fixityAlgorithm) {
         CollectionInitMessage msg = new CollectionInitMessage();
         msg.setAuditPeriod(auditPeriod);
         msg.setCollection(collection);
         msg.setDepositor(depositor);
+        msg.setProtocol(protocol);
         msg.setTokenStore(tokenStore);
+        msg.setBagLocation(bagLocation);
         msg.setFixityAlgorithm(fixityAlgorithm);
         setHeaders(msg);
         return msg;

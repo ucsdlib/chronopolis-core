@@ -32,13 +32,14 @@ public class RSyncTransfer implements FileTransfer {
         // Taken from http://stackoverflow.com/questions/1246255/any-good-rsync-library-for-java
         // Need to test/modify command 
         // Currently uses passwordless SSH keys to login to sword
+        log.debug(local.toString());
         String[] cmd = new String[]{"rsync", "-az", user + "@" + uri, local.toString()};
         String[] parts = uri.split(":", 2);
         String[] pathList = parts[1].split("/");
         ProcessBuilder pb = new ProcessBuilder(cmd);
         Process p = null;
         try {
-            log.info("Executing '{}'", cmd);
+            log.info("Executing '{}' '{}' '{}' '{}'", cmd);
             p = pb.start();
             p.waitFor();
         } catch (IOException e) {

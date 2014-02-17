@@ -55,7 +55,7 @@ public class CollectionInitMessage extends ChronMessage {
         body.addContent(BAG_LOCATION.toString(), bagLocation);
     }
 
-    public String getbagLocation() {
+    public String getBagLocation() {
         return (String) body.get(BAG_LOCATION.toString());
     }
 
