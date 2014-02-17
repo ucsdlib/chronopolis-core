@@ -52,15 +52,15 @@
     <rabbit:admin connection-factory="connectionFactory"/>
 
     <!-- Set up our queues and bindings in the exchange -->
-    <rabbit:queue id="queue.test" name="test.replicate.umiacs" durable="true"/>
-    <rabbit:queue id="queue.broadcast" name="broadcast.replicate.umiacs" durable="true"/>
-    <rabbit:queue id="queue.direct-collection" name="direct.replicate.umiacs" durable="true"/>
+    <rabbit:queue id="queue.test" name="${queue.test.name}" durable="true"/>
+    <rabbit:queue id="queue.broadcast" name="${queue.broadcast.name}" durable="true"/>
+    <rabbit:queue id="queue.direct" name="${queue.direct.name}" durable="true"/>
 
     <rabbit:topic-exchange id="federatedExchange" name="chronopolis-control">
         <rabbit:bindings>
-            <rabbit:binding queue="queue.test" pattern="test.umiacs"/>
-            <rabbit:binding queue="queue.broadcast" pattern="collection.init.broadcast"/>
-            <rabbit:binding queue="queue.direct-collection" pattern="collection.replicate.umiacs"/>
+            <rabbit:binding queue="queue.test" pattern="${queue.test.pattern}"/>
+            <rabbit:binding queue="queue.broadcast" pattern="${queue.broadcast.pattern}"/>
+            <rabbit:binding queue="queue.direct" pattern="${queue.direct.pattern}"/>
         </rabbit:bindings>
     </rabbit:topic-exchange>
 
@@ -91,7 +91,7 @@
     <rabbit:listener-container connection-factory="connectionFactory"
                                error-handler="errorHandler">
         <rabbit:listener ref="msgListener"
-                         queues="queue.test,queue.broadcast,queue.direct-collection"/>
+                         queues="queue.test,queue.broadcast,queue.direct"/>
     </rabbit:listener-container>
 
     <!-- Create the producer -->
