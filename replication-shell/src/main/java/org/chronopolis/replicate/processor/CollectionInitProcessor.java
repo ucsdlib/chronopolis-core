@@ -14,6 +14,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.spi.FileSystemProvider;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -134,7 +136,7 @@ public class CollectionInitProcessor implements ChronProcessor {
 
         try { 
             log.info("Downloading manifest " + msg.getTokenStore());
-            manifest = ReplicationQueue.getFileImmediate(msg.getTokenStore(), bagPath, protocol);
+            manifest = ReplicationQueue.getFileImmediate(msg.getTokenStore(), Paths.get(props.getStage()), protocol);
         } catch (IOException ex) {
             log.error("Error downloading manifest \n{}", ex);
             return;

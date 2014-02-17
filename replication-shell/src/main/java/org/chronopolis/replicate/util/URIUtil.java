@@ -10,7 +10,8 @@ package org.chronopolis.replicate.util;
  */
 public class URIUtil {
     private static final String SLASH = "/";
-    private static final String COLLECTION_PATH = "rest/collection/settings/by-name";
+    private static final String COLLECTION_PATH = "rest/collection";
+    private static final String SETTINGS = "settings/by-name";
     private static final String TOKENSTORE_PATH = "rest/tokenstore";
     private static final long SSL_PORT = 443;
     private static final long ALT_SSL_PORT = 8443;
@@ -24,6 +25,8 @@ public class URIUtil {
                                                String group) {
         StringBuilder sb = buildAceUri(fqdn, port, acePath);
         sb.append(COLLECTION_PATH)
+        .append(SLASH)
+        .append(SETTINGS)
         .append(SLASH)
         .append(collection)
         .append(SLASH)
