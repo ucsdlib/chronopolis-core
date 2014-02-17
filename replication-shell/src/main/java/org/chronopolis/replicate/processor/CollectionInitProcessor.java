@@ -130,7 +130,6 @@ public class CollectionInitProcessor implements ChronProcessor {
             log.info("Downloading manifest " + msg.getTokenStore());
             manifest = ReplicationQueue.getFileImmediate(msg.getTokenStore(), bagPath);
         } catch (IOException ex) {
-            System.out.println("I/O Error in grabbing tokens");
             log.error("Error downloading manifest \n{}", ex);
             return;
         }
@@ -160,6 +159,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         }
 
         try {
+            log.trace("Building ACE json");
             // Build and POST our collection
             // TODO: Functionize 
             JSONObject auditVals = new JSONObject();

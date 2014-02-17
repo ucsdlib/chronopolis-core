@@ -4,8 +4,10 @@
  */
 package org.chronopolis.common.transfer;
 
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
@@ -17,30 +19,49 @@ import org.slf4j.LoggerFactory;
 
 /**
  * TODO: Stop requests that are sent w/ http
- * TODO: Common interface for different transfer types? 
- *       
  *
  * @author shake
  */
-public class HttpsTransfer {
+public class HttpsTransfer implements FileTransfer {
     private final Logger log = LoggerFactory.getLogger(HttpsTransfer.class);
-    /**
-     *
-     * @param response
-     */
-    public Path getFile(String uri, Path stage) throws IOException {
+
+    @Override
+    public Path getFile(String uri, Path stage) {
         // Make HTTP Connection
-        URL url = new URL(uri);
-        ReadableByteChannel rbc = Channels.newChannel(url.openStream());
-        Path output = Paths.get(stage.toString(),
-                                uri.substring(uri.lastIndexOf("/", uri.length())));
+        log.info("Attempting HTTP Transfer from '{}'", uri);
+        URL url;
+        Path output = null;
+        try {
+            url = new URL(uri);
+        } catch (MalformedURLException e) {
+            log.error("Error connecting to url ", e);
+            return null;
+        }
+
+        output = Paths.get(stage.toString(),
+                uri.substring(uri.lastIndexOf("/", uri.length())));
         Path parent = output.getParent();
         parent.toFile().mkdirs();
-        output.toFile().createNewFile();
-        FileOutputStream fos = new FileOutputStream(output.toString());
-        FileChannel fc = fos.getChannel();
-        fc.transferFrom(rbc, 0, Long.MAX_VALUE);
-        
+        try {
+            output.toFile().createNewFile();
+        } catch (IOException e) {
+            log.error("Error creating file '{}' ", output.toString(), e);
+            return null;
+        }
+
+        try (
+            ReadableByteChannel rbc = Channels.newChannel(url.openStream());
+            FileOutputStream fos = new FileOutputStream(output.toString())
+        ) {
+            FileChannel fc = fos.getChannel();
+            fc.transferFrom(rbc, 0, Long.MAX_VALUE);
+        } catch (FileNotFoundException e) {
+            log.error("File not found ", e);
+            return null;
+        } catch (IOException e) {
+            log.error("IOException while downloading file ", e);
+            return null;
+        }
         return output;
     }
 }
