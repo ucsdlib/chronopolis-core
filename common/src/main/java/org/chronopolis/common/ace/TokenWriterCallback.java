@@ -76,7 +76,7 @@ public class TokenWriterCallback implements RequestBatchCallback, Callable<Path>
                 log.trace("Writing token for response '{}'", response.getName());
                 AceToken token = buildFromResponse(response);
                 writer.startToken(token);
-                writer.addIdentifier(collectionName);
+                writer.addIdentifier("/"+response.getName());
                 writer.writeTokenEntry();
             }
             writer.close();
