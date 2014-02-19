@@ -55,7 +55,7 @@ public class IntakeProducer {
             PRODUCER_OPTION option = inputOption();
             
             if ( option.equals(PRODUCER_OPTION.SEND_STATIC_INTAKE_REQUEST)) {
-                sendMessage("chron", "myDPNBag", "test-dpn");
+                sendMessage("chron", "myDPNBag", "myDPNBag");
             } else if (option.equals(PRODUCER_OPTION.CREATE_INTAKE_REQUEST)) {
                 String depositor, bagName;
                 System.out.print("Depositor: ");

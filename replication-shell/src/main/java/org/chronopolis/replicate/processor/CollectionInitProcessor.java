@@ -116,6 +116,7 @@ public class CollectionInitProcessor implements ChronProcessor {
     }
 
     // TODO: Register token store in to ACE
+    // TODO: Check to make sure we don't already have this collection (do a new version if we do?)
     // TODO: Stuff
     @Override
     public void process(ChronMessage chronMessage) {
@@ -149,7 +150,7 @@ public class CollectionInitProcessor implements ChronProcessor {
             transfer = new RSyncTransfer("shake");
         }
 
-        transfer.getFile(msg.getBagLocation(), Paths.get(props.getStage()));
+        transfer.getFile(msg.getBagLocation(), bagPath);
         /*
         TokenStoreReader reader;
         try {
