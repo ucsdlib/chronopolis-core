@@ -7,7 +7,7 @@ package org.chronopolis.common.transfer;
 import java.io.IOException;
 import java.nio.file.Path;
 
-import org.chronopolis.common.exception.RSyncException;
+import org.chronopolis.common.exception.FileTransferException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +28,7 @@ public class RSyncTransfer implements FileTransfer {
     }
 
     @Override
-    public Path getFile(String uri, Path local) {
+    public Path getFile(String uri, Path local) throws FileTransferException {
         // Taken from http://stackoverflow.com/questions/1246255/any-good-rsync-library-for-java
         // Need to test/modify command 
         // Currently uses passwordless SSH keys to login to sword
@@ -44,8 +44,10 @@ public class RSyncTransfer implements FileTransfer {
             p.waitFor();
         } catch (IOException e) {
             log.error("IO Exception in rsync ", e);
+            throw new FileTransferException("IOException in rsync", e);
         } catch (InterruptedException e) {
             log.error("rsync was interrupted", e);
+            throw new FileTransferException("rsync was interrupted", e);
         }
 
         Path dir = local.resolve(pathList[pathList.length-1]);

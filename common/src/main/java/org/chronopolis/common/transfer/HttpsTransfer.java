@@ -14,6 +14,8 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import org.chronopolis.common.exception.FileTransferException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +28,7 @@ public class HttpsTransfer implements FileTransfer {
     private final Logger log = LoggerFactory.getLogger(HttpsTransfer.class);
 
     @Override
-    public Path getFile(String uri, Path stage) {
+    public Path getFile(String uri, Path stage) throws FileTransferException {
         // Make HTTP Connection
         log.info("Attempting HTTP Transfer from '{}'", uri);
         URL url;
@@ -46,7 +48,7 @@ public class HttpsTransfer implements FileTransfer {
             output.toFile().createNewFile();
         } catch (IOException e) {
             log.error("Error creating file '{}' ", output.toString(), e);
-            return null;
+            throw new FileTransferException("Error creating " + output.toString(), e);
         }
 
         try (
@@ -57,10 +59,10 @@ public class HttpsTransfer implements FileTransfer {
             fc.transferFrom(rbc, 0, Long.MAX_VALUE);
         } catch (FileNotFoundException e) {
             log.error("File not found ", e);
-            return null;
+            throw new FileTransferException("File not found", e);
         } catch (IOException e) {
             log.error("IOException while downloading file ", e);
-            return null;
+            throw new FileTransferException("IOException while downloading file", e);
         }
         return output;
     }
