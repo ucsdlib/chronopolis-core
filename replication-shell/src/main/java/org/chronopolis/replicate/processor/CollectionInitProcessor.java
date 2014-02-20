@@ -75,7 +75,6 @@ public class CollectionInitProcessor implements ChronProcessor {
                 new UsernamePasswordCredentials(props.getAceUser(), 
                                                 props.getAcePass()));
 
-        
         return client.execute(host, req);
     }
 

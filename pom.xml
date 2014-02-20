@@ -172,6 +172,13 @@
                 <version>20130802</version>
             </dependency>
 
+            <!-- Yes, let's phase out the org.json lib -->
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>1.7.1</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.codehaus.jackson</groupId>
                 <artifactId>jackson-mapper-asl</artifactId>
