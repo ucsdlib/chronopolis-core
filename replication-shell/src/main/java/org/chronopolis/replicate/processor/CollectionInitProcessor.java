@@ -4,17 +4,12 @@
  */
 package org.chronopolis.replicate.processor;
 
-import edu.umiacs.ace.token.TokenStoreEntry;
-import edu.umiacs.ace.token.TokenStoreReader;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.nio.file.spi.FileSystemProvider;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -37,18 +32,17 @@ import org.chronopolis.common.transfer.RSyncTransfer;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
-import org.chronopolis.messaging.collection.CollectionInitReplyMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.ReplicationQueue;
 import org.chronopolis.replicate.util.URIUtil;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * TODO: How to reply to collection init message if there is an error
  *
  * @author shake
  */
@@ -235,7 +229,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         
         // Because I'm bad at reading - Collection Init Complete Message
         log.info("Sending response");
-        ChronMessage response = messageFactory.DefaultCollectionInitCompleteMessage();
+        ChronMessage response = messageFactory.collectionInitCompleteMessage(msg.getCorrelationId());
         producer.send(response, chronMessage.getReturnKey());
     }
     

@@ -79,6 +79,12 @@ public class MessageFactory {
         return msg;
     }
 
+    public CollectionInitCompleteMessage collectionInitCompleteMessage(String correlationId) {
+        CollectionInitCompleteMessage msg = new CollectionInitCompleteMessage();
+        setHeaders(msg, correlationId);
+        return msg;
+    }
+
     public CollectionInitCompleteMessage DefaultCollectionInitCompleteMessage() {
         CollectionInitCompleteMessage msg = new CollectionInitCompleteMessage();
         setHeaders(msg);

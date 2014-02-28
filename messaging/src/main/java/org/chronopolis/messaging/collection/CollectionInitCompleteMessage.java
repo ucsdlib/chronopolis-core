@@ -9,6 +9,7 @@ import org.chronopolis.messaging.base.ChronBody;
 import org.chronopolis.messaging.base.ChronMessage;
 
 /**
+ * TODO: Do we want to convey some type of error, or is this only for notification of a success?
  *
  * @author shake
  */

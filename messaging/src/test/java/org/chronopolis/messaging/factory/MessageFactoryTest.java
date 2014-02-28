@@ -3,6 +3,7 @@ package org.chronopolis.messaging.factory;
 import org.chronopolis.common.digest.Digest;
 import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.messaging.Indicator;
+import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
 import org.chronopolis.messaging.pkg.PackageReadyReplyMessage;
@@ -49,6 +50,13 @@ public class MessageFactoryTest{
                 "token-store",
                 "bag-location",
                 Digest.SHA_256
+        );
+    }
+
+    @Test
+    public void testCollectionInitCompleteMessage() throws Exception {
+        CollectionInitCompleteMessage message = messageFactory.collectionInitCompleteMessage(
+                "correlation-id"
         );
     }
 
