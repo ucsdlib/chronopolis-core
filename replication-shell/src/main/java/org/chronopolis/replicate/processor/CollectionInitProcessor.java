@@ -137,20 +137,27 @@ public class CollectionInitProcessor implements ChronProcessor {
 
         try { 
             log.info("Downloading manifest " + msg.getTokenStore());
-            manifest = ReplicationQueue.getFileImmediate(msg.getTokenStore(), Paths.get(props.getStage()), protocol);
+            manifest = ReplicationQueue.getFileImmediate(msg.getTokenStore(),
+                                                         Paths.get(props.getStage()),
+                                                         protocol);
         } catch (IOException ex) {
             log.error("Error downloading manifest \n{}", ex);
             return;
         }
 
         FileTransfer transfer;
+        String location = msg.getBagLocation();
+        // TODO: We'll probably end up just using the entire location for the
+        // rsync command instead of splitting it in the future
+        String[] parts = location.split("@", 2);
         if ( protocol.equalsIgnoreCase("https")) {
             transfer = new HttpsTransfer();
         } else {
-            transfer = new RSyncTransfer("shake");
+            String user = parts[0];
+            transfer = new RSyncTransfer(user);
         }
 
-        transfer.getFile(msg.getBagLocation(), bagPath);
+        transfer.getFile(parts[1], bagPath);
         /*
         TokenStoreReader reader;
         try {
