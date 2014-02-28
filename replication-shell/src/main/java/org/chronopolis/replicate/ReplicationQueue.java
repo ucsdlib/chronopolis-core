@@ -55,8 +55,10 @@ public class ReplicationQueue implements Runnable {
     public static Path getFileImmediate(String url, Path stage, String protocol) throws IOException {
         if ( url == null ) {
             System.out.println("Null url");
+            throw new IllegalArgumentException("Url cannot be null");
         } else if ( stage == null ) {
             System.out.println("Null stage");
+            throw new IllegalArgumentException("Stage cannot be null");
         } else if (xfer == null ) {
             System.out.println("This shouldn't happen");
         }
@@ -64,7 +66,10 @@ public class ReplicationQueue implements Runnable {
 
         if (protocol.equalsIgnoreCase("rsync")) {
             // TODO: Send any authentication information here
-            transfer = new RSyncTransfer("shake");
+            // TODO: Oh god this is so terrible
+            String[] parts = url.split("@", 2);
+            transfer = new RSyncTransfer(parts[0]);
+            url = parts[1];
         } else if (protocol.equalsIgnoreCase("https")) {
             transfer = new HttpsTransfer();
         } else {
