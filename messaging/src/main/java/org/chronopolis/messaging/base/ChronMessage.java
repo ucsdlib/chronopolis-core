@@ -1,13 +1,9 @@
 package org.chronopolis.messaging.base;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
-import com.rabbitmq.tools.json.JSONSerializable;
 import org.chronopolis.messaging.MessageType;
 import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
@@ -15,9 +11,12 @@ import org.chronopolis.messaging.collection.CollectionInitReplyMessage;
 import org.chronopolis.messaging.exception.InvalidMessageException;
 import org.chronopolis.messaging.file.FileQueryMessage;
 import org.chronopolis.messaging.file.FileQueryResponseMessage;
-import org.chronopolis.messaging.pkg.*;
+import org.chronopolis.messaging.pkg.PackageIngestCompleteMessage;
+import org.chronopolis.messaging.pkg.PackageIngestStatusQueryMessage;
+import org.chronopolis.messaging.pkg.PackageIngestStatusResponseMessage;
+import org.chronopolis.messaging.pkg.PackageReadyMessage;
+import org.chronopolis.messaging.pkg.PackageReadyReplyMessage;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import static org.chronopolis.messaging.MessageConstant.CORRELATION_ID;

@@ -6,7 +6,6 @@ package org.chronopolis.messaging.base;
 
 import java.io.Serializable;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import org.chronopolis.messaging.MessageType;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;

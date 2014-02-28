@@ -30,6 +30,7 @@ import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.chronopolis.amqp.ChronProducer;
+import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.common.transfer.FileTransfer;
 import org.chronopolis.common.transfer.HttpsTransfer;
 import org.chronopolis.common.transfer.RSyncTransfer;
@@ -183,30 +184,18 @@ public class CollectionInitProcessor implements ChronProcessor {
 
         try {
             log.trace("Building ACE json");
-            // Build and POST our collection
-            // TODO: Functionize 
-            JSONObject auditVals = new JSONObject();
-            auditVals.put("key", "audit.tokens");
-            auditVals.put("value", "true");
-            JSONObject proxyVals = new JSONObject();
-            proxyVals.put("key", "proxy.data");
-            proxyVals.put("value", "false");
-            JSONObject auditPeriod = new JSONObject();
-            auditPeriod.put("key", "audit.period");
-            auditPeriod.put("value", msg.getAuditPeriod());
-            JSONObject settings = new JSONObject().put("entry", 
-                                                   new JSONArray().put(auditVals)
-                                                                  .put(proxyVals)
-                                                                  .put(auditPeriod));
+            GsonCollection aceGson = new GsonCollection();
+            aceGson.setDigestAlgorithm(fixityAlg);
+            aceGson.setDirectory(collPath.toString());
+            aceGson.setName(msg.getCollection());
+            aceGson.setGroup(msg.getDepositor());
+            aceGson.setStorage("local");
+            aceGson.setAuditPeriod(String.valueOf(msg.getAuditPeriod()));
+            aceGson.setAuditTokens("true");
+            aceGson.setProxyData("false");
 
-            JSONObject coll = new JSONObject();
-            coll.put("digestAlgorithm", fixityAlg);
-            coll.put("settings", settings);
-            coll.put("directory", collPath.toString());
-            coll.put("name", msg.getCollection());
-            coll.put("group", msg.getDepositor());
-            coll.put("storage", "local");
-            StringEntity entity = new StringEntity(coll.toString(), 
+            // Build and POST our collection
+            StringEntity entity = new StringEntity(aceGson.toJson(),
                                                    ContentType.APPLICATION_JSON);
             String uri = URIUtil.buildACECollectionPost(props.getAceFqdn(), 
                                                         props.getAcePort(), 
