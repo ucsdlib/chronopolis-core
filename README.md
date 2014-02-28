@@ -20,6 +20,11 @@ The basic layout of the project is as follows:
          |    chron-bagit        // BagIt stuff, should probably be moved into a separate repo
 
 
+Development:
+Please make changes to the develop branch first for testing :)
+git fetch origin
+git checkout --track origin/develop
+
 Todo: 
 
 Lots of stuff
