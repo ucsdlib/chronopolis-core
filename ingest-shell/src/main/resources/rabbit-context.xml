@@ -48,17 +48,17 @@
     <rabbit:admin connection-factory="connectionFactory"/>
 
     <!-- Set up our queues and bindings in the exchange -->
-    <rabbit:queue id="queue.test" name="test.ingest.umiacs" durable="true"/>
-    <rabbit:queue id="queue.broadcast" name="broadcast.ingest.umiacs" durable="true"/>
-    <rabbit:queue id="queue.direct-ingest" name="direct.ingest.umiacs" durable="true"/>
-    <rabbit:queue id="queue.direct-collection" name="direct.collection.umiacs" durable="true"/>
+    <rabbit:queue id="queue.test" name="${queue.test.name}" durable="true"/>
+    <rabbit:queue id="queue.broadcast" name="${queue.broadcast.name}" durable="true"/>
+    <rabbit:queue id="queue.direct-ingest" name="${queue.direct-ingest.name}" durable="true"/>
+    <rabbit:queue id="queue.direct-collection" name="${queue.direct-collection.name}" durable="true"/>
 
     <rabbit:topic-exchange id="federatedExchange" name="chronopolis-control"> 
         <rabbit:bindings>
-            <rabbit:binding queue="queue.test" pattern="test.umiacs"/>
-            <rabbit:binding queue="queue.broadcast" pattern="package.ingest.broadcast"/>
-            <rabbit:binding queue="queue.direct-ingest" pattern="package.ingest.umiacs"/>
-            <rabbit:binding queue="queue.direct-collection" pattern="collection.ingest.umiacs"/>
+            <rabbit:binding queue="queue.test" pattern="${queue.test.pattern}"/>
+            <rabbit:binding queue="queue.broadcast" pattern="${queue.broadcast.pattern}"/>
+            <rabbit:binding queue="queue.direct-ingest" pattern="${queue.direct-ingest.pattern}"/>
+            <rabbit:binding queue="queue.direct-collection" pattern="${queue.direct-collection.pattern}"/>
         </rabbit:bindings>
     </rabbit:topic-exchange>
 
