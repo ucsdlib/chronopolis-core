@@ -23,7 +23,8 @@
         <constructor-arg value="${ingestBroadcastRoutingKey}"/>
         <constructor-arg value="${tokenStage}" />
         <constructor-arg value="${imsHostName}"/>
-        <constructor-arg value="${tokenServer}"/>
+        <constructor-arg value="${storageServer}"/>
+        <constructor-arg value="${externalUser}"/>
     </bean>
 
     <bean id="rabbitConnectionFactory" class="com.rabbitmq.client.ConnectionFactory">
@@ -51,14 +52,12 @@
     <rabbit:queue id="queue.test" name="${queue.test.name}" durable="true"/>
     <rabbit:queue id="queue.broadcast" name="${queue.broadcast.name}" durable="true"/>
     <rabbit:queue id="queue.direct-ingest" name="${queue.direct-ingest.name}" durable="true"/>
-    <rabbit:queue id="queue.direct-collection" name="${queue.direct-collection.name}" durable="true"/>
 
     <rabbit:topic-exchange id="federatedExchange" name="chronopolis-control"> 
         <rabbit:bindings>
             <rabbit:binding queue="queue.test" pattern="${queue.test.pattern}"/>
             <rabbit:binding queue="queue.broadcast" pattern="${queue.broadcast.pattern}"/>
             <rabbit:binding queue="queue.direct-ingest" pattern="${queue.direct-ingest.pattern}"/>
-            <rabbit:binding queue="queue.direct-collection" pattern="${queue.direct-collection.pattern}"/>
         </rabbit:bindings>
     </rabbit:topic-exchange>
 
@@ -90,7 +89,7 @@
     <rabbit:listener-container connection-factory="connectionFactory"
                                error-handler="errorHandler"> 
         <rabbit:listener ref="msgListener"
-                     queues="queue.test,queue.broadcast,queue.direct-ingest,queue.direct-collection"/>
+                     queues="queue.test,queue.broadcast,queue.direct-ingest"/>
     </rabbit:listener-container>
 
     <rabbit:template id="rabbitTemplate" exchange="chronopolis-control" 
