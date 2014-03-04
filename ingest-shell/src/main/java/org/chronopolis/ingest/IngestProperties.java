@@ -13,7 +13,8 @@ import org.chronopolis.common.properties.GenericProperties;
 public class IngestProperties extends GenericProperties{
 	private String tokenStage;
 	private String imsHostName;
-    private String tokenServer;
+    private String storageServer;
+    private String externalUser;
 
 	/**
 	 *
@@ -29,11 +30,13 @@ public class IngestProperties extends GenericProperties{
                             String broadcastKey,
                             String tokenStage,
                             String imsHostName,
-                            String tokenServer) {
+                            String storageServer,
+                            String externalUser) {
 		super(nodeName, bagStage, exchange, inboundKey, broadcastKey);
 		this.tokenStage = tokenStage;
 		this.imsHostName = imsHostName;
-        this.tokenServer = tokenServer;
+        this.storageServer = storageServer;
+        this.externalUser = externalUser;
 	}
 
 	/**
@@ -64,16 +67,23 @@ public class IngestProperties extends GenericProperties{
 		this.imsHostName = imsHostName;
 	}
 
-    public String getTokenServer() {
-        return tokenServer;
+    public String getStorageServer() {
+        return storageServer;
     }
 
-    public void setTokenServer(String tokenServer) {
-        this.tokenServer = tokenServer;
+    public void setStorageServer(String storageServer) {
+        this.storageServer = storageServer;
     }
 
 	private String getErrorMessage() {
 		return "Error in ingest.properties";
 	}
-	 
+
+    public String getExternalUser() {
+        return externalUser;
+    }
+
+    public void setExternalUser(String externalUser) {
+        this.externalUser = externalUser;
+    }
 }

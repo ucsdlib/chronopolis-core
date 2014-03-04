@@ -80,11 +80,15 @@ public class PackageReadyProcessor implements ChronProcessor {
             success = false;
         }
 
+        String user = props.getExternalUser();
+        String server = props.getStorageServer();
 
         // Should end up being the location for a download
-        StringBuilder tokenStore = new StringBuilder(props.getTokenServer());
+        StringBuilder tokenStore = new StringBuilder(user);
+        tokenStore.append("@").append(server);
         tokenStore.append(":").append(manifest.toString());
-        StringBuilder bagLocation = new StringBuilder(props.getTokenServer());
+        StringBuilder bagLocation = new StringBuilder(user);
+        bagLocation.append("@").append(server);
         bagLocation.append(":").append(toBag.toString());
 
 
@@ -94,7 +98,7 @@ public class PackageReadyProcessor implements ChronProcessor {
             replyInd = Indicator.ACK;
 
             // Start the replication
-            // TODO: Get a way to choose the protocol. Will be changing for testing.
+            // TODO: Choose the preferred protocol (maybe from properties?)
             CollectionInitMessage response = messageFactory.collectionInitMessage(
                     120,
                     packageName,
