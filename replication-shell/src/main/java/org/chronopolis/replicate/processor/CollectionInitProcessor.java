@@ -183,6 +183,10 @@ public class CollectionInitProcessor implements ChronProcessor {
         }
         */
 
+        /*
+        TODO: Do we want to decouple this? That way when testing we can pick and choose when to POST to ACE
+
+         */
         try {
             log.trace("Building ACE json");
             GsonCollection aceGson = new GsonCollection();

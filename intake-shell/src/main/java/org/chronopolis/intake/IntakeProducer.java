@@ -78,7 +78,7 @@ public class IntakeProducer {
                 Digest.SHA_256,
                 location,
                 bagName, 400);
-        producer.send(msg,"package.ingest.broadcast");
+        producer.send(msg,"ingest.broadcast");
     }
     
     private PRODUCER_OPTION inputOption() {

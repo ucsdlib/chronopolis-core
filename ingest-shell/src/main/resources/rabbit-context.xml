@@ -19,8 +19,8 @@
         <constructor-arg value="${nodeName}"/>
         <constructor-arg value="${stage}"/>
         <constructor-arg value="${exchange}"/>
-        <constructor-arg value="${inboundKey}"/>
-        <constructor-arg value="${broadcastKey}"/>
+        <constructor-arg value="${inboundRoutingKey}"/>
+        <constructor-arg value="${ingestBroadcastRoutingKey}"/>
         <constructor-arg value="${tokenStage}" />
         <constructor-arg value="${imsHostName}"/>
         <constructor-arg value="${tokenServer}"/>
