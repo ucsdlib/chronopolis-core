@@ -49,9 +49,9 @@ import org.slf4j.LoggerFactory;
 public class CollectionInitProcessor implements ChronProcessor {
     private static final Logger log = LoggerFactory.getLogger(CollectionInitProcessor.class);
 
-    private ChronProducer producer;
-    private MessageFactory messageFactory;
-    private ReplicationProperties props;
+    private final ChronProducer producer;
+    private final MessageFactory messageFactory;
+    private final ReplicationProperties props;
 
     public CollectionInitProcessor(ChronProducer producer,
                                    MessageFactory messageFactory,
@@ -75,8 +75,7 @@ public class CollectionInitProcessor implements ChronProcessor {
 
     // Helper to POST to ACE
     private HttpResponse doPost(String url, 
-                                HttpEntity entity) throws IOException,
-                                                          UnsupportedEncodingException {
+                                HttpEntity entity) throws IOException {
         log.info("Posting to " + url + " with " + entity.toString());
         HttpPost post = new HttpPost(url);
         post.setEntity(entity);
@@ -85,18 +84,18 @@ public class CollectionInitProcessor implements ChronProcessor {
 
     // Helper to get the id of the newly created collection
     // Maybe I should have ACE return a json blob on a successful collection creation 
-    private  int getCollectionId(String collection, 
-                                 String group) throws IOException, 
-                                                      JSONException {
+    private int getCollectionId(String collection,
+                                String group) throws IOException,
+                                                     JSONException {
         String uri = URIUtil.buildACECollectionGet(props.getAceFqdn(), 
                                                    props.getAcePort(), 
                                                    props.getAcePath(), 
                                                    collection, 
                                                    group);
-        HttpGet get = new HttpGet(uri.toString());
+        HttpGet get = new HttpGet(uri);
 
         HttpResponse response = executeRequest(get);
-        if ( response.getStatusLine().getStatusCode() != 200) {
+        if (response.getStatusLine().getStatusCode() != 200) {
             throw new RuntimeException("Could not get collection!");
         }
         BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
@@ -105,18 +104,41 @@ public class CollectionInitProcessor implements ChronProcessor {
         // luckily we only get a single line back from ACE
         String r = reader.readLine();
         JSONObject responseJson = new JSONObject(r);
-        log.info(responseJson.toString());
+        log.debug(responseJson.toString());
         return responseJson.getInt("id");
     }
 
-    // TODO: Register token store in to ACE
+    // TODO: This shares most of it's code w/ the above... hm
+    private boolean hasCollection(String collection, String group) {
+        boolean hasCollection = false;
+        String uri = URIUtil.buildACECollectionGet(props.getAceFqdn(),
+                props.getAcePort(),
+                props.getAcePath(),
+                collection,
+                group);
+
+        HttpGet get = new HttpGet(uri);
+        try {
+            HttpResponse response = executeRequest(get);
+            if (response.getStatusLine().getStatusCode() == 200) {
+                hasCollection = true;
+            }
+        } catch (IOException e) {
+            log.error("'{}'", e);
+        }
+
+        return hasCollection;
+    }
+
     // TODO: Check to make sure we don't already have this collection (do a new version if we do?)
-    // TODO: Stuff
     @Override
     public void process(ChronMessage chronMessage) {
+        boolean checkCollection = false;
+        boolean register = true;
+
         if(!(chronMessage instanceof CollectionInitMessage)) {
             // Error out
-            System.out.println("Error");
+            log.error("Incorrect Message Type");
             return;
         }
 
@@ -128,6 +150,12 @@ public class CollectionInitProcessor implements ChronProcessor {
         Path collPath = Paths.get(bagPath.toString(), msg.getCollection());
         String fixityAlg = msg.getFixityAlgorithm();
         String protocol = msg.getProtocol();
+
+        if (checkCollection) {
+            if (hasCollection(msg.getCollection(), msg.getDepositor())) {
+                log.error("Already registered collection '{}'", msg.getCollection());
+            }
+        }
 
         try { 
             log.info("Downloading manifest " + msg.getTokenStore());
@@ -206,8 +234,6 @@ public class CollectionInitProcessor implements ChronProcessor {
                                                         props.getAcePort(), 
                                                         props.getAcePath());
             HttpResponse req = doPost(uri, entity);
-            // 2 things
-            // 2: Log also
             log.info(req.getStatusLine().toString());
             if ( req.getStatusLine().getStatusCode() != 200 ) {
                 throw new RuntimeException("Could not POST collection");

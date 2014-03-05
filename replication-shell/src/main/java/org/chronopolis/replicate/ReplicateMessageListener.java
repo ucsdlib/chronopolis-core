@@ -15,15 +15,13 @@ import org.chronopolis.messaging.base.ChronProcessor;
  */
 public class ReplicateMessageListener extends ChronMessageListener {
     private static final Logger log = Logger.getLogger(ReplicateMessageListener.class);
-    private ChronProcessor fileQueryProcessor;
-    private ChronProcessor fileQueryResponseProcessor;
-    private ChronProcessor collectionInitProcessor;
+    private final ChronProcessor fileQueryProcessor;
+    private final ChronProcessor fileQueryResponseProcessor;
+    private final ChronProcessor collectionInitProcessor;
 
     public ReplicateMessageListener(ChronProcessor fileQueryProcessor,
                                     ChronProcessor fileQueryResponseProcessor,
                                     ChronProcessor collectionInitProcessor) {
-        System.out.println("Hello Spring Context World!");
-        log.info("Hello Spring Context World!");
         this.fileQueryProcessor = fileQueryProcessor;
         this.fileQueryResponseProcessor = fileQueryResponseProcessor;
         this.collectionInitProcessor = collectionInitProcessor;
