@@ -32,12 +32,10 @@ public class ReplicationConsumer {
 
 
         if (aceRegisterVal != null) {
-            //props.setAceRegister(Boolean.parseBoolean(aceRegisterVal));
             log.info("Captured aceRegister: '{}'", Boolean.parseBoolean(aceRegisterVal));
         }
 
         if (aceCheckVal != null) {
-            //props.setAceCheck(Boolean.parseBoolean(aceCheckVal));
             log.info("Capture aceCheck: '{}'", Boolean.parseBoolean(aceCheckVal));
         }
 
@@ -46,6 +44,10 @@ public class ReplicationConsumer {
         boolean done = false;
         ChronProducer p = (ChronProducer) context.getBean("producer");
         ReplicationProperties props = (ReplicationProperties) context.getBean("properties");
+
+        // Register System Properties here?
+        // props.setRegister(aceRegisterVal)
+        // props.setCheck(aceCheckVal)
 
         while (!done) {
 

@@ -130,7 +130,52 @@ public class CollectionInitProcessor implements ChronProcessor {
         return hasCollection;
     }
 
+    private void setAceTokenStore(String collection,
+                                  String group,
+                                  Path collPath,
+                                  Path manifest,
+                                  String fixityAlg,
+                                  int auditPeriod) throws IOException {
+        log.trace("Building ACE json");
+        GsonCollection aceGson = new GsonCollection();
+        aceGson.setDigestAlgorithm(fixityAlg);
+        aceGson.setDirectory(collPath.toString());
+        aceGson.setName(collection);
+        aceGson.setGroup(group);
+        aceGson.setStorage("local");
+        aceGson.setAuditPeriod(String.valueOf(auditPeriod));
+        aceGson.setAuditTokens("true");
+        aceGson.setProxyData("false");
+
+        // Build and POST our collection
+        StringEntity entity = new StringEntity(aceGson.toJson(),
+                ContentType.APPLICATION_JSON);
+        String uri = URIUtil.buildACECollectionPost(props.getAceFqdn(),
+                props.getAcePort(),
+                props.getAcePath());
+        HttpResponse req = doPost(uri, entity);
+        log.info(req.getStatusLine().toString());
+        if ( req.getStatusLine().getStatusCode() != 200 ) {
+            throw new RuntimeException("Could not POST collection");
+        }
+
+        // Get the ID of the newly made collection
+        int id = getCollectionId(collection, group);
+
+        // Now let's POST the token store
+        FileBody body = new FileBody(manifest.toFile());
+        MultipartEntity mpEntity = new MultipartEntity();
+        mpEntity.addPart("tokenstore", body);
+        uri = URIUtil.buildACETokenStorePost(props.getAceFqdn(),
+                props.getAcePort(),
+                props.getAcePath(),
+                id);
+        doPost(uri, mpEntity);
+    }
+
+
     // TODO: Check to make sure we don't already have this collection (do a new version if we do?)
+    // TODO: Reply if there is an error with the collection (ie: already registered in ace), or ack
     @Override
     public void process(ChronMessage chronMessage) {
         boolean checkCollection = false;
@@ -150,6 +195,9 @@ public class CollectionInitProcessor implements ChronProcessor {
         Path collPath = Paths.get(bagPath.toString(), msg.getCollection());
         String fixityAlg = msg.getFixityAlgorithm();
         String protocol = msg.getProtocol();
+        String collection = msg.getCollection();
+        String group = msg.getDepositor();
+        int auditPeriod = msg.getAuditPeriod();
 
         if (checkCollection) {
             if (hasCollection(msg.getCollection(), msg.getDepositor())) {
@@ -211,48 +259,10 @@ public class CollectionInitProcessor implements ChronProcessor {
         }
         */
 
-        /*
-        TODO: Do we want to decouple this? That way when testing we can pick and choose when to POST to ACE
-
-         */
         try {
-            log.trace("Building ACE json");
-            GsonCollection aceGson = new GsonCollection();
-            aceGson.setDigestAlgorithm(fixityAlg);
-            aceGson.setDirectory(collPath.toString());
-            aceGson.setName(msg.getCollection());
-            aceGson.setGroup(msg.getDepositor());
-            aceGson.setStorage("local");
-            aceGson.setAuditPeriod(String.valueOf(msg.getAuditPeriod()));
-            aceGson.setAuditTokens("true");
-            aceGson.setProxyData("false");
-
-            // Build and POST our collection
-            StringEntity entity = new StringEntity(aceGson.toJson(),
-                                                   ContentType.APPLICATION_JSON);
-            String uri = URIUtil.buildACECollectionPost(props.getAceFqdn(), 
-                                                        props.getAcePort(), 
-                                                        props.getAcePath());
-            HttpResponse req = doPost(uri, entity);
-            log.info(req.getStatusLine().toString());
-            if ( req.getStatusLine().getStatusCode() != 200 ) {
-                throw new RuntimeException("Could not POST collection");
+            if (register) {
+                setAceTokenStore(collection, group, collPath, manifest, fixityAlg, auditPeriod);
             }
-
-            // Get the ID of the newly made collection
-            int id = getCollectionId(msg.getCollection(), msg.getDepositor());
-
-            // Now let's POST the token store
-            FileBody body = new FileBody(manifest.toFile());
-            MultipartEntity mpEntity = new MultipartEntity();
-            mpEntity.addPart("tokenstore", body);
-            uri = URIUtil.buildACETokenStorePost(props.getAceFqdn(), 
-                                                 props.getAcePort(), 
-                                                 props.getAcePath(), 
-                                                 id);
-            doPost(uri, mpEntity);
-        } catch (JSONException ex) {
-            log.error("Error creating json", ex);
         } catch (IOException ex) {
             log.error("IO Error", ex);
         }
