@@ -82,19 +82,35 @@ public class CollectionInitProcessor implements ChronProcessor {
         return executeRequest(post);
     }
 
-    // Helper to get the id of the newly created collection
-    // Maybe I should have ACE return a json blob on a successful collection creation 
-    private int getCollectionId(String collection,
-                                String group) throws IOException,
-                                                     JSONException {
-        String uri = URIUtil.buildACECollectionGet(props.getAceFqdn(), 
-                                                   props.getAcePort(), 
-                                                   props.getAcePath(), 
-                                                   collection, 
+    // Helper to reduce a couple lines of code
+    private HttpResponse getCollection(String collection,
+                                       String group) throws IOException {
+        String uri = URIUtil.buildACECollectionGet(props.getAceFqdn(),
+                                                   props.getAcePort(),
+                                                   props.getAcePath(),
+                                                   collection,
                                                    group);
         HttpGet get = new HttpGet(uri);
 
-        HttpResponse response = executeRequest(get);
+        return executeRequest(get);
+    }
+
+    /**
+     * Get the id for a collection in ACE
+     *
+     * @param collection The collection name
+     * @param group The collection's group
+     * @return The id of the collection
+     * @throws IOException
+     * @throws JSONException
+     */
+    private int getCollectionId(String collection,
+                                String group) throws IOException,
+                                                     JSONException {
+        // Wouldn't it be cool if we could chain together method calls? Like
+        // getCollection(c, g).andReturnId()
+        // I guess I would need a specific object to handle that though
+        HttpResponse response = getCollection(collection, group);
         if (response.getStatusLine().getStatusCode() != 200) {
             throw new RuntimeException("Could not get collection!");
         }
@@ -108,18 +124,17 @@ public class CollectionInitProcessor implements ChronProcessor {
         return responseJson.getInt("id");
     }
 
-    // TODO: This shares most of it's code w/ the above... hm
+    /**
+     * Check whether a collection exists in ACE
+     *
+     * @param collection The collection name
+     * @param group The collection's group
+     * @return true if ACE has the collection, false otherwise
+     */
     private boolean hasCollection(String collection, String group) {
         boolean hasCollection = false;
-        String uri = URIUtil.buildACECollectionGet(props.getAceFqdn(),
-                props.getAcePort(),
-                props.getAcePath(),
-                collection,
-                group);
-
-        HttpGet get = new HttpGet(uri);
         try {
-            HttpResponse response = executeRequest(get);
+            HttpResponse response = getCollection(collection, group);
             if (response.getStatusLine().getStatusCode() == 200) {
                 hasCollection = true;
             }
@@ -178,6 +193,7 @@ public class CollectionInitProcessor implements ChronProcessor {
     // TODO: Reply if there is an error with the collection (ie: already registered in ace), or ack
     @Override
     public void process(ChronMessage chronMessage) {
+        // TODO: Replace these with the values from the properties
         boolean checkCollection = false;
         boolean register = true;
 
