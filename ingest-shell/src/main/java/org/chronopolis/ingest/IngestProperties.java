@@ -15,6 +15,7 @@ public class IngestProperties extends GenericProperties{
 	private String imsHostName;
     private String storageServer;
     private String externalUser;
+    private Boolean dpnPush;
 
 	/**
 	 *
@@ -31,12 +32,14 @@ public class IngestProperties extends GenericProperties{
                             String tokenStage,
                             String imsHostName,
                             String storageServer,
-                            String externalUser) {
+                            String externalUser,
+                            Boolean dpnPush) {
 		super(nodeName, bagStage, exchange, inboundKey, broadcastKey);
 		this.tokenStage = tokenStage;
 		this.imsHostName = imsHostName;
         this.storageServer = storageServer;
         this.externalUser = externalUser;
+        this.dpnPush = dpnPush;
 	}
 
 	/**
@@ -86,4 +89,13 @@ public class IngestProperties extends GenericProperties{
     public void setExternalUser(String externalUser) {
         this.externalUser = externalUser;
     }
+
+    public Boolean pushToDpn() {
+        return dpnPush;
+    }
+
+    public void setDpnPush(Boolean dpnPush) {
+        this.dpnPush = dpnPush;
+    }
+
 }

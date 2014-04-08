@@ -25,6 +25,7 @@
         <constructor-arg value="${imsHostName}"/>
         <constructor-arg value="${storageServer}"/>
         <constructor-arg value="${externalUser}"/>
+        <constructor-arg value="${dpnPush}"/>
     </bean>
 
     <bean id="rabbitConnectionFactory" class="com.rabbitmq.client.ConnectionFactory">

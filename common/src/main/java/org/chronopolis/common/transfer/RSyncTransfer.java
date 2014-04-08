@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 public class RSyncTransfer implements FileTransfer {
     private final Logger log = LoggerFactory.getLogger(RSyncTransfer.class);
     String user;
-    String password;
 
     public RSyncTransfer(String user) {
       this.user = user;
