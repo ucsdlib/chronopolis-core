@@ -64,4 +64,12 @@ public class PackageReadyMessage extends ChronMessage {
         body.addContent(FIXITY_ALGORITHM.toString(), algorithm.getName());
     }
 
+    public void setToDpn(Boolean toDpn) {
+        body.addContent(TO_DPN.toString(), toDpn);
+    }
+
+    public Boolean toDpn() {
+        return (Boolean) body.get(TO_DPN.toString());
+    }
+
 }

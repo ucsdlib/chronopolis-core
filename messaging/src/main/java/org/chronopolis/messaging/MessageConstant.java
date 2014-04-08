@@ -34,6 +34,7 @@ public enum MessageConstant {
     FAILED_ITEMS("failed-items"),
     FIXITY_ALGORITHM("fixity-algorithm"),
     MESSAGE_ATT("message-att"),
+    TO_DPN("to-dpn"),
 
     // Misc
     STATUS_SUCCESS("success"),

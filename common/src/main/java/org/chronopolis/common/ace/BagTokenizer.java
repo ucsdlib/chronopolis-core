@@ -129,7 +129,7 @@ public class BagTokenizer {
         log.info("Creating tokens");
         // Token creation
         createIMSConnection();
-        callback.setStage(tokenStage); // TODO: Token stage
+        callback.setStage(tokenStage);
         Future<Path> manifest = manifestService.submit(callback);
         for ( Map.Entry<Path, String> entry : digests.entrySet()) {
             TokenRequest req = new TokenRequest();
