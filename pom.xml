@@ -18,7 +18,8 @@
         <module>ingest-shell</module>
         <module>logger</module>
         <module>replication-shell</module>
-  </modules>
+        <module>chron-db</module>
+    </modules>
 
 
     <build>
@@ -146,7 +147,6 @@
             </dependency>
 
             <!-- misc spring -->
-
             <dependency>
                 <groupId>org.springframework.amqp</groupId>
                 <artifactId>spring-rabbit</artifactId>
@@ -160,6 +160,37 @@
             </dependency>
 
             <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-test</artifactId>
+                <version>4.0.2.RELEASE</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.data</groupId>
+                <artifactId>spring-data-jpa</artifactId>
+                <version>1.4.4.RELEASE</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-asm</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <!-- DB -->
+            <dependency>
+                <groupId>org.hibernate.javax.persistence</groupId>
+                <artifactId>hibernate-jpa-2.0-api</artifactId>
+                <version>1.0.1.Final</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.h2database</groupId>
+                <artifactId>h2</artifactId>
+                <version>1.3.175</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.easymock</groupId>
                 <artifactId>easymock</artifactId>
                 <version>3.1</version>
@@ -170,6 +201,7 @@
                 <groupId>org.json</groupId>
                 <artifactId>json</artifactId>
                 <version>20130802</version>
+                <scope>test</scope>
             </dependency>
 
             <!-- Yes, let's phase out the org.json lib -->
