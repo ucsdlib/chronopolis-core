@@ -9,19 +9,21 @@ import org.chronopolis.ingest.processor.CollectionInitCompleteProcessor;
 import org.chronopolis.ingest.processor.PackageIngestStatusQueryProcessor;
 import org.chronopolis.ingest.processor.PackageReadyProcessor;
 import org.chronopolis.messaging.factory.MessageFactory;
-import org.springframework.amqp.core.*;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.MessageListener;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionListener;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
-import org.springframework.core.io.ClassPathResource;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -43,6 +45,14 @@ public class IngestConfiguration {
     public static final String PROPERTIES_STORAGE_SERVER = "storageServer";
     public static final String PROPERTIES_EXTERNAL_USER = "externalUser";
     public static final String PROPERTIES_DPN_PUSH = "dpnPush";
+
+    // Rabbit related properties
+    public static final String PROPERTIES_RABBIT_TEST_QUEUE_NAME = "queue.test.name";
+    public static final String PROPERTIES_RABBIT_BROADCAST_QUEUE_NAME = "queue.broadcast.name";
+    public static final String PROPERTIES_RABBIT_DIRECT_INGEST_QUEUE_NAME = "queue.direct-ingest.name";
+    public static final String PROPERTIES_RABBIT_TEST_BINDING_NAME = "queue.test.pattern";
+    public static final String PROPERTIES_RABBIT_BROADCAST_BINDING_NAME = "queue.broadcast.pattern";
+    public static final String PROPERTIES_RABBIT_DIRECT_INGEST_BINDING_NAME = "queue.direct-ingest.pattern";
 
     @Resource
     Environment env;
@@ -142,33 +152,39 @@ public class IngestConfiguration {
 
     @Bean
     Queue testQueue() {
-        return new Queue(env.getProperty("queue.test.name"), true);
+        return new Queue(env.getProperty(PROPERTIES_RABBIT_TEST_QUEUE_NAME), true);
     }
 
     @Bean
     Queue broadcastQueue() {
-        return new Queue(env.getProperty("queue.broadcast.name"), true);
+        return new Queue(env.getProperty(PROPERTIES_RABBIT_BROADCAST_QUEUE_NAME), true);
     }
 
     @Bean
     Queue directIngestQueue() {
-        return new Queue(env.getProperty("queue.direct-ingest.name"), true);
+        return new Queue(env.getProperty(PROPERTIES_RABBIT_DIRECT_INGEST_QUEUE_NAME), true);
     }
 
 
     @Bean
     Binding testBinding() {
-        return BindingBuilder.bind(testQueue()).to(topicExchange()).with(env.getProperty("queue.test.pattern"));
+        return BindingBuilder.bind(testQueue())
+                             .to(topicExchange())
+                             .with(env.getProperty(PROPERTIES_RABBIT_TEST_BINDING_NAME));
     }
 
     @Bean
     Binding broadcastBinding() {
-        return BindingBuilder.bind(broadcastQueue()).to(topicExchange()).with(env.getProperty("queue.broadcast.pattern"));
+        return BindingBuilder.bind(broadcastQueue())
+                             .to(topicExchange())
+                             .with(env.getProperty(PROPERTIES_RABBIT_BROADCAST_BINDING_NAME));
     }
 
     @Bean
     Binding directIngestBinding() {
-        return BindingBuilder.bind(directIngestQueue()).to(topicExchange()).with(env.getProperty("queue.direct-ingest.pattern"));
+        return BindingBuilder.bind(directIngestQueue())
+                             .to(topicExchange())
+                             .with(env.getProperty(PROPERTIES_RABBIT_DIRECT_INGEST_BINDING_NAME));
     }
 
     @Bean
@@ -190,9 +206,9 @@ public class IngestConfiguration {
     @Bean
     @DependsOn("rabbitAdmin")
     SimpleMessageListenerContainer simpleMessageListenerContainer() {
-        String testQueueName = env.getProperty("queue.test.name");
-        String testBName = env.getProperty("queue.broadcast.name");
-        String testIName = env.getProperty("queue.direct-ingest.name");
+        String testQueueName = env.getProperty(PROPERTIES_RABBIT_TEST_QUEUE_NAME);
+        String testBName = env.getProperty(PROPERTIES_RABBIT_BROADCAST_QUEUE_NAME);
+        String testIName = env.getProperty(PROPERTIES_RABBIT_DIRECT_INGEST_QUEUE_NAME);
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setConnectionFactory(connectionFactory());
         container.setQueueNames(testQueueName, testBName, testIName);
