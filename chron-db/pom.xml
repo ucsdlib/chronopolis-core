@@ -2,14 +2,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>chronopolis</artifactId>
         <groupId>org.chronopolis</groupId>
+        <artifactId>chronopolis</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
-
+    <groupId>org.chronopolis</groupId>
     <artifactId>chron-db</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
 
     <dependencies>
         <dependency>
@@ -19,13 +21,12 @@
 
         <dependency>
             <groupId>org.hibernate.javax.persistence</groupId>
-            <artifactId>hibernate-jpa-2.0-api</artifactId>
+            <artifactId>hibernate-jpa-2.1-api</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-entitymanager</artifactId>
-            <version>4.3.1.Final</version>
         </dependency>
 
         <dependency>
@@ -41,13 +42,11 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
-            <version>4.0.2.RELEASE</version>
         </dependency>
 
         <dependency>
             <groupId>cglib</groupId>
-            <artifactId>cglib</artifactId>
-            <version>3.1</version>
+            <artifactId>cglib-nodep</artifactId>
         </dependency>
 
     </dependencies>

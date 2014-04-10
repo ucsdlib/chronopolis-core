@@ -67,6 +67,8 @@ public class PackageReadyProcessor implements ChronProcessor {
         String fixityAlg = msg.getFixityAlgorithm();
         Digest fixity = Digest.fromString(msg.getFixityAlgorithm());
         String depositor = msg.getDepositor();
+        Boolean toDpn = msg.toDpn(); // This will need to be persisted...?
+
         Path toBag = Paths.get(props.getStage(), location);
         Path tokenStage = Paths.get(props.getTokenStage());
 

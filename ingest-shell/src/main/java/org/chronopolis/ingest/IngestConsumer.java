@@ -8,7 +8,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import org.chronopolis.amqp.ChronProducer;
-import org.springframework.context.support.GenericXmlApplicationContext;
+import org.chronopolis.ingest.config.IngestConfiguration;
+import org.chronopolis.ingest.config.IngestJPAConfiguration;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
 
 /**
  *
@@ -26,12 +29,17 @@ public class IngestConsumer {
     }
     
     public static void main(String [] args) {
-        GenericXmlApplicationContext context = new GenericXmlApplicationContext(
-                "classpath:/rabbit-context.xml");
+        //GenericXmlApplicationContext context = new GenericXmlApplicationContext(
+        //        "classpath:/rabbit-context.xml");
+        AnnotationConfigApplicationContext context2 = new AnnotationConfigApplicationContext();
+        context2.register(IngestJPAConfiguration.class);
+        context2.register(IngestConfiguration.class);
+        context2.refresh();
+
         boolean done = false;
-        ChronProducer p = (ChronProducer) context.getBean("producer");
-        IngestProperties props = (IngestProperties ) context.getBean("properties");
-        
+        ChronProducer p = (ChronProducer) context2.getBean("producer");
+        IngestProperties props = (IngestProperties) context2.getBean("properties");
+
         while (!done) {
             
             try {
@@ -46,7 +54,8 @@ public class IngestConsumer {
             }
         }
         
-        context.close();
+        //context.close();
+        context2.close();
         System.out.println("Closed for business");
     }
 }

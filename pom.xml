@@ -64,6 +64,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.license>umd</project.license>
     </properties>
+
     <repositories>
         <repository>
             <url>https://scm.umiacs.umd.edu/maven/adapt/content/repositories/releases/</url>
@@ -89,6 +90,12 @@
             <dependency>
                 <groupId>org.chronopolis</groupId>
                 <artifactId>amqp-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.chronopolis</groupId>
+                <artifactId>chron-db</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -177,11 +184,35 @@
                 </exclusions>
             </dependency>
 
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-tx</artifactId>
+                <version>4.0.2.RELEASE</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>commons-logging</artifactId>
+                        <groupId>commons-logging</groupId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-core</artifactId>
+                <version>4.0.2.RELEASE</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cglib</groupId>
+                <artifactId>cglib-nodep</artifactId>
+                <version>3.1</version>
+            </dependency>
+
             <!-- DB -->
             <dependency>
                 <groupId>org.hibernate.javax.persistence</groupId>
-                <artifactId>hibernate-jpa-2.0-api</artifactId>
-                <version>1.0.1.Final</version>
+                <artifactId>hibernate-jpa-2.1-api</artifactId>
+                <version>1.0.0.Final</version>
             </dependency>
 
             <dependency>
@@ -191,9 +222,18 @@
             </dependency>
 
             <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-entitymanager</artifactId>
+                <version>4.3.1.Final</version>
+            </dependency>
+
+            <!-- For tests -->
+
+            <dependency>
                 <groupId>org.easymock</groupId>
                 <artifactId>easymock</artifactId>
                 <version>3.1</version>
+                <scope>test</scope>
             </dependency>
 
             <dependency>
@@ -201,7 +241,6 @@
                 <groupId>org.json</groupId>
                 <artifactId>json</artifactId>
                 <version>20130802</version>
-                <scope>test</scope>
             </dependency>
 
             <!-- Yes, let's phase out the org.json lib -->
