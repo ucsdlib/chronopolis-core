@@ -1,4 +1,4 @@
-package org.chronopolis.chron.intake.shell;
+package org.chronopolis.intake;
 
 import junit.framework.Test;
 import junit.framework.TestCase;

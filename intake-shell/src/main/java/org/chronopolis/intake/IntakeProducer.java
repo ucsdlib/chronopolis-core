@@ -33,14 +33,16 @@ public class IntakeProducer {
     }
     
     private enum PRODUCER_OPTION {
-        SEND_STATIC_INTAKE_REQUEST, CREATE_INTAKE_REQUEST, QUIT, UNKNOWN;
-        
+        SEND_STATIC_INTAKE_REQUEST, CREATE_INTAKE_REQUEST, PUSH_STATIC_INTAKE_TO_DPN, QUIT, UNKNOWN;
+
         private static PRODUCER_OPTION fromString(String text) {
             switch (text) {
                 case "C":
                     return CREATE_INTAKE_REQUEST;
                 case "S":
                     return SEND_STATIC_INTAKE_REQUEST;
+                case "P":
+                    return PUSH_STATIC_INTAKE_TO_DPN;
                 case "Q":
                     return QUIT;
                 default:
@@ -55,15 +57,17 @@ public class IntakeProducer {
             PRODUCER_OPTION option = inputOption();
             
             if ( option.equals(PRODUCER_OPTION.SEND_STATIC_INTAKE_REQUEST)) {
-                sendMessage("chron", "myDPNBag", "myDPNBag");
-            } else if (option.equals(PRODUCER_OPTION.CREATE_INTAKE_REQUEST)) {
+                sendMessage("chron", "myDPNBag", "myDPNBag", false);
+            } else if (option.equals(PRODUCER_OPTION.PUSH_STATIC_INTAKE_TO_DPN)) {
+                sendMessage("chron", "myDPNBag", "myDPNBag", true);
+            }else if (option.equals(PRODUCER_OPTION.CREATE_INTAKE_REQUEST)) {
                 String depositor, bagName;
                 System.out.print("Depositor: ");
                 depositor = readLine();
-                System.out.print("bag-name");
+                System.out.print("Bag Name: ");
                 bagName = readLine();
 
-                sendMessage(depositor, bagName, bagName);
+                sendMessage(depositor, bagName, bagName, false);
             } else if (option.equals(PRODUCER_OPTION.QUIT)) {
                 done = true;
             } else {
@@ -73,17 +77,21 @@ public class IntakeProducer {
         System.out.println("Leaving");
     }
 
-    private void sendMessage(String depositor, String location, String bagName) {
-        PackageReadyMessage msg = messageFactory.packageReadyMessage(depositor,
+    private void sendMessage(String depositor, String location, String bagName, boolean toDPN) {
+        PackageReadyMessage msg = messageFactory.packageReadyMessage(
+                depositor,
                 Digest.SHA_256,
                 location,
-                bagName, 400);
-        producer.send(msg,"ingest.broadcast");
+                bagName,
+                400,
+                toDPN
+        );
+        producer.send(msg, "ingest.broadcast");
     }
-    
+
     private PRODUCER_OPTION inputOption() {
         PRODUCER_OPTION option = PRODUCER_OPTION.UNKNOWN;
-        while ( option.equals(PRODUCER_OPTION.UNKNOWN)) {
+        while (option.equals(PRODUCER_OPTION.UNKNOWN)) {
             StringBuilder sb = new StringBuilder("Enter Option: ");
             String sep = " | ";
             for (PRODUCER_OPTION value : PRODUCER_OPTION.values()) {
@@ -112,8 +120,6 @@ public class IntakeProducer {
     }
     
     public static void main(String [] args) {
-        System.out.println("Hello wrld");
-        
         GenericXmlApplicationContext text = new GenericXmlApplicationContext(
                 "classpath:/rabbit-context.xml");
         
