@@ -5,6 +5,8 @@
 package org.chronopolis.ingest;
 
 import org.chronopolis.amqp.ChronProducer;
+import org.chronopolis.db.DatabaseManager;
+import org.chronopolis.db.model.CollectionIngest;
 import org.chronopolis.ingest.config.IngestConfiguration;
 import org.chronopolis.ingest.config.IngestJPAConfiguration;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;

@@ -3,6 +3,7 @@ package org.chronopolis.ingest.config;
 import com.rabbitmq.client.ConnectionFactory;
 import org.chronopolis.amqp.ConnectionListenerImpl;
 import org.chronopolis.amqp.TopicProducer;
+import org.chronopolis.db.DatabaseManager;
 import org.chronopolis.ingest.IngestMessageListener;
 import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.ingest.processor.CollectionInitCompleteProcessor;
@@ -19,10 +20,8 @@ import org.springframework.amqp.rabbit.connection.ConnectionListener;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.Resource;
@@ -34,6 +33,7 @@ import java.util.List;
  */
 @Configuration
 @PropertySource("classpath:ingest.properties")
+@Import(IngestJPAConfiguration.class)
 public class IngestConfiguration {
     public static final String PROPERTIES_NODE_NAME = "nodeName";
     public static final String PROPERTIES_STAGE = "stage";
@@ -53,6 +53,9 @@ public class IngestConfiguration {
     public static final String PROPERTIES_RABBIT_TEST_BINDING_NAME = "queue.test.pattern";
     public static final String PROPERTIES_RABBIT_BROADCAST_BINDING_NAME = "queue.broadcast.pattern";
     public static final String PROPERTIES_RABBIT_DIRECT_INGEST_BINDING_NAME = "queue.direct-ingest.pattern";
+
+    @Autowired
+    DatabaseManager manager;
 
     @Resource
     Environment env;
@@ -127,12 +130,12 @@ public class IngestConfiguration {
 
     @Bean
     public PackageReadyProcessor packageReadyProcessor() {
-        return new PackageReadyProcessor(producer(), ingestProperties(), messageFactory());
+        return new PackageReadyProcessor(producer(), ingestProperties(), messageFactory(), manager);
     }
 
     @Bean
     public CollectionInitCompleteProcessor collectionInitCompleteProcessor() {
-        return new CollectionInitCompleteProcessor(producer(), messageFactory());
+        return new CollectionInitCompleteProcessor(producer(), messageFactory(), manager);
     }
 
     @Bean
@@ -205,7 +208,7 @@ public class IngestConfiguration {
 
     @Bean
     @DependsOn("rabbitAdmin")
-    SimpleMessageListenerContainer simpleMessageListenerContainer() {
+    SimpleMessageListenerContainer simpleMessageListenerContainer(DatabaseManager manager) {
         String testQueueName = env.getProperty(PROPERTIES_RABBIT_TEST_QUEUE_NAME);
         String testBName = env.getProperty(PROPERTIES_RABBIT_BROADCAST_QUEUE_NAME);
         String testIName = env.getProperty(PROPERTIES_RABBIT_DIRECT_INGEST_QUEUE_NAME);

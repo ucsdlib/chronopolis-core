@@ -5,6 +5,8 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 /**
+ * TODO: Let's rename this to something better
+ *
  * Created by shake on 4/9/14.
  */
 @Entity(name = "collection_ingest")

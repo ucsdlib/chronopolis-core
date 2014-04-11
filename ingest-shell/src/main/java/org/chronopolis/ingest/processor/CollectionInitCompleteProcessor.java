@@ -5,6 +5,7 @@
 package org.chronopolis.ingest.processor;
 
 import org.chronopolis.amqp.ChronProducer;
+import org.chronopolis.db.DatabaseManager;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.factory.MessageFactory;
@@ -21,10 +22,12 @@ public class CollectionInitCompleteProcessor implements ChronProcessor {
 
     private ChronProducer producer;
     private MessageFactory messageFactory;
+    private DatabaseManager manager;
 
-    public CollectionInitCompleteProcessor(ChronProducer producer, MessageFactory messageFactory) {
+    public CollectionInitCompleteProcessor(ChronProducer producer, MessageFactory messageFactory, DatabaseManager manager) {
         this.producer = producer;
         this.messageFactory = messageFactory;
+        this.manager = manager;
     }
 
     @Override

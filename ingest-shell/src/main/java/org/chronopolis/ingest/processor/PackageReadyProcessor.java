@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.common.ace.BagTokenizer;
 import org.chronopolis.common.digest.Digest;
+import org.chronopolis.db.DatabaseManager;
 import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
@@ -32,14 +33,17 @@ public class PackageReadyProcessor implements ChronProcessor {
     private ChronProducer producer;
     private IngestProperties props;
     private MessageFactory messageFactory;
+    private DatabaseManager manager;
 
 
     public PackageReadyProcessor(ChronProducer producer,
                                  IngestProperties props,
-                                 MessageFactory messageFactory) {
+                                 MessageFactory messageFactory,
+                                 DatabaseManager manager) {
         this.producer = producer;
         this.props = props;
         this.messageFactory = messageFactory;
+        this.manager = manager;
     }
 
     /* 
