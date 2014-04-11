@@ -1,10 +1,46 @@
+<!--
+We don't really need this file anymore, but I'll leave it here just in case.
+
+Will probably be removed at some point in the near future assuming all goes well.
+-->
+
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:rabbit="http://www.springframework.org/schema/rabbit"
-       xsi:schemaLocation="http://www.springframework.org/schema/rabbit
-                           		     http://www.springframework.org/schema/rabbit/spring-rabbit-1.1.xsd
-                           		     http://www.springframework.org/schema/beans
-                           		     http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+                           ">
+
+
+    <!--
+    <bean id="dataSource"
+          class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="org.h2.Driver"/>
+        <property name="url" value="jdbc:h2:test-db"/>
+        <property name="username" value="h2"/>
+        <property name="password" value="h2"/>
+    </bean>
+
+    <bean id="entityManagerFactory"
+          class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+                <property name="generateDdl" value="true"/>
+                <property name="database" value="H2"/>
+            </bean>
+        </property>
+        <property name="packagesToScan" value="org.chronopolis.db.model"/>
+    </bean>
+
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory"/>
+    </bean>
+
+    <jpa:repositories base-package="org.chronopolis.db"/>
+
+    <bean id="databaseManager" class="org.chronopolis.db.DatabaseManager">
+    </bean>
+
 
     <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
         <property name="locations">
@@ -49,7 +85,7 @@
     
     <rabbit:admin connection-factory="connectionFactory"/>
 
-    <!-- Set up our queues and bindings in the exchange -->
+    <!Set up our queues and bindings in the exchange >
     <rabbit:queue id="queue.test" name="${queue.test.name}" durable="true"/>
     <rabbit:queue id="queue.broadcast" name="${queue.broadcast.name}" durable="true"/>
     <rabbit:queue id="queue.direct-ingest" name="${queue.direct-ingest.name}" durable="true"/>
@@ -97,13 +133,12 @@
                      connection-factory="connectionFactory"
                      mandatory="true" />
 
-    <!--
     confirm-callback="confirmCallback"
     return-callback=""/> 
-    -->
 
     <bean id="producer" class="org.chronopolis.amqp.TopicProducer">
         <constructor-arg index="0" ref="rabbitTemplate"/>
     </bean>
+    -->
 
 </beans>

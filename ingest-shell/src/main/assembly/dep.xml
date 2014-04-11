@@ -8,7 +8,7 @@
 	<fileSets>
 		<fileSet>
 			<directory>src/main/resources</directory>
-			<ouputDirectory>/</ouputDirectory>
+			<outputDirectory>/</outputDirectory>
 			<includes>
 				<include>*.properties</include>
 				<include>rabbit-context.xml</include>

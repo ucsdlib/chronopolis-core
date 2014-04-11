@@ -17,29 +17,16 @@
     <build> 
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.4</version>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>1.0.1.RELEASE</version>
                 <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>org.chronopolis.ingest.IngestConsumer</mainClass>
-                        </manifest>
-                    </archive>
+                    <mainClass>org.chronopolis.ingest.IngestConsumer</mainClass>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.dstovall</groupId>
-                <artifactId>onejar-maven-plugin</artifactId>
-                <version>1.4.4</version>
                 <executions>
                     <execution>
-                        <configuration>
-                            <attachToBuild>true</attachToBuild>
-                            <filename>ingest-shell-driver.jar</filename>
-                        </configuration>
                         <goals>
-                            <goal>one-jar</goal>
+                            <goal>repackage</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -51,6 +38,14 @@
         <pluginRepository>
             <id>onejar-maven-plugin.googlecode.com</id>
             <url>http://onejar-maven-plugin.googlecode.com/svn/mavenrepo</url>
+        </pluginRepository>
+        <pluginRepository>
+            <id>spring-snapshots</id>
+            <url>http://repo.spring.io/snapshot</url>
+        </pluginRepository>
+        <pluginRepository>
+            <id>spring-milestones</id>
+            <url>http://repo.spring.io/milestone</url>
         </pluginRepository>
     </pluginRepositories>
 

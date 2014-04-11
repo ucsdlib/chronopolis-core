@@ -3,11 +3,14 @@ package org.chronopolis.ingest.config;
 import org.chronopolis.db.DatabaseManager;
 import org.chronopolis.db.ingest.IngestDB;
 import org.hibernate.jpa.HibernatePersistenceProvider;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.orm.hibernate4.HibernateExceptionTranslator;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -31,12 +34,17 @@ import java.sql.SQLException;
 @EnableTransactionManagement
 @PropertySource("classpath:ingest.properties")
 public class IngestJPAConfiguration {
+    private static final String PROPERTIES_JDBC_DRIVER = "jdbc.driver";
+    private static final String PROPERTIES_JDBC_URL = "jdbc.url";
+    private static final String PROPERTIES_JDBC_USERNAME = "jdbc.username";
+    private static final String PROPERTIES_JDBC_PASSWORD = "jdbc.password";
 
     @Resource
     Environment environment;
 
     public DataSource dataSource() throws SQLException {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        // TODO: Grab from properties (environment)
         dataSource.setDriverClassName("org.h2.Driver");
         dataSource.setUrl("jdbc:h2:test-db");
         dataSource.setUsername("h2");
