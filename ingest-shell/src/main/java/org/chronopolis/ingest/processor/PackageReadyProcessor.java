@@ -10,6 +10,7 @@ import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.common.ace.BagTokenizer;
 import org.chronopolis.common.digest.Digest;
 import org.chronopolis.db.DatabaseManager;
+import org.chronopolis.db.model.CollectionIngest;
 import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
@@ -71,7 +72,13 @@ public class PackageReadyProcessor implements ChronProcessor {
         String fixityAlg = msg.getFixityAlgorithm();
         Digest fixity = Digest.fromString(msg.getFixityAlgorithm());
         String depositor = msg.getDepositor();
-        Boolean toDpn = msg.toDpn(); // This will need to be persisted...?
+
+        // Save some info about the object
+        Boolean toDpn = msg.toDpn();
+        CollectionIngest ci = new CollectionIngest();
+        ci.setCorrelationId(msg.getCorrelationId());
+        ci.setToDpn(toDpn);
+        manager.getIngestDatabase().save(ci);
 
         Path toBag = Paths.get(props.getStage(), location);
         Path tokenStage = Paths.get(props.getTokenStage());

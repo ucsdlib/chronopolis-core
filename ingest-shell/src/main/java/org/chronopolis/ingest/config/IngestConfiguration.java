@@ -135,7 +135,7 @@ public class IngestConfiguration {
 
     @Bean
     public CollectionInitCompleteProcessor collectionInitCompleteProcessor() {
-        return new CollectionInitCompleteProcessor(producer(), messageFactory(), manager);
+        return new CollectionInitCompleteProcessor(producer(), ingestProperties(), messageFactory(), manager);
     }
 
     @Bean
