@@ -11,6 +11,12 @@ import org.chronopolis.common.properties.GenericProperties;
  * @author shake
  */
 public class IngestProperties extends GenericProperties{
+    public static final String PROPERTIES_TOKEN_STAGE = "node.storage.tokens";
+    public static final String PROPERTIES_STORAGE_SERVER = "node.replication.server";
+    public static final String PROPERTIES_EXTERNAL_USER = "node.external.user";
+    public static final String PROPERTIES_IMS_HOST_NAME = "ace.ims.host";
+    public static final String PROPERTIES_DPN_PUSH = "dpn.push";
+
 	private String tokenStage;
 	private String imsHostName;
     private String storageServer;

@@ -10,6 +10,12 @@ package org.chronopolis.common.properties;
  * @author shake
  */
 public class GenericProperties {
+    public static final String PROPERTIES_NODE_NAME = "node.name";
+    public static final String PROPERTIES_STAGE = "node.storage.bags";
+    public static final String PROPERTIES_EXCHANGE = "exchange";
+    public static final String PROPERTIES_INBOUND_ROUTING_KEY = "node.inbound.routing.key";
+    public static final String PROPERTIES_BROADCAST_ROUTING_KEY = "node.broadcast.routing.key";
+
 	private String nodeName;
 	private String stage;
     private String exchange;

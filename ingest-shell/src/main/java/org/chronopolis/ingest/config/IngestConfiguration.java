@@ -28,6 +28,8 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.chronopolis.ingest.IngestProperties.*;
+
 /**
  * Created by shake on 4/10/14.
  */
@@ -35,17 +37,6 @@ import java.util.List;
 @PropertySource("classpath:ingest.properties")
 @Import(IngestJPAConfiguration.class)
 public class IngestConfiguration {
-    public static final String PROPERTIES_NODE_NAME = "nodeName";
-    public static final String PROPERTIES_STAGE = "stage";
-    public static final String PROPERTIES_EXCHANGE = "exchange";
-    public static final String PROPERTIES_INBOUND_ROUTING_KEY = "inboundRoutingKey";
-    public static final String PROPERTIES_INGEST_BROADCAST_ROUTING_KEY = "ingestBroadcastRoutingKey";
-    public static final String PROPERTIES_TOKEN_STAGE = "tokenStage";
-    public static final String PROPERTIES_IMS_HOST_NAME = "imsHostName";
-    public static final String PROPERTIES_STORAGE_SERVER = "storageServer";
-    public static final String PROPERTIES_EXTERNAL_USER = "externalUser";
-    public static final String PROPERTIES_DPN_PUSH = "dpnPush";
-
     // Rabbit related properties
     public static final String PROPERTIES_RABBIT_TEST_QUEUE_NAME = "queue.test.name";
     public static final String PROPERTIES_RABBIT_BROADCAST_QUEUE_NAME = "queue.broadcast.name";
@@ -72,7 +63,7 @@ public class IngestConfiguration {
                 env.getProperty(PROPERTIES_STAGE),
                 env.getProperty(PROPERTIES_EXCHANGE),
                 env.getProperty(PROPERTIES_INBOUND_ROUTING_KEY),
-                env.getProperty(PROPERTIES_INGEST_BROADCAST_ROUTING_KEY),
+                env.getProperty(PROPERTIES_BROADCAST_ROUTING_KEY),
                 env.getProperty(PROPERTIES_TOKEN_STAGE),
                 env.getProperty(PROPERTIES_IMS_HOST_NAME),
                 env.getProperty(PROPERTIES_STORAGE_SERVER),
