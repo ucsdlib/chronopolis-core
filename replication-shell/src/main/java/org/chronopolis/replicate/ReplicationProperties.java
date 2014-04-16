@@ -11,6 +11,12 @@ import org.chronopolis.common.properties.GenericProperties;
  * @author shake
  */
 public class ReplicationProperties extends GenericProperties{
+    public static final String PROPERTIES_ACE_FQDN = "ace.fqdn";
+    public static final String PROPERTIES_ACE_PATH = "ace.path";
+    public static final String PROPERTIES_ACE_USER = "ace.user";
+    public static final String PROPERTIES_ACE_PASS = "ace.pass";
+    public static final String PROPERTIES_ACE_PORT = "ace.port";
+
     // Lots of things related to ACE
     private String aceFqdn;
     private String acePath;
