@@ -18,16 +18,16 @@
     </bean>
 
     <bean id="properties" class="org.chronopolis.replicate.ReplicationProperties">
-        <constructor-arg value="${nodeName}"/>
-        <constructor-arg value="${stage}"/>
-        <constructor-arg value="${exchange}"/>
-        <constructor-arg value="${inboundKey}"/>
-        <constructor-arg value="${broadcastKey}"/>
-        <constructor-arg value="${aceFqdn}"/>
-        <constructor-arg value="${acePath}"/>
-        <constructor-arg value="${aceUser}"/>
-        <constructor-arg value="${acePass}"/>
-        <constructor-arg value="${acePort}"/>
+        <constructor-arg value="${node.name}"/>
+        <constructor-arg value="${node.storage.bags}"/>
+        <constructor-arg value="${node.exchange}"/>
+        <constructor-arg value="${node.inbound.routing.key}"/>
+        <constructor-arg value="${node.broadcast.routing.key}"/>
+        <constructor-arg value="${ace.fqdn}"/>
+        <constructor-arg value="${ace.path}"/>
+        <constructor-arg value="${ace.user}"/>
+        <constructor-arg value="${ace.pass}"/>
+        <constructor-arg value="${ace.port}"/>
     </bean>
 
     <bean id="rabbitConnectionFactory" class="com.rabbitmq.client.ConnectionFactory">

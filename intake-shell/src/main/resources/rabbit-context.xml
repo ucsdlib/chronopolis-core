@@ -16,11 +16,11 @@
 	</bean>
 
 	<bean id="properties" class="org.chronopolis.common.properties.GenericProperties">
-		<constructor-arg value="${nodeName}"/>
-		<constructor-arg value="${stage}"/>
-        <constructor-arg value="${exchange}"/>
-        <constructor-arg value="${inboundKey}"/>
-        <constructor-arg value="${broadcastKey}"/>
+		<constructor-arg value="${node.name}"/>
+		<constructor-arg value="${node.storage.bags}"/>
+        <constructor-arg value="${node.exchange}"/>
+        <constructor-arg value="${node.inbound.routing.key}"/>
+        <constructor-arg value="${node.broadcast.routing.key}"/>
 	</bean>
 
     <bean id="messageFactory" class="org.chronopolis.messaging.factory.MessageFactory">
