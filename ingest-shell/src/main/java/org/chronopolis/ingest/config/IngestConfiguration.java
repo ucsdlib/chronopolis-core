@@ -34,7 +34,7 @@ import static org.chronopolis.ingest.IngestProperties.*;
  * Created by shake on 4/10/14.
  */
 @Configuration
-@PropertySource("classpath:ingest.properties")
+@PropertySource({"file:ingest.properties"})
 @Import(IngestJPAConfiguration.class)
 public class IngestConfiguration {
     // Rabbit related properties

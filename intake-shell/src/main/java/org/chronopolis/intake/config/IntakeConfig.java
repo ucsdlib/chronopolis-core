@@ -30,7 +30,7 @@ import static org.chronopolis.common.properties.GenericProperties.*;
  * Created by shake on 4/16/14.
  */
 @Configuration
-@PropertySource("classpath:intake.properties")
+@PropertySource({"file:intake.properties"})
 public class IntakeConfig {
     @Resource
     Environment env;

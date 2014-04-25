@@ -29,7 +29,7 @@ import static org.chronopolis.replicate.ReplicationProperties.*;
  * Created by shake on 4/16/14.
  */
 @Configuration
-@PropertySource("classpath:replication.properties")
+@PropertySource({"file:replication.properties"})
 public class ReplicationConfig {
     public static final String PROPERTIES_RABBIT_TEST_QUEUE_NAME = "queue.test.name";
     public static final String PROPERTIES_RABBIT_BROADCAST_QUEUE_NAME = "queue.broadcast.name";

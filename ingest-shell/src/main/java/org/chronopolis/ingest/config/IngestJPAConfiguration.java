@@ -32,7 +32,7 @@ import java.sql.SQLException;
 @EnableJpaRepositories(basePackages = "org.chronopolis.db",
         includeFilters = @ComponentScan.Filter(value = {IngestDB.class}, type = FilterType.ASSIGNABLE_TYPE))
 @EnableTransactionManagement
-@PropertySource("classpath:ingest.properties")
+@PropertySource({"file:ingest.properties"})
 public class IngestJPAConfiguration {
     private static final String PROPERTIES_JDBC_DRIVER = "jdbc.driver";
     private static final String PROPERTIES_JDBC_URL = "jdbc.url";

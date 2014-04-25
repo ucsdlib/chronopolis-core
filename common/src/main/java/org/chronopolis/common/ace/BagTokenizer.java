@@ -59,10 +59,12 @@ public class BagTokenizer {
                 + fixityAlgorithm.getBagitIdentifier()
                 + ".txt");
 
-        if ( !tagManifest.toFile().exists() ) {
+        if (!tagManifest.toFile().exists()) {
+            log.error("Could not find tag manifest at {}", tagManifest);
             throw new RuntimeException("TagManifest does not exist!");
         }
-        if ( !manifest.toFile().exists() ) {
+        if (!manifest.toFile().exists()) {
+            log.error("Could not find manifest at {}", manifest);
             throw new RuntimeException("Manifest does not exist!");
         }
 

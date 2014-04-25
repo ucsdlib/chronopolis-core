@@ -56,7 +56,7 @@ public class IntakeProducer {
         while (!done) {
             PRODUCER_OPTION option = inputOption();
             
-            if ( option.equals(PRODUCER_OPTION.SEND_STATIC_INTAKE_REQUEST)) {
+            if (option.equals(PRODUCER_OPTION.SEND_STATIC_INTAKE_REQUEST)) {
                 sendMessage("chron", "myDPNBag", "myDPNBag", false);
             } else if (option.equals(PRODUCER_OPTION.PUSH_STATIC_INTAKE_TO_DPN)) {
                 sendMessage("chron", "myDPNBag", "myDPNBag", true);

@@ -1,8 +1,10 @@
 package org.chronopolis.replicate;
 
 import org.chronopolis.amqp.ChronProducer;
+import org.chronopolis.replicate.config.ReplicationConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
 
 import java.io.BufferedReader;
@@ -39,8 +41,12 @@ public class ReplicationConsumer {
             log.info("Capture aceCheck: '{}'", Boolean.parseBoolean(aceCheckVal));
         }
 
-        GenericXmlApplicationContext context = new GenericXmlApplicationContext(
-                "classpath:/application-context.xml");
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        context.register(ReplicationConfig.class);
+        context.refresh();
+
+        //GenericXmlApplicationContext context = new GenericXmlApplicationContext(
+        //        "classpath:/application-context.xml");
         boolean done = false;
         ChronProducer p = (ChronProducer) context.getBean("producer");
         ReplicationProperties props = (ReplicationProperties) context.getBean("properties");

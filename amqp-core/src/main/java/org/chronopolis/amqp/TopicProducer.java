@@ -4,7 +4,6 @@
  */
 package org.chronopolis.amqp;
 
-import java.io.IOException;
 import java.util.Map;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.slf4j.Logger;
@@ -39,13 +38,13 @@ public class TopicProducer implements ChronProducer {
         props.setDeliveryMode(MessageDeliveryMode.PERSISTENT);
         props.setContentType("application/json");
 
-        if ( null == routingKey ) { 
+        if (null == routingKey) {
             routingKey = defaultRoutingKey;
         }
         
         Map<String, Object> headers = message.getHeader();
-        if ( headers != null && !headers.isEmpty()) {
-            for ( String key : headers.keySet()) {
+        if (headers != null && !headers.isEmpty()) {
+            for (String key : headers.keySet()) {
                 props.setHeader(key, headers.get(key));
             }
         }else {
@@ -53,7 +52,7 @@ public class TopicProducer implements ChronProducer {
             throw new RuntimeException("Invalid headers");
         }
 
-        while ( !done && numTries < 3 ) {
+        while (!done && numTries < 3) {
             try {
                 Message msg = new Message(message.toJson().getBytes(), props);
                 log.info("Sending {} to {} ", message.getType(), routingKey);
