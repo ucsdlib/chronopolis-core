@@ -58,7 +58,7 @@ public class PackageReadyProcessor implements ChronProcessor {
     @Override
     public void process(ChronMessage chronMessage) {
         boolean success = true;
-        if ( !(chronMessage instanceof PackageReadyMessage)) {
+        if (!(chronMessage instanceof PackageReadyMessage)) {
             // Error out
             log.error("Invalid message type");
         }
@@ -72,9 +72,9 @@ public class PackageReadyProcessor implements ChronProcessor {
         String fixityAlg = msg.getFixityAlgorithm();
         Digest fixity = Digest.fromString(msg.getFixityAlgorithm());
         String depositor = msg.getDepositor();
+        Boolean toDpn = msg.toDpn();
 
         // Save some info about the object
-        Boolean toDpn = msg.toDpn();
         CollectionIngest ci = new CollectionIngest();
         ci.setCorrelationId(msg.getCorrelationId());
         ci.setToDpn(toDpn);
@@ -107,7 +107,7 @@ public class PackageReadyProcessor implements ChronProcessor {
 
         Indicator replyInd;
 
-        if ( success ) {
+        if (success) {
             replyInd = Indicator.ACK;
 
             // Start the replication
