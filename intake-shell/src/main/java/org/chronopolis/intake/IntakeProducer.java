@@ -11,9 +11,11 @@ import java.nio.file.Paths;
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.common.digest.Digest;
 import org.chronopolis.common.properties.GenericProperties;
+import org.chronopolis.intake.config.IntakeConfig;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
 import org.springframework.amqp.core.Message;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
 
 /**
@@ -122,7 +124,11 @@ public class IntakeProducer {
     public static void main(String [] args) {
         GenericXmlApplicationContext text = new GenericXmlApplicationContext(
                 "classpath:/rabbit-context.xml");
-        
+
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        context.register(IntakeConfig.class);
+        context.refresh();
+
         ChronProducer p = (ChronProducer) text.getBean("producer");
         MessageFactory factory = (MessageFactory) text.getBean("messageFactory");
         
@@ -131,7 +137,8 @@ public class IntakeProducer {
         producer.run();
 
         text.close();
-        
+        context.close();
+
         System.out.println("Shutting down, shutting shutting down");
     }
 }

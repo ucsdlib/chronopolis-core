@@ -32,16 +32,16 @@ public class IngestConsumer {
     }
     
     public static void main(String [] args) {
-        AnnotationConfigApplicationContext context2 = new AnnotationConfigApplicationContext();
-        context2.register(IngestJPAConfiguration.class);
-        context2.register(IngestConfiguration.class);
-        context2.refresh();
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        context.register(IngestJPAConfiguration.class);
+        context.register(IngestConfiguration.class);
+        context.refresh();
 
         boolean done = false;
-        ChronProducer p = (ChronProducer) context2.getBean("producer");
-        IngestProperties props = (IngestProperties) context2.getBean(IngestProperties.class);
+        ChronProducer p = (ChronProducer) context.getBean("producer");
+        IngestProperties props = (IngestProperties) context.getBean(IngestProperties.class);
 
-        Queue bQueue = (Queue) context2.getBean("broadcastQueue");
+        Queue bQueue = (Queue) context.getBean("broadcastQueue");
 
         System.out.println(bQueue.getName());
 
@@ -59,7 +59,7 @@ public class IngestConsumer {
             }
         }
         
-        context2.close();
+        context.close();
         System.out.println("Closed for business");
     }
 }

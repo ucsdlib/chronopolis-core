@@ -12,7 +12,6 @@ import org.chronopolis.messaging.factory.MessageFactory;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
-import org.springframework.amqp.rabbit.connection.ConnectionListener;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
@@ -32,6 +31,7 @@ import static org.chronopolis.common.properties.GenericProperties.*;
 @Configuration
 @PropertySource({"file:intake.properties"})
 public class IntakeConfig {
+
     @Resource
     Environment env;
 
@@ -124,6 +124,7 @@ public class IntakeConfig {
     // Our processor queues + bindings
 
     // And finish off with the rabbit admin and container used by spring
+    /*
     @Bean
     RabbitAdmin rabbitAdmin() {
         RabbitAdmin admin = new RabbitAdmin(connectionFactory());
@@ -145,4 +146,5 @@ public class IntakeConfig {
         container.setMessageListener(messageListener());
         return container;
     }
+    */
 }
