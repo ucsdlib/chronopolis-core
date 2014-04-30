@@ -8,7 +8,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
     <groupId>org.chronopolis</groupId>
-    <artifactId>chron-ingest-shell</artifactId>
+    <artifactId>ingest-shell</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Ingest Shell</name>
