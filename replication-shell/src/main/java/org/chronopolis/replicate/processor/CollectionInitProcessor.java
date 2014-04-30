@@ -4,13 +4,6 @@
  */
 package org.chronopolis.replicate.processor;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -26,6 +19,8 @@ import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.common.ace.GsonCollection;
+import org.chronopolis.common.exception.FileTransferException;
+import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.transfer.FileTransfer;
 import org.chronopolis.common.transfer.HttpsTransfer;
 import org.chronopolis.common.transfer.RSyncTransfer;
@@ -40,6 +35,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.mail.SimpleMailMessage;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * TODO: How to reply to collection init message if there is an error
@@ -228,6 +230,8 @@ public class CollectionInitProcessor implements ChronProcessor {
                                                          protocol);
         } catch (IOException ex) {
             log.error("Error downloading manifest \n{}", ex);
+            SimpleMailMessage smm = createErrorMail(ex, msg);
+            MailUtil.sendMail("localhost.localdomain", null);
             return;
         }
 
@@ -236,44 +240,21 @@ public class CollectionInitProcessor implements ChronProcessor {
         // TODO: We'll probably end up just using the entire location for the
         // rsync command instead of splitting it in the future
         String[] parts = location.split("@", 2);
-        if ( protocol.equalsIgnoreCase("https")) {
+        if (protocol.equalsIgnoreCase("https")) {
             transfer = new HttpsTransfer();
         } else {
             String user = parts[0];
             transfer = new RSyncTransfer(user);
         }
 
-        transfer.getFile(parts[1], bagPath);
-        /*
-        TokenStoreReader reader;
         try {
-            reader = new TokenStoreReader(Files.newInputStream(manifest, 
-                                          StandardOpenOption.READ), 
-                                          "UTF-8");
-            // Will be
-            // baseURL + depositor (group) + collection + file
-            String url = msg.getTokenStore();
-            while ( reader.hasNext()) {
-                TokenStoreEntry entry = reader.next();
-                for ( String identifier : entry.getIdentifiers() ) {
-                    log.debug("Downloading " + identifier);
-                    //Path download = Paths.get(collPath.toString(), identifier);
-                    /*
-                     * Let's get this to work with downloads first, then worry about
-                     * multithreading later
-                    ReplicationQueue.getFileAsync(url, 
-                                                  msg.getCollection(), 
-                                                  msg.getDepositor(), 
-                                                  identifier,
-                                                  protocol);
-                                                  /
-                }
-            }
-        } catch (IOException ex) {
-            log.error("IO Exception while reading token store \n{}", ex);
+            transfer.getFile(parts[1], bagPath);
+        } catch (FileTransferException ex) {
+            log.error("Error replicating bag");
+            SimpleMailMessage smm = createErrorMail(ex, msg);
+            MailUtil.sendMail("localhost.localdomain", smm);
             return;
         }
-        */
 
         try {
             if (register) {
@@ -281,12 +262,37 @@ public class CollectionInitProcessor implements ChronProcessor {
             }
         } catch (IOException ex) {
             log.error("IO Error", ex);
+            SimpleMailMessage smm = createErrorMail(ex, msg);
+            MailUtil.sendMail("localhost.localdomain", smm);
         }
         
         // Because I'm bad at reading - Collection Init Complete Message
         log.info("Sending response");
         ChronMessage response = messageFactory.collectionInitCompleteMessage(msg.getCorrelationId());
         producer.send(response, chronMessage.getReturnKey());
+
+        SimpleMailMessage smm = createSuccess(msg);
+        MailUtil.sendMail("localhost.localdomain", smm);
     }
-    
+
+    private SimpleMailMessage createSuccess(final CollectionInitMessage msg) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo("shake@umiacs.umd.edu");
+        message.setFrom(props.getNodeName() + "-replicate@umiacs.umd.edu");
+        message.setSubject("Successful replication of " + msg.getCollection());
+        message.setText(msg.toString());
+
+        return message;
+    }
+
+    private SimpleMailMessage createErrorMail(final Exception ex, final CollectionInitMessage msg) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo("shake@umiacs.umd.edu");
+        message.setFrom(props.getNodeName()+"-replicate@localhost");
+        message.setSubject("Error in CollectionInit");
+        message.setText("Message: \n" + msg.toString() + "\n\nError: \n" + ex.toString());
+
+        return message;
+    }
+
 }

@@ -61,7 +61,7 @@ public class CollectionInitCompleteProcessor implements ChronProcessor {
     public void sendCompletionRecord(CollectionInitCompleteMessage message) {
         SimpleMailMessage msg = new SimpleMailMessage();
         msg.setTo("shake@umiacs.umd.edu");
-        msg.setFrom("chron-ingest@umiacs.umd.edu");
+        msg.setFrom("chron-ingest@localhost");
         msg.setSubject("Ingestion of " + message.getCorrelationId() + " complete");
         mailSender.send(msg);
     }
