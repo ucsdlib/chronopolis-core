@@ -14,7 +14,7 @@ import static ch.qos.logback.classic.Level.INFO
 appender("CONSOLE", ConsoleAppender) {
     encoder(PatternLayoutEncoder) {
         //pattern = "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n"
-        pattern = "%level %logger{10} - %msg%n"
+        pattern = "%level %logger{30} - %msg%n"
     }
     filter(ThresholdFilter) {
         level = INFO

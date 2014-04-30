@@ -4,26 +4,26 @@
  */
 package org.chronopolis.ingest.processor;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.common.ace.BagTokenizer;
 import org.chronopolis.common.digest.Digest;
+import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.db.DatabaseManager;
 import org.chronopolis.db.model.CollectionIngest;
+import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
+import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
-import org.chronopolis.ingest.IngestProperties;
-import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.pkg.PackageReadyReplyMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Processor for collections which are ready to be ingested into chronopolis
@@ -69,7 +69,6 @@ public class PackageReadyProcessor implements ChronProcessor {
         BagTokenizer tokenizer;
 
         PackageReadyMessage msg = (PackageReadyMessage) chronMessage;
-        sendPackageReadyNotification(msg);
 
         String location = msg.getLocation();
         String packageName = msg.getPackageName();
@@ -138,17 +137,17 @@ public class PackageReadyProcessor implements ChronProcessor {
                 msg.getCorrelationId());
 
         producer.send(reply, msg.getReturnKey());
+
+        sendPackageReadyNotification(msg);
     }
 
     private void sendPackageReadyNotification(PackageReadyMessage packageReadyMessage) {
-        JavaMailSenderImpl sender = new JavaMailSenderImpl();
-        sender.setHost("localhost.localdomain");
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom("chron-ingest@umiacs.umd.edu");
         message.setTo("shake@umiacs.umd.edu");
         message.setSubject("Received new package");
-        message.setText(packageReadyMessage.toJson());
-        sender.send(message);
+        message.setText(packageReadyMessage.toString());
+        MailUtil.sendMail("localhost.localdomain", message);
     }
 
 }

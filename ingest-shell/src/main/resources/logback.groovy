@@ -12,7 +12,7 @@ import static ch.qos.logback.classic.Level.INFO
 
 appender("CONSOLE", ConsoleAppender) {
     encoder(PatternLayoutEncoder) {
-        pattern = "%green(%level) %cyan(%logger{16}) - %msg%n"
+        pattern = "%green(%level) %cyan(%logger{30}) - %msg%n"
     }
     filter(ThresholdFilter) {
         level = INFO
