@@ -1,4 +1,5 @@
 package org.chronopolis.amqp;
+
 import java.io.IOException;
 import org.chronopolis.messaging.MessageType;
 import org.chronopolis.messaging.base.ChronBody;
@@ -33,7 +34,7 @@ public abstract class ChronMessageListener implements MessageListener {
             throw new IllegalArgumentException("Message properties are null!");
         }
 
-        if ( null == props.getHeaders() || props.getHeaders().isEmpty()) {
+        if ( null == props.getHeaders() || props.getHeaders().isEmpty() ) {
             throw new IllegalArgumentException("Message headers are empty!");
         }
 
@@ -45,7 +46,8 @@ public abstract class ChronMessageListener implements MessageListener {
         // Sanity Check
         if ( null != message ) {
 			ChronProcessor processor = getProcessor(message.getType());
-            try { 
+            try {
+                log.info("Processing {} " + message.getType());
                 processor.process(message);
             } catch (Exception e){
                 log.error("Unexpected processing error '{}' ", e);
