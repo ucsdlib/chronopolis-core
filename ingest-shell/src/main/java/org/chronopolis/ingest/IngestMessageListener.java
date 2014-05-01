@@ -9,6 +9,10 @@ import org.chronopolis.messaging.MessageType;
 import org.chronopolis.messaging.base.ChronProcessor;
 
 /**
+ * We could potentially change the constructors of the message listeners to be more like
+ * xMessageListener(AProcessor aProccessor, BProcessor bProcessor)
+ * and it wouldn't really change much, just enforce the type of the processors instead
+ * of having any potential ChronProcessor
  *
  * @author shake 
  */

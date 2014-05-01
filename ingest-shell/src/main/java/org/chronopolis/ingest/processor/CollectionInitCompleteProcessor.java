@@ -23,15 +23,19 @@ import org.springframework.mail.SimpleMailMessage;
  * @author shake
  */
 public class CollectionInitCompleteProcessor implements ChronProcessor {
-    private static final Logger log = LoggerFactory.getLogger(CollectionInitCompleteProcessor.class);
+    private final Logger log = LoggerFactory.getLogger(CollectionInitCompleteProcessor.class);
 
     private final IngestProperties properties;
-    private ChronProducer producer;
-    private MessageFactory messageFactory;
-    private DatabaseManager manager;
-    private MailUtil mailUtil;
+    private final ChronProducer producer;
+    private final MessageFactory messageFactory;
+    private final DatabaseManager manager;
+    private final MailUtil mailUtil;
 
-    public CollectionInitCompleteProcessor(ChronProducer producer, IngestProperties properties, MessageFactory messageFactory, DatabaseManager manager, MailUtil mailUtil) {
+    public CollectionInitCompleteProcessor(ChronProducer producer,
+                                           IngestProperties properties,
+                                           MessageFactory messageFactory,
+                                           DatabaseManager manager,
+                                           MailUtil mailUtil) {
         this.producer = producer;
         this.properties = properties;
         this.messageFactory = messageFactory;

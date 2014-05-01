@@ -135,7 +135,7 @@ public class IngestConfiguration {
 
     @Bean
     public PackageReadyProcessor packageReadyProcessor() {
-        return new PackageReadyProcessor(producer(), ingestProperties(), messageFactory(), manager);
+        return new PackageReadyProcessor(producer(), ingestProperties(), messageFactory(), manager, mailUtil());
     }
 
     @Bean

@@ -35,23 +35,23 @@ import java.nio.file.Paths;
  */
 public class PackageReadyProcessor implements ChronProcessor {
     private final Logger log = LoggerFactory.getLogger(PackageReadyProcessor.class);
-    private ChronProducer producer;
-    private IngestProperties props;
-    private MessageFactory messageFactory;
-    private DatabaseManager manager;
-
-    @Autowired
-    private MailUtil mailUtil;
+    private final ChronProducer producer;
+    private final IngestProperties props;
+    private final MessageFactory messageFactory;
+    private final DatabaseManager manager;
+    private final MailUtil mailUtil;
 
 
     public PackageReadyProcessor(ChronProducer producer,
                                  IngestProperties props,
                                  MessageFactory messageFactory,
-                                 DatabaseManager manager) {
+                                 DatabaseManager manager,
+                                 MailUtil mailUtil) {
         this.producer = producer;
         this.props = props;
         this.messageFactory = messageFactory;
         this.manager = manager;
+        this.mailUtil = mailUtil;
     }
 
     /* 
