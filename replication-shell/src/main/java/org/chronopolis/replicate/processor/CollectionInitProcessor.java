@@ -54,13 +54,16 @@ public class CollectionInitProcessor implements ChronProcessor {
     private final ChronProducer producer;
     private final MessageFactory messageFactory;
     private final ReplicationProperties props;
+    private final MailUtil mailUtil;
 
     public CollectionInitProcessor(ChronProducer producer,
                                    MessageFactory messageFactory,
-                                   ReplicationProperties props) {
+                                   ReplicationProperties props,
+                                   MailUtil mailUtil) {
         this.producer = producer;
         this.messageFactory = messageFactory;
         this.props = props;
+        this.mailUtil = mailUtil;
     }
 
     private HttpResponse executeRequest(HttpRequest req) throws IOException {
@@ -193,6 +196,8 @@ public class CollectionInitProcessor implements ChronProcessor {
 
     // TODO: Check to make sure we don't already have this collection (do a new version if we do?)
     // TODO: Reply if there is an error with the collection (ie: already registered in ace), or ack
+    // TODO: Fix the flow of this so that we don't return on each failure...
+    // that way we send mail and return in one spot instead of 4
     @Override
     public void process(ChronMessage chronMessage) {
         // TODO: Replace these with the values from the properties
@@ -206,6 +211,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         }
 
         log.trace("Received collection init message");
+        SimpleMailMessage smm;
         CollectionInitMessage msg = (CollectionInitMessage) chronMessage;
 
         Path manifest;
@@ -230,8 +236,8 @@ public class CollectionInitProcessor implements ChronProcessor {
                                                          protocol);
         } catch (IOException ex) {
             log.error("Error downloading manifest \n{}", ex);
-            SimpleMailMessage smm = createErrorMail(ex, msg);
-            MailUtil.sendMail("localhost.localdomain", null);
+            smm = createErrorMail(ex, msg);
+            mailUtil.send(smm);
             return;
         }
 
@@ -251,8 +257,8 @@ public class CollectionInitProcessor implements ChronProcessor {
             transfer.getFile(parts[1], bagPath);
         } catch (FileTransferException ex) {
             log.error("Error replicating bag");
-            SimpleMailMessage smm = createErrorMail(ex, msg);
-            MailUtil.sendMail("localhost.localdomain", smm);
+            smm = createErrorMail(ex, msg);
+            mailUtil.send(smm);
             return;
         }
 
@@ -262,8 +268,9 @@ public class CollectionInitProcessor implements ChronProcessor {
             }
         } catch (IOException ex) {
             log.error("IO Error", ex);
-            SimpleMailMessage smm = createErrorMail(ex, msg);
-            MailUtil.sendMail("localhost.localdomain", smm);
+            smm = createErrorMail(ex, msg);
+            mailUtil.send(smm);
+            return;
         }
         
         // Because I'm bad at reading - Collection Init Complete Message
@@ -271,11 +278,11 @@ public class CollectionInitProcessor implements ChronProcessor {
         ChronMessage response = messageFactory.collectionInitCompleteMessage(msg.getCorrelationId());
         producer.send(response, chronMessage.getReturnKey());
 
-        SimpleMailMessage smm = createSuccess(msg);
-        MailUtil.sendMail("localhost.localdomain", smm);
+        smm = createSuccess(msg);
+        mailUtil.send(smm);
     }
 
-    private SimpleMailMessage createSuccess(final CollectionInitMessage msg) {
+    private SimpleMailMessage createSuccess(CollectionInitMessage msg) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo("shake@umiacs.umd.edu");
         message.setFrom(props.getNodeName() + "-replicate@umiacs.umd.edu");
@@ -285,7 +292,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         return message;
     }
 
-    private SimpleMailMessage createErrorMail(final Exception ex, final CollectionInitMessage msg) {
+    private SimpleMailMessage createErrorMail(Exception ex, CollectionInitMessage msg) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo("shake@umiacs.umd.edu");
         message.setFrom(props.getNodeName()+"-replicate@localhost");

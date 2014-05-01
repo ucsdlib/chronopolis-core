@@ -4,6 +4,7 @@ import com.rabbitmq.client.ConnectionFactory;
 import org.chronopolis.amqp.ConnectionListenerImpl;
 import org.chronopolis.amqp.TopicProducer;
 import org.chronopolis.amqp.error.ErrorHandlerImpl;
+import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.ReplicateMessageListener;
 import org.chronopolis.replicate.ReplicationProperties;
@@ -37,6 +38,9 @@ public class ReplicationConfig {
     public static final String PROPERTIES_RABBIT_TEST_BINDING_NAME = "queue.test.pattern";
     public static final String PROPERTIES_RABBIT_BROADCAST_BINDING_NAME = "queue.broadcast.pattern";
     public static final String PROPERTIES_RABBIT_DIRECT_BINDING_NAME = "queue.direct.pattern";
+    public static final String PROPERTIES_SMTP_FROM = "smtp.from";
+    public static final String PROPERTIES_SMTP_TO = "smtp.to";
+    public static final String PROPERTIES_SMTP_HOST = "smtp.host";
 
     @Resource
     Environment env;
@@ -54,6 +58,15 @@ public class ReplicationConfig {
                 env.getProperty(PROPERTIES_ACE_USER),
                 env.getProperty(PROPERTIES_ACE_PASS),
                 env.getProperty(PROPERTIES_ACE_PORT, Integer.class));
+    }
+
+    @Bean
+    MailUtil mailUtil() {
+        MailUtil mailUtil = new MailUtil();
+        mailUtil.setSmtpFrom(env.getProperty(PROPERTIES_SMTP_FROM));
+        mailUtil.setSmtpTo(env.getProperty(PROPERTIES_SMTP_TO));
+        mailUtil.setSmtpHost(env.getProperty(PROPERTIES_SMTP_HOST));
+        return mailUtil;
     }
 
     @Bean
@@ -117,7 +130,7 @@ public class ReplicationConfig {
 
     @Bean
     CollectionInitProcessor collectionInitProcessor() {
-        return new CollectionInitProcessor(producer(), messageFactory(), properties());
+        return new CollectionInitProcessor(producer(), messageFactory(), properties(), mailUtil());
     }
 
     @Bean

@@ -22,12 +22,6 @@ public class MailUtil {
     }
 
 
-    public static void sendMail(String smtpHost, SimpleMailMessage message) {
-        JavaMailSenderImpl sender = new JavaMailSenderImpl();
-        sender.setHost(smtpHost);
-        sender.send(message);
-    }
-
     public String getSmtpHost() {
         return smtpHost;
     }
