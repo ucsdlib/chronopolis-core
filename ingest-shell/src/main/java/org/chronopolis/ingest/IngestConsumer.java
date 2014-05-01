@@ -7,6 +7,8 @@ package org.chronopolis.ingest;
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.ingest.config.IngestConfiguration;
 import org.chronopolis.ingest.config.IngestJPAConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.Queue;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -21,6 +23,7 @@ import java.io.InputStreamReader;
  * @author shake
  */
 public class IngestConsumer {
+    private static final Logger log = LoggerFactory.getLogger(IngestConsumer.class);
     
     private static String readLine() {
         try {
@@ -43,8 +46,6 @@ public class IngestConsumer {
 
         Queue bQueue = (Queue) context.getBean("broadcastQueue");
 
-        System.out.println(bQueue.getName());
-
         while (!done) {
             
             try {
@@ -54,12 +55,11 @@ public class IngestConsumer {
             
             System.out.println("Enter 'q' to exit: ");
             if ("q".equalsIgnoreCase(readLine())) {
-                System.out.println("Shutting down");
+                log.info("Shutting down");
                 done = true;
             }
         }
         
         context.close();
-        System.out.println("Closed for business");
     }
 }

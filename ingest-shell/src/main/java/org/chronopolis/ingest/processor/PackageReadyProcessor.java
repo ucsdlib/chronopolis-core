@@ -20,6 +20,7 @@ import org.chronopolis.messaging.pkg.PackageReadyMessage;
 import org.chronopolis.messaging.pkg.PackageReadyReplyMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 
 import java.nio.file.Path;
@@ -38,6 +39,9 @@ public class PackageReadyProcessor implements ChronProcessor {
     private IngestProperties props;
     private MessageFactory messageFactory;
     private DatabaseManager manager;
+
+    @Autowired
+    private MailUtil mailUtil;
 
 
     public PackageReadyProcessor(ChronProducer producer,
@@ -143,11 +147,11 @@ public class PackageReadyProcessor implements ChronProcessor {
 
     private void sendPackageReadyNotification(PackageReadyMessage packageReadyMessage) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("chron-ingest@umiacs.umd.edu");
-        message.setTo("shake@umiacs.umd.edu");
+        message.setFrom(props.getNodeName() + "-ingest@" + mailUtil.getSmtpFrom());
+        message.setTo(mailUtil.getSmtpTo());
         message.setSubject("Received new package");
         message.setText(packageReadyMessage.toString());
-        MailUtil.sendMail("localhost.localdomain", message);
+        mailUtil.send(message);
     }
 
 }

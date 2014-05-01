@@ -17,11 +17,11 @@ public class ConnectionListenerImpl implements ConnectionListener {
     private final Logger log = LoggerFactory.getLogger(ConnectionListenerImpl.class);
 
     public void onCreate(Connection cnctn) {
-        log.info("Connection created " + cnctn.toString());
+        log.info("Connection created {}", cnctn.toString());
     }
 
     public void onClose(Connection cnctn) {
-        log.info("Connection closed" + cnctn.toString());
+        log.info("Connection closed {}", cnctn.toString());
     }
     
 }

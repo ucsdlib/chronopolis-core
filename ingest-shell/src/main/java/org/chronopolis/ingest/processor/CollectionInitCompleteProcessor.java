@@ -5,6 +5,7 @@
 package org.chronopolis.ingest.processor;
 
 import org.chronopolis.amqp.ChronProducer;
+import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.db.DatabaseManager;
 import org.chronopolis.db.model.CollectionIngest;
 import org.chronopolis.ingest.IngestProperties;
@@ -14,9 +15,7 @@ import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 
 /**
@@ -30,14 +29,14 @@ public class CollectionInitCompleteProcessor implements ChronProcessor {
     private ChronProducer producer;
     private MessageFactory messageFactory;
     private DatabaseManager manager;
-    private MailSender mailSender;
+    private MailUtil mailUtil;
 
-    public CollectionInitCompleteProcessor(ChronProducer producer, IngestProperties properties, MessageFactory messageFactory, DatabaseManager manager) {
+    public CollectionInitCompleteProcessor(ChronProducer producer, IngestProperties properties, MessageFactory messageFactory, DatabaseManager manager, MailUtil mailUtil) {
         this.producer = producer;
         this.properties = properties;
         this.messageFactory = messageFactory;
         this.manager = manager;
-        this.mailSender = new JavaMailSenderImpl();
+        this.mailUtil = mailUtil;
     }
 
     @Override
@@ -47,6 +46,7 @@ public class CollectionInitCompleteProcessor implements ChronProcessor {
         sendCompletionRecord((CollectionInitCompleteMessage) chronMessage);
 
         CollectionIngest ci = manager.getIngestDatabase().findByCorrelationId(chronMessage.getCorrelationId());
+        log.info("Retrieved item correlation {} and toDpn value of {}", ci.getCorrelationId(), ci.getToDpn());
         Boolean toDpn = (ci.getToDpn() && properties.pushToDpn());
         if (toDpn) {
             // Send replication-init-query
@@ -60,10 +60,9 @@ public class CollectionInitCompleteProcessor implements ChronProcessor {
 
     public void sendCompletionRecord(CollectionInitCompleteMessage message) {
         SimpleMailMessage msg = new SimpleMailMessage();
-        msg.setTo("shake@umiacs.umd.edu");
-        msg.setFrom("chron-ingest@localhost");
+        msg.setTo(mailUtil.getSmtpTo());
+        msg.setFrom(properties.getNodeName() + "-ingest@" + mailUtil.getSmtpFrom());
         msg.setSubject("Ingestion of " + message.getCorrelationId() + " complete");
-        mailSender.send(msg);
     }
     
 }

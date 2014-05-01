@@ -3,6 +3,7 @@ package org.chronopolis.ingest.config;
 import com.rabbitmq.client.ConnectionFactory;
 import org.chronopolis.amqp.ConnectionListenerImpl;
 import org.chronopolis.amqp.TopicProducer;
+import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.db.DatabaseManager;
 import org.chronopolis.ingest.IngestMessageListener;
 import org.chronopolis.ingest.IngestProperties;
@@ -44,6 +45,9 @@ public class IngestConfiguration {
     public static final String PROPERTIES_RABBIT_TEST_BINDING_NAME = "queue.test.pattern";
     public static final String PROPERTIES_RABBIT_BROADCAST_BINDING_NAME = "queue.broadcast.pattern";
     public static final String PROPERTIES_RABBIT_DIRECT_INGEST_BINDING_NAME = "queue.direct-ingest.pattern";
+    public static final String PROPERTIES_SMTP_HOST = "smtp.host";
+    public static final String PROPERTIES_SMTP_FROM = "smtp.from";
+    public static final String PROPERTIES_SMTP_TO = "smtp.to";
 
     @Autowired
     DatabaseManager manager;
@@ -100,6 +104,16 @@ public class IngestConfiguration {
     }
 
     @Bean
+    public MailUtil mailUtil() {
+        MailUtil mailUtil = new MailUtil();
+        mailUtil.setSmtpFrom(env.getProperty(PROPERTIES_SMTP_FROM));
+        mailUtil.setSmtpTo(env.getProperty(PROPERTIES_SMTP_TO));
+        mailUtil.setSmtpHost(env.getProperty(PROPERTIES_SMTP_HOST));
+
+        return mailUtil;
+    }
+
+    @Bean
     public MessageFactory messageFactory() {
         MessageFactory messageFactory = new MessageFactory(ingestProperties());
         return messageFactory;
@@ -126,7 +140,7 @@ public class IngestConfiguration {
 
     @Bean
     public CollectionInitCompleteProcessor collectionInitCompleteProcessor() {
-        return new CollectionInitCompleteProcessor(producer(), ingestProperties(), messageFactory(), manager);
+        return new CollectionInitCompleteProcessor(producer(), ingestProperties(), messageFactory(), manager, mailUtil());
     }
 
     @Bean

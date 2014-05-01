@@ -13,9 +13,9 @@ import org.chronopolis.messaging.base.ChronProcessor;
  * @author shake 
  */
 public class IngestMessageListener extends ChronMessageListener {
-	private ChronProcessor packageIngestStatusQueryProcessor;
-	private ChronProcessor packageReadyProcessor;
-	private ChronProcessor collectionInitCompleteProcessor;
+	private final ChronProcessor packageIngestStatusQueryProcessor;
+	private final ChronProcessor packageReadyProcessor;
+	private final ChronProcessor collectionInitCompleteProcessor;
 
 	public IngestMessageListener(ChronProcessor packageIngestStatusQueryProcessor,
 								 ChronProcessor packageReadyProcessor,

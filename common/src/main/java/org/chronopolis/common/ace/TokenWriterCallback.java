@@ -70,7 +70,7 @@ public class TokenWriterCallback implements RequestBatchCallback, Callable<Path>
         try (OutputStream os = Files.newOutputStream(manifest, CREATE)){
             TokenResponse response;
             AceTokenWriter writer = new AceTokenWriter(os);
-            log.debug("Polling for token response");
+            log.info("Polling for token response(s)");
             // 30 seconds for testing, will probably want it to be longer later on
             while ((response = tokenCallbacks.poll(30, TimeUnit.SECONDS)) != null) {
                 log.trace("Writing token for response '{}'", response.getName());
@@ -83,6 +83,8 @@ public class TokenWriterCallback implements RequestBatchCallback, Callable<Path>
         } catch (InterruptedException | IOException ex) {
             log.error("Error w/ manifest {} ", ex);
         }
+        log.info("Finished writing tokens");
+
         return manifest;
     }
     
