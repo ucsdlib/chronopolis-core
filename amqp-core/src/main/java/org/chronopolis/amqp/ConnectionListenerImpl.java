@@ -16,12 +16,12 @@ import org.springframework.amqp.rabbit.connection.ConnectionListener;
 public class ConnectionListenerImpl implements ConnectionListener {
     private final Logger log = LoggerFactory.getLogger(ConnectionListenerImpl.class);
 
-    public void onCreate(Connection cnctn) {
+    public void onCreate(final Connection cnctn) {
         log.info("Connection created {}", cnctn.toString());
     }
 
-    public void onClose(Connection cnctn) {
+    public void onClose(final Connection cnctn) {
         log.info("Connection closed {}", cnctn.toString());
     }
-    
+
 }

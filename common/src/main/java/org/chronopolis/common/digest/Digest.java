@@ -12,15 +12,15 @@ public enum Digest {
     private final String name;
     private final String bagitIdentifier;
 
-    Digest(String name, String bagitIdentifier) {
+    Digest(final String name, final String bagitIdentifier) {
         this.name = name;
         this.bagitIdentifier = bagitIdentifier;
 
     }
 
-    public static Digest fromString(String algorithm) {
-        if ( algorithm.equalsIgnoreCase(SHA_256.name) ||
-             algorithm.equalsIgnoreCase(SHA_256.bagitIdentifier)) {
+    public static Digest fromString(final String algorithm) {
+        if (algorithm.equalsIgnoreCase(SHA_256.name)
+            || algorithm.equalsIgnoreCase(SHA_256.bagitIdentifier)) {
             return SHA_256;
         } else if (algorithm.equalsIgnoreCase(MD5.name)) {
             return MD5;

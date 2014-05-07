@@ -14,23 +14,23 @@ import org.chronopolis.messaging.base.ChronProcessor;
  * and it wouldn't really change much, just enforce the type of the processors instead
  * of having any potential ChronProcessor
  *
- * @author shake 
+ * @author shake
  */
 public class IngestMessageListener extends ChronMessageListener {
-	private final ChronProcessor packageIngestStatusQueryProcessor;
-	private final ChronProcessor packageReadyProcessor;
-	private final ChronProcessor collectionInitCompleteProcessor;
+    private final ChronProcessor packageIngestStatusQueryProcessor;
+    private final ChronProcessor packageReadyProcessor;
+    private final ChronProcessor collectionInitCompleteProcessor;
 
-	public IngestMessageListener(ChronProcessor packageIngestStatusQueryProcessor,
-								 ChronProcessor packageReadyProcessor,
+    public IngestMessageListener(ChronProcessor packageIngestStatusQueryProcessor,
+                                 ChronProcessor packageReadyProcessor,
                                  ChronProcessor collectionInitCompleteProcessor) {
-		this.packageIngestStatusQueryProcessor = packageIngestStatusQueryProcessor;
-		this.packageReadyProcessor = packageReadyProcessor;
+        this.packageIngestStatusQueryProcessor = packageIngestStatusQueryProcessor;
+        this.packageReadyProcessor = packageReadyProcessor;
         this.collectionInitCompleteProcessor = collectionInitCompleteProcessor;
-	}
+    }
 
-	@Override
-	public ChronProcessor getProcessor(MessageType type) {
+    @Override
+    public ChronProcessor getProcessor(MessageType type) {
         switch (type) {
             case PACKAGE_INGEST_READY:
                 return packageReadyProcessor;
@@ -41,6 +41,6 @@ public class IngestMessageListener extends ChronMessageListener {
             default:
                 throw new RuntimeException("Unexpected MessageType: " + type.name());
         }
-	}
-	
+    }
+
 }

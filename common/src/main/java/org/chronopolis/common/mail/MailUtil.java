@@ -9,7 +9,7 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
  * Created by shake on 4/29/14.
  */
 public class MailUtil {
-    private static final Logger log = LoggerFactory.getLogger(MailUtil.class);
+    private final Logger log = LoggerFactory.getLogger(MailUtil.class);
 
     private String smtpHost;
     private String smtpTo;

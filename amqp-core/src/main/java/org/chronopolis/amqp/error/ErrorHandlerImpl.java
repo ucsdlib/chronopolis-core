@@ -19,5 +19,5 @@ public class ErrorHandlerImpl implements ErrorHandler {
     public void handleError(Throwable thrwbl) {
         log.error("Caught error: {}", thrwbl);
     }
-    
+
 }

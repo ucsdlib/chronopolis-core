@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import org.chronopolis.common.exception.FileTransferException;
 import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.common.transfer.FileTransfer;
 import org.chronopolis.common.transfer.HttpsTransfer;
@@ -52,7 +54,7 @@ public class ReplicationQueue implements Runnable {
         return uriBuilder.toString();
     }
     
-    public static Path getFileImmediate(String url, Path stage, String protocol) throws IOException {
+    public static Path getFileImmediate(String url, Path stage, String protocol) throws IOException, FileTransferException {
         if ( url == null ) {
             System.out.println("Null url");
             throw new IllegalArgumentException("Url cannot be null");
@@ -97,13 +99,15 @@ public class ReplicationQueue implements Runnable {
 
     @Override
     public void run() {
-        while ( !Thread.currentThread().isInterrupted() ) {
+        while (!Thread.currentThread().isInterrupted()) {
             Path file = null;
             ReplicationDownload dl = downloadQueue.poll();
             try {
                 Path collPath = Paths.get(props.getStage(), dl.getGroup(), dl.getCollection());
                 String url = buildURL(dl.getBase(), dl.getCollection(), dl.getGroup(), dl.getFile());
                 file = xfer.getFile(url, collPath);
+            } catch (FileTransferException e) {
+                log.error("{}", e);
             } finally {
                 // Requeue if necessary
                 if ( file == null ) {

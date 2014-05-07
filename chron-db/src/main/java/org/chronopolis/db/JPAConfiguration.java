@@ -5,7 +5,6 @@
 package org.chronopolis.db;
 
 import org.chronopolis.db.ingest.IngestDB;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -31,7 +30,8 @@ import java.sql.SQLException;
  */
 @Configuration
 @EnableJpaRepositories(basePackages = "org.chronopolis.db",
-        includeFilters = @ComponentScan.Filter(value = {IngestDB.class}, type = FilterType.ASSIGNABLE_TYPE))
+        includeFilters = @ComponentScan.Filter(value = {IngestDB.class},
+                                               type = FilterType.ASSIGNABLE_TYPE))
 @EnableTransactionManagement
 public class JPAConfiguration {
     @Bean
@@ -48,13 +48,14 @@ public class JPAConfiguration {
     public DatabaseManager databaseManager() {
         return new DatabaseManager();
     }
-    
+
     @Bean
     public EntityManagerFactory entityManagerFactory() throws SQLException {
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         vendorAdapter.setGenerateDdl(true);
 
-        LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
+        LocalContainerEntityManagerFactoryBean factory =
+                new LocalContainerEntityManagerFactoryBean();
         factory.setJpaVendorAdapter(vendorAdapter);
         factory.setPackagesToScan("org.chronopolis.db.model");
         factory.setDataSource(dataSource());
@@ -63,21 +64,23 @@ public class JPAConfiguration {
 
         return factory.getObject();
     }
-    
+
     @Bean
     public EntityManager entityManager(EntityManagerFactory entityManagerFactory) {
         return entityManagerFactory.createEntityManager();
     }
-    
+
     @Bean
     public PlatformTransactionManager transactionManager() throws SQLException {
         JpaTransactionManager txManager = new JpaTransactionManager();
         txManager.setEntityManagerFactory(entityManagerFactory());
         return txManager;
     }
-    
+
     @Bean
     public HibernateExceptionTranslator hibernateExceptionTranslator() {
         return new HibernateExceptionTranslator();
     }
+
 }
+

@@ -18,23 +18,23 @@ import org.springframework.amqp.core.MessageProperties;
 /**
  * Listener which receives notifications from AMQP when chronopolis messages are
  * received by various services
- * 
+ *
  * @author toaster
  */
 public abstract class ChronMessageListener implements MessageListener {
     private Logger log = LoggerFactory.getLogger(ChronMessageListener.class);
-    
-	@Override
+
+    @Override
     public void onMessage(Message msg) {
         MessageProperties props = msg.getMessageProperties();
         byte[] body = msg.getBody();
         ChronMessage message = null;
 
-        if ( null == props ) {
+        if (null == props) {
             throw new IllegalArgumentException("Message properties are null!");
         }
 
-        if ( null == props.getHeaders() || props.getHeaders().isEmpty() ) {
+        if (null == props.getHeaders() || props.getHeaders().isEmpty()) {
             throw new IllegalArgumentException("Message headers are empty!");
         }
 
@@ -44,20 +44,20 @@ public abstract class ChronMessageListener implements MessageListener {
         message.setBody(chronBody);
 
         // Sanity Check
-        if ( null != message ) {
+        if (null != message) {
             log.debug("Received {}", message);
-			ChronProcessor processor = getProcessor(message.getType());
+            ChronProcessor processor = getProcessor(message.getType());
             try {
                 log.info("Processing {}", message.getType());
                 processor.process(message);
-            } catch (Exception e){
+            } catch (Exception e) {
                 log.error("Unexpected processing error '{}' ", e);
             }
         }
     }
 
     private ChronBody getChronBody(byte[] body) {
-        if ( body == null ) {
+        if (body == null) {
             throw new IllegalArgumentException("Message body is null.");
         }
 
@@ -74,5 +74,5 @@ public abstract class ChronMessageListener implements MessageListener {
         }
     }
 
-	public abstract ChronProcessor getProcessor(MessageType type);
+    public abstract ChronProcessor getProcessor(MessageType type);
 }

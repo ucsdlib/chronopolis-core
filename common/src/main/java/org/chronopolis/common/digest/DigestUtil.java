@@ -1,12 +1,10 @@
 package org.chronopolis.common.digest;
 
 import edu.umiacs.ace.util.HashValue;
-import edu.umiacs.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.DigestInputStream;
@@ -16,8 +14,11 @@ import java.security.NoSuchAlgorithmException;
 /**
  * Created by shake on 1/28/14.
  */
-public class DigestUtil {
-    private static final Logger log = LoggerFactory.getLogger(DigestUtil.class);
+public final class DigestUtil {
+    private static final Logger LOG = LoggerFactory.getLogger(DigestUtil.class);
+
+    private DigestUtil() {
+    }
 
     /**
      * Digest the file and return it in hex format
@@ -26,18 +27,18 @@ public class DigestUtil {
      * @param alg the algorithm to use (sha-256)
      * @return string representation of the digest
      */
-    public static String digest(Path file, String alg) {
+    public static String digest(final Path file, final String alg) {
         MessageDigest md = null;
         try {
             md = MessageDigest.getInstance(alg);
             DigestInputStream dis = new DigestInputStream(Files.newInputStream(file), md);
-            int bufferSize = 1046576;
+            int bufferSize = 1046576; // 1 MB
             byte[] buf = new byte[bufferSize];
-            while ( dis.read(buf) >= 0 ) { }
+            while (dis.read(buf) >= 0) { }
         } catch (NoSuchAlgorithmException e) {
-            log.error("Error finding algorithm {}", alg, e);
+            LOG.error("Error finding algorithm {}", alg, e);
         } catch (IOException e) {
-            log.error("IO Error for {}", file, e);
+            LOG.error("IO Error for {}", file, e);
         }
 
         assert md != null;

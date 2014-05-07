@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.chronopolis.common.ace;
 
 import edu.umiacs.ace.exception.StatusCode;
@@ -33,11 +29,11 @@ import org.slf4j.LoggerFactory;
 /**
  * TODO: I noticed when testing that not all of the manifest files were correct,
  *       so we should check the validity of the AceTokenWriter
- * 
+ *
  *
  * @author shake
  */
-public class TokenWriterCallback implements RequestBatchCallback, Callable<Path>{
+public class TokenWriterCallback implements RequestBatchCallback, Callable<Path> {
     private final Logger log = LoggerFactory.getLogger(TokenWriterCallback.class);
     // I don't think this needs to be volatile anymore since we use a future
     private volatile HashMap<String, AceToken> tokenMap;
@@ -45,29 +41,30 @@ public class TokenWriterCallback implements RequestBatchCallback, Callable<Path>
     private String collectionName;
     private Path manifest;
     private Path stage = Paths.get("/tmp");
-    
-    public TokenWriterCallback(String collectionName) {
+
+    public TokenWriterCallback(final String collectionName) {
         tokenMap = new HashMap<>();
         this.tokenCallbacks = new LinkedBlockingQueue<>();
         // denote that it is actually the tokens
-        this.collectionName = collectionName+"-tokens";
+        this.collectionName = collectionName + "-tokens";
     }
-    
+
     public Map<String, AceToken> getTokens() {
         return tokenMap;
     }
 
-    public void setStage(Path stage) {
+    public void setStage(final Path stage) {
         this.stage = stage;
     }
 
     @Override
     public Path call() {
-        if ( !stage.toFile().exists() ) {
+        if (!stage.toFile().exists()) {
             stage.toFile().mkdirs();
         }
+
         manifest = Paths.get(stage.toString(), collectionName);
-        try (OutputStream os = Files.newOutputStream(manifest, CREATE)){
+        try (OutputStream os = Files.newOutputStream(manifest, CREATE)) {
             TokenResponse response;
             AceTokenWriter writer = new AceTokenWriter(os);
             log.info("Polling for token response(s)");
@@ -76,7 +73,7 @@ public class TokenWriterCallback implements RequestBatchCallback, Callable<Path>
                 log.trace("Writing token for response '{}'", response.getName());
                 AceToken token = buildFromResponse(response);
                 writer.startToken(token);
-                writer.addIdentifier("/"+response.getName());
+                writer.addIdentifier("/" + response.getName());
                 writer.writeTokenEntry();
             }
             writer.close();
@@ -87,52 +84,52 @@ public class TokenWriterCallback implements RequestBatchCallback, Callable<Path>
 
         return manifest;
     }
-    
-    private AceToken buildFromResponse(TokenResponse response) {
+
+    private AceToken buildFromResponse(final TokenResponse response) {
         AceTokenBuilder builder = new AceTokenBuilder();
         builder.setDate(response.getTimestamp().toGregorianCalendar().getTime());
         builder.setDigestAlgorithm(response.getDigestService());
         builder.setIms("ims.umiacs.umd.edu"); // hard coded cause I'm a punk
         builder.setImsService(response.getTokenClassName());
         builder.setRound(response.getRoundId());
-        
-        for ( ProofElement p : response.getProofElements()) {
+
+        for (ProofElement p : response.getProofElements()) {
             List<String> hashElements = p.getHashes();
-            builder.startProofLevel(hashElements.size()+1);
+            builder.startProofLevel(hashElements.size() + 1);
             builder.setLevelInheritIndex(p.getIndex());
-            for(String hash : hashElements) {
+            for (String hash : hashElements) {
                 builder.addLevelHash(HashValue.asBytes(hash));
             }
         }
-        
+
         return builder.createToken();
     }
-    
+
     @Override
-    public void tokensReceived(List<TokenRequest> requests,
-    List<TokenResponse> responses) {
-        for ( TokenResponse tr : responses ) {
+    public void tokensReceived(final List<TokenRequest> requests,
+                               final List<TokenResponse> responses) {
+        for (TokenResponse tr : responses) {
             log.trace("Received token response for round '{}'", tr.getRoundId());
-            if ( tr.getStatusCode() == StatusCode.SUCCESS) {
+            if (tr.getStatusCode() == StatusCode.SUCCESS) {
                 tokenCallbacks.add(tr);
             }
         }
     }
 
     // TODO: Properly handle these exceptions
-    
+
     @Override
-    public void exceptionThrown(List<TokenRequest> list, Throwable thrwbl) {
+    public void exceptionThrown(final List<TokenRequest> list, final Throwable thrwbl) {
         System.out.println("Some other exception!");
         System.out.println(Strings.exceptionAsString(thrwbl));
     }
-    
+
     @Override
-    public void unexpectedException(Throwable thrwbl) {
+    public void unexpectedException(final Throwable thrwbl) {
         System.out.println("Unexpected Error!");
         System.out.println(Strings.exceptionAsString(thrwbl));
     }
-    
+
     public Path getManifestPath() throws InterruptedException {
         return manifest;
     }

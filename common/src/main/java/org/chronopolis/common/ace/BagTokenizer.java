@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.chronopolis.common.ace;
 
 import edu.umiacs.ace.ims.api.IMSService;
@@ -14,7 +10,10 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,8 +40,11 @@ public class BagTokenizer {
     private TokenWriterCallback callback = null;
     private TokenRequestBatch batch = null;
 
+    private static final int SSL_PORT = 443;
+    private static final int MAX_QUEUE_LEN = 1000;
+    private static final int TIMEOUT = 5000;
 
-    public BagTokenizer(Path bag, Path tokenStage, String fixityAlgorithm) {
+    public BagTokenizer(final Path bag, final Path tokenStage, final String fixityAlgorithm) {
         this.bag = bag;
         this.tokenStage = tokenStage;
         this.fixityAlgorithm = Digest.fromString(fixityAlgorithm);
@@ -75,8 +77,10 @@ public class BagTokenizer {
     /**
      * Create an ACE Token Manifest, validating that files are correct as we go
      * along
-     * 
+     *
      * @return The path to the token manifest
+     * @throws java.lang.InterruptedException
+     * @throws java.util.concurrent.ExecutionException
      */
     public Path getAceManifestWithValidation() throws InterruptedException, ExecutionException {
         // Final digest list
@@ -85,16 +89,16 @@ public class BagTokenizer {
         String line;
 
         // Validate our give manifests
-        for ( Path manifest : manifests ) {
+        for (Path manifest : manifests) {
             try {
                 BufferedReader br = Files.newBufferedReader(manifest, Charset.forName("UTF-8"));
-                while ( (line = br.readLine()) != null ) {
+                while ((line = br.readLine()) != null) {
                     log.trace("Processing '{}'", line);
                     String [] split = line.split("\\s+", 2);
                     String digest = split[0];
                     Path path = Paths.get(bag.toString(), split[1]);
                     String calculatedDigest = DigestUtil.digest(path, fixityAlgorithm.getName());
-                    if ( digest.equals(calculatedDigest) ) {
+                    if (digest.equals(calculatedDigest)) {
                         digests.put(path, digest);
                     } else {
                         Object[] stf = new Object[]{
@@ -111,20 +115,21 @@ public class BagTokenizer {
             }
 
             // This only runs against 2 files, don't really need to try and be clever
-            if (manifest.toString().contains("tagmanifest")){
+            if (manifest.toString().contains("tagmanifest")) {
                 String tagDigest = DigestUtil.digest(manifest, fixityAlgorithm.getName());
                 digests.put(manifest, tagDigest);
             }
         }
 
         // F it
-        if ( !badFiles.isEmpty() ) {
+        if (!badFiles.isEmpty()) {
             StringBuilder files = new StringBuilder();
-            for ( Path p : badFiles ) {
+            for (Path p : badFiles) {
                 files.append(p.toString());
                 files.append("\n");
             }
-            log.error("Error validating collection, ( " + badFiles.size() + " ) bad files found: " + files.toString());
+            log.error("Error validating collection, ({}) bad files found:\n{}",
+                    badFiles.size(), files.toString());
             return null;
         }
 
@@ -133,7 +138,7 @@ public class BagTokenizer {
         createIMSConnection();
         callback.setStage(tokenStage);
         Future<Path> manifest = manifestService.submit(callback);
-        for ( Map.Entry<Path, String> entry : digests.entrySet()) {
+        for (Map.Entry<Path, String> entry : digests.entrySet()) {
             TokenRequest req = new TokenRequest();
             Path full = entry.getKey();
             Path relative = full.subpath(bag.getNameCount(), full.getNameCount());
@@ -153,14 +158,14 @@ public class BagTokenizer {
     /**
      * Create an ACE Token Manifest from the manifest-alg.txt and tagmanifest-alg.txt
      * files.
-     * 
+     *
      * @param stage The token stage
      * @return The path to the token manifest
      * @throws InterruptedException
      * @throws IOException
-     * @throws ExecutionException 
+     * @throws ExecutionException
      */
-    public Path getAceManifestWithoutValidation(Path stage) throws InterruptedException,
+    public Path getAceManifestWithoutValidation(final Path stage) throws InterruptedException,
             IOException,
             ExecutionException {
         // temp while I figure out what to do
@@ -190,7 +195,6 @@ public class BagTokenizer {
             req.setHashValue(entry.getValue());
             batch.add(req);
         }
-        System.out.println("Telling the batch to close");
         batch.close();
 
         return manifestPath.get();
@@ -198,11 +202,11 @@ public class BagTokenizer {
 
     private void createIMSConnection() {
         IMSService ims;
-        // TODO: Unhardcode
-        ims = IMSService.connect("ims.umiacs.umd.edu", 443, true);
+        // TODO: Unhardcode ims server
+        ims = IMSService.connect("ims.umiacs.umd.edu", SSL_PORT, true);
         batch = ims.createImmediateTokenRequestBatch("SHA-256",
                 callback,
-                1000,
-                5000);
-    } 
+                MAX_QUEUE_LEN,
+                TIMEOUT);
+    }
 }

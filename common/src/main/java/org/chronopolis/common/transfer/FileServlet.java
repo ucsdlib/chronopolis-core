@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.chronopolis.common.transfer;
 
 import java.io.BufferedInputStream;
@@ -22,13 +17,13 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class FileServlet extends HttpServlet {
 
+    /*
     private int blockSize = 65536;
 
-    /*
     @Override
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response, 
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response,
             EntityManager em) throws ServletException, IOException {
-		Collection coll = getCollection(request, PersistUtil.getEntityManager());
+        Collection coll = getCollection(request, PersistUtil.getEntityManager());
         MonitoredItem it = getItem(request, PersistUtil.getEntityManager());
         StorageDriver driver = StorageDriverFactory.createStorageAccess(coll, em);
 

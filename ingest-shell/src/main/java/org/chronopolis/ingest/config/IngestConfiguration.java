@@ -22,14 +22,27 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.chronopolis.ingest.IngestProperties.*;
+import static org.chronopolis.ingest.IngestProperties.PROPERTIES_BROADCAST_ROUTING_KEY;
+import static org.chronopolis.ingest.IngestProperties.PROPERTIES_DPN_PUSH;
+import static org.chronopolis.ingest.IngestProperties.PROPERTIES_EXCHANGE;
+import static org.chronopolis.ingest.IngestProperties.PROPERTIES_EXTERNAL_USER;
+import static org.chronopolis.ingest.IngestProperties.PROPERTIES_INBOUND_ROUTING_KEY;
+import static org.chronopolis.ingest.IngestProperties.PROPERTIES_IMS_HOST_NAME;
+import static org.chronopolis.ingest.IngestProperties.PROPERTIES_NODE_NAME;
+import static org.chronopolis.ingest.IngestProperties.PROPERTIES_STAGE;
+import static org.chronopolis.ingest.IngestProperties.PROPERTIES_STORAGE_SERVER;
+import static org.chronopolis.ingest.IngestProperties.PROPERTIES_TOKEN_STAGE;
 
 /**
  * Created by shake on 4/10/14.
@@ -89,7 +102,8 @@ public class IngestConfiguration {
 
     @Bean
     public CachingConnectionFactory connectionFactory() {
-        CachingConnectionFactory connectionFactory = new CachingConnectionFactory(rabbitConnectionFactory());
+        CachingConnectionFactory connectionFactory =
+                new CachingConnectionFactory(rabbitConnectionFactory());
 
         connectionFactory.setPublisherConfirms(true);
         connectionFactory.setPublisherReturns(true);
@@ -135,12 +149,20 @@ public class IngestConfiguration {
 
     @Bean
     public PackageReadyProcessor packageReadyProcessor() {
-        return new PackageReadyProcessor(producer(), ingestProperties(), messageFactory(), manager, mailUtil());
+        return new PackageReadyProcessor(producer(),
+                ingestProperties(),
+                messageFactory(),
+                manager,
+                mailUtil());
     }
 
     @Bean
     public CollectionInitCompleteProcessor collectionInitCompleteProcessor() {
-        return new CollectionInitCompleteProcessor(producer(), ingestProperties(), messageFactory(), manager, mailUtil());
+        return new CollectionInitCompleteProcessor(producer(),
+                ingestProperties(),
+                messageFactory(),
+                manager,
+                mailUtil());
     }
 
     @Bean
@@ -150,7 +172,9 @@ public class IngestConfiguration {
 
     @Bean
     public MessageListener messageListener() {
-        return new IngestMessageListener(packageIngestStatusQueryProcessor(), packageReadyProcessor(), collectionInitCompleteProcessor());
+        return new IngestMessageListener(packageIngestStatusQueryProcessor(),
+                packageReadyProcessor(),
+                collectionInitCompleteProcessor());
     }
 
     @Bean

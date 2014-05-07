@@ -27,7 +27,7 @@ public class GsonCollection {
         return digestAlgorithm;
     }
 
-    public void setDigestAlgorithm(String digestAlgorithm) {
+    public void setDigestAlgorithm(final String digestAlgorithm) {
         this.digestAlgorithm = digestAlgorithm;
     }
 
@@ -35,7 +35,7 @@ public class GsonCollection {
         return directory;
     }
 
-    public void setDirectory(String directory) {
+    public void setDirectory(final String directory) {
         this.directory = directory;
     }
 
@@ -43,7 +43,7 @@ public class GsonCollection {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
@@ -51,7 +51,7 @@ public class GsonCollection {
         return storage;
     }
 
-    public void setStorage(String storage) {
+    public void setStorage(final String storage) {
         this.storage = storage;
     }
 
@@ -59,27 +59,27 @@ public class GsonCollection {
         return settings;
     }
 
-    public void setSettings(Setting settings) {
+    public void setSettings(final Setting settings) {
         this.settings = settings;
     }
 
-    public void addSetting(String key, String val) {
+    public void addSetting(final String key, final String val) {
         Entry entry = new Entry(key, val);
         settings.entry.add(entry);
     }
 
     // We'll have a method for each of the entries we can add
-    public void setAuditTokens(String val) {
+    public void setAuditTokens(final String val) {
         Entry entry = new Entry("audit.tokens", val);
         settings.entry.add(entry);
     }
 
-    public void setAuditPeriod(String val) {
+    public void setAuditPeriod(final String val) {
         Entry entry = new Entry("audit.period", val);
         settings.entry.add(entry);
     }
 
-    public void setProxyData(String val) {
+    public void setProxyData(final String val) {
         Entry entry = new Entry("proxy.data", val);
         settings.entry.add(entry);
     }
@@ -88,7 +88,7 @@ public class GsonCollection {
         return group;
     }
 
-    public void setGroup(String group) {
+    public void setGroup(final String group) {
         this.group = group;
     }
 
@@ -105,7 +105,7 @@ public class GsonCollection {
         private final String key;
         private final String value;
 
-        public Entry(String key, String value) {
+        public Entry(final String key, final String value) {
             this.key = key;
             this.value = value;
         }

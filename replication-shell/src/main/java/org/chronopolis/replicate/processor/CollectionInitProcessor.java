@@ -239,6 +239,11 @@ public class CollectionInitProcessor implements ChronProcessor {
             smm = createErrorMail(ex, msg);
             mailUtil.send(smm);
             return;
+        } catch (FileTransferException e) {
+            log.error("File transfer exception {}", e);
+            smm = createErrorMail(e, msg);
+            mailUtil.send(smm);
+            return;
         }
 
         FileTransfer transfer;

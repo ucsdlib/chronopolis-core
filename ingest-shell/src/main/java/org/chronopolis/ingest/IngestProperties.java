@@ -10,27 +10,27 @@ import org.chronopolis.common.properties.GenericProperties;
  *
  * @author shake
  */
-public class IngestProperties extends GenericProperties{
+public class IngestProperties extends GenericProperties {
     public static final String PROPERTIES_TOKEN_STAGE = "node.storage.tokens";
     public static final String PROPERTIES_STORAGE_SERVER = "node.replication.server";
     public static final String PROPERTIES_EXTERNAL_USER = "node.external.user";
     public static final String PROPERTIES_IMS_HOST_NAME = "ace.ims.host";
     public static final String PROPERTIES_DPN_PUSH = "dpn.push";
 
-	private String tokenStage;
-	private String imsHostName;
+    private String tokenStage;
+    private String imsHostName;
     private String storageServer;
     private String externalUser;
     private Boolean dpnPush;
 
-	/**
-	 *
-	 * @param nodeName
-	 * @param bagStage
-	 * @param tokenStage
-	 * @param imsHostName
-	 */
-	public IngestProperties(String nodeName,
+    /**
+     *
+     * @param nodeName
+     * @param bagStage
+     * @param tokenStage
+     * @param imsHostName
+     */
+    public IngestProperties(String nodeName,
                             String bagStage,
                             String exchange,
                             String inboundKey,
@@ -40,41 +40,41 @@ public class IngestProperties extends GenericProperties{
                             String storageServer,
                             String externalUser,
                             Boolean dpnPush) {
-		super(nodeName, bagStage, exchange, inboundKey, broadcastKey);
-		this.tokenStage = tokenStage;
-		this.imsHostName = imsHostName;
+        super(nodeName, bagStage, exchange, inboundKey, broadcastKey);
+        this.tokenStage = tokenStage;
+        this.imsHostName = imsHostName;
         this.storageServer = storageServer;
         this.externalUser = externalUser;
         this.dpnPush = dpnPush;
-	}
+    }
 
-	/**
-	 * @return the tokenStage
-	 */
-	public String getTokenStage() {
-		return tokenStage;
-	}
+    /**
+     * @return the tokenStage
+     */
+    public String getTokenStage() {
+        return tokenStage;
+    }
 
-	/**
-	 * @param tokenStage the tokenStage to set
-	 */
-	public void setTokenStage(String tokenStage) {
-		this.tokenStage = tokenStage;
-	}
+    /**
+     * @param tokenStage the tokenStage to set
+     */
+    public void setTokenStage(String tokenStage) {
+        this.tokenStage = tokenStage;
+    }
 
-	/**
-	 * @return the imsHostName
-	 */
-	public String getImsHostName() {
-		return imsHostName;
-	}
+    /**
+     * @return the imsHostName
+     */
+    public String getImsHostName() {
+        return imsHostName;
+    }
 
-	/**
-	 * @param imsHostName the imsHostName to set
-	 */
-	public void setImsHostName(String imsHostName) {
-		this.imsHostName = imsHostName;
-	}
+    /**
+     * @param imsHostName the imsHostName to set
+     */
+    public void setImsHostName(String imsHostName) {
+        this.imsHostName = imsHostName;
+    }
 
     public String getStorageServer() {
         return storageServer;
@@ -84,9 +84,9 @@ public class IngestProperties extends GenericProperties{
         this.storageServer = storageServer;
     }
 
-	private String getErrorMessage() {
-		return "Error in ingest.properties";
-	}
+    private String getErrorMessage() {
+        return "Error in ingest.properties";
+    }
 
     public String getExternalUser() {
         return externalUser;

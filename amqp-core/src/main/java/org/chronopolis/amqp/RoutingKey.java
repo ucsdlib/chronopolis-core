@@ -5,10 +5,10 @@
 package org.chronopolis.amqp;
 
 /**
+ * Could use this for broadcast routing keys
  *
  * @author toaster
  */
 public enum RoutingKey {
-    
-     
+
 }

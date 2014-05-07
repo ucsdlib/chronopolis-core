@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.chronopolis.common.transfer;
 
 import java.io.FileNotFoundException;
@@ -28,7 +24,7 @@ public class HttpsTransfer implements FileTransfer {
     private final Logger log = LoggerFactory.getLogger(HttpsTransfer.class);
 
     @Override
-    public Path getFile(String uri, Path stage) throws FileTransferException {
+    public Path getFile(final String uri, final Path stage) throws FileTransferException {
         // Make HTTP Connection
         log.info("Attempting HTTP Transfer from '{}'", uri);
         URL url;

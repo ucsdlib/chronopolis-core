@@ -8,9 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class DatabaseManager {
     @Autowired
-    IngestDB ingestDatabase;
+    private IngestDB ingestDatabase;
 
     public IngestDB getIngestDatabase() {
         return ingestDatabase;
+    }
+
+    public void setIngestDatabase(final IngestDB ingestDatabase) {
+        this.ingestDatabase = ingestDatabase;
     }
 }

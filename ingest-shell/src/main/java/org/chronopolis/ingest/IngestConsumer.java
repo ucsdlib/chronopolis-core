@@ -23,7 +23,10 @@ import java.io.InputStreamReader;
  * @author shake
  */
 public class IngestConsumer {
-    private static final Logger log = LoggerFactory.getLogger(IngestConsumer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(IngestConsumer.class);
+
+    private IngestConsumer() {
+    }
     
     private static String readLine() {
         try {
@@ -33,7 +36,7 @@ public class IngestConsumer {
             throw new RuntimeException("Can't read from STDIN");
         }
     }
-    
+
     public static void main(String [] args) {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
         context.register(IngestJPAConfiguration.class);
@@ -51,15 +54,18 @@ public class IngestConsumer {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException ex) {
+                LOG.error("Interrupted {}", ex);
             }
-            
+
             System.out.println("Enter 'q' to exit: ");
             if ("q".equalsIgnoreCase(readLine())) {
-                log.info("Shutting down");
+                LOG.info("Shutting down");
                 done = true;
             }
         }
-        
+
         context.close();
     }
+
 }
+
