@@ -22,7 +22,7 @@ public class FileQueryResponseProcessor implements ChronProcessor {
 
     @Override
     public void process(ChronMessage chronMessage) {
-        if ( !(chronMessage instanceof FileQueryResponseMessage)) {
+        if (!(chronMessage instanceof FileQueryResponseMessage)) {
             // Error out
         } 
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.

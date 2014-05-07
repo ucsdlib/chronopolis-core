@@ -12,6 +12,7 @@ import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
+import org.chronopolis.messaging.exception.InvalidMessageException;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,12 @@ public class CollectionInitCompleteProcessor implements ChronProcessor {
 
     @Override
     public void process(ChronMessage chronMessage) {
+        if (!(chronMessage instanceof CollectionInitCompleteMessage)) {
+            // Error out
+            log.error("Invalid message type");
+            throw new InvalidMessageException("Expected message of type CollectionInitComplete but received "
+                    + chronMessage.getClass().getName());
+        }
         ChronMessage response = messageFactory.DefaultPackageIngestCompleteMessage();
 
         sendCompletionRecord((CollectionInitCompleteMessage) chronMessage);

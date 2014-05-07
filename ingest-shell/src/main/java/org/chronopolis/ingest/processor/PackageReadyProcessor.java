@@ -15,6 +15,7 @@ import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
+import org.chronopolis.messaging.exception.InvalidMessageException;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
 import org.chronopolis.messaging.pkg.PackageReadyReplyMessage;
@@ -68,6 +69,8 @@ public class PackageReadyProcessor implements ChronProcessor {
         if (!(chronMessage instanceof PackageReadyMessage)) {
             // Error out
             log.error("Invalid message type");
+            throw new InvalidMessageException("Expected message of type PackageReadyMessage but received "
+                    + chronMessage.getClass().getName());
         }
 
         BagTokenizer tokenizer;

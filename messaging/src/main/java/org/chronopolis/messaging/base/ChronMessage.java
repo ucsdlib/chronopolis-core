@@ -54,7 +54,7 @@ public class ChronMessage {
     }
 
     public void setBody(ChronBody body) {
-        if ( type != body.getType() ) {
+        if (type != body.getType()) {
             throw new RuntimeException("Cannot set body of differing message type ("
                     + body.getType() + ")");
         }
