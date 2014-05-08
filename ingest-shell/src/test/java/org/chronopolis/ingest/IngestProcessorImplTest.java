@@ -41,7 +41,7 @@ public class IngestProcessorImplTest {
     
     @Test
     public void testListener() throws Exception {
-        ChronMessage msg = messageFactory.DefaultCollectionInitCompleteMessage();
+        ChronMessage msg = messageFactory.defaultCollectionInitCompleteMessage();
 
         ChronProcessor p = listener.getProcessor(msg.getType());
         p.process(msg);

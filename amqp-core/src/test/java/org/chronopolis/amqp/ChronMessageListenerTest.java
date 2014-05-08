@@ -39,7 +39,7 @@ public class ChronMessageListenerTest extends TestCase {
     }
 
     public void testOnMessage() throws Exception {
-        CollectionInitMessage chronMessage = messageFactory.DefaultCollectionInitMessage();
+        CollectionInitMessage chronMessage = messageFactory.defaultCollectionInitMessage();
         processor.setExpected(chronMessage);
         String json = chronMessage.toJson();
 
