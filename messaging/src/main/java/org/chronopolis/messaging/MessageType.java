@@ -15,14 +15,14 @@ import java.util.List;
  * Stage -
  * Indicator - The type of message
  * Args - The parameters of the message
- * 
+ *
  * TODO: Replace Args w/ MessageConstant... constants...
  * TODO: Trim the fat (origin/response, indicator, etc)
  *
  * @author toaster
  */
 public enum MessageType {
-    
+
     // DPN Messages
     INGEST_INIT_QUERY(MessageState.ORIGIN, ProcessType.INGEST, "init", Indicator.QUERY, "size", "protocol"),
     INGEST_AVAIL_ACK(MessageState.RESPONSE, ProcessType.INGEST, "avail", Indicator.ACK),
@@ -45,17 +45,17 @@ public enum MessageType {
     FILE_QUERY_RESPONSE(MessageState.RESPONSE, ProcessType.QUERY, "transfer", Indicator.ACK,
             "available", "protocol", "location"),
 
-    // Intake <--> Ingest  
-    PACKAGE_INGEST_READY(MessageState.ORIGIN, ProcessType.INGEST, "init", Indicator.QUERY, 
+    // Intake <--> Ingest
+    PACKAGE_INGEST_READY(MessageState.ORIGIN, ProcessType.INGEST, "init", Indicator.QUERY,
             "package-name", "location", "depositor", "size", "fixity-algorithm", "to-dpn"),
     PACKAGE_INGEST_READY_REPLY(MessageState.ORIGIN, ProcessType.INGEST, "ack", Indicator.QUERY,
             "package-name", "message-att"),
     PACKAGE_INGEST_COMPLETE(MessageState.RESPONSE, ProcessType.INGEST, "ack", Indicator.ACK,
             "package-name", "status", "failed-items"),
     PACKAGE_INGEST_STATUS_QUERY(MessageState.RESPONSE, ProcessType.INGEST, "query", Indicator.ACK,
-            "package-name", "depositor"), 
+            "package-name", "depositor"),
     PACKAGE_INGEST_STATUS_RESPONSE(MessageState.RESPONSE, ProcessType.INGEST, "response", Indicator.ACK,
-            "status", "completion-percent"), 
+            "status", "completion-percent"),
     ;
 
     private MessageState state;
@@ -63,20 +63,24 @@ public enum MessageType {
     private String stage;
     private Indicator indicator;
     private List<String> args;
-    
-    private MessageType(MessageState state, ProcessType process, String stage, Indicator indicator, String... args) {
+
+    private MessageType(MessageState state,
+                        ProcessType process,
+                        String stage,
+                        Indicator indicator,
+                        String... args) {
         this.state = state;
         this.process = process;
         this.stage = stage;
         this.indicator = indicator;
         this.args = Collections.unmodifiableList(Arrays.asList(args));
     }
-    
+
     public static MessageType decode(String message) {
         if (null == message) {
             throw new NullPointerException();
         }
-        
+
         switch (message.toLowerCase()) {
             case "o_ingest_init_query":
                 return INGEST_INIT_QUERY;
@@ -106,10 +110,10 @@ public enum MessageType {
                 return PACKAGE_INGEST_STATUS_RESPONSE;
             default:
                 throw new IllegalArgumentException("unknown message name: " + message);
-                
+
         }
     }
-    
+
     public String encode() {
         StringBuilder sb = new StringBuilder();
         sb.append(state.getName()).append('-');
@@ -118,7 +122,7 @@ public enum MessageType {
         sb.append(indicator.getName());
         return sb.toString();
     }
-    
+
     /**
      *
      * @return
@@ -126,7 +130,7 @@ public enum MessageType {
     public MessageState getState() {
         return state;
     }
-    
+
     /**
      * List of acceptable argument keys for this message type
      * @return
@@ -134,7 +138,7 @@ public enum MessageType {
     public List<String> getArgs() {
         return args;
     }
-    
+
     /**
      * Each of our control flows will have a unique identifier attached to it.  For example, Content Ingest
      * will be "ingest".  Every message exchanged during the control flow / process will be has this tag.
@@ -144,7 +148,7 @@ public enum MessageType {
     public ProcessType getProcess() {
         return process;
     }
-    
+
     /**
      * Refers to the point at which the message is sent in the process.  Unambiguously replaces sequence, and
      * does not lend itself to being implemented with a += 1, a method that provided no benefit.  ProcessType
@@ -153,7 +157,7 @@ public enum MessageType {
     public String getStage() {
         return stage;
     }
-    
+
     /**
      * ack/nack/query
      * @return

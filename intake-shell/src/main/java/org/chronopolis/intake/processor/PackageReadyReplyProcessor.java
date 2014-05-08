@@ -15,8 +15,9 @@ public class PackageReadyReplyProcessor implements ChronProcessor {
 
     @Override
     public void process(ChronMessage chronMessage) {
-        if ( !(chronMessage instanceof PackageReadyReplyMessage)) {
+        if (!(chronMessage instanceof PackageReadyReplyMessage)) {
             //error
+            log.error("Invalid message type: {}", chronMessage.getType());
         }
         PackageReadyReplyMessage msg = (PackageReadyReplyMessage) chronMessage;
 
@@ -24,7 +25,6 @@ public class PackageReadyReplyProcessor implements ChronProcessor {
         String att = msg.getMessageAtt();
         log.info("Received PackageReadyReply with Attribute '{}'", att);
 
-
-
     }
+
 }

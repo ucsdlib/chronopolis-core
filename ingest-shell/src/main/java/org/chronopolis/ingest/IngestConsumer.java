@@ -22,12 +22,12 @@ import java.io.InputStreamReader;
  *
  * @author shake
  */
-public class IngestConsumer {
+public final class IngestConsumer {
     private static final Logger LOG = LoggerFactory.getLogger(IngestConsumer.class);
 
     private IngestConsumer() {
     }
-    
+
     private static String readLine() {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -50,7 +50,7 @@ public class IngestConsumer {
         Queue bQueue = (Queue) context.getBean("broadcastQueue");
 
         while (!done) {
-            
+
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException ex) {

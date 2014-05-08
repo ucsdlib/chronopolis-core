@@ -10,18 +10,18 @@ import org.chronopolis.messaging.base.ChronProcessor;
 
 /**
  *
- * @author shake 
+ * @author shake
  */
 public class LogMessageListener extends ChronMessageListener {
-	private ChronProcessor genericMessageProcessor;
+    private ChronProcessor genericMessageProcessor;
 
-	public LogMessageListener(ChronProcessor genericMessageProcessor) {
-		this.genericMessageProcessor = genericMessageProcessor;
-	}
+    public LogMessageListener(ChronProcessor genericMessageProcessor) {
+        this.genericMessageProcessor = genericMessageProcessor;
+    }
 
-	@Override
-	public ChronProcessor getProcessor(MessageType type) {
-		return genericMessageProcessor; 
-	}
-	
+    @Override
+    public ChronProcessor getProcessor(MessageType type) {
+        return genericMessageProcessor;
+    }
+
 }

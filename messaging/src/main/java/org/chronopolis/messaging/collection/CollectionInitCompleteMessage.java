@@ -19,5 +19,5 @@ public class CollectionInitCompleteMessage extends ChronMessage {
         super(MessageType.COLLECTION_INIT_COMPLETE);
         this.body = new ChronBody(type);
     }
-    
+
 }

@@ -42,11 +42,11 @@ public class MessageBuilder {
     /**
      * sets a body's property property
      * @param key
-     * @param value 
+     * @param value
      * @throws IllegalStateException when message name has not been set
      * @throws IllegalArgumentException when key is not allowed for message name
      */
-    public MessageBuilder set(String key, Object value) throws IllegalStateException, IllegalArgumentException {
+    public MessageBuilder set(String key, Object value) {
         if (messageName == null) {
             throw new IllegalStateException("Message Name not set");
         }

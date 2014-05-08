@@ -9,7 +9,7 @@ package org.chronopolis.messaging;
  * thus all of the messages it sends will be begin with 'o'.  All messages the other nodes send to it will
  * be begin with 'r'.  This is not strictly necessary to establish the desired 1:1 symbol:semantic mapping,
  * but I found it to help with organization--you know your listener should never be sending a message marked
- * with 'o-'. 
+ * with 'o-'.
  * @author toaster
  */
 public enum MessageState {

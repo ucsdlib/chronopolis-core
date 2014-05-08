@@ -20,10 +20,10 @@ import java.util.Map;
 public class ChronBodyDeserializer extends JsonDeserializer<ChronBody> {
 
     @Override
-    public ChronBody deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+    public ChronBody deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         ChronBody chronBody;
-        Map<String, Object> body = new HashMap<>();
-        String type = null;
+        Map<String, Object> body;
+        String type;
         JsonNode node = jp.getCodec().readTree(jp);
 
         // Only worry about creating the proper enum from the json, let

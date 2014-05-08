@@ -45,10 +45,10 @@ public class ChronMessage {
         this.type = type;
         this.body = new ChronBody(type);
     }
-    
+
     public void setHeader(Map<String, Object> header) {
         this.origin = (String) header.get(ORIGIN.toString());
-        this.returnKey= (String) header.get(RETURN_KEY.toString());
+        this.returnKey = (String) header.get(RETURN_KEY.toString());
         this.correlationId = (String) header.get(CORRELATION_ID.toString());
         this.date = (String) header.get(DATE.toString());
     }
@@ -75,7 +75,7 @@ public class ChronMessage {
         return body;
     }
 
-    public MessageType getType() { 
+    public MessageType getType() {
         return this.type;
     }
 
@@ -94,7 +94,7 @@ public class ChronMessage {
     public static ChronMessage getMessage(MessageType type) {
         switch (type) {
             case FILE_QUERY:
-                return new FileQueryMessage(); 
+                return new FileQueryMessage();
             case FILE_QUERY_RESPONSE:
                 return new FileQueryResponseMessage();
             case COLLECTION_INIT:
@@ -120,50 +120,45 @@ public class ChronMessage {
         }
     }
 
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        final ChronMessage that = (ChronMessage) o;
+
+        if (body != null ? !body.equals(that.body) : that.body != null) return false;
+        if (correlationId != null ? !correlationId.equals(that.correlationId) : that.correlationId != null)
+            return false;
+        if (date != null ? !date.equals(that.date) : that.date != null) return false;
+        if (origin != null ? !origin.equals(that.origin) : that.origin != null) return false;
+        if (returnKey != null ? !returnKey.equals(that.returnKey) : that.returnKey != null) return false;
+        if (type != that.type) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = body != null ? body.hashCode() : 0;
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + (origin != null ? origin.hashCode() : 0);
+        result = 31 * result + (returnKey != null ? returnKey.hashCode() : 0);
+        result = 31 * result + (correlationId != null ? correlationId.hashCode() : 0);
+        result = 31 * result + (date != null ? date.hashCode() : 0);
+        return result;
+    }
+
     private static class UnexpectedMessageTypeException extends RuntimeException {
         public UnexpectedMessageTypeException(String toString) {
             super(toString);
         }
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if ( !(o instanceof ChronMessage) || o == null) {
-            return false;
-        }
-
-        return equals((ChronMessage) o);
-    }
-
-    public boolean equals(ChronMessage other) {
-        if ( !this.type.equals(other.type)) {
-            return false;
-        }
-
-        if (!correlationId.equals(other.correlationId)) {
-            return false;
-        }
-        if (!date.equals(other.date)) {
-            return false;
-        }
-        if (!returnKey.equals(other.returnKey)) {
-            return false;
-        }
-        if (!origin.equals(other.origin)) {
-            return false;
-        }
-        if (!body.equals(other.body)) {
-            return false;
-        }
-
-        return true;
-
-    }
-
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("{").append("\n\ttype:").append(type.toString()).append("\n");
-        for ( Map.Entry<String, Object> entry : body.getBody().entrySet() ) {
+        for (Map.Entry<String, Object> entry : body.getBody().entrySet()) {
             sb.append("\t").append(entry.getKey()).append(":")
               .append(entry.getValue()).append(",\n");
         }
@@ -171,7 +166,7 @@ public class ChronMessage {
         return sb.toString();
     }
 
-    // Header methods 
+    // Header methods
     public final void setOrigin(String origin) {
         this.origin = origin;
     }

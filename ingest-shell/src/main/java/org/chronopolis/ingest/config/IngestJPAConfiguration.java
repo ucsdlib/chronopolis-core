@@ -30,7 +30,8 @@ import java.sql.SQLException;
  */
 @Configuration
 @EnableJpaRepositories(basePackages = "org.chronopolis.db",
-        includeFilters = @ComponentScan.Filter(value = {IngestDB.class}, type = FilterType.ASSIGNABLE_TYPE))
+        includeFilters = @ComponentScan.Filter(value = {IngestDB.class},
+                                               type = FilterType.ASSIGNABLE_TYPE))
 @EnableTransactionManagement
 @PropertySource({"file:ingest.properties"})
 public class IngestJPAConfiguration {
@@ -40,7 +41,7 @@ public class IngestJPAConfiguration {
     private static final String PROPERTIES_JDBC_PASSWORD = "jdbc.password";
 
     @Resource
-    Environment environment;
+    public Environment environment;
 
     public DataSource dataSource() throws SQLException {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
@@ -64,7 +65,8 @@ public class IngestJPAConfiguration {
         vendorAdapter.setDatabase(Database.H2);
         vendorAdapter.setShowSql(true);
 
-        LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
+        LocalContainerEntityManagerFactoryBean factory =
+                new LocalContainerEntityManagerFactoryBean();
         factory.setJpaVendorAdapter(vendorAdapter);
         factory.setPackagesToScan("org.chronopolis.db.model");
         factory.setDataSource(dataSource());

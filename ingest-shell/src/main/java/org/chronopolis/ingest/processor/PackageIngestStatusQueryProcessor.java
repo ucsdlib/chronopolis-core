@@ -24,14 +24,14 @@ public class PackageIngestStatusQueryProcessor implements ChronProcessor {
     public PackageIngestStatusQueryProcessor(ChronProducer producer) {
         this.producer = producer;
     }
-    
+
     @Override
     public void process(ChronMessage chronMessage) {
         if (!(chronMessage instanceof PackageIngestStatusQueryMessage)) {
             // Error out
             log.error("Invalid message type");
-            throw new InvalidMessageException("Expected message of type PackageIngestStatusQuery but received "
-                    + chronMessage.getClass().getName());
+            throw new InvalidMessageException("Expected message of type PackageIngestStatusQuery "
+                    + "but received " + chronMessage.getClass().getName());
         }
 
         // Will need to make a query object for the replication services if we want this

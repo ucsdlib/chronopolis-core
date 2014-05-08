@@ -10,6 +10,6 @@ package org.chronopolis.messaging.base;
  */
 public interface ChronProcessor {
 
-    public void process(ChronMessage chronMessage);
+    void process(ChronMessage chronMessage);
 
 }

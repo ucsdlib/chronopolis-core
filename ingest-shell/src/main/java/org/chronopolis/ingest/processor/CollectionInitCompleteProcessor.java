@@ -7,6 +7,7 @@ package org.chronopolis.ingest.processor;
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.db.DatabaseManager;
+import org.chronopolis.db.ingest.IngestDB;
 import org.chronopolis.db.model.CollectionIngest;
 import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.messaging.base.ChronMessage;
@@ -49,15 +50,17 @@ public class CollectionInitCompleteProcessor implements ChronProcessor {
         if (!(chronMessage instanceof CollectionInitCompleteMessage)) {
             // Error out
             log.error("Invalid message type");
-            throw new InvalidMessageException("Expected message of type CollectionInitComplete but received "
-                    + chronMessage.getClass().getName());
+            throw new InvalidMessageException("Expected message of type CollectionInitComplete"
+                    + " but received " + chronMessage.getClass().getName());
         }
         ChronMessage response = messageFactory.DefaultPackageIngestCompleteMessage();
 
         sendCompletionRecord((CollectionInitCompleteMessage) chronMessage);
 
-        CollectionIngest ci = manager.getIngestDatabase().findByCorrelationId(chronMessage.getCorrelationId());
-        log.info("Retrieved item correlation {} and toDpn value of {}", ci.getCorrelationId(), ci.getToDpn());
+        IngestDB db = manager.getIngestDatabase();
+        CollectionIngest ci = db.findByCorrelationId(chronMessage.getCorrelationId());
+        log.info("Retrieved item correlation {} and toDpn value of {}",
+                ci.getCorrelationId(), ci.getToDpn());
         Boolean toDpn = (ci.getToDpn() && properties.pushToDpn());
         if (toDpn) {
             // Send replication-init-query
@@ -75,5 +78,5 @@ public class CollectionInitCompleteProcessor implements ChronProcessor {
         msg.setFrom(properties.getNodeName() + "-ingest@" + mailUtil.getSmtpFrom());
         msg.setSubject("Ingestion of " + message.getCorrelationId() + " complete");
     }
-    
+
 }

@@ -55,13 +55,13 @@ public class PackageReadyProcessor implements ChronProcessor {
         this.mailUtil = mailUtil;
     }
 
-    /* 
+    /*
      * Once we've confirmed that a package is in our staging area we want to do
      * a few things:
      * 1 - Check manifests
-     * 2 - Create ACE Tokens 
+     * 2 - Create ACE Tokens
      * 3 - Send out the collection init message
-     * 
+     *
      */
     @Override
     public void process(ChronMessage chronMessage) {
@@ -69,8 +69,8 @@ public class PackageReadyProcessor implements ChronProcessor {
         if (!(chronMessage instanceof PackageReadyMessage)) {
             // Error out
             log.error("Invalid message type");
-            throw new InvalidMessageException("Expected message of type PackageReadyMessage but received "
-                    + chronMessage.getClass().getName());
+            throw new InvalidMessageException("Expected message of type PackageReadyMessage "
+                    + "but received " + chronMessage.getClass().getName());
         }
 
         BagTokenizer tokenizer;
@@ -90,12 +90,13 @@ public class PackageReadyProcessor implements ChronProcessor {
         ci.setToDpn(toDpn);
         manager.getIngestDatabase().save(ci);
 
+        // Set up our paths
         Path toBag = Paths.get(props.getStage(), location);
         Path tokenStage = Paths.get(props.getTokenStage());
 
+        // And create our tokens
         tokenizer = new BagTokenizer(toBag, tokenStage, fixityAlg);
         Path manifest = null;
-
         try {
             manifest = tokenizer.getAceManifestWithValidation();
         } catch (Exception e) {

@@ -19,11 +19,11 @@ import org.codehaus.jackson.map.annotate.JsonDeserialize;
 @JsonDeserialize(using = ChronBodyDeserializer.class)
 public class ChronBody implements Serializable {
     // The body is just a map of keys to values
-    // We may want to change it to <String, Object> because we will send back a 
+    // We may want to change it to <String, Object> because we will send back a
     // list of failed objects
     private Map<String, Object> body = new ConcurrentHashMap<>();
     private final MessageType type;
-    
+
     public ChronBody(MessageType type) {
         this.type = type;
     }
@@ -39,7 +39,7 @@ public class ChronBody implements Serializable {
     */
 
     public void setBody(Map<String, Object> body) {
-        if ( !type.getArgs().containsAll(body.keySet())) {
+        if (!type.getArgs().containsAll(body.keySet())) {
             System.out.println("oops");
             throw new IllegalArgumentException("Body contains invalid keys");
         }
@@ -48,7 +48,7 @@ public class ChronBody implements Serializable {
     }
 
     public ChronBody(MessageType type, ChronBody body) {
-        if(!type.getArgs().containsAll(body.getBody().keySet())) {
+        if (!type.getArgs().containsAll(body.getBody().keySet())) {
             throw new IllegalArgumentException("Body contains invalid key(s)");
         }
         this.type = type;
@@ -56,7 +56,7 @@ public class ChronBody implements Serializable {
     }
 
     public void addContent(String key, Object value) {
-        if ( !type.getArgs().contains(key)) {
+        if (!type.getArgs().contains(key)) {
             throw new IllegalArgumentException("Type of value " + key + " not allowed");
         }
 
@@ -72,19 +72,27 @@ public class ChronBody implements Serializable {
     }
 
     public Map<String, Object> getBody() {
-       return body; 
+       return body;
     }
 
-    public boolean equals(ChronBody other) {
-        if (!body.equals(other.body)) {
-            for (Map.Entry<String, Object> e : body.entrySet()) {
-                String k = e.getKey();
-                Object v = e.getValue();
-                System.out.println(k + " : " + v + " == " + other.get(k) + " ? " + v.equals(other.get(k)));
-            }
-            return false;
-        }
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
+
+        final ChronBody chronBody = (ChronBody) o;
+
+        if (body != null ? !body.equals(chronBody.body) : chronBody.body != null) { return false; }
+        if (type != chronBody.type) { return false; }
 
         return true;
     }
+
+    @Override
+    public int hashCode() {
+        int result = body != null ? body.hashCode() : 0;
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        return result;
+    }
+
 }

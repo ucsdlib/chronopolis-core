@@ -10,18 +10,17 @@ import org.chronopolis.messaging.base.ChronProcessor;
 
 /**
  *
- * @author shake 
+ * @author shake
  */
 public class IntakeMessageListener extends ChronMessageListener {
 
-    private ChronProcessor packageIngestCompleteProcessor;
-    private ChronProcessor packageIngestStatusResponseProcessor;
-    private ChronProcessor packageReadyReplyProcessor;
+    private final ChronProcessor packageIngestCompleteProcessor;
+    private final ChronProcessor packageIngestStatusResponseProcessor;
+    private final ChronProcessor packageReadyReplyProcessor;
 
     public IntakeMessageListener(ChronProcessor packageIngestCompleteProcessor,
                                  ChronProcessor packageIngestStatusResponseProcessor,
                                  ChronProcessor packageReadyReplyProcessor) {
-    
         this.packageIngestCompleteProcessor = packageIngestCompleteProcessor;
         this.packageIngestStatusResponseProcessor = packageIngestStatusResponseProcessor;
         this.packageReadyReplyProcessor = packageReadyReplyProcessor;

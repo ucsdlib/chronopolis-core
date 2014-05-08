@@ -63,13 +63,13 @@ public class IngestConfiguration {
     public static final String PROPERTIES_SMTP_TO = "smtp.to";
 
     @Autowired
-    DatabaseManager manager;
+    public DatabaseManager manager;
 
     @Resource
-    Environment env;
+    public Environment env;
 
     @Bean
-    public ConnectionListenerImpl connectionListener(){
+    public ConnectionListenerImpl connectionListener() {
         return new ConnectionListenerImpl();
     }
 
@@ -237,7 +237,7 @@ public class IngestConfiguration {
 
     @Bean
     @DependsOn("rabbitAdmin")
-    SimpleMessageListenerContainer simpleMessageListenerContainer(DatabaseManager manager) {
+    SimpleMessageListenerContainer simpleMessageListenerContainer() {
         String testQueueName = env.getProperty(PROPERTIES_RABBIT_TEST_QUEUE_NAME);
         String testBName = env.getProperty(PROPERTIES_RABBIT_BROADCAST_QUEUE_NAME);
         String testIName = env.getProperty(PROPERTIES_RABBIT_DIRECT_INGEST_QUEUE_NAME);

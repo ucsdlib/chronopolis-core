@@ -24,16 +24,16 @@ import org.springframework.context.support.GenericXmlApplicationContext;
  * @author shake
  */
 public class IntakeProducer {
-    
+
     private ChronProducer producer;
     private GenericProperties props;
     private MessageFactory messageFactory;
-    
+
     public IntakeProducer(ChronProducer producer, MessageFactory messageFactory) {
         this.producer = producer;
         this.messageFactory = messageFactory;
     }
-    
+
     private enum PRODUCER_OPTION {
         SEND_STATIC_INTAKE_REQUEST, CREATE_INTAKE_REQUEST, PUSH_STATIC_INTAKE_TO_DPN, QUIT, UNKNOWN;
 
@@ -52,17 +52,17 @@ public class IntakeProducer {
             }
         }
     }
-    
+
     public void run() {
         boolean done = false;
         while (!done) {
             PRODUCER_OPTION option = inputOption();
-            
+
             if (option.equals(PRODUCER_OPTION.SEND_STATIC_INTAKE_REQUEST)) {
                 sendMessage("chron", "myDPNBag", "myDPNBag", false);
             } else if (option.equals(PRODUCER_OPTION.PUSH_STATIC_INTAKE_TO_DPN)) {
                 sendMessage("chron", "myDPNBag", "myDPNBag", true);
-            }else if (option.equals(PRODUCER_OPTION.CREATE_INTAKE_REQUEST)) {
+            } else if (option.equals(PRODUCER_OPTION.CREATE_INTAKE_REQUEST)) {
                 String depositor, bagName;
                 System.out.print("Depositor: ");
                 depositor = readLine();
@@ -105,13 +105,15 @@ public class IntakeProducer {
                     sb.append(sep);
                 }
             }
-            sb.replace(sb.length()-sep.length(), sb.length(), " -> "); //The one difference, mwahhaha
+
+            //The one difference, mwahhaha
+            sb.replace(sb.length() - sep.length(), sb.length(), " -> ");
             System.out.println(sb.toString());
             option = PRODUCER_OPTION.fromString(readLine().trim());
         }
         return option;
     }
-    
+
     private static String readLine() {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -120,7 +122,7 @@ public class IntakeProducer {
             throw new RuntimeException("Unable to read STDIN");
         }
     }
-    
+
     public static void main(String [] args) {
         GenericXmlApplicationContext text = new GenericXmlApplicationContext(
                 "classpath:/rabbit-context.xml");
@@ -131,8 +133,8 @@ public class IntakeProducer {
 
         ChronProducer p = (ChronProducer) text.getBean("producer");
         MessageFactory factory = (MessageFactory) text.getBean("messageFactory");
-        
-        
+
+
         IntakeProducer producer = new IntakeProducer(p, factory);
         producer.run();
 

@@ -27,7 +27,7 @@ public class PackageIngestCompleteMessage extends ChronMessage {
     public void setPackageName(String packageName) {
         body.addContent(PACKAGE_NAME.toString(), packageName);
     }
-    
+
     public String getPackageName() {
         return (String) body.get(PACKAGE_NAME.toString());
     }
@@ -48,7 +48,7 @@ public class PackageIngestCompleteMessage extends ChronMessage {
      */
     public void setFailedItem(String item) {
         List<String> items = (List<String>) body.get(FAILED_ITEMS.toString());
-        if ( items == null ) {
+        if (items == null) {
             items = new CopyOnWriteArrayList<>();
         }
         items.add(item);

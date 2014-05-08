@@ -15,11 +15,10 @@ import org.chronopolis.messaging.base.ChronProcessor;
 public class GenericMessageProcessor implements ChronProcessor {
 
     public void process(ChronMessage chronMessage) {
-        // All we need to do is create an entity and push these to the DB 
+        // All we need to do is create an entity and push these to the DB
         String messageType = chronMessage.getType().toString();
         Map<String, Object> header = chronMessage.getHeader();
         Map<String, Object> body = chronMessage.getChronBody().getBody();
-
 
     }
 

@@ -40,7 +40,7 @@ public enum MessageConstant {
     STATUS_SUCCESS("success"),
     STATUS_FAIL("failed"),
     ;
-    
+
     private final String text;
 
     MessageConstant(String text) {

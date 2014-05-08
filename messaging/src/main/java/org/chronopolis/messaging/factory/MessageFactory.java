@@ -16,7 +16,11 @@ import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.file.FileQueryMessage;
 import org.chronopolis.messaging.file.FileQueryResponseMessage;
-import org.chronopolis.messaging.pkg.*;
+import org.chronopolis.messaging.pkg.PackageIngestCompleteMessage;
+import org.chronopolis.messaging.pkg.PackageIngestStatusQueryMessage;
+import org.chronopolis.messaging.pkg.PackageIngestStatusResponseMessage;
+import org.chronopolis.messaging.pkg.PackageReadyMessage;
+import org.chronopolis.messaging.pkg.PackageReadyReplyMessage;
 
 /**
  * TODO: Order based on length of method names
@@ -27,7 +31,7 @@ import org.chronopolis.messaging.pkg.*;
  */
 public class MessageFactory {
 
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat(
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat(
             "yyyy-MM-dd'T'HH:mm:ssz");
     private final GenericProperties properties;
 
@@ -50,7 +54,7 @@ public class MessageFactory {
         msg.setCorrelationId(correlationId);
     }
 
-    public CollectionInitMessage DefaultCollectionInitMessage() {
+    public CollectionInitMessage defaultCollectionInitMessage() {
         CollectionInitMessage msg = new CollectionInitMessage();
         msg.setAuditPeriod(90);
         msg.setCollection("default-collection");
@@ -85,26 +89,26 @@ public class MessageFactory {
         return msg;
     }
 
-    public CollectionInitCompleteMessage DefaultCollectionInitCompleteMessage() {
+    public CollectionInitCompleteMessage defaultCollectionInitCompleteMessage() {
         CollectionInitCompleteMessage msg = new CollectionInitCompleteMessage();
         setHeaders(msg);
         return msg;
     }
 
 
-    public FileQueryMessage DefaultFileQueryMessage() {
+    public FileQueryMessage defaultFileQueryMessage() {
         FileQueryMessage msg = new FileQueryMessage();
-        setHeaders(msg);
-        return msg;
-    } 
-
-    public FileQueryResponseMessage DefaultFileQueryResponseMessage() {
-        FileQueryResponseMessage msg = new FileQueryResponseMessage();  
         setHeaders(msg);
         return msg;
     }
 
-    public PackageReadyMessage DefaultPackageReadyMessage() {
+    public FileQueryResponseMessage defaultFileQueryResponseMessage() {
+        FileQueryResponseMessage msg = new FileQueryResponseMessage();
+        setHeaders(msg);
+        return msg;
+    }
+
+    public PackageReadyMessage defaultPackageReadyMessage() {
         PackageReadyMessage msg = new PackageReadyMessage();
         msg.setDepositor("default-depositor");
         msg.setLocation("default-location");
@@ -164,9 +168,9 @@ public class MessageFactory {
     }
 
     public PackageIngestStatusResponseMessage DefaultPackageIngestStatusResponseMessage() {
-        PackageIngestStatusResponseMessage msg = new PackageIngestStatusResponseMessage();  
+        PackageIngestStatusResponseMessage msg = new PackageIngestStatusResponseMessage();
         setHeaders(msg);
         return msg;
     }
-    
+
 }

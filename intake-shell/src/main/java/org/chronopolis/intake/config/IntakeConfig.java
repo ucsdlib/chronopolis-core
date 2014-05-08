@@ -12,18 +12,19 @@ import org.chronopolis.messaging.factory.MessageFactory;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
-import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.Resource;
 
-import static org.chronopolis.common.properties.GenericProperties.*;
+import static org.chronopolis.common.properties.GenericProperties.PROPERTIES_NODE_NAME;
+import static org.chronopolis.common.properties.GenericProperties.PROPERTIES_STAGE;
+import static org.chronopolis.common.properties.GenericProperties.PROPERTIES_EXCHANGE;
+import static org.chronopolis.common.properties.GenericProperties.PROPERTIES_INBOUND_ROUTING_KEY;
+import static org.chronopolis.common.properties.GenericProperties.PROPERTIES_BROADCAST_ROUTING_KEY;
 
 /**
  * Created by shake on 4/16/14.
@@ -66,7 +67,8 @@ public class IntakeConfig {
 
     @Bean
     public CachingConnectionFactory connectionFactory() {
-        CachingConnectionFactory connectionFactory = new CachingConnectionFactory(rabbitConnectionFactory());
+        CachingConnectionFactory connectionFactory =
+                new CachingConnectionFactory(rabbitConnectionFactory());
 
         connectionFactory.setPublisherConfirms(true);
         connectionFactory.setPublisherReturns(true);
