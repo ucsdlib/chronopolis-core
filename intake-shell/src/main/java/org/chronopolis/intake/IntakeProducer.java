@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import org.chronopolis.amqp.ChronProducer;
+import org.chronopolis.amqp.RoutingKey;
 import org.chronopolis.common.digest.Digest;
 import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.intake.config.IntakeConfig;
@@ -88,7 +89,7 @@ public class IntakeProducer {
                 400,
                 toDPN
         );
-        producer.send(msg, "ingest.broadcast");
+        producer.send(msg, RoutingKey.INGEST_BROADCAST.asRoute());
     }
 
     private PRODUCER_OPTION inputOption() {

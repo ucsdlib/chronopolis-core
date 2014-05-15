@@ -5,6 +5,7 @@
 package org.chronopolis.ingest.processor;
 
 import org.chronopolis.amqp.ChronProducer;
+import org.chronopolis.amqp.RoutingKey;
 import org.chronopolis.common.ace.BagTokenizer;
 import org.chronopolis.common.digest.Digest;
 import org.chronopolis.common.mail.MailUtil;
@@ -132,8 +133,7 @@ public class PackageReadyProcessor implements ChronProcessor {
                     bagLocation.toString(),
                     fixity);
 
-            // TODO: Update routing key
-            producer.send(response, "replicate.broadcast");
+            producer.send(response, RoutingKey.REPLICATE_BROADCAST.asRoute());
         } else {
             replyInd = Indicator.NAK;
         }
