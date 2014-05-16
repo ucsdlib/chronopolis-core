@@ -7,7 +7,9 @@ package org.chronopolis.replicate;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeoutException;
 
 import org.chronopolis.common.exception.FileTransferException;
 import org.chronopolis.common.properties.GenericProperties;
@@ -88,6 +90,7 @@ public class ReplicationQueue implements Runnable {
                                     String group, 
                                     String file,
                                     String protocol) {
+
         ReplicationDownload rFile = new ReplicationDownload(base, collection, group, file, protocol);
         try {
             log.info("Queueing {}", file);
