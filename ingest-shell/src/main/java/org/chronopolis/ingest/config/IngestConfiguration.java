@@ -51,13 +51,6 @@ import static org.chronopolis.ingest.IngestProperties.PROPERTIES_TOKEN_STAGE;
 @PropertySource({"file:ingest.properties"})
 @Import(IngestJPAConfiguration.class)
 public class IngestConfiguration {
-    // Rabbit related properties
-    public static final String PROPERTIES_RABBIT_TEST_QUEUE_NAME = "queue.test.name";
-    public static final String PROPERTIES_RABBIT_BROADCAST_QUEUE_NAME = "queue.broadcast.name";
-    public static final String PROPERTIES_RABBIT_DIRECT_INGEST_QUEUE_NAME = "queue.direct-ingest.name";
-    public static final String PROPERTIES_RABBIT_TEST_BINDING_NAME = "queue.test.pattern";
-    public static final String PROPERTIES_RABBIT_BROADCAST_BINDING_NAME = "queue.broadcast.pattern";
-    public static final String PROPERTIES_RABBIT_DIRECT_INGEST_BINDING_NAME = "queue.direct-ingest.pattern";
     public static final String PROPERTIES_SMTP_HOST = "smtp.host";
     public static final String PROPERTIES_SMTP_FROM = "smtp.from";
     public static final String PROPERTIES_SMTP_TO = "smtp.to";
@@ -182,41 +175,42 @@ public class IngestConfiguration {
         return new TopicExchange("chronopolis-control");
     }
 
+    /*
     @Bean
     Queue testQueue() {
         return new Queue(env.getProperty(PROPERTIES_RABBIT_TEST_QUEUE_NAME), true);
     }
 
     @Bean
+    Binding testBinding() {
+        return BindingBuilder.bind(testQueue())
+                .to(topicExchange())
+                .with(env.getProperty(PROPERTIES_RABBIT_TEST_BINDING_NAME));
+    }
+    */
+
+    @Bean
     Queue broadcastQueue() {
-        return new Queue(env.getProperty(PROPERTIES_RABBIT_BROADCAST_QUEUE_NAME), true);
+        return new Queue(ingestProperties().getBroadcastQueueName(), true);
     }
 
     @Bean
     Queue directIngestQueue() {
-        return new Queue(env.getProperty(PROPERTIES_RABBIT_DIRECT_INGEST_QUEUE_NAME), true);
-    }
-
-
-    @Bean
-    Binding testBinding() {
-        return BindingBuilder.bind(testQueue())
-                             .to(topicExchange())
-                             .with(env.getProperty(PROPERTIES_RABBIT_TEST_BINDING_NAME));
+        return new Queue(ingestProperties().getDirectQueueName(), true);
     }
 
     @Bean
     Binding broadcastBinding() {
         return BindingBuilder.bind(broadcastQueue())
                              .to(topicExchange())
-                             .with(env.getProperty(PROPERTIES_RABBIT_BROADCAST_BINDING_NAME));
+                             .with(ingestProperties().getBroadcastQueueBinding());
     }
 
     @Bean
     Binding directIngestBinding() {
         return BindingBuilder.bind(directIngestQueue())
                              .to(topicExchange())
-                             .with(env.getProperty(PROPERTIES_RABBIT_DIRECT_INGEST_BINDING_NAME));
+                             .with(ingestProperties().getDirectQueueBinding());
     }
 
     @Bean
@@ -225,11 +219,11 @@ public class IngestConfiguration {
         // our exchange
         admin.declareExchange(topicExchange());
         // our queues
-        admin.declareQueue(testQueue());
+        // admin.declareQueue(testQueue());
         admin.declareQueue(broadcastQueue());
         admin.declareQueue(directIngestQueue());
         // our bindings
-        admin.declareBinding(testBinding());
+        // admin.declareBinding(testBinding());
         admin.declareBinding(broadcastBinding());
         admin.declareBinding(directIngestBinding());
         return admin;
@@ -238,12 +232,12 @@ public class IngestConfiguration {
     @Bean
     @DependsOn("rabbitAdmin")
     SimpleMessageListenerContainer simpleMessageListenerContainer() {
-        String testQueueName = env.getProperty(PROPERTIES_RABBIT_TEST_QUEUE_NAME);
-        String testBName = env.getProperty(PROPERTIES_RABBIT_BROADCAST_QUEUE_NAME);
-        String testIName = env.getProperty(PROPERTIES_RABBIT_DIRECT_INGEST_QUEUE_NAME);
+        // String testQueueName = env.getProperty(PROPERTIES_RABBIT_TEST_QUEUE_NAME);
+        String broadcastQueueName = ingestProperties().getBroadcastQueueName();
+        String directQueueName = ingestProperties().getDirectQueueName();
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setConnectionFactory(connectionFactory());
-        container.setQueueNames(testQueueName, testBName, testIName);
+        container.setQueueNames(broadcastQueueName, directQueueName);
         container.setMessageListener(messageListener());
         return container;
     }

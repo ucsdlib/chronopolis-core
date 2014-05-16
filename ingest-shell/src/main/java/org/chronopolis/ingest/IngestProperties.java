@@ -4,6 +4,7 @@
  */
 package org.chronopolis.ingest;
 
+import org.chronopolis.amqp.RoutingKey;
 import org.chronopolis.common.properties.GenericProperties;
 
 /**
@@ -16,6 +17,11 @@ public class IngestProperties extends GenericProperties {
     public static final String PROPERTIES_EXTERNAL_USER = "node.external.user";
     public static final String PROPERTIES_IMS_HOST_NAME = "ace.ims.host";
     public static final String PROPERTIES_DPN_PUSH = "dpn.push";
+
+    private final String directQueueName;
+    private final String directQueueBinding;
+    private final String broadcastQueueName;
+    private final String broadcastQueueBinding;
 
     private String tokenStage;
     private String imsHostName;
@@ -46,6 +52,11 @@ public class IngestProperties extends GenericProperties {
         this.storageServer = storageServer;
         this.externalUser = externalUser;
         this.dpnPush = dpnPush;
+
+        directQueueName = "ingest.direct." + nodeName;
+        broadcastQueueName = "ingest.broadcast." + nodeName;
+        directQueueBinding = inboundKey;
+        broadcastQueueBinding = RoutingKey.INGEST_BROADCAST.asRoute();
     }
 
     /**
@@ -104,4 +115,19 @@ public class IngestProperties extends GenericProperties {
         this.dpnPush = dpnPush;
     }
 
+    public String getDirectQueueName() {
+        return directQueueName;
+    }
+
+    public String getDirectQueueBinding() {
+        return directQueueBinding;
+    }
+
+    public String getBroadcastQueueName() {
+        return broadcastQueueName;
+    }
+
+    public String getBroadcastQueueBinding() {
+        return broadcastQueueBinding;
+    }
 }

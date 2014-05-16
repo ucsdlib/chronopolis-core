@@ -19,6 +19,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
@@ -32,12 +33,6 @@ import static org.chronopolis.replicate.ReplicationProperties.*;
 @Configuration
 @PropertySource({"file:replication.properties"})
 public class ReplicationConfig {
-    public static final String PROPERTIES_RABBIT_TEST_QUEUE_NAME = "queue.test.name";
-    public static final String PROPERTIES_RABBIT_BROADCAST_QUEUE_NAME = "queue.broadcast.name";
-    public static final String PROPERTIES_RABBIT_DIRECT_QUEUE_NAME = "queue.direct.name";
-    public static final String PROPERTIES_RABBIT_TEST_BINDING_NAME = "queue.test.pattern";
-    public static final String PROPERTIES_RABBIT_BROADCAST_BINDING_NAME = "queue.broadcast.pattern";
-    public static final String PROPERTIES_RABBIT_DIRECT_BINDING_NAME = "queue.direct.pattern";
     public static final String PROPERTIES_SMTP_FROM = "smtp.from";
     public static final String PROPERTIES_SMTP_TO = "smtp.to";
     public static final String PROPERTIES_SMTP_HOST = "smtp.host";
@@ -151,6 +146,7 @@ public class ReplicationConfig {
         return new TopicExchange("chronopolis-control");
     }
 
+    /*
     @Bean
     Queue testQueue() {
        return new Queue(env.getProperty(PROPERTIES_RABBIT_TEST_QUEUE_NAME), true);
@@ -162,30 +158,31 @@ public class ReplicationConfig {
                              .to(topicExchange())
                              .with(env.getProperty(PROPERTIES_RABBIT_TEST_BINDING_NAME));
     }
+    */
 
     @Bean
     Queue broadcastQueue() {
-       return new Queue(env.getProperty(PROPERTIES_RABBIT_BROADCAST_QUEUE_NAME), true);
+       return new Queue(properties().getBroadcastQueueName(), true);
     }
 
     @Bean
     Binding broadcastBinding() {
-        return BindingBuilder.bind(testQueue())
+        return BindingBuilder.bind(broadcastQueue())
                              .to(topicExchange())
-                             .with(env.getProperty(PROPERTIES_RABBIT_BROADCAST_BINDING_NAME));
+                             .with(properties().getBroadcastQueueBinding());
     }
 
 
     @Bean
     Queue directQueue() {
-       return new Queue(env.getProperty(PROPERTIES_RABBIT_DIRECT_QUEUE_NAME), true);
+       return new Queue(properties().getDirectQueueName(), true);
     }
 
     @Bean
     Binding directBinding() {
-        return BindingBuilder.bind(testQueue())
+        return BindingBuilder.bind(directQueue())
                              .to(topicExchange())
-                             .with(env.getProperty(PROPERTIES_RABBIT_DIRECT_BINDING_NAME));
+                             .with(properties().getDirectQueueBinding());
     }
 
     @Bean
@@ -193,11 +190,11 @@ public class ReplicationConfig {
         RabbitAdmin admin = new RabbitAdmin(connectionFactory());
         admin.declareExchange(topicExchange());
 
-        admin.declareQueue(testQueue());
+        // admin.declareQueue(testQueue());
         admin.declareQueue(broadcastQueue());
         admin.declareQueue(directQueue());
 
-        admin.declareBinding(testBinding());
+        // admin.declareBinding(testBinding());
         admin.declareBinding(broadcastBinding());
         admin.declareBinding(directBinding());
 
@@ -205,15 +202,16 @@ public class ReplicationConfig {
     }
 
     @Bean
+    @DependsOn("rabbitAdmin")
     SimpleMessageListenerContainer simpleMessageListenerContainer() {
-        String testQueueName = env.getProperty(PROPERTIES_RABBIT_TEST_QUEUE_NAME);
-        String broadcastQueueName = env.getProperty(PROPERTIES_RABBIT_BROADCAST_QUEUE_NAME);
-        String directQueueName = env.getProperty(PROPERTIES_RABBIT_DIRECT_QUEUE_NAME);
+        // String testQueueName = env.getProperty(PROPERTIES_RABBIT_TEST_QUEUE_NAME);
+        String broadcastQueueName = properties().getBroadcastQueueName();
+        String directQueueName = properties().getDirectQueueName();
 
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setErrorHandler(errorHandler());
         container.setConnectionFactory(connectionFactory());
-        container.setQueueNames(testQueueName, broadcastQueueName, directQueueName);
+        container.setQueueNames(broadcastQueueName, directQueueName);
         container.setMessageListener(messageListener());
         return container;
     }

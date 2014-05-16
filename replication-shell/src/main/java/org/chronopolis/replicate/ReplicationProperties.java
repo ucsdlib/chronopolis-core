@@ -4,18 +4,24 @@
  */
 package org.chronopolis.replicate;
 
+import org.chronopolis.amqp.RoutingKey;
 import org.chronopolis.common.properties.GenericProperties;
 
 /**
  *
  * @author shake
  */
-public class ReplicationProperties extends GenericProperties{
+public class ReplicationProperties extends GenericProperties {
     public static final String PROPERTIES_ACE_FQDN = "ace.fqdn";
     public static final String PROPERTIES_ACE_PATH = "ace.path";
     public static final String PROPERTIES_ACE_USER = "ace.user";
     public static final String PROPERTIES_ACE_PASS = "ace.pass";
     public static final String PROPERTIES_ACE_PORT = "ace.port";
+
+    private final String directQueueName;
+    private final String directQueueBinding;
+    private final String broadcastQueueName;
+    private final String broadcastQueueBinding;
 
     // Lots of things related to ACE
     private String aceFqdn;
@@ -40,6 +46,11 @@ public class ReplicationProperties extends GenericProperties{
         this.aceUser = aceUser;
         this.acePass = acePass;
         this.acePort = acePort;
+
+        this.directQueueName = "replicate.direct." + nodeName;
+        this.broadcastQueueName = "replicate.broadcast."+nodeName;
+        this.directQueueBinding = inboundKey;
+        this.broadcastQueueBinding = RoutingKey.REPLICATE_BROADCAST.asRoute();
     }
 
     /**
@@ -111,5 +122,20 @@ public class ReplicationProperties extends GenericProperties{
     public void setAcePass(String acePass) {
         this.acePass = acePass;
     }
-    
+
+    public String getDirectQueueName() {
+        return directQueueName;
+    }
+
+    public String getDirectQueueBinding() {
+        return directQueueBinding;
+    }
+
+    public String getBroadcastQueueBinding() {
+        return broadcastQueueBinding;
+    }
+
+    public String getBroadcastQueueName() {
+        return broadcastQueueName;
+    }
 }
