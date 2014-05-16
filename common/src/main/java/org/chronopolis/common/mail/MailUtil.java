@@ -27,7 +27,9 @@ public class MailUtil {
     }
 
     public void setSmtpHost(final String smtpHost) {
-        this.smtpHost = smtpHost;
+        if ( smtpHost != null) {
+            this.smtpHost = smtpHost;
+        }
     }
 
     public String getSmtpTo() {
@@ -35,7 +37,9 @@ public class MailUtil {
     }
 
     public void setSmtpTo(final String smtpTo) {
-        this.smtpTo = smtpTo;
+        if (smtpTo != null) {
+            this.smtpTo = smtpTo;
+        }
     }
 
     public String getSmtpFrom() {
@@ -43,7 +47,9 @@ public class MailUtil {
     }
 
     public void setSmtpFrom(final String smtpFrom) {
-        this.smtpFrom = smtpFrom;
+        if (smtpFrom != null) {
+            this.smtpFrom = smtpFrom;
+        }
     }
 
     public void send(final SimpleMailMessage message) {
