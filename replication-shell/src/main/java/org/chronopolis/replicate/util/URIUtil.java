@@ -25,12 +25,12 @@ public class URIUtil {
                                                String group) {
         StringBuilder sb = buildAceUri(fqdn, port, acePath);
         sb.append(COLLECTION_PATH)
-        .append(SLASH)
-        .append(SETTINGS)
-        .append(SLASH)
-        .append(collection)
-        .append(SLASH)
-        .append(group);
+          .append(SLASH)
+          .append(SETTINGS)
+          .append(SLASH)
+          .append(collection)
+          .append(SLASH)
+          .append(group);
         return sb.toString();
     }
     
@@ -54,16 +54,16 @@ public class URIUtil {
         return sb.toString();
     }
 
-    private static StringBuilder buildAceUri(String fqdn, long port, String acePath) {
+    public static StringBuilder buildAceUri(String fqdn, long port, String acePath) {
         StringBuilder sb = new StringBuilder();
-        if ( port == SSL_PORT || port == ALT_SSL_PORT ) {
+        if (port == SSL_PORT || port == ALT_SSL_PORT) {
             sb.append("https://");
         } else {
             sb.append("http://");
         }
         sb.append(fqdn);
 
-        if ( port != SSL_PORT && port != HTTP_DEFAULT_PORT ) {
+        if (port != SSL_PORT && port != HTTP_DEFAULT_PORT) {
             sb.append(":").append(port);
         } 
         sb.append(SLASH);

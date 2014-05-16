@@ -18,6 +18,7 @@ import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.chronopolis.amqp.ChronProducer;
+import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.common.exception.FileTransferException;
 import org.chronopolis.common.mail.MailUtil;
@@ -36,6 +37,9 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.mail.SimpleMailMessage;
+import retrofit.Endpoint;
+import retrofit.RestAdapter;
+import retrofit.mime.TypedFile;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -57,6 +61,7 @@ public class CollectionInitProcessor implements ChronProcessor {
     private final MessageFactory messageFactory;
     private final ReplicationProperties props;
     private final MailUtil mailUtil;
+    private final AceService aceService;
 
     public CollectionInitProcessor(ChronProducer producer,
                                    MessageFactory messageFactory,
@@ -66,6 +71,16 @@ public class CollectionInitProcessor implements ChronProcessor {
         this.messageFactory = messageFactory;
         this.props = props;
         this.mailUtil = mailUtil;
+
+        // This might be better done through the dependency injection framework
+        String endpoint = URIUtil.buildAceUri(props.getAceFqdn(),
+                props.getAcePort(),
+                props.getAcePath()).toString();
+
+        RestAdapter restAdapter = new RestAdapter.Builder()
+                                                 .setEndpoint(endpoint)
+                                                 .build();
+        aceService = restAdapter.create(AceService.class);
     }
 
     private HttpResponse executeRequest(HttpRequest req) throws IOException {
@@ -169,20 +184,33 @@ public class CollectionInitProcessor implements ChronProcessor {
         aceGson.setAuditTokens("true");
         aceGson.setProxyData("false");
 
+        // With retrofit
+        // aceService.addCollection(aceGson);
+
         // Build and POST our collection
         StringEntity entity = new StringEntity(aceGson.toJson(),
                 ContentType.APPLICATION_JSON);
+
+
         String uri = URIUtil.buildACECollectionPost(props.getAceFqdn(),
                 props.getAcePort(),
                 props.getAcePath());
+
         HttpResponse req = doPost(uri, entity);
         log.info(req.getStatusLine().toString());
-        if ( req.getStatusLine().getStatusCode() != 200 ) {
+
+        if (req.getStatusLine().getStatusCode() != 200) {
             throw new RuntimeException("Could not POST collection");
         }
 
+        // Once again retrofit...
+        // aceService.getCollectionByName(collection, group);
+
         // Get the ID of the newly made collection
         int id = getCollectionId(collection, group);
+
+        // The last retrofit
+        // aceService.loadTokenStore(id, new TypedFile("ASCII Text", manifest.toFile()));
 
         // Now let's POST the token store
         FileBody body = new FileBody(manifest.toFile());
@@ -288,6 +316,9 @@ public class CollectionInitProcessor implements ChronProcessor {
         smm = createSuccess(msg);
         mailUtil.send(smm);
     }
+
+
+    // Mail Helpers
 
     private SimpleMailMessage createSuccess(CollectionInitMessage msg) {
         SimpleMailMessage message = new SimpleMailMessage();
