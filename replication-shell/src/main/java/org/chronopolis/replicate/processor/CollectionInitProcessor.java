@@ -37,9 +37,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.mail.SimpleMailMessage;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -298,11 +300,16 @@ public class CollectionInitProcessor implements ChronProcessor {
     }
 
     private SimpleMailMessage createErrorMail(Exception ex, CollectionInitMessage msg) {
+        StringBuilder exception = new StringBuilder();
+        exception.append(ex.getMessage()).append("\n");
+        for (StackTraceElement element : ex.getStackTrace()) {
+            exception.append(element.toString()).append("\n");
+        }
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(mailUtil.getSmtpTo());
         message.setFrom(props.getNodeName()+"-replicate@" + mailUtil.getSmtpFrom());
         message.setSubject("Error in CollectionInit");
-        message.setText("Message: \n" + msg.toString() + "\n\nError: \n" + ex.toString());
+        message.setText("Message: \n" + msg.toString() + "\n\nError: \n" + exception.toString());
 
         return message;
     }
