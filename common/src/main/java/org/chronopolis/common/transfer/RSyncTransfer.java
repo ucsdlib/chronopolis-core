@@ -70,6 +70,8 @@ public class RSyncTransfer implements FileTransfer {
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             log.error("rsync had critical error", e);
             throw new FileTransferException("rsnyc had a critical error", e);
+        } finally {
+            threadPool.shutdownNow();
         }
     }
 
