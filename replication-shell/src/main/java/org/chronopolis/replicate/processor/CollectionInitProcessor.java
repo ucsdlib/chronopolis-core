@@ -289,8 +289,8 @@ public class CollectionInitProcessor implements ChronProcessor {
 
     private SimpleMailMessage createSuccess(CollectionInitMessage msg) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo("shake@umiacs.umd.edu");
-        message.setFrom(props.getNodeName() + "-replicate@umiacs.umd.edu");
+        message.setTo(mailUtil.getSmtpTo());
+        message.setFrom(props.getNodeName() + "-replicate@" + mailUtil.getSmtpFrom());
         message.setSubject("Successful replication of " + msg.getCollection());
         message.setText(msg.toString());
 
@@ -299,8 +299,8 @@ public class CollectionInitProcessor implements ChronProcessor {
 
     private SimpleMailMessage createErrorMail(Exception ex, CollectionInitMessage msg) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo("shake@umiacs.umd.edu");
-        message.setFrom(props.getNodeName()+"-replicate@localhost");
+        message.setTo(mailUtil.getSmtpTo());
+        message.setFrom(props.getNodeName()+"-replicate@" + mailUtil.getSmtpFrom());
         message.setSubject("Error in CollectionInit");
         message.setText("Message: \n" + msg.toString() + "\n\nError: \n" + ex.toString());
 
