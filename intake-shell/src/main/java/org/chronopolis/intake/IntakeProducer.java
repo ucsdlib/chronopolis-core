@@ -60,9 +60,9 @@ public class IntakeProducer {
             PRODUCER_OPTION option = inputOption();
 
             if (option.equals(PRODUCER_OPTION.SEND_STATIC_INTAKE_REQUEST)) {
-                sendMessage("chron", "myDPNBag", "myDPNBag", false);
+                sendMessage("umiacs", "myDPNBag", "myDPNBag", false);
             } else if (option.equals(PRODUCER_OPTION.PUSH_STATIC_INTAKE_TO_DPN)) {
-                sendMessage("chron", "myDPNBag", "myDPNBag", true);
+                sendMessage("umiacs", "myDPNBag", "myDPNBag", true);
             } else if (option.equals(PRODUCER_OPTION.CREATE_INTAKE_REQUEST)) {
                 String depositor, bagName;
                 System.out.print("Depositor: ");
