@@ -12,6 +12,7 @@ import java.util.List;
  * Created by shake on 2/20/14.
  */
 public class GsonCollection {
+    private long id;
     private String digestAlgorithm;
     private String directory;
     private String name;
@@ -53,6 +54,14 @@ public class GsonCollection {
 
     public void setStorage(final String storage) {
         this.storage = storage;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(final long id) {
+        this.id = id;
     }
 
     public Setting getSettings() {

@@ -1,5 +1,6 @@
 package org.chronopolis.common.ace;
 
+import retrofit.Callback;
 import retrofit.http.Body;
 import retrofit.http.GET;
 import retrofit.http.Multipart;
@@ -8,19 +9,21 @@ import retrofit.http.Part;
 import retrofit.http.Path;
 import retrofit.mime.TypedFile;
 
+import java.util.Map;
+
 /**
  * Created by shake on 5/16/14.
  */
 public interface AceService {
 
     @POST("/rest/collection/{id}")
-    void startAudit(@Path("id") long id);
+    void startAudit(@Path("id") long id, Callback<Void> callback);
 
     @POST("/rest/collection/modify/{id}")
-    void modifyCollection(@Path("id") long id, @Body GsonCollection collection);
+    void modifyCollection(@Path("id") long id, @Body GsonCollection collection, Callback<Void> callback);
 
     @POST("/rest/collection/")
-    void addCollection(@Body GsonCollection collection);
+    Map<String, Integer> addCollection(@Body GsonCollection collection);
 
     @GET("/rest/collection/settings/by-id/{id}")
     GsonCollection getCollectionById(@Path("id") long id);
@@ -33,6 +36,6 @@ public interface AceService {
 
     @Multipart
     @POST("/rest/tokenstore/{id}")
-    void loadTokenStore(@Path("id") long id, @Part("file") TypedFile tokenStore);
+    void loadTokenStore(@Path("id") long id, @Part("file") TypedFile tokenStore, Callback<Void> callback);
 
 }
