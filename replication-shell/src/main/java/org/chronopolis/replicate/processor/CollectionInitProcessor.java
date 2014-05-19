@@ -4,21 +4,9 @@
  */
 package org.chronopolis.replicate.processor;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.common.ace.AceService;
+import org.chronopolis.common.ace.CredentialRequestInterceptor;
 import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.common.exception.FileTransferException;
 import org.chronopolis.common.mail.MailUtil;
@@ -32,22 +20,19 @@ import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.ReplicationQueue;
 import org.chronopolis.replicate.util.URIUtil;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.mail.SimpleMailMessage;
-import retrofit.Endpoint;
+import retrofit.Callback;
 import retrofit.RestAdapter;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 import retrofit.mime.TypedFile;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 
 /**
  * TODO: How to reply to collection init message if there is an error
@@ -77,95 +62,17 @@ public class CollectionInitProcessor implements ChronProcessor {
                 props.getAcePort(),
                 props.getAcePath()).toString();
 
+        CredentialRequestInterceptor interceptor = new CredentialRequestInterceptor(
+                props.getAceUser(),
+                props.getAcePass());
+
         RestAdapter restAdapter = new RestAdapter.Builder()
                                                  .setEndpoint(endpoint)
+                                                 .setRequestInterceptor(interceptor)
                                                  .build();
         aceService = restAdapter.create(AceService.class);
     }
 
-    private HttpResponse executeRequest(HttpRequest req) throws IOException {
-        DefaultHttpClient client = new DefaultHttpClient();
-        HttpHost host = new HttpHost(props.getAceFqdn(), props.getAcePort());
-
-        client.getCredentialsProvider().setCredentials(
-                new AuthScope(host.getHostName(),host.getPort()), 
-                new UsernamePasswordCredentials(props.getAceUser(), 
-                                                props.getAcePass()));
-
-        return client.execute(host, req);
-    }
-
-    // Helper to POST to ACE
-    private HttpResponse doPost(String url, 
-                                HttpEntity entity) throws IOException {
-        log.info("Posting to " + url + " with " + entity.toString());
-        HttpPost post = new HttpPost(url);
-        post.setEntity(entity);
-        return executeRequest(post);
-    }
-
-    // Helper to reduce a couple lines of code
-    private HttpResponse getCollection(String collection,
-                                       String group) throws IOException {
-        String uri = URIUtil.buildACECollectionGet(props.getAceFqdn(),
-                                                   props.getAcePort(),
-                                                   props.getAcePath(),
-                                                   collection,
-                                                   group);
-        HttpGet get = new HttpGet(uri);
-
-        return executeRequest(get);
-    }
-
-    /**
-     * Get the id for a collection in ACE
-     *
-     * @param collection The collection name
-     * @param group The collection's group
-     * @return The id of the collection
-     * @throws IOException
-     * @throws JSONException
-     */
-    private int getCollectionId(String collection,
-                                String group) throws IOException,
-                                                     JSONException {
-        // Wouldn't it be cool if we could chain together method calls? Like
-        // getCollection(c, g).andReturnId()
-        // I guess I would need a specific object to handle that though
-        HttpResponse response = getCollection(collection, group);
-        if (response.getStatusLine().getStatusCode() != 200) {
-            throw new RuntimeException("Could not get collection!");
-        }
-        BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-
-        // The JSON builder is kind of broken
-        // luckily we only get a single line back from ACE
-        String r = reader.readLine();
-        JSONObject responseJson = new JSONObject(r);
-        log.debug(responseJson.toString());
-        return responseJson.getInt("id");
-    }
-
-    /**
-     * Check whether a collection exists in ACE
-     *
-     * @param collection The collection name
-     * @param group The collection's group
-     * @return true if ACE has the collection, false otherwise
-     */
-    private boolean hasCollection(String collection, String group) {
-        boolean hasCollection = false;
-        try {
-            HttpResponse response = getCollection(collection, group);
-            if (response.getStatusLine().getStatusCode() == 200) {
-                hasCollection = true;
-            }
-        } catch (IOException e) {
-            log.error("'{}'", e);
-        }
-
-        return hasCollection;
-    }
 
     private void setAceTokenStore(String collection,
                                   String group,
@@ -185,46 +92,31 @@ public class CollectionInitProcessor implements ChronProcessor {
         aceGson.setProxyData("false");
 
         // With retrofit
-        // aceService.addCollection(aceGson);
+        // TODO: This will throw a RetrofitError if the collection is already registered,
+        // we need a callback to mitigate this
+        Map<String, Integer> idMap = aceService.addCollection(aceGson);
 
-        // Build and POST our collection
-        StringEntity entity = new StringEntity(aceGson.toJson(),
-                ContentType.APPLICATION_JSON);
+        long id = idMap.get("id");
 
+        Callback tsCallback = new Callback() {
+            @Override
+            public void success(final Object o, final Response response) {
+                log.info("Successfully posted token store");
+            }
 
-        String uri = URIUtil.buildACECollectionPost(props.getAceFqdn(),
-                props.getAcePort(),
-                props.getAcePath());
-
-        HttpResponse req = doPost(uri, entity);
-        log.info(req.getStatusLine().toString());
-
-        if (req.getStatusLine().getStatusCode() != 200) {
-            throw new RuntimeException("Could not POST collection");
-        }
-
-        // Once again retrofit...
-        // aceService.getCollectionByName(collection, group);
-
-        // Get the ID of the newly made collection
-        int id = getCollectionId(collection, group);
+            @Override
+            public void failure(final RetrofitError retrofitError) {
+                log.error("Error posting token store {} {}",
+                        retrofitError.getResponse().getStatus(),
+                        retrofitError.getBody());
+            }
+        };
 
         // The last retrofit
-        // aceService.loadTokenStore(id, new TypedFile("ASCII Text", manifest.toFile()));
-
-        // Now let's POST the token store
-        FileBody body = new FileBody(manifest.toFile());
-        MultipartEntity mpEntity = new MultipartEntity();
-        mpEntity.addPart("tokenstore", body);
-        uri = URIUtil.buildACETokenStorePost(props.getAceFqdn(),
-                props.getAcePort(),
-                props.getAcePath(),
-                id);
-        doPost(uri, mpEntity);
+        aceService.loadTokenStore(id, new TypedFile("ASCII Text", manifest.toFile()), tsCallback);
     }
 
 
-    // TODO: Check to make sure we don't already have this collection (do a new version if we do?)
     // TODO: Reply if there is an error with the collection (ie: already registered in ace), or ack
     // TODO: Fix the flow of this so that we don't return on each failure...
     // that way we send mail and return in one spot instead of 4
@@ -253,8 +145,10 @@ public class CollectionInitProcessor implements ChronProcessor {
         String group = msg.getDepositor();
         int auditPeriod = msg.getAuditPeriod();
 
+        //noinspection ConstantConditions (temporarily false while testing)
         if (checkCollection) {
-            if (hasCollection(msg.getCollection(), msg.getDepositor())) {
+            GsonCollection inAce = aceService.getCollectionByName(msg.getCollection(), msg.getDepositor());
+            if (inAce != null) {
                 log.error("Already registered collection '{}'", msg.getCollection());
             }
         }
