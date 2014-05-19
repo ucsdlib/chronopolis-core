@@ -10,49 +10,10 @@ package org.chronopolis.replicate.util;
  */
 public class URIUtil {
     private static final String SLASH = "/";
-    private static final String COLLECTION_PATH = "rest/collection";
-    private static final String SETTINGS = "settings/by-name";
-    private static final String TOKENSTORE_PATH = "rest/tokenstore";
     private static final long SSL_PORT = 443;
     private static final long ALT_SSL_PORT = 8443;
     private static final long HTTP_DEFAULT_PORT = 80;
 
-
-    public static String buildACECollectionGet(String fqdn,
-                                               long port, 
-                                               String acePath, 
-                                               String collection,
-                                               String group) {
-        StringBuilder sb = buildAceUri(fqdn, port, acePath);
-        sb.append(COLLECTION_PATH)
-          .append(SLASH)
-          .append(SETTINGS)
-          .append(SLASH)
-          .append(collection)
-          .append(SLASH)
-          .append(group);
-        return sb.toString();
-    }
-    
-    public static String buildACECollectionPost(String fqdn, 
-                                                long port, 
-                                                String acePath) {
-        StringBuilder sb = buildAceUri(fqdn, port, acePath);
-        sb.append(COLLECTION_PATH);
-        return sb.toString();
-    }
-
-    public static String buildACETokenStorePost(String fqdn, 
-                                                long port, 
-                                                String acePath,
-                                                long id) {
-        StringBuilder sb = buildAceUri(fqdn, port, acePath);
-        sb.append(TOKENSTORE_PATH);
-        sb.append(SLASH);
-        sb.append(id);
-
-        return sb.toString();
-    }
 
     public static StringBuilder buildAceUri(String fqdn, long port, String acePath) {
         StringBuilder sb = new StringBuilder();
