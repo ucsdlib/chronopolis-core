@@ -23,15 +23,16 @@ public class GsonCollectionTest {
     @Test
     public void testToJson() throws Exception {
         Gson deserializer = new Gson();
-        GsonCollection gson = new GsonCollection();
-        gson.setDigestAlgorithm(DIGEST);
-        gson.setDirectory(DIRECTORY);
-        gson.setName(NAME);
-        gson.setGroup(GROUP);
-        gson.setStorage(STORAGE);
-        gson.setAuditPeriod(AP);
-        gson.setAuditTokens(AT);
-        gson.setProxyData(PD);
+        GsonCollection gson = new GsonCollection.Builder()
+            .digestAlgorithm(DIGEST)
+            .directory(DIRECTORY)
+            .name(NAME)
+            .group(GROUP)
+            .storage(STORAGE)
+            .auditPeriod(AP)
+            .auditTokens(AT)
+            .proxyData(PD)
+            .build();
 
         System.out.println(gson.toJson());
 

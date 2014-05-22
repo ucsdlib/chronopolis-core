@@ -13,47 +13,37 @@ import java.util.List;
  */
 public class GsonCollection {
     private long id;
-    private String digestAlgorithm;
-    private String directory;
-    private String name;
-    private String group;
-    private String storage;
-    private Setting settings;
+    private final String digestAlgorithm;
+    private final String directory;
+    private final String name;
+    private final String group;
+    private final String storage;
+    private final Setting settings;
 
-    public GsonCollection() {
-        this.settings = new Setting();
+    private GsonCollection(final Builder builder) {
+        this.digestAlgorithm = builder.digestAlgorithm;
+        this.directory = builder.directory;
+        this.name = builder.name;
+        this.group = builder.group;
+        this.storage = builder.storage;
+        this.settings = builder.settings;
     }
 
     public String getDigestAlgorithm() {
         return digestAlgorithm;
     }
 
-    public void setDigestAlgorithm(final String digestAlgorithm) {
-        this.digestAlgorithm = digestAlgorithm;
-    }
 
     public String getDirectory() {
         return directory;
-    }
-
-    public void setDirectory(final String directory) {
-        this.directory = directory;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(final String name) {
-        this.name = name;
-    }
-
     public String getStorage() {
         return storage;
-    }
-
-    public void setStorage(final String storage) {
-        this.storage = storage;
     }
 
     public long getId() {
@@ -68,28 +58,8 @@ public class GsonCollection {
         return settings;
     }
 
-    public void setSettings(final Setting settings) {
-        this.settings = settings;
-    }
-
     public void addSetting(final String key, final String val) {
         Entry entry = new Entry(key, val);
-        settings.entry.add(entry);
-    }
-
-    // We'll have a method for each of the entries we can add
-    public void setAuditTokens(final String val) {
-        Entry entry = new Entry("audit.tokens", val);
-        settings.entry.add(entry);
-    }
-
-    public void setAuditPeriod(final String val) {
-        Entry entry = new Entry("audit.period", val);
-        settings.entry.add(entry);
-    }
-
-    public void setProxyData(final String val) {
-        Entry entry = new Entry("proxy.data", val);
         settings.entry.add(entry);
     }
 
@@ -97,11 +67,7 @@ public class GsonCollection {
         return group;
     }
 
-    public void setGroup(final String group) {
-        this.group = group;
-    }
-
-    public class Setting {
+    public static class Setting {
         private final List<Entry> entry;
 
         public Setting() {
@@ -110,7 +76,7 @@ public class GsonCollection {
 
     }
 
-    public class Entry {
+    public static class Entry {
         private final String key;
         private final String value;
 
@@ -132,6 +98,67 @@ public class GsonCollection {
     public String toJson() {
         Gson gson = new Gson();
         return gson.toJson(this);
+    }
+
+    public static class Builder {
+        private String digestAlgorithm;
+        private String directory;
+        private String name;
+        private String group;
+        private String storage;
+        private Setting settings;
+
+        public Builder() {
+            this.settings = new Setting();
+        }
+
+        public Builder name(final String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder directory(final String directory) {
+            this.directory = directory;
+            return this;
+        }
+
+        public Builder digestAlgorithm(final String digestAlgorithm) {
+            this.digestAlgorithm = digestAlgorithm;
+            return this;
+        }
+
+        public Builder group(final String group) {
+            this.group = group;
+            return this;
+        }
+
+        public Builder storage(final String storage) {
+            this.storage = storage;
+            return this;
+        }
+
+        // We'll have a method for each of the entries we can add
+        public Builder auditTokens(final String val) {
+            Entry entry = new Entry("audit.tokens", val);
+            settings.entry.add(entry);
+            return this;
+        }
+
+        public Builder auditPeriod(final String val) {
+            Entry entry = new Entry("audit.period", val);
+            settings.entry.add(entry);
+            return this;
+        }
+
+        public Builder proxyData(final String val) {
+            Entry entry = new Entry("proxy.data", val);
+            settings.entry.add(entry);
+            return this;
+        }
+
+        public GsonCollection build() {
+            return new GsonCollection(this);
+        }
     }
 
 }
