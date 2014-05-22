@@ -34,6 +34,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
+import static org.chronopolis.common.ace.GsonCollection.*;
+
 /**
  * TODO: How to reply to collection init message if there is an error
  *
@@ -81,15 +83,16 @@ public class CollectionInitProcessor implements ChronProcessor {
                                   String fixityAlg,
                                   int auditPeriod) throws IOException {
         log.trace("Building ACE json");
-        GsonCollection aceGson = new GsonCollection();
-        aceGson.setDigestAlgorithm(fixityAlg);
-        aceGson.setDirectory(collPath.toString());
-        aceGson.setName(collection);
-        aceGson.setGroup(group);
-        aceGson.setStorage("local");
-        aceGson.setAuditPeriod(String.valueOf(auditPeriod));
-        aceGson.setAuditTokens("true");
-        aceGson.setProxyData("false");
+        GsonCollection aceGson = new GsonCollection.Builder()
+                .name(collection)
+                .digestAlgorithm(fixityAlg)
+                .directory(collPath.toString())
+                .group(group)
+                .storage("local")
+                .auditPeriod(String.valueOf(auditPeriod))
+                .auditTokens("true")
+                .proxyData("false")
+                .build();
 
         // With retrofit
         // TODO: This will throw a RetrofitError if the collection is already registered,
@@ -218,7 +221,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(mailUtil.getSmtpTo());
         message.setFrom(props.getNodeName() + "-replicate@" + mailUtil.getSmtpFrom());
-        message.setSubject("Successful replication of " + msg.getCollection());
+        message.setSubject("[" + props.getNodeName() + "] Successful replication of " + msg.getCollection());
         message.setText(msg.toString());
 
         return message;
@@ -233,7 +236,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(mailUtil.getSmtpTo());
         message.setFrom(props.getNodeName()+"-replicate@" + mailUtil.getSmtpFrom());
-        message.setSubject("Error in CollectionInit");
+        message.setSubject("[" + props.getNodeName() + "] Error in CollectionInit");
         message.setText("Message: \n" + msg.toString() + "\n\nError: \n" + exception.toString());
 
         return message;

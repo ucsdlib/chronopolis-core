@@ -153,7 +153,7 @@ public class PackageReadyProcessor implements ChronProcessor {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(props.getNodeName() + "-ingest@" + mailUtil.getSmtpFrom());
         message.setTo(mailUtil.getSmtpTo());
-        message.setSubject("Received new package");
+        message.setSubject("[" + props.getNodeName() + "] Received new package");
         message.setText(packageReadyMessage.toString());
         mailUtil.send(message);
     }

@@ -55,7 +55,7 @@ public class CollectionInitCompleteProcessor implements ChronProcessor {
         }
         ChronMessage response = messageFactory.DefaultPackageIngestCompleteMessage();
 
-        sendCompletionRecord((CollectionInitCompleteMessage) chronMessage);
+        // sendCompletionRecord((CollectionInitCompleteMessage) chronMessage);
 
         IngestDB db = manager.getIngestDatabase();
         CollectionIngest ci = db.findByCorrelationId(chronMessage.getCorrelationId());
@@ -72,11 +72,11 @@ public class CollectionInitCompleteProcessor implements ChronProcessor {
         producer.send(response, "package.intake.umiacs");
     }
 
-    public void sendCompletionRecord(CollectionInitCompleteMessage message) {
+    private void sendCompletionRecord(CollectionInitCompleteMessage message) {
         SimpleMailMessage msg = new SimpleMailMessage();
         msg.setTo(mailUtil.getSmtpTo());
         msg.setFrom(properties.getNodeName() + "-ingest@" + mailUtil.getSmtpFrom());
-        msg.setSubject("Ingestion of " + message.getCorrelationId() + " complete");
+        msg.setSubject("Ingestion of " + message.getCorrelationId() + " complete by " + message.getOrigin());
     }
 
 }
