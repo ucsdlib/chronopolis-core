@@ -34,8 +34,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
-import static org.chronopolis.common.ace.GsonCollection.*;
-
 /**
  * TODO: How to reply to collection init message if there is an error
  *
@@ -94,7 +92,6 @@ public class CollectionInitProcessor implements ChronProcessor {
                 .proxyData("false")
                 .build();
 
-        // With retrofit
         // TODO: This will throw a RetrofitError if the collection is already registered,
         // we need a callback to mitigate this
         Map<String, Integer> idMap = aceService.addCollection(aceGson);
@@ -115,7 +112,6 @@ public class CollectionInitProcessor implements ChronProcessor {
             }
         };
 
-        // The last retrofit
         aceService.loadTokenStore(id, new TypedFile("ASCII Text", manifest.toFile()), tsCallback);
     }
 
@@ -161,6 +157,7 @@ public class CollectionInitProcessor implements ChronProcessor {
             manifest = ReplicationQueue.getFileImmediate(msg.getTokenStore(),
                                                          Paths.get(props.getStage()),
                                                          protocol);
+            log.info("Finished downloading manifest");
         } catch (IOException ex) {
             log.error("Error downloading manifest \n{}", ex);
             smm = createErrorMail(ex, msg);
@@ -187,6 +184,7 @@ public class CollectionInitProcessor implements ChronProcessor {
 
         try {
             transfer.getFile(parts[1], bagPath);
+            log.info("Finished downloading bag");
         } catch (FileTransferException ex) {
             log.error("Error replicating bag");
             smm = createErrorMail(ex, msg);
