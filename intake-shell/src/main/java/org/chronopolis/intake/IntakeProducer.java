@@ -4,10 +4,6 @@
  */
 package org.chronopolis.intake;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.file.Paths;
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.amqp.RoutingKey;
 import org.chronopolis.common.digest.Digest;
@@ -15,9 +11,15 @@ import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.intake.config.IntakeConfig;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
-import org.springframework.amqp.core.Message;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 
 /**
  * Totally based off of Andrew's Producer for DPN
@@ -30,9 +32,10 @@ public class IntakeProducer {
     private GenericProperties props;
     private MessageFactory messageFactory;
 
-    public IntakeProducer(ChronProducer producer, MessageFactory messageFactory) {
+    public IntakeProducer(ChronProducer producer, MessageFactory messageFactory, GenericProperties props) {
         this.producer = producer;
         this.messageFactory = messageFactory;
+        this.props = props;
     }
 
     private enum PRODUCER_OPTION {
@@ -81,14 +84,48 @@ public class IntakeProducer {
     }
 
     private void sendMessage(String depositor, String location, String bagName, boolean toDPN) {
+        System.out.println(props == null);
+        System.out.println(props.getStage() == null);
+        Path collectionPath = Paths.get(props.getStage(), location);
+        final int [] bagSize = {0};
+        try {
+            Files.walkFileTree(collectionPath, new FileVisitor<Path>() {
+                @Override
+                public FileVisitResult preVisitDirectory(Path path, BasicFileAttributes basicFileAttributes) throws IOException {
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFile(Path path, BasicFileAttributes basicFileAttributes) throws IOException {
+                    bagSize[0] += basicFileAttributes.size();
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFileFailed(Path path, IOException e) throws IOException {
+                    return FileVisitResult.TERMINATE;
+                }
+
+                @Override
+                public FileVisitResult postVisitDirectory(Path path, IOException e) throws IOException {
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            System.out.println("Could not calculate bag size");
+            bagSize[0] = 0;
+        }
+
         PackageReadyMessage msg = messageFactory.packageReadyMessage(
                 depositor,
                 Digest.SHA_256,
                 location,
                 bagName,
-                400,
+                bagSize[0],
                 toDPN
         );
+
+        System.out.println(msg.toString());
         producer.send(msg, RoutingKey.INGEST_BROADCAST.asRoute());
     }
 
@@ -134,9 +171,10 @@ public class IntakeProducer {
 
         ChronProducer p = (ChronProducer) text.getBean("producer");
         MessageFactory factory = (MessageFactory) text.getBean("messageFactory");
+        GenericProperties properties = text.getBean(GenericProperties.class);
 
 
-        IntakeProducer producer = new IntakeProducer(p, factory);
+        IntakeProducer producer = new IntakeProducer(p, factory, properties);
         producer.run();
 
         text.close();
