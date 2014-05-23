@@ -30,6 +30,8 @@ import retrofit.client.Response;
 import retrofit.mime.TypedFile;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
@@ -220,7 +222,12 @@ public class CollectionInitProcessor implements ChronProcessor {
         message.setTo(mailUtil.getSmtpTo());
         message.setFrom(props.getNodeName() + "-replicate@" + mailUtil.getSmtpFrom());
         message.setSubject("[" + props.getNodeName() + "] Successful replication of " + msg.getCollection());
-        message.setText(msg.toString());
+
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter textBody = new PrintWriter(stringWriter, true);
+        textBody.println("Message received from: " + msg.getOrigin());
+        textBody.println(msg.toString());
+        message.setText(textBody.toString());
 
         return message;
     }
