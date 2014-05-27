@@ -34,6 +34,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -44,11 +45,19 @@ import java.util.Map;
 public class CollectionInitProcessor implements ChronProcessor {
     private static final Logger log = LoggerFactory.getLogger(CollectionInitProcessor.class);
 
+    private static final String TOKEN_DOWNLOAD = "TokenStore-Download";
+    private static final String BAG_DOWNLOAD = "Bag-Download";
+    private static final String ACE_REGISTER_COLLECTION = "Ace-Register-Collection";
+    private static final String ACE_REGISTER_TOKENS = "Ace-Register-Tokens";
+    private static final String INCOMPLETE = "Incomplete";
+
     private final ChronProducer producer;
     private final MessageFactory messageFactory;
     private final ReplicationProperties props;
     private final MailUtil mailUtil;
     private final AceService aceService;
+
+    private HashMap<String, String> completionMap;
 
     public CollectionInitProcessor(ChronProducer producer,
                                    MessageFactory messageFactory,
@@ -58,6 +67,13 @@ public class CollectionInitProcessor implements ChronProcessor {
         this.messageFactory = messageFactory;
         this.props = props;
         this.mailUtil = mailUtil;
+
+        // Set up our map of tasks and their progress for more info in mail messages
+        completionMap = new HashMap<>();
+        completionMap.put(TOKEN_DOWNLOAD, INCOMPLETE);
+        completionMap.put(BAG_DOWNLOAD, INCOMPLETE);
+        completionMap.put(ACE_REGISTER_COLLECTION, INCOMPLETE);
+        completionMap.put(ACE_REGISTER_TOKENS, INCOMPLETE);
 
         // This might be better done through the dependency injection framework
         String endpoint = URIUtil.buildAceUri(props.getAceFqdn(),
@@ -75,47 +91,6 @@ public class CollectionInitProcessor implements ChronProcessor {
         aceService = restAdapter.create(AceService.class);
     }
 
-
-    private void setAceTokenStore(String collection,
-                                  String group,
-                                  Path collPath,
-                                  Path manifest,
-                                  String fixityAlg,
-                                  int auditPeriod) throws IOException {
-        log.trace("Building ACE json");
-        GsonCollection aceGson = new GsonCollection.Builder()
-                .name(collection)
-                .digestAlgorithm(fixityAlg)
-                .directory(collPath.toString())
-                .group(group)
-                .storage("local")
-                .auditPeriod(String.valueOf(auditPeriod))
-                .auditTokens("true")
-                .proxyData("false")
-                .build();
-
-        // TODO: This will throw a RetrofitError if the collection is already registered,
-        // we need a callback to mitigate this
-        Map<String, Integer> idMap = aceService.addCollection(aceGson);
-
-        long id = idMap.get("id");
-
-        Callback tsCallback = new Callback() {
-            @Override
-            public void success(final Object o, final Response response) {
-                log.info("Successfully posted token store");
-            }
-
-            @Override
-            public void failure(final RetrofitError retrofitError) {
-                log.error("Error posting token store {} {}",
-                        retrofitError.getResponse().getStatus(),
-                        retrofitError.getBody());
-            }
-        };
-
-        aceService.loadTokenStore(id, new TypedFile("ASCII Text", manifest.toFile()), tsCallback);
-    }
 
 
     // TODO: Reply if there is an error with the collection (ie: already registered in ace), or ack
@@ -155,10 +130,11 @@ public class CollectionInitProcessor implements ChronProcessor {
         }
 
         try { 
-            log.info("Downloading manifest " + msg.getTokenStore());
+            log.info("Downloading Token Store" + msg.getTokenStore());
             manifest = ReplicationQueue.getFileImmediate(msg.getTokenStore(),
                                                          Paths.get(props.getStage()),
                                                          protocol);
+            completionMap.put(TOKEN_DOWNLOAD, "Successfully downloaded from " + msg.getTokenStore());
             log.info("Finished downloading manifest");
         } catch (IOException ex) {
             log.error("Error downloading manifest \n{}", ex);
@@ -187,6 +163,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         try {
             transfer.getFile(parts[1], bagPath);
             log.info("Finished downloading bag");
+            completionMap.put(BAG_DOWNLOAD, "Successfully downloaded from " + msg.getBagLocation());
         } catch (FileTransferException ex) {
             log.error("Error replicating bag");
             smm = createErrorMail(ex, msg);
@@ -214,6 +191,53 @@ public class CollectionInitProcessor implements ChronProcessor {
         mailUtil.send(smm);
     }
 
+    // Function for handling ACE registration
+
+    private void setAceTokenStore(String collection,
+                                  String group,
+                                  Path collPath,
+                                  Path manifest,
+                                  String fixityAlg,
+                                  int auditPeriod) throws IOException {
+        log.trace("Building ACE json");
+        GsonCollection aceGson = new GsonCollection.Builder()
+                .name(collection)
+                .digestAlgorithm(fixityAlg)
+                .directory(collPath.toString())
+                .group(group)
+                .storage("local")
+                .auditPeriod(String.valueOf(auditPeriod))
+                .auditTokens("true")
+                .proxyData("false")
+                .build();
+
+        // TODO: This will throw a RetrofitError if the collection is already registered,
+        // we need a callback to mitigate this
+        Map<String, Integer> idMap = aceService.addCollection(aceGson);
+        completionMap.put(ACE_REGISTER_COLLECTION, "Successfully registered");
+
+        long id = idMap.get("id");
+
+        Callback tsCallback = new Callback() {
+            @Override
+            public void success(final Object o, final Response response) {
+                log.info("Successfully posted token store");
+                completionMap.put(ACE_REGISTER_TOKENS, "Successfully registered with response "
+                        + response.getStatus());
+            }
+
+            @Override
+            public void failure(final RetrofitError retrofitError) {
+                log.error("Error posting token store {} {}",
+                        retrofitError.getResponse().getStatus(),
+                        retrofitError.getBody());
+                completionMap.put(ACE_REGISTER_TOKENS, "Failed to register tokens:\n"
+                        + retrofitError.getBody());
+            }
+        };
+
+        aceService.loadTokenStore(id, new TypedFile("ASCII Text", manifest.toFile()), tsCallback);
+    }
 
     // Mail Helpers
 
@@ -227,6 +251,10 @@ public class CollectionInitProcessor implements ChronProcessor {
         PrintWriter textBody = new PrintWriter(stringWriter, true);
         textBody.println("Message received from: " + msg.getOrigin());
         textBody.println(msg.toString());
+        textBody.println("\n\nSteps completed:");
+        for (Map.Entry entry : completionMap.entrySet()) {
+            textBody.print(entry.getKey() + ": " + entry.getValue());
+        }
         message.setText(textBody.toString());
 
         return message;
@@ -242,7 +270,16 @@ public class CollectionInitProcessor implements ChronProcessor {
         message.setTo(mailUtil.getSmtpTo());
         message.setFrom(props.getNodeName()+"-replicate@" + mailUtil.getSmtpFrom());
         message.setSubject("[" + props.getNodeName() + "] Error in CollectionInit");
-        message.setText("Message: \n" + msg.toString() + "\n\nError: \n" + exception.toString());
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter textBody = new PrintWriter(stringWriter, true);
+        textBody.println("Message received from: " + msg.getOrigin());
+        textBody.println(msg.toString());
+        textBody.println("\n\nSteps completed:");
+        for (Map.Entry entry : completionMap.entrySet()) {
+            textBody.print(entry.getKey() + ": " + entry.getValue());
+        }
+        textBody.println("\n\nError: \n" + exception.toString());
+        message.setText(textBody.toString());
 
         return message;
     }
