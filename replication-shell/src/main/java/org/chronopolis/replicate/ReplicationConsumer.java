@@ -1,6 +1,7 @@
 package org.chronopolis.replicate;
 
 import org.chronopolis.amqp.ChronProducer;
+import org.chronopolis.replicate.config.PropConfig;
 import org.chronopolis.replicate.config.ReplicationConfig;
 import org.chronopolis.replicate.util.URIUtil;
 import org.slf4j.Logger;
@@ -47,6 +48,14 @@ public class ReplicationConsumer {
         }
 
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        context.register(PropConfig.class);
+        context.refresh();
+
+        ReplicationProperties props = (ReplicationProperties) context.getBean("properties");
+        if (!props.validate()) {
+            return;
+        }
+
         context.register(ReplicationConfig.class);
         context.refresh();
 
@@ -54,22 +63,6 @@ public class ReplicationConsumer {
         //        "classpath:/application-context.xml");
         boolean done = false;
         ChronProducer p = (ChronProducer) context.getBean("producer");
-        ReplicationProperties props = (ReplicationProperties) context.getBean("properties");
-
-        StringBuilder sb = URIUtil.buildAceUri(props.getAceFqdn(), props.getAcePort(), props.getAcePath());
-        try {
-            URL url = new URL(sb.toString());
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.connect();
-            if (connection.getResponseCode() != 200) {
-                log.error("Could not connect to ACE instance, check your properties against your tomcat deployment");
-                done = true;
-            }
-        } catch (IOException e) {
-            log.error("Could not create URL connection to " + props.getAceFqdn() + ". Ensure your tomcat server is running.");
-            done = true;
-        }
 
         // Register System Properties here?
         // props.setRegister(aceRegisterVal)

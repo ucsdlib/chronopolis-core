@@ -11,27 +11,28 @@ import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.processor.CollectionInitProcessor;
 import org.chronopolis.replicate.processor.FileQueryProcessor;
 import org.chronopolis.replicate.processor.FileQueryResponseProcessor;
-import org.springframework.amqp.core.*;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.MessageListener;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionListener;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.Resource;
-
-import static org.chronopolis.replicate.ReplicationProperties.*;
 
 /**
  * Created by shake on 4/16/14.
  */
 @Configuration
 @PropertySource({"file:replication.properties"})
+@Import(PropConfig.class)
 public class ReplicationConfig {
     public static final String PROPERTIES_SMTP_FROM = "smtp.from";
     public static final String PROPERTIES_SMTP_TO = "smtp.to";
@@ -40,20 +41,8 @@ public class ReplicationConfig {
     @Resource
     Environment env;
 
-    @Bean
-    ReplicationProperties properties() {
-        return new ReplicationProperties(
-                env.getProperty(PROPERTIES_NODE_NAME),
-                env.getProperty(PROPERTIES_STAGE),
-                env.getProperty(PROPERTIES_EXCHANGE),
-                env.getProperty(PROPERTIES_INBOUND_ROUTING_KEY),
-                env.getProperty(PROPERTIES_BROADCAST_ROUTING_KEY),
-                env.getProperty(PROPERTIES_ACE_FQDN),
-                env.getProperty(PROPERTIES_ACE_PATH),
-                env.getProperty(PROPERTIES_ACE_USER),
-                env.getProperty(PROPERTIES_ACE_PASS),
-                env.getProperty(PROPERTIES_ACE_PORT, Integer.class));
-    }
+    @Autowired
+    ReplicationProperties properties;
 
     @Bean
     MailUtil mailUtil() {
@@ -66,7 +55,7 @@ public class ReplicationConfig {
 
     @Bean
     MessageFactory messageFactory() {
-        return new MessageFactory(properties());
+        return new MessageFactory(properties);
     }
 
     @Bean
@@ -125,7 +114,7 @@ public class ReplicationConfig {
 
     @Bean
     CollectionInitProcessor collectionInitProcessor() {
-        return new CollectionInitProcessor(producer(), messageFactory(), properties(), mailUtil());
+        return new CollectionInitProcessor(producer(), messageFactory(), properties, mailUtil());
     }
 
     @Bean
@@ -162,27 +151,27 @@ public class ReplicationConfig {
 
     @Bean
     Queue broadcastQueue() {
-       return new Queue(properties().getBroadcastQueueName(), true);
+       return new Queue(properties.getBroadcastQueueName(), true);
     }
 
     @Bean
     Binding broadcastBinding() {
         return BindingBuilder.bind(broadcastQueue())
                              .to(topicExchange())
-                             .with(properties().getBroadcastQueueBinding());
+                             .with(properties.getBroadcastQueueBinding());
     }
 
 
     @Bean
     Queue directQueue() {
-       return new Queue(properties().getDirectQueueName(), true);
+       return new Queue(properties.getDirectQueueName(), true);
     }
 
     @Bean
     Binding directBinding() {
         return BindingBuilder.bind(directQueue())
                              .to(topicExchange())
-                             .with(properties().getDirectQueueBinding());
+                             .with(properties.getDirectQueueBinding());
     }
 
     @Bean
@@ -205,8 +194,8 @@ public class ReplicationConfig {
     @DependsOn("rabbitAdmin")
     SimpleMessageListenerContainer simpleMessageListenerContainer() {
         // String testQueueName = env.getProperty(PROPERTIES_RABBIT_TEST_QUEUE_NAME);
-        String broadcastQueueName = properties().getBroadcastQueueName();
-        String directQueueName = properties().getDirectQueueName();
+        String broadcastQueueName = properties.getBroadcastQueueName();
+        String directQueueName = properties.getDirectQueueName();
 
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setErrorHandler(errorHandler());

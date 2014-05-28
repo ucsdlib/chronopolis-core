@@ -6,12 +6,21 @@ package org.chronopolis.replicate;
 
 import org.chronopolis.amqp.RoutingKey;
 import org.chronopolis.common.properties.GenericProperties;
+import org.chronopolis.replicate.util.URIUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 /**
  *
  * @author shake
  */
 public class ReplicationProperties extends GenericProperties {
+    private final Logger log = LoggerFactory.getLogger(ReplicationProperties.class);
+
     public static final String PROPERTIES_ACE_FQDN = "ace.fqdn";
     public static final String PROPERTIES_ACE_PATH = "ace.path";
     public static final String PROPERTIES_ACE_USER = "ace.user";
@@ -137,5 +146,25 @@ public class ReplicationProperties extends GenericProperties {
 
     public String getBroadcastQueueName() {
         return broadcastQueueName;
+    }
+
+    public boolean validate() {
+        boolean valid = true;
+        StringBuilder sb = URIUtil.buildAceUri(getAceFqdn(), getAcePort(), getAcePath());
+        try {
+            URL url = new URL(sb.toString());
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.connect();
+            if (connection.getResponseCode() != 200) {
+                log.error("Could not connect to ACE instance, check your properties against your tomcat deployment");
+                valid = false;
+            }
+        } catch (IOException e) {
+            log.error("Could not create URL connection to " + getAceFqdn() + ". Ensure your tomcat server is running.");
+            valid = false;
+        }
+
+        return valid;
     }
 }
