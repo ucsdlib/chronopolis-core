@@ -47,15 +47,20 @@ public class ReplicationConsumer {
             log.info("Capture aceCheck: '{}'", Boolean.parseBoolean(aceCheckVal));
         }
 
-        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-        context.register(PropConfig.class);
-        context.refresh();
+        // Sort of ugly, but we need two contexts because we can't refresh twice or close then reopen
+        AnnotationConfigApplicationContext validationContext = new AnnotationConfigApplicationContext();
+        validationContext.register(PropConfig.class);
+        validationContext.refresh();
 
-        ReplicationProperties props = (ReplicationProperties) context.getBean("properties");
+        ReplicationProperties props = (ReplicationProperties) validationContext.getBean("properties");
         if (!props.validate()) {
             return;
         }
 
+        validationContext.close();
+
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        context.register(PropConfig.class);
         context.register(ReplicationConfig.class);
         context.refresh();
 
