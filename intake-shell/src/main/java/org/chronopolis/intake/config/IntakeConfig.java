@@ -61,7 +61,15 @@ public class IntakeConfig {
         ConnectionFactory connectionFactory = new ConnectionFactory();
         connectionFactory.setRequestedHeartbeat(60);
         connectionFactory.setConnectionTimeout(300);
-        connectionFactory.setVirtualHost("chronopolis");
+
+        String virtualHost = env.getProperty("node.virtual.host");
+        if (virtualHost == null) {
+            System.out.println("Using default virtual host");
+            virtualHost = "chronopolis";
+        }
+
+        connectionFactory.setVirtualHost(virtualHost);
+
         return connectionFactory;
     }
 

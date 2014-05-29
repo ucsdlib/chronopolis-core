@@ -26,6 +26,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
@@ -89,9 +90,18 @@ public class IngestConfiguration {
         // Move to properties
         connectionFactory.setRequestedHeartbeat(60);
         connectionFactory.setConnectionTimeout(300);
-        connectionFactory.setVirtualHost("chronopolis");
+
+        String virtualHost = env.getProperty("node.virtual.host");
+        if (virtualHost == null) {
+            System.out.println("Using default virtual host");
+            virtualHost = "chronopolis";
+        }
+
+        connectionFactory.setVirtualHost(virtualHost);
+
         return connectionFactory;
     }
+
 
     @Bean
     public CachingConnectionFactory connectionFactory() {
