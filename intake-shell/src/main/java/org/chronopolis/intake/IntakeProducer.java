@@ -11,14 +11,18 @@ import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.intake.config.IntakeConfig;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.*;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 
 /**
@@ -84,8 +88,6 @@ public class IntakeProducer {
     }
 
     private void sendMessage(String depositor, String location, String bagName, boolean toDPN) {
-        System.out.println(props == null);
-        System.out.println(props.getStage() == null);
         Path collectionPath = Paths.get(props.getStage(), location);
         final int [] bagSize = {0};
         try {
@@ -125,7 +127,6 @@ public class IntakeProducer {
                 toDPN
         );
 
-        System.out.println(msg.toString());
         producer.send(msg, RoutingKey.INGEST_BROADCAST.asRoute());
     }
 
@@ -162,22 +163,18 @@ public class IntakeProducer {
     }
 
     public static void main(String [] args) {
-        GenericXmlApplicationContext text = new GenericXmlApplicationContext(
-                "classpath:/rabbit-context.xml");
-
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
         context.register(IntakeConfig.class);
         context.refresh();
 
-        ChronProducer p = (ChronProducer) text.getBean("producer");
-        MessageFactory factory = (MessageFactory) text.getBean("messageFactory");
-        GenericProperties properties = text.getBean(GenericProperties.class);
+        ChronProducer p = (ChronProducer) context.getBean("producer");
+        MessageFactory factory = (MessageFactory) context.getBean("messageFactory");
+        GenericProperties properties = context.getBean(GenericProperties.class);
 
 
         IntakeProducer producer = new IntakeProducer(p, factory, properties);
         producer.run();
 
-        text.close();
         context.close();
 
         System.out.println("Shutting down, shutting shutting down");
