@@ -255,7 +255,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         for (Map.Entry entry : completionMap.entrySet()) {
             textBody.print(entry.getKey() + ": " + entry.getValue());
         }
-        message.setText(textBody.toString());
+        message.setText(stringWriter.toString());
 
         return message;
     }
@@ -279,7 +279,7 @@ public class CollectionInitProcessor implements ChronProcessor {
             textBody.print(entry.getKey() + ": " + entry.getValue());
         }
         textBody.println("\n\nError: \n" + exception.toString());
-        message.setText(textBody.toString());
+        message.setText(stringWriter.toString());
 
         return message;
     }
