@@ -36,6 +36,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * TODO: How to reply to collection init message if there is an error
@@ -58,6 +59,7 @@ public class CollectionInitProcessor implements ChronProcessor {
     private final AceService aceService;
 
     private HashMap<String, String> completionMap;
+    private AtomicBoolean callbackComplete = new AtomicBoolean(false);
 
     public CollectionInitProcessor(ChronProducer producer,
                                    MessageFactory messageFactory,
@@ -174,6 +176,8 @@ public class CollectionInitProcessor implements ChronProcessor {
         try {
             if (register) {
                 setAceTokenStore(collection, group, collPath, manifest, fixityAlg, auditPeriod);
+                while (!callbackComplete.get()) {
+                }
             }
         } catch (IOException ex) {
             log.error("IO Error", ex);
@@ -224,6 +228,7 @@ public class CollectionInitProcessor implements ChronProcessor {
                 log.info("Successfully posted token store");
                 completionMap.put(ACE_REGISTER_TOKENS, "Successfully registered with response "
                         + response.getStatus());
+                callbackComplete.getAndSet(true);
             }
 
             @Override
@@ -233,6 +238,7 @@ public class CollectionInitProcessor implements ChronProcessor {
                         retrofitError.getBody());
                 completionMap.put(ACE_REGISTER_TOKENS, "Failed to register tokens:\n"
                         + retrofitError.getBody());
+                callbackComplete.getAndSet(true);
             }
         };
 
@@ -253,7 +259,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         textBody.println(msg.toString());
         textBody.println("\n\nSteps completed:");
         for (Map.Entry entry : completionMap.entrySet()) {
-            textBody.print(entry.getKey() + ": " + entry.getValue());
+            textBody.println(entry.getKey() + ": " + entry.getValue());
         }
         message.setText(stringWriter.toString());
 
