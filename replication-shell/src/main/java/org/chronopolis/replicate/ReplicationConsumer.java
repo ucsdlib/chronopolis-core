@@ -73,6 +73,8 @@ public class ReplicationConsumer {
         // props.setRegister(aceRegisterVal)
         // props.setCheck(aceCheckVal)
 
+        System.out.println("Listening for messages");
+
         while (!done) {
 
             try {

@@ -11,6 +11,8 @@ import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.processor.CollectionInitProcessor;
 import org.chronopolis.replicate.processor.FileQueryProcessor;
 import org.chronopolis.replicate.processor.FileQueryResponseProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.MessageListener;
@@ -34,6 +36,8 @@ import javax.annotation.Resource;
 @PropertySource({"file:replication.properties"})
 @Import(PropConfig.class)
 public class ReplicationConfig {
+    public final Logger log = LoggerFactory.getLogger(ReplicationConfig.class);
+
     public static final String PROPERTIES_SMTP_FROM = "smtp.from";
     public static final String PROPERTIES_SMTP_TO = "smtp.to";
     public static final String PROPERTIES_SMTP_HOST = "smtp.host";
@@ -202,6 +206,9 @@ public class ReplicationConfig {
         // String testQueueName = env.getProperty(PROPERTIES_RABBIT_TEST_QUEUE_NAME);
         String broadcastQueueName = properties.getBroadcastQueueName();
         String directQueueName = properties.getDirectQueueName();
+
+        log.info("Broadcast queue {} bound to {}", broadcastQueueName, properties.getBroadcastQueueBinding());
+        log.info("Direct queue {} bound to {}", directQueueName, properties.getDirectQueueBinding());
 
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setErrorHandler(errorHandler());
