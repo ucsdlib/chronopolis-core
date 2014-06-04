@@ -47,8 +47,6 @@ public final class IngestConsumer {
         ChronProducer p = (ChronProducer) context.getBean("producer");
         IngestProperties props = (IngestProperties) context.getBean(IngestProperties.class);
 
-        Queue bQueue = (Queue) context.getBean("broadcastQueue");
-
         while (!done) {
 
             try {

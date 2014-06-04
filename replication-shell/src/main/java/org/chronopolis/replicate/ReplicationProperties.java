@@ -58,7 +58,7 @@ public class ReplicationProperties extends GenericProperties {
 
         this.directQueueName = "replicate.direct." + nodeName;
         this.broadcastQueueName = "replicate.broadcast."+nodeName;
-        this.directQueueBinding = inboundKey;
+        this.directQueueBinding = "replicate-" + nodeName + "-inbound";
         this.broadcastQueueBinding = RoutingKey.REPLICATE_BROADCAST.asRoute();
     }
 
