@@ -185,7 +185,7 @@ public class CollectionInitProcessor implements ChronProcessor {
             mailUtil.send(smm);
             return;
         }
-        
+
         // Because I'm bad at reading - Collection Init Complete Message
         log.info("Sending response");
         ChronMessage response = messageFactory.collectionInitCompleteMessage(msg.getCorrelationId());
@@ -215,10 +215,20 @@ public class CollectionInitProcessor implements ChronProcessor {
                 .proxyData("false")
                 .build();
 
-        // TODO: This will throw a RetrofitError if the collection is already registered,
-        // we need a callback to mitigate this
         log.debug("POSTing {}", aceGson.toJson());
-        Map<String, Integer> idMap = aceService.addCollection(aceGson);
+        Map<String, Integer> idMap;
+        try {
+            idMap = aceService.addCollection(aceGson);
+        } catch (RetrofitError error) {
+            log.error("Error registering ACE collection. Response code {} with reason {}",
+                    error.getResponse().getStatus(), error.getResponse().getReason());
+
+            // Throw an IO Exception because we catch it above and I'm lazy
+            throw new IOException("HTTP " + error.getResponse().getStatus()
+                    + "/" + error.getResponse().getReason()
+                    + " from " + error.getUrl());
+        }
+
         completionMap.put(ACE_REGISTER_COLLECTION, "Successfully registered");
 
         long id = idMap.get("id");
@@ -283,7 +293,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         textBody.println(msg.toString());
         textBody.println("\n\nSteps completed:");
         for (Map.Entry entry : completionMap.entrySet()) {
-            textBody.print(entry.getKey() + ": " + entry.getValue());
+            textBody.println(entry.getKey() + ": " + entry.getValue());
         }
         textBody.println("\n\nError: \n" + exception.toString());
         message.setText(stringWriter.toString());
