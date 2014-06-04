@@ -217,6 +217,7 @@ public class CollectionInitProcessor implements ChronProcessor {
 
         // TODO: This will throw a RetrofitError if the collection is already registered,
         // we need a callback to mitigate this
+        log.debug("POSTing {}", aceGson.toJson());
         Map<String, Integer> idMap = aceService.addCollection(aceGson);
         completionMap.put(ACE_REGISTER_COLLECTION, "Successfully registered");
 
