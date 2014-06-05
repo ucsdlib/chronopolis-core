@@ -90,7 +90,7 @@ public class CollectionInitProcessor implements ChronProcessor {
                                                  .setEndpoint(endpoint)
                                                  .setRequestInterceptor(interceptor)
                                                  .build();
-        restAdapter.setLogLevel(RestAdapter.LogLevel.FULL);
+
         aceService = restAdapter.create(AceService.class);
     }
 
