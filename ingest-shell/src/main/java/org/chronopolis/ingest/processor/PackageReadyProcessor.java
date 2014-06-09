@@ -22,7 +22,6 @@ import org.chronopolis.messaging.pkg.PackageReadyMessage;
 import org.chronopolis.messaging.pkg.PackageReadyReplyMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 
 import java.nio.file.Path;
@@ -101,7 +100,7 @@ public class PackageReadyProcessor implements ChronProcessor {
         try {
             manifest = tokenizer.getAceManifestWithValidation();
         } catch (Exception e) {
-            log.error("Error creating manifest '{}' ", e);
+            log.error("Error creating ace manifest {}", e);
             success = false;
         }
 
