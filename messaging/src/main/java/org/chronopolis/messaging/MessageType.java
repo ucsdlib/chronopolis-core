@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.chronopolis.messaging.MessageConstant.*;
+
 /**
  * Container for chronopolis/DPN style messages
  * MessageState - The state of the node who produces the message
@@ -32,9 +34,10 @@ public enum MessageType {
     // Do these messages need a query and response? There is only an ack associated
     // with them
     COLLECTION_INIT(MessageState.ORIGIN, ProcessType.DISTRIBUTE, "init", Indicator.QUERY,
-            "depositor", "collection", "token-store", "bag-location", "protocol", "audit-period", "fixity-algorithm"),
-    COLLECTION_INIT_REPLY(MessageState.ORIGIN, ProcessType.DISTRIBUTE, "avail", Indicator.QUERY,
-            "message-att"),
+            "depositor", "collection", "token-store", "bag-location", "protocol", "audit-period", "fixity-algorithm",
+            "token-store-digest", "bag-tag-manifest-digest"),
+    COLLECTION_INIT_REPLY(MessageState.RESPONSE, ProcessType.DISTRIBUTE, "avail", Indicator.QUERY,
+            "message-att", "failed-items"),
     COLLECTION_INIT_COMPLETE(MessageState.RESPONSE, ProcessType.DISTRIBUTE, "ack", Indicator.ACK,
             "collection", "attribute", "error-list"),
 

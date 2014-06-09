@@ -79,6 +79,8 @@ public class MessageFactory {
         msg.setTokenStore(tokenStore);
         msg.setBagLocation(bagLocation);
         msg.setFixityAlgorithm(fixityAlgorithm);
+        msg.setBagTagManifestDigest("tag-digest-TODO");
+        msg.setTokenStoreDigest("token-store-digest-TODO");
         setHeaders(msg);
         return msg;
     }
