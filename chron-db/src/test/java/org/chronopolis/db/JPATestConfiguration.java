@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.chronopolis.db;
 
 import org.chronopolis.db.ingest.IngestDB;
@@ -12,10 +8,10 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.orm.hibernate4.HibernateExceptionTranslator;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -25,26 +21,29 @@ import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.sql.SQLException;
 
-
 /**
- *
- * @author shake
+ * Created by shake on 6/9/14.
  */
+
 @Configuration
 @EnableJpaRepositories(basePackages = "org.chronopolis.db",
         includeFilters = @ComponentScan.Filter(value = {IngestDB.class},
                                                type = FilterType.ASSIGNABLE_TYPE))
 @EnableTransactionManagement
-public class JPAConfiguration {
+public class JPATestConfiguration {
 
     @Bean
     public DataSource dataSource() throws SQLException {
+        /*
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName("org.h2.Driver");
-        dataSource.setUrl("test-h2");
+        dataSource.setUrl("jdbc:h2:mem:test");
         dataSource.setUsername("h2");
         dataSource.setPassword("h2");
         return dataSource;
+        */
+        EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
+        return builder.setType(EmbeddedDatabaseType.H2).build();
     }
 
     @Bean
@@ -56,7 +55,6 @@ public class JPAConfiguration {
     public EntityManagerFactory entityManagerFactory() throws SQLException {
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         vendorAdapter.setGenerateDdl(true);
-        vendorAdapter.setDatabase(Database.H2);
 
         LocalContainerEntityManagerFactoryBean factory =
                 new LocalContainerEntityManagerFactoryBean();
@@ -86,5 +84,6 @@ public class JPAConfiguration {
         return new HibernateExceptionTranslator();
     }
 
-}
 
+
+}

@@ -21,20 +21,20 @@ import static org.chronopolis.db.JPAAssertions.assertTableHasColumn;
  * @author shake
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {JPAConfiguration.class})
+@ContextConfiguration(classes = {JPATestConfiguration.class})
 @Transactional
 @TransactionConfiguration(defaultRollback = true)
 public class ModelMappingIntegrationTests {
     
     @Autowired
-    EntityManager manager;
+    EntityManager entityManager;
 
     @Test
     public void thatItemCustomMappingWorks() throws Exception {
-        assertTableExists(manager, "collection_ingest");
+        assertTableExists(entityManager, "collection_ingest");
 
-        assertTableHasColumn(manager, "collection_ingest", "CORRELATION_ID");
-        assertTableHasColumn(manager, "collection_ingest", "TO_DPN");
+        assertTableHasColumn(entityManager, "collection_ingest", "CORRELATION_ID");
+        assertTableHasColumn(entityManager, "collection_ingest", "TO_DPN");
     }
     
 }
