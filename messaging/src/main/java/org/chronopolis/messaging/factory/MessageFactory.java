@@ -6,6 +6,7 @@ package org.chronopolis.messaging.factory;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import org.chronopolis.common.digest.Digest;
@@ -14,6 +15,7 @@ import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
+import org.chronopolis.messaging.collection.CollectionInitReplyMessage;
 import org.chronopolis.messaging.file.FileQueryMessage;
 import org.chronopolis.messaging.file.FileQueryResponseMessage;
 import org.chronopolis.messaging.pkg.PackageIngestCompleteMessage;
@@ -94,6 +96,21 @@ public class MessageFactory {
     public CollectionInitCompleteMessage defaultCollectionInitCompleteMessage() {
         CollectionInitCompleteMessage msg = new CollectionInitCompleteMessage();
         setHeaders(msg);
+        return msg;
+    }
+
+    public CollectionInitReplyMessage collectionInitReplyMessage(String correlationId,
+                                                                 Indicator messageAtt,
+                                                                 List<String> failedItems) {
+        CollectionInitReplyMessage msg = new CollectionInitReplyMessage();
+        setHeaders(msg, correlationId);
+
+        msg.setMessageAtt(messageAtt);
+
+        if (messageAtt.equals(Indicator.NAK)) {
+            msg.setFailedItems(failedItems);
+        }
+
         return msg;
     }
 

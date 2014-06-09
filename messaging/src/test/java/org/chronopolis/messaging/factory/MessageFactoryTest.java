@@ -5,12 +5,15 @@ import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
+import org.chronopolis.messaging.collection.CollectionInitReplyMessage;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
 import org.chronopolis.messaging.pkg.PackageReadyReplyMessage;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+
+import java.util.Arrays;
 
 /**
  * All we want is for the tests to run without error. This is to make sure the
@@ -57,6 +60,15 @@ public class MessageFactoryTest{
     public void testCollectionInitCompleteMessage() throws Exception {
         CollectionInitCompleteMessage message = messageFactory.collectionInitCompleteMessage(
                 "correlation-id"
+        );
+    }
+
+    @Test
+    public void testCollectionInitReplyMessage() {
+        CollectionInitReplyMessage message = messageFactory.collectionInitReplyMessage(
+                "correlation-id",
+                Indicator.NAK,
+                Arrays.asList("one", "two")
         );
     }
 
