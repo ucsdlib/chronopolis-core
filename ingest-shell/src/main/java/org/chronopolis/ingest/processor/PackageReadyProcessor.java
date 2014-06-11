@@ -8,6 +8,7 @@ import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.amqp.RoutingKey;
 import org.chronopolis.common.ace.BagTokenizer;
 import org.chronopolis.common.digest.Digest;
+import org.chronopolis.common.digest.DigestUtil;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.db.DatabaseManager;
 import org.chronopolis.db.model.CollectionIngest;
@@ -104,6 +105,10 @@ public class PackageReadyProcessor implements ChronProcessor {
             success = false;
         }
 
+        // Create digests for replicate nodes to validate from
+        String tagManifestDigest = tokenizer.getTagManifestDigest();
+        String tokenDigest = DigestUtil.digest(manifest, fixity.getName());
+
         String user = props.getExternalUser();
         String server = props.getStorageServer();
 
@@ -129,7 +134,9 @@ public class PackageReadyProcessor implements ChronProcessor {
                     depositor,
                     "rsync",
                     tokenStore.toString(),
+                    tokenDigest,
                     bagLocation.toString(),
+                    tagManifestDigest,
                     fixity);
 
             producer.send(response, RoutingKey.REPLICATE_BROADCAST.asRoute());
