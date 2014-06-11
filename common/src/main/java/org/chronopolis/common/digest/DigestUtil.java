@@ -37,11 +37,12 @@ public final class DigestUtil {
             while (dis.read(buf) >= 0) { }
         } catch (NoSuchAlgorithmException e) {
             LOG.error("Error finding algorithm {}", alg, e);
+            throw new RuntimeException("Could not digest " + file.toString());
         } catch (IOException e) {
             LOG.error("IO Error for {}", file, e);
+            throw new RuntimeException("Could not digest " + file.toString());
         }
 
-        assert md != null;
         return HashValue.asHexString(md.digest());
     }
 
