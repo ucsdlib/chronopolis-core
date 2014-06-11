@@ -70,7 +70,7 @@ public class TokenWriterCallback implements RequestBatchCallback, Callable<Path>
             log.info("Polling for token response(s)");
             // 30 seconds for testing, will probably want it to be longer later on
             while ((response = tokenCallbacks.poll(30, TimeUnit.SECONDS)) != null) {
-                log.trace("Writing token for response '{}'", response.getName());
+                log.trace("Writing token for response {}", response.getName());
                 AceToken token = buildFromResponse(response);
                 writer.startToken(token);
                 writer.addIdentifier("/" + response.getName());
@@ -109,7 +109,7 @@ public class TokenWriterCallback implements RequestBatchCallback, Callable<Path>
     public void tokensReceived(final List<TokenRequest> requests,
                                final List<TokenResponse> responses) {
         for (TokenResponse tr : responses) {
-            log.trace("Received token response for round '{}'", tr.getRoundId());
+            log.trace("Received token response for round {}", tr.getRoundId());
             if (tr.getStatusCode() == StatusCode.SUCCESS) {
                 tokenCallbacks.add(tr);
             }

@@ -93,7 +93,7 @@ public class BagTokenizer {
             try {
                 BufferedReader br = Files.newBufferedReader(manifest, Charset.forName("UTF-8"));
                 while ((line = br.readLine()) != null) {
-                    log.trace("Processing '{}'", line);
+                    log.trace("Processing {}", line);
                     String [] split = line.split("\\s+", 2);
                     String digest = split[0];
                     Path path = Paths.get(bag.toString(), split[1]);
@@ -104,7 +104,7 @@ public class BagTokenizer {
                         Object[] stf = new Object[]{
                                 path.toString(), calculatedDigest, digest
                         };
-                        log.error("Bad manifest for '{}', found '{}' but expected '{}'",
+                        log.error("Bad manifest for {}, found {} but expected {}",
                                 stf);
                         badFiles.add(path);
                     }
