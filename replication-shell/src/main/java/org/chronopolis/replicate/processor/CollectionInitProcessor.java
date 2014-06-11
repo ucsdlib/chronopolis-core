@@ -8,6 +8,8 @@ import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.CredentialRequestInterceptor;
 import org.chronopolis.common.ace.GsonCollection;
+import org.chronopolis.common.digest.Digest;
+import org.chronopolis.common.digest.DigestUtil;
 import org.chronopolis.common.exception.FileTransferException;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.transfer.FileTransfer;
@@ -137,8 +139,23 @@ public class CollectionInitProcessor implements ChronProcessor {
             manifest = ReplicationQueue.getFileImmediate(msg.getTokenStore(),
                                                          Paths.get(props.getStage()),
                                                          protocol);
-            completionMap.put(TOKEN_DOWNLOAD, "Successfully downloaded from " + msg.getTokenStore());
-            log.info("Finished downloading manifest");
+
+            // Pretty ghetto for now, but that's ok. Let's just get the functionality in
+            // to validate our stuff
+            String tokenStoreDigest = DigestUtil.digest(manifest, fixityAlg);
+            if (!tokenStoreDigest.equalsIgnoreCase(msg.getTokenStoreDigest())) {
+                log.error("Digest for token store does not match!");
+                completionMap.put(TOKEN_DOWNLOAD, "Invalid token store digest! "
+                        + "Expected " + msg.getTokenStoreDigest()
+                        + " received " + tokenStoreDigest);
+                smm = createErrorMail(null, msg);
+                mailUtil.send(smm);
+                return;
+            } else {
+                log.info("Finished downloading manifest");
+                completionMap.put(TOKEN_DOWNLOAD, "Successfully downloaded from "
+                        + msg.getTokenStore());
+            }
         } catch (IOException ex) {
             log.error("Error downloading manifest \n{}", ex);
             smm = createErrorMail(ex, msg);
@@ -165,8 +182,26 @@ public class CollectionInitProcessor implements ChronProcessor {
 
         try {
             transfer.getFile(parts[1], bagPath);
-            log.info("Finished downloading bag");
-            completionMap.put(BAG_DOWNLOAD, "Successfully downloaded from " + msg.getBagLocation());
+
+            Digest digest = Digest.fromString(fixityAlg);
+            Path tagmanifest = bagPath.resolve("tagmanifest-" + digest.getBagitIdentifier());
+
+            String tagDigest = DigestUtil.digest(tagmanifest, fixityAlg);
+            if (!tagDigest.equalsIgnoreCase(msg.getTokenStoreDigest())) {
+                log.error("Digest for token store does not match!");
+                completionMap.put(BAG_DOWNLOAD, "Invalid tag-manifest digest! "
+                        + "Expected " + msg.getTokenStoreDigest()
+                        + " received " + tagDigest);
+                smm = createErrorMail(null, msg);
+                mailUtil.send(smm);
+                return;
+            } else {
+                log.info("Finished downloading manifest");
+                completionMap.put(BAG_DOWNLOAD, "Successfully downloaded from "
+                        + msg.getTokenStore());
+            }
+
+
         } catch (FileTransferException ex) {
             log.error("Error replicating bag");
             smm = createErrorMail(ex, msg);
