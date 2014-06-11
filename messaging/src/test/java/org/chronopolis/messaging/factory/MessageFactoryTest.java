@@ -51,7 +51,9 @@ public class MessageFactoryTest{
                 "test-depositor",
                 "rsync",
                 "token-store",
+                "token-store-digest",
                 "bag-location",
+                "tag-digest",
                 Digest.SHA_256
         );
     }

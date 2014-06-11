@@ -71,7 +71,9 @@ public class MessageFactory {
                                                        String depositor,
                                                        String protocol,
                                                        String tokenStore,
+                                                       String tokenStoreDigest,
                                                        String bagLocation,
+                                                       String tagManifestDigest,
                                                        Digest fixityAlgorithm) {
         CollectionInitMessage msg = new CollectionInitMessage();
         msg.setAuditPeriod(auditPeriod);
@@ -81,8 +83,8 @@ public class MessageFactory {
         msg.setTokenStore(tokenStore);
         msg.setBagLocation(bagLocation);
         msg.setFixityAlgorithm(fixityAlgorithm);
-        msg.setBagTagManifestDigest("tag-digest-TODO");
-        msg.setTokenStoreDigest("token-store-digest-TODO");
+        msg.setBagTagManifestDigest(tagManifestDigest);
+        msg.setTokenStoreDigest(tokenStoreDigest);
         setHeaders(msg);
         return msg;
     }
