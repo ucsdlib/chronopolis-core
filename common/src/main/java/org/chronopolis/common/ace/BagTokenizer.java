@@ -37,8 +37,10 @@ public class BagTokenizer {
     private final Path tokenStage;
     private final Digest fixityAlgorithm;
     private final Set<Path> manifests;
+
     private TokenWriterCallback callback = null;
     private TokenRequestBatch batch = null;
+    private String tagManifestDigest;
 
     private static final int SSL_PORT = 443;
     private static final int MAX_QUEUE_LEN = 1000;
@@ -88,7 +90,7 @@ public class BagTokenizer {
         Set<Path> badFiles = new HashSet<>();
         String line;
 
-        // Validate our give manifests
+        // Validate our given manifests
         for (Path manifest : manifests) {
             try {
                 BufferedReader br = Files.newBufferedReader(manifest, Charset.forName("UTF-8"));
@@ -116,8 +118,8 @@ public class BagTokenizer {
 
             // This only runs against 2 files, don't really need to try and be clever
             if (manifest.toString().contains("tagmanifest")) {
-                String tagDigest = DigestUtil.digest(manifest, fixityAlgorithm.getName());
-                digests.put(manifest, tagDigest);
+                tagManifestDigest = DigestUtil.digest(manifest, fixityAlgorithm.getName());
+                digests.put(manifest, tagManifestDigest);
             }
         }
 
@@ -209,4 +211,9 @@ public class BagTokenizer {
                 MAX_QUEUE_LEN,
                 TIMEOUT);
     }
+
+    public String getTagManifestDigest() {
+        return tagManifestDigest;
+    }
+
 }
