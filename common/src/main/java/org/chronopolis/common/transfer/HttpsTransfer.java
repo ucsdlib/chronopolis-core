@@ -26,7 +26,7 @@ public class HttpsTransfer implements FileTransfer {
     @Override
     public Path getFile(final String uri, final Path stage) throws FileTransferException {
         // Make HTTP Connection
-        log.info("Attempting HTTP Transfer from '{}'", uri);
+        log.info("Attempting HTTP Transfer from {}", uri);
         URL url;
         Path output = null;
         try {
@@ -43,7 +43,7 @@ public class HttpsTransfer implements FileTransfer {
         try {
             output.toFile().createNewFile();
         } catch (IOException e) {
-            log.error("Error creating file '{}' ", output.toString(), e);
+            log.error("Error creating file {}", output.toString(), e);
             throw new FileTransferException("Error creating " + output.toString(), e);
         }
 

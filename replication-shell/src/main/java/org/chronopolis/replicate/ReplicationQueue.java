@@ -77,7 +77,7 @@ public class ReplicationQueue implements Runnable {
         } else if (protocol.equalsIgnoreCase("https")) {
             transfer = new HttpsTransfer();
         } else {
-            log.error("Invalid transfer type '{}'", protocol);
+            log.error("Invalid transfer type {}", protocol);
             // probably throw exception here
             return null;
         }

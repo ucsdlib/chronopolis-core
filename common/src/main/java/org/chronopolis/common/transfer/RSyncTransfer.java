@@ -46,7 +46,7 @@ public class RSyncTransfer implements FileTransfer {
                 ProcessBuilder pb = new ProcessBuilder(cmd);
                 Process p = null;
                 try {
-                    log.info("Executing '{}' '{}' '{}' '{}'", cmd);
+                    log.info("Executing {} {} {} {}", cmd);
                     p = pb.start();
                     p.waitFor();
                 } catch (IOException e) {

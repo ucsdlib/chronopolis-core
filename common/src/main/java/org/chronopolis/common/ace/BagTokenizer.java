@@ -142,7 +142,7 @@ public class BagTokenizer {
             TokenRequest req = new TokenRequest();
             Path full = entry.getKey();
             Path relative = full.subpath(bag.getNameCount(), full.getNameCount());
-            log.trace("Adding '{}' to batch", relative.toString());
+            log.trace("Adding {} to batch", relative.toString());
 
             req.setName(relative.toString());
             req.setHashValue(entry.getValue());

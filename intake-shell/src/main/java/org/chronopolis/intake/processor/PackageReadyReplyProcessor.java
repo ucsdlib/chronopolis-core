@@ -23,7 +23,7 @@ public class PackageReadyReplyProcessor implements ChronProcessor {
 
         //check for ack/nak
         String att = msg.getMessageAtt();
-        log.info("Received PackageReadyReply with Attribute '{}'", att);
+        log.info("Received PackageReadyReply with Attribute {}", att);
 
     }
 

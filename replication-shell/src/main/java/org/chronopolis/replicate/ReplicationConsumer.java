@@ -40,11 +40,11 @@ public class ReplicationConsumer {
 
 
         if (aceRegisterVal != null) {
-            log.info("Captured aceRegister: '{}'", Boolean.parseBoolean(aceRegisterVal));
+            log.info("Captured aceRegister: {}", Boolean.parseBoolean(aceRegisterVal));
         }
 
         if (aceCheckVal != null) {
-            log.info("Capture aceCheck: '{}'", Boolean.parseBoolean(aceCheckVal));
+            log.info("Capture aceCheck: {}", Boolean.parseBoolean(aceCheckVal));
         }
 
         // Sort of ugly, but we need two contexts because we can't refresh twice or close then reopen

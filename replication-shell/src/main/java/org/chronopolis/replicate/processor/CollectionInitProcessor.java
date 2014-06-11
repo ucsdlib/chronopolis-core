@@ -128,7 +128,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         if (checkCollection) {
             GsonCollection inAce = aceService.getCollectionByName(msg.getCollection(), msg.getDepositor());
             if (inAce != null) {
-                log.error("Already registered collection '{}'", msg.getCollection());
+                log.error("Already registered collection {}", msg.getCollection());
             }
         }
 

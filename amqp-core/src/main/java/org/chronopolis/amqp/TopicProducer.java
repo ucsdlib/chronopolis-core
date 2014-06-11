@@ -60,7 +60,7 @@ public class TopicProducer implements ChronProducer {
                 template.send(routingKey, msg);
                 done = true;
             } catch (AmqpException e) {
-                log.error("Error publishing '{}', retrying", message, e);
+                log.error("Error publishing {}, retrying", message, e);
 
                 numTries++;
             }
