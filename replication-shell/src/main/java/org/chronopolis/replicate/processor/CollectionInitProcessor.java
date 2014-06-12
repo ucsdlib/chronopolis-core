@@ -184,13 +184,13 @@ public class CollectionInitProcessor implements ChronProcessor {
             transfer.getFile(parts[1], bagPath);
 
             Digest digest = Digest.fromString(fixityAlg);
-            Path tagmanifest = bagPath.resolve("tagmanifest-" + digest.getBagitIdentifier());
+            Path tagmanifest = bagPath.resolve(collection + "/tagmanifest-" + digest.getBagitIdentifier() + ".txt");
 
             String tagDigest = DigestUtil.digest(tagmanifest, fixityAlg);
-            if (!tagDigest.equalsIgnoreCase(msg.getTokenStoreDigest())) {
+            if (!tagDigest.equalsIgnoreCase(msg.getTagManifestDigest())) {
                 log.error("Digest for token store does not match!");
                 completionMap.put(BAG_DOWNLOAD, "Invalid tag-manifest digest! "
-                        + "Expected " + msg.getTokenStoreDigest()
+                        + "Expected " + msg.getTagManifestDigest()
                         + " received " + tagDigest);
                 smm = createErrorMail(null, msg);
                 mailUtil.send(smm);
