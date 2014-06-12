@@ -103,11 +103,15 @@ public class MessageFactory {
 
     public CollectionInitReplyMessage collectionInitReplyMessage(String correlationId,
                                                                  Indicator messageAtt,
+                                                                 String depositor,
+                                                                 String collection,
                                                                  List<String> failedItems) {
         CollectionInitReplyMessage msg = new CollectionInitReplyMessage();
         setHeaders(msg, correlationId);
 
         msg.setMessageAtt(messageAtt);
+        msg.setCollection(collection);
+        msg.setDepositor(depositor);
 
         if (messageAtt.equals(Indicator.NAK)) {
             msg.setFailedItems(failedItems);

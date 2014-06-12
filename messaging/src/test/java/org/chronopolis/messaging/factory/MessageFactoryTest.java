@@ -70,6 +70,8 @@ public class MessageFactoryTest{
         CollectionInitReplyMessage message = messageFactory.collectionInitReplyMessage(
                 "correlation-id",
                 Indicator.NAK,
+                "depositor",
+                "collection",
                 Arrays.asList("one", "two")
         );
     }
