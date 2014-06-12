@@ -103,6 +103,10 @@ public class CollectionInitProcessor implements ChronProcessor {
     // TODO: Reply if there is an error with the collection (ie: already registered in ace), or ack
     // TODO: Fix the flow of this so that we don't return on each failure...
     // that way we send mail and return in one spot instead of 4
+    // TODO: Replace with tasks (quartz?)
+    //       -> download tokens
+    //       -> download bag
+    //       -> ace stuff
     @Override
     public void process(ChronMessage chronMessage) {
         // TODO: Replace these with the values from the properties
@@ -163,6 +167,8 @@ public class CollectionInitProcessor implements ChronProcessor {
             replyMessage = messageFactory.collectionInitReplyMessage(
                     msg.getCorrelationId(),
                     Indicator.ACK,
+                    msg.getDepositor(),
+                    collection,
                     null);
 
             producer.send(replyMessage, msg.getReturnKey());
