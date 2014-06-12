@@ -15,9 +15,11 @@ import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.transfer.FileTransfer;
 import org.chronopolis.common.transfer.HttpsTransfer;
 import org.chronopolis.common.transfer.RSyncTransfer;
+import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
+import org.chronopolis.messaging.collection.CollectionInitReplyMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.ReplicationQueue;
@@ -156,6 +158,14 @@ public class CollectionInitProcessor implements ChronProcessor {
                 completionMap.put(TOKEN_DOWNLOAD, "Successfully downloaded from "
                         + msg.getTokenStore());
             }
+
+            CollectionInitReplyMessage replyMessage;
+            replyMessage = messageFactory.collectionInitReplyMessage(
+                    msg.getCorrelationId(),
+                    Indicator.ACK,
+                    null);
+
+            producer.send(replyMessage, msg.getReturnKey());
         } catch (IOException ex) {
             log.error("Error downloading manifest \n{}", ex);
             smm = createErrorMail(ex, msg);
