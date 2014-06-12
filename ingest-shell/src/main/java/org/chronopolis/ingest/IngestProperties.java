@@ -57,6 +57,8 @@ public class IngestProperties extends GenericProperties {
         broadcastQueueName = "ingest.broadcast." + nodeName;
         directQueueBinding = "ingest-" + nodeName + "-inbound";
         broadcastQueueBinding = RoutingKey.INGEST_BROADCAST.asRoute();
+
+        setInboundKey(directQueueBinding);
     }
 
     /**

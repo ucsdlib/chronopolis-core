@@ -60,6 +60,8 @@ public class ReplicationProperties extends GenericProperties {
         this.broadcastQueueName = "replicate.broadcast."+nodeName;
         this.directQueueBinding = "replicate-" + nodeName + "-inbound";
         this.broadcastQueueBinding = RoutingKey.REPLICATE_BROADCAST.asRoute();
+
+        setInboundKey(directQueueBinding);
     }
 
     /**
