@@ -14,11 +14,13 @@ public class MailUtil {
     private String smtpHost;
     private String smtpTo;
     private String smtpFrom;
+    private boolean smtpSend;
 
     public MailUtil() {
         smtpHost = "localhost.localdomain";
         smtpFrom = "localhost";
         smtpTo = "shake@umiacs.umd.edu";
+        smtpSend = false;
     }
 
 
@@ -53,9 +55,11 @@ public class MailUtil {
     }
 
     public void send(final SimpleMailMessage message) {
-        log.info("Sending mail to {}", message.getTo());
-        JavaMailSenderImpl sender = new JavaMailSenderImpl();
-        sender.setHost(smtpHost);
-        sender.send(message);
+        if (smtpSend) {
+            log.info("Sending mail to {}", message.getTo());
+            JavaMailSenderImpl sender = new JavaMailSenderImpl();
+            sender.setHost(smtpHost);
+            sender.send(message);
+        }
     }
 }
