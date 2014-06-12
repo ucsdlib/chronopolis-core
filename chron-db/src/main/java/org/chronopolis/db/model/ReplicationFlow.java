@@ -1,6 +1,10 @@
 package org.chronopolis.db.model;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 
 /**
  * Created by shake on 6/12/14.
@@ -8,10 +12,21 @@ import javax.persistence.Entity;
 @Entity
 public class ReplicationFlow {
 
-    long id;
-    String depositor;
-    String collection;
-    String node;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column
+    private Long id;
+
+    @Column
+    private String depositor;
+
+    @Column
+    private String collection;
+
+    @Column
+    private String node;
+
+
     ReplicationState currentState;
 
     public long getId() {

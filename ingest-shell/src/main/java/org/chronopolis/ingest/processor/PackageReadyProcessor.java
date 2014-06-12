@@ -12,6 +12,8 @@ import org.chronopolis.common.digest.DigestUtil;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.db.DatabaseManager;
 import org.chronopolis.db.model.CollectionIngest;
+import org.chronopolis.db.model.ReplicationFlow;
+import org.chronopolis.db.model.ReplicationState;
 import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.base.ChronMessage;
@@ -139,6 +141,10 @@ public class PackageReadyProcessor implements ChronProcessor {
             ci.setToDpn(toDpn);
             manager.getIngestDatabase().save(ci);
 
+            // And our flow items
+            createReplicationFlowItem("sdsc", depositor, packageName);
+            createReplicationFlowItem("chron", depositor, packageName);
+
             producer.send(response, RoutingKey.REPLICATE_BROADCAST.asRoute());
         } else {
             replyInd = Indicator.NAK;
@@ -153,6 +159,15 @@ public class PackageReadyProcessor implements ChronProcessor {
         producer.send(reply, msg.getReturnKey());
 
         sendPackageReadyNotification(msg);
+    }
+
+    private void createReplicationFlowItem(String node, String depositor, String collection) {
+        ReplicationFlow flow = new ReplicationFlow();
+        flow.setCollection(collection);
+        flow.setDepositor(depositor);
+        flow.setNode(node);
+        flow.setCurrentState(ReplicationState.INIT);
+        manager.getReplicationFlowTable().save(flow);
     }
 
     private void sendPackageReadyNotification(PackageReadyMessage packageReadyMessage) {
