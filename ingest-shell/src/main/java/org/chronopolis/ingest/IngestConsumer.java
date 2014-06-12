@@ -9,8 +9,6 @@ import org.chronopolis.ingest.config.IngestConfiguration;
 import org.chronopolis.ingest.config.IngestJPAConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.Queue;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.io.BufferedReader;

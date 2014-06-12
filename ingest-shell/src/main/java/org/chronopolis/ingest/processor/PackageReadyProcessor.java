@@ -85,12 +85,6 @@ public class PackageReadyProcessor implements ChronProcessor {
         String depositor = msg.getDepositor();
         Boolean toDpn = msg.toDpn();
 
-        // Save some info about the object
-        CollectionIngest ci = new CollectionIngest();
-        ci.setCorrelationId(msg.getCorrelationId());
-        ci.setToDpn(toDpn);
-        manager.getIngestDatabase().save(ci);
-
         // Set up our paths
         Path toBag = Paths.get(props.getStage(), location);
         Path tokenStage = Paths.get(props.getTokenStage());
@@ -138,6 +132,12 @@ public class PackageReadyProcessor implements ChronProcessor {
                     bagLocation.toString(),
                     tagManifestDigest,
                     fixity);
+
+            // Save some info about the object
+            CollectionIngest ci = new CollectionIngest();
+            ci.setCorrelationId(response.getCorrelationId());
+            ci.setToDpn(toDpn);
+            manager.getIngestDatabase().save(ci);
 
             producer.send(response, RoutingKey.REPLICATE_BROADCAST.asRoute());
         } else {
