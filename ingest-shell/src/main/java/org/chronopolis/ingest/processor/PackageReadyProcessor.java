@@ -142,8 +142,9 @@ public class PackageReadyProcessor implements ChronProcessor {
             manager.getIngestDatabase().save(ci);
 
             // And our flow items
-            createReplicationFlowItem("sdsc", depositor, packageName);
-            createReplicationFlowItem("chron", depositor, packageName);
+            for (String node : props.getChronNodes()) {
+                createReplicationFlowItem(node, depositor, packageName);
+            }
 
             producer.send(response, RoutingKey.REPLICATE_BROADCAST.asRoute());
         } else {
