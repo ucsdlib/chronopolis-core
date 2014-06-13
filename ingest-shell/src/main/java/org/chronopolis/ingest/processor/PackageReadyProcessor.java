@@ -135,15 +135,17 @@ public class PackageReadyProcessor implements ChronProcessor {
                     tagManifestDigest,
                     fixity);
 
+            String correlationId = response.getCorrelationId();
+
             // Save some info about the object
             CollectionIngest ci = new CollectionIngest();
-            ci.setCorrelationId(response.getCorrelationId());
+            ci.setCorrelationId(correlationId);
             ci.setToDpn(toDpn);
             manager.getIngestDatabase().save(ci);
 
             // And our flow items
             for (String node : props.getChronNodes()) {
-                createReplicationFlowItem(node, depositor, packageName);
+                createReplicationFlowItem(node, depositor, packageName, correlationId);
             }
 
             producer.send(response, RoutingKey.REPLICATE_BROADCAST.asRoute());
@@ -162,12 +164,13 @@ public class PackageReadyProcessor implements ChronProcessor {
         sendPackageReadyNotification(msg);
     }
 
-    private void createReplicationFlowItem(String node, String depositor, String collection) {
+    private void createReplicationFlowItem(String node, String depositor, String collection, String correlationId) {
         ReplicationFlow flow = new ReplicationFlow();
         flow.setCollection(collection);
         flow.setDepositor(depositor);
         flow.setNode(node);
         flow.setCurrentState(ReplicationState.INIT);
+        flow.setCorrelationId(correlationId);
         manager.getReplicationFlowTable().save(flow);
     }
 

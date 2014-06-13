@@ -9,6 +9,7 @@ import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.db.DatabaseManager;
 import org.chronopolis.db.ingest.IngestDB;
 import org.chronopolis.db.model.CollectionIngest;
+import org.chronopolis.db.model.ReplicationFlow;
 import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
@@ -53,6 +54,8 @@ public class CollectionInitCompleteProcessor implements ChronProcessor {
             throw new InvalidMessageException("Expected message of type CollectionInitComplete"
                     + " but received " + chronMessage.getClass().getName());
         }
+        CollectionInitCompleteMessage message = (CollectionInitCompleteMessage) chronMessage;
+
         ChronMessage response = messageFactory.DefaultPackageIngestCompleteMessage();
 
         // sendCompletionRecord((CollectionInitCompleteMessage) chronMessage);
@@ -65,10 +68,10 @@ public class CollectionInitCompleteProcessor implements ChronProcessor {
         if (toDpn) {
             // Send replication-init-query
             log.debug("Sending {} to dpn", chronMessage.getCorrelationId());
-
         }
 
         // Once again, hold the routing key temporarily
+        // We don't actually send this until all nodes have finished replicating
         producer.send(response, "package.intake.umiacs");
     }
 

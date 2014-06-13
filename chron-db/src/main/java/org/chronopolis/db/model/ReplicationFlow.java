@@ -28,6 +28,9 @@ public class ReplicationFlow {
     @Column
     private String node;
 
+    @Column
+    private String correlationId;
+
 
     ReplicationState currentState;
 
@@ -69,5 +72,13 @@ public class ReplicationFlow {
 
     public void setCurrentState(final ReplicationState currentState) {
         this.currentState = currentState;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public void setCorrelationId(final String correlationId) {
+        this.correlationId = correlationId;
     }
 }
