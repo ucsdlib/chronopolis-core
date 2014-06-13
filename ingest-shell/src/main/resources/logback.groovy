@@ -23,7 +23,7 @@ appender("FILE", FileAppender) {
     file = "ingest.log"
     append = true
     encoder(PatternLayoutEncoder) {
-        pattern = "%level %logger - %msg%n"
+        pattern = "%d{yyyy/MM/dd HH:mm:ss} %level %logger - %msg%n"
     }
 }
 
