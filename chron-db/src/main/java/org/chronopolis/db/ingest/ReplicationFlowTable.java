@@ -12,4 +12,6 @@ public interface ReplicationFlowTable extends CrudRepository<ReplicationFlow, Lo
 
     ReplicationFlow findByDepositorAndCollectionAndNode(String depositor, String collection, String node);
 
+    ReplicationFlow findByNodeAndCorrelationId(String node, String correlationId);
+
 }
