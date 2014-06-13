@@ -1,5 +1,6 @@
 package org.chronopolis.db.model;
 
+import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -13,9 +14,10 @@ import javax.persistence.Id;
 public class ReplicationFlow {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Basic(optional = false)
+    @Column(name = "ID", unique = true, nullable = false)
+    private long id;
 
     @Column
     private String depositor;
