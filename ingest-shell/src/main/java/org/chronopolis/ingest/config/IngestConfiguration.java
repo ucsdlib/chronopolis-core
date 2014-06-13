@@ -33,6 +33,7 @@ import org.springframework.core.env.Environment;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.chronopolis.ingest.IngestProperties.PROPERTIES_BROADCAST_ROUTING_KEY;
@@ -56,6 +57,7 @@ public class IngestConfiguration {
     public static final String PROPERTIES_SMTP_HOST = "smtp.host";
     public static final String PROPERTIES_SMTP_FROM = "smtp.from";
     public static final String PROPERTIES_SMTP_TO = "smtp.to";
+    public static final String PROPERTIES_CHRON_NODES = "chron.nodes";
 
     @Autowired
     public DatabaseManager manager;
@@ -70,6 +72,12 @@ public class IngestConfiguration {
 
     @Bean
     public IngestProperties ingestProperties() {
+        List<String> chronNodes = new ArrayList<>();
+        String fromProps = env.getProperty(PROPERTIES_CHRON_NODES);
+        if (fromProps != null) {
+            Collections.addAll(chronNodes, fromProps.split(","));
+        }
+
         IngestProperties properties = new IngestProperties(
                 env.getProperty(PROPERTIES_NODE_NAME),
                 env.getProperty(PROPERTIES_STAGE),
@@ -80,7 +88,8 @@ public class IngestConfiguration {
                 env.getProperty(PROPERTIES_IMS_HOST_NAME),
                 env.getProperty(PROPERTIES_STORAGE_SERVER),
                 env.getProperty(PROPERTIES_EXTERNAL_USER),
-                env.getProperty(PROPERTIES_DPN_PUSH, Boolean.class));
+                env.getProperty(PROPERTIES_DPN_PUSH, Boolean.class),
+                chronNodes);
 
         return properties;
     }

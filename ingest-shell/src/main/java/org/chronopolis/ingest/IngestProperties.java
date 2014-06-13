@@ -7,6 +7,8 @@ package org.chronopolis.ingest;
 import org.chronopolis.amqp.RoutingKey;
 import org.chronopolis.common.properties.GenericProperties;
 
+import java.util.List;
+
 /**
  *
  * @author shake
@@ -28,6 +30,7 @@ public class IngestProperties extends GenericProperties {
     private String storageServer;
     private String externalUser;
     private Boolean dpnPush;
+    private List<String> chronNodes;
 
     /**
      *
@@ -45,13 +48,15 @@ public class IngestProperties extends GenericProperties {
                             String imsHostName,
                             String storageServer,
                             String externalUser,
-                            Boolean dpnPush) {
+                            Boolean dpnPush,
+                            List<String> chronNodes) {
         super(nodeName, bagStage, exchange, inboundKey, broadcastKey);
         this.tokenStage = tokenStage;
         this.imsHostName = imsHostName;
         this.storageServer = storageServer;
         this.externalUser = externalUser;
         this.dpnPush = dpnPush;
+        this.chronNodes = chronNodes;
 
         directQueueName = "ingest.direct." + nodeName;
         broadcastQueueName = "ingest.broadcast." + nodeName;
@@ -131,5 +136,13 @@ public class IngestProperties extends GenericProperties {
 
     public String getBroadcastQueueBinding() {
         return broadcastQueueBinding;
+    }
+
+    public List<String> getChronNodes() {
+        return chronNodes;
+    }
+
+    public void setChronNodes(final List<String> chronNodes) {
+        this.chronNodes = chronNodes;
     }
 }
