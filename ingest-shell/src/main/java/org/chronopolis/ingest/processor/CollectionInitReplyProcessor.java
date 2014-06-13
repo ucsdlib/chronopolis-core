@@ -43,8 +43,13 @@ public class CollectionInitReplyProcessor implements ChronProcessor {
         CollectionInitReplyMessage msg = (CollectionInitReplyMessage) chronMessage;
         String depositor = msg.getDepositor();
         String collection = msg.getCollection();
+        String node = msg.getOrigin();
 
-        ReplicationFlow flow = manager.getReplicationFlowTable().findByDepositorAndCollection(depositor, collection);
+        ReplicationFlow flow = manager.getReplicationFlowTable()
+                                      .findByDepositorAndCollectionAndNode(depositor,
+                                              collection,
+                                              node);
+
         flow.setCurrentState(ReplicationState.REPLICATING);
         manager.getReplicationFlowTable().save(flow);
 

@@ -10,6 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public interface ReplicationFlowTable extends CrudRepository<ReplicationFlow, Long> {
 
-    ReplicationFlow findByDepositorAndCollection(String depositor, String collection);
+    ReplicationFlow findByDepositorAndCollectionAndNode(String depositor, String collection, String node);
 
 }
