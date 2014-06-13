@@ -8,8 +8,10 @@ import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.db.DatabaseManager;
 import org.chronopolis.db.ingest.IngestDB;
+import org.chronopolis.db.ingest.ReplicationFlowTable;
 import org.chronopolis.db.model.CollectionIngest;
 import org.chronopolis.db.model.ReplicationFlow;
+import org.chronopolis.db.model.ReplicationState;
 import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
@@ -69,6 +71,13 @@ public class CollectionInitCompleteProcessor implements ChronProcessor {
             // Send replication-init-query
             log.debug("Sending {} to dpn", chronMessage.getCorrelationId());
         }
+
+        ReplicationFlowTable flowTable = manager.getReplicationFlowTable();
+        ReplicationFlow flow  = flowTable.findByNodeAndCorrelationId(
+                chronMessage.getOrigin(),
+                chronMessage.getCorrelationId());
+        flow.setCurrentState(ReplicationState.FINISHED);
+        flowTable.save(flow);
 
         // Once again, hold the routing key temporarily
         // We don't actually send this until all nodes have finished replicating
