@@ -8,6 +8,7 @@ import org.chronopolis.db.DatabaseManager;
 import org.chronopolis.ingest.IngestMessageListener;
 import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.ingest.processor.CollectionInitCompleteProcessor;
+import org.chronopolis.ingest.processor.CollectionInitReplyProcessor;
 import org.chronopolis.ingest.processor.PackageIngestStatusQueryProcessor;
 import org.chronopolis.ingest.processor.PackageReadyProcessor;
 import org.chronopolis.messaging.factory.MessageFactory;
@@ -169,6 +170,15 @@ public class IngestConfiguration {
     }
 
     @Bean
+    public CollectionInitReplyProcessor collectionInitReplyProcessor() {
+        return new CollectionInitReplyProcessor(ingestProperties(),
+                producer(),
+                messageFactory(),
+                manager
+        );
+    }
+
+    @Bean
     public PackageIngestStatusQueryProcessor packageIngestStatusQueryProcessor() {
         return new PackageIngestStatusQueryProcessor(producer());
     }
@@ -177,7 +187,8 @@ public class IngestConfiguration {
     public MessageListener messageListener() {
         return new IngestMessageListener(packageIngestStatusQueryProcessor(),
                 packageReadyProcessor(),
-                collectionInitCompleteProcessor());
+                collectionInitCompleteProcessor(),
+                collectionInitReplyProcessor());
     }
 
     @Bean

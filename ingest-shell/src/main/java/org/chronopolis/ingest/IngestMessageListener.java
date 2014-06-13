@@ -5,6 +5,10 @@
 package org.chronopolis.ingest;
 
 import org.chronopolis.amqp.ChronMessageListener;
+import org.chronopolis.ingest.processor.CollectionInitCompleteProcessor;
+import org.chronopolis.ingest.processor.CollectionInitReplyProcessor;
+import org.chronopolis.ingest.processor.PackageIngestStatusQueryProcessor;
+import org.chronopolis.ingest.processor.PackageReadyProcessor;
 import org.chronopolis.messaging.MessageType;
 import org.chronopolis.messaging.base.ChronProcessor;
 
@@ -17,16 +21,19 @@ import org.chronopolis.messaging.base.ChronProcessor;
  * @author shake
  */
 public class IngestMessageListener extends ChronMessageListener {
-    private final ChronProcessor packageIngestStatusQueryProcessor;
-    private final ChronProcessor packageReadyProcessor;
-    private final ChronProcessor collectionInitCompleteProcessor;
+    private final PackageIngestStatusQueryProcessor packageIngestStatusQueryProcessor;
+    private final PackageReadyProcessor packageReadyProcessor;
+    private final CollectionInitCompleteProcessor collectionInitCompleteProcessor;
+    private final CollectionInitReplyProcessor collectionInitReplyProcessor;
 
-    public IngestMessageListener(ChronProcessor packageIngestStatusQueryProcessor,
-                                 ChronProcessor packageReadyProcessor,
-                                 ChronProcessor collectionInitCompleteProcessor) {
+    public IngestMessageListener(PackageIngestStatusQueryProcessor packageIngestStatusQueryProcessor,
+                                 PackageReadyProcessor packageReadyProcessor,
+                                 CollectionInitCompleteProcessor collectionInitCompleteProcessor,
+                                 CollectionInitReplyProcessor collectionInitReplyProcessor) {
         this.packageIngestStatusQueryProcessor = packageIngestStatusQueryProcessor;
         this.packageReadyProcessor = packageReadyProcessor;
         this.collectionInitCompleteProcessor = collectionInitCompleteProcessor;
+        this.collectionInitReplyProcessor = collectionInitReplyProcessor;
     }
 
     @Override
@@ -38,6 +45,8 @@ public class IngestMessageListener extends ChronMessageListener {
                 return packageIngestStatusQueryProcessor;
             case COLLECTION_INIT_COMPLETE:
                 return collectionInitCompleteProcessor;
+            case COLLECTION_INIT_REPLY:
+                return collectionInitReplyProcessor;
             default:
                 throw new RuntimeException("Unexpected MessageType: " + type.name());
         }
