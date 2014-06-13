@@ -2,6 +2,7 @@ package org.chronopolis.ingest.config;
 
 import org.chronopolis.db.DatabaseManager;
 import org.chronopolis.db.ingest.IngestDB;
+import org.chronopolis.db.ingest.ReplicationFlowTable;
 import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -30,7 +31,8 @@ import java.sql.SQLException;
  */
 @Configuration
 @EnableJpaRepositories(basePackages = "org.chronopolis.db",
-        includeFilters = @ComponentScan.Filter(value = {IngestDB.class},
+        includeFilters = @ComponentScan.Filter(value = {IngestDB.class,
+                                                        ReplicationFlowTable.class},
                                                type = FilterType.ASSIGNABLE_TYPE))
 @EnableTransactionManagement
 @PropertySource({"file:ingest.properties"})

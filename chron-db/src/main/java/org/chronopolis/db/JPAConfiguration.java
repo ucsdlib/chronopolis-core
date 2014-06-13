@@ -5,6 +5,7 @@
 package org.chronopolis.db;
 
 import org.chronopolis.db.ingest.IngestDB;
+import org.chronopolis.db.ingest.ReplicationFlowTable;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +33,8 @@ import java.sql.SQLException;
  */
 @Configuration
 @EnableJpaRepositories(basePackages = "org.chronopolis.db",
-        includeFilters = @ComponentScan.Filter(value = {IngestDB.class},
+        includeFilters = @ComponentScan.Filter(value = {IngestDB.class,
+                                                        ReplicationFlowTable.class},
                                                type = FilterType.ASSIGNABLE_TYPE))
 @EnableTransactionManagement
 public class JPAConfiguration {
