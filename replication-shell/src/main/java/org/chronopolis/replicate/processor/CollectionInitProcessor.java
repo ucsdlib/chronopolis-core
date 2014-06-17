@@ -23,7 +23,11 @@ import org.chronopolis.messaging.collection.CollectionInitReplyMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.ReplicationQueue;
+import org.chronopolis.replicate.jobs.TokenStoreDownloadJob;
 import org.chronopolis.replicate.util.URIUtil;
+import org.quartz.Job;
+import org.quartz.JobBuilder;
+import org.quartz.JobDataMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.mail.SimpleMailMessage;
@@ -120,8 +124,11 @@ public class CollectionInitProcessor implements ChronProcessor {
         }
 
         log.trace("Received collection init message");
-        SimpleMailMessage smm;
+
         CollectionInitMessage msg = (CollectionInitMessage) chronMessage;
+
+        /*
+        SimpleMailMessage smm;
 
         Path manifest;
         Path bagPath = Paths.get(props.getStage(), msg.getDepositor());
@@ -245,6 +252,7 @@ public class CollectionInitProcessor implements ChronProcessor {
 
         smm = createSuccess(msg);
         mailUtil.send(smm);
+        */
     }
 
     // Function for handling ACE registration

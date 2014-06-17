@@ -1,5 +1,8 @@
 package org.chronopolis.replicate.jobs;
 
+import org.chronopolis.amqp.ChronProducer;
+import org.chronopolis.messaging.base.ChronMessage;
+import org.chronopolis.messaging.factory.MessageFactory;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.Scheduler;
@@ -15,10 +18,17 @@ public class AceRegisterJobListener extends JobListenerSupport {
 
     private final String name;
     private final Scheduler scheduler;
+    private final ChronProducer producer;
+    private final MessageFactory messageFactory;
 
-    public AceRegisterJobListener(final String name, final Scheduler scheduler) {
+    public AceRegisterJobListener(final String name,
+                                  final Scheduler scheduler,
+                                  final ChronProducer producer,
+                                  final MessageFactory messageFactory) {
         this.name = name;
         this.scheduler = scheduler;
+        this.producer = producer;
+        this.messageFactory = messageFactory;
     }
 
     @Override
@@ -29,7 +39,18 @@ public class AceRegisterJobListener extends JobListenerSupport {
     @Override
     public void jobWasExecuted(final JobExecutionContext jobExecutionContext,
                                final JobExecutionException e) {
+        String correlationId = "";
+        String returnKey = "";
+
+        // jobExecutionContext.getJobDetail().getJobDataMap().getString("return-key");
+
         // Send collection init complete
+        if (e == null) {
+            ChronMessage response = messageFactory.collectionInitCompleteMessage(correlationId);
+            producer.send(response, returnKey);
+        } else {
+
+        }
     }
 
 }
