@@ -40,12 +40,10 @@ public class AceRegisterJobListener extends JobListenerSupport {
     @Override
     public void jobWasExecuted(final JobExecutionContext jobExecutionContext,
                                final JobExecutionException e) {
-        String correlationId = "";
-        String returnKey = "";
         JobDataMap jobData = jobExecutionContext.getJobDetail().getJobDataMap();
-        jobData.getString("returnKey");
+        String returnKey = jobData.getString(AceRegisterJob.RETURN_KEY);
+        String correlationId = jobExecutionContext.getJobDetail().getKey().getName();
 
-        // jobExecutionContext.getJobDetail().getJobDataMap().getString("return-key");
 
         // Send collection init complete
         if (e == null) {
