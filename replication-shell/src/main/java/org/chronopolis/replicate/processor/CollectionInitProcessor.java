@@ -66,7 +66,7 @@ public class CollectionInitProcessor implements ChronProcessor {
     private final ReplicationProperties props;
     private final MailUtil mailUtil;
     private final AceService aceService;
-    private Scheduler scheduler;
+    private final Scheduler scheduler;
 
     private HashMap<String, String> completionMap;
     private AtomicBoolean callbackComplete = new AtomicBoolean(false);
@@ -74,11 +74,13 @@ public class CollectionInitProcessor implements ChronProcessor {
     public CollectionInitProcessor(ChronProducer producer,
                                    MessageFactory messageFactory,
                                    ReplicationProperties props,
-                                   MailUtil mailUtil) {
+                                   MailUtil mailUtil,
+                                   Scheduler scheduler) {
         this.producer = producer;
         this.messageFactory = messageFactory;
         this.props = props;
         this.mailUtil = mailUtil;
+        this.scheduler = scheduler;
 
         // Set up our map of tasks and their progress for more info in mail messages
         completionMap = new HashMap<>();
@@ -129,11 +131,13 @@ public class CollectionInitProcessor implements ChronProcessor {
 
         CollectionInitMessage msg = (CollectionInitMessage) chronMessage;
 
+        // Set up our data maps and jobs
+
         JobDataMap tsDataMap = new JobDataMap();
         tsDataMap.put(TokenStoreDownloadJob.LOCATION, msg.getTokenStore());
         tsDataMap.put(TokenStoreDownloadJob.PROTOCOL, msg.getProtocol());
         tsDataMap.put(TokenStoreDownloadJob.PROPERTIES, props);
-        JobDetail tokenStoreJobDetail = JobBuilder.newJob(TokenStoreDownloadJob.class)
+        JobDetail tsJobDetail = JobBuilder.newJob(TokenStoreDownloadJob.class)
                 .setJobData(tsDataMap)
                 .withIdentity(msg.getCorrelationId(), "TokenDownload")
                 .build();
@@ -149,7 +153,7 @@ public class CollectionInitProcessor implements ChronProcessor {
                 .build();
 
         JobDataMap arDataMap = new JobDataMap();
-        arDataMap.put(AceRegisterJob.TOKEN_STORE, msg.getTokenStore());
+        arDataMap.put(AceRegisterJob.TOKEN_STORE, msg.getCollection() + "-tokens");
         arDataMap.put(AceRegisterJob.REGISTER, true);
         arDataMap.put(AceRegisterJob.RETURN_KEY, msg.getReturnKey());
         arDataMap.put(AceRegisterJob.ACE_SERVICE, aceService);
@@ -164,246 +168,14 @@ public class CollectionInitProcessor implements ChronProcessor {
                 .build();
 
         try {
-            scheduler.addJob(tokenStoreJobDetail, false);
+            scheduler.addJob(tsJobDetail, false);
             scheduler.addJob(bdJobDetail, false);
             scheduler.addJob(arJobDetail, false);
-            scheduler.triggerJob(tokenStoreJobDetail.getKey());
+            scheduler.triggerJob(tsJobDetail.getKey());
         } catch (SchedulerException e) {
-            e.printStackTrace();
+            log.error("", e);
         }
 
-        /*
-        SimpleMailMessage smm;
-
-        Path manifest;
-        Path bagPath = Paths.get(props.getStage(), msg.getDepositor());
-        Path collPath = Paths.get(bagPath.toString(), msg.getCollection());
-        String fixityAlg = msg.getFixityAlgorithm();
-        String protocol = msg.getProtocol();
-        String collection = msg.getCollection();
-        String group = msg.getDepositor();
-        int auditPeriod = msg.getAuditPeriod();
-
-        //noinspection ConstantConditions (temporarily false while testing)
-        if (checkCollection) {
-            GsonCollection inAce = aceService.getCollectionByName(msg.getCollection(), msg.getDepositor());
-            if (inAce != null) {
-                log.error("Already registered collection {}", msg.getCollection());
-            }
-        }
-
-        try { 
-            log.info("Downloading Token Store" + msg.getTokenStore());
-            manifest = ReplicationQueue.getFileImmediate(msg.getTokenStore(),
-                                                         Paths.get(props.getStage()),
-                                                         protocol);
-
-            // Pretty ghetto for now, but that's ok. Let's just get the functionality in
-            // to validate our stuff
-            String tokenStoreDigest = DigestUtil.digest(manifest, fixityAlg);
-            if (!tokenStoreDigest.equalsIgnoreCase(msg.getTokenStoreDigest())) {
-                log.error("Digest for token store does not match!");
-                completionMap.put(TOKEN_DOWNLOAD, "Invalid token store digest! "
-                        + "Expected " + msg.getTokenStoreDigest()
-                        + " received " + tokenStoreDigest);
-                smm = createErrorMail(null, msg);
-                mailUtil.send(smm);
-                return;
-            } else {
-                log.info("Finished downloading manifest");
-                completionMap.put(TOKEN_DOWNLOAD, "Successfully downloaded from "
-                        + msg.getTokenStore());
-            }
-
-            CollectionInitReplyMessage replyMessage;
-            replyMessage = messageFactory.collectionInitReplyMessage(
-                    msg.getCorrelationId(),
-                    Indicator.ACK,
-                    msg.getDepositor(),
-                    collection,
-                    null);
-
-            producer.send(replyMessage, msg.getReturnKey());
-        } catch (IOException ex) {
-            log.error("Error downloading manifest \n{}", ex);
-            smm = createErrorMail(ex, msg);
-            mailUtil.send(smm);
-            return;
-        } catch (FileTransferException e) {
-            log.error("File transfer exception {}", e);
-            smm = createErrorMail(e, msg);
-            mailUtil.send(smm);
-            return;
-        }
-
-        FileTransfer transfer;
-        String location = msg.getBagLocation();
-        // TODO: We'll probably end up just using the entire location for the
-        // rsync command instead of splitting it in the future
-        String[] parts = location.split("@", 2);
-        if (protocol.equalsIgnoreCase("https")) {
-            transfer = new HttpsTransfer();
-        } else {
-            String user = parts[0];
-            transfer = new RSyncTransfer(user);
-        }
-
-        try {
-            transfer.getFile(parts[1], bagPath);
-
-            Digest digest = Digest.fromString(fixityAlg);
-            Path tagmanifest = bagPath.resolve(collection + "/tagmanifest-" + digest.getBagitIdentifier() + ".txt");
-
-            String tagDigest = DigestUtil.digest(tagmanifest, fixityAlg);
-            if (!tagDigest.equalsIgnoreCase(msg.getTagManifestDigest())) {
-                log.error("Digest for token store does not match!");
-                completionMap.put(BAG_DOWNLOAD, "Invalid tag-manifest digest! "
-                        + "Expected " + msg.getTagManifestDigest()
-                        + " received " + tagDigest);
-                smm = createErrorMail(null, msg);
-                mailUtil.send(smm);
-                return;
-            } else {
-                log.info("Finished downloading manifest");
-                completionMap.put(BAG_DOWNLOAD, "Successfully downloaded from "
-                        + msg.getTokenStore());
-            }
-
-
-        } catch (FileTransferException ex) {
-            log.error("Error replicating bag");
-            smm = createErrorMail(ex, msg);
-            mailUtil.send(smm);
-            return;
-        }
-
-        try {
-            if (register) {
-                setAceTokenStore(collection, group, collPath, manifest, fixityAlg, auditPeriod);
-                while (!callbackComplete.get()) {
-                }
-            }
-        } catch (IOException ex) {
-            log.error("IO Error", ex);
-            smm = createErrorMail(ex, msg);
-            mailUtil.send(smm);
-            return;
-        }
-
-        // Because I'm bad at reading - Collection Init Complete Message
-        log.info("Sending response");
-        ChronMessage response = messageFactory.collectionInitCompleteMessage(msg.getCorrelationId());
-        producer.send(response, chronMessage.getReturnKey());
-
-        smm = createSuccess(msg);
-        mailUtil.send(smm);
-        */
-    }
-
-    // Function for handling ACE registration
-
-    private void setAceTokenStore(String collection,
-                                  String group,
-                                  Path collPath,
-                                  Path manifest,
-                                  String fixityAlg,
-                                  int auditPeriod) throws IOException {
-        log.trace("Building ACE json");
-        GsonCollection aceGson = new GsonCollection.Builder()
-                .name(collection)
-                .digestAlgorithm(fixityAlg)
-                .directory(collPath.toString())
-                .group(group)
-                .storage("local")
-                .auditPeriod(String.valueOf(auditPeriod))
-                .auditTokens("true")
-                .proxyData("false")
-                .build();
-
-        log.debug("POSTing {}", aceGson.toJson());
-        Map<String, Integer> idMap;
-        try {
-            idMap = aceService.addCollection(aceGson);
-        } catch (RetrofitError error) {
-            log.error("Error registering ACE collection. Response code {} with reason {}",
-                    error.getResponse().getStatus(), error.getResponse().getReason());
-
-            // Throw an IO Exception because we catch it above and I'm lazy
-            throw new IOException("HTTP " + error.getResponse().getStatus()
-                    + "/" + error.getResponse().getReason()
-                    + " from " + error.getUrl());
-        }
-
-        completionMap.put(ACE_REGISTER_COLLECTION, "Successfully registered");
-
-        long id = idMap.get("id");
-
-        Callback tsCallback = new Callback() {
-            @Override
-            public void success(final Object o, final Response response) {
-                log.info("Successfully posted token store");
-                completionMap.put(ACE_REGISTER_TOKENS, "Successfully registered with response "
-                        + response.getStatus());
-                callbackComplete.getAndSet(true);
-            }
-
-            @Override
-            public void failure(final RetrofitError retrofitError) {
-                log.error("Error posting token store {} {}",
-                        retrofitError.getResponse().getStatus(),
-                        retrofitError.getBody());
-                completionMap.put(ACE_REGISTER_TOKENS, "Failed to register tokens:\n"
-                        + retrofitError.getBody());
-                callbackComplete.getAndSet(true);
-            }
-        };
-
-        aceService.loadTokenStore(id, new TypedFile("ASCII Text", manifest.toFile()), tsCallback);
-    }
-
-    // Mail Helpers
-
-    private SimpleMailMessage createSuccess(CollectionInitMessage msg) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(mailUtil.getSmtpTo());
-        message.setFrom(props.getNodeName() + "-replicate@" + mailUtil.getSmtpFrom());
-        message.setSubject("[" + props.getNodeName() + "] Successful replication of " + msg.getCollection());
-
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter textBody = new PrintWriter(stringWriter, true);
-        textBody.println("Message received from: " + msg.getOrigin());
-        textBody.println(msg.toString());
-        textBody.println("\n\nSteps completed:");
-        for (Map.Entry entry : completionMap.entrySet()) {
-            textBody.println(entry.getKey() + ": " + entry.getValue());
-        }
-        message.setText(stringWriter.toString());
-
-        return message;
-    }
-
-    private SimpleMailMessage createErrorMail(Exception ex, CollectionInitMessage msg) {
-        StringBuilder exception = new StringBuilder();
-        exception.append(ex.getMessage()).append("\n");
-        for (StackTraceElement element : ex.getStackTrace()) {
-            exception.append(element.toString()).append("\n");
-        }
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(mailUtil.getSmtpTo());
-        message.setFrom(props.getNodeName()+"-replicate@" + mailUtil.getSmtpFrom());
-        message.setSubject("[" + props.getNodeName() + "] Error in CollectionInit");
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter textBody = new PrintWriter(stringWriter, true);
-        textBody.println("Message received from: " + msg.getOrigin());
-        textBody.println(msg.toString());
-        textBody.println("\n\nSteps completed:");
-        for (Map.Entry entry : completionMap.entrySet()) {
-            textBody.println(entry.getKey() + ": " + entry.getValue());
-        }
-        textBody.println("\n\nError: \n" + exception.toString());
-        message.setText(stringWriter.toString());
-
-        return message;
     }
 
 }
