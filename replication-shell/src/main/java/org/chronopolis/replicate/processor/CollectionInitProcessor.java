@@ -23,11 +23,12 @@ import org.chronopolis.messaging.collection.CollectionInitReplyMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.ReplicationQueue;
+import org.chronopolis.replicate.jobs.AceRegisterJob;
+import org.chronopolis.replicate.jobs.BagDownloadJob;
 import org.chronopolis.replicate.jobs.TokenStoreDownloadJob;
 import org.chronopolis.replicate.util.URIUtil;
-import org.quartz.Job;
-import org.quartz.JobBuilder;
-import org.quartz.JobDataMap;
+import org.quartz.*;
+import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.mail.SimpleMailMessage;
@@ -65,6 +66,7 @@ public class CollectionInitProcessor implements ChronProcessor {
     private final ReplicationProperties props;
     private final MailUtil mailUtil;
     private final AceService aceService;
+    private Scheduler scheduler;
 
     private HashMap<String, String> completionMap;
     private AtomicBoolean callbackComplete = new AtomicBoolean(false);
@@ -126,6 +128,49 @@ public class CollectionInitProcessor implements ChronProcessor {
         log.trace("Received collection init message");
 
         CollectionInitMessage msg = (CollectionInitMessage) chronMessage;
+
+        JobDataMap tsDataMap = new JobDataMap();
+        tsDataMap.put(TokenStoreDownloadJob.LOCATION, msg.getTokenStore());
+        tsDataMap.put(TokenStoreDownloadJob.PROTOCOL, msg.getProtocol());
+        tsDataMap.put(TokenStoreDownloadJob.PROPERTIES, props);
+        JobDetail tokenStoreJobDetail = JobBuilder.newJob(TokenStoreDownloadJob.class)
+                .setJobData(tsDataMap)
+                .withIdentity(msg.getCorrelationId(), "TokenDownload")
+                .build();
+
+        JobDataMap bdDataMap = new JobDataMap();
+        bdDataMap.put(BagDownloadJob.DEPOSITOR, msg.getDepositor());
+        bdDataMap.put(BagDownloadJob.LOCATION, msg.getBagLocation());
+        bdDataMap.put(BagDownloadJob.PROTOCOL, msg.getProtocol());
+        bdDataMap.put(BagDownloadJob.PROPERTIES, props);
+        JobDetail bdJobDetail = JobBuilder.newJob(BagDownloadJob.class)
+                .setJobData(bdDataMap)
+                .withIdentity(msg.getCorrelationId(), "BagDownload")
+                .build();
+
+        JobDataMap arDataMap = new JobDataMap();
+        arDataMap.put(AceRegisterJob.TOKEN_STORE, msg.getTokenStore());
+        arDataMap.put(AceRegisterJob.REGISTER, true);
+        arDataMap.put(AceRegisterJob.RETURN_KEY, msg.getReturnKey());
+        arDataMap.put(AceRegisterJob.ACE_SERVICE, aceService);
+        arDataMap.put(AceRegisterJob.AUDIT_PERIOD, msg.getAuditPeriod());
+        arDataMap.put(AceRegisterJob.COLLECTION, msg.getCollection());
+        arDataMap.put(AceRegisterJob.FIXITY_ALGORITHM, msg.getFixityAlgorithm());
+        arDataMap.put(AceRegisterJob.GROUP, msg.getDepositor());
+        arDataMap.put(AceRegisterJob.PROPERTIES, props);
+        JobDetail arJobDetail = JobBuilder.newJob(AceRegisterJob.class)
+                .setJobData(arDataMap)
+                .withIdentity(msg.getCorrelationId(), "AceRegister")
+                .build();
+
+        try {
+            scheduler.addJob(tokenStoreJobDetail, false);
+            scheduler.addJob(bdJobDetail, false);
+            scheduler.addJob(arJobDetail, false);
+            scheduler.triggerJob(tokenStoreJobDetail.getKey());
+        } catch (SchedulerException e) {
+            e.printStackTrace();
+        }
 
         /*
         SimpleMailMessage smm;
