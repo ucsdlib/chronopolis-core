@@ -140,6 +140,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         JobDetail tsJobDetail = JobBuilder.newJob(TokenStoreDownloadJob.class)
                 .setJobData(tsDataMap)
                 .withIdentity(msg.getCorrelationId(), "TokenDownload")
+                .storeDurably()
                 .build();
 
         JobDataMap bdDataMap = new JobDataMap();
@@ -150,6 +151,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         JobDetail bdJobDetail = JobBuilder.newJob(BagDownloadJob.class)
                 .setJobData(bdDataMap)
                 .withIdentity(msg.getCorrelationId(), "BagDownload")
+                .storeDurably()
                 .build();
 
         JobDataMap arDataMap = new JobDataMap();
@@ -165,6 +167,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         JobDetail arJobDetail = JobBuilder.newJob(AceRegisterJob.class)
                 .setJobData(arDataMap)
                 .withIdentity(msg.getCorrelationId(), "AceRegister")
+                .storeDurably()
                 .build();
 
         try {

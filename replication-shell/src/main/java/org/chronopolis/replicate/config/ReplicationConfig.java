@@ -132,7 +132,7 @@ public class ReplicationConfig {
         return new FileQueryResponseProcessor(producer());
     }
 
-    @Bean
+    @Bean(initMethod = "start", destroyMethod = "shutdown")
     Scheduler scheduler() {
         try {
             return StdSchedulerFactory.getDefaultScheduler();
