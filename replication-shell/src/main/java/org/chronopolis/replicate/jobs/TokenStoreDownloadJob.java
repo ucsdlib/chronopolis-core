@@ -4,6 +4,7 @@ import org.chronopolis.common.exception.FileTransferException;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.ReplicationQueue;
 import org.quartz.Job;
+import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
@@ -19,12 +20,23 @@ import java.nio.file.Paths;
 public class TokenStoreDownloadJob implements Job {
     private final Logger log = LoggerFactory.getLogger(TokenStoreDownloadJob.class);
 
+    public final static String LOCATION = "location";
+    public final static String PROTOCOL = "protocol";
+    public final static String PROPERTIES = "properties";
+
     private ReplicationProperties properties;
     private String location;
     private String protocol;
 
+    private void initFromJobDataMap(final JobDataMap jobDataMap) {
+        setLocation(jobDataMap.getString(LOCATION));
+        setProtocol(jobDataMap.getString(PROTOCOL));
+        setProperties((ReplicationProperties) jobDataMap.get(PROPERTIES));
+    }
+
     @Override
     public void execute(final JobExecutionContext jobExecutionContext) throws JobExecutionException {
+        initFromJobDataMap(jobExecutionContext.getJobDetail().getJobDataMap());
         try {
             Path manifest = ReplicationQueue.getFileImmediate(location,
                     Paths.get(properties.getStage()),

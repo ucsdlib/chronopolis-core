@@ -6,6 +6,7 @@ import org.chronopolis.common.transfer.HttpsTransfer;
 import org.chronopolis.common.transfer.RSyncTransfer;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.quartz.Job;
+import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
@@ -20,14 +21,27 @@ import java.nio.file.Paths;
 public class BagDownloadJob implements Job {
     private final Logger log = LoggerFactory.getLogger(BagDownloadJob.class);
 
+    public static final String DEPOSITOR = "depositor";
+    public static final String LOCATION = "location";
+    public static final String PROTOCOL = "protocol";
+    public static final String PROPERTIES = "properties";
+
     private String depositor;
     private String location;
     private String protocol;
     private ReplicationProperties properties;
 
+    private void initFromJobDataMap(final JobDataMap jobDataMap) {
+        setProperties((ReplicationProperties) jobDataMap.get(PROPERTIES));
+        setDepositor(jobDataMap.getString(DEPOSITOR));
+        setLocation(jobDataMap.getString(LOCATION));
+        setProtocol(jobDataMap.getString(PROPERTIES));
+    }
 
     @Override
     public void execute(final JobExecutionContext jobExecutionContext) throws JobExecutionException {
+        initFromJobDataMap(jobExecutionContext.getJobDetail().getJobDataMap());
+
         FileTransfer transfer;
         Path bagPath = Paths.get(properties.getStage(), depositor);
 
