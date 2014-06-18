@@ -35,7 +35,7 @@ public class BagDownloadJob implements Job {
         setProperties((ReplicationProperties) jobDataMap.get(PROPERTIES));
         setDepositor(jobDataMap.getString(DEPOSITOR));
         setLocation(jobDataMap.getString(LOCATION));
-        setProtocol(jobDataMap.getString(PROPERTIES));
+        setProtocol(jobDataMap.getString(PROTOCOL));
     }
 
     @Override
