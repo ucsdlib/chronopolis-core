@@ -138,7 +138,9 @@ public class AceRegisterJob implements Job {
 
             @Override
             public void failure(final RetrofitError error) {
-                log.info("Could not start audit");
+                log.info("Could not start audit. {} {}",
+                        error.getResponse().getStatus(),
+                        error.getResponse().getReason());
                 callbackComplete.set(true);
             }
         });
