@@ -75,6 +75,7 @@ public class TokenStoreDownloadJob implements Job {
         }
 
         String calculatedDigest = hashCode.toString();
+        log.trace("Calculated digest {} for token store", calculatedDigest);
 
         if (!calculatedDigest.equalsIgnoreCase(digest)) {
             log.error("Downloaded token store does not match expected digest!" +
@@ -82,6 +83,8 @@ public class TokenStoreDownloadJob implements Job {
                     calculatedDigest,
                     digest);
             // throw JobExecutionException?
+        } else {
+            log.info("Successfully validated token store");
         }
 
     }

@@ -91,6 +91,7 @@ public class BagDownloadJob implements Job {
         }
 
         String calculatedDigest = hashCode.toString();
+        log.trace("Calculated digest {} for tagmanifest", calculatedDigest);
 
         if (!calculatedDigest.equalsIgnoreCase(digest)) {
             log.error("Downloaded tagmanifest does not match expected digest!" +
@@ -98,6 +99,8 @@ public class BagDownloadJob implements Job {
                     calculatedDigest,
                     digest);
             // throw JobExecutionException?
+        } else {
+            log.info("Successfully validated tagmanifest");
         }
 
     }
