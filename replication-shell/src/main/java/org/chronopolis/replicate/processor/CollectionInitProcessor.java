@@ -137,6 +137,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         tsDataMap.put(TokenStoreDownloadJob.LOCATION, msg.getTokenStore());
         tsDataMap.put(TokenStoreDownloadJob.PROTOCOL, msg.getProtocol());
         tsDataMap.put(TokenStoreDownloadJob.PROPERTIES, props);
+        tsDataMap.put(TokenStoreDownloadJob.DIGEST, msg.getTokenStoreDigest());
         JobDetail tsJobDetail = JobBuilder.newJob(TokenStoreDownloadJob.class)
                 .setJobData(tsDataMap)
                 .withIdentity(msg.getCorrelationId(), "TokenDownload")
@@ -144,10 +145,12 @@ public class CollectionInitProcessor implements ChronProcessor {
                 .build();
 
         JobDataMap bdDataMap = new JobDataMap();
+        bdDataMap.put(BagDownloadJob.COLLECTION, msg.getCollection());
         bdDataMap.put(BagDownloadJob.DEPOSITOR, msg.getDepositor());
         bdDataMap.put(BagDownloadJob.LOCATION, msg.getBagLocation());
         bdDataMap.put(BagDownloadJob.PROTOCOL, msg.getProtocol());
         bdDataMap.put(BagDownloadJob.PROPERTIES, props);
+        bdDataMap.put(BagDownloadJob.DIGEST, msg.getTagManifestDigest());
         JobDetail bdJobDetail = JobBuilder.newJob(BagDownloadJob.class)
                 .setJobData(bdDataMap)
                 .withIdentity(msg.getCorrelationId(), "BagDownload")

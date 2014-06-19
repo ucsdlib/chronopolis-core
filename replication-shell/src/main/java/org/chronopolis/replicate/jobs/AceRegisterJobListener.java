@@ -44,7 +44,6 @@ public class AceRegisterJobListener extends JobListenerSupport {
         String returnKey = jobData.getString(AceRegisterJob.RETURN_KEY);
         String correlationId = jobExecutionContext.getJobDetail().getKey().getName();
 
-
         // Send collection init complete
         if (e == null) {
             ChronMessage response = messageFactory.collectionInitCompleteMessage(correlationId);

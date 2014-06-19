@@ -1,5 +1,9 @@
 package org.chronopolis.replicate.jobs;
 
+import com.google.common.hash.HashCode;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
+import com.google.common.io.Files;
 import org.chronopolis.common.exception.FileTransferException;
 import org.chronopolis.common.transfer.FileTransfer;
 import org.chronopolis.common.transfer.HttpsTransfer;
@@ -12,6 +16,7 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -23,15 +28,19 @@ import java.nio.file.Paths;
 public class BagDownloadJob implements Job {
     private final Logger log = LoggerFactory.getLogger(BagDownloadJob.class);
 
+    public static final String COLLECTION = "collection";
     public static final String DEPOSITOR = "depositor";
     public static final String LOCATION = "location";
     public static final String PROTOCOL = "protocol";
     public static final String PROPERTIES = "properties";
+    public static final String DIGEST = "digest";
 
+    private String collection;
     private String depositor;
     private String location;
     private String protocol;
     private ReplicationProperties properties;
+    private String digest;
 
     private void initFromJobDataMap(final JobDataMap jobDataMap) {
         setProperties((ReplicationProperties) jobDataMap.get(PROPERTIES));
@@ -66,6 +75,28 @@ public class BagDownloadJob implements Job {
             log.error("File transfer exception", e);
             throw new JobExecutionException(e);
         }
+
+
+        Path tagmanifest = bagPath.resolve(collection + "/tagmanifest-sha256.txt");
+        HashFunction hashFunction = Hashing.sha256();
+        HashCode hashCode;
+        try {
+            hashCode = Files.hash(tagmanifest.toFile(), hashFunction);
+        } catch (IOException e) {
+            log.error("Error hashing tagmanifest", e);
+            throw new JobExecutionException(e);
+        }
+
+        String calculatedDigest = hashCode.toString();
+
+        if (!calculatedDigest.equalsIgnoreCase(digest)) {
+            log.error("Downloaded tagmanifest does not match expected digest!" +
+                      "\nFound {}\nExpected {}",
+                    calculatedDigest,
+                    digest);
+            // throw JobExecutionException?
+        }
+
     }
 
     public void setLocation(final String location) {
