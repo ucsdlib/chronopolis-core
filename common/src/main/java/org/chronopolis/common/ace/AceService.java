@@ -16,7 +16,7 @@ import java.util.Map;
  */
 public interface AceService {
 
-    @POST("/rest/collection/{id}")
+    @POST("/rest/collection/audit/{id}")
     void startAudit(@Path("id") long id, Callback<Void> callback);
 
     @POST("/rest/collection/modify/{id}")
