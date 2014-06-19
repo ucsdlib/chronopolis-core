@@ -47,6 +47,8 @@ public class BagDownloadJob implements Job {
         setDepositor(jobDataMap.getString(DEPOSITOR));
         setLocation(jobDataMap.getString(LOCATION));
         setProtocol(jobDataMap.getString(PROTOCOL));
+        setCollection(jobDataMap.getString(COLLECTION));
+        setDigest(jobDataMap.getString(DIGEST));
     }
 
     @Override
@@ -77,6 +79,7 @@ public class BagDownloadJob implements Job {
         }
 
 
+        // TODO: Move duplicate code to a function somewhere
         Path tagmanifest = bagPath.resolve(collection + "/tagmanifest-sha256.txt");
         HashFunction hashFunction = Hashing.sha256();
         HashCode hashCode;
@@ -114,4 +117,13 @@ public class BagDownloadJob implements Job {
     public void setProperties(final ReplicationProperties properties) {
         this.properties = properties;
     }
+
+    public void setCollection(final String collection) {
+        this.collection = collection;
+    }
+
+    public void setDigest(final String digest) {
+        this.digest = digest;
+    }
+
 }
