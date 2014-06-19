@@ -21,7 +21,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * TODO: Validate against digest
  *
  * Created by shake on 6/13/14.
  */

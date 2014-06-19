@@ -2,7 +2,6 @@ package org.chronopolis.replicate.jobs;
 
 import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import org.chronopolis.common.exception.FileTransferException;
@@ -16,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 

@@ -7,44 +7,26 @@ package org.chronopolis.replicate.processor;
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.CredentialRequestInterceptor;
-import org.chronopolis.common.ace.GsonCollection;
-import org.chronopolis.common.digest.Digest;
-import org.chronopolis.common.digest.DigestUtil;
-import org.chronopolis.common.exception.FileTransferException;
 import org.chronopolis.common.mail.MailUtil;
-import org.chronopolis.common.transfer.FileTransfer;
-import org.chronopolis.common.transfer.HttpsTransfer;
-import org.chronopolis.common.transfer.RSyncTransfer;
-import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
-import org.chronopolis.messaging.collection.CollectionInitReplyMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.ReplicationProperties;
-import org.chronopolis.replicate.ReplicationQueue;
 import org.chronopolis.replicate.jobs.AceRegisterJob;
 import org.chronopolis.replicate.jobs.BagDownloadJob;
 import org.chronopolis.replicate.jobs.TokenStoreDownloadJob;
 import org.chronopolis.replicate.util.URIUtil;
-import org.quartz.*;
-import org.quartz.impl.StdSchedulerFactory;
+import org.quartz.JobBuilder;
+import org.quartz.JobDataMap;
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.mail.SimpleMailMessage;
-import retrofit.Callback;
 import retrofit.RestAdapter;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
-import retrofit.mime.TypedFile;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -109,12 +91,6 @@ public class CollectionInitProcessor implements ChronProcessor {
 
 
     // TODO: Reply if there is an error with the collection (ie: already registered in ace), or ack
-    // TODO: Fix the flow of this so that we don't return on each failure...
-    // that way we send mail and return in one spot instead of 4
-    // TODO: Replace with tasks (quartz?)
-    //       -> download tokens
-    //       -> download bag
-    //       -> ace stuff
     @Override
     public void process(ChronMessage chronMessage) {
         // TODO: Replace these with the values from the properties
