@@ -16,6 +16,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
+ * TODO: Validate against digest
+ *
  * Created by shake on 6/13/14.
  */
 public class BagDownloadJob implements Job {
@@ -41,6 +43,8 @@ public class BagDownloadJob implements Job {
     @Override
     public void execute(final JobExecutionContext jobExecutionContext) throws JobExecutionException {
         initFromJobDataMap(jobExecutionContext.getJobDetail().getJobDataMap());
+
+        log.info("Downloading bag from {}", location);
 
         FileTransfer transfer;
         Path bagPath = Paths.get(properties.getStage(), depositor);

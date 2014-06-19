@@ -15,6 +15,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
+ * TODO: Validate against digest
+ *
  * Created by shake on 6/13/14.
  */
 public class TokenStoreDownloadJob implements Job {
@@ -37,6 +39,8 @@ public class TokenStoreDownloadJob implements Job {
     @Override
     public void execute(final JobExecutionContext jobExecutionContext) throws JobExecutionException {
         initFromJobDataMap(jobExecutionContext.getJobDetail().getJobDataMap());
+
+        log.info("Downloading Token Store from {}", location);
         try {
             Path manifest = ReplicationQueue.getFileImmediate(location,
                     Paths.get(properties.getStage()),

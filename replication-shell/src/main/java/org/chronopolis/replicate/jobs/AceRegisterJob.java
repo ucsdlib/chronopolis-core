@@ -21,6 +21,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * TODO: Check if our http calls succeed or not
+ *
  * Created by shake on 6/13/14.
  */
 public class AceRegisterJob implements Job {
@@ -86,6 +88,7 @@ public class AceRegisterJob implements Job {
         Map<String, Integer> idMap;
         try {
             idMap = aceService.addCollection(aceGson);
+            log.info("Successfully registered collection {}", collection);
         } catch (RetrofitError error) {
             log.error("Error registering ACE collection. Response code {} with reason {}",
                     error.getResponse().getStatus(), error.getResponse().getReason());
@@ -120,18 +123,31 @@ public class AceRegisterJob implements Job {
         };
 
         aceService.loadTokenStore(id, new TypedFile("ASCII Text", manifest.toFile()), tsCallback);
+
+        // Since the callback is asynchronous, we need to wait for it to complete before moving on
+        log.trace("Waiting for http call to complete");
+        waitForCallback();
+        callbackComplete.set(false);
+
         aceService.startAudit(id, new Callback<Void>() {
             @Override
             public void success(final Void aVoid, final Response response) {
                 log.info("Successfully started audit");
+                callbackComplete.set(true);
             }
 
             @Override
             public void failure(final RetrofitError error) {
                 log.info("Could not start audit");
+                callbackComplete.set(true);
             }
         });
+        log.trace("Waiting for http call to complete");
+        waitForCallback();
 
+   }
+
+    private void waitForCallback() {
         while (!callbackComplete.get()) {
             try {
                 TimeUnit.SECONDS.sleep(1);
@@ -139,7 +155,7 @@ public class AceRegisterJob implements Job {
                 log.error("Sleep interrupted", e);
             }
         }
-    }
+     }
 
     public void setCollection(final String collection) {
         this.collection = collection;
