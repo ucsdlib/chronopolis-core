@@ -8,9 +8,17 @@ import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.ReplicateMessageListener;
 import org.chronopolis.replicate.ReplicationProperties;
+import org.chronopolis.replicate.jobs.AceRegisterJobListener;
+import org.chronopolis.replicate.jobs.BagDownloadJobListener;
+import org.chronopolis.replicate.jobs.TokenStoreDownloadJobListener;
 import org.chronopolis.replicate.processor.CollectionInitProcessor;
 import org.chronopolis.replicate.processor.FileQueryProcessor;
 import org.chronopolis.replicate.processor.FileQueryResponseProcessor;
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.impl.StdSchedulerFactory;
+import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Binding;
@@ -23,6 +31,7 @@ import org.springframework.amqp.rabbit.connection.ConnectionListener;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
@@ -122,9 +131,81 @@ public class ReplicationConfig {
         return new FileQueryResponseProcessor(producer());
     }
 
+    @Bean(initMethod = "start", destroyMethod = "shutdown")
+    Scheduler scheduler() {
+        try {
+            return StdSchedulerFactory.getDefaultScheduler();
+        } catch (SchedulerException e) {
+            throw new BeanCreationException("Could not create scheduler", e);
+        }
+    }
+
     @Bean
+    AceRegisterJobListener aceRegisterJobListener() {
+        AceRegisterJobListener jobListener = new AceRegisterJobListener(
+                "ace-register",
+                scheduler(),
+                producer(),
+                messageFactory(),
+                properties,
+                mailUtil());
+
+        try {
+            scheduler().getListenerManager().addJobListener(jobListener,
+                    GroupMatcher.<JobKey>groupEquals("AceRegister"));
+        } catch (SchedulerException e) {
+            throw new BeanCreationException("Could not register listener", e);
+        }
+
+        return jobListener;
+    }
+
+    @Bean
+    BagDownloadJobListener bagDownloadJobListener() {
+        BagDownloadJobListener jobListener = new BagDownloadJobListener(
+                "bag-download",
+                scheduler(),
+                properties,
+                mailUtil());
+
+        try {
+            scheduler().getListenerManager().addJobListener(jobListener,
+                    GroupMatcher.<JobKey>groupEquals("BagDownload"));
+        } catch (SchedulerException e) {
+            throw new BeanCreationException("Could not register listener", e);
+        }
+
+        return jobListener;
+    }
+
+    @Bean
+    TokenStoreDownloadJobListener tokenStoreDownloadJobListener() {
+        TokenStoreDownloadJobListener jobListener = new TokenStoreDownloadJobListener(
+                "token-store-download",
+                scheduler(),
+                properties,
+                mailUtil());
+
+        try {
+            scheduler().getListenerManager().addJobListener(jobListener,
+                    GroupMatcher.<JobKey>groupEquals("TokenDownload"));
+        } catch (SchedulerException e) {
+            throw new BeanCreationException("Could not register listener", e);
+        }
+
+        return jobListener;
+    }
+
+    @Bean
+    @DependsOn({"tokenStoreDownloadJobListener",
+                "bagDownloadJobListener",
+                "aceRegisterJobListener"})
     CollectionInitProcessor collectionInitProcessor() {
-        return new CollectionInitProcessor(producer(), messageFactory(), properties, mailUtil());
+        return new CollectionInitProcessor(producer(),
+                messageFactory(),
+                properties,
+                mailUtil(),
+                scheduler());
     }
 
     @Bean

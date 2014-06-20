@@ -20,7 +20,7 @@ public class MailUtil {
         smtpHost = "localhost.localdomain";
         smtpFrom = "localhost";
         smtpTo = "shake@umiacs.umd.edu";
-        smtpSend = false;
+        smtpSend = true;
     }
 
 
@@ -29,7 +29,7 @@ public class MailUtil {
     }
 
     public void setSmtpHost(final String smtpHost) {
-        if ( smtpHost != null) {
+        if (smtpHost != null) {
             this.smtpHost = smtpHost;
         }
     }
@@ -54,6 +54,15 @@ public class MailUtil {
         }
     }
 
+    public SimpleMailMessage createMessage(String nodeName, String subject, String body) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(smtpTo);
+        message.setFrom(smtpFrom);
+        message.setSubject("[" + nodeName + "] " + subject);
+        message.setText(body);
+        return message;
+    }
+
     public void send(final SimpleMailMessage message) {
         if (smtpSend) {
             log.info("Sending mail to {}", message.getTo());
@@ -62,4 +71,5 @@ public class MailUtil {
             sender.send(message);
         }
     }
+
 }

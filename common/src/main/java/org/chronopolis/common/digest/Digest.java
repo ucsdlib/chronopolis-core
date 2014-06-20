@@ -1,6 +1,8 @@
 package org.chronopolis.common.digest;
 
 /**
+ * TODO: Add HashFunction (Guava) to constructor
+ *
  * Created by shake on 2/6/14.
  */
 public enum Digest {
