@@ -2,6 +2,7 @@ package org.chronopolis.replicate.jobs;
 
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.messaging.base.ChronMessage;
+import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -41,7 +42,9 @@ public class AceRegisterJobListener extends JobListenerSupport {
     public void jobWasExecuted(final JobExecutionContext jobExecutionContext,
                                final JobExecutionException e) {
         JobDataMap jobData = jobExecutionContext.getJobDetail().getJobDataMap();
-        String returnKey = jobData.getString(AceRegisterJob.RETURN_KEY);
+        CollectionInitMessage message =
+                (CollectionInitMessage) jobData.get(AceRegisterJob.MESSAGE);
+        String returnKey = message.getReturnKey();
         String correlationId = jobExecutionContext.getJobDetail().getKey().getName();
 
         // Send collection init complete

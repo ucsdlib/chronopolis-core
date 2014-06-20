@@ -8,6 +8,7 @@ import org.chronopolis.common.exception.FileTransferException;
 import org.chronopolis.common.transfer.FileTransfer;
 import org.chronopolis.common.transfer.HttpsTransfer;
 import org.chronopolis.common.transfer.RSyncTransfer;
+import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
@@ -27,12 +28,8 @@ import java.nio.file.Paths;
 public class BagDownloadJob implements Job {
     private final Logger log = LoggerFactory.getLogger(BagDownloadJob.class);
 
-    public static final String COLLECTION = "collection";
-    public static final String DEPOSITOR = "depositor";
-    public static final String LOCATION = "location";
-    public static final String PROTOCOL = "protocol";
     public static final String PROPERTIES = "properties";
-    public static final String DIGEST = "digest";
+    public static final String MESSAGE = "message";
 
     private String collection;
     private String depositor;
@@ -40,14 +37,17 @@ public class BagDownloadJob implements Job {
     private String protocol;
     private ReplicationProperties properties;
     private String digest;
+    private CollectionInitMessage message;
 
     private void initFromJobDataMap(final JobDataMap jobDataMap) {
         setProperties((ReplicationProperties) jobDataMap.get(PROPERTIES));
-        setDepositor(jobDataMap.getString(DEPOSITOR));
-        setLocation(jobDataMap.getString(LOCATION));
-        setProtocol(jobDataMap.getString(PROTOCOL));
-        setCollection(jobDataMap.getString(COLLECTION));
-        setDigest(jobDataMap.getString(DIGEST));
+        setMessage((CollectionInitMessage) jobDataMap.get(MESSAGE));
+
+        setCollection(message.getCollection());
+        setDigest(message.getTagManifestDigest());
+        setDepositor(message.getDepositor());
+        setLocation(message.getBagLocation());
+        setProtocol(message.getProtocol());
     }
 
     @Override
@@ -126,6 +126,10 @@ public class BagDownloadJob implements Job {
 
     public void setDigest(final String digest) {
         this.digest = digest;
+    }
+
+    public void setMessage(final CollectionInitMessage message) {
+        this.message = message;
     }
 
 }

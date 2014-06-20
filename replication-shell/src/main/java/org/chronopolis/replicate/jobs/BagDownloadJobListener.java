@@ -1,5 +1,6 @@
 package org.chronopolis.replicate.jobs;
 
+import org.chronopolis.common.mail.MailUtil;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobKey;
@@ -8,6 +9,7 @@ import org.quartz.SchedulerException;
 import org.quartz.listeners.JobListenerSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.mail.SimpleMailMessage;
 
 /**
  * Created by shake on 6/13/14.
@@ -17,6 +19,7 @@ public class BagDownloadJobListener extends JobListenerSupport {
 
     private final String name;
     private final Scheduler scheduler;
+    private MailUtil mailUtil;
 
     public BagDownloadJobListener(final String name, final Scheduler scheduler) {
         this.name = name;
@@ -42,6 +45,10 @@ public class BagDownloadJobListener extends JobListenerSupport {
             }
 
         } else {
+            String subject = "Failure in CollectionInit - Bag Download Job";
+
+            SimpleMailMessage message = mailUtil.createMessage(subject, "body");
+            mailUtil.send(message);
 
         }
     }

@@ -2,6 +2,7 @@ package org.chronopolis.replicate.jobs;
 
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
+import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
@@ -28,15 +29,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class AceRegisterJob implements Job {
     private final Logger log = LoggerFactory.getLogger(AceRegisterJob.class);
 
-    public static final String COLLECTION = "collection";
-    public static final String GROUP = "group";
-    public static final String FIXITY_ALGORITHM = "fixity_algorithm";
-    public static final String AUDIT_PERIOD = "audit_period";
     public static final String REGISTER = "register";
     public static final String TOKEN_STORE = "token_store";
-    public static final String RETURN_KEY = "return_key";
     public static final String PROPERTIES = "properties";
     public static final String ACE_SERVICE = "ace_service";
+    public static final String MESSAGE = "message";
 
     private String collection;
     private String group;
@@ -50,16 +47,21 @@ public class AceRegisterJob implements Job {
     private ReplicationProperties properties;
     private AceService aceService;
 
+    private CollectionInitMessage message;
+
 
     private void initFromDataMap(final JobDataMap jobDataMap) {
         setProperties((ReplicationProperties) jobDataMap.get(PROPERTIES));
         setAceService((AceService) jobDataMap.get(ACE_SERVICE));
-        setAuditPeriod(jobDataMap.getInt(AUDIT_PERIOD));
-        setCollection(jobDataMap.getString(COLLECTION));
-        setFixityAlg(jobDataMap.getString(FIXITY_ALGORITHM));
-        setGroup(jobDataMap.getString(GROUP));
+        setMessage((CollectionInitMessage) jobDataMap.get(MESSAGE));
         setRegister(jobDataMap.getBoolean(REGISTER));
-        setReturnKey(jobDataMap.getString(RETURN_KEY));
+
+        setAuditPeriod(message.getAuditPeriod());
+        setCollection(message.getCollection());
+        setFixityAlg(message.getFixityAlgorithm());
+        setGroup(message.getDepositor());
+        setReturnKey(message.getReturnKey());
+
         setTokenStore(jobDataMap.getString(TOKEN_STORE));
     }
 
@@ -194,4 +196,9 @@ public class AceRegisterJob implements Job {
     public void setReturnKey(String returnKey) {
         this.returnKey = returnKey;
     }
+
+    public void setMessage(final CollectionInitMessage message) {
+        this.message = message;
+    }
+
 }

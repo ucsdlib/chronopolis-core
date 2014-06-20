@@ -110,10 +110,8 @@ public class CollectionInitProcessor implements ChronProcessor {
         // Set up our data maps and jobs
 
         JobDataMap tsDataMap = new JobDataMap();
-        tsDataMap.put(TokenStoreDownloadJob.LOCATION, msg.getTokenStore());
-        tsDataMap.put(TokenStoreDownloadJob.PROTOCOL, msg.getProtocol());
         tsDataMap.put(TokenStoreDownloadJob.PROPERTIES, props);
-        tsDataMap.put(TokenStoreDownloadJob.DIGEST, msg.getTokenStoreDigest());
+        tsDataMap.put(TokenStoreDownloadJob.MESSAGE, msg);
         JobDetail tsJobDetail = JobBuilder.newJob(TokenStoreDownloadJob.class)
                 .setJobData(tsDataMap)
                 .withIdentity(msg.getCorrelationId(), "TokenDownload")
@@ -121,12 +119,8 @@ public class CollectionInitProcessor implements ChronProcessor {
                 .build();
 
         JobDataMap bdDataMap = new JobDataMap();
-        bdDataMap.put(BagDownloadJob.COLLECTION, msg.getCollection());
-        bdDataMap.put(BagDownloadJob.DEPOSITOR, msg.getDepositor());
-        bdDataMap.put(BagDownloadJob.LOCATION, msg.getBagLocation());
-        bdDataMap.put(BagDownloadJob.PROTOCOL, msg.getProtocol());
         bdDataMap.put(BagDownloadJob.PROPERTIES, props);
-        bdDataMap.put(BagDownloadJob.DIGEST, msg.getTagManifestDigest());
+        bdDataMap.put(BagDownloadJob.MESSAGE, msg);
         JobDetail bdJobDetail = JobBuilder.newJob(BagDownloadJob.class)
                 .setJobData(bdDataMap)
                 .withIdentity(msg.getCorrelationId(), "BagDownload")
@@ -136,13 +130,9 @@ public class CollectionInitProcessor implements ChronProcessor {
         JobDataMap arDataMap = new JobDataMap();
         arDataMap.put(AceRegisterJob.TOKEN_STORE, msg.getCollection() + "-tokens");
         arDataMap.put(AceRegisterJob.REGISTER, true);
-        arDataMap.put(AceRegisterJob.RETURN_KEY, msg.getReturnKey());
         arDataMap.put(AceRegisterJob.ACE_SERVICE, aceService);
-        arDataMap.put(AceRegisterJob.AUDIT_PERIOD, msg.getAuditPeriod());
-        arDataMap.put(AceRegisterJob.COLLECTION, msg.getCollection());
-        arDataMap.put(AceRegisterJob.FIXITY_ALGORITHM, msg.getFixityAlgorithm());
-        arDataMap.put(AceRegisterJob.GROUP, msg.getDepositor());
         arDataMap.put(AceRegisterJob.PROPERTIES, props);
+        arDataMap.put(AceRegisterJob.MESSAGE, msg);
         JobDetail arJobDetail = JobBuilder.newJob(AceRegisterJob.class)
                 .setJobData(arDataMap)
                 .withIdentity(msg.getCorrelationId(), "AceRegister")

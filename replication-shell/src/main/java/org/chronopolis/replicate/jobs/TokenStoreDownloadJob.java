@@ -5,6 +5,7 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import org.chronopolis.common.exception.FileTransferException;
+import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.ReplicationQueue;
 import org.quartz.Job;
@@ -25,22 +26,23 @@ import java.nio.file.Paths;
 public class TokenStoreDownloadJob implements Job {
     private final Logger log = LoggerFactory.getLogger(TokenStoreDownloadJob.class);
 
-    public final static String LOCATION = "location";
-    public final static String PROTOCOL = "protocol";
     public final static String PROPERTIES = "properties";
-    public final static String DIGEST = "digest";
+    public final static String MESSAGE = "message";
 
     private ReplicationProperties properties;
+    private CollectionInitMessage message;
+
     private String location;
     private String protocol;
     private String digest;
 
-
     private void initFromJobDataMap(final JobDataMap jobDataMap) {
-        setLocation(jobDataMap.getString(LOCATION));
-        setProtocol(jobDataMap.getString(PROTOCOL));
         setProperties((ReplicationProperties) jobDataMap.get(PROPERTIES));
-        setDigest(jobDataMap.getString(DIGEST));
+        setMessage((CollectionInitMessage) jobDataMap.get(MESSAGE));
+
+        setDigest(message.getTokenStoreDigest());
+        setLocation(message.getTokenStore());
+        setProtocol(message.getProtocol());
     }
 
     @Override
@@ -101,6 +103,10 @@ public class TokenStoreDownloadJob implements Job {
 
     public void setDigest(final String digest) {
         this.digest = digest;
+    }
+
+    public void setMessage(final CollectionInitMessage message) {
+        this.message = message;
     }
 
 }
