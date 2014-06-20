@@ -2,6 +2,7 @@ package org.chronopolis.replicate.jobs;
 
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
+import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.util.MailFunctions;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -24,13 +25,16 @@ public class TokenStoreDownloadJobListener extends JobListenerSupport {
 
     private final String name;
     private final Scheduler scheduler;
+    private final ReplicationProperties properties;
     private final MailUtil mailUtil;
 
     public TokenStoreDownloadJobListener(String name,
                                          Scheduler scheduler,
-                                         final MailUtil mailUtil) {
+                                         ReplicationProperties properties,
+                                         MailUtil mailUtil) {
         this.name = name;
         this.scheduler = scheduler;
+        this.properties = properties;
         this.mailUtil = mailUtil;
     }
 
@@ -62,10 +66,11 @@ public class TokenStoreDownloadJobListener extends JobListenerSupport {
                     (Map<String, String>) jobDetail.getJobDataMap()
                             .get(BagDownloadJob.COMPLETED);
 
+            String nodeName = properties.getNodeName();
             String subject = "Failure in CollectionInit - Token Store Job";
             String text = MailFunctions.createText(msg, completionMap, e);
 
-            SimpleMailMessage message = mailUtil.createMessage(subject, text);
+            SimpleMailMessage message = mailUtil.createMessage(nodeName, subject, text);
             mailUtil.send(message);
         }
     }

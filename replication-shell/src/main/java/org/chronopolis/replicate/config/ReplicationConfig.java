@@ -147,6 +147,7 @@ public class ReplicationConfig {
                 scheduler(),
                 producer(),
                 messageFactory(),
+                properties,
                 mailUtil());
 
         try {
@@ -164,6 +165,7 @@ public class ReplicationConfig {
         BagDownloadJobListener jobListener = new BagDownloadJobListener(
                 "bag-download",
                 scheduler(),
+                properties,
                 mailUtil());
 
         try {
@@ -181,6 +183,7 @@ public class ReplicationConfig {
         TokenStoreDownloadJobListener jobListener = new TokenStoreDownloadJobListener(
                 "token-store-download",
                 scheduler(),
+                properties,
                 mailUtil());
 
         try {
