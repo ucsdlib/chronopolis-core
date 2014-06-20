@@ -15,7 +15,6 @@ import org.chronopolis.replicate.processor.CollectionInitProcessor;
 import org.chronopolis.replicate.processor.FileQueryProcessor;
 import org.chronopolis.replicate.processor.FileQueryResponseProcessor;
 import org.quartz.JobKey;
-import org.quartz.JobListener;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.impl.StdSchedulerFactory;
@@ -147,8 +146,8 @@ public class ReplicationConfig {
                 "ace-register",
                 scheduler(),
                 producer(),
-                messageFactory()
-        );
+                messageFactory(),
+                mailUtil());
 
         try {
             scheduler().getListenerManager().addJobListener(jobListener,
@@ -164,8 +163,8 @@ public class ReplicationConfig {
     BagDownloadJobListener bagDownloadJobListener() {
         BagDownloadJobListener jobListener = new BagDownloadJobListener(
                 "bag-download",
-                scheduler()
-        );
+                scheduler(),
+                mailUtil());
 
         try {
             scheduler().getListenerManager().addJobListener(jobListener,
@@ -181,8 +180,8 @@ public class ReplicationConfig {
     TokenStoreDownloadJobListener tokenStoreDownloadJobListener() {
         TokenStoreDownloadJobListener jobListener = new TokenStoreDownloadJobListener(
                 "token-store-download",
-                scheduler()
-        );
+                scheduler(),
+                mailUtil());
 
         try {
             scheduler().getListenerManager().addJobListener(jobListener,

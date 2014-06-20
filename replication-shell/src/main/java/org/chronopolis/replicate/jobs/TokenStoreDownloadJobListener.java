@@ -1,5 +1,9 @@
 package org.chronopolis.replicate.jobs;
 
+import org.chronopolis.common.mail.MailUtil;
+import org.chronopolis.messaging.collection.CollectionInitMessage;
+import org.chronopolis.replicate.util.MailFunctions;
+import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobKey;
@@ -8,6 +12,9 @@ import org.quartz.SchedulerException;
 import org.quartz.listeners.JobListenerSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.mail.SimpleMailMessage;
+
+import java.util.Map;
 
 /**
  * Created by shake on 6/13/14.
@@ -17,10 +24,14 @@ public class TokenStoreDownloadJobListener extends JobListenerSupport {
 
     private final String name;
     private final Scheduler scheduler;
+    private final MailUtil mailUtil;
 
-    public TokenStoreDownloadJobListener(String name, Scheduler scheduler) {
+    public TokenStoreDownloadJobListener(String name,
+                                         Scheduler scheduler,
+                                         final MailUtil mailUtil) {
         this.name = name;
         this.scheduler = scheduler;
+        this.mailUtil = mailUtil;
     }
 
     @Override
@@ -31,6 +42,8 @@ public class TokenStoreDownloadJobListener extends JobListenerSupport {
     @Override
     public void jobWasExecuted(final JobExecutionContext jobExecutionContext,
                                final JobExecutionException e) {
+        JobDetail jobDetail = jobExecutionContext.getJobDetail();
+
         // If there was no exception, schedule our next job
         if (e == null) {
             JobKey myKey = jobExecutionContext.getJobDetail().getKey();
@@ -42,7 +55,18 @@ public class TokenStoreDownloadJobListener extends JobListenerSupport {
             }
 
         } else { // requeue our job..?
+            CollectionInitMessage msg =
+                    (CollectionInitMessage) jobDetail.getJobDataMap()
+                            .get(BagDownloadJob.MESSAGE);
+            Map<String, String> completionMap =
+                    (Map<String, String>) jobDetail.getJobDataMap()
+                            .get(BagDownloadJob.COMPLETED);
 
+            String subject = "Failure in CollectionInit - Token Store Job";
+            String text = MailFunctions.createText(msg, completionMap, e);
+
+            SimpleMailMessage message = mailUtil.createMessage(subject, text);
+            mailUtil.send(message);
         }
     }
 }
