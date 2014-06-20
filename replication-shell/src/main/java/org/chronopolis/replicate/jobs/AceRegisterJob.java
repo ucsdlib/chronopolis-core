@@ -21,6 +21,9 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.chronopolis.replicate.processor.CollectionInitProcessor.ACE_REGISTER_COLLECTION;
+import static org.chronopolis.replicate.processor.CollectionInitProcessor.ACE_REGISTER_TOKENS;
+
 /**
  * TODO: Check if our http calls succeed or not
  *
@@ -103,7 +106,7 @@ public class AceRegisterJob implements Job {
                     + " from " + error.getUrl());
         }
 
-        // completionMap.put(ACE_REGISTER_COLLECTION, "Successfully registered");
+        completionMap.put(ACE_REGISTER_COLLECTION, "Successfully registered");
 
         long id = idMap.get("id");
 
@@ -111,8 +114,8 @@ public class AceRegisterJob implements Job {
             @Override
             public void success(final Object o, final Response response) {
                 log.info("Successfully posted token store");
-                // completionMap.put(ACE_REGISTER_TOKENS, "Successfully registered with response "
-                //        + response.getStatus());
+                 completionMap.put(ACE_REGISTER_TOKENS, "Successfully registered with response "
+                        + response.getStatus());
                 callbackComplete.getAndSet(true);
             }
 
@@ -121,8 +124,8 @@ public class AceRegisterJob implements Job {
                 log.error("Error posting token store {} {}",
                         retrofitError.getResponse().getStatus(),
                         retrofitError.getBody());
-                // completionMap.put(ACE_REGISTER_TOKENS, "Failed to register tokens:\n"
-                //        + retrofitError.getBody());
+                 completionMap.put(ACE_REGISTER_TOKENS, "Failed to register tokens:\n"
+                        + retrofitError.getBody());
                 callbackComplete.getAndSet(true);
             }
         };

@@ -20,6 +20,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
+import static org.chronopolis.replicate.processor.CollectionInitProcessor.TOKEN_DOWNLOAD;
+
 /**
  *
  * Created by shake on 6/13/14.
@@ -89,6 +91,8 @@ public class TokenStoreDownloadJob implements Job {
             // throw JobExecutionException?
         } else {
             log.info("Successfully validated token store");
+            completionMap.put(TOKEN_DOWNLOAD, "Successfully downloaded from "
+                    + location);
         }
 
     }

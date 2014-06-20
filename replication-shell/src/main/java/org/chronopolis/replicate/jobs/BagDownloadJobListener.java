@@ -3,6 +3,7 @@ package org.chronopolis.replicate.jobs;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.replicate.ReplicationProperties;
+import org.chronopolis.replicate.processor.CollectionInitProcessor;
 import org.chronopolis.replicate.util.MailFunctions;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -49,6 +50,9 @@ public class BagDownloadJobListener extends JobListenerSupport {
     public void jobWasExecuted(final JobExecutionContext jobExecutionContext,
                                final JobExecutionException e) {
         JobDetail jobDetail = jobExecutionContext.getJobDetail();
+        Map<String, String> completionMap =
+                (Map<String, String>) jobDetail.getJobDataMap()
+                                               .get(BagDownloadJob.COMPLETED);
 
         if (e == null) {
             JobKey key = jobExecutionContext.getJobDetail().getKey();
@@ -63,9 +67,6 @@ public class BagDownloadJobListener extends JobListenerSupport {
             CollectionInitMessage msg =
                     (CollectionInitMessage) jobDetail.getJobDataMap()
                                                      .get(BagDownloadJob.MESSAGE);
-            Map<String, String> completionMap =
-                    (Map<String, String>) jobDetail.getJobDataMap()
-                                                   .get(BagDownloadJob.COMPLETED);
 
             String nodeName = properties.getNodeName();
             String subject = "Failure in CollectionInit - Bag Download Job";
