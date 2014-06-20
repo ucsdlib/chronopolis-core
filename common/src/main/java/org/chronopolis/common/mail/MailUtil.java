@@ -54,23 +54,11 @@ public class MailUtil {
         }
     }
 
-    private SimpleMailMessage createBaseMessage() {
+    public SimpleMailMessage createMessage(String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(smtpFrom);
         message.setTo(smtpTo);
-        return message;
-    }
-
-    public SimpleMailMessage createSuccess(String successOf, String body) {
-        SimpleMailMessage message = createBaseMessage();
-        message.setSubject("[" + smtpFrom + "] Success of " + successOf);
-        message.setText(body);
-        return message;
-    }
-
-    public SimpleMailMessage createFailure(String failureOf, String body) {
-        SimpleMailMessage message = createBaseMessage();
-        message.setSubject("[" + smtpFrom + "] Failure of " + failureOf);
+        message.setFrom(smtpFrom);
+        message.setSubject("[" + smtpFrom + "] " + subject);
         message.setText(body);
         return message;
     }
