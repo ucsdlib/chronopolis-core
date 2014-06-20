@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 
 /**
  *
@@ -26,11 +27,13 @@ import java.nio.file.Paths;
 public class TokenStoreDownloadJob implements Job {
     private final Logger log = LoggerFactory.getLogger(TokenStoreDownloadJob.class);
 
+    public static final String COMPLETED = "completed";
     public final static String PROPERTIES = "properties";
     public final static String MESSAGE = "message";
 
     private ReplicationProperties properties;
     private CollectionInitMessage message;
+    private Map<String, String> completionMap;
 
     private String location;
     private String protocol;
@@ -39,6 +42,7 @@ public class TokenStoreDownloadJob implements Job {
     private void initFromJobDataMap(final JobDataMap jobDataMap) {
         setProperties((ReplicationProperties) jobDataMap.get(PROPERTIES));
         setMessage((CollectionInitMessage) jobDataMap.get(MESSAGE));
+        setCompletionMap((Map<String, String>) jobDataMap.get(COMPLETED));
 
         setDigest(message.getTokenStoreDigest());
         setLocation(message.getTokenStore());
@@ -107,6 +111,10 @@ public class TokenStoreDownloadJob implements Job {
 
     public void setMessage(final CollectionInitMessage message) {
         this.message = message;
+    }
+
+    public void setCompletionMap(final Map<String, String> completionMap) {
+        this.completionMap = completionMap;
     }
 
 }

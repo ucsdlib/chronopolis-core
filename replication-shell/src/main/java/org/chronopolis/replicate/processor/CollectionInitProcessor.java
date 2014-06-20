@@ -37,10 +37,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class CollectionInitProcessor implements ChronProcessor {
     private static final Logger log = LoggerFactory.getLogger(CollectionInitProcessor.class);
 
-    private static final String TOKEN_DOWNLOAD = "TokenStore-Download";
-    private static final String BAG_DOWNLOAD = "Bag-Download";
-    private static final String ACE_REGISTER_COLLECTION = "Ace-Register-Collection";
-    private static final String ACE_REGISTER_TOKENS = "Ace-Register-Tokens";
+    public static final String TOKEN_DOWNLOAD = "TokenStore-Download";
+    public static final String BAG_DOWNLOAD = "Bag-Download";
+    public static final String ACE_REGISTER_COLLECTION = "Ace-Register-Collection";
+    public static final String ACE_REGISTER_TOKENS = "Ace-Register-Tokens";
     private static final String INCOMPLETE = "Incomplete";
 
     private final ChronProducer producer;
@@ -108,10 +108,12 @@ public class CollectionInitProcessor implements ChronProcessor {
         CollectionInitMessage msg = (CollectionInitMessage) chronMessage;
 
         // Set up our data maps and jobs
+        // TODO: We only need one data map w/ the properties, message, completed, etc
 
         JobDataMap tsDataMap = new JobDataMap();
         tsDataMap.put(TokenStoreDownloadJob.PROPERTIES, props);
         tsDataMap.put(TokenStoreDownloadJob.MESSAGE, msg);
+        tsDataMap.put(TokenStoreDownloadJob.COMPLETED, completionMap);
         JobDetail tsJobDetail = JobBuilder.newJob(TokenStoreDownloadJob.class)
                 .setJobData(tsDataMap)
                 .withIdentity(msg.getCorrelationId(), "TokenDownload")
@@ -121,6 +123,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         JobDataMap bdDataMap = new JobDataMap();
         bdDataMap.put(BagDownloadJob.PROPERTIES, props);
         bdDataMap.put(BagDownloadJob.MESSAGE, msg);
+        bdDataMap.put(BagDownloadJob.COMPLETED, completionMap);
         JobDetail bdJobDetail = JobBuilder.newJob(BagDownloadJob.class)
                 .setJobData(bdDataMap)
                 .withIdentity(msg.getCorrelationId(), "BagDownload")
@@ -133,6 +136,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         arDataMap.put(AceRegisterJob.ACE_SERVICE, aceService);
         arDataMap.put(AceRegisterJob.PROPERTIES, props);
         arDataMap.put(AceRegisterJob.MESSAGE, msg);
+        arDataMap.put(AceRegisterJob.COMPLETED, completionMap);
         JobDetail arJobDetail = JobBuilder.newJob(AceRegisterJob.class)
                 .setJobData(arDataMap)
                 .withIdentity(msg.getCorrelationId(), "AceRegister")

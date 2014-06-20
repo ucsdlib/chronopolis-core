@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class AceRegisterJob implements Job {
     private final Logger log = LoggerFactory.getLogger(AceRegisterJob.class);
 
+    public static final String COMPLETED = "completed";
     public static final String REGISTER = "register";
     public static final String TOKEN_STORE = "token_store";
     public static final String PROPERTIES = "properties";
@@ -48,6 +49,7 @@ public class AceRegisterJob implements Job {
     private AceService aceService;
 
     private CollectionInitMessage message;
+    private Map<String, String> completionMap;
 
 
     private void initFromDataMap(final JobDataMap jobDataMap) {
@@ -55,6 +57,7 @@ public class AceRegisterJob implements Job {
         setAceService((AceService) jobDataMap.get(ACE_SERVICE));
         setMessage((CollectionInitMessage) jobDataMap.get(MESSAGE));
         setRegister(jobDataMap.getBoolean(REGISTER));
+        setCompletionMap((Map<String, String>) jobDataMap.get(COMPLETED));
 
         setAuditPeriod(message.getAuditPeriod());
         setCollection(message.getCollection());
@@ -193,12 +196,16 @@ public class AceRegisterJob implements Job {
         this.tokenStore = tokenStore;
     }
 
-    public void setReturnKey(String returnKey) {
+    public void setReturnKey(final String returnKey) {
         this.returnKey = returnKey;
     }
 
     public void setMessage(final CollectionInitMessage message) {
         this.message = message;
+    }
+
+    public void setCompletionMap(final Map<String,String> completionMap) {
+        this.completionMap = completionMap;
     }
 
 }

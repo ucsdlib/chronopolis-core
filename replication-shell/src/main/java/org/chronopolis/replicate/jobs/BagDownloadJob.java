@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 
 /**
  *
@@ -28,6 +29,7 @@ import java.nio.file.Paths;
 public class BagDownloadJob implements Job {
     private final Logger log = LoggerFactory.getLogger(BagDownloadJob.class);
 
+    public static final String COMPLETED = "completed";
     public static final String PROPERTIES = "properties";
     public static final String MESSAGE = "message";
 
@@ -38,10 +40,12 @@ public class BagDownloadJob implements Job {
     private ReplicationProperties properties;
     private String digest;
     private CollectionInitMessage message;
+    private Map<String, String> completionMap;
 
     private void initFromJobDataMap(final JobDataMap jobDataMap) {
         setProperties((ReplicationProperties) jobDataMap.get(PROPERTIES));
         setMessage((CollectionInitMessage) jobDataMap.get(MESSAGE));
+        setCompletionMap((Map<String, String>) jobDataMap.get(COMPLETED));
 
         setCollection(message.getCollection());
         setDigest(message.getTagManifestDigest());
@@ -130,6 +134,10 @@ public class BagDownloadJob implements Job {
 
     public void setMessage(final CollectionInitMessage message) {
         this.message = message;
+    }
+
+    public void setCompletionMap(final Map<String, String> completionMap) {
+        this.completionMap = completionMap;
     }
 
 }
