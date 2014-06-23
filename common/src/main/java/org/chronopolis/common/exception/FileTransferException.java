@@ -12,4 +12,5 @@ public class FileTransferException extends Exception {
     public FileTransferException(final String msg) {
         super(msg);
     }
+
 }

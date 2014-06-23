@@ -3,7 +3,6 @@ package org.chronopolis.replicate.jobs;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.replicate.ReplicationProperties;
-import org.chronopolis.replicate.processor.CollectionInitProcessor;
 import org.chronopolis.replicate.util.MailFunctions;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -16,8 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.mail.SimpleMailMessage;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Map;
 
 /**

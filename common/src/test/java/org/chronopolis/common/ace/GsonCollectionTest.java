@@ -43,6 +43,6 @@ public class GsonCollectionTest {
         Assert.assertEquals(NAME, fromJson.getName());
         Assert.assertEquals(GROUP, fromJson.getGroup());
         Assert.assertEquals(STORAGE, fromJson.getStorage());
-
     }
+
 }

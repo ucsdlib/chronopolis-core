@@ -17,6 +17,12 @@ public class CredentialRequestInterceptor implements RequestInterceptor {
         this.password = password;
     }
 
+    /**
+     * Intercept a http request sent by retrofit and add in basic authorization
+     * from the user and password fields of the class
+     *
+     * @param requestFacade the intercepted request
+     */
     @Override
     public void intercept(final RequestFacade requestFacade) {
         String credentials = user + ":" + password;

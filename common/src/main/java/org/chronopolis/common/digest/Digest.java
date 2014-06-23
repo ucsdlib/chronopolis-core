@@ -31,11 +31,23 @@ public enum Digest {
         }
     }
 
+    /**
+     * Get the name of the message digest, used for
+     * {@link java.security.MessageDigest#getInstance(String)}
+     *
+     * @return the digest name
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Get the name of the message digest, formatted for the bagit spec
+     *
+     * @return the digest name
+     */
     public String getBagitIdentifier() {
         return bagitIdentifier;
     }
+
 }

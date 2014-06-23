@@ -23,7 +23,11 @@ public class MailUtil {
         smtpSend = true;
     }
 
-
+    /**
+     * get the smtp host used to send from
+     *
+     * @return smtpHost
+     */
     public String getSmtpHost() {
         return smtpHost;
     }
@@ -34,6 +38,11 @@ public class MailUtil {
         }
     }
 
+    /**
+     * Get the to field in an smtp message
+     *
+     * @return smtpTo
+     */
     public String getSmtpTo() {
         return smtpTo;
     }
@@ -44,6 +53,11 @@ public class MailUtil {
         }
     }
 
+    /**
+     * Get the from field in an smtp message
+     *
+     * @return smtpFrom
+     */
     public String getSmtpFrom() {
         return smtpFrom;
     }
@@ -54,6 +68,16 @@ public class MailUtil {
         }
     }
 
+    /**
+     * Create a {@link org.springframework.mail.SimpleMailMessage}, using the
+     * nodeName and subject as the message's subject, and the body as the
+     * message's text
+     *
+     * @param nodeName The node sending the message
+     * @param subject The subject of the message
+     * @param body The content of the message
+     * @return the created message
+     */
     public SimpleMailMessage createMessage(String nodeName, String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(smtpTo);
@@ -63,6 +87,11 @@ public class MailUtil {
         return message;
     }
 
+    /**
+     * Send a {@link org.springframework.mail.SimpleMailMessage}
+     *
+     * @param message The message to send
+     */
     public void send(final SimpleMailMessage message) {
         if (smtpSend) {
             log.info("Sending mail to {}", message.getTo());

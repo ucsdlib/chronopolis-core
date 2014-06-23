@@ -57,6 +57,11 @@ public class TokenWriterCallback implements RequestBatchCallback, Callable<Path>
         this.stage = stage;
     }
 
+    /**
+     * Poll the callbacks for token responses and write them to a token store file.
+     *
+     * @return the path of the written token store
+     */
     @Override
     public Path call() {
         if (!stage.toFile().exists()) {
