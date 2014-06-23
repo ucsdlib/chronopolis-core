@@ -133,7 +133,7 @@ public class AceRegisterJob implements Job {
         aceService.loadTokenStore(id, new TypedFile("ASCII Text", manifest.toFile()), tsCallback);
 
         // Since the callback is asynchronous, we need to wait for it to complete before moving on
-        log.trace("Waiting for http call to complete");
+        log.trace("Waiting for token register to complete");
         waitForCallback();
         callbackComplete.set(false);
 
@@ -152,7 +152,7 @@ public class AceRegisterJob implements Job {
                 callbackComplete.set(true);
             }
         });
-        log.trace("Waiting for http call to complete");
+        log.trace("Waiting for audit start to complete");
         waitForCallback();
 
    }
