@@ -52,6 +52,8 @@ public class AceRegisterJob implements Job {
     private AceService aceService;
 
     private CollectionInitMessage message;
+
+    // This is mutable and has side effects from other jobs
     private Map<String, String> completionMap;
 
 

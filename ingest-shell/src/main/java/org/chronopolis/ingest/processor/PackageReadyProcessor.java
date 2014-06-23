@@ -149,6 +149,11 @@ public class PackageReadyProcessor implements ChronProcessor {
             }
 
             producer.send(response, RoutingKey.REPLICATE_BROADCAST.asRoute());
+
+            SimpleMailMessage message = mailUtil.createMessage(props.getNodeName(),
+                    "Package Ready to Replicate",
+                    msg.toString());
+            mailUtil.send(message);
         } else {
             replyInd = Indicator.NAK;
         }
@@ -161,7 +166,6 @@ public class PackageReadyProcessor implements ChronProcessor {
 
         producer.send(reply, msg.getReturnKey());
 
-        sendPackageReadyNotification(msg);
     }
 
     private void createReplicationFlowItem(String node, String depositor, String collection, String correlationId) {
@@ -172,15 +176,6 @@ public class PackageReadyProcessor implements ChronProcessor {
         flow.setCurrentState(ReplicationState.INIT);
         flow.setCorrelationId(correlationId);
         manager.getReplicationFlowTable().save(flow);
-    }
-
-    private void sendPackageReadyNotification(PackageReadyMessage packageReadyMessage) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(props.getNodeName() + "-ingest@" + mailUtil.getSmtpFrom());
-        message.setTo(mailUtil.getSmtpTo());
-        message.setSubject("[" + props.getNodeName() + "] Received new package");
-        message.setText(packageReadyMessage.toString());
-        mailUtil.send(message);
     }
 
 }
