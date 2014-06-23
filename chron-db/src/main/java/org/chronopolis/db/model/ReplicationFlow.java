@@ -31,7 +31,7 @@ public class ReplicationFlow {
     @Column
     private String correlationId;
 
-
+    @Column
     ReplicationState currentState;
 
     public long getId() {
@@ -81,4 +81,5 @@ public class ReplicationFlow {
     public void setCorrelationId(final String correlationId) {
         this.correlationId = correlationId;
     }
+
 }

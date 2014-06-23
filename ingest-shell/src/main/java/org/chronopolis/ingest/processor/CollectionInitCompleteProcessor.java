@@ -60,13 +60,15 @@ public class CollectionInitCompleteProcessor implements ChronProcessor {
 
         ChronMessage response = messageFactory.DefaultPackageIngestCompleteMessage();
 
-        // sendCompletionRecord((CollectionInitCompleteMessage) chronMessage);
-
         IngestDB db = manager.getIngestDatabase();
         CollectionIngest ci = db.findByCorrelationId(chronMessage.getCorrelationId());
         log.info("Retrieved item correlation {} and toDpn value of {}",
                 ci.getCorrelationId(), ci.getToDpn());
         Boolean toDpn = (ci.getToDpn() && properties.pushToDpn());
+
+        // TODO: Do we want a service to create the replication-init-query?
+        // This way we could actually create a "mock" service that will go
+        // through but not send while testing and a real service for production
         if (toDpn) {
             // Send replication-init-query
             log.debug("Sending {} to dpn", chronMessage.getCorrelationId());
@@ -82,13 +84,6 @@ public class CollectionInitCompleteProcessor implements ChronProcessor {
         // Once again, hold the routing key temporarily
         // We don't actually send this until all nodes have finished replicating
         producer.send(response, "package.intake.umiacs");
-    }
-
-    private void sendCompletionRecord(CollectionInitCompleteMessage message) {
-        SimpleMailMessage msg = new SimpleMailMessage();
-        msg.setTo(mailUtil.getSmtpTo());
-        msg.setFrom(properties.getNodeName() + "-ingest@" + mailUtil.getSmtpFrom());
-        msg.setSubject("Ingestion of " + message.getCorrelationId() + " complete by " + message.getOrigin());
     }
 
 }
