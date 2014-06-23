@@ -10,6 +10,12 @@ package org.chronopolis.messaging.base;
  */
 public interface ChronProcessor {
 
+    /**
+     * Process {@link org.chronopolis.messaging.base.ChronMessage}'s received
+     * through RabbitMQ
+     *
+     * @param chronMessage the received message
+     */
     void process(ChronMessage chronMessage);
 
 }

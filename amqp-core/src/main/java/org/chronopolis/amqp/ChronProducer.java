@@ -12,10 +12,11 @@ import org.chronopolis.messaging.base.ChronMessage;
  */
 public interface ChronProducer {
 
-    /*
+    /**
+     * Send a {@link org.chronopolis.messaging.base.ChronMessage} through RabbitMQ
      *
      * @param message       message to be sent
-     * @param routingKey    key for the route
+     * @param routingKey    key to route to
      */
     void send(ChronMessage message, String routingKey);
 
