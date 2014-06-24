@@ -55,7 +55,16 @@ public class BagTokenizer {
         addManifests();
     }
 
-    private void addManifests() {
+    public BagTokenizer(final Path bag, final Path tokenStage, final String fixityAlgorithm, String depositor) {
+        this.bag = bag;
+        this.tokenStage = tokenStage;
+        this.fixityAlgorithm = Digest.fromString(fixityAlgorithm);
+        this.manifests = new HashSet<>();
+        this.callback = new TokenWriterCallback(this.bag.getFileName().toString(), depositor);
+        addManifests();
+    }
+
+     private void addManifests() {
         Path tagManifest = bag.resolve("tagmanifest-"
                 + fixityAlgorithm.getBagitIdentifier()
                 + ".txt");

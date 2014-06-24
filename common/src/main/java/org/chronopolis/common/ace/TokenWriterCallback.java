@@ -39,6 +39,7 @@ public class TokenWriterCallback implements RequestBatchCallback, Callable<Path>
     private volatile HashMap<String, AceToken> tokenMap;
     private LinkedBlockingQueue<TokenResponse> tokenCallbacks;
     private String collectionName;
+    private String depositor;
     private Path manifest;
     private Path stage = Paths.get("/tmp");
 
@@ -47,6 +48,13 @@ public class TokenWriterCallback implements RequestBatchCallback, Callable<Path>
         this.tokenCallbacks = new LinkedBlockingQueue<>();
         // denote that it is actually the tokens
         this.collectionName = collectionName + "-tokens";
+    }
+
+    public TokenWriterCallback(final String collection, final String depositor) {
+        tokenMap = new HashMap<>();
+        this.tokenCallbacks = new LinkedBlockingQueue<>();
+        this.collectionName = collection + "-tokens";
+        this.depositor = depositor;
     }
 
     public Map<String, AceToken> getTokens() {
@@ -64,11 +72,16 @@ public class TokenWriterCallback implements RequestBatchCallback, Callable<Path>
      */
     @Override
     public Path call() {
-        if (!stage.toFile().exists()) {
-            stage.toFile().mkdirs();
+        Path fullStage = stage;
+        if (depositor != null) {
+            fullStage = fullStage.resolve(depositor);
         }
 
-        manifest = Paths.get(stage.toString(), collectionName);
+        if (!fullStage.toFile().exists()) {
+            fullStage.toFile().mkdirs();
+        }
+
+        manifest = fullStage.resolve(collectionName);
         try (OutputStream os = Files.newOutputStream(manifest, CREATE)) {
             TokenResponse response;
             AceTokenWriter writer = new AceTokenWriter(os);

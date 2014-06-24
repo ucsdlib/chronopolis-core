@@ -92,7 +92,7 @@ public class PackageReadyProcessor implements ChronProcessor {
         Path tokenStage = Paths.get(props.getTokenStage());
 
         // And create our tokens
-        tokenizer = new BagTokenizer(toBag, tokenStage, fixityAlg);
+        tokenizer = new BagTokenizer(toBag, tokenStage, fixityAlg, depositor);
         Path manifest = null;
         try {
             manifest = tokenizer.getAceManifestWithValidation();
