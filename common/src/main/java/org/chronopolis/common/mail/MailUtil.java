@@ -81,7 +81,7 @@ public class MailUtil {
     public SimpleMailMessage createMessage(String nodeName, String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(smtpTo);
-        message.setFrom(smtpFrom);
+        message.setFrom(nodeName);
         message.setSubject("[" + nodeName + "] " + subject);
         message.setText(body);
         return message;
