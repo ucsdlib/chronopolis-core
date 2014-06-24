@@ -13,4 +13,6 @@ public interface IngestDB extends CrudRepository<CollectionIngest, String> {
 
     CollectionIngest findByCorrelationId(String correlationId);
 
+    CollectionIngest findByNameAndDepositor(String name, String depositor);
+
 }
