@@ -87,23 +87,46 @@ public class PackageReadyProcessor implements ChronProcessor {
         String depositor = msg.getDepositor();
         Boolean toDpn = msg.toDpn();
 
+        CollectionIngest ci = manager.getIngestDatabase()
+                                     .findByNameAndDepositor(packageName, depositor);
+        if (ci == null) {
+            ci = new CollectionIngest();
+            ci.setTokensGenerated(false);
+            ci.setName(packageName);
+            ci.setDepositor(depositor);
+            ci.setToDpn(toDpn);
+        }
+
         // Set up our paths
         Path toBag = Paths.get(props.getStage(), location);
         Path tokenStage = Paths.get(props.getTokenStage());
+        String tagManifestDigest; // = tokenizer.getTagManifestDigest();
 
         // And create our tokens
-        tokenizer = new BagTokenizer(toBag, tokenStage, fixityAlg, depositor);
         Path manifest = null;
-        try {
-            manifest = tokenizer.getAceManifestWithValidation();
-        } catch (Exception e) {
-            log.error("Error creating ace manifest {}", e);
-            success = false;
+        if (ci.getTokensGenerated()) {
+            tokenizer = new BagTokenizer(toBag, tokenStage, fixityAlg, depositor);
+            try {
+                manifest = tokenizer.getAceManifestWithValidation();
+                ci.setTokensGenerated(true);
+            } catch (Exception e) {
+                log.error("Error creating ace manifest {}", e);
+                success = false;
+            }
+            tagManifestDigest = tokenizer.getTagManifestDigest();
+        } else {
+            log.info("Tokens already created for {}, skipping", packageName);
+            manifest = tokenStage.resolve(depositor)
+                                 .resolve(packageName + "-tokens");
+            tagManifestDigest = ci.getTagDigest();
+
         }
 
         // Create digests for replicate nodes to validate from
-        String tagManifestDigest = tokenizer.getTagManifestDigest();
         String tokenDigest = DigestUtil.digest(manifest, fixity.getName());
+
+        ci.setTagDigest(tagManifestDigest);
+        ci.setTokenDigest(tokenDigest);
 
         String user = props.getExternalUser();
         String server = props.getStorageServer();
@@ -135,15 +158,20 @@ public class PackageReadyProcessor implements ChronProcessor {
                     tagManifestDigest,
                     fixity);
 
-            String correlationId = response.getCorrelationId();
+            String correlationId; // = response.getCorrelationId();
 
-            // Save some info about the object
-            CollectionIngest ci = new CollectionIngest();
-            ci.setCorrelationId(correlationId);
-            ci.setToDpn(toDpn);
+            // Figure out which correlationId to use (we reuse any old ones)
+            if (ci.getCorrelationId() == null) {
+                correlationId = response.getCorrelationId();
+                ci.setCorrelationId(correlationId);
+            } else {
+                correlationId = ci.getCorrelationId();
+                response.setCorrelationId(correlationId);
+            }
+
             manager.getIngestDatabase().save(ci);
 
-            // And our flow items
+            // And create our flow items
             for (String node : props.getChronNodes()) {
                 createReplicationFlowItem(node, depositor, packageName, correlationId);
             }
