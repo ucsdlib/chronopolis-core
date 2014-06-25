@@ -39,7 +39,7 @@ public enum MessageType {
     COLLECTION_INIT_REPLY(MessageState.RESPONSE, ProcessType.DISTRIBUTE, "avail", Indicator.QUERY,
             "message-att", "failed-items", "depositor", "collection"),
     COLLECTION_INIT_COMPLETE(MessageState.RESPONSE, ProcessType.DISTRIBUTE, "ack", Indicator.ACK,
-            "collection", "attribute", "error-list"),
+            "message-att", "collection", "error-list"),
 
     // Distribute <--> Distribute,
     // Will query other nodes to ask for files and get a response
