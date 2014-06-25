@@ -105,6 +105,11 @@ public class PackageReadyProcessor implements ChronProcessor {
         // And create our tokens
         Path manifest = null;
         if (ci.getTokensGenerated()) {
+            log.info("Tokens already created for {}, skipping", packageName);
+            manifest = tokenStage.resolve(depositor)
+                                 .resolve(packageName + "-tokens");
+            tagManifestDigest = ci.getTagDigest();
+        } else {
             tokenizer = new BagTokenizer(toBag, tokenStage, fixityAlg, depositor);
             try {
                 manifest = tokenizer.getAceManifestWithValidation();
@@ -114,12 +119,6 @@ public class PackageReadyProcessor implements ChronProcessor {
                 success = false;
             }
             tagManifestDigest = tokenizer.getTagManifestDigest();
-        } else {
-            log.info("Tokens already created for {}, skipping", packageName);
-            manifest = tokenStage.resolve(depositor)
-                                 .resolve(packageName + "-tokens");
-            tagManifestDigest = ci.getTagDigest();
-
         }
 
         // Create digests for replicate nodes to validate from
