@@ -35,7 +35,8 @@ public class AceRegisterJobListener extends JobListenerSupport {
                                   final Scheduler scheduler,
                                   final ChronProducer producer,
                                   final MessageFactory messageFactory,
-                                  final ReplicationProperties properties, final MailUtil mailUtil) {
+                                  final ReplicationProperties properties,
+                                  final MailUtil mailUtil) {
         this.name = name;
         this.scheduler = scheduler;
         this.producer = producer;

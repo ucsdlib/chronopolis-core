@@ -23,6 +23,8 @@ import java.util.Map;
 import static org.chronopolis.replicate.processor.CollectionInitProcessor.TOKEN_DOWNLOAD;
 
 /**
+ * TODO There's shared code between this and the BagDownloadJobListener.
+ * Can probably make a function they can both use.
  *
  * Created by shake on 6/13/14.
  */
@@ -88,9 +90,11 @@ public class TokenStoreDownloadJob implements Job {
                       "\nFound {}\nExpected {}",
                     calculatedDigest,
                     digest);
+            jobExecutionContext.setResult(false);
             // throw JobExecutionException?
         } else {
             log.info("Successfully validated token store");
+            jobExecutionContext.setResult(true);
             completionMap.put(TOKEN_DOWNLOAD, "Successfully downloaded from "
                     + location);
         }

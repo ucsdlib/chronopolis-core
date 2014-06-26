@@ -85,6 +85,7 @@ public class BagDownloadJob implements Job {
 
 
         // TODO: Move duplicate code to a function somewhere
+        // TODO: Verify all files?
         Path tagmanifest = bagPath.resolve(collection + "/tagmanifest-sha256.txt");
         HashFunction hashFunction = Hashing.sha256();
         HashCode hashCode;
@@ -103,11 +104,13 @@ public class BagDownloadJob implements Job {
                       "\nFound {}\nExpected {}",
                     calculatedDigest,
                     digest);
+            jobExecutionContext.setResult(false);
             // throw JobExecutionException?
         } else {
             log.info("Successfully validated tagmanifest");
             completionMap.put(BAG_DOWNLOAD,
                     "Successfully downloaded from " + location);
+            jobExecutionContext.setResult(true);
         }
 
     }

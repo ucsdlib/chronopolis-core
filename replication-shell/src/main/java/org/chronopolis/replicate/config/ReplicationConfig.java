@@ -166,7 +166,9 @@ public class ReplicationConfig {
                 "bag-download",
                 scheduler(),
                 properties,
-                mailUtil());
+                mailUtil(),
+                messageFactory(),
+                producer());
 
         try {
             scheduler().getListenerManager().addJobListener(jobListener,
@@ -184,7 +186,9 @@ public class ReplicationConfig {
                 "token-store-download",
                 scheduler(),
                 properties,
-                mailUtil());
+                mailUtil(),
+                messageFactory(),
+                producer());
 
         try {
             scheduler().getListenerManager().addJobListener(jobListener,
