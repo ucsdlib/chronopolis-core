@@ -22,6 +22,7 @@ public final class DigestUtil {
 
     /**
      * Digest the file and return it in hex format
+     * TODO: Convert to try w/ resources
      *
      * @param file the file to digest
      * @param alg the algorithm to use (sha-256)
