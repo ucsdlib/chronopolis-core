@@ -126,8 +126,9 @@ public class TokenWriterCallback implements RequestBatchCallback, Callable<Path>
     @Override
     public void tokensReceived(final List<TokenRequest> requests,
                                final List<TokenResponse> responses) {
+        log.info("Adding {} token responses", responses.size());
         for (TokenResponse tr : responses) {
-            log.trace("Received token response for round {}", tr.getRoundId());
+            log.trace("Received token response for {}", tr.getName());
             if (tr.getStatusCode() == StatusCode.SUCCESS) {
                 tokenCallbacks.add(tr);
             }
@@ -138,7 +139,7 @@ public class TokenWriterCallback implements RequestBatchCallback, Callable<Path>
 
     @Override
     public void exceptionThrown(final List<TokenRequest> list, final Throwable thrwbl) {
-        System.out.println("Some other exception!");
+        System.out.println("Some other exception! List size: " + list.size());
         System.out.println(Strings.exceptionAsString(thrwbl));
     }
 

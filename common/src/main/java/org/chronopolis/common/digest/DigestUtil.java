@@ -29,12 +29,14 @@ public final class DigestUtil {
      */
     public static String digest(final Path file, final String alg) {
         MessageDigest md = null;
+        DigestInputStream dis = null;
         try {
             md = MessageDigest.getInstance(alg);
-            DigestInputStream dis = new DigestInputStream(Files.newInputStream(file), md);
+            dis = new DigestInputStream(Files.newInputStream(file), md);
             int bufferSize = 1046576; // 1 MB
             byte[] buf = new byte[bufferSize];
             while (dis.read(buf) >= 0) { }
+            dis.close();
         } catch (NoSuchAlgorithmException e) {
             LOG.error("Error finding algorithm {}", alg, e);
             throw new RuntimeException("Could not digest " + file.toString());

@@ -115,7 +115,7 @@ public class BagTokenizer {
                         Object[] stf = new Object[]{
                                 path.toString(), calculatedDigest, digest
                         };
-                        log.error("Bad manifest for {}, found {} but expected {}",
+                        log.error("Bad digest for {}, found {} but expected {}",
                                 stf);
                         badFiles.add(path);
                     }
