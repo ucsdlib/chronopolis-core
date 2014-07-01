@@ -27,7 +27,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
@@ -40,8 +39,8 @@ import static org.chronopolis.ingest.IngestProperties.PROPERTIES_BROADCAST_ROUTI
 import static org.chronopolis.ingest.IngestProperties.PROPERTIES_DPN_PUSH;
 import static org.chronopolis.ingest.IngestProperties.PROPERTIES_EXCHANGE;
 import static org.chronopolis.ingest.IngestProperties.PROPERTIES_EXTERNAL_USER;
-import static org.chronopolis.ingest.IngestProperties.PROPERTIES_INBOUND_ROUTING_KEY;
 import static org.chronopolis.ingest.IngestProperties.PROPERTIES_IMS_HOST_NAME;
+import static org.chronopolis.ingest.IngestProperties.PROPERTIES_INBOUND_ROUTING_KEY;
 import static org.chronopolis.ingest.IngestProperties.PROPERTIES_NODE_NAME;
 import static org.chronopolis.ingest.IngestProperties.PROPERTIES_STAGE;
 import static org.chronopolis.ingest.IngestProperties.PROPERTIES_STORAGE_SERVER;

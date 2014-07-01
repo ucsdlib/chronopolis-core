@@ -149,6 +149,7 @@ public class BagTokenizer {
         createIMSConnection();
         callback.setStage(tokenStage);
         Future<Path> manifest = manifestService.submit(callback);
+        int i = 0;
         for (Map.Entry<Path, String> entry : digests.entrySet()) {
             TokenRequest req = new TokenRequest();
             Path full = entry.getKey();
@@ -158,6 +159,12 @@ public class BagTokenizer {
             req.setName(relative.toString());
             req.setHashValue(entry.getValue());
             batch.add(req);
+
+            i++;
+            if (i > 1000) {
+                Thread.sleep(1000);
+                i = 0;
+            }
         }
         log.info("Closing token request");
         batch.close();
