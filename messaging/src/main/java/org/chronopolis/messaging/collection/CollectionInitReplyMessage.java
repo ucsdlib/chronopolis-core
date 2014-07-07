@@ -22,7 +22,7 @@ public class CollectionInitReplyMessage extends ChronMessage {
         this.body = new ChronBody(type);
     }
 
-    public String getMessatAtt() {
+    public String getMessageAtt() {
         return (String) body.get(MESSAGE_ATT.toString());
     }
 

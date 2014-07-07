@@ -65,6 +65,8 @@ public class PackageReadyProcessor implements ChronProcessor {
      * 2 - Create ACE Tokens
      * 3 - Send out the collection init message
      *
+     * TODO: We can likely move most of the processing into other classes when we start to add on more logic
+     *
      */
     @Override
     public void process(ChronMessage chronMessage) {

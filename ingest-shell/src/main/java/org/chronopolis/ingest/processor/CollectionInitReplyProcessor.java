@@ -50,7 +50,11 @@ public class CollectionInitReplyProcessor implements ChronProcessor {
                                               collection,
                                               node);
 
-        flow.setCurrentState(ReplicationState.REPLICATING);
+        if (msg.getMessageAtt().equals("ack")) {
+            flow.setCurrentState(ReplicationState.REPLICATING);
+        } else {
+            flow.setCurrentState(ReplicationState.FAILED);
+        }
         manager.getReplicationFlowTable().save(flow);
 
     }
