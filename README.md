@@ -22,7 +22,8 @@ The basic layout of the project is as follows:
 
 Todo: 
 
-Lots of stuff
+* Add property for setting the from field for smtp (may want to copy ace and do from@localhost)
+
 
 
 [1]: https://chron-git.umiacs.umd.edu/chron-core/chronopolis-doc

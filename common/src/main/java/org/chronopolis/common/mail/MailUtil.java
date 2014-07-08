@@ -6,6 +6,8 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 /**
+ * TODO: MailProperties for from w/ a default of chronmail
+ *
  * Created by shake on 4/29/14.
  */
 public class MailUtil {
