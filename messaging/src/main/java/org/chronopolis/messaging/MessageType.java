@@ -59,6 +59,12 @@ public enum MessageType {
             "package-name", "depositor"),
     PACKAGE_INGEST_STATUS_RESPONSE(MessageState.RESPONSE, ProcessType.INGEST, "response", Indicator.ACK,
             "status", "completion-percent"),
+
+    // Restore
+    COLLECTION_RESTORE_REQUEST(MessageState.ORIGIN, ProcessType.RESTORE, "restore", Indicator.QUERY,
+            "depositor", "collection"),
+    COLLECTION_RESTORE_REPLY(MessageState.RESPONSE, ProcessType.RESTORE, "response", Indicator.ACK,
+            "message-att", "location")
     ;
 
     private MessageState state;
