@@ -149,21 +149,11 @@ public class MessageFactory {
                                                    String location,
                                                    String packageName,
                                                    int size) {
-        return packageReadyMessage(depositor, fixityAlg, location, packageName, size, false);
-    }
-
-    public PackageReadyMessage packageReadyMessage(String depositor,
-                                                   Digest fixityAlg,
-                                                   String location,
-                                                   String packageName,
-                                                   int size,
-                                                   Boolean toDpn) {
         PackageReadyMessage msg = new PackageReadyMessage();
         msg.setDepositor(depositor);
         msg.setFixityAlgorithm(fixityAlg);
         msg.setLocation(location);
         msg.setPackageName(packageName);
-        msg.setToDpn(toDpn);
         msg.setSize(size);
         setHeaders(msg);
         return msg;

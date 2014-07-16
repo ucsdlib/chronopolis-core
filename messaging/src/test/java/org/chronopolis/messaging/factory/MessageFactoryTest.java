@@ -83,8 +83,7 @@ public class MessageFactoryTest{
                 Digest.SHA_256,
                 "test-location",
                 "test-package-name",
-                10,
-                true
+                10
         );
     }
 

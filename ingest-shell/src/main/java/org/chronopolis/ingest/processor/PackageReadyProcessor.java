@@ -87,7 +87,6 @@ public class PackageReadyProcessor implements ChronProcessor {
         String fixityAlg = msg.getFixityAlgorithm();
         Digest fixity = Digest.fromString(msg.getFixityAlgorithm());
         String depositor = msg.getDepositor();
-        Boolean toDpn = msg.toDpn();
 
         CollectionIngest ci = manager.getIngestDatabase()
                                      .findByNameAndDepositor(packageName, depositor);
@@ -96,7 +95,6 @@ public class PackageReadyProcessor implements ChronProcessor {
             ci.setTokensGenerated(false);
             ci.setName(packageName);
             ci.setDepositor(depositor);
-            ci.setToDpn(toDpn);
         }
 
         // Set up our paths

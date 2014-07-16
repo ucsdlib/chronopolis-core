@@ -11,9 +11,7 @@ import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.intake.config.IntakeConfig;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.support.GenericXmlApplicationContext;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -123,8 +121,7 @@ public class IntakeProducer {
                 Digest.SHA_256,
                 location,
                 bagName,
-                bagSize[0],
-                toDPN
+                bagSize[0]
         );
 
         producer.send(msg, RoutingKey.INGEST_BROADCAST.asRoute());

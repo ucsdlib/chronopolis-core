@@ -64,15 +64,6 @@ public class CollectionInitCompleteProcessor implements ChronProcessor {
         CollectionIngest ci = db.findByCorrelationId(chronMessage.getCorrelationId());
         log.info("Retrieved item correlation {} and toDpn value of {}",
                 ci.getCorrelationId(), ci.getToDpn());
-        Boolean toDpn = (ci.getToDpn() && properties.pushToDpn());
-
-        // TODO: Do we want a service to create the replication-init-query?
-        // This way we could actually create a "mock" service that will go
-        // through but not send while testing and a real service for production
-        if (toDpn) {
-            // Send replication-init-query
-            log.debug("Sending {} to dpn", chronMessage.getCorrelationId());
-        }
 
         ReplicationFlowTable flowTable = manager.getReplicationFlowTable();
         ReplicationFlow flow  = flowTable.findByNodeAndCorrelationId(
