@@ -31,10 +31,10 @@ public class ModelMappingIntegrationTests {
 
     @Test
     public void thatItemCustomMappingWorks() throws Exception {
-        assertTableExists(entityManager, "collection_ingest");
+        assertTableExists(entityManager, "collection");
 
-        assertTableHasColumn(entityManager, "collection_ingest", "CORRELATION_ID");
-        assertTableHasColumn(entityManager, "collection_ingest", "TO_DPN");
+        assertTableHasColumn(entityManager, "collection", "CORRELATION_ID");
+        assertTableHasColumn(entityManager, "collection", "TO_DPN");
     }
     
 }

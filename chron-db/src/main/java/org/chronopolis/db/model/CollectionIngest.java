@@ -5,7 +5,6 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 /**
- * TODO: Let's rename this to something better
  * TODO: I'm not sure if we really want the tokensGenerated field, but we have it for now
  *
  * Created by shake on 4/9/14.
