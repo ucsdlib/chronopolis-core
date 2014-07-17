@@ -15,6 +15,8 @@ import static org.chronopolis.messaging.MessageConstant.*;
  * Message for packages which are ready to be ingested into
  * Chronopolis
  *
+ * TODO: Size should be a Long
+ *
  * @author shake
  */
 public class PackageReadyMessage extends ChronMessage {

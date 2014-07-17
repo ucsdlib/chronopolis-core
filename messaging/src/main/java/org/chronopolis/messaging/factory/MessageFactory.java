@@ -16,6 +16,8 @@ import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.collection.CollectionInitReplyMessage;
+import org.chronopolis.messaging.collection.CollectionRestoreReplyMessage;
+import org.chronopolis.messaging.collection.CollectionRestoreRequestMessage;
 import org.chronopolis.messaging.file.FileQueryMessage;
 import org.chronopolis.messaging.file.FileQueryResponseMessage;
 import org.chronopolis.messaging.pkg.PackageIngestCompleteMessage;
@@ -168,6 +170,28 @@ public class MessageFactory {
         setHeaders(msg, correlationId);
         return msg;
     }
+
+    public CollectionRestoreRequestMessage collectionRestoreRequestMessage(String collection,
+                                                                           String depositor) {
+        CollectionRestoreRequestMessage msg = new CollectionRestoreRequestMessage();
+        setHeaders(msg);
+        msg.setCollection(collection);
+        msg.setDepositor(depositor);
+        return msg;
+    }
+
+    public CollectionRestoreReplyMessage collectionRestoreReplyMessage(Indicator messageAtt,
+                                                                       String location,
+                                                                       String correlationId) {
+        CollectionRestoreReplyMessage msg = new CollectionRestoreReplyMessage();
+        setHeaders(msg, correlationId);
+        msg.setMessageAtt(messageAtt);
+        if (messageAtt.equals(Indicator.ACK)) {
+            msg.setLocation(location);
+        }
+        return msg;
+    }
+
 
 
     public PackageIngestCompleteMessage DefaultPackageIngestCompleteMessage() {

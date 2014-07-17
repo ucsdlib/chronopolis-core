@@ -13,6 +13,9 @@ import org.codehaus.jackson.map.annotate.JsonDeserialize;
 /**
  * The body of the chron message. It needs to be serializable so that we can
  * send the contents in the AMQP message.
+ *
+ * TODO: Find a way to save the class/type of the object when saving it
+ *
  * @author shake
  */
 
