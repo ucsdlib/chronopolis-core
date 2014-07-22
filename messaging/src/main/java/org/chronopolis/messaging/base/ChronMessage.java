@@ -8,6 +8,8 @@ import org.chronopolis.messaging.MessageType;
 import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.collection.CollectionInitReplyMessage;
+import org.chronopolis.messaging.collection.CollectionRestoreReplyMessage;
+import org.chronopolis.messaging.collection.CollectionRestoreRequestMessage;
 import org.chronopolis.messaging.exception.InvalidMessageException;
 import org.chronopolis.messaging.file.FileQueryMessage;
 import org.chronopolis.messaging.file.FileQueryResponseMessage;
@@ -103,6 +105,10 @@ public class ChronMessage {
                 return new CollectionInitReplyMessage();
             case COLLECTION_INIT_COMPLETE:
                 return new CollectionInitCompleteMessage();
+            case COLLECTION_RESTORE_REQUEST:
+                return new CollectionRestoreRequestMessage();
+            case COLLECTION_RESTORE_REPLY:
+                return new CollectionRestoreReplyMessage();
             case PACKAGE_INGEST_READY:
                 return new PackageReadyMessage();
             case PACKAGE_INGEST_READY_REPLY:
