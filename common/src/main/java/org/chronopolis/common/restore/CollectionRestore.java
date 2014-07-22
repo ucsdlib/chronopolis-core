@@ -7,5 +7,5 @@ import java.nio.file.Path;
  */
 public interface CollectionRestore {
 
-    Path restore(String collection);
+    Path restore(String depositor, String collection);
 }
