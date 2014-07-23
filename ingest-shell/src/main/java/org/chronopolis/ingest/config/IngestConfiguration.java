@@ -4,11 +4,14 @@ import com.rabbitmq.client.ConnectionFactory;
 import org.chronopolis.amqp.ConnectionListenerImpl;
 import org.chronopolis.amqp.TopicProducer;
 import org.chronopolis.common.mail.MailUtil;
+import org.chronopolis.common.restore.CollectionRestore;
+import org.chronopolis.common.restore.LocalRestore;
 import org.chronopolis.db.DatabaseManager;
 import org.chronopolis.ingest.IngestMessageListener;
 import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.ingest.processor.CollectionInitCompleteProcessor;
 import org.chronopolis.ingest.processor.CollectionInitReplyProcessor;
+import org.chronopolis.ingest.processor.CollectionRestoreRequestProcessor;
 import org.chronopolis.ingest.processor.PackageIngestStatusQueryProcessor;
 import org.chronopolis.ingest.processor.PackageReadyProcessor;
 import org.chronopolis.messaging.factory.MessageFactory;
@@ -31,6 +34,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.Resource;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -189,6 +193,22 @@ public class IngestConfiguration {
     @Bean
     public PackageIngestStatusQueryProcessor packageIngestStatusQueryProcessor() {
         return new PackageIngestStatusQueryProcessor(producer());
+    }
+
+    @Bean
+    public CollectionRestoreRequestProcessor collectionRestoreRequestProcessor() {
+        return new CollectionRestoreRequestProcessor(producer(),
+                ingestProperties(),
+                messageFactory(),
+                collectionRestore(),
+                mailUtil());
+    }
+
+    @Bean
+    public CollectionRestore collectionRestore() {
+        // TODO: Update properties so we can pull this
+        return new LocalRestore(Paths.get("/preservation/bags/"),
+                Paths.get(ingestProperties().getStage()));
     }
 
     @Bean
