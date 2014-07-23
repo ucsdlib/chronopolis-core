@@ -15,4 +15,5 @@ public interface CollectionRestore {
      * @return The relative path of the restored collection
      */
     Path restore(String depositor, String collection);
+
 }
