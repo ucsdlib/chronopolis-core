@@ -7,5 +7,12 @@ import java.nio.file.Path;
  */
 public interface CollectionRestore {
 
+    /**
+     * Restore a collection that is held in Chronopolis
+     *
+     * @param depositor The depositor who owns the collection
+     * @param collection The collection to restore
+     * @return The relative path of the restored collection
+     */
     Path restore(String depositor, String collection);
 }

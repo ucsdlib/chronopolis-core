@@ -44,7 +44,7 @@ public class LocalRestore implements CollectionRestore {
                 public FileVisitResult preVisitDirectory(final Path path, final BasicFileAttributes basicFileAttributes) throws IOException {
                     Path rel = preservation.relativize(path);
                     log.trace("Making directory {}", rel);
-                    Files.createDirectory(staging.resolve(rel));
+                    Files.createDirectories(staging.resolve(rel));
                     return FileVisitResult.CONTINUE;
                 }
 
@@ -72,8 +72,9 @@ public class LocalRestore implements CollectionRestore {
             return null;
         }
 
-
-        return staging.resolve(depositor).resolve(collection);
+        // TODO: I wonder if we could create a Path w/o needing to resolve then relativize...
+        Path restored = staging.resolve(depositor).resolve(collection);
+        return staging.relativize(restored);
     }
 
 }
