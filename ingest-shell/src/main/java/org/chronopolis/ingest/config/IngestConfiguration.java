@@ -61,6 +61,7 @@ public class IngestConfiguration {
     public static final String PROPERTIES_SMTP_FROM = "smtp.from";
     public static final String PROPERTIES_SMTP_TO = "smtp.to";
     public static final String PROPERTIES_CHRON_NODES = "chron.nodes";
+    public static final String PROPERTIES_PRES_STORAGE = "node.storage.preservation";
 
     @Autowired
     public DatabaseManager manager;
@@ -207,7 +208,8 @@ public class IngestConfiguration {
     @Bean
     public CollectionRestore collectionRestore() {
         // TODO: Update properties so we can pull this
-        return new LocalRestore(Paths.get("/preservation/bags/"),
+        String preservation = env.getProperty(PROPERTIES_PRES_STORAGE);
+        return new LocalRestore(Paths.get(preservation),
                 Paths.get(ingestProperties().getStage()));
     }
 
