@@ -90,6 +90,16 @@ public enum MessageType {
             throw new NullPointerException();
         }
 
+        /*
+        / Why not this?
+        String lower = message.toLowerCase();
+        for (MessageType type : MessageType.values()) {
+            if (type.name().toLowerCase().equals(lower)) {
+                return type;
+            }
+        }
+        */
+
         switch (message.toLowerCase()) {
             case "o_ingest_init_query":
                 return INGEST_INIT_QUERY;
@@ -103,6 +113,10 @@ public enum MessageType {
                 return COLLECTION_INIT_COMPLETE;
             case "collection_init_reply":
                 return COLLECTION_INIT_REPLY;
+            case "collection_restore_request":
+                return COLLECTION_RESTORE_REQUEST;
+            case "collection_restore_reply":
+                return COLLECTION_RESTORE_REPLY;
             case "file_query":
                 return FILE_QUERY;
             case "file_query_response":
