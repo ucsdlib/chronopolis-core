@@ -9,6 +9,7 @@ import org.chronopolis.amqp.RoutingKey;
 import org.chronopolis.common.digest.Digest;
 import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.intake.config.IntakeConfig;
+import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -41,7 +42,7 @@ public class IntakeProducer {
     }
 
     private enum PRODUCER_OPTION {
-        SEND_STATIC_INTAKE_REQUEST, CREATE_INTAKE_REQUEST, PUSH_STATIC_INTAKE_TO_DPN, QUIT, UNKNOWN;
+        SEND_STATIC_INTAKE_REQUEST, CREATE_INTAKE_REQUEST, PUSH_STATIC_INTAKE_TO_DPN, RESTORE_REQUEST, QUIT, UNKNOWN;
 
         private static PRODUCER_OPTION fromString(String text) {
             switch (text) {
@@ -51,6 +52,8 @@ public class IntakeProducer {
                     return SEND_STATIC_INTAKE_REQUEST;
                 case "P":
                     return PUSH_STATIC_INTAKE_TO_DPN;
+                case "R":
+                    return RESTORE_REQUEST;
                 case "Q":
                     return QUIT;
                 default:
@@ -76,13 +79,26 @@ public class IntakeProducer {
                 bagName = readLine();
 
                 sendMessage(depositor, bagName, bagName, false);
-            } else if (option.equals(PRODUCER_OPTION.QUIT)) {
+            } else if (option.equals(PRODUCER_OPTION.RESTORE_REQUEST)) {
+                String depositor, bagName;
+                System.out.print("Depositor: ");
+                depositor = readLine();
+                System.out.print("Bag Name: ");
+                bagName = readLine();
+
+                sendRestore(depositor, bagName);
+             } else if (option.equals(PRODUCER_OPTION.QUIT)) {
                 done = true;
             } else {
                 System.out.println("Unknown?");
             }
         }
         System.out.println("Leaving");
+    }
+
+    private void sendRestore(final String depositor, final String bagName) {
+        ChronMessage restore = messageFactory.collectionRestoreRequestMessage(bagName, depositor);
+        producer.send(restore, RoutingKey.INGEST_BROADCAST.asRoute());
     }
 
     private void sendMessage(String depositor, String location, String bagName, boolean toDPN) {
