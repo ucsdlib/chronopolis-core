@@ -42,8 +42,6 @@ public final class IngestConsumer {
         context.refresh();
 
         boolean done = false;
-        ChronProducer p = (ChronProducer) context.getBean("producer");
-        IngestProperties props = (IngestProperties) context.getBean(IngestProperties.class);
 
         while (!done) {
 
