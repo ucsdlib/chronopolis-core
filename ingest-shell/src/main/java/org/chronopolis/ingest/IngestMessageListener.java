@@ -7,6 +7,7 @@ package org.chronopolis.ingest;
 import org.chronopolis.amqp.ChronMessageListener;
 import org.chronopolis.ingest.processor.CollectionInitCompleteProcessor;
 import org.chronopolis.ingest.processor.CollectionInitReplyProcessor;
+import org.chronopolis.ingest.processor.CollectionRestoreRequestProcessor;
 import org.chronopolis.ingest.processor.PackageIngestStatusQueryProcessor;
 import org.chronopolis.ingest.processor.PackageReadyProcessor;
 import org.chronopolis.messaging.MessageType;
@@ -25,15 +26,19 @@ public class IngestMessageListener extends ChronMessageListener {
     private final PackageReadyProcessor packageReadyProcessor;
     private final CollectionInitCompleteProcessor collectionInitCompleteProcessor;
     private final CollectionInitReplyProcessor collectionInitReplyProcessor;
+    private final CollectionRestoreRequestProcessor collectionRestoreRequestProcessor;
+
 
     public IngestMessageListener(PackageIngestStatusQueryProcessor packageIngestStatusQueryProcessor,
                                  PackageReadyProcessor packageReadyProcessor,
                                  CollectionInitCompleteProcessor collectionInitCompleteProcessor,
-                                 CollectionInitReplyProcessor collectionInitReplyProcessor) {
+                                 CollectionInitReplyProcessor collectionInitReplyProcessor,
+                                 CollectionRestoreRequestProcessor collectionRestoreRequestProcessor) {
         this.packageIngestStatusQueryProcessor = packageIngestStatusQueryProcessor;
         this.packageReadyProcessor = packageReadyProcessor;
         this.collectionInitCompleteProcessor = collectionInitCompleteProcessor;
         this.collectionInitReplyProcessor = collectionInitReplyProcessor;
+        this.collectionRestoreRequestProcessor = collectionRestoreRequestProcessor;
     }
 
     @Override
@@ -47,6 +52,8 @@ public class IngestMessageListener extends ChronMessageListener {
                 return collectionInitCompleteProcessor;
             case COLLECTION_INIT_REPLY:
                 return collectionInitReplyProcessor;
+            case COLLECTION_RESTORE_REQUEST:
+                return collectionRestoreRequestProcessor;
             default:
                 throw new RuntimeException("Unexpected MessageType: " + type.name());
         }

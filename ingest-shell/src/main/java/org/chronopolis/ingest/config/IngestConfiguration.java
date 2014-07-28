@@ -218,7 +218,8 @@ public class IngestConfiguration {
         return new IngestMessageListener(packageIngestStatusQueryProcessor(),
                 packageReadyProcessor(),
                 collectionInitCompleteProcessor(),
-                collectionInitReplyProcessor());
+                collectionInitReplyProcessor(),
+                collectionRestoreRequestProcessor());
     }
 
     @Bean
