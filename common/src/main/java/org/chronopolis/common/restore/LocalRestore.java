@@ -36,6 +36,8 @@ public class LocalRestore implements CollectionRestore {
             return null;
         }
 
+        log.info("Starting restore for collection {} from {}", collection, depositor);
+
         try {
             // TODO: We'll probably want to break this out into its own class
             //       so that it doesn't look so crufty
