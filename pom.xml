@@ -101,6 +101,11 @@
             <id>adapt-sonatype-public</id>
             <name>ADAPT Project Public Repository</name>
         </repository>
+        <repository>
+            <url>https://scm.umiacs.umd.edu/maven/adapt/content/repositories/snapshots/</url>
+            <id>adapt-snapshots</id>
+            <name>ADAPT Snapshot Repository</name>
+        </repository>
     </repositories>
 
     <pluginRepositories>
