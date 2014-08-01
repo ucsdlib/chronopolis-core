@@ -20,6 +20,7 @@
         <module>replication-shell</module>
         <module>chron-db</module>
         <module>duracloud-intake</module>
+        <module>duracloud-backend</module>
     </modules>
 
 
