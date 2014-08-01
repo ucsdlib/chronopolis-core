@@ -1,7 +1,7 @@
 package org.chronopolis.intake.processor;
 
 import com.google.common.collect.Sets;
-import org.chronopolis.intake.config.IntakeSettings;
+import org.chronopolis.intake.duracloud.config.IntakeSettings;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.collection.CollectionRestoreReplyMessage;

@@ -1,4 +1,4 @@
-package org.chronopolis.intake.config;
+package org.chronopolis.intake.duracloud.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -17,6 +17,7 @@ public class IntakeSettings {
     }
 
     public void setDuracloudStage(final String duracloudStage) {
+        // TODO: Change to Paths.get(stage)?
         this.duracloudStage = duracloudStage;
     }
 }

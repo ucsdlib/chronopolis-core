@@ -1,4 +1,4 @@
-package org.chronopolis.intake.config;
+package org.chronopolis.common.settings;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

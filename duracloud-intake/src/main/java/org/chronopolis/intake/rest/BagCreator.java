@@ -4,7 +4,7 @@
  */
 package org.chronopolis.intake.rest;
 
-import org.chronopolis.intake.config.ChronopolisSettings;
+import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.intake.model.DuracloudRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
