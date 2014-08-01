@@ -19,6 +19,7 @@
         <module>logger</module>
         <module>replication-shell</module>
         <module>chron-db</module>
+        <module>duracloud-intake</module>
     </modules>
 
 
