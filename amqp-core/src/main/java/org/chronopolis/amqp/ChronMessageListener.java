@@ -38,10 +38,14 @@ public abstract class ChronMessageListener implements MessageListener {
             throw new IllegalArgumentException("Message headers are empty!");
         }
 
-        ChronBody chronBody = getChronBody(body);
-        message = ChronMessage.getMessage(chronBody.getType());
-        message.setHeader(props.getHeaders());
-        message.setBody(chronBody);
+        try {
+            ChronBody chronBody = getChronBody(body);
+            message = ChronMessage.getMessage(chronBody.getType());
+            message.setHeader(props.getHeaders());
+            message.setBody(chronBody);
+        } catch (Exception e) {
+            log.error("Error reading message", e);
+        }
 
         // Sanity Check
         if (null != message) {
