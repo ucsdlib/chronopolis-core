@@ -6,8 +6,6 @@ import org.springframework.stereotype.Component;
 /**
  * Component representing chronopolis node settings
  *
- * TODO: Move to chron common
- *
  * Created by shake on 8/1/14.
  */
 @Component
