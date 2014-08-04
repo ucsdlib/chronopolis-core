@@ -9,81 +9,78 @@
 
     <name>Core Chronopolis</name>
 
+    <!-- Core Modules -->
     <modules>
         <module>messaging</module>
-        <module>replication-frontend</module>
         <module>amqp-core</module>
         <module>common</module>
-        <module>intake-shell</module>
-        <module>ingest-shell</module>
-        <module>logger</module>
-        <module>replication-shell</module>
         <module>chron-db</module>
-        <module>duracloud-intake</module>
-        <module>duracloud-backend</module>
     </modules>
+
+    <profiles>
+       <profile>
+           <!-- Core services -->
+            <id>jenkins-main</id>
+            <modules>
+                <module>ingest-shell</module>
+                <module>intake-shell</module>
+                <module>replication-shell</module>
+            </modules>
+       </profile>
+       <profile>
+           <!-- Duracloud Intake Modules -->
+            <id>duracloud</id>
+            <modules>
+                <module>duracloud-backend</module>
+                <module>duracloud-intake</module>
+            </modules>
+       </profile>
+       <profile>
+           <!-- All Modules -->
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>intake-shell</module>
+                <module>ingest-shell</module>
+                <module>replication-shell</module>
+                <module>replication-frontend</module>
+                <module>duracloud-intake</module>
+                <module>duracloud-backend</module>
+                <module>logger</module>
+            </modules>
+        </profile>
+    </profiles>
 
 
     <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.0.2</version>
-                <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
-                </configuration>
-            </plugin>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                        <source>1.7</source>
+                        <target>1.7</target>
+                    </configuration>
+                </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.2-beta-4</version>
-                <configuration>
-                    <descriptors>
-                        <descriptor>src/main/assembly/dep.xml</descriptor>
-                    </descriptors>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>2.10</version>
                 <!--
-                <executions>
-                    <execution>
-                        <id>verify-style</id>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <configuration>
+                        <failOnViolation>false</failOnViolation>
+                        <configLocation>chron-checker.xml</configLocation>
+                    </configuration>
+                </plugin>
                 -->
-                <configuration>
-                    <failOnViolation>false</failOnViolation>
-                    <configLocation>chron-checker.xml</configLocation>
-                </configuration>
-
-            </plugin>
-
-            <!--
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-enforcer-plugin</artifactId>
-                <version>1.0-beta-1</version>
-                <executions>
-                    <execution>
-                        <configuration>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            -->
-        </plugins>
+            </plugins>
+        </pluginManagement>
     </build>
+
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.license>umd</project.license>
