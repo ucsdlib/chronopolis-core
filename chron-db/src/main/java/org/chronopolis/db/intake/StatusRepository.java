@@ -10,6 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public interface StatusRepository extends CrudRepository<Status, String> {
 
-    Status findById(String id);
+    Status findByBagId(String bagId);
 
 }

@@ -45,6 +45,7 @@ public class IngestJPAConfiguration {
     @Resource
     public Environment environment;
 
+    @Bean
     public DataSource dataSource() throws SQLException {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         // TODO: Grab from properties (environment)

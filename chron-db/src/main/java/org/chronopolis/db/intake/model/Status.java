@@ -7,12 +7,11 @@ import javax.persistence.Id;
 /**
  * Created by shake on 8/1/14.
  */
-@SuppressWarnings("UnusedDeclaration")
 @Entity
 public class Status {
 
     @Id
-    @Column(name = "id", unique = true, nullable = false)
+    @Column
     private String bagId;
 
     @Column(name = "depositor", nullable = false)
@@ -21,8 +20,7 @@ public class Status {
     @Column(name = "collection_name", nullable = false)
     private String collectionName;
 
-    private Status() {
-        // for jpa
+    public Status() {
     }
 
     public Status(final String bagId,
