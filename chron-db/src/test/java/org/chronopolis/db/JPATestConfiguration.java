@@ -55,7 +55,8 @@ public class JPATestConfiguration {
         LocalContainerEntityManagerFactoryBean factory =
                 new LocalContainerEntityManagerFactoryBean();
         factory.setJpaVendorAdapter(vendorAdapter);
-        factory.setPackagesToScan("org.chronopolis.db.model");
+        factory.setPackagesToScan("org.chronopolis.db.model",
+                "org.chronopolis.db.intake.model");
         factory.setDataSource(dataSource());
         factory.setJpaDialect(vendorAdapter.getJpaDialect());
         factory.afterPropertiesSet();
