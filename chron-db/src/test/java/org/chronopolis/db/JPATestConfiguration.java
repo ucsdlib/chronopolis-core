@@ -2,6 +2,7 @@ package org.chronopolis.db;
 
 import org.chronopolis.db.ingest.IngestDB;
 import org.chronopolis.db.ingest.ReplicationFlowTable;
+import org.chronopolis.db.intake.StatusRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -29,21 +30,14 @@ import java.sql.SQLException;
 @Configuration
 @EnableJpaRepositories(basePackages = "org.chronopolis.db",
         includeFilters = @ComponentScan.Filter(value = {IngestDB.class,
-                                                        ReplicationFlowTable.class},
+                                                        ReplicationFlowTable.class,
+                                                        StatusRepository.class},
                                                type = FilterType.ASSIGNABLE_TYPE))
 @EnableTransactionManagement
 public class JPATestConfiguration {
 
     @Bean
     public DataSource dataSource() throws SQLException {
-        /*
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName("org.h2.Driver");
-        dataSource.setUrl("jdbc:h2:mem:test");
-        dataSource.setUsername("h2");
-        dataSource.setPassword("h2");
-        return dataSource;
-        */
         EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
         return builder.setType(EmbeddedDatabaseType.H2).build();
     }

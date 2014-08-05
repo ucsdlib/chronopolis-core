@@ -35,6 +35,11 @@ public class ModelMappingIntegrationTests {
 
         assertTableHasColumn(entityManager, "collection", "CORRELATION_ID");
         assertTableHasColumn(entityManager, "collection", "TO_DPN");
+
+        assertTableExists(entityManager, "status");
+        assertTableHasColumn(entityManager, "status", "id");
+        assertTableHasColumn(entityManager, "status", "collection_name");
+        assertTableHasColumn(entityManager, "status", "depositor");
     }
     
 }
