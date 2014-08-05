@@ -19,6 +19,17 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>1.0.2.RELEASE</version>
+                <configuration>
+                    <mainClass>org.chronopolis.intake.Application</mainClass>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
@@ -55,6 +66,12 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>17.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.tacitknowledge.flip</groupId>
+            <artifactId>aspectj</artifactId>
+            <version>1.0</version>
         </dependency>
 
     </dependencies>
