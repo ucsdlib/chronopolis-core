@@ -5,6 +5,7 @@
 package org.chronopolis.intake.rest;
 
 import org.chronopolis.common.settings.ChronopolisSettings;
+import org.chronopolis.intake.duracloud.batch.SnapshotJobManager;
 import org.chronopolis.intake.duracloud.model.DuracloudRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +30,6 @@ import org.springframework.web.bind.annotation.RestController;
  * Or maybe the BagModels will serve as the building phase, then the BagVault
  * will serve for it's standard committed/working stuff
  * 
- * TODO: How to deal with bags which we don't have local access to?
  *
  * @author shake
  */
@@ -41,8 +41,8 @@ public class BagCreator {
     @Autowired
     private ChronopolisSettings chronSettings;
 
-    // @Autowired
-    // private SnapshotJobManager snapshotJobManager;
+    @Autowired
+    private SnapshotJobManager snapshotJobManager;
 
     @RequestMapping("test")
     public String testIt() {
@@ -63,7 +63,7 @@ public class BagCreator {
      */
     @RequestMapping(value = "snapshot", method = RequestMethod.POST)
     public ResponseEntity<String> snapshot(@RequestBody DuracloudRequest bag) {
-        // snapshotJobManager.addSnapshotJob(bag);
+        snapshotJobManager.addSnapshotJob(bag);
         return new ResponseEntity<>("{\"status\": \"success\"}", HttpStatus.OK);
     }
 
