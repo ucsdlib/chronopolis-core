@@ -11,6 +11,9 @@
 
     <logger name="org.chronopolis" level="TRACE"/>
 
+    <!-- These are both VERY verbose on lower levels -->
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="org.hibernate" level="INFO"/>
 
     <root level="debug">
         <appender-ref ref="STDOUT" />
