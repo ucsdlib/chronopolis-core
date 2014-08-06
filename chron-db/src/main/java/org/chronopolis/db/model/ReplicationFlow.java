@@ -16,7 +16,7 @@ public class ReplicationFlow {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
-    @Column(name = "ID", unique = true, nullable = false)
+    @Column(unique = true, nullable = false)
     private long id;
 
     @Column
