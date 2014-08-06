@@ -4,17 +4,18 @@
  */
 package org.chronopolis.replicate;
 
-import org.apache.log4j.Logger;
 import org.chronopolis.amqp.ChronMessageListener;
 import org.chronopolis.messaging.MessageType;
 import org.chronopolis.messaging.base.ChronProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author shake
  */
 public class ReplicateMessageListener extends ChronMessageListener {
-    private static final Logger log = Logger.getLogger(ReplicateMessageListener.class);
+    private static final Logger log = LoggerFactory.getLogger(ReplicateMessageListener.class);
     private final ChronProcessor fileQueryProcessor;
     private final ChronProcessor fileQueryResponseProcessor;
     private final ChronProcessor collectionInitProcessor;
