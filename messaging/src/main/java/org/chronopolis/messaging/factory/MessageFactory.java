@@ -17,6 +17,8 @@ import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.collection.CollectionInitReplyMessage;
 import org.chronopolis.messaging.collection.CollectionRestoreCompleteMessage;
+import org.chronopolis.messaging.collection.CollectionRestoreLocationMessage;
+import org.chronopolis.messaging.collection.CollectionRestoreReplyMessage;
 import org.chronopolis.messaging.collection.CollectionRestoreRequestMessage;
 import org.chronopolis.messaging.file.FileQueryMessage;
 import org.chronopolis.messaging.file.FileQueryResponseMessage;
@@ -189,6 +191,24 @@ public class MessageFactory {
         if (messageAtt.equals(Indicator.ACK)) {
             msg.setLocation(location);
         }
+        return msg;
+    }
+
+    public CollectionRestoreReplyMessage collectionRestoreReplyMessage(Indicator messageAtt,
+                                                                       String correlationId) {
+        CollectionRestoreReplyMessage msg = new CollectionRestoreReplyMessage();
+        setHeaders(msg, correlationId);
+        msg.setMessageAtt(messageAtt);
+        return msg;
+    }
+
+    public CollectionRestoreLocationMessage collectionRestoreLocationMessage(String protocol,
+                                                                             String location,
+                                                                             String correlationId) {
+        CollectionRestoreLocationMessage msg = new CollectionRestoreLocationMessage();
+        setHeaders(msg, correlationId);
+        msg.setProtocol(protocol);
+        msg.setRestoreLocation(location);
         return msg;
     }
 
