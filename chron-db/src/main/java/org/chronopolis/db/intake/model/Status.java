@@ -54,4 +54,10 @@ public class Status {
     public void setCollectionName(final String collectionName) {
         this.collectionName = collectionName;
     }
+
+    // TODO: Check based on status of all 3 nodes (saved from amqp responses)
+    public boolean isReplicated() {
+        return true;
+    }
+
 }
