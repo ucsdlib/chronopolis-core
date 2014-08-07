@@ -8,8 +8,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.chronopolis.messaging.MessageConstant.*;
-
 /**
  * Container for chronopolis/DPN style messages
  * MessageState - The state of the node who produces the message
@@ -63,7 +61,7 @@ public enum MessageType {
     // Restore
     COLLECTION_RESTORE_REQUEST(MessageState.ORIGIN, ProcessType.RESTORE, "restore", Indicator.QUERY,
             "depositor", "collection"),
-    COLLECTION_RESTORE_REPLY(MessageState.RESPONSE, ProcessType.RESTORE, "response", Indicator.ACK,
+    COLLECTION_RESTORE_COMPLETE(MessageState.RESPONSE, ProcessType.RESTORE, "response", Indicator.ACK,
             "message-att", "location")
     ;
 
@@ -98,6 +96,7 @@ public enum MessageType {
                 return type;
             }
         }
+        Because that requires an O(n) lookup (though that isn't bad if we only have ~15 messages)
         */
 
         switch (message.toLowerCase()) {
@@ -115,8 +114,8 @@ public enum MessageType {
                 return COLLECTION_INIT_REPLY;
             case "collection_restore_request":
                 return COLLECTION_RESTORE_REQUEST;
-            case "collection_restore_reply":
-                return COLLECTION_RESTORE_REPLY;
+            case "collection_restore_complete":
+                return COLLECTION_RESTORE_COMPLETE;
             case "file_query":
                 return FILE_QUERY;
             case "file_query_response":

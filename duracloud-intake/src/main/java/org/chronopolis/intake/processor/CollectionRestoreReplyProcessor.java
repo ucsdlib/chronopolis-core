@@ -4,7 +4,7 @@ import com.google.common.collect.Sets;
 import org.chronopolis.intake.duracloud.config.IntakeSettings;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
-import org.chronopolis.messaging.collection.CollectionRestoreReplyMessage;
+import org.chronopolis.messaging.collection.CollectionRestoreCompleteMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
@@ -36,11 +36,11 @@ public class CollectionRestoreReplyProcessor implements ChronProcessor {
 
     @Override
     public void process(final ChronMessage chronMessage) {
-        if (!(chronMessage instanceof CollectionRestoreReplyMessage)) {
+        if (!(chronMessage instanceof CollectionRestoreCompleteMessage)) {
             throw new RuntimeException("Unexpected message type " + chronMessage.getType());
         }
 
-        CollectionRestoreReplyMessage message = (CollectionRestoreReplyMessage) chronMessage;
+        CollectionRestoreCompleteMessage message = (CollectionRestoreCompleteMessage) chronMessage;
         Path duracloudBase = Paths.get(intakeSettings.getDuracloudStage());
 
         if (ACK.name().equals(message.getMessageAtt())) {

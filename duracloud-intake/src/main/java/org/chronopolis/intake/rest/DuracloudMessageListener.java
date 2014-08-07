@@ -23,7 +23,7 @@ public class DuracloudMessageListener extends ChronMessageListener {
     @Override
     public ChronProcessor getProcessor(final MessageType type) {
         switch (type) {
-            case COLLECTION_RESTORE_REPLY:
+            case COLLECTION_RESTORE_COMPLETE:
                 return collectionRestoreReplyProcessor;
             case PACKAGE_INGEST_COMPLETE:
                 return packageIngestCompleteProcessor;

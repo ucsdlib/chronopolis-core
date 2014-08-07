@@ -6,7 +6,7 @@ import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.collection.CollectionInitReplyMessage;
-import org.chronopolis.messaging.collection.CollectionRestoreReplyMessage;
+import org.chronopolis.messaging.collection.CollectionRestoreCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionRestoreRequestMessage;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
 import org.chronopolis.messaging.pkg.PackageReadyReplyMessage;
@@ -108,7 +108,7 @@ public class MessageFactoryTest{
 
     @Test
     public void testCollectionRestoreReplyMessage() {
-        CollectionRestoreReplyMessage msg = messageFactory.collectionRestoreReplyMessage(
+        CollectionRestoreCompleteMessage msg = messageFactory.collectionRestoreReplyMessage(
                 Indicator.ACK,
                 "location",
                 "correlation-id"

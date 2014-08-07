@@ -16,7 +16,7 @@ import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.collection.CollectionInitReplyMessage;
-import org.chronopolis.messaging.collection.CollectionRestoreReplyMessage;
+import org.chronopolis.messaging.collection.CollectionRestoreCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionRestoreRequestMessage;
 import org.chronopolis.messaging.file.FileQueryMessage;
 import org.chronopolis.messaging.file.FileQueryResponseMessage;
@@ -180,10 +180,10 @@ public class MessageFactory {
         return msg;
     }
 
-    public CollectionRestoreReplyMessage collectionRestoreReplyMessage(Indicator messageAtt,
+    public CollectionRestoreCompleteMessage collectionRestoreReplyMessage(Indicator messageAtt,
                                                                        String location,
                                                                        String correlationId) {
-        CollectionRestoreReplyMessage msg = new CollectionRestoreReplyMessage();
+        CollectionRestoreCompleteMessage msg = new CollectionRestoreCompleteMessage();
         setHeaders(msg, correlationId);
         msg.setMessageAtt(messageAtt);
         if (messageAtt.equals(Indicator.ACK)) {

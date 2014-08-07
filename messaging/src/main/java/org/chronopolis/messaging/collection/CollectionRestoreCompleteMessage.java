@@ -10,10 +10,10 @@ import static org.chronopolis.messaging.MessageConstant.MESSAGE_ATT;
 /**
  * Created by shake on 7/10/14.
  */
-public class CollectionRestoreReplyMessage extends ChronMessage {
+public class CollectionRestoreCompleteMessage extends ChronMessage {
 
-    public CollectionRestoreReplyMessage() {
-        super(MessageType.COLLECTION_RESTORE_REPLY);
+    public CollectionRestoreCompleteMessage() {
+        super(MessageType.COLLECTION_RESTORE_COMPLETE);
     }
 
     public void setLocation(String location) {
