@@ -1,6 +1,7 @@
 package org.chronopolis.intake.config;
 
 import org.chronopolis.amqp.ChronProducer;
+import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.db.intake.StatusRepository;
 import org.chronopolis.intake.duracloud.batch.SnapshotJobManager;
@@ -24,6 +25,11 @@ public class IntakeConfiguration {
 
     @Autowired
     ChronopolisSettings chronopolisSettings;
+
+    @Bean
+    MailUtil mailUtil() {
+        return new MailUtil();
+    }
 
     @Bean
     SnapshotProcessor snapshotProcessor() {

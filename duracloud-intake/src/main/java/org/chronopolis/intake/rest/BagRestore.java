@@ -2,6 +2,7 @@ package org.chronopolis.intake.rest;
 
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.amqp.RoutingKey;
+import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.db.intake.StatusRepository;
 import org.chronopolis.db.intake.model.Status;
 import org.chronopolis.messaging.base.ChronMessage;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -33,6 +35,9 @@ public class BagRestore {
     @Autowired
     private StatusRepository statusRepository;
 
+    @Autowired
+    private MailUtil mailUtil;
+
     @RequestMapping(value = "{id}", method = RequestMethod.GET)
     public ResponseEntity restore(@PathVariable("id") String snapshotId) {
         // grab the depositor and collection name from the bagstatus
@@ -52,6 +57,15 @@ public class BagRestore {
             );
 
             producer.send(message, RoutingKey.INGEST_BROADCAST.asRoute());
+
+            SimpleMailMessage smm = new SimpleMailMessage();
+            smm.setFrom(mailUtil.getSmtpFrom());
+            smm.setTo(mailUtil.getSmtpTo());
+            smm.setSubject("Restoration Request");
+            smm.setText("Restoration request for snapshot " + snapshotId
+                    + "\n Associated depositor: " + status.getDepositor()
+                    + "\n Associated collection: " + status.getCollectionName());
+            mailUtil.send(smm);
         } else {
             log.info("Bag {} found and is not replicated", snapshotId);
             entity = new ResponseEntity(HttpStatus.BAD_REQUEST);
