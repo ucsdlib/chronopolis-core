@@ -21,7 +21,7 @@ import static org.chronopolis.messaging.Indicator.ACK;
 /**
  * Created by shake on 7/17/14.
  */
-public class CollectionRestoreReplyProcessor implements ChronProcessor {
+public class CollectionRestoreCompleteProcessor implements ChronProcessor {
 
     private Set<String> accepted = Sets.newHashSet(
             ".collection-snapshot.properties",

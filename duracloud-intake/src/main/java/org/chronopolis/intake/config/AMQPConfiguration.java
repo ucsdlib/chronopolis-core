@@ -8,7 +8,7 @@ import org.chronopolis.amqp.TopicProducer;
 import org.chronopolis.amqp.error.ErrorHandlerImpl;
 import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.common.settings.ChronopolisSettings;
-import org.chronopolis.intake.processor.CollectionRestoreReplyProcessor;
+import org.chronopolis.intake.processor.CollectionRestoreCompleteProcessor;
 import org.chronopolis.intake.processor.PackageIngestCompleteProcessor;
 import org.chronopolis.intake.rest.DuracloudMessageListener;
 import org.chronopolis.messaging.factory.MessageFactory;
@@ -106,8 +106,8 @@ public class AMQPConfiguration {
     }
 
     @Bean
-    CollectionRestoreReplyProcessor collectionRestoreReplyProcessor() {
-        return new CollectionRestoreReplyProcessor();
+    CollectionRestoreCompleteProcessor collectionRestoreCompleteProcessor() {
+        return new CollectionRestoreCompleteProcessor();
     }
 
     @Bean
@@ -117,7 +117,7 @@ public class AMQPConfiguration {
 
     @Bean
     MessageListener messageListener() {
-        return new DuracloudMessageListener(collectionRestoreReplyProcessor(),
+        return new DuracloudMessageListener(collectionRestoreCompleteProcessor(),
                 packageIngestCompleteProcessor());
     }
 
