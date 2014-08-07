@@ -108,7 +108,7 @@ public class MessageFactoryTest{
 
     @Test
     public void testCollectionRestoreReplyMessage() {
-        CollectionRestoreCompleteMessage msg = messageFactory.collectionRestoreReplyMessage(
+        CollectionRestoreCompleteMessage msg = messageFactory.collectionRestoreCompleteMessage(
                 Indicator.ACK,
                 "location",
                 "correlation-id"

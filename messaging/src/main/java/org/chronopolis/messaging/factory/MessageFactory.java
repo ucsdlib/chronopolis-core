@@ -180,9 +180,9 @@ public class MessageFactory {
         return msg;
     }
 
-    public CollectionRestoreCompleteMessage collectionRestoreReplyMessage(Indicator messageAtt,
-                                                                       String location,
-                                                                       String correlationId) {
+    public CollectionRestoreCompleteMessage collectionRestoreCompleteMessage(Indicator messageAtt,
+                                                                             String location,
+                                                                             String correlationId) {
         CollectionRestoreCompleteMessage msg = new CollectionRestoreCompleteMessage();
         setHeaders(msg, correlationId);
         msg.setMessageAtt(messageAtt);

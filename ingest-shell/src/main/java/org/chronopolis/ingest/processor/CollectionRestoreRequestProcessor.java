@@ -48,7 +48,7 @@ public class CollectionRestoreRequestProcessor implements ChronProcessor {
 
         Path restored = restore.restore(depositor, collection);
 
-        ChronMessage reply = messageFactory.collectionRestoreReplyMessage(Indicator.ACK,
+        ChronMessage reply = messageFactory.collectionRestoreCompleteMessage(Indicator.ACK,
                 restored.toString(),
                 msg.getCorrelationId());
 
