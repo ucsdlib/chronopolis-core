@@ -28,6 +28,7 @@ public enum MessageConstant {
     FILENAME("filename"),
     LOCATION("location"),
     BAG_LOCATION("bag-location"),
+    RESTORE_LOCATION("restore-location"),
     BAG_DIGEST("bag-tag-manifest-digest"),
     TOKEN_STORE_LOCATION("token-store-location"),
     PROTOCOL("protocol"),

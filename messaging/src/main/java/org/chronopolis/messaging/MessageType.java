@@ -61,7 +61,11 @@ public enum MessageType {
     // Restore
     COLLECTION_RESTORE_REQUEST(MessageState.ORIGIN, ProcessType.RESTORE, "restore", Indicator.QUERY,
             "depositor", "collection"),
-    COLLECTION_RESTORE_COMPLETE(MessageState.RESPONSE, ProcessType.RESTORE, "response", Indicator.ACK,
+    COLLECTION_RESTORE_REPLY(MessageState.ORIGIN, ProcessType.RESTORE, "reply", Indicator.ACK,
+            "message-att"),
+    COLLECTION_RESTORE_LOCATION(MessageState.ORIGIN, ProcessType.RESTORE, "location", Indicator.ACK,
+            "restore-location", "protocol"),
+    COLLECTION_RESTORE_COMPLETE(MessageState.RESPONSE, ProcessType.RESTORE, "complete", Indicator.ACK,
             "message-att", "location")
     ;
 
@@ -114,6 +118,10 @@ public enum MessageType {
                 return COLLECTION_INIT_REPLY;
             case "collection_restore_request":
                 return COLLECTION_RESTORE_REQUEST;
+            case "collection_restore_reply":
+                return COLLECTION_RESTORE_REPLY;
+            case "collection_restore_location":
+                return COLLECTION_RESTORE_LOCATION;
             case "collection_restore_complete":
                 return COLLECTION_RESTORE_COMPLETE;
             case "file_query":
