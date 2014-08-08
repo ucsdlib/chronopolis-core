@@ -92,6 +92,7 @@ public class IngestConfiguration {
                 env.getProperty(PROPERTIES_IMS_HOST_NAME),
                 env.getProperty(PROPERTIES_STORAGE_SERVER),
                 env.getProperty(PROPERTIES_EXTERNAL_USER),
+                env.getProperty(PROPERTIES_PRES_STORAGE),
                 env.getProperty(PROPERTIES_DPN_PUSH, Boolean.class),
                 chronNodes);
 
@@ -207,9 +208,7 @@ public class IngestConfiguration {
 
     @Bean
     public CollectionRestore collectionRestore() {
-        // TODO: Update properties so we can pull this
-        String preservation = env.getProperty(PROPERTIES_PRES_STORAGE);
-        return new LocalRestore(Paths.get(preservation),
+        return new LocalRestore(Paths.get(ingestProperties().getPreservation()),
                 Paths.get(ingestProperties().getStage()));
     }
 

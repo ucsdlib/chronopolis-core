@@ -29,15 +29,16 @@ public class IngestProperties extends GenericProperties {
     private String imsHostName;
     private String storageServer;
     private String externalUser;
+    private String preservation;
     private Boolean dpnPush;
     private List<String> chronNodes;
 
     /**
-     *
-     * @param nodeName
+     *  @param nodeName
      * @param bagStage
      * @param tokenStage
      * @param imsHostName
+     * @param preservation
      */
     public IngestProperties(String nodeName,
                             String bagStage,
@@ -48,6 +49,7 @@ public class IngestProperties extends GenericProperties {
                             String imsHostName,
                             String storageServer,
                             String externalUser,
+                            String preservation,
                             Boolean dpnPush,
                             List<String> chronNodes) {
         super(nodeName, bagStage, exchange, inboundKey, broadcastKey);
@@ -55,6 +57,7 @@ public class IngestProperties extends GenericProperties {
         this.imsHostName = imsHostName;
         this.storageServer = storageServer;
         this.externalUser = externalUser;
+        this.preservation = preservation;
         this.dpnPush = dpnPush;
         this.chronNodes = chronNodes;
 
@@ -145,4 +148,13 @@ public class IngestProperties extends GenericProperties {
     public void setChronNodes(final List<String> chronNodes) {
         this.chronNodes = chronNodes;
     }
+
+    public String getPreservation() {
+        return preservation;
+    }
+
+    public void setPreservation(final String preservation) {
+        this.preservation = preservation;
+    }
+
 }
