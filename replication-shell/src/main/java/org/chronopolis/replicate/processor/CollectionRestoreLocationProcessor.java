@@ -25,10 +25,20 @@ import java.nio.file.Paths;
 public class CollectionRestoreLocationProcessor implements ChronProcessor {
     private final Logger log = LoggerFactory.getLogger(CollectionRestoreLocationProcessor.class);
 
-    ChronopolisSettings settings;
-    ChronProducer producer;
-    MessageFactory messageFactory;
-    RestoreRepository restoreRepository;
+    private final ChronopolisSettings settings;
+    private final ChronProducer producer;
+    private final MessageFactory messageFactory;
+    private final RestoreRepository restoreRepository;
+
+    public CollectionRestoreLocationProcessor(final ChronopolisSettings settings,
+                                              final ChronProducer producer,
+                                              final MessageFactory messageFactory,
+                                              final RestoreRepository restoreRepository) {
+        this.settings = settings;
+        this.producer = producer;
+        this.messageFactory = messageFactory;
+        this.restoreRepository = restoreRepository;
+    }
 
     @Override
     public void process(final ChronMessage chronMessage) {

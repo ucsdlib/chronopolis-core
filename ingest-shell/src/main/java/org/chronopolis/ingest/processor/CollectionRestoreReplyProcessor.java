@@ -18,12 +18,22 @@ import java.util.UUID;
  */
 public class CollectionRestoreReplyProcessor implements ChronProcessor {
 
-    private ChronopolisSettings settings;
-    private ChronProducer producer;
-    private MessageFactory messageFactory;
+    private final ChronopolisSettings settings;
+    private final ChronProducer producer;
+    private final MessageFactory messageFactory;
 
     // TODO: Replace with ingest settings
-    private IngestProperties ingestProperties;
+    private final IngestProperties ingestProperties;
+
+    public CollectionRestoreReplyProcessor(final ChronopolisSettings settings,
+                                           final ChronProducer producer,
+                                           final MessageFactory messageFactory,
+                                           final IngestProperties ingestProperties) {
+        this.settings = settings;
+        this.producer = producer;
+        this.messageFactory = messageFactory;
+        this.ingestProperties = ingestProperties;
+    }
 
     @Override
     public void process(final ChronMessage chronMessage) {
