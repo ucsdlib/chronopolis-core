@@ -6,6 +6,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -73,6 +74,42 @@ public class RSyncTransfer implements FileTransfer {
         } finally {
             threadPool.shutdownNow();
         }
+    }
+
+    @Override
+    public void put(final Path localFile, final String uri) throws FileTransferException {
+        Callable<Boolean> upload = new Callable() {
+            @Override
+            public Boolean call() {
+                String[] cmd = new String[]{"rsync", "-az", localFile.toString(), uri};
+                ProcessBuilder pb = new ProcessBuilder(cmd);
+                Process p = null;
+                try {
+                    p = pb.start();
+                    p.waitFor();
+                } catch (IOException e) {
+                    log.error("Error starting rsync", e);
+                    return false;
+                } catch (InterruptedException e) {
+                    log.error("rsync interrupted", e);
+                    return false;
+                }
+                return true;
+            }
+        };
+
+        FutureTask<Boolean> timedTask = new FutureTask<>(upload);
+        threadPool.execute(timedTask);
+
+        try {
+             timedTask.get(15, TimeUnit.MINUTES);
+        } catch (InterruptedException  | ExecutionException | TimeoutException e) {
+            log.error("rsync had a critical error", e);
+            throw new FileTransferException("rsync had a critical error", e);
+        } finally {
+            threadPool.shutdownNow();
+        }
+
     }
 
 }

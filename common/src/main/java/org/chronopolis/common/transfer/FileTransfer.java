@@ -19,4 +19,12 @@ public interface FileTransfer {
      */
     Path getFile(String uri, Path localStorage) throws FileTransferException;
 
+    /**
+     * Put a local file to a remote uri
+     *
+     * @param localFile
+     * @param uri
+     * @throws FileTransferException
+     */
+    void put(Path localFile, String uri) throws FileTransferException;
 }
