@@ -1,6 +1,7 @@
 package org.chronopolis.ingest.processor;
 
 import org.chronopolis.amqp.ChronProducer;
+import org.chronopolis.amqp.RoutingKey;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.restore.CollectionRestore;
 import org.chronopolis.ingest.IngestProperties;
@@ -11,6 +12,7 @@ import org.chronopolis.messaging.collection.CollectionRestoreRequestMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Created by shake on 7/23/14.
@@ -46,12 +48,19 @@ public class CollectionRestoreRequestProcessor implements ChronProcessor {
         String depositor = msg.getDepositor();
         String collection = msg.getCollection();
 
-        Path restored = restore.restore(depositor, collection);
-
-        ChronMessage reply = messageFactory.collectionRestoreCompleteMessage(Indicator.ACK,
+        ChronMessage next = null;
+        String route;
+        if (Paths.get(properties.getPreservation()).toFile().exists()) {
+            Path restored = restore.restore(depositor, collection);
+            next = messageFactory.collectionRestoreCompleteMessage(Indicator.ACK,
                 restored.toString(),
                 msg.getCorrelationId());
+            route = msg.getReturnKey();
+        } else {
+            next = messageFactory.collectionRestoreRequestMessage(collection, depositor);
+            route = RoutingKey.REPLICATE_BROADCAST.asRoute();
+        }
 
-        producer.send(reply, msg.getReturnKey());
+        producer.send(next, route);
     }
 }
