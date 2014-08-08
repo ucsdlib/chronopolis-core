@@ -11,6 +11,7 @@ import org.chronopolis.messaging.factory.MessageFactory;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.UUID;
 
 /**
  * Created by shake on 8/7/14.
@@ -38,11 +39,21 @@ public class CollectionRestoreReplyProcessor implements ChronProcessor {
 
         Path base = Paths.get(ingestProperties.getStage());
         ChronMessage reply = null;
+        StringBuilder location = new StringBuilder();
+        location.append(ingestProperties.getExternalUser())
+                .append("@")
+                .append(ingestProperties.getStorageServer())
+                .append(":");
+
+        // TODO: This will actually be sent to us
+        String id = UUID.randomUUID().toString();
+        location.append("/staging/restore/").append(id);
+
         // For now, we'll just pull from ourselves
-        // In the future we'll want a way to actualyl choose
+        // In the future we'll want a way to actually choose a node
         if (msg.getOrigin().equals(settings.getNode())) {
             reply = messageFactory.collectionRestoreLocationMessage("rsync",
-                    "location",
+                    location.toString(),
                     Indicator.ACK,
                     chronMessage.getCorrelationId());
         } else {
