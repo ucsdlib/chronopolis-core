@@ -166,6 +166,12 @@
                 <groupId>edu.umiacs.ace</groupId>
                 <artifactId>ace-ims-api</artifactId>
                 <version>1.8.1</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>log4j</groupId>
+                        <artifactId>log4j</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <!-- For tomcat services -->
