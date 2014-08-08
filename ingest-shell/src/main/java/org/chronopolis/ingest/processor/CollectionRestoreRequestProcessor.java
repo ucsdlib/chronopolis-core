@@ -4,6 +4,8 @@ import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.amqp.RoutingKey;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.restore.CollectionRestore;
+import org.chronopolis.db.common.RestoreRepository;
+import org.chronopolis.db.common.model.RestoreRequest;
 import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.base.ChronMessage;
@@ -23,19 +25,18 @@ public class CollectionRestoreRequestProcessor implements ChronProcessor {
     private final IngestProperties properties;
     private final MessageFactory messageFactory;
     private final CollectionRestore restore;
-    private final MailUtil mailUtil;
-
+    private final RestoreRepository restoreRepository;
 
     public CollectionRestoreRequestProcessor(final ChronProducer producer,
                                              final IngestProperties properties,
                                              final MessageFactory messageFactory,
                                              final CollectionRestore restore,
-                                             final MailUtil mailUtil) {
+                                             final RestoreRepository restoreRepository) {
         this.producer = producer;
         this.properties = properties;
         this.messageFactory = messageFactory;
         this.restore = restore;
-        this.mailUtil = mailUtil;
+        this.restoreRepository = restoreRepository;
     }
 
     @Override
@@ -59,6 +60,12 @@ public class CollectionRestoreRequestProcessor implements ChronProcessor {
         } else {
             next = messageFactory.collectionRestoreRequestMessage(collection, depositor);
             route = RoutingKey.REPLICATE_BROADCAST.asRoute();
+
+            // Add a RestoreRequest to keep track of the request through our flow
+            RestoreRequest restoreRequest = new RestoreRequest(next.getCorrelationId());
+            restoreRequest.setDepositor(depositor);
+            restoreRequest.setCollectionName(collection);
+            restoreRepository.save(restoreRequest);
         }
 
         producer.send(next, route);

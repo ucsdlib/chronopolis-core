@@ -1,6 +1,7 @@
 package org.chronopolis.ingest.config;
 
 import org.chronopolis.db.DatabaseManager;
+import org.chronopolis.db.common.RestoreRepository;
 import org.chronopolis.db.ingest.IngestDB;
 import org.chronopolis.db.ingest.ReplicationFlowTable;
 import org.hibernate.jpa.HibernatePersistenceProvider;
@@ -32,7 +33,8 @@ import java.sql.SQLException;
 @Configuration
 @EnableJpaRepositories(basePackages = "org.chronopolis.db",
         includeFilters = @ComponentScan.Filter(value = {IngestDB.class,
-                                                        ReplicationFlowTable.class},
+                                                        ReplicationFlowTable.class,
+                                                        RestoreRepository.class},
                                                type = FilterType.ASSIGNABLE_TYPE))
 @EnableTransactionManagement
 @PropertySource({"file:ingest.properties"})
@@ -71,7 +73,8 @@ public class IngestJPAConfiguration {
         LocalContainerEntityManagerFactoryBean factory =
                 new LocalContainerEntityManagerFactoryBean();
         factory.setJpaVendorAdapter(vendorAdapter);
-        factory.setPackagesToScan("org.chronopolis.db.model");
+        factory.setPackagesToScan("org.chronopolis.db.model",
+                "org.chronopolis.db.common.model");
         factory.setDataSource(dataSource());
         factory.setJpaDialect(vendorAdapter.getJpaDialect());
         factory.setPersistenceProviderClass(HibernatePersistenceProvider.class);

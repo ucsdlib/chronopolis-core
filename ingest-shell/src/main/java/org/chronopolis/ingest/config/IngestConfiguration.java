@@ -7,6 +7,7 @@ import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.restore.CollectionRestore;
 import org.chronopolis.common.restore.LocalRestore;
 import org.chronopolis.db.DatabaseManager;
+import org.chronopolis.db.common.RestoreRepository;
 import org.chronopolis.ingest.IngestMessageListener;
 import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.ingest.processor.CollectionInitCompleteProcessor;
@@ -65,6 +66,9 @@ public class IngestConfiguration {
 
     @Autowired
     public DatabaseManager manager;
+
+    @Autowired
+    public RestoreRepository restoreRepository;
 
     @Resource
     public Environment env;
@@ -203,7 +207,7 @@ public class IngestConfiguration {
                 ingestProperties(),
                 messageFactory(),
                 collectionRestore(),
-                mailUtil());
+                restoreRepository);
     }
 
     @Bean
