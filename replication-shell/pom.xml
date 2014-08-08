@@ -54,6 +54,11 @@
             <artifactId>amqp-core</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.chronopolis</groupId>
+            <artifactId>chron-db</artifactId>
+        </dependency>
+
         <!-- http stuffs -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
@@ -96,5 +101,6 @@
             <groupId>org.quartz-scheduler</groupId>
             <artifactId>quartz-jobs</artifactId>
         </dependency>
-    </dependencies>
+
+   </dependencies>
 </project>

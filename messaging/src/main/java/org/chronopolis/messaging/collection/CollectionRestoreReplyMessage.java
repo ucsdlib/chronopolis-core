@@ -6,6 +6,8 @@ import org.chronopolis.messaging.MessageType;
 import org.chronopolis.messaging.base.ChronMessage;
 
 /**
+ * TODO: May want to send the time of the last audit as a metric for decision making
+ *
  * Created by shake on 8/7/14.
  */
 public class CollectionRestoreReplyMessage extends ChronMessage {

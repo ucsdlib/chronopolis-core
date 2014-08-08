@@ -1,14 +1,80 @@
 package org.chronopolis.replicate.processor;
 
+import org.chronopolis.amqp.ChronProducer;
+import org.chronopolis.common.exception.FileTransferException;
+import org.chronopolis.common.settings.ChronopolisSettings;
+import org.chronopolis.common.transfer.FileTransfer;
+import org.chronopolis.common.transfer.HttpsTransfer;
+import org.chronopolis.common.transfer.RSyncTransfer;
+import org.chronopolis.db.replication.RestoreRepository;
+import org.chronopolis.db.replication.model.RestoreRequest;
+import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
+import org.chronopolis.messaging.collection.CollectionRestoreLocationMessage;
+import org.chronopolis.messaging.factory.MessageFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Created by shake on 8/7/14.
  */
 public class CollectionRestoreLocationProcessor implements ChronProcessor {
+    private final Logger log = LoggerFactory.getLogger(CollectionRestoreLocationProcessor.class);
+
+    ChronopolisSettings settings;
+    ChronProducer producer;
+    MessageFactory messageFactory;
+    RestoreRepository restoreRepository;
+
     @Override
     public void process(final ChronMessage chronMessage) {
+        if (!(chronMessage instanceof CollectionRestoreLocationMessage)) {
+            throw new RuntimeException("Invalid message received for "
+                    + this.getClass().getName());
+        }
+
+        CollectionRestoreLocationMessage msg =
+                (CollectionRestoreLocationMessage) chronMessage;
+
+        String protocol = msg.getProtocol();
+        String location = msg.getRestoreLocation();
+        String correlationId = msg.getCorrelationId();
+        FileTransfer transfer = null;
+        if (protocol.equals("rsync")) {
+            transfer = new RSyncTransfer("chrono");
+        } else {
+            transfer = new HttpsTransfer();
+        }
+
+        RestoreRequest restore =
+                restoreRepository.findByCorrelationId(correlationId);
+        // This implies that ACE and the Replication Shell share the same
+        // pathname for the chronopolis preservation area - this may not
+        // always be the case so...
+        // TODO: Relativize the restore path against our preservation mount
+        Path local = Paths.get(restore.getDirectory());
+        Indicator att = Indicator.ACK;
+
+        try {
+            transfer.put(local, location);
+        } catch (FileTransferException e) {
+            log.error("Error restoring collection", e);
+            att = Indicator.NAK;
+        }
+
+        // TODO: What location to actually send back?
+        ChronMessage reply = messageFactory.collectionRestoreCompleteMessage(
+                att,
+                location,
+                correlationId
+        );
+
+        producer.send(reply, msg.getReturnKey());
 
     }
+
 }

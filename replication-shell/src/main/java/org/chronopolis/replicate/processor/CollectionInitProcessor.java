@@ -51,7 +51,6 @@ public class CollectionInitProcessor implements ChronProcessor {
     private final Scheduler scheduler;
 
     private HashMap<String, String> completionMap;
-    private AtomicBoolean callbackComplete = new AtomicBoolean(false);
 
     public CollectionInitProcessor(ChronProducer producer,
                                    MessageFactory messageFactory,

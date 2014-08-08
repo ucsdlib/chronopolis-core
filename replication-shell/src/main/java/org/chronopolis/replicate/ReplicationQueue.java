@@ -57,13 +57,13 @@ public class ReplicationQueue implements Runnable {
     }
     
     public static Path getFileImmediate(String url, Path stage, String protocol) throws IOException, FileTransferException {
-        if ( url == null ) {
+        if (url == null) {
             System.out.println("Null url");
             throw new IllegalArgumentException("Url cannot be null");
-        } else if ( stage == null ) {
+        } else if (stage == null) {
             System.out.println("Null stage");
             throw new IllegalArgumentException("Stage cannot be null");
-        } else if (xfer == null ) {
+        } else if (xfer == null) {
             System.out.println("This shouldn't happen");
         }
         FileTransfer transfer;
