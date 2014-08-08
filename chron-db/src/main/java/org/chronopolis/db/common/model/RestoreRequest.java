@@ -1,4 +1,4 @@
-package org.chronopolis.db.replication.model;
+package org.chronopolis.db.common.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -17,12 +17,17 @@ public class RestoreRequest {
     @Column
     String directory;
 
+    @Column
+    String depositor;
+
+    @Column(name = "collection_name")
+    String collectionName;
+
 
     public RestoreRequest() {
     }
 
-    public RestoreRequest(String correlationId, String directory) {
-        this.directory = directory;
+    public RestoreRequest(String correlationId) {
         this.correlationId = correlationId;
     }
 
@@ -40,5 +45,21 @@ public class RestoreRequest {
 
     public void setDirectory(final String directory) {
         this.directory = directory;
+    }
+
+    public String getCollectionName() {
+        return collectionName;
+    }
+
+    public void setCollectionName(final String collectionName) {
+        this.collectionName = collectionName;
+    }
+
+    public String getDepositor() {
+        return depositor;
+    }
+
+    public void setDepositor(final String depositor) {
+        this.depositor = depositor;
     }
 }

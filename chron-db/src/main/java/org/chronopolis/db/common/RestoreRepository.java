@@ -1,6 +1,6 @@
-package org.chronopolis.db.replication;
+package org.chronopolis.db.common;
 
-import org.chronopolis.db.replication.model.RestoreRequest;
+import org.chronopolis.db.common.model.RestoreRequest;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.transaction.annotation.Transactional;
 

@@ -3,8 +3,8 @@ package org.chronopolis.replicate.processor;
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
-import org.chronopolis.db.replication.RestoreRepository;
-import org.chronopolis.db.replication.model.RestoreRequest;
+import org.chronopolis.db.common.RestoreRepository;
+import org.chronopolis.db.common.model.RestoreRequest;
 import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
@@ -45,8 +45,7 @@ public class CollectionRestoreRequestProcessor implements ChronProcessor {
         if (collection == null) {
             att = Indicator.NAK;
         } else {
-            RestoreRequest restore = new RestoreRequest(msg.getCorrelationId(),
-                    collection.getDirectory());
+            RestoreRequest restore = new RestoreRequest(msg.getCorrelationId());
             restoreRepository.save(restore);
         }
 
