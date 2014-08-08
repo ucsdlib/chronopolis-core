@@ -58,13 +58,17 @@ public class CollectionRestoreRequestProcessor implements ChronProcessor {
                 msg.getCorrelationId());
             route = msg.getReturnKey();
         } else {
-            next = messageFactory.collectionRestoreRequestMessage(collection, depositor);
+            // reuse the correlation id for consistency
+            next = messageFactory.collectionRestoreRequestMessage(collection,
+                    depositor,
+                    msg.getCorrelationId());
             route = RoutingKey.REPLICATE_BROADCAST.asRoute();
 
             // Add a RestoreRequest to keep track of the request through our flow
             RestoreRequest restoreRequest = new RestoreRequest(next.getCorrelationId());
             restoreRequest.setDepositor(depositor);
             restoreRequest.setCollectionName(collection);
+            restoreRequest.setReturnKey(msg.getReturnKey());
             restoreRepository.save(restoreRequest);
         }
 

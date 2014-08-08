@@ -182,6 +182,16 @@ public class MessageFactory {
         return msg;
     }
 
+    public CollectionRestoreRequestMessage collectionRestoreRequestMessage(String collection,
+                                                                           String depositor,
+                                                                           String correlationId) {
+        CollectionRestoreRequestMessage msg = new CollectionRestoreRequestMessage();
+        setHeaders(msg, correlationId);
+        msg.setCollection(collection);
+        msg.setDepositor(depositor);
+        return msg;
+    }
+
     public CollectionRestoreCompleteMessage collectionRestoreCompleteMessage(Indicator messageAtt,
                                                                              String location,
                                                                              String correlationId) {

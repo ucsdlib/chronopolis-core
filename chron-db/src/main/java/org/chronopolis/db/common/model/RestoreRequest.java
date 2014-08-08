@@ -23,6 +23,9 @@ public class RestoreRequest {
     @Column(name = "collection_name")
     String collectionName;
 
+    @Column(name = "return_key")
+    String returnKey;
+
 
     public RestoreRequest() {
     }
@@ -61,5 +64,13 @@ public class RestoreRequest {
 
     public void setDepositor(final String depositor) {
         this.depositor = depositor;
+    }
+
+    public String getReturnKey() {
+        return returnKey;
+    }
+
+    public void setReturnKey(final String returnKey) {
+        this.returnKey = returnKey;
     }
 }
