@@ -21,7 +21,7 @@ public class RestoreRequest {
     public RestoreRequest() {
     }
 
-    public RestoreRequest(final String directory, final String correlationId) {
+    public RestoreRequest(String correlationId, String directory) {
         this.directory = directory;
         this.correlationId = correlationId;
     }
