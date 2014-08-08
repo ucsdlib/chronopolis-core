@@ -4,6 +4,8 @@ import com.rabbitmq.client.ConnectionFactory;
 import org.chronopolis.amqp.ConnectionListenerImpl;
 import org.chronopolis.amqp.TopicProducer;
 import org.chronopolis.amqp.error.ErrorHandlerImpl;
+import org.chronopolis.common.ace.AceService;
+import org.chronopolis.common.ace.CredentialRequestInterceptor;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.ReplicateMessageListener;
@@ -14,6 +16,7 @@ import org.chronopolis.replicate.jobs.TokenStoreDownloadJobListener;
 import org.chronopolis.replicate.processor.CollectionInitProcessor;
 import org.chronopolis.replicate.processor.FileQueryProcessor;
 import org.chronopolis.replicate.processor.FileQueryResponseProcessor;
+import org.chronopolis.replicate.util.URIUtil;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -35,6 +38,7 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
+import retrofit.RestAdapter;
 
 import javax.annotation.Resource;
 
@@ -56,6 +60,24 @@ public class ReplicationConfig {
 
     @Autowired
     ReplicationProperties properties;
+
+    @Bean
+    AceService aceService() {
+        String endpoint = URIUtil.buildAceUri(properties.getAceFqdn(),
+                properties.getAcePort(),
+                properties.getAcePath()).toString();
+
+        CredentialRequestInterceptor interceptor = new CredentialRequestInterceptor(
+                properties.getAceUser(),
+                properties.getAcePass());
+
+        RestAdapter restAdapter = new RestAdapter.Builder()
+                .setEndpoint(endpoint)
+                .setRequestInterceptor(interceptor)
+                .build();
+
+        return restAdapter.create(AceService.class);
+    }
 
     @Bean
     MailUtil mailUtil() {
