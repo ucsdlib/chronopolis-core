@@ -1,5 +1,6 @@
 package org.chronopolis.messaging.collection;
 
+import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.MessageConstant;
 import org.chronopolis.messaging.MessageType;
 import org.chronopolis.messaging.base.ChronMessage;
@@ -27,6 +28,14 @@ public class CollectionRestoreLocationMessage extends ChronMessage {
 
     public String getProtocol() {
         return (String) body.get(MessageConstant.PROTOCOL.toString());
+    }
+
+    public void setMessageAtt(Indicator att) {
+        body.addContent(MessageConstant.MESSAGE_ATT.toString(), att.getName());
+    }
+
+    public String getMessageAtt() {
+        return (String) body.get(MessageConstant.MESSAGE_ATT.toString());
     }
 
 }

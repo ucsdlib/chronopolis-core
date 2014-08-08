@@ -64,7 +64,7 @@ public enum MessageType {
     COLLECTION_RESTORE_REPLY(MessageState.ORIGIN, ProcessType.RESTORE, "reply", Indicator.ACK,
             "message-att"),
     COLLECTION_RESTORE_LOCATION(MessageState.ORIGIN, ProcessType.RESTORE, "location", Indicator.ACK,
-            "restore-location", "protocol"),
+            "message-att", "restore-location", "protocol"),
     COLLECTION_RESTORE_COMPLETE(MessageState.RESPONSE, ProcessType.RESTORE, "complete", Indicator.ACK,
             "message-att", "location")
     ;

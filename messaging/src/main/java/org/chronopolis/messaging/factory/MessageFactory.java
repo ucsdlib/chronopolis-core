@@ -204,6 +204,7 @@ public class MessageFactory {
 
     public CollectionRestoreLocationMessage collectionRestoreLocationMessage(String protocol,
                                                                              String location,
+                                                                             Indicator messageAtt,
                                                                              String correlationId) {
         CollectionRestoreLocationMessage msg = new CollectionRestoreLocationMessage();
         setHeaders(msg, correlationId);

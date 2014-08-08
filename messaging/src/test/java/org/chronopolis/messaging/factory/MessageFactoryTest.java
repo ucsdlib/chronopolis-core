@@ -130,6 +130,7 @@ public class MessageFactoryTest{
         CollectionRestoreLocationMessage msg = messageFactory.collectionRestoreLocationMessage(
                 "protocol",
                 "location",
+                Indicator.ACK,
                 "correlation-id"
         );
     }
