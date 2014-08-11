@@ -48,6 +48,9 @@ public class CollectionRestoreRequestProcessor implements ChronProcessor {
             att = Indicator.NAK;
         } else {
             RestoreRequest restore = new RestoreRequest(msg.getCorrelationId());
+            restore.setDepositor(collection.getGroup());
+            restore.setCollectionName(collection.getName());
+            restore.setDirectory(collection.getDirectory());
             restoreRepository.save(restore);
         }
 
