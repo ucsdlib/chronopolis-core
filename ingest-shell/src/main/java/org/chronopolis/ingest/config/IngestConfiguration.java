@@ -32,7 +32,6 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
@@ -60,7 +59,6 @@ import static org.chronopolis.ingest.IngestProperties.PROPERTIES_TOKEN_STAGE;
  * Created by shake on 4/10/14.
  */
 @Configuration
-@ComponentScan(basePackageClasses = ChronopolisSettings.class)
 @PropertySource({"file:ingest.properties"})
 @Import(IngestJPAConfiguration.class)
 public class IngestConfiguration {
