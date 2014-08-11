@@ -7,6 +7,8 @@ package org.chronopolis.replicate;
 import org.chronopolis.amqp.ChronMessageListener;
 import org.chronopolis.messaging.MessageType;
 import org.chronopolis.messaging.base.ChronProcessor;
+import org.chronopolis.replicate.processor.CollectionRestoreLocationProcessor;
+import org.chronopolis.replicate.processor.CollectionRestoreRequestProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,13 +21,19 @@ public class ReplicateMessageListener extends ChronMessageListener {
     private final ChronProcessor fileQueryProcessor;
     private final ChronProcessor fileQueryResponseProcessor;
     private final ChronProcessor collectionInitProcessor;
+    private final CollectionRestoreRequestProcessor collectionRestoreRequestProcessor;
+    private final CollectionRestoreLocationProcessor collectionRestoreLocationProcessor;
 
     public ReplicateMessageListener(ChronProcessor fileQueryProcessor,
                                     ChronProcessor fileQueryResponseProcessor,
-                                    ChronProcessor collectionInitProcessor) {
+                                    ChronProcessor collectionInitProcessor,
+                                    CollectionRestoreRequestProcessor collectionRestoreRequestProcessor,
+                                    CollectionRestoreLocationProcessor collectionRestoreLocationProcessor) {
         this.fileQueryProcessor = fileQueryProcessor;
         this.fileQueryResponseProcessor = fileQueryResponseProcessor;
         this.collectionInitProcessor = collectionInitProcessor;
+        this.collectionRestoreRequestProcessor = collectionRestoreRequestProcessor;
+        this.collectionRestoreLocationProcessor = collectionRestoreLocationProcessor;
     }
 
     @Override
@@ -37,6 +45,10 @@ public class ReplicateMessageListener extends ChronMessageListener {
                 return fileQueryProcessor;
             case FILE_QUERY_RESPONSE:
                 return fileQueryResponseProcessor;
+            case COLLECTION_RESTORE_REQUEST:
+                return collectionRestoreRequestProcessor;
+            case COLLECTION_RESTORE_LOCATION:
+                return collectionRestoreLocationProcessor;
 
             default:
                 throw new RuntimeException("Unexpected MessageType: " + type.name());

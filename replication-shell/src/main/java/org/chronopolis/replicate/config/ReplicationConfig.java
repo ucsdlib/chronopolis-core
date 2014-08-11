@@ -266,11 +266,14 @@ public class ReplicationConfig {
     }
 
     @Bean
-    MessageListener messageListener(CollectionRestoreRequestProcessor collectionRestoreRequestProcessor) {
+    MessageListener messageListener(CollectionRestoreRequestProcessor collectionRestoreRequestProcessor,
+                                    CollectionRestoreLocationProcessor collectionRestoreLocationProcessor) {
         return new ReplicateMessageListener(
                 fileQueryProcessor(),
                 fileQueryResponseProcessor(),
-                collectionInitProcessor());
+                collectionInitProcessor(),
+                collectionRestoreRequestProcessor,
+                collectionRestoreLocationProcessor);
     }
 
     @Bean
