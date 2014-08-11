@@ -1,12 +1,15 @@
 package org.chronopolis.replicate.config;
 
 import com.rabbitmq.client.ConnectionFactory;
+import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.amqp.ConnectionListenerImpl;
 import org.chronopolis.amqp.TopicProducer;
 import org.chronopolis.amqp.error.ErrorHandlerImpl;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.CredentialRequestInterceptor;
 import org.chronopolis.common.mail.MailUtil;
+import org.chronopolis.common.settings.ChronopolisSettings;
+import org.chronopolis.db.common.RestoreRepository;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.ReplicateMessageListener;
 import org.chronopolis.replicate.ReplicationProperties;
@@ -14,6 +17,8 @@ import org.chronopolis.replicate.jobs.AceRegisterJobListener;
 import org.chronopolis.replicate.jobs.BagDownloadJobListener;
 import org.chronopolis.replicate.jobs.TokenStoreDownloadJobListener;
 import org.chronopolis.replicate.processor.CollectionInitProcessor;
+import org.chronopolis.replicate.processor.CollectionRestoreLocationProcessor;
+import org.chronopolis.replicate.processor.CollectionRestoreRequestProcessor;
 import org.chronopolis.replicate.processor.FileQueryProcessor;
 import org.chronopolis.replicate.processor.FileQueryResponseProcessor;
 import org.chronopolis.replicate.util.URIUtil;
@@ -36,7 +41,12 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import retrofit.RestAdapter;
 
@@ -46,8 +56,9 @@ import javax.annotation.Resource;
  * Created by shake on 4/16/14.
  */
 @Configuration
+@ComponentScan(basePackageClasses = ChronopolisSettings.class)
 @PropertySource({"file:replication.properties"})
-@Import(PropConfig.class)
+@Import({PropConfig.class, JPAConfiguration.class})
 public class ReplicationConfig {
     public final Logger log = LoggerFactory.getLogger(ReplicationConfig.class);
 
@@ -235,7 +246,27 @@ public class ReplicationConfig {
     }
 
     @Bean
-    MessageListener messageListener() {
+    CollectionRestoreRequestProcessor collectionRestoreRequestProcessor(ChronProducer producer,
+                                                                        MessageFactory messageFactory,
+                                                                        AceService aceService) {
+        return new CollectionRestoreRequestProcessor(producer,
+                messageFactory,
+                aceService);
+    }
+
+    @Bean
+    CollectionRestoreLocationProcessor collectionRestoreLocationProcessor(ChronopolisSettings chronopolisSettings,
+                                                                          ChronProducer producer,
+                                                                          MessageFactory messageFactory,
+                                                                          RestoreRepository restoreRepository) {
+        return new CollectionRestoreLocationProcessor(chronopolisSettings,
+                producer,
+                messageFactory,
+                restoreRepository);
+    }
+
+    @Bean
+    MessageListener messageListener(CollectionRestoreRequestProcessor collectionRestoreRequestProcessor) {
         return new ReplicateMessageListener(
                 fileQueryProcessor(),
                 fileQueryResponseProcessor(),
@@ -309,7 +340,7 @@ public class ReplicationConfig {
 
     @Bean
     @DependsOn("rabbitAdmin")
-    SimpleMessageListenerContainer simpleMessageListenerContainer() {
+    SimpleMessageListenerContainer simpleMessageListenerContainer(MessageListener messageListener) {
         // String testQueueName = env.getProperty(PROPERTIES_RABBIT_TEST_QUEUE_NAME);
         String broadcastQueueName = properties.getBroadcastQueueName();
         String directQueueName = properties.getDirectQueueName();
@@ -321,7 +352,7 @@ public class ReplicationConfig {
         container.setErrorHandler(errorHandler());
         container.setConnectionFactory(connectionFactory());
         container.setQueueNames(broadcastQueueName, directQueueName);
-        container.setMessageListener(messageListener());
+        container.setMessageListener(messageListener);
         return container;
     }
 

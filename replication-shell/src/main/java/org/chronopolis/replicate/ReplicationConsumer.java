@@ -1,12 +1,14 @@
 package org.chronopolis.replicate;
 
 import org.chronopolis.amqp.ChronProducer;
+import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.replicate.config.PropConfig;
 import org.chronopolis.replicate.config.ReplicationConfig;
 import org.chronopolis.replicate.util.URIUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.support.GenericXmlApplicationContext;
 
 import java.io.BufferedReader;
