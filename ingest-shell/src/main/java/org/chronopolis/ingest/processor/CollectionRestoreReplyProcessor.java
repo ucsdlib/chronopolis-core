@@ -60,7 +60,8 @@ public class CollectionRestoreReplyProcessor implements ChronProcessor {
 
         // TODO: This will actually be sent to us
         String id = UUID.randomUUID().toString();
-        location.append("/staging/restore/").append(id);
+        // TODO: Pull relative location from settings?
+        location.append("/scratch1/restore/").append(id);
 
         // For now, we'll just pull from ourselves
         // In the future we'll want a way to actually choose a node
@@ -74,8 +75,7 @@ public class CollectionRestoreReplyProcessor implements ChronProcessor {
             reply = messageFactory.collectionRestoreLocationMessage(null,
                     null,
                     Indicator.NAK,
-                    chronMessage.getCorrelationId()
-            );
+                    chronMessage.getCorrelationId());
         }
 
         producer.send(reply, msg.getReturnKey());

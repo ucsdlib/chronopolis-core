@@ -69,6 +69,7 @@ public class CollectionRestoreRequestProcessor implements ChronProcessor {
             restoreRequest.setDepositor(depositor);
             restoreRequest.setCollectionName(collection);
             restoreRequest.setReturnKey(msg.getReturnKey());
+            restoreRequest.setDirectory("directory");
             restoreRepository.save(restoreRequest);
         }
 

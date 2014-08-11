@@ -85,8 +85,10 @@ public class RSyncTransfer implements FileTransfer {
                 ProcessBuilder pb = new ProcessBuilder(cmd);
                 Process p = null;
                 try {
+                    log.info("Executing {} {} {} {}", cmd);
                     p = pb.start();
                     p.waitFor();
+                    log.info("rsync exit value: " + p.exitValue());
                 } catch (IOException e) {
                     log.error("Error starting rsync", e);
                     return false;
