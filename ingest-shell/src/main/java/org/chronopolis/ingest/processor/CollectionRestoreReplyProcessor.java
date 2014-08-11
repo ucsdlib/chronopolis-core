@@ -65,7 +65,7 @@ public class CollectionRestoreReplyProcessor implements ChronProcessor {
         // For now, we'll just pull from ourselves
         // In the future we'll want a way to actually choose a node
         if (msg.getOrigin().equals(settings.getNode())
-                && Indicator.ACK.name().equals(msg.getMessageAtt())) {
+                && Indicator.ACK.name().equalsIgnoreCase(msg.getMessageAtt())) {
             reply = messageFactory.collectionRestoreLocationMessage("rsync",
                     location.toString(),
                     Indicator.ACK,

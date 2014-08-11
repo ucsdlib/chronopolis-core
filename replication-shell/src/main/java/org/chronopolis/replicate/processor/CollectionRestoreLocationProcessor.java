@@ -51,7 +51,7 @@ public class CollectionRestoreLocationProcessor implements ChronProcessor {
                 (CollectionRestoreLocationMessage) chronMessage;
 
         // If we were chosen, restore the collection
-        if (Indicator.ACK.name().equals(msg.getMessageAtt())) {
+        if (Indicator.ACK.name().equalsIgnoreCase(msg.getMessageAtt())) {
             putAndNotify(msg);
         }
 
@@ -70,6 +70,7 @@ public class CollectionRestoreLocationProcessor implements ChronProcessor {
             transfer = new HttpsTransfer();
         }
 
+        log.info("Finding restore request...");
         RestoreRequest restore =
                 restoreRepository.findByCorrelationId(correlationId);
         // This implies that ACE and the Replication Shell share the same
@@ -80,12 +81,14 @@ public class CollectionRestoreLocationProcessor implements ChronProcessor {
         Indicator att = Indicator.ACK;
 
         try {
+            log.info("putting collection...");
             transfer.put(local, location);
         } catch (FileTransferException e) {
             log.error("Error restoring collection", e);
             att = Indicator.NAK;
         }
 
+        log.info("Sending response...");
         // TODO: What location to actually send back?
         ChronMessage reply = messageFactory.collectionRestoreCompleteMessage(
                 att,
@@ -94,7 +97,6 @@ public class CollectionRestoreLocationProcessor implements ChronProcessor {
         );
 
         producer.send(reply, msg.getReturnKey());
-
     }
 
     private void removeRequest(CollectionRestoreLocationMessage msg) {
@@ -102,7 +104,9 @@ public class CollectionRestoreLocationProcessor implements ChronProcessor {
         // TODO: repo.deleteByCorrelationId
         RestoreRequest restore =
                 restoreRepository.findByCorrelationId(correlationId);
-        restoreRepository.delete(restore);
+        if (restore != null) {
+            restoreRepository.delete(restore);
+        }
     }
 
 }
