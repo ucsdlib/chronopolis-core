@@ -218,8 +218,11 @@ public class MessageFactory {
                                                                              String correlationId) {
         CollectionRestoreLocationMessage msg = new CollectionRestoreLocationMessage();
         setHeaders(msg, correlationId);
-        msg.setProtocol(protocol);
-        msg.setRestoreLocation(location);
+        msg.setMessageAtt(messageAtt);
+        if (Indicator.ACK.equals(messageAtt)) {
+            msg.setProtocol(protocol);
+            msg.setRestoreLocation(location);
+        }
         return msg;
     }
 
