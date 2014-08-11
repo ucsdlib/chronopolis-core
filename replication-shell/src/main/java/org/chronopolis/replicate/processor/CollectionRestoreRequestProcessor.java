@@ -20,14 +20,16 @@ public class CollectionRestoreRequestProcessor implements ChronProcessor {
     private final ChronProducer producer;
     private final MessageFactory messageFactory;
     private final AceService aceService;
-    private RestoreRepository restoreRepository;
+    private final RestoreRepository restoreRepository;
 
     public CollectionRestoreRequestProcessor(ChronProducer producer,
                                              MessageFactory messageFactory,
-                                             AceService aceService) {
+                                             AceService aceService,
+                                             RestoreRepository restoreRepository) {
         this.producer = producer;
         this.messageFactory = messageFactory;
         this.aceService = aceService;
+        this.restoreRepository = restoreRepository;
     }
 
     @Override

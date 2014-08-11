@@ -248,10 +248,12 @@ public class ReplicationConfig {
     @Bean
     CollectionRestoreRequestProcessor collectionRestoreRequestProcessor(ChronProducer producer,
                                                                         MessageFactory messageFactory,
-                                                                        AceService aceService) {
+                                                                        AceService aceService,
+                                                                        RestoreRepository restoreRepository) {
         return new CollectionRestoreRequestProcessor(producer,
                 messageFactory,
-                aceService);
+                aceService,
+                restoreRepository);
     }
 
     @Bean
