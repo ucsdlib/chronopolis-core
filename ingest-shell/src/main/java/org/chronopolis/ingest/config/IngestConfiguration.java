@@ -7,6 +7,7 @@ import org.chronopolis.amqp.TopicProducer;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.restore.CollectionRestore;
 import org.chronopolis.common.restore.LocalRestore;
+import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.db.DatabaseManager;
 import org.chronopolis.db.common.RestoreRepository;
 import org.chronopolis.ingest.IngestMessageListener;
@@ -14,6 +15,7 @@ import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.ingest.processor.CollectionInitCompleteProcessor;
 import org.chronopolis.ingest.processor.CollectionInitReplyProcessor;
 import org.chronopolis.ingest.processor.CollectionRestoreCompleteProcessor;
+import org.chronopolis.ingest.processor.CollectionRestoreReplyProcessor;
 import org.chronopolis.ingest.processor.CollectionRestoreRequestProcessor;
 import org.chronopolis.ingest.processor.PackageIngestStatusQueryProcessor;
 import org.chronopolis.ingest.processor.PackageReadyProcessor;
@@ -30,6 +32,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
@@ -57,6 +60,7 @@ import static org.chronopolis.ingest.IngestProperties.PROPERTIES_TOKEN_STAGE;
  * Created by shake on 4/10/14.
  */
 @Configuration
+@ComponentScan(basePackageClasses = ChronopolisSettings.class)
 @PropertySource({"file:ingest.properties"})
 @Import(IngestJPAConfiguration.class)
 public class IngestConfiguration {
@@ -222,18 +226,31 @@ public class IngestConfiguration {
     }
 
     @Bean
+    public CollectionRestoreReplyProcessor collectionRestoreReplyProcessor(ChronopolisSettings settings,
+                                                                           ChronProducer producer,
+                                                                           MessageFactory messageFactory,
+                                                                           IngestProperties properties) {
+        return new CollectionRestoreReplyProcessor(settings,
+                producer,
+                messageFactory,
+                properties);
+    }
+
+    @Bean
     public CollectionRestore collectionRestore() {
         return new LocalRestore(Paths.get(ingestProperties().getPreservation()),
                 Paths.get(ingestProperties().getStage()));
     }
 
     @Bean
-    public MessageListener messageListener(CollectionRestoreCompleteProcessor collectionRestoreCompleteProcessor) {
+    public MessageListener messageListener(CollectionRestoreReplyProcessor collectionRestoreReplyProcessor,
+                                           CollectionRestoreCompleteProcessor collectionRestoreCompleteProcessor) {
         return new IngestMessageListener(packageIngestStatusQueryProcessor(),
                 packageReadyProcessor(),
                 collectionInitCompleteProcessor(),
                 collectionInitReplyProcessor(),
                 collectionRestoreRequestProcessor(),
+                collectionRestoreReplyProcessor,
                 collectionRestoreCompleteProcessor);
     }
 

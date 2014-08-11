@@ -8,6 +8,7 @@ import org.chronopolis.amqp.ChronMessageListener;
 import org.chronopolis.ingest.processor.CollectionInitCompleteProcessor;
 import org.chronopolis.ingest.processor.CollectionInitReplyProcessor;
 import org.chronopolis.ingest.processor.CollectionRestoreCompleteProcessor;
+import org.chronopolis.ingest.processor.CollectionRestoreReplyProcessor;
 import org.chronopolis.ingest.processor.CollectionRestoreRequestProcessor;
 import org.chronopolis.ingest.processor.PackageIngestStatusQueryProcessor;
 import org.chronopolis.ingest.processor.PackageReadyProcessor;
@@ -28,6 +29,7 @@ public class IngestMessageListener extends ChronMessageListener {
     private final CollectionInitCompleteProcessor collectionInitCompleteProcessor;
     private final CollectionInitReplyProcessor collectionInitReplyProcessor;
     private final CollectionRestoreRequestProcessor collectionRestoreRequestProcessor;
+    private final CollectionRestoreReplyProcessor collectionRestoreReplyProcessor;
     private final CollectionRestoreCompleteProcessor collectionRestoreCompleteProcessor;
 
 
@@ -36,12 +38,14 @@ public class IngestMessageListener extends ChronMessageListener {
                                  CollectionInitCompleteProcessor collectionInitCompleteProcessor,
                                  CollectionInitReplyProcessor collectionInitReplyProcessor,
                                  CollectionRestoreRequestProcessor collectionRestoreRequestProcessor,
+                                 CollectionRestoreReplyProcessor collectionRestoreReplyProcessor,
                                  CollectionRestoreCompleteProcessor collectionRestoreCompleteProcessor) {
         this.packageIngestStatusQueryProcessor = packageIngestStatusQueryProcessor;
         this.packageReadyProcessor = packageReadyProcessor;
         this.collectionInitCompleteProcessor = collectionInitCompleteProcessor;
         this.collectionInitReplyProcessor = collectionInitReplyProcessor;
         this.collectionRestoreRequestProcessor = collectionRestoreRequestProcessor;
+        this.collectionRestoreReplyProcessor = collectionRestoreReplyProcessor;
         this.collectionRestoreCompleteProcessor = collectionRestoreCompleteProcessor;
     }
 
@@ -58,6 +62,8 @@ public class IngestMessageListener extends ChronMessageListener {
                 return collectionInitReplyProcessor;
             case COLLECTION_RESTORE_REQUEST:
                 return collectionRestoreRequestProcessor;
+            case COLLECTION_RESTORE_REPLY:
+                return collectionRestoreReplyProcessor;
             case COLLECTION_RESTORE_COMPLETE:
                 return collectionRestoreCompleteProcessor;
 

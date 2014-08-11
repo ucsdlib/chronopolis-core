@@ -50,8 +50,8 @@ public abstract class ChronMessageListener implements MessageListener {
         // Sanity Check
         if (null != message) {
             log.debug("Received {}", message);
-            ChronProcessor processor = getProcessor(message.getType());
             try {
+                ChronProcessor processor = getProcessor(message.getType());
                 log.info("Processing {}", message.getType());
                 processor.process(message);
             } catch (Exception e) {
