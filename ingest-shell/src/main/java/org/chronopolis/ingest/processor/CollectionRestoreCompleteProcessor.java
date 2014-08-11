@@ -17,9 +17,17 @@ import org.slf4j.LoggerFactory;
 public class CollectionRestoreCompleteProcessor implements ChronProcessor {
     private final Logger log = LoggerFactory.getLogger(CollectionRestoreCompleteProcessor.class);
 
-    private ChronProducer producer;
-    private MessageFactory messageFactory;
-    private RestoreRepository restoreRepository;
+    private final ChronProducer producer;
+    private final MessageFactory messageFactory;
+    private final RestoreRepository restoreRepository;
+
+    public CollectionRestoreCompleteProcessor(ChronProducer producer,
+                                              MessageFactory messageFactory,
+                                              RestoreRepository restoreRepository) {
+        this.producer = producer;
+        this.messageFactory = messageFactory;
+        this.restoreRepository = restoreRepository;
+    }
 
     @Override
     public void process(final ChronMessage chronMessage) {

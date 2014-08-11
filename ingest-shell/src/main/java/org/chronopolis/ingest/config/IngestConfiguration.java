@@ -1,6 +1,7 @@
 package org.chronopolis.ingest.config;
 
 import com.rabbitmq.client.ConnectionFactory;
+import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.amqp.ConnectionListenerImpl;
 import org.chronopolis.amqp.TopicProducer;
 import org.chronopolis.common.mail.MailUtil;
@@ -12,6 +13,7 @@ import org.chronopolis.ingest.IngestMessageListener;
 import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.ingest.processor.CollectionInitCompleteProcessor;
 import org.chronopolis.ingest.processor.CollectionInitReplyProcessor;
+import org.chronopolis.ingest.processor.CollectionRestoreCompleteProcessor;
 import org.chronopolis.ingest.processor.CollectionRestoreRequestProcessor;
 import org.chronopolis.ingest.processor.PackageIngestStatusQueryProcessor;
 import org.chronopolis.ingest.processor.PackageReadyProcessor;
@@ -211,18 +213,28 @@ public class IngestConfiguration {
     }
 
     @Bean
+    public CollectionRestoreCompleteProcessor collectionRestoreCompleteProcessor(ChronProducer producer,
+                                                                                 MessageFactory messageFactory,
+                                                                                 RestoreRepository restoreRepository) {
+        return new CollectionRestoreCompleteProcessor(producer,
+                messageFactory,
+                restoreRepository);
+    }
+
+    @Bean
     public CollectionRestore collectionRestore() {
         return new LocalRestore(Paths.get(ingestProperties().getPreservation()),
                 Paths.get(ingestProperties().getStage()));
     }
 
     @Bean
-    public MessageListener messageListener() {
+    public MessageListener messageListener(CollectionRestoreCompleteProcessor collectionRestoreCompleteProcessor) {
         return new IngestMessageListener(packageIngestStatusQueryProcessor(),
                 packageReadyProcessor(),
                 collectionInitCompleteProcessor(),
                 collectionInitReplyProcessor(),
-                collectionRestoreRequestProcessor());
+                collectionRestoreRequestProcessor(),
+                collectionRestoreCompleteProcessor);
     }
 
     @Bean
@@ -286,14 +298,14 @@ public class IngestConfiguration {
 
     @Bean
     @DependsOn("rabbitAdmin")
-    SimpleMessageListenerContainer simpleMessageListenerContainer() {
+    SimpleMessageListenerContainer simpleMessageListenerContainer(MessageListener messageListener) {
         // String testQueueName = env.getProperty(PROPERTIES_RABBIT_TEST_QUEUE_NAME);
         String broadcastQueueName = ingestProperties().getBroadcastQueueName();
         String directQueueName = ingestProperties().getDirectQueueName();
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setConnectionFactory(connectionFactory());
         container.setQueueNames(broadcastQueueName, directQueueName);
-        container.setMessageListener(messageListener());
+        container.setMessageListener(messageListener);
         return container;
     }
 

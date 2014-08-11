@@ -5,6 +5,7 @@ import org.chronopolis.amqp.ChronMessageListener;
 import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.ingest.processor.CollectionInitCompleteProcessor;
 import org.chronopolis.ingest.processor.CollectionInitReplyProcessor;
+import org.chronopolis.ingest.processor.CollectionRestoreCompleteProcessor;
 import org.chronopolis.ingest.processor.CollectionRestoreRequestProcessor;
 import org.chronopolis.ingest.processor.PackageIngestStatusQueryProcessor;
 import org.chronopolis.ingest.processor.PackageReadyProcessor;
@@ -25,6 +26,7 @@ public class IngestMessageListenerTest {
     PackageIngestStatusQueryProcessor pisqProcessor;
     CollectionInitReplyProcessor cirProcessor;
     CollectionRestoreRequestProcessor crrProcessor;
+    CollectionRestoreCompleteProcessor crcProcessor;
     CollectionInitCompleteProcessor cicProcessor;
     PackageReadyProcessor prProcessor;
 
@@ -45,6 +47,7 @@ public class IngestMessageListenerTest {
         cicProcessor = EasyMock.createMock(CollectionInitCompleteProcessor.class);
         cirProcessor = EasyMock.createMock(CollectionInitReplyProcessor.class);
         crrProcessor = EasyMock.createMock(CollectionRestoreRequestProcessor.class);
+        crcProcessor = EasyMock.createMock(CollectionRestoreCompleteProcessor.class);
 
         processor = EasyMock.createMock(ChronProcessor.class);
         messageListener = new IngestMessageListener(
@@ -52,7 +55,8 @@ public class IngestMessageListenerTest {
                 prProcessor,
                 cicProcessor,
                 cirProcessor,
-                crrProcessor);
+                crrProcessor,
+                crcProcessor);
     }
 
     @Test
