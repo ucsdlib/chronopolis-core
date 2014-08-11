@@ -8,11 +8,14 @@ import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.collection.CollectionRestoreCompleteMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by shake on 8/8/14.
  */
 public class CollectionRestoreCompleteProcessor implements ChronProcessor {
+    private final Logger log = LoggerFactory.getLogger(CollectionRestoreCompleteProcessor.class);
 
     private ChronProducer producer;
     private MessageFactory messageFactory;
@@ -30,9 +33,10 @@ public class CollectionRestoreCompleteProcessor implements ChronProcessor {
         CollectionRestoreCompleteMessage msg =
                 (CollectionRestoreCompleteMessage) chronMessage;
 
+        RestoreRequest request = restoreRepository.findByCorrelationId(msg.getCorrelationId());
         if (msg.getMessageAtt().equalsIgnoreCase(Indicator.ACK.toString())) {
             // notify intake of completion
-            RestoreRequest request = restoreRepository.findByCorrelationId(msg.getCorrelationId());
+            log.info("Successful restore for {}::{}", request.getDepositor(), request.getCollectionName());
             String location = request.getDirectory();
             String returnKey = request.getReturnKey();
 
@@ -44,6 +48,7 @@ public class CollectionRestoreCompleteProcessor implements ChronProcessor {
 
         } else {
             // Send mail notifying failure
+            log.info("Error restoring {}::{}", request.getDepositor(), request.getCollectionName());
         }
     }
 }

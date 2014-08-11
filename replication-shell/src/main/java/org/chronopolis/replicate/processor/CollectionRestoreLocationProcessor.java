@@ -50,6 +50,16 @@ public class CollectionRestoreLocationProcessor implements ChronProcessor {
         CollectionRestoreLocationMessage msg =
                 (CollectionRestoreLocationMessage) chronMessage;
 
+        // If we were chosen, restore the collection
+        if (Indicator.ACK.name().equals(msg.getMessageAtt())) {
+            putAndNotify(msg);
+        }
+
+        // This is the end of the flow for repl nodes, so remove the DB object
+        removeRequest(msg);
+    }
+
+    private void putAndNotify(CollectionRestoreLocationMessage msg) {
         String protocol = msg.getProtocol();
         String location = msg.getRestoreLocation();
         String correlationId = msg.getCorrelationId();
@@ -85,6 +95,14 @@ public class CollectionRestoreLocationProcessor implements ChronProcessor {
 
         producer.send(reply, msg.getReturnKey());
 
+    }
+
+    private void removeRequest(CollectionRestoreLocationMessage msg) {
+        String correlationId = msg.getCorrelationId();
+        // TODO: repo.deleteByCorrelationId
+        RestoreRequest restore =
+                restoreRepository.findByCorrelationId(correlationId);
+        restoreRepository.delete(restore);
     }
 
 }
