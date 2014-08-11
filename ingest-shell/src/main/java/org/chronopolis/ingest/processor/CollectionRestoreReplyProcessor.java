@@ -8,6 +8,8 @@ import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.collection.CollectionRestoreReplyMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -17,6 +19,7 @@ import java.util.UUID;
  * Created by shake on 8/7/14.
  */
 public class CollectionRestoreReplyProcessor implements ChronProcessor {
+    private final Logger log = LoggerFactory.getLogger(CollectionRestoreReplyProcessor.class);
 
     private final ChronopolisSettings settings;
     private final ChronProducer producer;
@@ -61,7 +64,8 @@ public class CollectionRestoreReplyProcessor implements ChronProcessor {
 
         // For now, we'll just pull from ourselves
         // In the future we'll want a way to actually choose a node
-        if (msg.getOrigin().equals(settings.getNode())) {
+        if (msg.getOrigin().equals(settings.getNode())
+                && Indicator.ACK.name().equals(msg.getMessageAtt())) {
             reply = messageFactory.collectionRestoreLocationMessage("rsync",
                     location.toString(),
                     Indicator.ACK,
