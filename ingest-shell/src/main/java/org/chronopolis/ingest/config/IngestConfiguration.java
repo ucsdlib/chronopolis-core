@@ -154,8 +154,8 @@ public class IngestConfiguration {
     }
 
     @Bean
-    public MessageFactory messageFactory() {
-        MessageFactory messageFactory = new MessageFactory(ingestProperties());
+    public MessageFactory messageFactory(ChronopolisSettings chronopolisSettings) {
+        MessageFactory messageFactory = new MessageFactory(chronopolisSettings);
         return messageFactory;
     }
 
@@ -174,28 +174,28 @@ public class IngestConfiguration {
     }
 
     @Bean
-    public PackageReadyProcessor packageReadyProcessor() {
+    public PackageReadyProcessor packageReadyProcessor(MessageFactory messageFactory) {
         return new PackageReadyProcessor(producer(),
                 ingestProperties(),
-                messageFactory(),
+                messageFactory,
                 manager,
                 mailUtil());
     }
 
     @Bean
-    public CollectionInitCompleteProcessor collectionInitCompleteProcessor() {
+    public CollectionInitCompleteProcessor collectionInitCompleteProcessor(MessageFactory messageFactory) {
         return new CollectionInitCompleteProcessor(producer(),
                 ingestProperties(),
-                messageFactory(),
+                messageFactory,
                 manager,
                 mailUtil());
     }
 
     @Bean
-    public CollectionInitReplyProcessor collectionInitReplyProcessor() {
+    public CollectionInitReplyProcessor collectionInitReplyProcessor(MessageFactory messageFactory) {
         return new CollectionInitReplyProcessor(ingestProperties(),
                 producer(),
-                messageFactory(),
+                messageFactory,
                 manager
         );
     }
@@ -206,10 +206,10 @@ public class IngestConfiguration {
     }
 
     @Bean
-    public CollectionRestoreRequestProcessor collectionRestoreRequestProcessor() {
+    public CollectionRestoreRequestProcessor collectionRestoreRequestProcessor(MessageFactory messageFactory) {
         return new CollectionRestoreRequestProcessor(producer(),
                 ingestProperties(),
-                messageFactory(),
+                messageFactory,
                 collectionRestore(),
                 restoreRepository);
     }
@@ -241,13 +241,16 @@ public class IngestConfiguration {
     }
 
     @Bean
-    public MessageListener messageListener(CollectionRestoreReplyProcessor collectionRestoreReplyProcessor,
+    public MessageListener messageListener(PackageReadyProcessor packageReadyProcessor,
+                                           CollectionInitCompleteProcessor collectionInitCompleteProcessor,
+                                           CollectionInitReplyProcessor collectionInitReplyProcessor,
+                                           CollectionRestoreReplyProcessor collectionRestoreReplyProcessor,
                                            CollectionRestoreCompleteProcessor collectionRestoreCompleteProcessor) {
         return new IngestMessageListener(packageIngestStatusQueryProcessor(),
-                packageReadyProcessor(),
-                collectionInitCompleteProcessor(),
-                collectionInitReplyProcessor(),
-                collectionRestoreRequestProcessor(),
+                packageReadyProcessor,
+                collectionInitCompleteProcessor,
+                collectionInitReplyProcessor,
+                collectionRestoreRequestProcessor(null),
                 collectionRestoreReplyProcessor,
                 collectionRestoreCompleteProcessor);
     }

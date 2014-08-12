@@ -10,6 +10,7 @@ import org.chronopolis.common.ace.CredentialRequestInterceptor;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.db.common.RestoreRepository;
+import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.ReplicateMessageListener;
 import org.chronopolis.replicate.ReplicationProperties;
@@ -42,7 +43,6 @@ import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
@@ -99,8 +99,8 @@ public class ReplicationConfig {
     }
 
     @Bean
-    MessageFactory messageFactory() {
-        return new MessageFactory(properties);
+    MessageFactory messageFactory(ChronopolisSettings chronopolisSettings) {
+        return new MessageFactory(chronopolisSettings);
     }
 
     @Bean
@@ -173,12 +173,12 @@ public class ReplicationConfig {
     }
 
     @Bean
-    AceRegisterJobListener aceRegisterJobListener() {
+    AceRegisterJobListener aceRegisterJobListener(MessageFactory messageFactory) {
         AceRegisterJobListener jobListener = new AceRegisterJobListener(
                 "ace-register",
                 scheduler(),
                 producer(),
-                messageFactory(),
+                messageFactory,
                 properties,
                 mailUtil());
 
@@ -193,13 +193,13 @@ public class ReplicationConfig {
     }
 
     @Bean
-    BagDownloadJobListener bagDownloadJobListener() {
+    BagDownloadJobListener bagDownloadJobListener(MessageFactory messageFactory) {
         BagDownloadJobListener jobListener = new BagDownloadJobListener(
                 "bag-download",
                 scheduler(),
                 properties,
                 mailUtil(),
-                messageFactory(),
+                messageFactory,
                 producer());
 
         try {
@@ -213,13 +213,13 @@ public class ReplicationConfig {
     }
 
     @Bean
-    TokenStoreDownloadJobListener tokenStoreDownloadJobListener() {
+    TokenStoreDownloadJobListener tokenStoreDownloadJobListener(MessageFactory messageFactory) {
         TokenStoreDownloadJobListener jobListener = new TokenStoreDownloadJobListener(
                 "token-store-download",
                 scheduler(),
                 properties,
                 mailUtil(),
-                messageFactory(),
+                messageFactory,
                 producer());
 
         try {
@@ -236,9 +236,9 @@ public class ReplicationConfig {
     @DependsOn({"tokenStoreDownloadJobListener",
                 "bagDownloadJobListener",
                 "aceRegisterJobListener"})
-    CollectionInitProcessor collectionInitProcessor() {
+    CollectionInitProcessor collectionInitProcessor(MessageFactory messageFactory) {
         return new CollectionInitProcessor(producer(),
-                messageFactory(),
+                messageFactory,
                 properties,
                 mailUtil(),
                 scheduler());
@@ -268,11 +268,12 @@ public class ReplicationConfig {
 
     @Bean
     MessageListener messageListener(CollectionRestoreRequestProcessor collectionRestoreRequestProcessor,
-                                    CollectionRestoreLocationProcessor collectionRestoreLocationProcessor) {
+                                    CollectionRestoreLocationProcessor collectionRestoreLocationProcessor,
+                                    CollectionInitProcessor collectionInitProcessor) {
         return new ReplicateMessageListener(
                 fileQueryProcessor(),
                 fileQueryResponseProcessor(),
-                collectionInitProcessor(),
+                collectionInitProcessor,
                 collectionRestoreRequestProcessor,
                 collectionRestoreLocationProcessor);
     }

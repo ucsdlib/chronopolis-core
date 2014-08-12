@@ -4,6 +4,7 @@ import com.rabbitmq.client.ConnectionFactory;
 import org.chronopolis.amqp.ConnectionListenerImpl;
 import org.chronopolis.amqp.TopicProducer;
 import org.chronopolis.common.properties.GenericProperties;
+import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.intake.IntakeMessageListener;
 import org.chronopolis.intake.processor.PackageIngestCompleteProcessor;
 import org.chronopolis.intake.processor.PackageIngestStatusResponseProcessor;
@@ -47,8 +48,8 @@ public class IntakeConfig {
     }
 
     @Bean
-    public MessageFactory messageFactory() {
-        return new MessageFactory(properties());
+    public MessageFactory messageFactory(ChronopolisSettings chronopolisSettings) {
+        return new MessageFactory(chronopolisSettings);
     }
 
     @Bean
