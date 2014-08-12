@@ -23,6 +23,9 @@ public class ChronopolisSettings {
     @Value("${chron.preservation:/data/chronopolis}")
     private String preservation;
 
+    @Value("${chron.restore:/scratch1/restore}")
+    private String restore;
+
     public String getNode() {
         return node;
     }
@@ -53,5 +56,13 @@ public class ChronopolisSettings {
 
     public void setPreservation(final String preservation) {
         this.preservation = preservation;
+    }
+
+    public String getRestore() {
+        return restore;
+    }
+
+    public void setRestore(final String restore) {
+        this.restore = restore;
     }
 }
