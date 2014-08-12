@@ -26,7 +26,7 @@ public class ChronopolisSettings {
     @Value("${chron.stage.restore:/scratch1/restore}")
     private String restore;
 
-    @Value("${chron.service:nil")
+    @Value("${chron.service:intake")
     private String service;
 
     private String inboundKey;
