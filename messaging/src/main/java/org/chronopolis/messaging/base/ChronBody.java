@@ -10,6 +10,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.chronopolis.messaging.MessageType;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 
+import javax.annotation.Nonnull;
+
 /**
  * The body of the chron message. It needs to be serializable so that we can
  * send the contents in the AMQP message.
@@ -58,7 +60,7 @@ public class ChronBody implements Serializable {
         this.body.putAll(body.getBody());
     }
 
-    public void addContent(String key, Object value) {
+    public void addContent(@Nonnull String key, @Nonnull Object value) {
         if (!type.getArgs().contains(key)) {
             throw new IllegalArgumentException("Type of value " + key + " not allowed");
         }
