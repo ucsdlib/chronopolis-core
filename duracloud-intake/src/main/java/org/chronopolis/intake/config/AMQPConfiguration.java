@@ -53,8 +53,8 @@ public class AMQPConfiguration {
     }
 
     @Bean
-    MessageFactory messageFactory(GenericProperties properties) {
-        return new MessageFactory(properties);
+    MessageFactory messageFactory(ChronopolisSettings chronopolisSettings) {
+        return new MessageFactory(chronopolisSettings);
     }
 
     @Bean

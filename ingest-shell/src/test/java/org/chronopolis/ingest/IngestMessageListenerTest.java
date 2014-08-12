@@ -3,6 +3,7 @@ package org.chronopolis.ingest;
 import junit.framework.Assert;
 import org.chronopolis.amqp.ChronMessageListener;
 import org.chronopolis.common.properties.GenericProperties;
+import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.ingest.processor.CollectionInitCompleteProcessor;
 import org.chronopolis.ingest.processor.CollectionInitReplyProcessor;
 import org.chronopolis.ingest.processor.CollectionRestoreCompleteProcessor;
@@ -34,15 +35,9 @@ public class IngestMessageListenerTest {
 
     @Before
     public void setup() {
-        GenericProperties properties = new GenericProperties(
-                "string",
-                "string",
-                "string",
-                "string",
-                "string"
-        );
+        ChronopolisSettings settings = new ChronopolisSettings();
 
-        messageFactory = new MessageFactory(properties);
+        messageFactory = new MessageFactory(settings);
 
         pisqProcessor = EasyMock.createMock(PackageIngestStatusQueryProcessor.class);
         prProcessor = EasyMock.createMock(PackageReadyProcessor.class);

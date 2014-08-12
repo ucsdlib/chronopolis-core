@@ -5,6 +5,7 @@
 package org.chronopolis.ingest;
 
 import org.chronopolis.common.properties.GenericProperties;
+import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.ingest.processor.CollectionInitCompleteProcessor;
 import org.chronopolis.ingest.processor.CollectionInitReplyProcessor;
 import org.chronopolis.ingest.processor.CollectionRestoreCompleteProcessor;
@@ -26,7 +27,7 @@ import org.junit.Test;
 public class IngestProcessorImplTest {
 
     private IngestMessageListener listener;
-    private GenericProperties properties;
+    private ChronopolisSettings settings;
     private MessageFactory messageFactory;
     private CollectionInitCompleteProcessor cicProcessor;
     private CollectionInitReplyProcessor cirProcessor;
@@ -53,8 +54,8 @@ public class IngestProcessorImplTest {
                 crrProcessor,
                 crryProcessor,
                 crcProcessor);
-        properties = new GenericProperties("node", "stage", "exchange", "inbound", "broadcast");
-        messageFactory = new MessageFactory(properties);
+        settings = new ChronopolisSettings();
+        messageFactory = new MessageFactory(settings);
     }
     
     @Test

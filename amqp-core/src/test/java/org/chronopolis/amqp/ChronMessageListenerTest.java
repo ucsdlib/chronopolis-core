@@ -2,6 +2,7 @@ package org.chronopolis.amqp;
 
 import junit.framework.TestCase;
 import org.chronopolis.common.properties.GenericProperties;
+import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.messaging.MessageType;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
@@ -34,8 +35,8 @@ public class ChronMessageListenerTest extends TestCase {
 
     public void setUp() throws Exception {
         super.setUp();
-        GenericProperties properties = new GenericProperties("one", "two", "three", "four", "five");
-        messageFactory = new MessageFactory(properties);
+        ChronopolisSettings settings = new ChronopolisSettings();
+        messageFactory = new MessageFactory(settings);
     }
 
     public void testOnMessage() throws Exception {
