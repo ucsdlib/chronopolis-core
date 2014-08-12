@@ -23,8 +23,13 @@ public class ChronopolisSettings {
     @Value("${chron.preservation:/data/chronopolis}")
     private String preservation;
 
-    @Value("${chron.restore:/scratch1/restore}")
+    @Value("${chron.stage.restore:/scratch1/restore}")
     private String restore;
+
+    @Value("${chron.service:nil")
+    private String service;
+
+    private String inboundKey;
 
     /**
      * Get the node name where the chronopolis service is running at
@@ -92,4 +97,27 @@ public class ChronopolisSettings {
     public void setRestore(final String restore) {
         this.restore = restore;
     }
+
+    /**
+     * Return the type of service that is running
+     * ie: intake, ingest, replication
+     *
+     * @return
+     */
+    public String getService() {
+        return service;
+    }
+
+    public void setService(final String service) {
+        this.service = service;
+    }
+
+    public String getInboundKey() {
+        if (inboundKey == null) {
+            inboundKey = service + "-" + node + "-inbound";
+        }
+        return inboundKey;
+    }
+
+
 }
