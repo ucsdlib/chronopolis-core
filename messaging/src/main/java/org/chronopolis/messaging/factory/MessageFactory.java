@@ -4,13 +4,8 @@
  */
 package org.chronopolis.messaging.factory;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
 import org.chronopolis.common.digest.Digest;
-import org.chronopolis.common.properties.GenericProperties;
+import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
@@ -20,18 +15,19 @@ import org.chronopolis.messaging.collection.CollectionRestoreCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionRestoreLocationMessage;
 import org.chronopolis.messaging.collection.CollectionRestoreReplyMessage;
 import org.chronopolis.messaging.collection.CollectionRestoreRequestMessage;
-import org.chronopolis.messaging.file.FileQueryMessage;
-import org.chronopolis.messaging.file.FileQueryResponseMessage;
 import org.chronopolis.messaging.pkg.PackageIngestCompleteMessage;
-import org.chronopolis.messaging.pkg.PackageIngestStatusQueryMessage;
-import org.chronopolis.messaging.pkg.PackageIngestStatusResponseMessage;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
 import org.chronopolis.messaging.pkg.PackageReadyReplyMessage;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
 /**
- * TODO: Order based on length of method names
  * TODO: Move to JodaTime
  * TODO: Remove default methods
+ * TODO: If this becomes too big, we could make multiple builders for each message flow
  *
  * @author shake
  */
@@ -39,24 +35,21 @@ public class MessageFactory {
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat(
             "yyyy-MM-dd'T'HH:mm:ssz");
-    private final GenericProperties properties;
 
-    public MessageFactory(GenericProperties properties) {
-        this.properties = properties;
+    private final ChronopolisSettings settings;
+
+    public MessageFactory(ChronopolisSettings settings) {
+        this.settings = settings;
     }
 
-    // TODO: delete this method
     private void setHeaders(ChronMessage msg) {
-        msg.setDate(dateFormat.format(new Date()));
-        msg.setReturnKey(properties.getInboundKey());
-        msg.setOrigin(properties.getNodeName());
-        msg.setCorrelationId(UUID.randomUUID().toString());
+        setHeaders(msg, UUID.randomUUID().toString());
     }
 
     private void setHeaders(ChronMessage msg, String correlationId) {
         msg.setDate(dateFormat.format(new Date()));
-        msg.setReturnKey(properties.getInboundKey());
-        msg.setOrigin(properties.getNodeName());
+        msg.setReturnKey(settings.getInboundKey());
+        msg.setOrigin(settings.getNode());
         msg.setCorrelationId(correlationId);
     }
 
@@ -124,29 +117,6 @@ public class MessageFactory {
         return msg;
     }
 
-
-    public FileQueryMessage defaultFileQueryMessage() {
-        FileQueryMessage msg = new FileQueryMessage();
-        setHeaders(msg);
-        return msg;
-    }
-
-    public FileQueryResponseMessage defaultFileQueryResponseMessage() {
-        FileQueryResponseMessage msg = new FileQueryResponseMessage();
-        setHeaders(msg);
-        return msg;
-    }
-
-    public PackageReadyMessage defaultPackageReadyMessage() {
-        PackageReadyMessage msg = new PackageReadyMessage();
-        msg.setDepositor("default-depositor");
-        msg.setLocation("default-location");
-        msg.setPackageName("default-package-name");
-        msg.setFixityAlgorithm(Digest.fromString("SHA-256"));
-        msg.setSize(1024);
-        setHeaders(msg);
-        return msg;
-    }
 
     public PackageReadyMessage packageReadyMessage(String depositor,
                                                    Digest fixityAlg,
@@ -230,18 +200,6 @@ public class MessageFactory {
 
     public PackageIngestCompleteMessage DefaultPackageIngestCompleteMessage() {
         PackageIngestCompleteMessage msg = new PackageIngestCompleteMessage();
-        setHeaders(msg);
-        return msg;
-    }
-
-    public PackageIngestStatusQueryMessage DefaultPackageIngestStatusQueryMessage() {
-        PackageIngestStatusQueryMessage msg = new PackageIngestStatusQueryMessage();
-        setHeaders(msg);
-        return msg;
-    }
-
-    public PackageIngestStatusResponseMessage DefaultPackageIngestStatusResponseMessage() {
-        PackageIngestStatusResponseMessage msg = new PackageIngestStatusResponseMessage();
         setHeaders(msg);
         return msg;
     }

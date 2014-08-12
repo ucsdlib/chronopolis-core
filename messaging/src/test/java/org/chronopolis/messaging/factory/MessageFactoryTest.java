@@ -1,7 +1,7 @@
 package org.chronopolis.messaging.factory;
 
 import org.chronopolis.common.digest.Digest;
-import org.chronopolis.common.properties.GenericProperties;
+import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
@@ -30,21 +30,15 @@ import java.util.Arrays;
  */
 @RunWith(JUnit4.class)
 public class MessageFactoryTest{
-    GenericProperties props;
+    ChronopolisSettings settings;
     MessageFactory messageFactory;
 
 
     @Before
     public void setUp() throws Exception {
-        props = new GenericProperties(
-                "node",
-                "stage",
-                "exchange",
-                "inboundKey",
-                "broadcastKey"
-        );
+        settings = new ChronopolisSettings();
 
-        messageFactory = new MessageFactory(props);
+        messageFactory = new MessageFactory(settings);
     }
 
     @Test
