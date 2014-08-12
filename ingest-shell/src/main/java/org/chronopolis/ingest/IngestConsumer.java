@@ -4,9 +4,9 @@
  */
 package org.chronopolis.ingest;
 
-import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.ingest.config.IngestConfiguration;
 import org.chronopolis.ingest.config.IngestJPAConfiguration;
+import org.chronopolis.ingest.config.IngestSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +27,7 @@ import java.io.InputStreamReader;
  */
 @Component
 @ComponentScan(basePackageClasses = {
-        ChronopolisSettings.class,
+        IngestSettings.class,
         IngestJPAConfiguration.class,
         IngestConfiguration.class
 })
@@ -45,34 +45,6 @@ public class IngestConsumer implements CommandLineRunner {
     }
 
     public static void main(String [] args) {
-        /*
-        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-        context.register(ChronopolisSettings.class);
-        context.register(IngestJPAConfiguration.class);
-        context.register(IngestConfiguration.class);
-        context.refresh();
-
-        ChronopolisSettings settings = context.getBean(ChronopolisSettings.class);
-
-        boolean done = false;
-
-        while (!done) {
-
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ex) {
-                LOG.error("Interrupted {}", ex);
-            }
-
-            System.out.println("Enter 'q' to exit: " + settings.getNode());
-            if ("q".equalsIgnoreCase(readLine())) {
-                LOG.info("Shutting down");
-                done = true;
-            }
-        }
-
-        context.close();
-        */
         SpringApplication.exit(SpringApplication.run(IngestConsumer.class, args));
     }
 
