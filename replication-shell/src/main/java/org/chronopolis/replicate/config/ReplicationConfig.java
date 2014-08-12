@@ -56,7 +56,6 @@ import javax.annotation.Resource;
  * Created by shake on 4/16/14.
  */
 @Configuration
-@ComponentScan(basePackageClasses = ChronopolisSettings.class)
 @PropertySource({"file:replication.properties"})
 @Import({PropConfig.class, JPAConfiguration.class})
 public class ReplicationConfig {

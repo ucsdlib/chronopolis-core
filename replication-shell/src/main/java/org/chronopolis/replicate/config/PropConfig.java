@@ -22,7 +22,7 @@ public class PropConfig {
 
     @Bean()
     ReplicationProperties properties() {
-        return new ReplicationProperties(
+        ReplicationProperties props = new ReplicationProperties(
                 env.getProperty(PROPERTIES_NODE_NAME),
                 env.getProperty(PROPERTIES_STAGE),
                 env.getProperty(PROPERTIES_EXCHANGE),
@@ -33,5 +33,7 @@ public class PropConfig {
                 env.getProperty(PROPERTIES_ACE_USER),
                 env.getProperty(PROPERTIES_ACE_PASS),
                 env.getProperty(PROPERTIES_ACE_PORT, Integer.class));
+        props.validate();
+        return props;
     }
 }
