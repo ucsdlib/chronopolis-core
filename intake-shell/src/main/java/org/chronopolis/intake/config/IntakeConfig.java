@@ -3,7 +3,7 @@ package org.chronopolis.intake.config;
 import com.rabbitmq.client.ConnectionFactory;
 import org.chronopolis.amqp.ConnectionListenerImpl;
 import org.chronopolis.amqp.TopicProducer;
-import org.chronopolis.common.properties.GenericProperties;
+import org.chronopolis.common.settings.AMQPSettings;
 import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.intake.IntakeMessageListener;
 import org.chronopolis.intake.processor.PackageIngestCompleteProcessor;
@@ -16,36 +16,12 @@ import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.env.Environment;
-
-import javax.annotation.Resource;
-
-import static org.chronopolis.common.properties.GenericProperties.PROPERTIES_NODE_NAME;
-import static org.chronopolis.common.properties.GenericProperties.PROPERTIES_STAGE;
-import static org.chronopolis.common.properties.GenericProperties.PROPERTIES_EXCHANGE;
-import static org.chronopolis.common.properties.GenericProperties.PROPERTIES_INBOUND_ROUTING_KEY;
-import static org.chronopolis.common.properties.GenericProperties.PROPERTIES_BROADCAST_ROUTING_KEY;
 
 /**
  * Created by shake on 4/16/14.
  */
 @Configuration
-@PropertySource({"file:intake.properties"})
 public class IntakeConfig {
-
-    @Resource
-    Environment env;
-
-    @Bean
-    public GenericProperties properties() {
-        return new GenericProperties(
-                env.getProperty(PROPERTIES_NODE_NAME),
-                env.getProperty(PROPERTIES_STAGE),
-                env.getProperty(PROPERTIES_EXCHANGE),
-                env.getProperty(PROPERTIES_INBOUND_ROUTING_KEY),
-                env.getProperty(PROPERTIES_BROADCAST_ROUTING_KEY));
-    }
 
     @Bean
     public MessageFactory messageFactory(ChronopolisSettings chronopolisSettings) {
@@ -58,26 +34,19 @@ public class IntakeConfig {
     }
 
     @Bean
-    public ConnectionFactory rabbitConnectionFactory() {
+    public ConnectionFactory rabbitConnectionFactory(AMQPSettings amqpSettings) {
         ConnectionFactory connectionFactory = new ConnectionFactory();
         connectionFactory.setRequestedHeartbeat(60);
         connectionFactory.setConnectionTimeout(300);
-
-        String virtualHost = env.getProperty("node.virtual.host");
-        if (virtualHost == null) {
-            System.out.println("Using default virtual host");
-            virtualHost = "chronopolis";
-        }
-
-        connectionFactory.setVirtualHost(virtualHost);
+        connectionFactory.setVirtualHost(amqpSettings.getVirtualHost());
 
         return connectionFactory;
     }
 
     @Bean
-    public CachingConnectionFactory connectionFactory() {
+    public CachingConnectionFactory connectionFactory(ConnectionFactory rabbitConnectionFactory) {
         CachingConnectionFactory connectionFactory =
-                new CachingConnectionFactory(rabbitConnectionFactory());
+                new CachingConnectionFactory(rabbitConnectionFactory);
 
         connectionFactory.setPublisherConfirms(true);
         connectionFactory.setPublisherReturns(true);
@@ -89,17 +58,17 @@ public class IntakeConfig {
     }
 
     @Bean
-    public RabbitTemplate rabbitTemplate() {
+    public RabbitTemplate rabbitTemplate(CachingConnectionFactory connectionFactory) {
         RabbitTemplate template = new RabbitTemplate();
         template.setExchange("chronopolis-control");
-        template.setConnectionFactory(connectionFactory());
+        template.setConnectionFactory(connectionFactory);
         template.setMandatory(true);
         return template;
     }
 
     @Bean
-    public TopicProducer producer() {
-        return new TopicProducer(rabbitTemplate());
+    public TopicProducer producer(RabbitTemplate rabbitTemplate) {
+        return new TopicProducer(rabbitTemplate);
     }
 
     @Bean
@@ -110,13 +79,13 @@ public class IntakeConfig {
     // Declare our processors and MessageListener
 
     @Bean
-    public PackageIngestCompleteProcessor packageIngestCompleteProcessor() {
-        return new PackageIngestCompleteProcessor(producer());
+    public PackageIngestCompleteProcessor packageIngestCompleteProcessor(TopicProducer producer) {
+        return new PackageIngestCompleteProcessor(producer);
     }
 
     @Bean
-    public PackageIngestStatusResponseProcessor packageIngestStatusResponseProcessor() {
-        return new PackageIngestStatusResponseProcessor(producer());
+    public PackageIngestStatusResponseProcessor packageIngestStatusResponseProcessor(TopicProducer producer) {
+        return new PackageIngestStatusResponseProcessor(producer);
     }
 
     @Bean
@@ -125,11 +94,13 @@ public class IntakeConfig {
     }
 
     @Bean
-    MessageListener messageListener() {
+    MessageListener messageListener(PackageIngestCompleteProcessor packageIngestCompleteProcessor,
+                                    PackageIngestStatusResponseProcessor packageIngestStatusResponseProcessor,
+                                    PackageReadyReplyProcessor packageReadyReplyProcessor) {
         return new IntakeMessageListener(
-                packageIngestCompleteProcessor(),
-                packageIngestStatusResponseProcessor(),
-                packageReadyReplyProcessor());
+                packageIngestCompleteProcessor,
+                packageIngestStatusResponseProcessor,
+                packageReadyReplyProcessor);
     }
 
     // Our processor queues + bindings
