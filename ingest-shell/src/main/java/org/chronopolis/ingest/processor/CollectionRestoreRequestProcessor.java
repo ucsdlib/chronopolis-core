@@ -2,11 +2,10 @@ package org.chronopolis.ingest.processor;
 
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.amqp.RoutingKey;
-import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.restore.CollectionRestore;
 import org.chronopolis.db.common.RestoreRepository;
 import org.chronopolis.db.common.model.RestoreRequest;
-import org.chronopolis.ingest.IngestProperties;
+import org.chronopolis.ingest.config.IngestSettings;
 import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
@@ -22,18 +21,18 @@ import java.nio.file.Paths;
 public class CollectionRestoreRequestProcessor implements ChronProcessor {
 
     private final ChronProducer producer;
-    private final IngestProperties properties;
+    private final IngestSettings settings;
     private final MessageFactory messageFactory;
     private final CollectionRestore restore;
     private final RestoreRepository restoreRepository;
 
     public CollectionRestoreRequestProcessor(final ChronProducer producer,
-                                             final IngestProperties properties,
+                                             final IngestSettings settings,
                                              final MessageFactory messageFactory,
                                              final CollectionRestore restore,
                                              final RestoreRepository restoreRepository) {
         this.producer = producer;
-        this.properties = properties;
+        this.settings = settings;
         this.messageFactory = messageFactory;
         this.restore = restore;
         this.restoreRepository = restoreRepository;
@@ -51,7 +50,7 @@ public class CollectionRestoreRequestProcessor implements ChronProcessor {
 
         ChronMessage next = null;
         String route;
-        if (Paths.get(properties.getPreservation()).toFile().exists()) {
+        if (Paths.get(settings.getPreservation()).toFile().exists()) {
             Path restored = restore.restore(depositor, collection);
             next = messageFactory.collectionRestoreCompleteMessage(Indicator.ACK,
                 restored.toString(),

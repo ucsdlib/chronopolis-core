@@ -30,19 +30,16 @@ import org.springframework.mail.SimpleMailMessage;
 public class CollectionInitCompleteProcessor implements ChronProcessor {
     private final Logger log = LoggerFactory.getLogger(CollectionInitCompleteProcessor.class);
 
-    private final IngestProperties properties;
     private final ChronProducer producer;
     private final MessageFactory messageFactory;
     private final DatabaseManager manager;
     private final MailUtil mailUtil;
 
     public CollectionInitCompleteProcessor(ChronProducer producer,
-                                           IngestProperties properties,
                                            MessageFactory messageFactory,
                                            DatabaseManager manager,
                                            MailUtil mailUtil) {
         this.producer = producer;
-        this.properties = properties;
         this.messageFactory = messageFactory;
         this.manager = manager;
         this.mailUtil = mailUtil;

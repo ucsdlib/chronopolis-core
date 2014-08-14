@@ -3,6 +3,7 @@ package org.chronopolis.ingest.processor;
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.ingest.IngestProperties;
+import org.chronopolis.ingest.config.IngestSettings;
 import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
@@ -21,21 +22,16 @@ import java.util.UUID;
 public class CollectionRestoreReplyProcessor implements ChronProcessor {
     private final Logger log = LoggerFactory.getLogger(CollectionRestoreReplyProcessor.class);
 
-    private final ChronopolisSettings settings;
+    private final IngestSettings settings;
     private final ChronProducer producer;
     private final MessageFactory messageFactory;
 
-    // TODO: Replace with ingest settings
-    private final IngestProperties ingestProperties;
-
-    public CollectionRestoreReplyProcessor(final ChronopolisSettings settings,
+    public CollectionRestoreReplyProcessor(final IngestSettings settings,
                                            final ChronProducer producer,
-                                           final MessageFactory messageFactory,
-                                           final IngestProperties ingestProperties) {
+                                           final MessageFactory messageFactory) {
         this.settings = settings;
         this.producer = producer;
         this.messageFactory = messageFactory;
-        this.ingestProperties = ingestProperties;
     }
 
     @Override
@@ -50,18 +46,18 @@ public class CollectionRestoreReplyProcessor implements ChronProcessor {
         CollectionRestoreReplyMessage msg =
                 (CollectionRestoreReplyMessage) chronMessage;
 
-        Path base = Paths.get(ingestProperties.getStage());
         ChronMessage reply = null;
         StringBuilder location = new StringBuilder();
-        location.append(ingestProperties.getExternalUser())
+        location.append(settings.getExternalUser())
                 .append("@")
-                .append(ingestProperties.getStorageServer())
+                .append(settings.getStorageServer())
                 .append(":");
 
         // TODO: This will actually be sent to us
         String id = UUID.randomUUID().toString();
         // TODO: Pull relative location from settings?
-        location.append("/scratch1/restore/").append(id);
+        Path restore = Paths.get(settings.getRestore(), id);
+        location.append(restore);
 
         // For now, we'll just pull from ourselves
         // In the future we'll want a way to actually choose a node

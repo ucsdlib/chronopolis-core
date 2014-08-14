@@ -18,16 +18,13 @@ import org.slf4j.LoggerFactory;
 public class CollectionInitReplyProcessor implements ChronProcessor {
     private final Logger log = LoggerFactory.getLogger(CollectionInitReplyProcessor.class);
 
-    private final IngestProperties properties;
     private final ChronProducer producer;
     private final MessageFactory messageFactory;
     private final DatabaseManager manager;
 
-    public CollectionInitReplyProcessor(final IngestProperties properties,
-                                        final ChronProducer producer,
+    public CollectionInitReplyProcessor(final ChronProducer producer,
                                         final MessageFactory messageFactory,
                                         final DatabaseManager manager) {
-        this.properties = properties;
         this.producer = producer;
         this.messageFactory = messageFactory;
         this.manager = manager;

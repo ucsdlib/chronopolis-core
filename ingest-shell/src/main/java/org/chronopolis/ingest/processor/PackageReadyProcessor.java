@@ -15,6 +15,7 @@ import org.chronopolis.db.model.CollectionIngest;
 import org.chronopolis.db.model.ReplicationFlow;
 import org.chronopolis.db.model.ReplicationState;
 import org.chronopolis.ingest.IngestProperties;
+import org.chronopolis.ingest.config.IngestSettings;
 import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
@@ -40,19 +41,19 @@ import java.nio.file.Paths;
 public class PackageReadyProcessor implements ChronProcessor {
     private final Logger log = LoggerFactory.getLogger(PackageReadyProcessor.class);
     private final ChronProducer producer;
-    private final IngestProperties props;
+    private final IngestSettings settings;
     private final MessageFactory messageFactory;
     private final DatabaseManager manager;
     private final MailUtil mailUtil;
 
 
     public PackageReadyProcessor(ChronProducer producer,
-                                 IngestProperties props,
+                                 IngestSettings settings,
                                  MessageFactory messageFactory,
                                  DatabaseManager manager,
                                  MailUtil mailUtil) {
         this.producer = producer;
-        this.props = props;
+        this.settings = settings;
         this.messageFactory = messageFactory;
         this.manager = manager;
         this.mailUtil = mailUtil;
@@ -98,8 +99,8 @@ public class PackageReadyProcessor implements ChronProcessor {
         }
 
         // Set up our paths
-        Path toBag = Paths.get(props.getStage(), location);
-        Path tokenStage = Paths.get(props.getTokenStage());
+        Path toBag = Paths.get(settings.getBagStage(), location);
+        Path tokenStage = Paths.get(settings.getTokenStage());
         String tagManifestDigest; // = tokenizer.getTagManifestDigest();
 
         // And create our tokens
@@ -127,8 +128,8 @@ public class PackageReadyProcessor implements ChronProcessor {
         ci.setTagDigest(tagManifestDigest);
         ci.setTokenDigest(tokenDigest);
 
-        String user = props.getExternalUser();
-        String server = props.getStorageServer();
+        String user = settings.getExternalUser();
+        String server = settings.getStorageServer();
 
         // Should end up being the location for a download
         StringBuilder tokenStore = new StringBuilder(user);
@@ -171,13 +172,13 @@ public class PackageReadyProcessor implements ChronProcessor {
             manager.getIngestDatabase().save(ci);
 
             // And create our flow items
-            for (String node : props.getChronNodes()) {
+            for (String node : settings.getChronNodes()) {
                 createReplicationFlowItem(node, depositor, packageName, correlationId);
             }
 
             producer.send(response, RoutingKey.REPLICATE_BROADCAST.asRoute());
 
-            SimpleMailMessage message = mailUtil.createMessage(props.getNodeName(),
+            SimpleMailMessage message = mailUtil.createMessage(settings.getNode(),
                     "Package Ready to Replicate",
                     msg.toString());
             mailUtil.send(message);

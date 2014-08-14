@@ -11,7 +11,6 @@ import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.db.DatabaseManager;
 import org.chronopolis.db.common.RestoreRepository;
 import org.chronopolis.ingest.IngestMessageListener;
-import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.ingest.processor.CollectionInitCompleteProcessor;
 import org.chronopolis.ingest.processor.CollectionInitReplyProcessor;
 import org.chronopolis.ingest.processor.CollectionRestoreCompleteProcessor;
@@ -43,19 +42,7 @@ import org.springframework.core.env.Environment;
 import javax.annotation.Resource;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-
-import static org.chronopolis.ingest.IngestProperties.PROPERTIES_BROADCAST_ROUTING_KEY;
-import static org.chronopolis.ingest.IngestProperties.PROPERTIES_DPN_PUSH;
-import static org.chronopolis.ingest.IngestProperties.PROPERTIES_EXCHANGE;
-import static org.chronopolis.ingest.IngestProperties.PROPERTIES_EXTERNAL_USER;
-import static org.chronopolis.ingest.IngestProperties.PROPERTIES_IMS_HOST_NAME;
-import static org.chronopolis.ingest.IngestProperties.PROPERTIES_INBOUND_ROUTING_KEY;
-import static org.chronopolis.ingest.IngestProperties.PROPERTIES_NODE_NAME;
-import static org.chronopolis.ingest.IngestProperties.PROPERTIES_STAGE;
-import static org.chronopolis.ingest.IngestProperties.PROPERTIES_STORAGE_SERVER;
-import static org.chronopolis.ingest.IngestProperties.PROPERTIES_TOKEN_STAGE;
 
 /**
  * Created by shake on 4/10/14.
@@ -67,8 +54,6 @@ public class IngestConfiguration {
     public static final String PROPERTIES_SMTP_HOST = "smtp.host";
     public static final String PROPERTIES_SMTP_FROM = "smtp.from";
     public static final String PROPERTIES_SMTP_TO = "smtp.to";
-    public static final String PROPERTIES_CHRON_NODES = "chron.nodes";
-    public static final String PROPERTIES_PRES_STORAGE = "node.storage.preservation";
 
     private final Logger log = LoggerFactory.getLogger(IngestConfiguration.class);
 
@@ -84,31 +69,6 @@ public class IngestConfiguration {
     @Bean
     public ConnectionListenerImpl connectionListener() {
         return new ConnectionListenerImpl();
-    }
-
-    @Bean
-    public IngestProperties ingestProperties() {
-        List<String> chronNodes = new ArrayList<>();
-        String fromProps = env.getProperty(PROPERTIES_CHRON_NODES);
-        if (fromProps != null) {
-            Collections.addAll(chronNodes, fromProps.split(","));
-        }
-
-        IngestProperties properties = new IngestProperties(
-                env.getProperty(PROPERTIES_NODE_NAME),
-                env.getProperty(PROPERTIES_STAGE),
-                env.getProperty(PROPERTIES_EXCHANGE),
-                env.getProperty(PROPERTIES_INBOUND_ROUTING_KEY),
-                env.getProperty(PROPERTIES_BROADCAST_ROUTING_KEY),
-                env.getProperty(PROPERTIES_TOKEN_STAGE),
-                env.getProperty(PROPERTIES_IMS_HOST_NAME),
-                env.getProperty(PROPERTIES_STORAGE_SERVER),
-                env.getProperty(PROPERTIES_EXTERNAL_USER),
-                env.getProperty(PROPERTIES_PRES_STORAGE),
-                env.getProperty(PROPERTIES_DPN_PUSH, Boolean.class),
-                chronNodes);
-
-        return properties;
     }
 
     @Bean
@@ -178,26 +138,28 @@ public class IngestConfiguration {
     }
 
     @Bean
-    public PackageReadyProcessor packageReadyProcessor(MessageFactory messageFactory) {
+    public PackageReadyProcessor packageReadyProcessor(MessageFactory messageFactory,
+                                                       IngestSettings settings) {
         return new PackageReadyProcessor(producer(),
-                ingestProperties(),
+                settings,
                 messageFactory,
                 manager,
                 mailUtil());
     }
 
     @Bean
-    public CollectionInitCompleteProcessor collectionInitCompleteProcessor(MessageFactory messageFactory) {
+    public CollectionInitCompleteProcessor collectionInitCompleteProcessor(MessageFactory messageFactory,
+                                                                           IngestSettings settings) {
         return new CollectionInitCompleteProcessor(producer(),
-                ingestProperties(),
                 messageFactory,
                 manager,
                 mailUtil());
     }
 
     @Bean
-    public CollectionInitReplyProcessor collectionInitReplyProcessor(MessageFactory messageFactory) {
-        return new CollectionInitReplyProcessor(ingestProperties(),
+    public CollectionInitReplyProcessor collectionInitReplyProcessor(MessageFactory messageFactory,
+                                                                     IngestSettings settings) {
+        return new CollectionInitReplyProcessor(
                 producer(),
                 messageFactory,
                 manager
@@ -211,9 +173,10 @@ public class IngestConfiguration {
 
     @Bean
     public CollectionRestoreRequestProcessor collectionRestoreRequestProcessor(MessageFactory messageFactory,
-                                                                               CollectionRestore collectionRestore) {
+                                                                               CollectionRestore collectionRestore,
+                                                                               IngestSettings settings) {
         return new CollectionRestoreRequestProcessor(producer(),
-                ingestProperties(),
+                settings,
                 messageFactory,
                 collectionRestore,
                 restoreRepository);
@@ -229,14 +192,13 @@ public class IngestConfiguration {
     }
 
     @Bean
-    public CollectionRestoreReplyProcessor collectionRestoreReplyProcessor(ChronopolisSettings settings,
+    public CollectionRestoreReplyProcessor collectionRestoreReplyProcessor(IngestSettings settings,
                                                                            ChronProducer producer,
-                                                                           MessageFactory messageFactory,
-                                                                           IngestProperties properties) {
+                                                                           MessageFactory messageFactory) {
         return new CollectionRestoreReplyProcessor(settings,
                 producer,
-                messageFactory,
-                properties);
+                messageFactory
+        );
     }
 
     @Bean
