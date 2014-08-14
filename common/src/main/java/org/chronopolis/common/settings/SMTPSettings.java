@@ -18,6 +18,9 @@ public class SMTPSettings {
     @Value("${smtp.host:localhost.localdomain}")
     private String host;
 
+    @Value("${smtp.send:true}")
+    private Boolean send;
+
     public String getFrom() {
         return from;
     }
@@ -40,5 +43,13 @@ public class SMTPSettings {
 
     public void setHost(final String host) {
         this.host = host;
+    }
+
+    public Boolean getSend() {
+        return send;
+    }
+
+    public void setSend(final Boolean send) {
+        this.send = send;
     }
 }
