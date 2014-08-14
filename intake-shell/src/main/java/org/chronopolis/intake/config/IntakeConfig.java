@@ -44,7 +44,8 @@ public class IntakeConfig {
     }
 
     @Bean
-    public CachingConnectionFactory connectionFactory(ConnectionFactory rabbitConnectionFactory) {
+    public CachingConnectionFactory connectionFactory(ConnectionFactory rabbitConnectionFactory,
+                                                      AMQPSettings settings) {
         CachingConnectionFactory connectionFactory =
                 new CachingConnectionFactory(rabbitConnectionFactory);
 
@@ -52,15 +53,16 @@ public class IntakeConfig {
         connectionFactory.setPublisherReturns(true);
 
         connectionFactory.addConnectionListener(connectionListener());
-        connectionFactory.setAddresses("adapt-mq.umiacs.umd.edu");
+        connectionFactory.setAddresses(settings.getServer());
 
         return connectionFactory;
     }
 
     @Bean
-    public RabbitTemplate rabbitTemplate(CachingConnectionFactory connectionFactory) {
+    public RabbitTemplate rabbitTemplate(CachingConnectionFactory connectionFactory,
+                                         AMQPSettings settings) {
         RabbitTemplate template = new RabbitTemplate();
-        template.setExchange("chronopolis-control");
+        template.setExchange(settings.getExchange());
         template.setConnectionFactory(connectionFactory);
         template.setMandatory(true);
         return template;
@@ -72,8 +74,8 @@ public class IntakeConfig {
     }
 
     @Bean
-    TopicExchange topicExchange() {
-        return new TopicExchange("chronopolis-control");
+    TopicExchange topicExchange(AMQPSettings settings) {
+        return new TopicExchange(settings.getExchange());
     }
 
     // Declare our processors and MessageListener
