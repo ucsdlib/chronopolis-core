@@ -8,11 +8,18 @@ import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.amqp.RoutingKey;
 import org.chronopolis.common.digest.Digest;
 import org.chronopolis.common.properties.GenericProperties;
+import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.intake.config.IntakeConfig;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,16 +36,23 @@ import java.nio.file.attribute.BasicFileAttributes;
  *
  * @author shake
  */
-public class IntakeProducer {
+@Component
+@ComponentScan(basePackages = {
+        "org.chronopolis.common.settings",
+        "org.chronopolis.intake.config"
+})
+@EnableAutoConfiguration
+public class IntakeProducer implements CommandLineRunner {
 
     private ChronProducer producer;
-    private GenericProperties props;
+    private ChronopolisSettings settings;
     private MessageFactory messageFactory;
 
-    public IntakeProducer(ChronProducer producer, MessageFactory messageFactory, GenericProperties props) {
+    @Autowired
+    public IntakeProducer(ChronProducer producer, MessageFactory messageFactory, ChronopolisSettings settings) {
         this.producer = producer;
         this.messageFactory = messageFactory;
-        this.props = props;
+        this.settings = settings;
     }
 
     private enum PRODUCER_OPTION {
@@ -55,6 +69,7 @@ public class IntakeProducer {
                 case "R":
                     return RESTORE_REQUEST;
                 case "Q":
+                case "q":
                     return QUIT;
                 default:
                     return UNKNOWN;
@@ -62,7 +77,8 @@ public class IntakeProducer {
         }
     }
 
-    public void run() {
+    @Override
+    public void run(final String... strings) throws Exception {
         boolean done = false;
         while (!done) {
             PRODUCER_OPTION option = inputOption();
@@ -93,7 +109,6 @@ public class IntakeProducer {
                 System.out.println("Unknown?");
             }
         }
-        System.out.println("Leaving");
     }
 
     private void sendRestore(final String depositor, final String bagName) {
@@ -102,7 +117,7 @@ public class IntakeProducer {
     }
 
     private void sendMessage(String depositor, String location, String bagName, boolean toDPN) {
-        Path collectionPath = Paths.get(props.getStage(), location);
+        Path collectionPath = Paths.get(settings.getBagStage(), location);
         final int [] bagSize = {0};
         try {
             Files.walkFileTree(collectionPath, new FileVisitor<Path>() {
@@ -176,20 +191,6 @@ public class IntakeProducer {
     }
 
     public static void main(String [] args) {
-        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-        context.register(IntakeConfig.class);
-        context.refresh();
-
-        ChronProducer p = (ChronProducer) context.getBean("producer");
-        MessageFactory factory = (MessageFactory) context.getBean("messageFactory");
-        GenericProperties properties = context.getBean(GenericProperties.class);
-
-
-        IntakeProducer producer = new IntakeProducer(p, factory, properties);
-        producer.run();
-
-        context.close();
-
-        System.out.println("Shutting down, shutting shutting down");
+        SpringApplication.exit(SpringApplication.run(IntakeProducer.class, args));
     }
 }
