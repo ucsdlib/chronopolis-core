@@ -20,6 +20,8 @@ import org.chronopolis.ingest.processor.CollectionRestoreRequestProcessor;
 import org.chronopolis.ingest.processor.PackageIngestStatusQueryProcessor;
 import org.chronopolis.ingest.processor.PackageReadyProcessor;
 import org.chronopolis.messaging.factory.MessageFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.MessageListener;
@@ -67,6 +69,8 @@ public class IngestConfiguration {
     public static final String PROPERTIES_SMTP_TO = "smtp.to";
     public static final String PROPERTIES_CHRON_NODES = "chron.nodes";
     public static final String PROPERTIES_PRES_STORAGE = "node.storage.preservation";
+
+    private final Logger log = LoggerFactory.getLogger(IngestConfiguration.class);
 
     @Autowired
     public DatabaseManager manager;
@@ -206,11 +210,12 @@ public class IngestConfiguration {
     }
 
     @Bean
-    public CollectionRestoreRequestProcessor collectionRestoreRequestProcessor(MessageFactory messageFactory) {
+    public CollectionRestoreRequestProcessor collectionRestoreRequestProcessor(MessageFactory messageFactory,
+                                                                               CollectionRestore collectionRestore) {
         return new CollectionRestoreRequestProcessor(producer(),
                 ingestProperties(),
                 messageFactory,
-                collectionRestore(),
+                collectionRestore,
                 restoreRepository);
     }
 
@@ -235,9 +240,9 @@ public class IngestConfiguration {
     }
 
     @Bean
-    public CollectionRestore collectionRestore() {
-        return new LocalRestore(Paths.get(ingestProperties().getPreservation()),
-                Paths.get(ingestProperties().getStage()));
+    public CollectionRestore collectionRestore(IngestSettings settings) {
+        return new LocalRestore(Paths.get(settings.getPreservation()),
+                Paths.get(settings.getRestore()));
     }
 
     @Bean
@@ -245,12 +250,13 @@ public class IngestConfiguration {
                                            CollectionInitCompleteProcessor collectionInitCompleteProcessor,
                                            CollectionInitReplyProcessor collectionInitReplyProcessor,
                                            CollectionRestoreReplyProcessor collectionRestoreReplyProcessor,
-                                           CollectionRestoreCompleteProcessor collectionRestoreCompleteProcessor) {
+                                           CollectionRestoreCompleteProcessor collectionRestoreCompleteProcessor,
+                                           CollectionRestoreRequestProcessor collectionRestoreRequestProcessor) {
         return new IngestMessageListener(packageIngestStatusQueryProcessor(),
                 packageReadyProcessor,
                 collectionInitCompleteProcessor,
                 collectionInitReplyProcessor,
-                collectionRestoreRequestProcessor(null),
+                collectionRestoreRequestProcessor,
                 collectionRestoreReplyProcessor,
                 collectionRestoreCompleteProcessor);
     }
@@ -260,70 +266,73 @@ public class IngestConfiguration {
         return new TopicExchange("chronopolis-control");
     }
 
-    /*
     @Bean
-    Queue testQueue() {
-        return new Queue(env.getProperty(PROPERTIES_RABBIT_TEST_QUEUE_NAME), true);
+    Queue broadcastQueue(IngestSettings settings) {
+        return new Queue(settings.getBroadcastQueueName(), true);
     }
 
     @Bean
-    Binding testBinding() {
-        return BindingBuilder.bind(testQueue())
-                .to(topicExchange())
-                .with(env.getProperty(PROPERTIES_RABBIT_TEST_BINDING_NAME));
-    }
-    */
-
-    @Bean
-    Queue broadcastQueue() {
-        return new Queue(ingestProperties().getBroadcastQueueName(), true);
+    Queue directIngestQueue(IngestSettings settings) {
+        return new Queue(settings.getDirectQueueName(), true);
     }
 
     @Bean
-    Queue directIngestQueue() {
-        return new Queue(ingestProperties().getDirectQueueName(), true);
-    }
-
-    @Bean
-    Binding broadcastBinding() {
-        return BindingBuilder.bind(broadcastQueue())
+    Binding broadcastBinding(Queue broadcastQueue,
+                             IngestSettings settings) {
+        log.info("Binding queue {} to {}",
+                broadcastQueue.getName(),
+                settings.getBroadcastQueueBinding());
+        return BindingBuilder.bind(broadcastQueue)
                              .to(topicExchange())
-                             .with(ingestProperties().getBroadcastQueueBinding());
+                             .with(settings.getBroadcastQueueBinding());
     }
 
     @Bean
-    Binding directIngestBinding() {
-        return BindingBuilder.bind(directIngestQueue())
+    Binding directIngestBinding(Queue directIngestQueue,
+                                IngestSettings settings) {
+        log.info("Binding queue {} to {}",
+                directIngestQueue.getName(),
+                settings.getDirectQueueBinding());
+        return BindingBuilder.bind(directIngestQueue)
                              .to(topicExchange())
-                             .with(ingestProperties().getDirectQueueBinding());
+                             .with(settings.getDirectQueueBinding());
     }
 
     @Bean
-    RabbitAdmin rabbitAdmin() {
+    RabbitAdmin rabbitAdmin(Queue broadcastQueue,
+                            Queue directIngestQueue,
+                            Binding broadcastBinding,
+                            Binding directIngestBinding) {
         RabbitAdmin admin = new RabbitAdmin(connectionFactory());
         // our exchange
         admin.declareExchange(topicExchange());
         // our queues
-        // admin.declareQueue(testQueue());
-        admin.declareQueue(broadcastQueue());
-        admin.declareQueue(directIngestQueue());
+        log.info("Declaring queues {} and {}",
+                broadcastQueue.getName(),
+                directIngestQueue.getName());
+        admin.declareQueue(broadcastQueue);
+        admin.declareQueue(directIngestQueue);
         // our bindings
-        // admin.declareBinding(testBinding());
-        admin.declareBinding(broadcastBinding());
-        admin.declareBinding(directIngestBinding());
+        log.info("Declaring bindings {} and {}",
+                broadcastBinding.getRoutingKey(),
+                directIngestBinding.getRoutingKey());
+        admin.declareBinding(broadcastBinding);
+        admin.declareBinding(directIngestBinding);
         return admin;
     }
 
     @Bean
     @DependsOn("rabbitAdmin")
-    SimpleMessageListenerContainer simpleMessageListenerContainer(MessageListener messageListener) {
+    SimpleMessageListenerContainer simpleMessageListenerContainer(MessageListener messageListener,
+                                                                  IngestSettings settings) {
         // String testQueueName = env.getProperty(PROPERTIES_RABBIT_TEST_QUEUE_NAME);
-        String broadcastQueueName = ingestProperties().getBroadcastQueueName();
-        String directQueueName = ingestProperties().getDirectQueueName();
+        String broadcastQueueName = settings.getBroadcastQueueName();
+        String directQueueName = settings.getDirectQueueName();
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setConnectionFactory(connectionFactory());
         container.setQueueNames(broadcastQueueName, directQueueName);
         container.setMessageListener(messageListener);
+        container.afterPropertiesSet();
         return container;
     }
 

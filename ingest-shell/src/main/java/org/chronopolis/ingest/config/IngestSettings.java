@@ -74,7 +74,7 @@ public class IngestSettings extends ChronopolisSettings {
 
     public String getBroadcastQueueName() {
         if (broadcastQueueName == null) {
-            broadcastQueueName = "broadcast-ingest-" + getNode();
+            broadcastQueueName = "ingest-broadcast-" + getNode();
         }
         return broadcastQueueName;
     }
