@@ -4,20 +4,18 @@
  */
 package org.chronopolis.replicate;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeoutException;
-
 import org.chronopolis.common.exception.FileTransferException;
-import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.common.transfer.FileTransfer;
 import org.chronopolis.common.transfer.HttpsTransfer;
 import org.chronopolis.common.transfer.RSyncTransfer;
+import org.chronopolis.replicate.config.ReplicationSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Class which will fire off downloads
@@ -30,11 +28,10 @@ public class ReplicationQueue implements Runnable {
     private static final String SLASH =  "/"; // Not the guitarist
     private static LinkedBlockingQueue<ReplicationDownload> downloadQueue = new LinkedBlockingQueue<>();
     private static HttpsTransfer xfer = new HttpsTransfer();
-    private static GenericProperties props;
+    private static ReplicationSettings settings;
 
-
-    public static void setProperties(GenericProperties props) {
-        ReplicationQueue.props = props;
+    public static void setSettings(ReplicationSettings settings) {
+        ReplicationQueue.settings = settings;
     }
 
     private static String buildURL(String base, 
@@ -106,7 +103,7 @@ public class ReplicationQueue implements Runnable {
             Path file = null;
             ReplicationDownload dl = downloadQueue.poll();
             try {
-                Path collPath = Paths.get(props.getStage(), dl.getGroup(), dl.getCollection());
+                Path collPath = Paths.get(settings.getPreservation(), dl.getGroup(), dl.getCollection());
                 String url = buildURL(dl.getBase(), dl.getCollection(), dl.getGroup(), dl.getFile());
                 file = xfer.getFile(url, collPath);
             } catch (FileTransferException e) {

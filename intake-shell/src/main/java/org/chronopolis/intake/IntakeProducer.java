@@ -7,9 +7,7 @@ package org.chronopolis.intake;
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.amqp.RoutingKey;
 import org.chronopolis.common.digest.Digest;
-import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.common.settings.ChronopolisSettings;
-import org.chronopolis.intake.config.IntakeConfig;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
@@ -17,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 

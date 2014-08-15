@@ -1,7 +1,6 @@
 package org.chronopolis.amqp;
 
 import junit.framework.TestCase;
-import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.messaging.MessageType;
 import org.chronopolis.messaging.base.ChronProcessor;

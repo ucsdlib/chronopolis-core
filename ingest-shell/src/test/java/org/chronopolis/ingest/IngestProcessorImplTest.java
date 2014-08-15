@@ -4,7 +4,6 @@
  */
 package org.chronopolis.ingest;
 
-import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.ingest.processor.CollectionInitCompleteProcessor;
 import org.chronopolis.ingest.processor.CollectionInitReplyProcessor;
