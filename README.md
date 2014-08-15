@@ -23,6 +23,7 @@ The basic layout of the project is as follows:
 Todo: 
 
 * Add property for setting the from field for smtp (may want to copy ace and do from@localhost)
+* Move from Quartz to Spring Batch.
 
 
 
