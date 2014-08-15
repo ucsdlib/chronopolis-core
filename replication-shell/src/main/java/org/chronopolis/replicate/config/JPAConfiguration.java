@@ -30,10 +30,6 @@ import java.sql.SQLException;
                                                type = FilterType.ASSIGNABLE_TYPE))
 @EnableTransactionManagement
 public class JPAConfiguration {
-    private static final String PROPERTIES_JDBC_DRIVER = "jdbc.driver";
-    private static final String PROPERTIES_JDBC_URL = "jdbc.url";
-    private static final String PROPERTIES_JDBC_USERNAME = "jdbc.username";
-    private static final String PROPERTIES_JDBC_PASSWORD = "jdbc.password";
 
     @Bean
     public DataSource dataSource() throws SQLException {
