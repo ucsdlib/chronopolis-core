@@ -295,70 +295,66 @@ public class ReplicationConfig {
         return new TopicExchange("chronopolis-control");
     }
 
-    /*
     @Bean
-    Queue testQueue() {
-       return new Queue(env.getProperty(PROPERTIES_RABBIT_TEST_QUEUE_NAME), true);
+    Queue broadcastQueue(ReplicationSettings replicationSettings) {
+       return new Queue(replicationSettings.getBroadcastQueueName(), true);
     }
 
     @Bean
-    Binding testBinding() {
-        return BindingBuilder.bind(testQueue())
+    Binding broadcastBinding(ReplicationSettings replicationSettings,
+                             Queue broadcastQueue) {
+        return BindingBuilder.bind(broadcastQueue)
                              .to(topicExchange())
-                             .with(env.getProperty(PROPERTIES_RABBIT_TEST_BINDING_NAME));
-    }
-    */
-
-    @Bean
-    Queue broadcastQueue() {
-       return new Queue(properties.getBroadcastQueueName(), true);
+                             .with(replicationSettings.getBroadcastQueueBinding());
     }
 
+
     @Bean
-    Binding broadcastBinding() {
-        return BindingBuilder.bind(broadcastQueue())
+    Queue directQueue(ReplicationSettings replicationSettings) {
+       return new Queue(replicationSettings.getDirectQueueName(), true);
+    }
+
+    @Bean
+    Binding directBinding(ReplicationSettings replicationSettings,
+                          Queue directQueue) {
+        return BindingBuilder.bind(directQueue)
                              .to(topicExchange())
-                             .with(properties.getBroadcastQueueBinding());
-    }
-
-
-    @Bean
-    Queue directQueue() {
-       return new Queue(properties.getDirectQueueName(), true);
+                             .with(replicationSettings.getDirectQueueBinding());
     }
 
     @Bean
-    Binding directBinding() {
-        return BindingBuilder.bind(directQueue())
-                             .to(topicExchange())
-                             .with(properties.getDirectQueueBinding());
-    }
-
-    @Bean
-    RabbitAdmin rabbitAdmin() {
+    RabbitAdmin rabbitAdmin(final Binding directBinding,
+                            final Binding broadcastBinding,
+                            final Queue directQueue,
+                            final Queue broadcastQueue) {
         RabbitAdmin admin = new RabbitAdmin(connectionFactory());
         admin.declareExchange(topicExchange());
 
         // admin.declareQueue(testQueue());
-        admin.declareQueue(broadcastQueue());
-        admin.declareQueue(directQueue());
+        admin.declareQueue(broadcastQueue);
+        admin.declareQueue(directQueue);
 
         // admin.declareBinding(testBinding());
-        admin.declareBinding(broadcastBinding());
-        admin.declareBinding(directBinding());
+        admin.declareBinding(broadcastBinding);
+        admin.declareBinding(directBinding);
 
         return admin;
     }
 
     @Bean
     @DependsOn("rabbitAdmin")
-    SimpleMessageListenerContainer simpleMessageListenerContainer(MessageListener messageListener) {
+    SimpleMessageListenerContainer simpleMessageListenerContainer(MessageListener messageListener,
+                                                                  ReplicationSettings replicationSettings) {
         // String testQueueName = env.getProperty(PROPERTIES_RABBIT_TEST_QUEUE_NAME);
-        String broadcastQueueName = properties.getBroadcastQueueName();
-        String directQueueName = properties.getDirectQueueName();
+        String broadcastQueueName = replicationSettings.getBroadcastQueueName();
+        String directQueueName = replicationSettings.getDirectQueueName();
 
-        log.info("Broadcast queue {} bound to {}", broadcastQueueName, properties.getBroadcastQueueBinding());
-        log.info("Direct queue {} bound to {}", directQueueName, properties.getDirectQueueBinding());
+        log.info("Broadcast queue {} bound to {}",
+                broadcastQueueName,
+                replicationSettings.getBroadcastQueueBinding());
+        log.info("Direct queue {} bound to {}",
+                directQueueName,
+                replicationSettings.getDirectQueueBinding());
 
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setErrorHandler(errorHandler());
