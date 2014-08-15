@@ -21,6 +21,8 @@ import java.io.InputStreamReader;
 @ComponentScan(basePackageClasses = {
         ReplicationConfig.class,
         ReplicationSettings.class
+}, basePackages = {
+        "org.chronopolis.common.settings"
 })
 @EnableAutoConfiguration
 public class ReplicationConsumer implements CommandLineRunner {
