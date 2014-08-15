@@ -6,18 +6,15 @@ package org.chronopolis.replicate.processor;
 
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.common.ace.AceService;
-import org.chronopolis.common.ace.CredentialRequestInterceptor;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
-import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.replicate.jobs.AceRegisterJob;
 import org.chronopolis.replicate.jobs.BagDownloadJob;
 import org.chronopolis.replicate.jobs.TokenStoreDownloadJob;
-import org.chronopolis.replicate.util.URIUtil;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
@@ -25,10 +22,8 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import retrofit.RestAdapter;
 
 import java.util.HashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * TODO: How to reply to collection init message if there is an error
