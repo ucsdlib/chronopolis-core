@@ -14,7 +14,6 @@ import org.chronopolis.db.DatabaseManager;
 import org.chronopolis.db.model.CollectionIngest;
 import org.chronopolis.db.model.ReplicationFlow;
 import org.chronopolis.db.model.ReplicationState;
-import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.ingest.config.IngestSettings;
 import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.base.ChronMessage;

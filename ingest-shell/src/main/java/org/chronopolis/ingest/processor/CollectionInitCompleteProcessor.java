@@ -12,7 +12,6 @@ import org.chronopolis.db.ingest.ReplicationFlowTable;
 import org.chronopolis.db.model.CollectionIngest;
 import org.chronopolis.db.model.ReplicationFlow;
 import org.chronopolis.db.model.ReplicationState;
-import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
@@ -20,7 +19,6 @@ import org.chronopolis.messaging.exception.InvalidMessageException;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.mail.SimpleMailMessage;
 
 
 /**

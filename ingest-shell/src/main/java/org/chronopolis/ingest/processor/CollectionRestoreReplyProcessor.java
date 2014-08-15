@@ -1,8 +1,6 @@
 package org.chronopolis.ingest.processor;
 
 import org.chronopolis.amqp.ChronProducer;
-import org.chronopolis.common.settings.ChronopolisSettings;
-import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.ingest.config.IngestSettings;
 import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.base.ChronMessage;

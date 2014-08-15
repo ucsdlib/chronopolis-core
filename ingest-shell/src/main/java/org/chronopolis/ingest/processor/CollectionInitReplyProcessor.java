@@ -4,7 +4,6 @@ import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.db.DatabaseManager;
 import org.chronopolis.db.model.ReplicationFlow;
 import org.chronopolis.db.model.ReplicationState;
-import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.collection.CollectionInitReplyMessage;
