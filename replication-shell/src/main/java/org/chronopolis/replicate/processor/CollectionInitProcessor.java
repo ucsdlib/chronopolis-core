@@ -13,6 +13,7 @@ import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.ReplicationProperties;
+import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.replicate.jobs.AceRegisterJob;
 import org.chronopolis.replicate.jobs.BagDownloadJob;
 import org.chronopolis.replicate.jobs.TokenStoreDownloadJob;
@@ -45,7 +46,7 @@ public class CollectionInitProcessor implements ChronProcessor {
 
     private final ChronProducer producer;
     private final MessageFactory messageFactory;
-    private final ReplicationProperties props;
+    private final ReplicationSettings settings;
     private final MailUtil mailUtil;
     private final AceService aceService;
     private final Scheduler scheduler;
@@ -54,12 +55,13 @@ public class CollectionInitProcessor implements ChronProcessor {
 
     public CollectionInitProcessor(ChronProducer producer,
                                    MessageFactory messageFactory,
-                                   ReplicationProperties props,
+                                   ReplicationSettings settings,
                                    MailUtil mailUtil,
-                                   Scheduler scheduler) {
+                                   Scheduler scheduler,
+                                   AceService aceService) {
         this.producer = producer;
         this.messageFactory = messageFactory;
-        this.props = props;
+        this.settings = settings;
         this.mailUtil = mailUtil;
         this.scheduler = scheduler;
 
@@ -71,20 +73,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         completionMap.put(ACE_REGISTER_TOKENS, INCOMPLETE);
 
         // This might be better done through the dependency injection framework
-        String endpoint = URIUtil.buildAceUri(props.getAceFqdn(),
-                props.getAcePort(),
-                props.getAcePath()).toString();
-
-        CredentialRequestInterceptor interceptor = new CredentialRequestInterceptor(
-                props.getAceUser(),
-                props.getAcePass());
-
-        RestAdapter restAdapter = new RestAdapter.Builder()
-                                                 .setEndpoint(endpoint)
-                                                 .setRequestInterceptor(interceptor)
-                                                 .build();
-
-        aceService = restAdapter.create(AceService.class);
+        this.aceService = aceService;
     }
 
 
@@ -110,7 +99,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         // TODO: We only need one data map w/ the properties, message, completed, etc
 
         JobDataMap tsDataMap = new JobDataMap();
-        tsDataMap.put(TokenStoreDownloadJob.PROPERTIES, props);
+        tsDataMap.put(TokenStoreDownloadJob.SETTINGS, settings);
         tsDataMap.put(TokenStoreDownloadJob.MESSAGE, msg);
         tsDataMap.put(TokenStoreDownloadJob.COMPLETED, completionMap);
         JobDetail tsJobDetail = JobBuilder.newJob(TokenStoreDownloadJob.class)
@@ -120,7 +109,7 @@ public class CollectionInitProcessor implements ChronProcessor {
                 .build();
 
         JobDataMap bdDataMap = new JobDataMap();
-        bdDataMap.put(BagDownloadJob.PROPERTIES, props);
+        bdDataMap.put(BagDownloadJob.SETTINGS, settings);
         bdDataMap.put(BagDownloadJob.MESSAGE, msg);
         bdDataMap.put(BagDownloadJob.COMPLETED, completionMap);
         JobDetail bdJobDetail = JobBuilder.newJob(BagDownloadJob.class)
@@ -133,7 +122,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         arDataMap.put(AceRegisterJob.TOKEN_STORE, msg.getCollection() + "-tokens");
         arDataMap.put(AceRegisterJob.REGISTER, true);
         arDataMap.put(AceRegisterJob.ACE_SERVICE, aceService);
-        arDataMap.put(AceRegisterJob.PROPERTIES, props);
+        arDataMap.put(AceRegisterJob.SETTINGS, settings);
         arDataMap.put(AceRegisterJob.MESSAGE, msg);
         arDataMap.put(AceRegisterJob.COMPLETED, completionMap);
         JobDetail arJobDetail = JobBuilder.newJob(AceRegisterJob.class)

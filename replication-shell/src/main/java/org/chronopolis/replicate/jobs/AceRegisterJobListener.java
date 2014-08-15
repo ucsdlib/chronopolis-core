@@ -5,7 +5,7 @@ import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
-import org.chronopolis.replicate.ReplicationProperties;
+import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.replicate.util.MailFunctions;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -28,20 +28,20 @@ public class AceRegisterJobListener extends JobListenerSupport {
     private final Scheduler scheduler;
     private final ChronProducer producer;
     private final MessageFactory messageFactory;
-    private final ReplicationProperties properties;
+    private final ReplicationSettings settings;
     private final MailUtil mailUtil;
 
     public AceRegisterJobListener(final String name,
                                   final Scheduler scheduler,
                                   final ChronProducer producer,
                                   final MessageFactory messageFactory,
-                                  final ReplicationProperties properties,
+                                  final ReplicationSettings settings,
                                   final MailUtil mailUtil) {
         this.name = name;
         this.scheduler = scheduler;
         this.producer = producer;
+        this.settings = settings;
         this.messageFactory = messageFactory;
-        this.properties = properties;
         this.mailUtil = mailUtil;
     }
 
@@ -61,7 +61,7 @@ public class AceRegisterJobListener extends JobListenerSupport {
 
         String returnKey = message.getReturnKey();
         String correlationId = jobExecutionContext.getJobDetail().getKey().getName();
-        String nodeName = properties.getNodeName();
+        String nodeName = settings.getNode();
         String subject;
 
         // Send collection init complete

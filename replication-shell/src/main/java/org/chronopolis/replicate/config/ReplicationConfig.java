@@ -8,6 +8,7 @@ import org.chronopolis.amqp.error.ErrorHandlerImpl;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.CredentialRequestInterceptor;
 import org.chronopolis.common.mail.MailUtil;
+import org.chronopolis.common.settings.AceSettings;
 import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.db.common.RestoreRepository;
 import org.chronopolis.messaging.base.ChronProcessor;
@@ -72,14 +73,14 @@ public class ReplicationConfig {
     ReplicationProperties properties;
 
     @Bean
-    AceService aceService() {
-        String endpoint = URIUtil.buildAceUri(properties.getAceFqdn(),
-                properties.getAcePort(),
-                properties.getAcePath()).toString();
+    AceService aceService(AceSettings aceSettings) {
+        String endpoint = URIUtil.buildAceUri(aceSettings.getAmHost(),
+                aceSettings.getAmPort(),
+                aceSettings.getAmPath()).toString();
 
         CredentialRequestInterceptor interceptor = new CredentialRequestInterceptor(
-                properties.getAceUser(),
-                properties.getAcePass());
+                aceSettings.getAmUser(),
+                aceSettings.getAmPassword());
 
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(endpoint)
@@ -173,13 +174,14 @@ public class ReplicationConfig {
     }
 
     @Bean
-    AceRegisterJobListener aceRegisterJobListener(MessageFactory messageFactory) {
+    AceRegisterJobListener aceRegisterJobListener(MessageFactory messageFactory,
+                                                  ReplicationSettings replicationSettings) {
         AceRegisterJobListener jobListener = new AceRegisterJobListener(
                 "ace-register",
                 scheduler(),
                 producer(),
                 messageFactory,
-                properties,
+                replicationSettings,
                 mailUtil());
 
         try {
@@ -193,11 +195,12 @@ public class ReplicationConfig {
     }
 
     @Bean
-    BagDownloadJobListener bagDownloadJobListener(MessageFactory messageFactory) {
+    BagDownloadJobListener bagDownloadJobListener(MessageFactory messageFactory,
+                                                  ReplicationSettings replicationSettings) {
         BagDownloadJobListener jobListener = new BagDownloadJobListener(
                 "bag-download",
                 scheduler(),
-                properties,
+                replicationSettings,
                 mailUtil(),
                 messageFactory,
                 producer());
@@ -213,11 +216,12 @@ public class ReplicationConfig {
     }
 
     @Bean
-    TokenStoreDownloadJobListener tokenStoreDownloadJobListener(MessageFactory messageFactory) {
+    TokenStoreDownloadJobListener tokenStoreDownloadJobListener(MessageFactory messageFactory,
+                                                                ReplicationSettings replicationSettings) {
         TokenStoreDownloadJobListener jobListener = new TokenStoreDownloadJobListener(
                 "token-store-download",
                 scheduler(),
-                properties,
+                replicationSettings,
                 mailUtil(),
                 messageFactory,
                 producer());
@@ -236,12 +240,15 @@ public class ReplicationConfig {
     @DependsOn({"tokenStoreDownloadJobListener",
                 "bagDownloadJobListener",
                 "aceRegisterJobListener"})
-    CollectionInitProcessor collectionInitProcessor(MessageFactory messageFactory) {
+    CollectionInitProcessor collectionInitProcessor(MessageFactory messageFactory,
+                                                    ReplicationSettings replicationSettings,
+                                                    AceService aceService) {
         return new CollectionInitProcessor(producer(),
                 messageFactory,
-                properties,
+                replicationSettings,
                 mailUtil(),
-                scheduler());
+                scheduler(),
+                aceService);
     }
 
     @Bean

@@ -3,7 +3,7 @@ package org.chronopolis.replicate.jobs;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
-import org.chronopolis.replicate.ReplicationProperties;
+import org.chronopolis.replicate.config.ReplicationSettings;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -35,7 +35,7 @@ public class AceRegisterJob implements Job {
     public static final String COMPLETED = "completed";
     public static final String REGISTER = "register";
     public static final String TOKEN_STORE = "token_store";
-    public static final String PROPERTIES = "properties";
+    public static final String SETTINGS = "settings";
     public static final String ACE_SERVICE = "ace_service";
     public static final String MESSAGE = "message";
 
@@ -48,7 +48,7 @@ public class AceRegisterJob implements Job {
 
     private String tokenStore;
     private String returnKey;
-    private ReplicationProperties properties;
+    private ReplicationSettings settings;
     private AceService aceService;
 
     private CollectionInitMessage message;
@@ -58,7 +58,7 @@ public class AceRegisterJob implements Job {
 
 
     private void initFromDataMap(final JobDataMap jobDataMap) {
-        setProperties((ReplicationProperties) jobDataMap.get(PROPERTIES));
+        setSettings((ReplicationSettings) jobDataMap.get(SETTINGS));
         setAceService((AceService) jobDataMap.get(ACE_SERVICE));
         setMessage((CollectionInitMessage) jobDataMap.get(MESSAGE));
         setRegister(jobDataMap.getBoolean(REGISTER));
@@ -78,8 +78,9 @@ public class AceRegisterJob implements Job {
     public void execute(final JobExecutionContext jobExecutionContext) throws JobExecutionException {
         initFromDataMap(jobExecutionContext.getJobDetail().getJobDataMap());
 
-        Path collectionPath = Paths.get(properties.getStage(), group, collection);
-        Path manifest = Paths.get(properties.getStage(), tokenStore);
+        Path collectionPath = Paths.get(settings.getPreservation(), group, collection);
+        // TODO: Get stage for manifest?
+        Path manifest = Paths.get(settings.getPreservation(), tokenStore);
         callbackComplete = new AtomicBoolean(false);
 
         log.trace("Building ACE json");
@@ -189,8 +190,8 @@ public class AceRegisterJob implements Job {
         this.register = register;
     }
 
-    public void setProperties(final ReplicationProperties replicationProperties) {
-        this.properties = replicationProperties;
+    public void setSettings(final ReplicationSettings replicationSettings) {
+        this.settings = replicationSettings;
     }
 
     public void setAceService(final AceService aceService) {

@@ -9,7 +9,7 @@ import org.chronopolis.common.transfer.FileTransfer;
 import org.chronopolis.common.transfer.HttpsTransfer;
 import org.chronopolis.common.transfer.RSyncTransfer;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
-import org.chronopolis.replicate.ReplicationProperties;
+import org.chronopolis.replicate.config.ReplicationSettings;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -32,20 +32,20 @@ public class BagDownloadJob implements Job {
     private final Logger log = LoggerFactory.getLogger(BagDownloadJob.class);
 
     public static final String COMPLETED = "completed";
-    public static final String PROPERTIES = "properties";
+    public static final String SETTINGS = "settings";
     public static final String MESSAGE = "message";
 
     private String collection;
     private String depositor;
     private String location;
     private String protocol;
-    private ReplicationProperties properties;
+    private ReplicationSettings settings;
     private String digest;
     private CollectionInitMessage message;
     private Map<String, String> completionMap;
 
     private void initFromJobDataMap(final JobDataMap jobDataMap) {
-        setProperties((ReplicationProperties) jobDataMap.get(PROPERTIES));
+        setSettings((ReplicationSettings) jobDataMap.get(SETTINGS));
         setMessage((CollectionInitMessage) jobDataMap.get(MESSAGE));
         setCompletionMap((Map<String, String>) jobDataMap.get(COMPLETED));
 
@@ -63,7 +63,7 @@ public class BagDownloadJob implements Job {
         log.info("Downloading bag from {}", location);
 
         FileTransfer transfer;
-        Path bagPath = Paths.get(properties.getStage(), depositor);
+        Path bagPath = Paths.get(settings.getPreservation(), depositor);
 
         String uri;
         if (protocol.equalsIgnoreCase("https")) {
@@ -127,8 +127,8 @@ public class BagDownloadJob implements Job {
         this.depositor = depositor;
     }
 
-    public void setProperties(final ReplicationProperties properties) {
-        this.properties = properties;
+    public void setSettings(final ReplicationSettings settings) {
+        this.settings = settings;
     }
 
     public void setCollection(final String collection) {

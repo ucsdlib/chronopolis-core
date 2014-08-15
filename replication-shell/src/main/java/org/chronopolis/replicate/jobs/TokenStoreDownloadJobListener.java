@@ -6,7 +6,7 @@ import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.collection.CollectionInitReplyMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
-import org.chronopolis.replicate.ReplicationProperties;
+import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.replicate.util.MailFunctions;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -31,20 +31,20 @@ public class TokenStoreDownloadJobListener extends JobListenerSupport {
 
     private final String name;
     private final Scheduler scheduler;
-    private final ReplicationProperties properties;
+    private ReplicationSettings settings;
     private final MailUtil mailUtil;
     private final MessageFactory messageFactory;
     private final ChronProducer producer;
 
     public TokenStoreDownloadJobListener(String name,
                                          Scheduler scheduler,
-                                         ReplicationProperties properties,
+                                         ReplicationSettings settings,
                                          MailUtil mailUtil,
                                          final MessageFactory messageFactory,
                                          final ChronProducer producer) {
         this.name = name;
         this.scheduler = scheduler;
-        this.properties = properties;
+        this.settings = settings;
         this.mailUtil = mailUtil;
         this.messageFactory = messageFactory;
         this.producer = producer;
@@ -105,7 +105,7 @@ public class TokenStoreDownloadJobListener extends JobListenerSupport {
                     (CollectionInitMessage) jobDetail.getJobDataMap()
                             .get(BagDownloadJob.MESSAGE);
 
-            String nodeName = properties.getNodeName();
+            String nodeName = settings.getNode();
             String subject = "Failure in CollectionInit - Token Store Job";
             String text = MailFunctions.createText(msg, completionMap, e);
 

@@ -6,8 +6,8 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import org.chronopolis.common.exception.FileTransferException;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
-import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.ReplicationQueue;
+import org.chronopolis.replicate.config.ReplicationSettings;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -32,10 +32,10 @@ public class TokenStoreDownloadJob implements Job {
     private final Logger log = LoggerFactory.getLogger(TokenStoreDownloadJob.class);
 
     public static final String COMPLETED = "completed";
-    public final static String PROPERTIES = "properties";
+    public final static String SETTINGS = "settings";
     public final static String MESSAGE = "message";
 
-    private ReplicationProperties properties;
+    private ReplicationSettings settings;
     private CollectionInitMessage message;
     private Map<String, String> completionMap;
 
@@ -44,7 +44,7 @@ public class TokenStoreDownloadJob implements Job {
     private String digest;
 
     private void initFromJobDataMap(final JobDataMap jobDataMap) {
-        setProperties((ReplicationProperties) jobDataMap.get(PROPERTIES));
+        setSettings((ReplicationSettings) jobDataMap.get(SETTINGS));
         setMessage((CollectionInitMessage) jobDataMap.get(MESSAGE));
         setCompletionMap((Map<String, String>) jobDataMap.get(COMPLETED));
 
@@ -61,7 +61,7 @@ public class TokenStoreDownloadJob implements Job {
         Path manifest;
         try {
             manifest = ReplicationQueue.getFileImmediate(location,
-                    Paths.get(properties.getStage()),
+                    Paths.get(settings.getPreservation()),
                     protocol);
 
             jobExecutionContext.setResult(manifest);
@@ -101,10 +101,6 @@ public class TokenStoreDownloadJob implements Job {
 
     }
 
-    public void setProperties(final ReplicationProperties properties) {
-        this.properties = properties;
-    }
-
     public void setLocation(final String location) {
         this.location = location;
     }
@@ -125,4 +121,7 @@ public class TokenStoreDownloadJob implements Job {
         this.completionMap = completionMap;
     }
 
+    public void setSettings(final ReplicationSettings settings) {
+        this.settings = settings;
+    }
 }
