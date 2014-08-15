@@ -3,10 +3,8 @@ package org.chronopolis.intake.config;
 import com.rabbitmq.client.ConnectionFactory;
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.amqp.ConnectionListenerImpl;
-import org.chronopolis.amqp.RoutingKey;
 import org.chronopolis.amqp.TopicProducer;
 import org.chronopolis.amqp.error.ErrorHandlerImpl;
-import org.chronopolis.common.properties.GenericProperties;
 import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.intake.processor.CollectionRestoreCompleteProcessor;
 import org.chronopolis.intake.processor.PackageIngestCompleteProcessor;
@@ -41,16 +39,6 @@ public class AMQPConfiguration {
 
     @Autowired
     ChronopolisSettings settings;
-
-    @Bean
-    GenericProperties properties() {
-        // TODO: Deprecate use of GenericProperties
-        return new GenericProperties(settings.getNode(),
-                settings.getBagStage(),
-                amqpSettings.getExchange(),
-                settings.getNode() + "-dura-inbound",
-                RoutingKey.INGEST_BROADCAST.asRoute());
-    }
 
     @Bean
     MessageFactory messageFactory(ChronopolisSettings chronopolisSettings) {
