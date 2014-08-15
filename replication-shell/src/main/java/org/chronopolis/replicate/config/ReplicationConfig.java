@@ -8,13 +8,13 @@ import org.chronopolis.amqp.error.ErrorHandlerImpl;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.CredentialRequestInterceptor;
 import org.chronopolis.common.mail.MailUtil;
+import org.chronopolis.common.settings.AMQPSettings;
 import org.chronopolis.common.settings.AceSettings;
 import org.chronopolis.common.settings.ChronopolisSettings;
+import org.chronopolis.common.settings.SMTPSettings;
 import org.chronopolis.db.common.RestoreRepository;
-import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.ReplicateMessageListener;
-import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.jobs.AceRegisterJobListener;
 import org.chronopolis.replicate.jobs.BagDownloadJobListener;
 import org.chronopolis.replicate.jobs.TokenStoreDownloadJobListener;
@@ -42,12 +42,10 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import retrofit.RestAdapter;
 
@@ -57,20 +55,12 @@ import javax.annotation.Resource;
  * Created by shake on 4/16/14.
  */
 @Configuration
-@PropertySource({"file:replication.properties"})
-@Import({PropConfig.class, JPAConfiguration.class})
+@Import({JPAConfiguration.class})
 public class ReplicationConfig {
     public final Logger log = LoggerFactory.getLogger(ReplicationConfig.class);
 
-    public static final String PROPERTIES_SMTP_FROM = "smtp.from";
-    public static final String PROPERTIES_SMTP_TO = "smtp.to";
-    public static final String PROPERTIES_SMTP_HOST = "smtp.host";
-
     @Resource
     Environment env;
-
-    @Autowired
-    ReplicationProperties properties;
 
     @Bean
     AceService aceService(AceSettings aceSettings) {
@@ -91,11 +81,11 @@ public class ReplicationConfig {
     }
 
     @Bean
-    MailUtil mailUtil() {
+    MailUtil mailUtil(SMTPSettings smtpSettings) {
         MailUtil mailUtil = new MailUtil();
-        mailUtil.setSmtpFrom(env.getProperty(PROPERTIES_SMTP_FROM));
-        mailUtil.setSmtpTo(env.getProperty(PROPERTIES_SMTP_TO));
-        mailUtil.setSmtpHost(env.getProperty(PROPERTIES_SMTP_HOST));
+        mailUtil.setSmtpFrom(smtpSettings.getFrom());
+        mailUtil.setSmtpTo(smtpSettings.getTo());
+        mailUtil.setSmtpHost(smtpSettings.getHost());
         return mailUtil;
     }
 
@@ -110,24 +100,18 @@ public class ReplicationConfig {
     }
 
     @Bean
-    ConnectionFactory rabbitConnectionFactory() {
+    ConnectionFactory rabbitConnectionFactory(AMQPSettings amqpSettings) {
         ConnectionFactory connectionFactory = new ConnectionFactory();
         connectionFactory.setRequestedHeartbeat(60);
         connectionFactory.setConnectionTimeout(300);
-
-        String virtualHost = env.getProperty("node.virtual.host");
-        if (virtualHost == null) {
-            virtualHost = "chronopolis";
-        }
-
-        connectionFactory.setVirtualHost(virtualHost);
+        connectionFactory.setVirtualHost(amqpSettings.getVirtualHost());
 
         return connectionFactory;
     }
 
     @Bean
-    CachingConnectionFactory connectionFactory() {
-        CachingConnectionFactory connectionFactory = new CachingConnectionFactory(rabbitConnectionFactory());
+    CachingConnectionFactory connectionFactory(ConnectionFactory rabbitConnectionFactory) {
+        CachingConnectionFactory connectionFactory = new CachingConnectionFactory(rabbitConnectionFactory);
 
         connectionFactory.setPublisherConfirms(true);
         connectionFactory.setPublisherReturns(true);
@@ -139,10 +123,10 @@ public class ReplicationConfig {
     }
 
     @Bean
-    RabbitTemplate rabbitTemplate() {
+    RabbitTemplate rabbitTemplate(CachingConnectionFactory connectionFactory) {
         RabbitTemplate template = new RabbitTemplate();
         template.setExchange("chronopolis-control");
-        template.setConnectionFactory(connectionFactory());
+        template.setConnectionFactory(connectionFactory);
         template.setMandatory(true);
 
 
@@ -150,18 +134,18 @@ public class ReplicationConfig {
     }
 
     @Bean
-    TopicProducer producer() {
-        return new TopicProducer(rabbitTemplate());
+    TopicProducer producer(RabbitTemplate rabbitTemplate) {
+        return new TopicProducer(rabbitTemplate);
     }
 
     @Bean
-    FileQueryProcessor fileQueryProcessor() {
-        return new FileQueryProcessor(producer());
+    FileQueryProcessor fileQueryProcessor(TopicProducer producer) {
+        return new FileQueryProcessor(producer);
     }
 
     @Bean
-    FileQueryResponseProcessor fileQueryResponseProcessor() {
-        return new FileQueryResponseProcessor(producer());
+    FileQueryResponseProcessor fileQueryResponseProcessor(TopicProducer producer) {
+        return new FileQueryResponseProcessor(producer);
     }
 
     @Bean(initMethod = "start", destroyMethod = "shutdown")
@@ -175,14 +159,16 @@ public class ReplicationConfig {
 
     @Bean
     AceRegisterJobListener aceRegisterJobListener(MessageFactory messageFactory,
-                                                  ReplicationSettings replicationSettings) {
+                                                  ReplicationSettings replicationSettings,
+                                                  TopicProducer producer,
+                                                  MailUtil mailUtil) {
         AceRegisterJobListener jobListener = new AceRegisterJobListener(
                 "ace-register",
                 scheduler(),
-                producer(),
+                producer,
                 messageFactory,
                 replicationSettings,
-                mailUtil());
+                mailUtil);
 
         try {
             scheduler().getListenerManager().addJobListener(jobListener,
@@ -196,14 +182,16 @@ public class ReplicationConfig {
 
     @Bean
     BagDownloadJobListener bagDownloadJobListener(MessageFactory messageFactory,
-                                                  ReplicationSettings replicationSettings) {
+                                                  ReplicationSettings replicationSettings,
+                                                  TopicProducer producer,
+                                                  MailUtil mailUtil) {
         BagDownloadJobListener jobListener = new BagDownloadJobListener(
                 "bag-download",
                 scheduler(),
                 replicationSettings,
-                mailUtil(),
+                mailUtil,
                 messageFactory,
-                producer());
+                producer);
 
         try {
             scheduler().getListenerManager().addJobListener(jobListener,
@@ -217,14 +205,16 @@ public class ReplicationConfig {
 
     @Bean
     TokenStoreDownloadJobListener tokenStoreDownloadJobListener(MessageFactory messageFactory,
-                                                                ReplicationSettings replicationSettings) {
+                                                                ReplicationSettings replicationSettings,
+                                                                TopicProducer producer,
+                                                                MailUtil mailUtil) {
         TokenStoreDownloadJobListener jobListener = new TokenStoreDownloadJobListener(
                 "token-store-download",
                 scheduler(),
                 replicationSettings,
-                mailUtil(),
+                mailUtil,
                 messageFactory,
-                producer());
+                producer);
 
         try {
             scheduler().getListenerManager().addJobListener(jobListener,
@@ -242,11 +232,13 @@ public class ReplicationConfig {
                 "aceRegisterJobListener"})
     CollectionInitProcessor collectionInitProcessor(MessageFactory messageFactory,
                                                     ReplicationSettings replicationSettings,
-                                                    AceService aceService) {
-        return new CollectionInitProcessor(producer(),
+                                                    AceService aceService,
+                                                    TopicProducer producer,
+                                                    MailUtil mailUtil) {
+        return new CollectionInitProcessor(producer,
                 messageFactory,
                 replicationSettings,
-                mailUtil(),
+                mailUtil,
                 scheduler(),
                 aceService);
     }
@@ -276,10 +268,12 @@ public class ReplicationConfig {
     @Bean
     MessageListener messageListener(CollectionRestoreRequestProcessor collectionRestoreRequestProcessor,
                                     CollectionRestoreLocationProcessor collectionRestoreLocationProcessor,
-                                    CollectionInitProcessor collectionInitProcessor) {
+                                    CollectionInitProcessor collectionInitProcessor,
+                                    FileQueryProcessor fileQueryProcessor,
+                                    FileQueryResponseProcessor fileQueryResponseProcessor) {
         return new ReplicateMessageListener(
-                fileQueryProcessor(),
-                fileQueryResponseProcessor(),
+                fileQueryProcessor,
+                fileQueryResponseProcessor,
                 collectionInitProcessor,
                 collectionRestoreRequestProcessor,
                 collectionRestoreLocationProcessor);
@@ -326,8 +320,9 @@ public class ReplicationConfig {
     RabbitAdmin rabbitAdmin(final Binding directBinding,
                             final Binding broadcastBinding,
                             final Queue directQueue,
-                            final Queue broadcastQueue) {
-        RabbitAdmin admin = new RabbitAdmin(connectionFactory());
+                            final Queue broadcastQueue,
+                            CachingConnectionFactory connectionFactory) {
+        RabbitAdmin admin = new RabbitAdmin(connectionFactory);
         admin.declareExchange(topicExchange());
 
         // admin.declareQueue(testQueue());
@@ -344,8 +339,8 @@ public class ReplicationConfig {
     @Bean
     @DependsOn("rabbitAdmin")
     SimpleMessageListenerContainer simpleMessageListenerContainer(MessageListener messageListener,
-                                                                  ReplicationSettings replicationSettings) {
-        // String testQueueName = env.getProperty(PROPERTIES_RABBIT_TEST_QUEUE_NAME);
+                                                                  ReplicationSettings replicationSettings,
+                                                                  CachingConnectionFactory connectionFactory) {
         String broadcastQueueName = replicationSettings.getBroadcastQueueName();
         String directQueueName = replicationSettings.getDirectQueueName();
 
@@ -358,7 +353,7 @@ public class ReplicationConfig {
 
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setErrorHandler(errorHandler());
-        container.setConnectionFactory(connectionFactory());
+        container.setConnectionFactory(connectionFactory);
         container.setQueueNames(broadcastQueueName, directQueueName);
         container.setMessageListener(messageListener);
         return container;
