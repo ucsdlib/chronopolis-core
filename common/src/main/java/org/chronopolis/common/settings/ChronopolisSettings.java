@@ -26,8 +26,8 @@ public class ChronopolisSettings {
     @Value("${chron.stage.restore:/scratch1/restore}")
     private String restore;
 
-    @Value("${chron.service:intake")
-    private String service;
+    // defaults to intake for the inbound key
+    private String service = "intake";
 
     private String inboundKey;
 

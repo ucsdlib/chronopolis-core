@@ -33,7 +33,6 @@ public class IngestSettings extends ChronopolisSettings {
     private String broadcastQueueName;
     private String directQueueName;
 
-
     // Getters + Setters
 
     public Boolean getDpnPush() {
@@ -92,8 +91,14 @@ public class IngestSettings extends ChronopolisSettings {
 
     public String getDirectQueueName() {
         if (directQueueName == null) {
-            directQueueName = "ingest-" + getNode() + "-inbound";
+            directQueueName = "ingest-direct-" + getNode();
         }
         return directQueueName;
     }
+
+    @Override
+    public String getInboundKey() {
+        return directQueueBinding;
+    }
+
 }
