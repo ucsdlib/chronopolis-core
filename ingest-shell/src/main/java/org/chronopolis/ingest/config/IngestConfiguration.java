@@ -7,7 +7,9 @@ import org.chronopolis.amqp.TopicProducer;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.restore.CollectionRestore;
 import org.chronopolis.common.restore.LocalRestore;
+import org.chronopolis.common.settings.AMQPSettings;
 import org.chronopolis.common.settings.ChronopolisSettings;
+import org.chronopolis.common.settings.SMTPSettings;
 import org.chronopolis.db.DatabaseManager;
 import org.chronopolis.db.common.RestoreRepository;
 import org.chronopolis.ingest.IngestMessageListener;
@@ -36,10 +38,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.env.Environment;
 
-import javax.annotation.Resource;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,12 +47,8 @@ import java.util.List;
  * Created by shake on 4/10/14.
  */
 @Configuration
-@PropertySource({"file:ingest.properties"})
 @Import(IngestJPAConfiguration.class)
 public class IngestConfiguration {
-    public static final String PROPERTIES_SMTP_HOST = "smtp.host";
-    public static final String PROPERTIES_SMTP_FROM = "smtp.from";
-    public static final String PROPERTIES_SMTP_TO = "smtp.to";
 
     private final Logger log = LoggerFactory.getLogger(IngestConfiguration.class);
 
@@ -63,37 +58,28 @@ public class IngestConfiguration {
     @Autowired
     public RestoreRepository restoreRepository;
 
-    @Resource
-    public Environment env;
-
     @Bean
     public ConnectionListenerImpl connectionListener() {
         return new ConnectionListenerImpl();
     }
 
     @Bean
-    public ConnectionFactory rabbitConnectionFactory() {
+    public ConnectionFactory rabbitConnectionFactory(AMQPSettings amqpSettings) {
         ConnectionFactory connectionFactory = new ConnectionFactory();
         // Move to properties
         connectionFactory.setRequestedHeartbeat(60);
         connectionFactory.setConnectionTimeout(300);
-
-        String virtualHost = env.getProperty("node.virtual.host");
-        if (virtualHost == null) {
-            System.out.println("Using default virtual host");
-            virtualHost = "chronopolis";
-        }
-
-        connectionFactory.setVirtualHost(virtualHost);
+        connectionFactory.setVirtualHost(amqpSettings.getVirtualHost());
 
         return connectionFactory;
     }
 
 
     @Bean
-    public CachingConnectionFactory connectionFactory() {
+    public CachingConnectionFactory connectionFactory(AMQPSettings amqpSettings,
+                                                      ConnectionFactory rabbitConnectionFactory) {
         CachingConnectionFactory connectionFactory =
-                new CachingConnectionFactory(rabbitConnectionFactory());
+                new CachingConnectionFactory(rabbitConnectionFactory);
 
         connectionFactory.setPublisherConfirms(true);
         connectionFactory.setPublisherReturns(true);
@@ -102,17 +88,17 @@ public class IngestConfiguration {
         connectionListenerList.add(connectionListener());
 
         connectionFactory.setConnectionListeners(connectionListenerList);
-        connectionFactory.setAddresses("adapt-mq.umiacs.umd.edu");
+        connectionFactory.setAddresses(amqpSettings.getServer());
 
         return connectionFactory;
     }
 
     @Bean
-    public MailUtil mailUtil() {
+    public MailUtil mailUtil(SMTPSettings smtpSettings) {
         MailUtil mailUtil = new MailUtil();
-        mailUtil.setSmtpFrom(env.getProperty(PROPERTIES_SMTP_FROM));
-        mailUtil.setSmtpTo(env.getProperty(PROPERTIES_SMTP_TO));
-        mailUtil.setSmtpHost(env.getProperty(PROPERTIES_SMTP_HOST));
+        mailUtil.setSmtpFrom(smtpSettings.getFrom());
+        mailUtil.setSmtpTo(smtpSettings.getTo());
+        mailUtil.setSmtpHost(smtpSettings.getHost());
 
         return mailUtil;
     }
@@ -124,58 +110,65 @@ public class IngestConfiguration {
     }
 
     @Bean
-    public RabbitTemplate rabbitTemplate() {
+    public RabbitTemplate rabbitTemplate(AMQPSettings amqpSettings,
+                                         CachingConnectionFactory connectionFactory) {
         RabbitTemplate template = new RabbitTemplate();
-        template.setExchange("chronopolis-control");
-        template.setConnectionFactory(connectionFactory());
+        template.setExchange(amqpSettings.getExchange());
+        template.setConnectionFactory(connectionFactory);
         template.setMandatory(true);
         return template;
     }
 
     @Bean
-    public TopicProducer producer() {
-        return new TopicProducer(rabbitTemplate());
+    public TopicProducer producer(RabbitTemplate rabbitTemplate) {
+        return new TopicProducer(rabbitTemplate);
     }
 
     @Bean
     public PackageReadyProcessor packageReadyProcessor(MessageFactory messageFactory,
+                                                       TopicProducer producer,
+                                                       MailUtil mailUtil,
                                                        IngestSettings settings) {
-        return new PackageReadyProcessor(producer(),
+        return new PackageReadyProcessor(producer,
                 settings,
                 messageFactory,
                 manager,
-                mailUtil());
+                mailUtil);
     }
 
     @Bean
     public CollectionInitCompleteProcessor collectionInitCompleteProcessor(MessageFactory messageFactory,
+                                                                           TopicProducer producer,
+                                                                           MailUtil mailUtil,
                                                                            IngestSettings settings) {
-        return new CollectionInitCompleteProcessor(producer(),
+        return new CollectionInitCompleteProcessor(producer,
                 messageFactory,
                 manager,
-                mailUtil());
+                mailUtil);
     }
 
     @Bean
     public CollectionInitReplyProcessor collectionInitReplyProcessor(MessageFactory messageFactory,
+                                                                     TopicProducer producer,
                                                                      IngestSettings settings) {
         return new CollectionInitReplyProcessor(
-                producer(),
+                producer,
                 messageFactory,
                 manager
         );
     }
 
     @Bean
-    public PackageIngestStatusQueryProcessor packageIngestStatusQueryProcessor() {
-        return new PackageIngestStatusQueryProcessor(producer());
+    public PackageIngestStatusQueryProcessor packageIngestStatusQueryProcessor(TopicProducer producer) {
+        return new PackageIngestStatusQueryProcessor(producer);
     }
 
     @Bean
     public CollectionRestoreRequestProcessor collectionRestoreRequestProcessor(MessageFactory messageFactory,
+                                                                               TopicProducer producer,
                                                                                CollectionRestore collectionRestore,
                                                                                IngestSettings settings) {
-        return new CollectionRestoreRequestProcessor(producer(),
+        return new CollectionRestoreRequestProcessor(producer,
                 settings,
                 messageFactory,
                 collectionRestore,
@@ -209,12 +202,13 @@ public class IngestConfiguration {
 
     @Bean
     public MessageListener messageListener(PackageReadyProcessor packageReadyProcessor,
+                                           PackageIngestStatusQueryProcessor packageIngestStatusQueryProcessor,
                                            CollectionInitCompleteProcessor collectionInitCompleteProcessor,
                                            CollectionInitReplyProcessor collectionInitReplyProcessor,
                                            CollectionRestoreReplyProcessor collectionRestoreReplyProcessor,
                                            CollectionRestoreCompleteProcessor collectionRestoreCompleteProcessor,
                                            CollectionRestoreRequestProcessor collectionRestoreRequestProcessor) {
-        return new IngestMessageListener(packageIngestStatusQueryProcessor(),
+        return new IngestMessageListener(packageIngestStatusQueryProcessor,
                 packageReadyProcessor,
                 collectionInitCompleteProcessor,
                 collectionInitReplyProcessor,
@@ -264,8 +258,9 @@ public class IngestConfiguration {
     RabbitAdmin rabbitAdmin(Queue broadcastQueue,
                             Queue directIngestQueue,
                             Binding broadcastBinding,
-                            Binding directIngestBinding) {
-        RabbitAdmin admin = new RabbitAdmin(connectionFactory());
+                            Binding directIngestBinding,
+                            CachingConnectionFactory connectionFactory) {
+        RabbitAdmin admin = new RabbitAdmin(connectionFactory);
         // our exchange
         admin.declareExchange(topicExchange());
         // our queues
@@ -286,12 +281,13 @@ public class IngestConfiguration {
     @Bean
     @DependsOn("rabbitAdmin")
     SimpleMessageListenerContainer simpleMessageListenerContainer(MessageListener messageListener,
+                                                                  CachingConnectionFactory connectionFactory,
                                                                   IngestSettings settings) {
         // String testQueueName = env.getProperty(PROPERTIES_RABBIT_TEST_QUEUE_NAME);
         String broadcastQueueName = settings.getBroadcastQueueName();
         String directQueueName = settings.getDirectQueueName();
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
-        container.setConnectionFactory(connectionFactory());
+        container.setConnectionFactory(connectionFactory);
         container.setQueueNames(broadcastQueueName, directQueueName);
         container.setMessageListener(messageListener);
         container.afterPropertiesSet();

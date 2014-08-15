@@ -30,6 +30,8 @@ import java.io.InputStreamReader;
         IngestSettings.class,
         IngestJPAConfiguration.class,
         IngestConfiguration.class
+}, basePackages = {
+        "org.chronopolis.common.settings"
 })
 @EnableAutoConfiguration
 public class IngestConsumer implements CommandLineRunner {

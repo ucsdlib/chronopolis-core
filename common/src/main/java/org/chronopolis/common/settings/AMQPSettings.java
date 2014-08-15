@@ -15,6 +15,7 @@ public class AMQPSettings {
     @Value("${amqp.exchange:chronopolis-core}")
     String exchange;
 
+    // TODO: rename to addresses; make List<String>
     @Value("${amqp.servers:adapt-mq.umiacs.umd.edu}")
     String server;
 

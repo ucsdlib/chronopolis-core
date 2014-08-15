@@ -9,8 +9,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.hibernate4.HibernateExceptionTranslator;
@@ -21,7 +19,6 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import javax.annotation.Resource;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
@@ -37,15 +34,11 @@ import java.sql.SQLException;
                                                         RestoreRepository.class},
                                                type = FilterType.ASSIGNABLE_TYPE))
 @EnableTransactionManagement
-@PropertySource({"file:ingest.properties"})
 public class IngestJPAConfiguration {
     private static final String PROPERTIES_JDBC_DRIVER = "jdbc.driver";
     private static final String PROPERTIES_JDBC_URL = "jdbc.url";
     private static final String PROPERTIES_JDBC_USERNAME = "jdbc.username";
     private static final String PROPERTIES_JDBC_PASSWORD = "jdbc.password";
-
-    @Resource
-    public Environment environment;
 
     @Bean
     public DataSource dataSource() throws SQLException {
