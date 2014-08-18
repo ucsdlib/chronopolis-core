@@ -2,7 +2,7 @@ package org.chronopolis.replicate.processor;
 
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.common.exception.FileTransferException;
-import org.chronopolis.common.settings.ChronopolisSettings;
+import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.transfer.FileTransfer;
 import org.chronopolis.common.transfer.HttpsTransfer;
 import org.chronopolis.common.transfer.RSyncTransfer;
@@ -13,8 +13,10 @@ import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.collection.CollectionRestoreLocationMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
+import org.chronopolis.replicate.config.ReplicationSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.mail.SimpleMailMessage;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -25,19 +27,21 @@ import java.nio.file.Paths;
 public class CollectionRestoreLocationProcessor implements ChronProcessor {
     private final Logger log = LoggerFactory.getLogger(CollectionRestoreLocationProcessor.class);
 
-    private final ChronopolisSettings settings;
+    private final ReplicationSettings settings;
     private final ChronProducer producer;
     private final MessageFactory messageFactory;
     private final RestoreRepository restoreRepository;
+    private final MailUtil mailUtil;
 
-    public CollectionRestoreLocationProcessor(final ChronopolisSettings settings,
+    public CollectionRestoreLocationProcessor(final ReplicationSettings settings,
                                               final ChronProducer producer,
                                               final MessageFactory messageFactory,
-                                              final RestoreRepository restoreRepository) {
+                                              final RestoreRepository restoreRepository, final MailUtil mailUtil) {
         this.settings = settings;
         this.producer = producer;
         this.messageFactory = messageFactory;
         this.restoreRepository = restoreRepository;
+        this.mailUtil = mailUtil;
     }
 
     @Override
@@ -83,9 +87,24 @@ public class CollectionRestoreLocationProcessor implements ChronProcessor {
         try {
             log.info("putting collection...");
             transfer.put(local, location);
+
+            // Send mail for our success
+            mailUtil.send(mailUtil.createMessage(
+                    settings.getNode(),
+                    "Successful Restoration",
+                    "Successfully restore " + restore.getCollectionName()
+            ));
         } catch (FileTransferException e) {
             log.error("Error restoring collection", e);
             att = Indicator.NAK;
+
+            // Send mail for our failure
+            mailUtil.send(mailUtil.createMessage(
+                    settings.getNode(),
+                    "Restoration Failed",
+                    "Could not restore" + restore.getCollectionName()
+                    + "\n" + e.getMessage()
+            ));
         }
 
         log.info("Sending response...");

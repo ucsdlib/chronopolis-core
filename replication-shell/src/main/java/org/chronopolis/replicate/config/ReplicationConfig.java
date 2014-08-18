@@ -10,7 +10,6 @@ import org.chronopolis.common.ace.CredentialRequestInterceptor;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.settings.AMQPSettings;
 import org.chronopolis.common.settings.AceSettings;
-import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.common.settings.SMTPSettings;
 import org.chronopolis.db.common.RestoreRepository;
 import org.chronopolis.messaging.factory.MessageFactory;
@@ -256,14 +255,16 @@ public class ReplicationConfig {
     }
 
     @Bean
-    CollectionRestoreLocationProcessor collectionRestoreLocationProcessor(ChronopolisSettings chronopolisSettings,
+    CollectionRestoreLocationProcessor collectionRestoreLocationProcessor(ReplicationSettings chronopolisSettings,
                                                                           ChronProducer producer,
                                                                           MessageFactory messageFactory,
-                                                                          RestoreRepository restoreRepository) {
+                                                                          RestoreRepository restoreRepository,
+                                                                          MailUtil mailUtil) {
         return new CollectionRestoreLocationProcessor(chronopolisSettings,
                 producer,
                 messageFactory,
-                restoreRepository);
+                restoreRepository,
+                mailUtil);
     }
 
     @Bean
