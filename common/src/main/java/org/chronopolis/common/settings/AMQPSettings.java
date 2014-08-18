@@ -12,7 +12,7 @@ public class AMQPSettings {
     @Value("${amqp.virtual.host:chronopolis}")
     String virtualHost;
 
-    @Value("${amqp.exchange:chronopolis-core}")
+    @Value("${amqp.exchange:chronopolis-control}")
     String exchange;
 
     // TODO: rename to addresses; make List<String>
