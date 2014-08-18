@@ -103,4 +103,7 @@ public class MailUtil {
         }
     }
 
+    public void setSmtpSend(Boolean smtpSend) {
+        this.smtpSend = smtpSend;
+    }
 }

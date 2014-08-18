@@ -99,12 +99,12 @@ public class IngestConfiguration {
         mailUtil.setSmtpFrom(smtpSettings.getFrom());
         mailUtil.setSmtpTo(smtpSettings.getTo());
         mailUtil.setSmtpHost(smtpSettings.getHost());
-
+        mailUtil.setSmtpSend(smtpSettings.getSend());
         return mailUtil;
     }
 
     @Bean
-    public MessageFactory messageFactory(ChronopolisSettings chronopolisSettings) {
+    public MessageFactory messageFactory(IngestSettings chronopolisSettings) {
         MessageFactory messageFactory = new MessageFactory(chronopolisSettings);
         return messageFactory;
     }

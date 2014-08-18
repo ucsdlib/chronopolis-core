@@ -86,8 +86,9 @@ public class CollectionRestoreCompleteProcessor implements ChronProcessor {
             }
         }
 
-        // TODO: notify duraspace the collection is ready
+        // TODO: Validate files from manifest
 
+        // TODO: notify duraspace the collection is ready (e-mail for now)
     }
 
 }

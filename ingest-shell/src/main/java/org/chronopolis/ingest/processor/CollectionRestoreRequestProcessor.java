@@ -48,8 +48,9 @@ public class CollectionRestoreRequestProcessor implements ChronProcessor {
         String depositor = msg.getDepositor();
         String collection = msg.getCollection();
 
-        ChronMessage next = null;
+        ChronMessage next;
         String route;
+
         if (Paths.get(settings.getPreservation()).toFile().exists()) {
             Path restored = restore.restore(depositor, collection);
             next = messageFactory.collectionRestoreCompleteMessage(Indicator.ACK,

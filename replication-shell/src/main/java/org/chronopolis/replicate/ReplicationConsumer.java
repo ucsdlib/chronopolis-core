@@ -4,6 +4,7 @@ import org.chronopolis.replicate.config.ReplicationConfig;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -27,6 +28,10 @@ import java.io.InputStreamReader;
 @EnableAutoConfiguration
 public class ReplicationConsumer implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(ReplicationConsumer.class);
+
+    @Autowired
+    ReplicationSettings settings;
+
     private static String readLine() {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -42,6 +47,7 @@ public class ReplicationConsumer implements CommandLineRunner {
 
     @Override
     public void run(final String... strings) throws Exception {
+        log.info("{}", settings.getInboundKey());
 
         boolean done = false;
         while (!done) {

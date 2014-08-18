@@ -20,7 +20,7 @@ public class ChronopolisSettings {
     @Value("${chron.stage.tokens:/tmp/tokens}")
     private String tokenStage;
 
-    @Value("${chron.preservation:/data/chronopolis}")
+    @Value("${chron.storage.preservation:/data/chronopolis}")
     private String preservation;
 
     @Value("${chron.stage.restore:/scratch1/restore}")

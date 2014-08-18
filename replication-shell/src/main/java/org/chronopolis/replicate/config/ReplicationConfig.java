@@ -86,11 +86,12 @@ public class ReplicationConfig {
         mailUtil.setSmtpFrom(smtpSettings.getFrom());
         mailUtil.setSmtpTo(smtpSettings.getTo());
         mailUtil.setSmtpHost(smtpSettings.getHost());
+        mailUtil.setSmtpSend(smtpSettings.getSend());
         return mailUtil;
     }
 
     @Bean
-    MessageFactory messageFactory(ChronopolisSettings chronopolisSettings) {
+    MessageFactory messageFactory(ReplicationSettings chronopolisSettings) {
         return new MessageFactory(chronopolisSettings);
     }
 
