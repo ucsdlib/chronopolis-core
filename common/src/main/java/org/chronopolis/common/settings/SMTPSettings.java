@@ -12,7 +12,7 @@ public class SMTPSettings {
     @Value("${smtp.from:localhost}")
     private String from;
 
-    @Value("${smtp.to:shake@umiacs.umd.edu}")
+    @Value("${smtp.to:chron-support@sdsc.edu}")
     private String to;
 
     @Value("${smtp.host:localhost.localdomain}")
