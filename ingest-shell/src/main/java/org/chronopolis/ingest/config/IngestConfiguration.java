@@ -8,7 +8,6 @@ import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.restore.CollectionRestore;
 import org.chronopolis.common.restore.LocalRestore;
 import org.chronopolis.common.settings.AMQPSettings;
-import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.common.settings.SMTPSettings;
 import org.chronopolis.db.DatabaseManager;
 import org.chronopolis.db.common.RestoreRepository;
@@ -167,12 +166,14 @@ public class IngestConfiguration {
     public CollectionRestoreRequestProcessor collectionRestoreRequestProcessor(MessageFactory messageFactory,
                                                                                TopicProducer producer,
                                                                                CollectionRestore collectionRestore,
-                                                                               IngestSettings settings) {
+                                                                               IngestSettings settings,
+                                                                               MailUtil mailUtil) {
         return new CollectionRestoreRequestProcessor(producer,
                 settings,
                 messageFactory,
                 collectionRestore,
-                restoreRepository);
+                restoreRepository,
+                mailUtil);
     }
 
     @Bean

@@ -2,6 +2,7 @@ package org.chronopolis.ingest.processor;
 
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.amqp.RoutingKey;
+import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.restore.CollectionRestore;
 import org.chronopolis.db.common.RestoreRepository;
 import org.chronopolis.db.common.model.RestoreRequest;
@@ -25,17 +26,20 @@ public class CollectionRestoreRequestProcessor implements ChronProcessor {
     private final MessageFactory messageFactory;
     private final CollectionRestore restore;
     private final RestoreRepository restoreRepository;
+    private final MailUtil mailUtil;
 
     public CollectionRestoreRequestProcessor(final ChronProducer producer,
                                              final IngestSettings settings,
                                              final MessageFactory messageFactory,
                                              final CollectionRestore restore,
-                                             final RestoreRepository restoreRepository) {
+                                             final RestoreRepository restoreRepository,
+                                             final MailUtil mailUtil) {
         this.producer = producer;
         this.settings = settings;
         this.messageFactory = messageFactory;
         this.restore = restore;
         this.restoreRepository = restoreRepository;
+        this.mailUtil = mailUtil;
     }
 
     @Override
@@ -51,6 +55,13 @@ public class CollectionRestoreRequestProcessor implements ChronProcessor {
         ChronMessage next;
         String route;
 
+        // Notify before doing anything else
+        mailUtil.send(mailUtil.createMessage(
+                settings.getNode(),
+                "Received Restoration Request",
+                "Depositor: " + depositor
+                + "\nCollection: " + collection
+        ));
         if (Paths.get(settings.getPreservation()).toFile().exists()) {
             Path restored = restore.restore(depositor, collection);
             next = messageFactory.collectionRestoreCompleteMessage(Indicator.ACK,
