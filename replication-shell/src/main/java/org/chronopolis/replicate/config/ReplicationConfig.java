@@ -45,10 +45,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.env.Environment;
 import retrofit.RestAdapter;
 
-import javax.annotation.Resource;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 /**
  * Created by shake on 4/16/14.
@@ -58,11 +59,30 @@ import javax.annotation.Resource;
 public class ReplicationConfig {
     public final Logger log = LoggerFactory.getLogger(ReplicationConfig.class);
 
-    @Resource
-    Environment env;
-
     @Bean
     AceService aceService(AceSettings aceSettings) {
+        // First validate that the ace settings are correct
+        StringBuilder sb = URIUtil.buildAceUri(aceSettings.getAmHost(),
+                aceSettings.getAmPort(),
+                aceSettings.getAmPath());
+        try {
+            URL url = new URL(sb.toString());
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.connect();
+            if (connection.getResponseCode() != 200) {
+                log.error("Could not connect to ACE instance, check your "
+                        + "properties against your tomcat deployment");
+                throw new BeanCreationException("Could not connect to ACE");
+            }
+        } catch (IOException e) {
+            log.error("Could not create URL connection to "
+                    + aceSettings.getAmHost()
+                    + ". Ensure your tomcat server is running.");
+            throw new BeanCreationException("Could not connect to ACE");
+        }
+
+        // Next build the retrofit adapter
         String endpoint = URIUtil.buildAceUri(aceSettings.getAmHost(),
                 aceSettings.getAmPort(),
                 aceSettings.getAmPath()).toString();
