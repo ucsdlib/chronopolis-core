@@ -107,7 +107,8 @@ public class TokenWriterCallback implements RequestBatchCallback, Callable<Path>
         AceTokenBuilder builder = new AceTokenBuilder();
         builder.setDate(response.getTimestamp().toGregorianCalendar().getTime());
         builder.setDigestAlgorithm(response.getDigestService());
-        builder.setIms("ims.umiacs.umd.edu"); // hard coded cause I'm a punk
+        // TODO: Use AceSettings to fill in the ims host name
+        builder.setIms("ims.umiacs.umd.edu");
         builder.setImsService(response.getTokenClassName());
         builder.setRound(response.getRoundId());
 

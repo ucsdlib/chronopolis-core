@@ -220,7 +220,7 @@ public class BagTokenizer {
 
     private void createIMSConnection() {
         IMSService ims;
-        // TODO: Unhardcode ims server
+        // TODO: Use the AceSettings to get the ims host name
         ims = IMSService.connect("ims.umiacs.umd.edu", SSL_PORT, true);
         batch = ims.createImmediateTokenRequestBatch("SHA-256",
                 callback,
