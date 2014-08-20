@@ -6,7 +6,7 @@ package org.chronopolis.replicate;
 
 import org.chronopolis.amqp.RoutingKey;
 import org.chronopolis.common.properties.GenericProperties;
-import org.chronopolis.replicate.util.URIUtil;
+import org.chronopolis.common.util.URIUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

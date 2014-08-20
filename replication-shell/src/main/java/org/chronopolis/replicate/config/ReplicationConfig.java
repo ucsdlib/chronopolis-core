@@ -22,7 +22,7 @@ import org.chronopolis.replicate.processor.CollectionRestoreLocationProcessor;
 import org.chronopolis.replicate.processor.CollectionRestoreRequestProcessor;
 import org.chronopolis.replicate.processor.FileQueryProcessor;
 import org.chronopolis.replicate.processor.FileQueryResponseProcessor;
-import org.chronopolis.replicate.util.URIUtil;
+import org.chronopolis.common.util.URIUtil;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -47,10 +47,6 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
 import retrofit.RestAdapter;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
 /**
  * Created by shake on 4/16/14.
  */
@@ -61,27 +57,6 @@ public class ReplicationConfig {
 
     @Bean
     AceService aceService(AceSettings aceSettings) {
-        // First validate that the ace settings are correct
-        StringBuilder sb = URIUtil.buildAceUri(aceSettings.getAmHost(),
-                aceSettings.getAmPort(),
-                aceSettings.getAmPath());
-        try {
-            URL url = new URL(sb.toString());
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.connect();
-            if (connection.getResponseCode() != 200) {
-                log.error("Could not connect to ACE instance, check your "
-                        + "properties against your tomcat deployment");
-                throw new BeanCreationException("Could not connect to ACE");
-            }
-        } catch (IOException e) {
-            log.error("Could not create URL connection to "
-                    + aceSettings.getAmHost()
-                    + ". Ensure your tomcat server is running.");
-            throw new BeanCreationException("Could not connect to ACE");
-        }
-
         // Next build the retrofit adapter
         String endpoint = URIUtil.buildAceUri(aceSettings.getAmHost(),
                 aceSettings.getAmPort(),
