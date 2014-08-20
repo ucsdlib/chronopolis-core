@@ -92,7 +92,7 @@ public class CollectionRestoreLocationProcessor implements ChronProcessor {
             mailUtil.send(mailUtil.createMessage(
                     settings.getNode(),
                     "Successful Restoration",
-                    "Successfully restore " + restore.getCollectionName()
+                    "Successfully restored " + restore.getCollectionName()
             ));
         } catch (FileTransferException e) {
             log.error("Error restoring collection", e);

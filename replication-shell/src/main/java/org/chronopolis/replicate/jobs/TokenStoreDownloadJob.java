@@ -95,8 +95,8 @@ public class TokenStoreDownloadJob implements Job {
         } else {
             log.info("Successfully validated token store");
             jobExecutionContext.setResult(true);
-            completionMap.put(TOKEN_DOWNLOAD, "Successfully downloaded from "
-                    + location);
+            completionMap.put(TOKEN_DOWNLOAD,
+                    "Successfully downloaded from " + location);
         }
 
     }
