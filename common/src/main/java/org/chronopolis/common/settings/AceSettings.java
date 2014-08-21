@@ -37,6 +37,9 @@ public class AceSettings {
     @Value("${ace.am.password:admin}")
     String amPassword;
 
+    @Value("${ace.am.validate:true}")
+    Boolean amValidate;
+
 
     public String getImsHost() {
         return imsHost;
@@ -92,24 +95,32 @@ public class AceSettings {
         StringBuilder sb = URIUtil.buildAceUri(amHost,
                 amPort,
                 amPath);
-        // TODO: Add auth check
-        try {
-            URL url = new URL(sb.toString());
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.connect();
-            if (connection.getResponseCode() != 200) {
-                log.error("Could not connect to ACE instance, check your "
-                        + "properties against your tomcat deployment");
+        if (amValidate) {
+            try {
+                URL url = new URL(sb.toString());
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.connect();
+                if (connection.getResponseCode() != 200) {
+                    log.error("Could not connect to ACE instance, check your "
+                            + "properties against your tomcat deployment");
+                    throw new BeanCreationException("Could not connect to ACE");
+                }
+            } catch (IOException e) {
+                log.error("Could not create URL connection to "
+                        + amHost
+                        + ". Ensure your tomcat server is running.");
                 throw new BeanCreationException("Could not connect to ACE");
             }
-        } catch (IOException e) {
-            log.error("Could not create URL connection to "
-                    + amHost
-                    + ". Ensure your tomcat server is running.");
-            throw new BeanCreationException("Could not connect to ACE");
         }
     }
 
 
+    public Boolean getAmValidate() {
+        return amValidate;
+    }
+
+    public void setAmValidate(final Boolean amValidate) {
+        this.amValidate = amValidate;
+    }
 }
