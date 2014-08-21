@@ -6,6 +6,7 @@ package org.chronopolis.intake.rest;
 
 import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.intake.duracloud.batch.SnapshotJobManager;
+import org.chronopolis.intake.duracloud.config.IntakeSettings;
 import org.chronopolis.intake.duracloud.model.DuracloudRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +40,7 @@ public class BagCreator {
     private static final Logger log = LoggerFactory.getLogger(BagCreator.class);
 
     @Autowired
-    private ChronopolisSettings chronSettings;
+    private IntakeSettings intakeSettings;
 
     @Autowired
     private SnapshotJobManager snapshotJobManager;

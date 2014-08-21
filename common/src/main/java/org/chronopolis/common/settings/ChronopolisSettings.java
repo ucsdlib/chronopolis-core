@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Component representing chronopolis node settings
+ * TODO: Maybe this should be abstract or an interface so we can't directly create it?
  *
  * Created by shake on 8/1/14.
  */

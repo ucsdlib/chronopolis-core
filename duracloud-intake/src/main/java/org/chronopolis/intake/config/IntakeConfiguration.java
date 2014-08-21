@@ -23,9 +23,6 @@ public class IntakeConfiguration {
     @Autowired
     IntakeSettings intakeSettings;
 
-    @Autowired
-    ChronopolisSettings chronopolisSettings;
-
     @Bean
     MailUtil mailUtil() {
         return new MailUtil();
@@ -39,7 +36,7 @@ public class IntakeConfiguration {
     @Bean
     SnapshotWriter snapshotWriter(ChronProducer producer,
                                   MessageFactory messageFactory) {
-        return new SnapshotWriter(producer, messageFactory, chronopolisSettings);
+        return new SnapshotWriter(producer, messageFactory, intakeSettings);
     }
 
     @Bean(destroyMethod = "destroy")

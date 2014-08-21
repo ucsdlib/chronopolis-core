@@ -5,7 +5,8 @@ import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.amqp.ConnectionListenerImpl;
 import org.chronopolis.amqp.TopicProducer;
 import org.chronopolis.amqp.error.ErrorHandlerImpl;
-import org.chronopolis.common.settings.ChronopolisSettings;
+import org.chronopolis.common.settings.AMQPSettings;
+import org.chronopolis.intake.duracloud.config.IntakeSettings;
 import org.chronopolis.intake.processor.CollectionRestoreCompleteProcessor;
 import org.chronopolis.intake.processor.PackageIngestCompleteProcessor;
 import org.chronopolis.intake.rest.DuracloudMessageListener;
@@ -37,11 +38,9 @@ public class AMQPConfiguration {
     @Autowired
     AMQPSettings amqpSettings;
 
-    @Autowired
-    ChronopolisSettings settings;
-
     @Bean
-    MessageFactory messageFactory(ChronopolisSettings chronopolisSettings) {
+    MessageFactory messageFactory(IntakeSettings chronopolisSettings) {
+        //return new MessageFactory(null);
         return new MessageFactory(chronopolisSettings);
     }
 
@@ -74,7 +73,7 @@ public class AMQPConfiguration {
         connectionFactory.setPublisherReturns(true);
 
         connectionFactory.addConnectionListener(connectionListener());
-        connectionFactory.setAddresses(amqpSettings.getAddress());
+        connectionFactory.setAddresses(amqpSettings.getServer());
 
         return connectionFactory;
     }
@@ -124,15 +123,15 @@ public class AMQPConfiguration {
     /////////////////////////////
 
     @Bean
-    Queue directQueue() {
-        return new Queue(settings.getNode() + "-dura-inbound", true);
+    Queue directQueue(IntakeSettings settings) {
+        return new Queue(settings.getDirectQueueName(), true);
     }
 
     @Bean
-    Binding directBinding() {
-        return BindingBuilder.bind(directQueue())
+    Binding directBinding(Queue directQueue, IntakeSettings settings) {
+        return BindingBuilder.bind(directQueue)
                              .to(topicExchange())
-                             .with(settings.getNode() + "-dura-inbound");
+                             .with(settings.getDirectQueueBinding());
     }
 
     /////////////////////////////
@@ -140,21 +139,21 @@ public class AMQPConfiguration {
     /////////////////////////////
 
     @Bean
-    RabbitAdmin rabbitAdmin() {
+    RabbitAdmin rabbitAdmin(Queue directQueue, Binding directBinding) {
         RabbitAdmin admin = new RabbitAdmin(connectionFactory());
         admin.declareExchange(topicExchange());
 
-        admin.declareQueue(directQueue());
-        admin.declareBinding(directBinding());
+        admin.declareQueue(directQueue);
+        admin.declareBinding(directBinding);
 
         return admin;
     }
 
     @Bean
     @DependsOn("rabbitAdmin")
-    SimpleMessageListenerContainer simpleMessageListenerContainer() {
-        String directQueueName = settings.getNode() + "-dura-inbound";
-        String directQueueBinding = settings.getNode() + "-dura-inbound";
+    SimpleMessageListenerContainer simpleMessageListenerContainer(IntakeSettings settings) {
+        String directQueueName = settings.getDirectQueueName();
+        String directQueueBinding = settings.getDirectQueueBinding();
 
         log.info("Direct queue {} bound to {}", directQueueName, directQueueBinding);
 
