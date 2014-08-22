@@ -6,9 +6,11 @@ package org.chronopolis.replicate.processor;
 
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.common.ace.AceService;
+import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
+import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.config.ReplicationSettings;
@@ -73,13 +75,8 @@ public class CollectionInitProcessor implements ChronProcessor {
 
 
 
-    // TODO: Reply if there is an error with the collection (ie: already registered in ace), or ack
     @Override
     public void process(ChronMessage chronMessage) {
-        // TODO: Replace these with the values from the properties
-        boolean checkCollection = false;
-        boolean register = true;
-
         if(!(chronMessage instanceof CollectionInitMessage)) {
             // Error out
             log.error("Incorrect Message Type");
@@ -89,10 +86,25 @@ public class CollectionInitProcessor implements ChronProcessor {
         log.trace("Received collection init message");
 
         CollectionInitMessage msg = (CollectionInitMessage) chronMessage;
+        String depositor = msg.getDepositor();
+        String collection = msg.getCollection();
 
+        // check to see if we already have the collection
+        // if we don't, replicate it
+        // if we do, just sent an init complete message
+        GsonCollection gsonCollection = aceService.getCollectionByName(collection, depositor);
+        if (gsonCollection == null) {
+            registerJobs(msg);
+        } else {
+            CollectionInitCompleteMessage reply =
+                    messageFactory.collectionInitCompleteMessage(msg.getCorrelationId());
+            producer.send(reply, msg.getReturnKey());
+        }
+    }
+
+    private void registerJobs(CollectionInitMessage msg) {
         // Set up our data maps and jobs
         // TODO: We only need one data map w/ the properties, message, completed, etc
-
         JobDataMap tsDataMap = new JobDataMap();
         tsDataMap.put(TokenStoreDownloadJob.SETTINGS, settings);
         tsDataMap.put(TokenStoreDownloadJob.MESSAGE, msg);
@@ -134,7 +146,6 @@ public class CollectionInitProcessor implements ChronProcessor {
         } catch (SchedulerException e) {
             log.error("", e);
         }
-
     }
 
 }

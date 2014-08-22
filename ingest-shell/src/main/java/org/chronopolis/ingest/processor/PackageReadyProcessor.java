@@ -196,12 +196,27 @@ public class PackageReadyProcessor implements ChronProcessor {
     }
 
     private void createReplicationFlowItem(String node, String depositor, String collection, String correlationId) {
-        ReplicationFlow flow = new ReplicationFlow();
-        flow.setCollection(collection);
-        flow.setDepositor(depositor);
-        flow.setNode(node);
-        flow.setCurrentState(ReplicationState.INIT);
-        flow.setCorrelationId(correlationId);
+        ReplicationFlow flow = manager
+                .getReplicationFlowTable()
+                .findByDepositorAndCollectionAndNode(depositor, collection, node);
+        // If we haven't seen this before, set up the flow item
+        if (flow == null) {
+            flow = new ReplicationFlow();
+            flow.setCollection(collection);
+            flow.setDepositor(depositor);
+            flow.setNode(node);
+            flow.setCurrentState(ReplicationState.INIT);
+            flow.setCorrelationId(correlationId);
+        }
+        // Else check to see if we are retrying a replication
+        else {
+            ReplicationState state = flow.getCurrentState();
+            if (state == ReplicationState.FAILED) {
+                state = ReplicationState.RETRY;
+                flow.setCurrentState(state);
+            }
+        }
+
         manager.getReplicationFlowTable().save(flow);
     }
 

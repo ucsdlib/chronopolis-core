@@ -10,6 +10,7 @@ public enum ReplicationState {
 
     INIT,
     REPLICATING,
+    RETRY,
     FINISHED,
     FAILED
 }
