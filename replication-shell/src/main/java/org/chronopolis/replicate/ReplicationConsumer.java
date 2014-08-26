@@ -1,14 +1,28 @@
 package org.chronopolis.replicate;
 
+import org.chronopolis.db.common.model.RestoreRequest;
+import org.chronopolis.replicate.batch.TokenDownloadStep;
+import org.chronopolis.replicate.config.JPAConfiguration;
 import org.chronopolis.replicate.config.ReplicationConfig;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.StepContribution;
+import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.scope.context.ChunkContext;
+import org.springframework.batch.core.step.tasklet.Tasklet;
+import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -25,6 +39,7 @@ import java.io.InputStreamReader;
 }, basePackages = {
         "org.chronopolis.common.settings"
 })
+@EntityScan(basePackageClasses = RestoreRequest.class)
 @EnableAutoConfiguration
 public class ReplicationConsumer implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(ReplicationConsumer.class);

@@ -12,6 +12,7 @@ import org.chronopolis.common.settings.AMQPSettings;
 import org.chronopolis.common.settings.AceSettings;
 import org.chronopolis.common.settings.SMTPSettings;
 import org.chronopolis.db.common.RestoreRepository;
+import org.chronopolis.db.common.model.RestoreRequest;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.ReplicateMessageListener;
 import org.chronopolis.replicate.jobs.AceRegisterJobListener;
@@ -40,6 +41,10 @@ import org.springframework.amqp.rabbit.connection.ConnectionListener;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -51,6 +56,7 @@ import retrofit.RestAdapter;
  * Created by shake on 4/16/14.
  */
 @Configuration
+@EnableBatchProcessing
 @Import({JPAConfiguration.class})
 public class ReplicationConfig {
     public final Logger log = LoggerFactory.getLogger(ReplicationConfig.class);
@@ -73,6 +79,13 @@ public class ReplicationConfig {
 
         return restAdapter.create(AceService.class);
     }
+
+    /*
+    @Bean
+    RestoreRepository restoreRepository() {
+        return null;
+    }
+    */
 
     @Bean
     MailUtil mailUtil(SMTPSettings smtpSettings) {
@@ -143,99 +156,23 @@ public class ReplicationConfig {
         return new FileQueryResponseProcessor(producer);
     }
 
-    @Bean(initMethod = "start", destroyMethod = "shutdown")
-    Scheduler scheduler() {
-        try {
-            return StdSchedulerFactory.getDefaultScheduler();
-        } catch (SchedulerException e) {
-            throw new BeanCreationException("Could not create scheduler", e);
-        }
-    }
-
     @Bean
-    AceRegisterJobListener aceRegisterJobListener(MessageFactory messageFactory,
-                                                  ReplicationSettings replicationSettings,
-                                                  TopicProducer producer,
-                                                  MailUtil mailUtil) {
-        AceRegisterJobListener jobListener = new AceRegisterJobListener(
-                "ace-register",
-                scheduler(),
-                producer,
-                messageFactory,
-                replicationSettings,
-                mailUtil);
-
-        try {
-            scheduler().getListenerManager().addJobListener(jobListener,
-                    GroupMatcher.<JobKey>groupEquals("AceRegister"));
-        } catch (SchedulerException e) {
-            throw new BeanCreationException("Could not register listener", e);
-        }
-
-        return jobListener;
-    }
-
-    @Bean
-    BagDownloadJobListener bagDownloadJobListener(MessageFactory messageFactory,
-                                                  ReplicationSettings replicationSettings,
-                                                  TopicProducer producer,
-                                                  MailUtil mailUtil) {
-        BagDownloadJobListener jobListener = new BagDownloadJobListener(
-                "bag-download",
-                scheduler(),
-                replicationSettings,
-                mailUtil,
-                messageFactory,
-                producer);
-
-        try {
-            scheduler().getListenerManager().addJobListener(jobListener,
-                    GroupMatcher.<JobKey>groupEquals("BagDownload"));
-        } catch (SchedulerException e) {
-            throw new BeanCreationException("Could not register listener", e);
-        }
-
-        return jobListener;
-    }
-
-    @Bean
-    TokenStoreDownloadJobListener tokenStoreDownloadJobListener(MessageFactory messageFactory,
-                                                                ReplicationSettings replicationSettings,
-                                                                TopicProducer producer,
-                                                                MailUtil mailUtil) {
-        TokenStoreDownloadJobListener jobListener = new TokenStoreDownloadJobListener(
-                "token-store-download",
-                scheduler(),
-                replicationSettings,
-                mailUtil,
-                messageFactory,
-                producer);
-
-        try {
-            scheduler().getListenerManager().addJobListener(jobListener,
-                    GroupMatcher.<JobKey>groupEquals("TokenDownload"));
-        } catch (SchedulerException e) {
-            throw new BeanCreationException("Could not register listener", e);
-        }
-
-        return jobListener;
-    }
-
-    @Bean
-    @DependsOn({"tokenStoreDownloadJobListener",
-                "bagDownloadJobListener",
-                "aceRegisterJobListener"})
     CollectionInitProcessor collectionInitProcessor(MessageFactory messageFactory,
                                                     ReplicationSettings replicationSettings,
                                                     AceService aceService,
                                                     TopicProducer producer,
-                                                    MailUtil mailUtil) {
+                                                    MailUtil mailUtil,
+                                                    JobBuilderFactory jobBuilderFactory,
+                                                    JobLauncher jobLauncher,
+                                                    StepBuilderFactory stepBuilderFactory) {
         return new CollectionInitProcessor(producer,
                 messageFactory,
                 replicationSettings,
                 mailUtil,
-                scheduler(),
-                aceService);
+                aceService,
+                jobBuilderFactory,
+                jobLauncher,
+                stepBuilderFactory);
     }
 
     @Bean

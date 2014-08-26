@@ -1,6 +1,7 @@
 package org.chronopolis.replicate.config;
 
 import org.chronopolis.db.common.RestoreRepository;
+import org.chronopolis.db.common.model.RestoreRequest;
 import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -24,7 +25,7 @@ import java.sql.SQLException;
 /**
  * Created by shake on 4/10/14.
  */
-@Configuration
+// @Configuration
 @EnableJpaRepositories(basePackages = "org.chronopolis.db",
         includeFilters = @ComponentScan.Filter(value = {RestoreRepository.class},
                                                type = FilterType.ASSIGNABLE_TYPE))
