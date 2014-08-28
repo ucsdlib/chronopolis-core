@@ -19,14 +19,6 @@ import org.chronopolis.replicate.batch.BagDownloadStep;
 import org.chronopolis.replicate.batch.ReplicationSuccessStep;
 import org.chronopolis.replicate.batch.TokenDownloadStep;
 import org.chronopolis.replicate.config.ReplicationSettings;
-import org.chronopolis.replicate.jobs.AceRegisterJob;
-import org.chronopolis.replicate.jobs.BagDownloadJob;
-import org.chronopolis.replicate.jobs.TokenStoreDownloadJob;
-import org.quartz.JobBuilder;
-import org.quartz.JobDataMap;
-import org.quartz.JobDetail;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -60,37 +52,11 @@ public class CollectionInitProcessor implements ChronProcessor {
     private final ReplicationSettings settings;
     private final MailUtil mailUtil;
     private final AceService aceService;
-    private Scheduler scheduler;
 
     // TODO: Move into a class for launching/checking job status?
     private JobLauncher jobLauncher;
     private JobBuilderFactory jobBuilderFactory;
     private StepBuilderFactory stepBuilderFactory;
-
-    private HashMap<String, String> completionMap;
-
-    public CollectionInitProcessor(ChronProducer producer,
-                                   MessageFactory messageFactory,
-                                   ReplicationSettings settings,
-                                   MailUtil mailUtil,
-                                   Scheduler scheduler,
-                                   AceService aceService) {
-        this.producer = producer;
-        this.messageFactory = messageFactory;
-        this.settings = settings;
-        this.mailUtil = mailUtil;
-        this.scheduler = scheduler;
-
-        // Set up our map of tasks and their progress for more info in mail messages
-        completionMap = new HashMap<>();
-        completionMap.put(TOKEN_DOWNLOAD, INCOMPLETE);
-        completionMap.put(BAG_DOWNLOAD, INCOMPLETE);
-        completionMap.put(ACE_REGISTER_COLLECTION, INCOMPLETE);
-        completionMap.put(ACE_REGISTER_TOKENS, INCOMPLETE);
-
-        // This might be better done through the dependency injection framework
-        this.aceService = aceService;
-    }
 
     public CollectionInitProcessor(final TopicProducer producer,
                                    final MessageFactory messageFactory,
@@ -130,7 +96,6 @@ public class CollectionInitProcessor implements ChronProcessor {
         // if we do, just sent an init complete message
         GsonCollection gsonCollection = aceService.getCollectionByName(collection, depositor);
         if (gsonCollection == null) {
-            // registerJobs(msg);
             Job job = jobBuilderFactory.get("collection-replicate")
                     .start(stepBuilderFactory.get("token-replicate")
                         .tasklet(new TokenDownloadStep(settings, msg))
@@ -163,52 +128,6 @@ public class CollectionInitProcessor implements ChronProcessor {
             CollectionInitCompleteMessage reply =
                     messageFactory.collectionInitCompleteMessage(msg.getCorrelationId());
             producer.send(reply, msg.getReturnKey());
-        }
-    }
-
-    private void registerJobs(CollectionInitMessage msg) {
-        // Set up our data maps and jobs
-        // TODO: We only need one data map w/ the properties, message, completed, etc
-        JobDataMap tsDataMap = new JobDataMap();
-        tsDataMap.put(TokenStoreDownloadJob.SETTINGS, settings);
-        tsDataMap.put(TokenStoreDownloadJob.MESSAGE, msg);
-        tsDataMap.put(TokenStoreDownloadJob.COMPLETED, completionMap);
-        JobDetail tsJobDetail = JobBuilder.newJob(TokenStoreDownloadJob.class)
-                .setJobData(tsDataMap)
-                .withIdentity(msg.getCorrelationId(), "TokenDownload")
-                .storeDurably()
-                .build();
-
-        JobDataMap bdDataMap = new JobDataMap();
-        bdDataMap.put(BagDownloadJob.SETTINGS, settings);
-        bdDataMap.put(BagDownloadJob.MESSAGE, msg);
-        bdDataMap.put(BagDownloadJob.COMPLETED, completionMap);
-        JobDetail bdJobDetail = JobBuilder.newJob(BagDownloadJob.class)
-                .setJobData(bdDataMap)
-                .withIdentity(msg.getCorrelationId(), "BagDownload")
-                .storeDurably()
-                .build();
-
-        JobDataMap arDataMap = new JobDataMap();
-        arDataMap.put(AceRegisterJob.TOKEN_STORE, msg.getCollection() + "-tokens");
-        arDataMap.put(AceRegisterJob.REGISTER, true);
-        arDataMap.put(AceRegisterJob.ACE_SERVICE, aceService);
-        arDataMap.put(AceRegisterJob.SETTINGS, settings);
-        arDataMap.put(AceRegisterJob.MESSAGE, msg);
-        arDataMap.put(AceRegisterJob.COMPLETED, completionMap);
-        JobDetail arJobDetail = JobBuilder.newJob(AceRegisterJob.class)
-                .setJobData(arDataMap)
-                .withIdentity(msg.getCorrelationId(), "AceRegister")
-                .storeDurably()
-                .build();
-
-        try {
-            scheduler.addJob(tsJobDetail, false);
-            scheduler.addJob(bdJobDetail, false);
-            scheduler.addJob(arJobDetail, false);
-            scheduler.triggerJob(tsJobDetail.getKey());
-        } catch (SchedulerException e) {
-            log.error("", e);
         }
     }
 
