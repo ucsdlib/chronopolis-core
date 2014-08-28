@@ -25,7 +25,7 @@ import java.sql.SQLException;
 /**
  * Created by shake on 4/10/14.
  */
-// @Configuration
+@Configuration
 @EnableJpaRepositories(basePackages = "org.chronopolis.db",
         includeFilters = @ComponentScan.Filter(value = {RestoreRepository.class},
                                                type = FilterType.ASSIGNABLE_TYPE))
@@ -37,12 +37,19 @@ public class JPAConfiguration {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         // TODO: Grab from properties (environment)
         dataSource.setDriverClassName("org.h2.Driver");
-        dataSource.setUrl("jdbc:h2:repl-db");
+        dataSource.setUrl("jdbc:h2:replication-db");
         dataSource.setUsername("h2");
         dataSource.setPassword("h2");
         return dataSource;
     }
 
+    /*
+     * These end up being autoconfigured by spring-boot
+     * and it is probably easiest to leave it that way for now.
+     * If we need to we can manage them ourselves later.
+     */
+
+    /*
     @Bean
     public EntityManagerFactory entityManagerFactory() throws SQLException {
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
@@ -78,5 +85,6 @@ public class JPAConfiguration {
     public HibernateExceptionTranslator hibernateExceptionTranslator() {
         return new HibernateExceptionTranslator();
     }
+    */
 
 }
