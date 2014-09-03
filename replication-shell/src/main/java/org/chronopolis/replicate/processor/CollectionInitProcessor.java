@@ -16,6 +16,7 @@ import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.batch.AceRegisterStep;
 import org.chronopolis.replicate.batch.BagDownloadStep;
+import org.chronopolis.replicate.batch.ReplicationStepListener;
 import org.chronopolis.replicate.batch.ReplicationSuccessStep;
 import org.chronopolis.replicate.batch.TokenDownloadStep;
 import org.chronopolis.replicate.config.ReplicationSettings;
@@ -53,7 +54,8 @@ public class CollectionInitProcessor implements ChronProcessor {
     private final MailUtil mailUtil;
     private final AceService aceService;
 
-    // TODO: Move into a class for launching/checking job status?
+    // TODO: Move into a class for launching/checking job status
+    private final ReplicationStepListener replicationStepListener;
     private JobLauncher jobLauncher;
     private JobBuilderFactory jobBuilderFactory;
     private StepBuilderFactory stepBuilderFactory;
@@ -63,6 +65,7 @@ public class CollectionInitProcessor implements ChronProcessor {
                                    final ReplicationSettings replicationSettings,
                                    final MailUtil mailUtil,
                                    final AceService aceService,
+                                   final ReplicationStepListener replicationStepListener,
                                    JobBuilderFactory jobBuilderFactory,
                                    JobLauncher jobLauncher,
                                    StepBuilderFactory stepBuilderFactory) {
@@ -71,6 +74,7 @@ public class CollectionInitProcessor implements ChronProcessor {
         this.settings = replicationSettings;
         this.mailUtil = mailUtil;
         this.aceService = aceService;
+        this.replicationStepListener = replicationStepListener;
         this.jobBuilderFactory = jobBuilderFactory;
         this.jobLauncher = jobLauncher;
         this.stepBuilderFactory = stepBuilderFactory;
@@ -99,16 +103,17 @@ public class CollectionInitProcessor implements ChronProcessor {
             Job job = jobBuilderFactory.get("collection-replicate")
                     .start(stepBuilderFactory.get("token-replicate")
                         .tasklet(new TokenDownloadStep(settings, msg))
+                        .listener(replicationStepListener)
                         .build())
                     .next(stepBuilderFactory.get("bag-replicate")
                         .tasklet(new BagDownloadStep(settings, msg))
                         .build())
                     .next(stepBuilderFactory.get("ace-register")
-                        .tasklet(new AceRegisterStep(aceService, settings, msg))
-                        .build())
+                            .tasklet(new AceRegisterStep(aceService, settings, msg))
+                            .build())
                     .next(stepBuilderFactory.get("replication-success")
-                        .tasklet(new ReplicationSuccessStep(producer, msg, messageFactory, mailUtil, settings))
-                        .build())
+                            .tasklet(new ReplicationSuccessStep(producer, msg, messageFactory, mailUtil, settings))
+                            .build())
                     .build();
 
             try {

@@ -14,6 +14,7 @@ import org.chronopolis.common.settings.SMTPSettings;
 import org.chronopolis.db.common.RestoreRepository;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.ReplicateMessageListener;
+import org.chronopolis.replicate.batch.ReplicationStepListener;
 import org.chronopolis.replicate.processor.CollectionInitProcessor;
 import org.chronopolis.replicate.processor.CollectionRestoreLocationProcessor;
 import org.chronopolis.replicate.processor.CollectionRestoreRequestProcessor;
@@ -76,6 +77,11 @@ public class ReplicationConfig {
         return null;
     }
     */
+    @Bean
+    ReplicationStepListener replicationStepListener(ReplicationSettings replicationSettings,
+                                                    MailUtil mailUtil) {
+        return new ReplicationStepListener(replicationSettings, mailUtil);
+    }
 
     @Bean
     MailUtil mailUtil(SMTPSettings smtpSettings) {
@@ -152,6 +158,7 @@ public class ReplicationConfig {
                                                     AceService aceService,
                                                     TopicProducer producer,
                                                     MailUtil mailUtil,
+                                                    ReplicationStepListener replicationStepListener,
                                                     JobBuilderFactory jobBuilderFactory,
                                                     JobLauncher jobLauncher,
                                                     StepBuilderFactory stepBuilderFactory) {
@@ -160,6 +167,7 @@ public class ReplicationConfig {
                 replicationSettings,
                 mailUtil,
                 aceService,
+                replicationStepListener,
                 jobBuilderFactory,
                 jobLauncher,
                 stepBuilderFactory);

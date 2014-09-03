@@ -49,8 +49,10 @@ public class TokenDownloadStep implements Tasklet {
                     protocol);
         } catch (IOException e) {
             log.error("Error downloading token store", e);
+            throw e;
         } catch (FileTransferException e) {
             log.error("File transfer exception", e);
+            throw e;
         }
 
         HashFunction hashFunction = Hashing.sha256();
