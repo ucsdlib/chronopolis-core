@@ -4,6 +4,7 @@ import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
@@ -35,6 +36,7 @@ public class ReplicationStepListener implements StepExecutionListener {
     public ExitStatus afterStep(final StepExecution stepExecution) {
         ExitStatus status;
         log.info("After {}", stepExecution.getStepName());
+        log.info(stepExecution.getStatus().toString());
         if (stepExecution.getStatus().isUnsuccessful()) {
             log.error("Step was unsuccessful");
             int i = 0;
@@ -45,7 +47,9 @@ public class ReplicationStepListener implements StepExecutionListener {
             textBody.println();
             textBody.println("Exceptions: \n");
             for (Throwable t : stepExecution.getFailureExceptions()) {
-                textBody.println(t.getStackTrace());
+                for (StackTraceElement element : t.getStackTrace()) {
+                    textBody.println(element);
+                }
             };
 
 

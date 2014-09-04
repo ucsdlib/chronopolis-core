@@ -67,6 +67,7 @@ public class TokenDownloadStep implements Tasklet {
         log.trace("Calculated digest {} for token store", calculatedDigest);
 
         if (!calculatedDigest.equalsIgnoreCase(digest)) {
+            // Fail
             log.error("Downloaded token store does not match expected digest!" +
                             "\nFound {}\nExpected {}",
                     calculatedDigest,
