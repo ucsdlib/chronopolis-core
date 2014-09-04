@@ -107,13 +107,16 @@ public class CollectionInitProcessor implements ChronProcessor {
                         .build())
                     .next(stepBuilderFactory.get("bag-replicate")
                         .tasklet(new BagDownloadStep(settings, msg))
+                        .listener(replicationStepListener)
                         .build())
                     .next(stepBuilderFactory.get("ace-register")
-                            .tasklet(new AceRegisterStep(aceService, settings, msg))
-                            .build())
+                        .tasklet(new AceRegisterStep(aceService, settings, msg))
+                        .listener(replicationStepListener)
+                        .build())
                     .next(stepBuilderFactory.get("replication-success")
-                            .tasklet(new ReplicationSuccessStep(producer, msg, messageFactory, mailUtil, settings))
-                            .build())
+                        .tasklet(new ReplicationSuccessStep(producer, msg, messageFactory, mailUtil, settings))
+                        .listener(replicationStepListener)
+                        .build())
                     .build();
 
             try {
