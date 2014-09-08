@@ -28,15 +28,15 @@ public class ReplicationStepListener implements StepExecutionListener {
 
     @Override
     public void beforeStep(final StepExecution stepExecution) {
-        log.info("Before {}", stepExecution.getStepName());
-
+        log.trace("Before {}", stepExecution.getStepName());
     }
 
     @Override
     public ExitStatus afterStep(final StepExecution stepExecution) {
         ExitStatus status;
-        log.info("After {}", stepExecution.getStepName());
-        log.info(stepExecution.getStatus().toString());
+        log.trace("After {}", stepExecution.getStepName());
+        log.debug("Step execution status {}", stepExecution.getStatus().toString());
+        log.debug("Job execution status {}", stepExecution.getJobExecution().getStatus().toString());
         if (stepExecution.getStatus().isUnsuccessful()) {
             log.error("Step was unsuccessful");
             int i = 0;
@@ -47,6 +47,7 @@ public class ReplicationStepListener implements StepExecutionListener {
             textBody.println();
             textBody.println("Exceptions: \n");
             for (Throwable t : stepExecution.getFailureExceptions()) {
+                textBody.println(t.getMessage());
                 for (StackTraceElement element : t.getStackTrace()) {
                     textBody.println(element);
                 }
