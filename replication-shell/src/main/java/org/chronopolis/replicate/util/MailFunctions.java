@@ -19,10 +19,13 @@ public class MailFunctions {
         PrintWriter textBody = new PrintWriter(stringWriter, true);
         textBody.println("Message received from: " + message.getOrigin());
         textBody.println(message.toString());
+
+        /*
         textBody.println("\n\nSteps completed:");
         for (Map.Entry entry : completionMap.entrySet()) {
             textBody.println(entry.getKey() + ": " + entry.getValue());
         }
+        */
 
         if (exception != null) {
             textBody.println("\n\nError: \n" + exception.toString());
