@@ -5,6 +5,7 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import org.chronopolis.common.exception.FileTransferException;
+import org.chronopolis.common.exception.FixityException;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.replicate.ReplicationQueue;
 import org.chronopolis.replicate.config.ReplicationSettings;
@@ -42,9 +43,9 @@ public class TokenDownloadStep implements Tasklet {
         String digest = message.getTokenStoreDigest();
 
         log.info("Downloading Token Store from {}", location);
-        Path manifest = null;
+        Path tokenStore;
         try {
-            manifest = ReplicationQueue.getFileImmediate(location,
+            tokenStore = ReplicationQueue.getFileImmediate(location,
                     Paths.get(settings.getPreservation()),
                     protocol);
         } catch (IOException e) {
@@ -56,11 +57,17 @@ public class TokenDownloadStep implements Tasklet {
         }
 
         HashFunction hashFunction = Hashing.sha256();
-        HashCode hashCode = null;
+        HashCode hashCode;
         try {
-            hashCode = Files.hash(manifest.toFile(), hashFunction);
+            // Check to make sure the download was successful
+            if (!tokenStore.toFile().exists()) {
+                throw new IOException("TokenStore does does not exist");
+            }
+
+            hashCode = Files.hash(tokenStore.toFile(), hashFunction);
         } catch (IOException e) {
             log.error("Error hashing token store", e);
+            throw new FixityException("Could not validate the fixity of the token store", e);
         }
 
         String calculatedDigest = hashCode.toString();
@@ -72,6 +79,7 @@ public class TokenDownloadStep implements Tasklet {
                             "\nFound {}\nExpected {}",
                     calculatedDigest,
                     digest);
+            throw new FixityException("Could not validate the fixity of the token store");
         } else {
             log.info("Successfully validated token store");
         }
