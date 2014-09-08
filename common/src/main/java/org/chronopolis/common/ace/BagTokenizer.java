@@ -46,7 +46,9 @@ public class BagTokenizer {
     private static final int MAX_QUEUE_LEN = 1000;
     private static final int TIMEOUT = 5000;
 
-    public BagTokenizer(final Path bag, final Path tokenStage, final String fixityAlgorithm) {
+    public BagTokenizer(final Path bag,
+                        final Path tokenStage,
+                        final String fixityAlgorithm) {
         this.bag = bag;
         this.tokenStage = tokenStage;
         this.fixityAlgorithm = Digest.fromString(fixityAlgorithm);
@@ -55,7 +57,10 @@ public class BagTokenizer {
         addManifests();
     }
 
-    public BagTokenizer(final Path bag, final Path tokenStage, final String fixityAlgorithm, String depositor) {
+    public BagTokenizer(final Path bag,
+                        final Path tokenStage,
+                        final String fixityAlgorithm,
+                        final String depositor) {
         this.bag = bag;
         this.tokenStage = tokenStage;
         this.fixityAlgorithm = Digest.fromString(fixityAlgorithm);
