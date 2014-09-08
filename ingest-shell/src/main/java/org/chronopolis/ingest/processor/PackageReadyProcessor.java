@@ -195,7 +195,10 @@ public class PackageReadyProcessor implements ChronProcessor {
 
     }
 
-    private void createReplicationFlowItem(String node, String depositor, String collection, String correlationId) {
+    private void createReplicationFlowItem(String node,
+                                           String depositor,
+                                           String collection,
+                                           String correlationId) {
         ReplicationFlow flow = manager
                 .getReplicationFlowTable()
                 .findByDepositorAndCollectionAndNode(depositor, collection, node);
@@ -206,7 +209,6 @@ public class PackageReadyProcessor implements ChronProcessor {
             flow.setDepositor(depositor);
             flow.setNode(node);
             flow.setCurrentState(ReplicationState.INIT);
-            flow.setCorrelationId(correlationId);
         }
         // Else check to see if we are retrying a replication
         else {
@@ -216,6 +218,10 @@ public class PackageReadyProcessor implements ChronProcessor {
                 flow.setCurrentState(state);
             }
         }
+
+        // Update the correlationId no matter hwhat
+        // (so we can find the flow item in the other processors)
+        flow.setCorrelationId(correlationId);
 
         manager.getReplicationFlowTable().save(flow);
     }
