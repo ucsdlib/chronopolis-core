@@ -176,7 +176,12 @@ public class ChronMessage {
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("{").append("\n\ttype:").append(type.toString()).append("\n");
+        sb.append("Headers {");
+        sb.append("\n\torigin: ").append(origin);
+        sb.append("\n\treturnKey: ").append(returnKey);
+        sb.append("\n\tcorrelationId: ").append(correlationId);
+        sb.append("\n\tdate: ").append(date);
+        sb.append("\n} Body {").append("\n\ttype:").append(type.toString()).append("\n");
         for (Map.Entry<String, Object> entry : body.getBody().entrySet()) {
             sb.append("\t").append(entry.getKey()).append(":")
               .append(entry.getValue()).append(",\n");
