@@ -4,6 +4,8 @@
  */
 package org.chronopolis.ingest.processor;
 
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.amqp.RoutingKey;
 import org.chronopolis.common.ace.BagTokenizer;
@@ -27,6 +29,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.mail.SimpleMailMessage;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -44,6 +52,7 @@ public class PackageReadyProcessor implements ChronProcessor {
     private final MessageFactory messageFactory;
     private final DatabaseManager manager;
     private final MailUtil mailUtil;
+    private static final String TAR_TYPE = "application/x-tar";
 
 
     public PackageReadyProcessor(ChronProducer producer,
@@ -99,6 +108,16 @@ public class PackageReadyProcessor implements ChronProcessor {
 
         // Set up our paths
         Path toBag = Paths.get(settings.getBagStage(), location);
+        try {
+            // TODO: Update the path to be the name of the bag directory
+            if (Files.probeContentType(toBag).equals(TAR_TYPE)) {
+                untar(toBag);
+            }
+        } catch (IOException e) {
+            log.error("Error probing mime type for bag", e);
+        }
+
+
         Path tokenStage = Paths.get(settings.getTokenStage());
         String tagManifestDigest; // = tokenizer.getTagManifestDigest();
 
@@ -193,6 +212,33 @@ public class PackageReadyProcessor implements ChronProcessor {
 
         producer.send(reply, msg.getReturnKey());
 
+    }
+
+    private void untar(final Path toBag) throws IOException {
+        Path root = Paths.get(settings.getBagStage());
+        TarArchiveInputStream tais = new TarArchiveInputStream(Files.newInputStream(toBag));
+        TarArchiveEntry entry;
+        ReadableByteChannel inChannel = Channels.newChannel(tais);
+        while ((entry = tais.getNextTarEntry()) != null) {
+            Path entryPath = root.resolve(entry.getName());
+
+            if (entry.isDirectory()) {
+                log.trace("Creating directory {}", entry.getName());
+                Files.createDirectories(entryPath);
+            } else {
+                log.trace("Creating file {}", entry.getName());
+
+                // In case files are greater than 2^32 bytes, we need to use a
+                // RandomAccessFile and FileChannel to write them
+                RandomAccessFile file = new RandomAccessFile(entryPath.toFile(), "rw");
+                FileChannel out = file.getChannel();
+
+                // The TarArchiveInputStream automatically updates its offset as
+                // it is read, so we don't need to worry about it
+                out.transferFrom(inChannel, 0, entry.getSize());
+                out.close();
+            }
+        }
     }
 
     private void createReplicationFlowItem(String node,
