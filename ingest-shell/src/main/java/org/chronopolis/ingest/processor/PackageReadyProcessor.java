@@ -109,9 +109,8 @@ public class PackageReadyProcessor implements ChronProcessor {
         // Set up our paths
         Path toBag = Paths.get(settings.getBagStage(), location);
         try {
-            // TODO: Update the path to be the name of the bag directory
             if (Files.probeContentType(toBag).equals(TAR_TYPE)) {
-                untar(toBag);
+                toBag = untar(toBag);
             }
         } catch (IOException e) {
             log.error("Error probing mime type for bag", e);
@@ -214,12 +213,24 @@ public class PackageReadyProcessor implements ChronProcessor {
 
     }
 
-    private void untar(final Path toBag) throws IOException {
-        Path root = Paths.get(settings.getBagStage());
+    /**
+     * Given a path to a tar file, explode the tar and return the top-level directory
+     *
+     * @param toBag
+     * @return the path of the top-level directory
+     * @throws IOException
+     */
+    private Path untar(final Path toBag) throws IOException {
+        // Set up our tar stream and channel
         TarArchiveInputStream tais = new TarArchiveInputStream(Files.newInputStream(toBag));
-        TarArchiveEntry entry;
+        TarArchiveEntry entry = tais.getNextTarEntry();
         ReadableByteChannel inChannel = Channels.newChannel(tais);
-        while ((entry = tais.getNextTarEntry()) != null) {
+
+        // Get our root path (just the staging area), and create an updated bag path
+        Path root = Paths.get(settings.getBagStage());
+        Path bag = root.resolve(entry.getName());
+
+        while (entry != null) {
             Path entryPath = root.resolve(entry.getName());
 
             if (entry.isDirectory()) {
@@ -238,7 +249,11 @@ public class PackageReadyProcessor implements ChronProcessor {
                 out.transferFrom(inChannel, 0, entry.getSize());
                 out.close();
             }
+
+            entry = tais.getNextTarEntry();
         }
+
+        return bag;
     }
 
     private void createReplicationFlowItem(String node,
