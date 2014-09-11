@@ -109,7 +109,8 @@ public class PackageReadyProcessor implements ChronProcessor {
         // Set up our paths
         Path toBag = Paths.get(settings.getBagStage(), location);
         try {
-            if (Files.probeContentType(toBag).equals(TAR_TYPE)) {
+            String mimeType = Files.probeContentType(toBag);
+            if (mimeType != null && mimeType.equals(TAR_TYPE)) {
                 toBag = untar(toBag);
             }
         } catch (IOException e) {
