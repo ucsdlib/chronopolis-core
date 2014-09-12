@@ -4,7 +4,6 @@
  */
 package org.chronopolis.intake.rest;
 
-import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.intake.duracloud.batch.SnapshotJobManager;
 import org.chronopolis.intake.duracloud.config.IntakeSettings;
 import org.chronopolis.intake.duracloud.model.DuracloudRequest;
@@ -64,14 +63,9 @@ public class BagCreator {
      */
     @RequestMapping(value = "snapshot", method = RequestMethod.POST)
     public ResponseEntity<String> snapshot(@RequestBody DuracloudRequest bag) {
+        // TODO: Return status from the job manager
         snapshotJobManager.addSnapshotJob(bag);
         return new ResponseEntity<>("{\"status\": \"success\"}", HttpStatus.OK);
-    }
-
-    @RequestMapping(value = "snapshot/test", method = RequestMethod.POST)
-    public ResponseEntity<String> snapshotTest(@RequestBody DuracloudRequest bag) {
-        // snapshotJobManager.addSnapshotJob(bag);
-        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 }
