@@ -121,7 +121,12 @@ public class CollectionInitProcessor implements ChronProcessor {
 
             try {
                 jobLauncher.run(job, new JobParametersBuilder()
-                        .addString("id", depositor + collection)
+                        .addString("depositor", depositor)
+                        .addString("collection", collection)
+                        .addString("token-store-location", msg.getTokenStore())
+                        .addString("token-store-digest", msg.getTokenStoreDigest())
+                        .addString("bag-location", msg.getBagLocation())
+                        .addString("tag-manifest-digest", msg.getTagManifestDigest())
                         .toJobParameters());
             } catch (JobExecutionAlreadyRunningException e) {
                 e.printStackTrace();
