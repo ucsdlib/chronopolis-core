@@ -2,6 +2,7 @@ package org.chronopolis.intake.config;
 
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.common.mail.MailUtil;
+import org.chronopolis.common.settings.SMTPSettings;
 import org.chronopolis.db.intake.StatusRepository;
 import org.chronopolis.intake.duracloud.batch.SnapshotJobManager;
 import org.chronopolis.intake.duracloud.batch.SnapshotProcessor;
@@ -29,8 +30,13 @@ public class IntakeConfiguration {
     IntakeSettings intakeSettings;
 
     @Bean
-    MailUtil mailUtil() {
-        return new MailUtil();
+    MailUtil mailUtil(SMTPSettings smtpSettings) {
+        MailUtil mailUtil = new MailUtil();
+        mailUtil.setSmtpFrom(smtpSettings.getFrom());
+        mailUtil.setSmtpTo(smtpSettings.getTo());
+        mailUtil.setSmtpHost(smtpSettings.getHost());
+        mailUtil.setSmtpSend(smtpSettings.getSend());
+        return mailUtil;
     }
 
     @Bean
