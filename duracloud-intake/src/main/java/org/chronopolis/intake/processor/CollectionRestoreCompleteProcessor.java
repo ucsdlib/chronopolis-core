@@ -5,6 +5,8 @@ import org.chronopolis.intake.duracloud.config.IntakeSettings;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.collection.CollectionRestoreCompleteMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
@@ -22,6 +24,7 @@ import static org.chronopolis.messaging.Indicator.ACK;
  * Created by shake on 7/17/14.
  */
 public class CollectionRestoreCompleteProcessor implements ChronProcessor {
+    private final Logger log = LoggerFactory.getLogger(CollectionRestoreCompleteProcessor.class);
 
     private Set<String> accepted = Sets.newHashSet(
             ".collection-snapshot.properties",
@@ -61,6 +64,7 @@ public class CollectionRestoreCompleteProcessor implements ChronProcessor {
                     @Override
                     public FileVisitResult visitFile(final Path path, final BasicFileAttributes basicFileAttributes) throws IOException {
                         if (!accepted.contains(path.getFileName().toString())) {
+                            log.info("Removing file {}", path.getFileName());
                             Files.delete(path);
                         }
                         return FileVisitResult.CONTINUE;
@@ -75,6 +79,7 @@ public class CollectionRestoreCompleteProcessor implements ChronProcessor {
                     @Override
                     public FileVisitResult postVisitDirectory(final Path path, final IOException e) throws IOException {
                         if (!path.equals(bag)) {
+                            log.info("Removing directory {}", path.getFileName());
                             Files.delete(path);
                         }
                         return FileVisitResult.CONTINUE;
@@ -82,7 +87,7 @@ public class CollectionRestoreCompleteProcessor implements ChronProcessor {
                 });
             } catch (IOException e) {
                 // LOG
-                System.out.println(e);
+                log.error("IOException curating bag for duracloud", e);
             }
         }
 
