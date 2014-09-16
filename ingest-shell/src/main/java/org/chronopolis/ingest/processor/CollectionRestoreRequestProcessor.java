@@ -51,17 +51,21 @@ public class CollectionRestoreRequestProcessor implements ChronProcessor {
         CollectionRestoreRequestMessage msg = (CollectionRestoreRequestMessage) chronMessage;
         String depositor = msg.getDepositor();
         String collection = msg.getCollection();
+        String location = msg.getLocation();
 
         ChronMessage next;
         String route;
 
         // Notify before doing anything else
+        /*
         mailUtil.send(mailUtil.createMessage(
                 settings.getNode(),
                 "Received Restoration Request",
                 "Depositor: " + depositor
                 + "\nCollection: " + collection
         ));
+        */
+
         if (Paths.get(settings.getPreservation()).toFile().exists()) {
             Path restored = restore.restore(depositor, collection);
             next = messageFactory.collectionRestoreCompleteMessage(Indicator.ACK,
@@ -72,6 +76,7 @@ public class CollectionRestoreRequestProcessor implements ChronProcessor {
             // reuse the correlation id for consistency
             next = messageFactory.collectionRestoreRequestMessage(collection,
                     depositor,
+                    location,
                     msg.getCorrelationId());
             route = RoutingKey.REPLICATE_BROADCAST.asRoute();
 
@@ -80,7 +85,7 @@ public class CollectionRestoreRequestProcessor implements ChronProcessor {
             restoreRequest.setDepositor(depositor);
             restoreRequest.setCollectionName(collection);
             restoreRequest.setReturnKey(msg.getReturnKey());
-            restoreRequest.setDirectory("directory");
+            restoreRequest.setDirectory(location);
             restoreRepository.save(restoreRequest);
         }
 

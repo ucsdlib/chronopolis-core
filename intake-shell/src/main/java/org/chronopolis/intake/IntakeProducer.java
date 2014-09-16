@@ -27,6 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.UUID;
 
 /**
  * Totally based off of Andrew's Producer for DPN
@@ -109,7 +110,8 @@ public class IntakeProducer implements CommandLineRunner {
     }
 
     private void sendRestore(final String depositor, final String bagName) {
-        ChronMessage restore = messageFactory.collectionRestoreRequestMessage(bagName, depositor);
+        Path location = Paths.get(settings.getRestore(), UUID.randomUUID().toString());
+        ChronMessage restore = messageFactory.collectionRestoreRequestMessage(bagName, depositor, location.toString());
         producer.send(restore, RoutingKey.INGEST_BROADCAST.asRoute());
     }
 

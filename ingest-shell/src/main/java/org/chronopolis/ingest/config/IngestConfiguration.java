@@ -188,10 +188,12 @@ public class IngestConfiguration {
     @Bean
     public CollectionRestoreReplyProcessor collectionRestoreReplyProcessor(IngestSettings settings,
                                                                            ChronProducer producer,
-                                                                           MessageFactory messageFactory) {
+                                                                           MessageFactory messageFactory,
+                                                                           RestoreRepository restoreRepository) {
         return new CollectionRestoreReplyProcessor(settings,
                 producer,
-                messageFactory
+                messageFactory,
+                restoreRepository
         );
     }
 

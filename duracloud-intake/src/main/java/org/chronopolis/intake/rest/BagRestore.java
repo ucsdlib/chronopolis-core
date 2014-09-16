@@ -5,6 +5,9 @@ import org.chronopolis.amqp.RoutingKey;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.db.intake.StatusRepository;
 import org.chronopolis.db.intake.model.Status;
+import org.chronopolis.intake.duracloud.config.IntakeSettings;
+import org.chronopolis.intake.duracloud.model.DuracloudRequest;
+import org.chronopolis.intake.duracloud.model.DuracloudRestore;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.slf4j.Logger;
@@ -14,9 +17,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Created by shake on 7/10/14.
@@ -36,10 +43,20 @@ public class BagRestore {
     private StatusRepository statusRepository;
 
     @Autowired
+    private IntakeSettings settings;
+
+    @Autowired
     private MailUtil mailUtil;
 
-    @RequestMapping(value = "{id}", method = RequestMethod.GET)
-    public ResponseEntity restore(@PathVariable("id") String snapshotId) {
+    @RequestMapping(method = RequestMethod.GET)
+    public ResponseEntity restore(@RequestBody DuracloudRestore restore) {
+        String snapshotId = restore.getSnapshotID();
+
+        // We go from: /export/duraspace/snapshot/storage/...
+        // To........: snapshot/storage/...
+        Path restoreBase = Paths.get(settings.getDuracloudRestoreStage());
+        String location = restoreBase.relativize(Paths.get(restore.getLocation())).toString();
+
         // grab the depositor and collection name from the bagstatus
         // and forward that through to the ingest service
         Status status = statusRepository.findByBagId(snapshotId);
@@ -53,7 +70,8 @@ public class BagRestore {
             entity = new ResponseEntity(HttpStatus.OK);
             ChronMessage message = messageFactory.collectionRestoreRequestMessage(
                     status.getCollectionName(),
-                    status.getDepositor()
+                    status.getDepositor(),
+                    location
             );
 
             producer.send(message, RoutingKey.INGEST_BROADCAST.asRoute());

@@ -98,7 +98,8 @@ public class MessageFactoryTest{
     public void testCollectionRestoreRequestMessage() throws Exception {
         CollectionRestoreRequestMessage msg = messageFactory.collectionRestoreRequestMessage(
                 "test-collection",
-                "test-depositor"
+                "test-depositor",
+                "test-location"
         );
     }
 

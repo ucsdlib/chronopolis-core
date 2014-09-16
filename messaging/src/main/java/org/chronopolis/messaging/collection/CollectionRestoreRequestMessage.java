@@ -5,6 +5,7 @@ import org.chronopolis.messaging.base.ChronMessage;
 
 import static org.chronopolis.messaging.MessageConstant.DEPOSITOR;
 import static org.chronopolis.messaging.MessageConstant.COLLECTION;
+import static org.chronopolis.messaging.MessageConstant.LOCATION;
 
 /**
  * Created by shake on 7/10/14.
@@ -29,6 +30,14 @@ public class CollectionRestoreRequestMessage extends ChronMessage {
 
     public String getDepositor() {
         return (String) body.get(DEPOSITOR.toString());
+    }
+
+    public void setLocation(String location) {
+        body.addContent(LOCATION.toString(), location);
+    }
+
+    public String getLocation() {
+        return (String) body.get(LOCATION.toString());
     }
 
 }

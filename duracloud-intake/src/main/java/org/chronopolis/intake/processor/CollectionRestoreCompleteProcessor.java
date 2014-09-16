@@ -44,9 +44,9 @@ public class CollectionRestoreCompleteProcessor implements ChronProcessor {
         }
 
         CollectionRestoreCompleteMessage message = (CollectionRestoreCompleteMessage) chronMessage;
-        Path duracloudBase = Paths.get(intakeSettings.getDuracloudStage());
+        Path duracloudBase = Paths.get(intakeSettings.getDuracloudSnapshotStage());
 
-        if (ACK.name().equals(message.getMessageAtt())) {
+        if (ACK.name().equalsIgnoreCase(message.getMessageAtt())) {
             final Path bag = duracloudBase.resolve(message.getLocation());
 
             try {

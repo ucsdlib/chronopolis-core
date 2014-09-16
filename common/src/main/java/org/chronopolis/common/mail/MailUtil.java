@@ -7,6 +7,7 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 /**
  * TODO: MailProperties for from w/ a default of chronmail
+ * TODO: Constructor using SMTPSettings
  *
  * Created by shake on 4/29/14.
  */

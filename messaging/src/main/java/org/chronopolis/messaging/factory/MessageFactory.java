@@ -144,21 +144,25 @@ public class MessageFactory {
     }
 
     public CollectionRestoreRequestMessage collectionRestoreRequestMessage(String collection,
-                                                                           String depositor) {
+                                                                           String depositor,
+                                                                           String location) {
         CollectionRestoreRequestMessage msg = new CollectionRestoreRequestMessage();
         setHeaders(msg);
         msg.setCollection(collection);
         msg.setDepositor(depositor);
+        msg.setLocation(location);
         return msg;
     }
 
     public CollectionRestoreRequestMessage collectionRestoreRequestMessage(String collection,
                                                                            String depositor,
+                                                                           String location,
                                                                            String correlationId) {
         CollectionRestoreRequestMessage msg = new CollectionRestoreRequestMessage();
         setHeaders(msg, correlationId);
         msg.setCollection(collection);
         msg.setDepositor(depositor);
+        msg.setLocation(location);
         return msg;
     }
 

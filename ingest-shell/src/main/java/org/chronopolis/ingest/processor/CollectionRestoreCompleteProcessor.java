@@ -53,7 +53,7 @@ public class CollectionRestoreCompleteProcessor implements ChronProcessor {
                     msg.getCorrelationId());
 
             producer.send(reply, returnKey);
-
+            restoreRepository.delete(request);
         } else {
             // Send mail notifying failure
             log.info("Error restoring {}::{}", request.getDepositor(), request.getCollectionName());

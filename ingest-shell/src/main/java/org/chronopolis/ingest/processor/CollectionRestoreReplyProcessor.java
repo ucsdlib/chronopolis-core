@@ -1,6 +1,8 @@
 package org.chronopolis.ingest.processor;
 
 import org.chronopolis.amqp.ChronProducer;
+import org.chronopolis.db.common.RestoreRepository;
+import org.chronopolis.db.common.model.RestoreRequest;
 import org.chronopolis.ingest.config.IngestSettings;
 import org.chronopolis.messaging.Indicator;
 import org.chronopolis.messaging.base.ChronMessage;
@@ -23,13 +25,16 @@ public class CollectionRestoreReplyProcessor implements ChronProcessor {
     private final IngestSettings settings;
     private final ChronProducer producer;
     private final MessageFactory messageFactory;
+    private final RestoreRepository restoreRepository;
 
     public CollectionRestoreReplyProcessor(final IngestSettings settings,
                                            final ChronProducer producer,
-                                           final MessageFactory messageFactory) {
+                                           final MessageFactory messageFactory,
+                                           final RestoreRepository restoreRepository) {
         this.settings = settings;
         this.producer = producer;
         this.messageFactory = messageFactory;
+        this.restoreRepository = restoreRepository;
     }
 
     @Override
@@ -44,6 +49,8 @@ public class CollectionRestoreReplyProcessor implements ChronProcessor {
         CollectionRestoreReplyMessage msg =
                 (CollectionRestoreReplyMessage) chronMessage;
 
+        RestoreRequest restoreRequest = restoreRepository.findByCorrelationId(msg.getCorrelationId());
+
         ChronMessage reply = null;
         StringBuilder location = new StringBuilder();
         location.append(settings.getExternalUser())
@@ -51,10 +58,7 @@ public class CollectionRestoreReplyProcessor implements ChronProcessor {
                 .append(settings.getStorageServer())
                 .append(":");
 
-        // TODO: This will actually be sent to us
-        String id = UUID.randomUUID().toString();
-        // TODO: Pull relative location from settings?
-        Path restore = Paths.get(settings.getRestore(), id);
+        Path restore = Paths.get(settings.getRestore(), restoreRequest.getDirectory());
         location.append(restore);
 
         // For now, we'll just pull from ourselves
