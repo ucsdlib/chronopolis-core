@@ -83,7 +83,12 @@ public class RSyncTransfer implements FileTransfer {
         Callable<Boolean> upload = new Callable() {
             @Override
             public Boolean call() {
-                String[] cmd = new String[]{"rsync", "-az", localFile.toString(), uri};
+                // Ensure that we don't include the directory
+                String local = localFile.toString();
+                if (!local.endsWith("/")) {
+                    local += "/";
+                }
+                String[] cmd = new String[]{"rsync", "-az", local, uri};
                 ProcessBuilder pb = new ProcessBuilder(cmd);
                 Process p = null;
                 try {
