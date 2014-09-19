@@ -64,7 +64,7 @@ public class BagCreator {
     @RequestMapping(value = "snapshot", method = RequestMethod.POST)
     public ResponseEntity<String> snapshot(@RequestBody DuracloudRequest bag) {
         // TODO: Return status from the job manager
-        snapshotJobManager.addSnapshotJob(bag);
+        snapshotJobManager.startSnapshotTasklet(bag);
         return new ResponseEntity<>("{\"status\": \"success\"}", HttpStatus.OK);
     }
 
