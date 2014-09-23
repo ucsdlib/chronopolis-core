@@ -50,12 +50,12 @@ public class PackageReadyMessage extends ChronMessage {
         return (String) body.get(LOCATION.toString());
     }
 
-    public void setSize(int size) {
-        body.addContent(SIZE.toString(), size);
+    public void setSize(long size) {
+        body.addContent(SIZE.toString(), String.valueOf(size));
     }
 
     public long getSize() {
-        return (int) body.get(SIZE.toString());
+        return Long.valueOf((String) body.get(SIZE.toString()));
     }
 
     public String getFixityAlgorithm() {
