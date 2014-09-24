@@ -122,7 +122,7 @@ public class ReplicationConfig {
         connectionFactory.setPublisherReturns(true);
 
         connectionFactory.addConnectionListener(connectionListener());
-        connectionFactory.setAddresses(amqpSettings.getServer());
+        connectionFactory.setAddresses(amqpSettings.getAddresses());
 
         return connectionFactory;
     }

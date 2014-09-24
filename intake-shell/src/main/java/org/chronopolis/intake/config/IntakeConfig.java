@@ -53,7 +53,7 @@ public class IntakeConfig {
         connectionFactory.setPublisherReturns(true);
 
         connectionFactory.addConnectionListener(connectionListener());
-        connectionFactory.setAddresses(settings.getServer());
+        connectionFactory.setAddresses(settings.getAddresses());
 
         return connectionFactory;
     }

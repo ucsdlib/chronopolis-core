@@ -83,7 +83,7 @@ public class IngestConfiguration {
         connectionListenerList.add(connectionListener());
 
         connectionFactory.setConnectionListeners(connectionListenerList);
-        connectionFactory.setAddresses(amqpSettings.getServer());
+        connectionFactory.setAddresses(amqpSettings.getAddresses());
 
         return connectionFactory;
     }
