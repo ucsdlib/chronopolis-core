@@ -45,7 +45,7 @@ public class IngestJPAConfiguration {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         // TODO: Grab from properties (environment)
         dataSource.setDriverClassName("org.h2.Driver");
-        dataSource.setUrl("jdbc:h2:test-db");
+        dataSource.setUrl("jdbc:h2:ingest-db");
         dataSource.setUsername("h2");
         dataSource.setPassword("h2");
         return dataSource;
