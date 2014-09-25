@@ -37,10 +37,21 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.launch.support.SimpleJobLauncher;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.repository.dao.ExecutionContextDao;
+import org.springframework.batch.core.repository.dao.JobExecutionDao;
+import org.springframework.batch.core.repository.dao.JobInstanceDao;
+import org.springframework.batch.core.repository.dao.StepExecutionDao;
+import org.springframework.batch.core.repository.support.MapJobRepositoryFactoryBean;
+import org.springframework.batch.core.repository.support.SimpleJobRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import retrofit.RestAdapter;
 
 /**
@@ -51,6 +62,9 @@ import retrofit.RestAdapter;
 @Import({JPAConfiguration.class})
 public class ReplicationConfig {
     public final Logger log = LoggerFactory.getLogger(ReplicationConfig.class);
+
+    @Autowired
+    JobRepository jobRepository;
 
     @Bean
     AceService aceService(AceSettings aceSettings) {
@@ -135,6 +149,32 @@ public class ReplicationConfig {
 
 
         return template;
+    }
+
+    @Bean
+    TaskExecutor simpleAsyncTaskExecutor() {
+        SimpleAsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
+        taskExecutor.setConcurrencyLimit(5);
+        return taskExecutor;
+    }
+
+    /*
+    @Bean
+    JobRepository jobRepository() throws Exception {
+        MapJobRepositoryFactoryBean factory =
+                new MapJobRepositoryFactoryBean();
+        factory.afterPropertiesSet();
+        return factory.getObject();
+
+    }
+    */
+
+    @Bean
+    JobLauncher jobLauncher(JobRepository jobRepository, TaskExecutor simpleAsyncTaskExecutor) {
+        SimpleJobLauncher jobLauncher = new SimpleJobLauncher();
+        jobLauncher.setJobRepository(jobRepository);
+        jobLauncher.setTaskExecutor(simpleAsyncTaskExecutor);
+        return jobLauncher;
     }
 
     @Bean

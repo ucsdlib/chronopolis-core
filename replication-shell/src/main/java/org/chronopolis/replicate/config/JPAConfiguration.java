@@ -26,8 +26,8 @@ public class JPAConfiguration {
     public DataSource dataSource() throws SQLException {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         // TODO: Grab from properties (environment)
-        dataSource.setDriverClassName("org.h2.Driver");
-        dataSource.setUrl("jdbc:h2:replication-db");
+        dataSource.setDriverClassName("org.hsqldb.jdbc.JDBCDriver");
+        dataSource.setUrl("jdbc:hsqldb:replication-db");
         dataSource.setUsername("h2");
         dataSource.setPassword("h2");
         return dataSource;
