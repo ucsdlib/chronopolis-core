@@ -22,11 +22,7 @@ import org.chronopolis.ingest.processor.PackageReadyProcessor;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.MessageListener;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionListener;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
@@ -87,7 +83,7 @@ public class IngestConfiguration {
         connectionListenerList.add(connectionListener());
 
         connectionFactory.setConnectionListeners(connectionListenerList);
-        connectionFactory.setAddresses(amqpSettings.getServer());
+        connectionFactory.setAddresses(amqpSettings.getAddresses());
 
         return connectionFactory;
     }
@@ -221,8 +217,8 @@ public class IngestConfiguration {
     }
 
     @Bean
-    TopicExchange topicExchange() {
-        return new TopicExchange("chronopolis-control");
+    TopicExchange topicExchange(AMQPSettings amqpSettings) {
+        return new TopicExchange(amqpSettings.getExchange());
     }
 
     @Bean
@@ -237,23 +233,25 @@ public class IngestConfiguration {
 
     @Bean
     Binding broadcastBinding(Queue broadcastQueue,
-                             IngestSettings settings) {
+                             IngestSettings settings,
+                             TopicExchange topicExchange) {
         log.info("Binding queue {} to {}",
                 broadcastQueue.getName(),
                 settings.getBroadcastQueueBinding());
         return BindingBuilder.bind(broadcastQueue)
-                             .to(topicExchange())
+                             .to(topicExchange)
                              .with(settings.getBroadcastQueueBinding());
     }
 
     @Bean
     Binding directIngestBinding(Queue directIngestQueue,
-                                IngestSettings settings) {
+                                IngestSettings settings,
+                                TopicExchange topicExchange) {
         log.info("Binding queue {} to {}",
                 directIngestQueue.getName(),
                 settings.getDirectQueueBinding());
         return BindingBuilder.bind(directIngestQueue)
-                             .to(topicExchange())
+                             .to(topicExchange)
                              .with(settings.getDirectQueueBinding());
     }
 
@@ -262,10 +260,11 @@ public class IngestConfiguration {
                             Queue directIngestQueue,
                             Binding broadcastBinding,
                             Binding directIngestBinding,
-                            CachingConnectionFactory connectionFactory) {
+                            CachingConnectionFactory connectionFactory,
+                            TopicExchange topicExchange) {
         RabbitAdmin admin = new RabbitAdmin(connectionFactory);
         // our exchange
-        admin.declareExchange(topicExchange());
+        admin.declareExchange(topicExchange);
         // our queues
         log.info("Declaring queues {} and {}",
                 broadcastQueue.getName(),

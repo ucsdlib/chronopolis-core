@@ -16,8 +16,8 @@ public class AMQPSettings {
     String exchange;
 
     // TODO: rename to addresses; make List<String>
-    @Value("${amqp.servers:adapt-mq.umiacs.umd.edu}")
-    String server;
+    @Value("${amqp.addresses:adapt-mq.umiacs.umd.edu}")
+    String addresses;
 
 
     public String getVirtualHost() {
@@ -36,11 +36,11 @@ public class AMQPSettings {
         this.exchange = exchange;
     }
 
-    public String getServer() {
-        return server;
+    public String getAddresses() {
+        return addresses;
     }
 
-    public void setServer(final String server) {
-        this.server = server;
+    public void setAddresses(final String addresses) {
+        this.addresses = addresses;
     }
 }

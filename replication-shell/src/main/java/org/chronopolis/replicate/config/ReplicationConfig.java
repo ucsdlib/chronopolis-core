@@ -128,22 +128,24 @@ public class ReplicationConfig {
     }
 
     @Bean
-    CachingConnectionFactory connectionFactory(ConnectionFactory rabbitConnectionFactory) {
+    CachingConnectionFactory connectionFactory(AMQPSettings amqpSettings,
+                                               ConnectionFactory rabbitConnectionFactory) {
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory(rabbitConnectionFactory);
 
         connectionFactory.setPublisherConfirms(true);
         connectionFactory.setPublisherReturns(true);
 
         connectionFactory.addConnectionListener(connectionListener());
-        connectionFactory.setAddresses("adapt-mq.umiacs.umd.edu");
+        connectionFactory.setAddresses(amqpSettings.getAddresses());
 
         return connectionFactory;
     }
 
     @Bean
-    RabbitTemplate rabbitTemplate(CachingConnectionFactory connectionFactory) {
+    RabbitTemplate rabbitTemplate(AMQPSettings amqpSettings,
+                                  CachingConnectionFactory connectionFactory) {
         RabbitTemplate template = new RabbitTemplate();
-        template.setExchange("chronopolis-control");
+        template.setExchange(amqpSettings.getExchange());
         template.setConnectionFactory(connectionFactory);
         template.setMandatory(true);
 
@@ -257,8 +259,8 @@ public class ReplicationConfig {
     }
 
     @Bean
-    TopicExchange topicExchange() {
-        return new TopicExchange("chronopolis-control");
+    TopicExchange topicExchange(AMQPSettings amqpSettings) {
+        return new TopicExchange(amqpSettings.getExchange());
     }
 
     @Bean
@@ -267,10 +269,11 @@ public class ReplicationConfig {
     }
 
     @Bean
-    Binding broadcastBinding(ReplicationSettings replicationSettings,
+    Binding broadcastBinding(TopicExchange topicExchange,
+                             ReplicationSettings replicationSettings,
                              Queue broadcastQueue) {
         return BindingBuilder.bind(broadcastQueue)
-                             .to(topicExchange())
+                             .to(topicExchange)
                              .with(replicationSettings.getBroadcastQueueBinding());
     }
 
@@ -282,9 +285,10 @@ public class ReplicationConfig {
 
     @Bean
     Binding directBinding(ReplicationSettings replicationSettings,
-                          Queue directQueue) {
+                          Queue directQueue,
+                          TopicExchange topicExchange) {
         return BindingBuilder.bind(directQueue)
-                             .to(topicExchange())
+                             .to(topicExchange)
                              .with(replicationSettings.getDirectQueueBinding());
     }
 
@@ -293,9 +297,10 @@ public class ReplicationConfig {
                             final Binding broadcastBinding,
                             final Queue directQueue,
                             final Queue broadcastQueue,
+                            TopicExchange topicExchange,
                             CachingConnectionFactory connectionFactory) {
         RabbitAdmin admin = new RabbitAdmin(connectionFactory);
-        admin.declareExchange(topicExchange());
+        admin.declareExchange(topicExchange);
 
         // admin.declareQueue(testQueue());
         admin.declareQueue(broadcastQueue);
