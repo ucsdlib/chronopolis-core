@@ -19,6 +19,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.FileVisitResult;
@@ -54,7 +55,7 @@ public class IntakeProducer implements CommandLineRunner {
     }
 
     private enum PRODUCER_OPTION {
-        SEND_STATIC_INTAKE_REQUEST, CREATE_INTAKE_REQUEST, PUSH_STATIC_INTAKE_TO_DPN, RESTORE_REQUEST, QUIT, UNKNOWN;
+        SEND_STATIC_INTAKE_REQUEST, CREATE_INTAKE_REQUEST, PUSH_STATIC_INTAKE_TO_DPN, RESTORE_REQUEST, DIRECTORY_SCAN, QUIT, UNKNOWN;
 
         private static PRODUCER_OPTION fromString(String text) {
             switch (text) {
@@ -66,6 +67,8 @@ public class IntakeProducer implements CommandLineRunner {
                     return PUSH_STATIC_INTAKE_TO_DPN;
                 case "R":
                     return RESTORE_REQUEST;
+                case "D":
+                    return DIRECTORY_SCAN;
                 case "Q":
                 case "q":
                     return QUIT;
@@ -80,13 +83,13 @@ public class IntakeProducer implements CommandLineRunner {
         boolean done = false;
         while (!done) {
             PRODUCER_OPTION option = inputOption();
+            String depositor, bagName, directory;
 
             if (option.equals(PRODUCER_OPTION.SEND_STATIC_INTAKE_REQUEST)) {
                 sendMessage("umiacs", "myDPNBag", "myDPNBag", false);
             } else if (option.equals(PRODUCER_OPTION.PUSH_STATIC_INTAKE_TO_DPN)) {
                 sendMessage("umiacs", "myDPNBag", "myDPNBag", true);
             } else if (option.equals(PRODUCER_OPTION.CREATE_INTAKE_REQUEST)) {
-                String depositor, bagName;
                 System.out.print("Depositor: ");
                 depositor = readLine();
                 System.out.print("Bag Name: ");
@@ -94,7 +97,6 @@ public class IntakeProducer implements CommandLineRunner {
 
                 sendMessage(depositor, bagName, bagName, false);
             } else if (option.equals(PRODUCER_OPTION.RESTORE_REQUEST)) {
-                String depositor, bagName;
                 System.out.print("Depositor: ");
                 depositor = readLine();
                 System.out.print("Bag Name: ");
@@ -103,10 +105,31 @@ public class IntakeProducer implements CommandLineRunner {
                 sendRestore(depositor, bagName);
              } else if (option.equals(PRODUCER_OPTION.QUIT)) {
                 done = true;
+            } else if (option.equals(PRODUCER_OPTION.DIRECTORY_SCAN)) {
+                System.out.print("Depositor: ");
+                depositor = readLine();
+                System.out.print("Directory: ");
+                directory = readLine();
+
+                scanDirectory(depositor, directory);
+
             } else {
                 System.out.println("Unknown?");
             }
         }
+    }
+
+    private void scanDirectory(final String depositor, final String directory) {
+        Path toScan = Paths.get(settings.getBagStage(), directory);
+        for (String f : toScan.toFile().list()) {
+            Path bag = toScan.resolve(f);
+            if (bag.toFile().isDirectory()) {
+                System.out.printf("Sending %s %s %s\n", depositor, directory + "/" + f, f);
+                sendMessage(depositor, directory + "/" + f, f, false);
+            }
+        }
+
+
     }
 
     private void sendRestore(final String depositor, final String bagName) {
