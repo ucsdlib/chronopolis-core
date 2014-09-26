@@ -20,10 +20,8 @@ public class GsonCollectionTest {
     static final String AT = "true";
     static final String PD = "false";
 
-    @Test
-    public void testToJson() throws Exception {
-        Gson deserializer = new Gson();
-        GsonCollection gson = new GsonCollection.Builder()
+    public GsonCollection createCollection() {
+        return new GsonCollection.Builder()
             .digestAlgorithm(DIGEST)
             .directory(DIRECTORY)
             .name(NAME)
@@ -33,6 +31,12 @@ public class GsonCollectionTest {
             .auditTokens(AT)
             .proxyData(PD)
             .build();
+    }
+
+    @Test
+    public void testToJson() throws Exception {
+        Gson deserializer = new Gson();
+        GsonCollection gson = createCollection();
 
         System.out.println(gson.toJson());
 
@@ -43,6 +47,12 @@ public class GsonCollectionTest {
         Assert.assertEquals(NAME, fromJson.getName());
         Assert.assertEquals(GROUP, fromJson.getGroup());
         Assert.assertEquals(STORAGE, fromJson.getStorage());
+    }
+
+    @Test
+    public void testToJsonJackson() {
+        GsonCollection gson = createCollection();
+        System.out.println(gson.toJsonJackson());
     }
 
 }

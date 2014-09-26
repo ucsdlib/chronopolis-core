@@ -2,7 +2,12 @@ package org.chronopolis.common.ace;
 
 
 import com.google.gson.Gson;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,6 +79,9 @@ public class GsonCollection {
             entry = new ArrayList<>();
         }
 
+        public List<Entry> getEntry() {
+            return entry;
+        }
     }
 
     public static class Entry {
@@ -98,6 +106,17 @@ public class GsonCollection {
     public String toJson() {
         Gson gson = new Gson();
         return gson.toJson(this);
+    }
+
+    public String toJsonJackson() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setSerializationConfig(mapper.getSerializationConfig()
+                .withSerializationInclusion(JsonSerialize.Inclusion.NON_NULL));
+        try {
+            return mapper.writeValueAsString(this);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static class Builder {

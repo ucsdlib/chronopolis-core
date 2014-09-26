@@ -66,7 +66,7 @@ public class AceRegisterStep implements Tasklet {
                 .proxyData("false")
                 .build();
 
-        log.debug("POSTing {}", aceGson.toJson());
+        log.debug("POSTing {}", aceGson.toJsonJackson());
         Map<String, Integer> idMap = null;
         try {
             idMap = aceService.addCollection(aceGson);
@@ -74,6 +74,7 @@ public class AceRegisterStep implements Tasklet {
         } catch (RetrofitError error) {
             log.error("Error registering ACE collection. Response code {} with reason {}",
                     error.getResponse().getStatus(), error.getResponse().getReason());
+            throw new RuntimeException(error);
         }
 
         long id = idMap.get("id");
