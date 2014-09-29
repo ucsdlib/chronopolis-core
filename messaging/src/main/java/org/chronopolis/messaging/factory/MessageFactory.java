@@ -122,7 +122,7 @@ public class MessageFactory {
                                                    Digest fixityAlg,
                                                    String location,
                                                    String packageName,
-                                                   int size) {
+                                                   long size) {
         PackageReadyMessage msg = new PackageReadyMessage();
         msg.setDepositor(depositor);
         msg.setFixityAlgorithm(fixityAlg);
