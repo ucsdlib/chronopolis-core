@@ -156,7 +156,7 @@ public class ReplicationConfig {
     @Bean
     TaskExecutor simpleAsyncTaskExecutor() {
         SimpleAsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
-        taskExecutor.setConcurrencyLimit(5);
+        taskExecutor.setConcurrencyLimit(2);
         return taskExecutor;
     }
 
