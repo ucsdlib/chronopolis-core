@@ -12,6 +12,8 @@ import retrofit.mime.TypedFile;
 import java.util.Map;
 
 /**
+ * Interface to interact with ACE
+ *
  * Created by shake on 5/16/14.
  */
 public interface AceService {
