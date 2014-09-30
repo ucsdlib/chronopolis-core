@@ -1,6 +1,5 @@
 package org.chronopolis.common.dpn;
 
-import org.joda.time.DateTime;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -22,9 +21,9 @@ public class RegistryItemModel {
     private String objectType;
     private String state;
 
-    private DateTime lastFixityDate;
-    private DateTime creationDate;
-    private DateTime lastModifiedDate;
+    private String lastFixityDate;
+    private String creationDate;
+    private String lastModifiedDate;
 
     private long versionNumber;
     private long bagSize;
@@ -122,27 +121,27 @@ public class RegistryItemModel {
         this.state = state;
     }
 
-    public DateTime getLastFixityDate() {
+    public String getLastFixityDate() {
         return lastFixityDate;
     }
 
-    public void setLastFixityDate(final DateTime lastFixityDate) {
+    public void setLastFixityDate(final String lastFixityDate) {
         this.lastFixityDate = lastFixityDate;
     }
 
-    public DateTime getCreationDate() {
+    public String getCreationDate() {
         return creationDate;
     }
 
-    public void setCreationDate(final DateTime creationDate) {
+    public void setCreationDate(final String creationDate) {
         this.creationDate = creationDate;
     }
 
-    public DateTime getLastModifiedDate() {
+    public String getLastModifiedDate() {
         return lastModifiedDate;
     }
 
-    public void setLastModifiedDate(final DateTime lastModifiedDate) {
+    public void setLastModifiedDate(final String lastModifiedDate) {
         this.lastModifiedDate = lastModifiedDate;
     }
 

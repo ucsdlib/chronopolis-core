@@ -1,5 +1,6 @@
 package org.chronopolis.common.dpn;
 
+import retrofit.Callback;
 import retrofit.http.Body;
 import retrofit.http.PUT;
 
@@ -9,6 +10,6 @@ import retrofit.http.PUT;
 public interface DPNService {
 
     @PUT("/api/registry/create")
-    void putRegistryItem(@Body RegistryItemModel model);
+    void putRegistryItem(@Body RegistryItemModel model, Callback<Void> callback);
 
 }
