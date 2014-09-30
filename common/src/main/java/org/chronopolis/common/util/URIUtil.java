@@ -29,8 +29,10 @@ public class URIUtil {
         } 
         sb.append(SLASH);
 
-        sb.append(acePath);
-        sb.append(SLASH);
+        if (acePath != null && !acePath.isEmpty()) {
+            sb.append(acePath);
+            sb.append(SLASH);
+        }
         return sb;
     }
     
