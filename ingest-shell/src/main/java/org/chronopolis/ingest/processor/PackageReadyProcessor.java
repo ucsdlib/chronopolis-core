@@ -111,10 +111,11 @@ public class PackageReadyProcessor implements ChronProcessor {
         try {
             String mimeType = Files.probeContentType(toBag);
             if (mimeType != null && mimeType.equals(TAR_TYPE)) {
-                toBag = untar(toBag);
+                toBag = untar(toBag, depositor);
             }
         } catch (IOException e) {
             log.error("Error probing mime type for bag", e);
+            throw new RuntimeException(e);
         }
 
 
@@ -221,14 +222,14 @@ public class PackageReadyProcessor implements ChronProcessor {
      * @return the path of the top-level directory
      * @throws IOException
      */
-    private Path untar(final Path toBag) throws IOException {
+    private Path untar(final Path toBag, String depositor) throws IOException {
         // Set up our tar stream and channel
         TarArchiveInputStream tais = new TarArchiveInputStream(Files.newInputStream(toBag));
         TarArchiveEntry entry = tais.getNextTarEntry();
         ReadableByteChannel inChannel = Channels.newChannel(tais);
 
         // Get our root path (just the staging area), and create an updated bag path
-        Path root = Paths.get(settings.getBagStage());
+        Path root = Paths.get(settings.getBagStage(), depositor);
         Path bag = root.resolve(entry.getName());
 
         while (entry != null) {
@@ -239,6 +240,8 @@ public class PackageReadyProcessor implements ChronProcessor {
                 Files.createDirectories(entryPath);
             } else {
                 log.trace("Creating file {}", entry.getName());
+
+                entryPath.getParent().toFile().mkdirs();
 
                 // In case files are greater than 2^32 bytes, we need to use a
                 // RandomAccessFile and FileChannel to write them
@@ -254,7 +257,10 @@ public class PackageReadyProcessor implements ChronProcessor {
             entry = tais.getNextTarEntry();
         }
 
-        return bag;
+        // Because we aren't always certain the first element of the tar file
+        // is the root directory, we need to resolve it from the bag variable
+        // TODO: There might be a cleaner way to do this
+        return root.resolve(bag.getName(root.getNameCount()));
     }
 
     private void createReplicationFlowItem(String node,
