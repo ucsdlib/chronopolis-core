@@ -52,8 +52,8 @@ public class IntakeConfiguration {
                                     ChronProducer producer,
                                     MessageFactory messageFactory) {
         return new SnapshotTasklet(snapshotID,
-                depositor,
                 collectionName,
+                depositor,
                 intakeSettings,
                 producer,
                 messageFactory);
