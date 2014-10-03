@@ -1,6 +1,7 @@
 package org.chronopolis.intake.config;
 
 import org.chronopolis.amqp.ChronProducer;
+import org.chronopolis.common.dpn.DPNService;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.settings.SMTPSettings;
 import org.chronopolis.db.intake.StatusRepository;
@@ -50,13 +51,15 @@ public class IntakeConfiguration {
                                     @Value("#{jobParameters[collectionName]}") String collectionName,
                                     IntakeSettings settings,
                                     ChronProducer producer,
-                                    MessageFactory messageFactory) {
+                                    MessageFactory messageFactory,
+                                    DPNService dpnService) {
         return new SnapshotTasklet(snapshotID,
                 collectionName,
                 depositor,
                 intakeSettings,
                 producer,
-                messageFactory);
+                messageFactory,
+                dpnService);
     }
 
     @Bean
