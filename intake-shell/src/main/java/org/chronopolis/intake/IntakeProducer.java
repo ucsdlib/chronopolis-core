@@ -19,14 +19,13 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.UUID;
 
@@ -48,14 +47,16 @@ public class IntakeProducer implements CommandLineRunner {
     private MessageFactory messageFactory;
 
     @Autowired
-    public IntakeProducer(ChronProducer producer, MessageFactory messageFactory, ChronopolisSettings settings) {
+    public IntakeProducer(ChronProducer producer,
+                          MessageFactory messageFactory,
+                          ChronopolisSettings settings) {
         this.producer = producer;
         this.messageFactory = messageFactory;
         this.settings = settings;
     }
 
     private enum PRODUCER_OPTION {
-        SEND_STATIC_INTAKE_REQUEST, CREATE_INTAKE_REQUEST, PUSH_STATIC_INTAKE_TO_DPN, RESTORE_REQUEST, DIRECTORY_SCAN, QUIT, UNKNOWN;
+        SEND_STATIC_INTAKE_REQUEST, CREATE_INTAKE_REQUEST, RESTORE_REQUEST, DIRECTORY_SCAN, QUIT, UNKNOWN;
 
         private static PRODUCER_OPTION fromString(String text) {
             switch (text) {
@@ -63,8 +64,6 @@ public class IntakeProducer implements CommandLineRunner {
                     return CREATE_INTAKE_REQUEST;
                 case "S":
                     return SEND_STATIC_INTAKE_REQUEST;
-                case "P":
-                    return PUSH_STATIC_INTAKE_TO_DPN;
                 case "R":
                     return RESTORE_REQUEST;
                 case "D":
@@ -86,16 +85,14 @@ public class IntakeProducer implements CommandLineRunner {
             String depositor, bagName, directory;
 
             if (option.equals(PRODUCER_OPTION.SEND_STATIC_INTAKE_REQUEST)) {
-                sendMessage("umiacs", "myDPNBag", "myDPNBag", false);
-            } else if (option.equals(PRODUCER_OPTION.PUSH_STATIC_INTAKE_TO_DPN)) {
-                sendMessage("umiacs", "myDPNBag", "myDPNBag", true);
+                sendMessage("umiacs", "myDPNBag", "myDPNBag");
             } else if (option.equals(PRODUCER_OPTION.CREATE_INTAKE_REQUEST)) {
                 System.out.print("Depositor: ");
                 depositor = readLine();
                 System.out.print("Bag Name: ");
                 bagName = readLine();
 
-                sendMessage(depositor, bagName, bagName, false);
+                sendMessage(depositor, bagName, bagName);
             } else if (option.equals(PRODUCER_OPTION.RESTORE_REQUEST)) {
                 System.out.print("Depositor: ");
                 depositor = readLine();
@@ -119,52 +116,58 @@ public class IntakeProducer implements CommandLineRunner {
         }
     }
 
+    /**
+     * Scan a directory and send each bag underneath it
+     * Should be of the form
+     * /stage/directory/
+     *            | bag_1/
+     *            | bag_2/
+     *            ...
+     *            | bag_n/
+     *
+     * @param depositor
+     * @param directory
+     */
     private void scanDirectory(final String depositor, final String directory) {
         Path toScan = Paths.get(settings.getBagStage(), directory);
         for (String f : toScan.toFile().list()) {
             Path bag = toScan.resolve(f);
             if (bag.toFile().isDirectory()) {
                 System.out.printf("Sending %s %s %s\n", depositor, directory + "/" + f, f);
-                sendMessage(depositor, directory + "/" + f, f, false);
+                sendMessage(depositor, directory + "/" + f, f);
             }
         }
 
 
     }
 
+    /**
+     * Send a restore request message for a bag in chronopolis
+     *
+     * @param depositor
+     * @param bagName
+     */
     private void sendRestore(final String depositor, final String bagName) {
         Path location = Paths.get(settings.getRestore(), UUID.randomUUID().toString());
         ChronMessage restore = messageFactory.collectionRestoreRequestMessage(bagName, depositor, location.toString());
         producer.send(restore, RoutingKey.INGEST_BROADCAST.asRoute());
     }
 
-    private void sendMessage(String depositor, String location, String bagName, boolean toDPN) {
+    private void sendMessage(String depositor, String location, String bagName) {
         Path collectionPath = Paths.get(settings.getBagStage(), location);
+
+        // Calculate the bag size for our message
         final int [] bagSize = {0};
         try {
-            Files.walkFileTree(collectionPath, new FileVisitor<Path>() {
-                @Override
-                public FileVisitResult preVisitDirectory(Path path, BasicFileAttributes basicFileAttributes) throws IOException {
-                    return FileVisitResult.CONTINUE;
-                }
-
+            Files.walkFileTree(collectionPath, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path path, BasicFileAttributes basicFileAttributes) throws IOException {
                     bagSize[0] += basicFileAttributes.size();
                     return FileVisitResult.CONTINUE;
                 }
-
-                @Override
-                public FileVisitResult visitFileFailed(Path path, IOException e) throws IOException {
-                    return FileVisitResult.TERMINATE;
-                }
-
-                @Override
-                public FileVisitResult postVisitDirectory(Path path, IOException e) throws IOException {
-                    return FileVisitResult.CONTINUE;
-                }
             });
         } catch (IOException e) {
+            // We don't really care about errors here, at least not yet
             System.out.println("Could not calculate bag size");
             bagSize[0] = 0;
         }
