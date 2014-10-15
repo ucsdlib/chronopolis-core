@@ -27,4 +27,4 @@ Todo:
 
 
 
-[1]: https://chron-git.umiacs.umd.edu/chron-core/chronopolis-doc
+[1]: https://gitlab.umiacs.umd.edu/chronopolis/chronopolis-core/wikis/home
