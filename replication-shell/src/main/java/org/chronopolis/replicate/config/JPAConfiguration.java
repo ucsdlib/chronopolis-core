@@ -25,7 +25,6 @@ public class JPAConfiguration {
     @Bean
     public DataSource dataSource(ReplicationDBSettings settings) throws SQLException {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        // TODO: Grab from properties (environment)
         dataSource.setDriverClassName(settings.getDriverClass());
         dataSource.setUrl(settings.getURL());
         dataSource.setUsername(settings.getUsername());

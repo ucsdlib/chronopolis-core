@@ -52,7 +52,7 @@ public class AceRegisterStep implements Tasklet {
 
         Path collectionPath = Paths.get(settings.getPreservation(), depositor, collection);
         // TODO: Get stage for manifest?
-        Path manifest = Paths.get(settings.getPreservation(), collection+"-tokens");
+        Path manifest = Paths.get(settings.getPreservation(), collection + "-tokens");
 
         log.trace("Building ACE json");
         GsonCollection aceGson = new GsonCollection.Builder()

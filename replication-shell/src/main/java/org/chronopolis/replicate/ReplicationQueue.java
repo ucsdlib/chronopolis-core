@@ -53,16 +53,23 @@ public class ReplicationQueue implements Runnable {
         return uriBuilder.toString();
     }
     
-    public static Path getFileImmediate(String url, Path stage, String protocol) throws IOException, FileTransferException {
+    public static Path getFileImmediate(String url,
+                                        Path stage,
+                                        String protocol) throws IOException,
+                                                                FileTransferException {
+        // Check our preconditions
         if (url == null) {
             System.out.println("Null url");
             throw new IllegalArgumentException("Url cannot be null");
         } else if (stage == null) {
             System.out.println("Null stage");
             throw new IllegalArgumentException("Stage cannot be null");
-        } else if (xfer == null) {
+        } /* else if (xfer == null) {
             System.out.println("This shouldn't happen");
-        }
+            throw new IllegalArgumentException("Transfer object is null, aborting");
+        }*/
+
+
         FileTransfer transfer;
 
         if (protocol.equalsIgnoreCase("rsync")) {
