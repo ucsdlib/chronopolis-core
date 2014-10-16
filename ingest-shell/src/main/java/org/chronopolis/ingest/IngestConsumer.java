@@ -4,18 +4,45 @@
  */
 package org.chronopolis.ingest;
 
+import org.chronopolis.db.common.model.RestoreRequest;
+import org.chronopolis.db.model.CollectionIngest;
+import org.chronopolis.ingest.config.IngestConfiguration;
+import org.chronopolis.ingest.config.IngestJPAConfiguration;
+import org.chronopolis.ingest.config.IngestSettings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.orm.jpa.EntityScan;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.stereotype.Component;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import org.chronopolis.amqp.ChronProducer;
-import org.springframework.context.support.GenericXmlApplicationContext;
+
 
 /**
  *
  * @author shake
  */
-public class IngestConsumer {
-    
+@Component
+@ComponentScan(basePackageClasses = {
+        IngestSettings.class,
+        IngestJPAConfiguration.class,
+        IngestConfiguration.class
+}, basePackages = {
+        "org.chronopolis.common.settings"
+})
+@EntityScan(basePackageClasses = {RestoreRequest.class,
+        CollectionIngest.class}
+)
+@EnableAutoConfiguration
+public class IngestConsumer implements CommandLineRunner {
+    private static final Logger LOG = LoggerFactory.getLogger(IngestConsumer.class);
+
     private static String readLine() {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -24,29 +51,29 @@ public class IngestConsumer {
             throw new RuntimeException("Can't read from STDIN");
         }
     }
-    
+
     public static void main(String [] args) {
-        GenericXmlApplicationContext context = new GenericXmlApplicationContext(
-                "classpath:/rabbit-context.xml");
+        SpringApplication.exit(SpringApplication.run(IngestConsumer.class, args));
+    }
+
+    @Override
+    public void run(final String... strings) throws Exception {
         boolean done = false;
-        ChronProducer p = (ChronProducer) context.getBean("producer");
-        IngestProperties props = (IngestProperties ) context.getBean("properties");
-        
+
         while (!done) {
-            
+
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException ex) {
+                LOG.error("Interrupted {}", ex);
             }
-            
+
             System.out.println("Enter 'q' to exit: ");
             if ("q".equalsIgnoreCase(readLine())) {
-                System.out.println("Shutting down");
+                LOG.info("Shutting down");
                 done = true;
             }
         }
-        
-        context.close();
-        System.out.println("Closed for business");
     }
 }
+

@@ -22,6 +22,7 @@ import javax.persistence.NamedQuery;
 @NamedQuery(name="MyEntity.findByName", query="SELECT m FROM MyEntity m WHERE m.name = :name")
 public class MyEntity implements Serializable, IDEntity {
     private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

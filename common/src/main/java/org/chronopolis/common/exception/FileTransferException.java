@@ -3,12 +3,14 @@ package org.chronopolis.common.exception;
 /**
  * Created by shake on 2/20/14.
  */
-public class FileTransferException extends RuntimeException{
-    public FileTransferException(String msg, Throwable t) {
+public class FileTransferException extends Exception {
+
+    public FileTransferException(final String msg, final Throwable t) {
         super(msg, t);
     }
 
-    public FileTransferException(String msg) {
+    public FileTransferException(final String msg) {
         super(msg);
     }
+
 }

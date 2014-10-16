@@ -20,6 +20,7 @@ public enum MessageConstant {
     DEPOSITOR("depositor"),
     COLLECTION("collection"),
     TOKEN_STORE("token-store"),
+    TOKEN_STORE_DIGEST("token-store-digest"),
     AUDIT_PERIOD("audit-period"),
     DIGEST("digest"),
     DIGEST_TYPE("digest-type"),
@@ -27,6 +28,8 @@ public enum MessageConstant {
     FILENAME("filename"),
     LOCATION("location"),
     BAG_LOCATION("bag-location"),
+    RESTORE_LOCATION("restore-location"),
+    BAG_DIGEST("bag-tag-manifest-digest"),
     TOKEN_STORE_LOCATION("token-store-location"),
     PROTOCOL("protocol"),
     SIZE("size"),
@@ -34,12 +37,13 @@ public enum MessageConstant {
     FAILED_ITEMS("failed-items"),
     FIXITY_ALGORITHM("fixity-algorithm"),
     MESSAGE_ATT("message-att"),
+    TO_DPN("to-dpn"),
 
     // Misc
     STATUS_SUCCESS("success"),
     STATUS_FAIL("failed"),
     ;
-    
+
     private final String text;
 
     MessageConstant(String text) {

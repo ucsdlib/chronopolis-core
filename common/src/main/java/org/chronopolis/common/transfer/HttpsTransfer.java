@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.chronopolis.common.transfer;
 
 import java.io.FileNotFoundException;
@@ -28,9 +24,9 @@ public class HttpsTransfer implements FileTransfer {
     private final Logger log = LoggerFactory.getLogger(HttpsTransfer.class);
 
     @Override
-    public Path getFile(String uri, Path stage) throws FileTransferException {
+    public Path getFile(final String uri, final Path stage) throws FileTransferException {
         // Make HTTP Connection
-        log.info("Attempting HTTP Transfer from '{}'", uri);
+        log.info("Attempting HTTP Transfer from {}", uri);
         URL url;
         Path output = null;
         try {
@@ -47,7 +43,7 @@ public class HttpsTransfer implements FileTransfer {
         try {
             output.toFile().createNewFile();
         } catch (IOException e) {
-            log.error("Error creating file '{}' ", output.toString(), e);
+            log.error("Error creating file {}", output.toString(), e);
             throw new FileTransferException("Error creating " + output.toString(), e);
         }
 
@@ -65,5 +61,10 @@ public class HttpsTransfer implements FileTransfer {
             throw new FileTransferException("IOException while downloading file", e);
         }
         return output;
+    }
+
+    @Override
+    public void put(final Path localFile, final String uri) throws FileTransferException {
+        // TBD
     }
 }

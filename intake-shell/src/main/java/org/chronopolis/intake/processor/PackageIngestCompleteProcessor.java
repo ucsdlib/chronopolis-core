@@ -7,6 +7,7 @@ package org.chronopolis.intake.processor;
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.base.ChronProcessor;
+import org.chronopolis.messaging.exception.InvalidMessageException;
 import org.chronopolis.messaging.pkg.PackageIngestCompleteMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,23 +29,24 @@ public class PackageIngestCompleteProcessor implements ChronProcessor {
 
     @Override
     public void process(ChronMessage chronMessage) {
-        if ( !(chronMessage instanceof PackageIngestCompleteMessage) ) {
-
+        if (!(chronMessage instanceof PackageIngestCompleteMessage)) {
+            throw new InvalidMessageException("Expected message of type PackageIngestComplete"
+                   + " but received " + chronMessage.getClass().getName());
         }
 
         PackageIngestCompleteMessage msg = (PackageIngestCompleteMessage) chronMessage;
 
-        if ( msg.getStatus().equals(STATUS_SUCCESS.toString())) {
+        if (msg.getStatus().equals(STATUS_SUCCESS.toString())) {
             log.info("Completed package ingestion of {} for correlation thread {}",
                     msg.getPackageName(), msg.getCorrelationId());
         } else {
             log.info("Could not ingest package {}", msg.getPackageName());
-            for ( String item : msg.getFailedItems()) {
+            for (String item : msg.getFailedItems()) {
                 log.info("{} failed", item);
             }
         }
-        
+
     }
 
-    
+
 }

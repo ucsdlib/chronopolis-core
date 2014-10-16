@@ -24,7 +24,8 @@ git checkout --track origin/develop
 
 Todo: 
 
-Lots of stuff
+* Add property for setting the from field for smtp (may want to copy ace and do from@localhost)
+* Move from Quartz to Spring Batch.
 
 
-[1]: https://chron-git.umiacs.umd.edu/chron-core/chronopolis-doc
+[1]: https://gitlab.umiacs.umd.edu/chronopolis/chronopolis-core/wikis/home

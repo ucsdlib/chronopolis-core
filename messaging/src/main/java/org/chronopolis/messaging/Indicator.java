@@ -9,7 +9,7 @@ package org.chronopolis.messaging;
  * @author toaster
  */
 public enum Indicator {
-    
+
     ACK("ack"),
     NAK("nak"),
     QUERY("query");
@@ -17,13 +17,12 @@ public enum Indicator {
     private Indicator(String name) {
         this.name = name;
     }
-    
+
     private String name;
-    
-    public String getName()
-    {
+
+    public String getName() {
         return name;
     }
-    
-    
+
+
 }

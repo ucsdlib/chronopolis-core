@@ -1,23 +1,26 @@
 package org.chronopolis.messaging.base;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
-import com.rabbitmq.tools.json.JSONSerializable;
 import org.chronopolis.messaging.MessageType;
 import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.collection.CollectionInitReplyMessage;
+import org.chronopolis.messaging.collection.CollectionRestoreCompleteMessage;
+import org.chronopolis.messaging.collection.CollectionRestoreLocationMessage;
+import org.chronopolis.messaging.collection.CollectionRestoreReplyMessage;
+import org.chronopolis.messaging.collection.CollectionRestoreRequestMessage;
 import org.chronopolis.messaging.exception.InvalidMessageException;
 import org.chronopolis.messaging.file.FileQueryMessage;
 import org.chronopolis.messaging.file.FileQueryResponseMessage;
-import org.chronopolis.messaging.pkg.*;
+import org.chronopolis.messaging.pkg.PackageIngestCompleteMessage;
+import org.chronopolis.messaging.pkg.PackageIngestStatusQueryMessage;
+import org.chronopolis.messaging.pkg.PackageIngestStatusResponseMessage;
+import org.chronopolis.messaging.pkg.PackageReadyMessage;
+import org.chronopolis.messaging.pkg.PackageReadyReplyMessage;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import static org.chronopolis.messaging.MessageConstant.CORRELATION_ID;
@@ -46,16 +49,16 @@ public class ChronMessage {
         this.type = type;
         this.body = new ChronBody(type);
     }
-    
+
     public void setHeader(Map<String, Object> header) {
         this.origin = (String) header.get(ORIGIN.toString());
-        this.returnKey= (String) header.get(RETURN_KEY.toString());
+        this.returnKey = (String) header.get(RETURN_KEY.toString());
         this.correlationId = (String) header.get(CORRELATION_ID.toString());
         this.date = (String) header.get(DATE.toString());
     }
 
     public void setBody(ChronBody body) {
-        if ( type != body.getType() ) {
+        if (type != body.getType()) {
             throw new RuntimeException("Cannot set body of differing message type ("
                     + body.getType() + ")");
         }
@@ -76,7 +79,7 @@ public class ChronMessage {
         return body;
     }
 
-    public MessageType getType() { 
+    public MessageType getType() {
         return this.type;
     }
 
@@ -93,9 +96,16 @@ public class ChronMessage {
 
     // Helper for returning the type of message we want
     public static ChronMessage getMessage(MessageType type) {
+        /* Why not...
+         * Class x = type.getMessageClass();
+         * return x.newInstance();
+         * Just need to ensure MessageType class if of <? extends ChronMessage>
+         *
+         */
+
         switch (type) {
             case FILE_QUERY:
-                return new FileQueryMessage(); 
+                return new FileQueryMessage();
             case FILE_QUERY_RESPONSE:
                 return new FileQueryResponseMessage();
             case COLLECTION_INIT:
@@ -104,6 +114,14 @@ public class ChronMessage {
                 return new CollectionInitReplyMessage();
             case COLLECTION_INIT_COMPLETE:
                 return new CollectionInitCompleteMessage();
+            case COLLECTION_RESTORE_REQUEST:
+                return new CollectionRestoreRequestMessage();
+            case COLLECTION_RESTORE_REPLY:
+                return new CollectionRestoreReplyMessage();
+            case COLLECTION_RESTORE_LOCATION:
+                return new CollectionRestoreLocationMessage();
+            case COLLECTION_RESTORE_COMPLETE:
+                return new CollectionRestoreCompleteMessage();
             case PACKAGE_INGEST_READY:
                 return new PackageReadyMessage();
             case PACKAGE_INGEST_READY_REPLY:
@@ -121,50 +139,50 @@ public class ChronMessage {
         }
     }
 
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        final ChronMessage that = (ChronMessage) o;
+
+        if (body != null ? !body.equals(that.body) : that.body != null) return false;
+        if (correlationId != null ? !correlationId.equals(that.correlationId) : that.correlationId != null)
+            return false;
+        if (date != null ? !date.equals(that.date) : that.date != null) return false;
+        if (origin != null ? !origin.equals(that.origin) : that.origin != null) return false;
+        if (returnKey != null ? !returnKey.equals(that.returnKey) : that.returnKey != null) return false;
+        if (type != that.type) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = body != null ? body.hashCode() : 0;
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + (origin != null ? origin.hashCode() : 0);
+        result = 31 * result + (returnKey != null ? returnKey.hashCode() : 0);
+        result = 31 * result + (correlationId != null ? correlationId.hashCode() : 0);
+        result = 31 * result + (date != null ? date.hashCode() : 0);
+        return result;
+    }
+
     private static class UnexpectedMessageTypeException extends RuntimeException {
         public UnexpectedMessageTypeException(String toString) {
             super(toString);
         }
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if ( !(o instanceof ChronMessage) || o == null) {
-            return false;
-        }
-
-        return equals((ChronMessage) o);
-    }
-
-    public boolean equals(ChronMessage other) {
-        if ( !this.type.equals(other.type)) {
-            return false;
-        }
-
-        if (!correlationId.equals(other.correlationId)) {
-            return false;
-        }
-        if (!date.equals(other.date)) {
-            return false;
-        }
-        if (!returnKey.equals(other.returnKey)) {
-            return false;
-        }
-        if (!origin.equals(other.origin)) {
-            return false;
-        }
-        if (!body.equals(other.body)) {
-            return false;
-        }
-
-        return true;
-
-    }
-
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("{").append("\n\ttype:").append(type.toString()).append("\n");
-        for ( Map.Entry<String, Object> entry : body.getBody().entrySet() ) {
+        sb.append("Headers {");
+        sb.append("\n\torigin: ").append(origin);
+        sb.append("\n\treturnKey: ").append(returnKey);
+        sb.append("\n\tcorrelationId: ").append(correlationId);
+        sb.append("\n\tdate: ").append(date);
+        sb.append("\n} Body {").append("\n\ttype:").append(type.toString()).append("\n");
+        for (Map.Entry<String, Object> entry : body.getBody().entrySet()) {
             sb.append("\t").append(entry.getKey()).append(":")
               .append(entry.getValue()).append(",\n");
         }
@@ -172,7 +190,7 @@ public class ChronMessage {
         return sb.toString();
     }
 
-    // Header methods 
+    // Header methods
     public final void setOrigin(String origin) {
         this.origin = origin;
     }

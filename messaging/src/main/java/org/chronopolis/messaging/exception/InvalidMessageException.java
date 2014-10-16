@@ -7,4 +7,8 @@ public class InvalidMessageException extends RuntimeException {
     public InvalidMessageException(String msg, Throwable t) {
         super(msg, t);
     }
+
+    public InvalidMessageException(String msg) {
+        super(msg);
+    }
 }

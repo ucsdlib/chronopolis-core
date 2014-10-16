@@ -1,5 +1,9 @@
 To run:
 
-mvn clean install
+mvn clean install (or mvn package)
 
-java -jar tar/chron-ingest-shell-1.0-SNAPSHOT.one-jar.jar
+java -jar target/chron-ingest-shell-1.0-SNAPSHOT.jar
+
+Or
+
+mvn spring-boot:run

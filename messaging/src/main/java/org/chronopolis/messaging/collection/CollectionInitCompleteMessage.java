@@ -9,6 +9,7 @@ import org.chronopolis.messaging.base.ChronBody;
 import org.chronopolis.messaging.base.ChronMessage;
 
 /**
+ * TODO: Add ack/nak, and an error field
  *
  * @author shake
  */
@@ -18,5 +19,5 @@ public class CollectionInitCompleteMessage extends ChronMessage {
         super(MessageType.COLLECTION_INIT_COMPLETE);
         this.body = new ChronBody(type);
     }
-    
+
 }

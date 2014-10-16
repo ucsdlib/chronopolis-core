@@ -14,7 +14,7 @@ import static org.chronopolis.messaging.MessageConstant.LOCATION;
 import static org.chronopolis.messaging.MessageConstant.FILENAME;
 
 /**
- * Used by the Distribution Service to ask other nodes the status of 
+ * Used by the Distribution Service to ask other nodes the status of
  * a particular file[s]
  *
  * @author shake

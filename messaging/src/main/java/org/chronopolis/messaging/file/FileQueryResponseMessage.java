@@ -27,6 +27,6 @@ public class FileQueryResponseMessage extends ChronMessage {
         super(MessageType.FILE_QUERY_RESPONSE);
         this.body = new ChronBody(type);
     }
-    
+
 
 }

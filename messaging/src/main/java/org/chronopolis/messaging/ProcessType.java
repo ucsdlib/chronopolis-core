@@ -14,7 +14,9 @@ public enum ProcessType {
 
     INGEST("ingest"),
     DISTRIBUTE("distribute"),
-    QUERY("query");
+    QUERY("query"),
+    RESTORE("restore");
+
     private String name;
 
     private ProcessType(String name) {
@@ -24,4 +26,5 @@ public enum ProcessType {
     public String getName() {
         return name;
     }
+
 }

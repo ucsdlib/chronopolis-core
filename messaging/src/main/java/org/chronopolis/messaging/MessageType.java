@@ -15,14 +15,14 @@ import java.util.List;
  * Stage -
  * Indicator - The type of message
  * Args - The parameters of the message
- * 
+ *
  * TODO: Replace Args w/ MessageConstant... constants...
  * TODO: Trim the fat (origin/response, indicator, etc)
  *
  * @author toaster
  */
 public enum MessageType {
-    
+
     // DPN Messages
     INGEST_INIT_QUERY(MessageState.ORIGIN, ProcessType.INGEST, "init", Indicator.QUERY, "size", "protocol"),
     INGEST_AVAIL_ACK(MessageState.RESPONSE, ProcessType.INGEST, "avail", Indicator.ACK),
@@ -32,11 +32,12 @@ public enum MessageType {
     // Do these messages need a query and response? There is only an ack associated
     // with them
     COLLECTION_INIT(MessageState.ORIGIN, ProcessType.DISTRIBUTE, "init", Indicator.QUERY,
-            "depositor", "collection", "token-store", "bag-location", "protocol", "audit-period", "fixity-algorithm"),
-    COLLECTION_INIT_REPLY(MessageState.ORIGIN, ProcessType.DISTRIBUTE, "avail", Indicator.QUERY,
-            "message-att"),
+            "depositor", "collection", "token-store", "bag-location", "protocol", "audit-period", "fixity-algorithm",
+            "token-store-digest", "bag-tag-manifest-digest"),
+    COLLECTION_INIT_REPLY(MessageState.RESPONSE, ProcessType.DISTRIBUTE, "avail", Indicator.QUERY,
+            "message-att", "failed-items", "depositor", "collection"),
     COLLECTION_INIT_COMPLETE(MessageState.RESPONSE, ProcessType.DISTRIBUTE, "ack", Indicator.ACK,
-            "collection", "attribute", "error-list"),
+            "message-att", "collection", "error-list"),
 
     // Distribute <--> Distribute,
     // Will query other nodes to ask for files and get a response
@@ -45,17 +46,27 @@ public enum MessageType {
     FILE_QUERY_RESPONSE(MessageState.RESPONSE, ProcessType.QUERY, "transfer", Indicator.ACK,
             "available", "protocol", "location"),
 
-    // Intake <--> Ingest  
-    PACKAGE_INGEST_READY(MessageState.ORIGIN, ProcessType.INGEST, "init", Indicator.QUERY, 
-            "package-name", "location", "depositor", "size", "fixity-algorithm"),
+    // Intake <--> Ingest
+    PACKAGE_INGEST_READY(MessageState.ORIGIN, ProcessType.INGEST, "init", Indicator.QUERY,
+            "package-name", "location", "depositor", "size", "fixity-algorithm", "to-dpn"),
     PACKAGE_INGEST_READY_REPLY(MessageState.ORIGIN, ProcessType.INGEST, "ack", Indicator.QUERY,
             "package-name", "message-att"),
     PACKAGE_INGEST_COMPLETE(MessageState.RESPONSE, ProcessType.INGEST, "ack", Indicator.ACK,
             "package-name", "status", "failed-items"),
     PACKAGE_INGEST_STATUS_QUERY(MessageState.RESPONSE, ProcessType.INGEST, "query", Indicator.ACK,
-            "package-name", "depositor"), 
+            "package-name", "depositor"),
     PACKAGE_INGEST_STATUS_RESPONSE(MessageState.RESPONSE, ProcessType.INGEST, "response", Indicator.ACK,
-            "status", "completion-percent"), 
+            "status", "completion-percent"),
+
+    // Restore
+    COLLECTION_RESTORE_REQUEST(MessageState.ORIGIN, ProcessType.RESTORE, "restore", Indicator.QUERY,
+            "depositor", "collection", "location"),
+    COLLECTION_RESTORE_REPLY(MessageState.ORIGIN, ProcessType.RESTORE, "reply", Indicator.ACK,
+            "message-att"),
+    COLLECTION_RESTORE_LOCATION(MessageState.ORIGIN, ProcessType.RESTORE, "location", Indicator.ACK,
+            "message-att", "restore-location", "protocol"),
+    COLLECTION_RESTORE_COMPLETE(MessageState.RESPONSE, ProcessType.RESTORE, "complete", Indicator.ACK,
+            "message-att", "location")
     ;
 
     private MessageState state;
@@ -63,20 +74,35 @@ public enum MessageType {
     private String stage;
     private Indicator indicator;
     private List<String> args;
-    
-    private MessageType(MessageState state, ProcessType process, String stage, Indicator indicator, String... args) {
+
+    private MessageType(MessageState state,
+                        ProcessType process,
+                        String stage,
+                        Indicator indicator,
+                        String... args) {
         this.state = state;
         this.process = process;
         this.stage = stage;
         this.indicator = indicator;
         this.args = Collections.unmodifiableList(Arrays.asList(args));
     }
-    
+
     public static MessageType decode(String message) {
         if (null == message) {
             throw new NullPointerException();
         }
-        
+
+        /*
+        / Why not this?
+        String lower = message.toLowerCase();
+        for (MessageType type : MessageType.values()) {
+            if (type.name().toLowerCase().equals(lower)) {
+                return type;
+            }
+        }
+        Because that requires an O(n) lookup (though that isn't bad if we only have ~15 messages)
+        */
+
         switch (message.toLowerCase()) {
             case "o_ingest_init_query":
                 return INGEST_INIT_QUERY;
@@ -90,6 +116,14 @@ public enum MessageType {
                 return COLLECTION_INIT_COMPLETE;
             case "collection_init_reply":
                 return COLLECTION_INIT_REPLY;
+            case "collection_restore_request":
+                return COLLECTION_RESTORE_REQUEST;
+            case "collection_restore_reply":
+                return COLLECTION_RESTORE_REPLY;
+            case "collection_restore_location":
+                return COLLECTION_RESTORE_LOCATION;
+            case "collection_restore_complete":
+                return COLLECTION_RESTORE_COMPLETE;
             case "file_query":
                 return FILE_QUERY;
             case "file_query_response":
@@ -106,10 +140,10 @@ public enum MessageType {
                 return PACKAGE_INGEST_STATUS_RESPONSE;
             default:
                 throw new IllegalArgumentException("unknown message name: " + message);
-                
+
         }
     }
-    
+
     public String encode() {
         StringBuilder sb = new StringBuilder();
         sb.append(state.getName()).append('-');
@@ -118,7 +152,7 @@ public enum MessageType {
         sb.append(indicator.getName());
         return sb.toString();
     }
-    
+
     /**
      *
      * @return
@@ -126,7 +160,7 @@ public enum MessageType {
     public MessageState getState() {
         return state;
     }
-    
+
     /**
      * List of acceptable argument keys for this message type
      * @return
@@ -134,7 +168,7 @@ public enum MessageType {
     public List<String> getArgs() {
         return args;
     }
-    
+
     /**
      * Each of our control flows will have a unique identifier attached to it.  For example, Content Ingest
      * will be "ingest".  Every message exchanged during the control flow / process will be has this tag.
@@ -144,7 +178,7 @@ public enum MessageType {
     public ProcessType getProcess() {
         return process;
     }
-    
+
     /**
      * Refers to the point at which the message is sent in the process.  Unambiguously replaces sequence, and
      * does not lend itself to being implemented with a += 1, a method that provided no benefit.  ProcessType
@@ -153,7 +187,7 @@ public enum MessageType {
     public String getStage() {
         return stage;
     }
-    
+
     /**
      * ack/nack/query
      * @return

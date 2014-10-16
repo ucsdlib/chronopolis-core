@@ -4,16 +4,18 @@
  */
 package org.chronopolis.replicate;
 
+import org.chronopolis.common.exception.FileTransferException;
+import org.chronopolis.common.transfer.FileTransfer;
+import org.chronopolis.common.transfer.HttpsTransfer;
+import org.chronopolis.common.transfer.RSyncTransfer;
+import org.chronopolis.replicate.config.ReplicationSettings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.LinkedBlockingQueue;
-import org.chronopolis.common.properties.GenericProperties;
-import org.chronopolis.common.transfer.FileTransfer;
-import org.chronopolis.common.transfer.HttpsTransfer;
-import org.chronopolis.common.transfer.RSyncTransfer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Class which will fire off downloads
@@ -26,11 +28,10 @@ public class ReplicationQueue implements Runnable {
     private static final String SLASH =  "/"; // Not the guitarist
     private static LinkedBlockingQueue<ReplicationDownload> downloadQueue = new LinkedBlockingQueue<>();
     private static HttpsTransfer xfer = new HttpsTransfer();
-    private static GenericProperties props;
+    private static ReplicationSettings settings;
 
-
-    public static void setProperties(GenericProperties props) {
-        ReplicationQueue.props = props;
+    public static void setSettings(ReplicationSettings settings) {
+        ReplicationQueue.settings = settings;
     }
 
     private static String buildURL(String base, 
@@ -52,23 +53,35 @@ public class ReplicationQueue implements Runnable {
         return uriBuilder.toString();
     }
     
-    public static Path getFileImmediate(String url, Path stage, String protocol) throws IOException {
-        if ( url == null ) {
+    public static Path getFileImmediate(String url,
+                                        Path stage,
+                                        String protocol) throws IOException,
+                                                                FileTransferException {
+        // Check our preconditions
+        if (url == null) {
             System.out.println("Null url");
-        } else if ( stage == null ) {
+            throw new IllegalArgumentException("Url cannot be null");
+        } else if (stage == null) {
             System.out.println("Null stage");
-        } else if (xfer == null ) {
+            throw new IllegalArgumentException("Stage cannot be null");
+        } /* else if (xfer == null) {
             System.out.println("This shouldn't happen");
-        }
+            throw new IllegalArgumentException("Transfer object is null, aborting");
+        }*/
+
+
         FileTransfer transfer;
 
         if (protocol.equalsIgnoreCase("rsync")) {
             // TODO: Send any authentication information here
-            transfer = new RSyncTransfer("shake");
+            // TODO: Oh god this is so terrible
+            String[] parts = url.split("@", 2);
+            transfer = new RSyncTransfer(parts[0]);
+            url = parts[1];
         } else if (protocol.equalsIgnoreCase("https")) {
             transfer = new HttpsTransfer();
         } else {
-            log.error("Invalid transfer type '{}'", protocol);
+            log.error("Invalid transfer type {}", protocol);
             // probably throw exception here
             return null;
         }
@@ -81,6 +94,7 @@ public class ReplicationQueue implements Runnable {
                                     String group, 
                                     String file,
                                     String protocol) {
+
         ReplicationDownload rFile = new ReplicationDownload(base, collection, group, file, protocol);
         try {
             log.info("Queueing {}", file);
@@ -92,13 +106,15 @@ public class ReplicationQueue implements Runnable {
 
     @Override
     public void run() {
-        while ( !Thread.currentThread().isInterrupted() ) {
+        while (!Thread.currentThread().isInterrupted()) {
             Path file = null;
             ReplicationDownload dl = downloadQueue.poll();
             try {
-                Path collPath = Paths.get(props.getStage(), dl.getGroup(), dl.getCollection());
+                Path collPath = Paths.get(settings.getPreservation(), dl.getGroup(), dl.getCollection());
                 String url = buildURL(dl.getBase(), dl.getCollection(), dl.getGroup(), dl.getFile());
                 file = xfer.getFile(url, collPath);
+            } catch (FileTransferException e) {
+                log.error("{}", e);
             } finally {
                 // Requeue if necessary
                 if ( file == null ) {

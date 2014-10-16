@@ -12,8 +12,7 @@ import static ch.qos.logback.classic.Level.INFO
 
 appender("CONSOLE", ConsoleAppender) {
     encoder(PatternLayoutEncoder) {
-        //pattern = "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n"
-        pattern = "%level %logger - %msg%n"
+        pattern = "%green(%level) %cyan(%logger{30}) - %msg%n"
     }
     filter(ThresholdFilter) {
         level = INFO
@@ -24,10 +23,22 @@ appender("FILE", FileAppender) {
     file = "ingest.log"
     append = true
     encoder(PatternLayoutEncoder) {
-        pattern = "%level %logger - %msg%n"
+        pattern = "%d{yyyy/MM/dd HH:mm:ss} %level %logger - %msg%n"
     }
 }
 
+/*
+appender("SPRING", FileAppender) {
+    file = "spring.log"
+    append = true
+    encoder(PatternLayoutEncoder) {
+        pattern = "%level %logger - %msg%n"
+    }
+}
+*/
 
+
+logger("org.springframework", ERROR)
+logger("org.hibernate", INFO)
 //logger("org.chronopolis", INFO, ["CONSOLE"])
 root(TRACE, ["FILE", "CONSOLE"])

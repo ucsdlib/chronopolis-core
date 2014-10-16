@@ -17,7 +17,7 @@ public class ErrorHandlerImpl implements ErrorHandler {
     private final Logger log = LoggerFactory.getLogger(ErrorHandlerImpl.class);
 
     public void handleError(Throwable thrwbl) {
-        log.error("Caught error: {}", thrwbl);
+        log.error("Caught error: ", thrwbl);
     }
-    
+
 }
