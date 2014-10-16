@@ -19,7 +19,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>1.0.2.RELEASE</version>
+                <version>1.1.4.RELEASE</version>
                 <configuration>
                     <mainClass>org.chronopolis.ingest.IngestConsumer</mainClass>
                 </configuration>
@@ -82,7 +82,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
-            <version>1.0.2.RELEASE</version>
+            <version>1.1.4.RELEASE</version>
         </dependency>
 
         <dependency>

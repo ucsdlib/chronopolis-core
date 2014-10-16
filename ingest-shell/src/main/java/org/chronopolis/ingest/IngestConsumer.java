@@ -4,6 +4,8 @@
  */
 package org.chronopolis.ingest;
 
+import org.chronopolis.db.common.model.RestoreRequest;
+import org.chronopolis.db.model.CollectionIngest;
 import org.chronopolis.ingest.config.IngestConfiguration;
 import org.chronopolis.ingest.config.IngestJPAConfiguration;
 import org.chronopolis.ingest.config.IngestSettings;
@@ -13,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +36,9 @@ import java.io.InputStreamReader;
 }, basePackages = {
         "org.chronopolis.common.settings"
 })
+@EntityScan(basePackageClasses = {RestoreRequest.class,
+        CollectionIngest.class}
+)
 @EnableAutoConfiguration
 public class IngestConsumer implements CommandLineRunner {
     private static final Logger LOG = LoggerFactory.getLogger(IngestConsumer.class);

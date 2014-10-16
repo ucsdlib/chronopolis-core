@@ -23,13 +23,13 @@ import java.sql.SQLException;
 public class JPAConfiguration {
 
     @Bean
-    public DataSource dataSource() throws SQLException {
+    public DataSource dataSource(ReplicationDBSettings settings) throws SQLException {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         // TODO: Grab from properties (environment)
-        dataSource.setDriverClassName("org.hsqldb.jdbc.JDBCDriver");
-        dataSource.setUrl("jdbc:hsqldb:replication-db");
-        dataSource.setUsername("h2");
-        dataSource.setPassword("h2");
+        dataSource.setDriverClassName(settings.getDriverClass());
+        dataSource.setUrl(settings.getURL());
+        dataSource.setUsername(settings.getUsername());
+        dataSource.setPassword(settings.getPassword());
         return dataSource;
     }
 

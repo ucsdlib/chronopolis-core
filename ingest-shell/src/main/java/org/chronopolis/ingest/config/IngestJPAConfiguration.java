@@ -41,13 +41,12 @@ public class IngestJPAConfiguration {
     private static final String PROPERTIES_JDBC_PASSWORD = "jdbc.password";
 
     @Bean
-    public DataSource dataSource() throws SQLException {
+    public DataSource dataSource(IngestDBSettings settings) throws SQLException {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        // TODO: Grab from properties (environment)
-        dataSource.setDriverClassName("org.h2.Driver");
-        dataSource.setUrl("jdbc:h2:ingest-db");
-        dataSource.setUsername("h2");
-        dataSource.setPassword("h2");
+        dataSource.setDriverClassName(settings.getDriverClass());
+        dataSource.setUrl(settings.getURL());
+        dataSource.setUsername(settings.getUsername());
+        dataSource.setPassword(settings.getPassword());
         return dataSource;
     }
 
@@ -56,6 +55,7 @@ public class IngestJPAConfiguration {
         return new DatabaseManager();
     }
 
+    /*
     @Bean
     public EntityManagerFactory entityManagerFactory() throws SQLException {
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
@@ -92,5 +92,6 @@ public class IngestJPAConfiguration {
     public HibernateExceptionTranslator hibernateExceptionTranslator() {
         return new HibernateExceptionTranslator();
     }
+    */
 
 }
