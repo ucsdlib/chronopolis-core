@@ -11,7 +11,7 @@ import javax.persistence.Id;
 public class Status {
 
     @Id
-    @Column
+    @Column(name = "id")
     private String bagId;
 
     @Column(name = "depositor", nullable = false)
