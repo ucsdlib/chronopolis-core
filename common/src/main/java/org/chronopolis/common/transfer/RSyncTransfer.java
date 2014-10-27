@@ -41,7 +41,7 @@ public class RSyncTransfer implements FileTransfer {
         Callable<Path> download = new Callable<Path>() {
             @Override
             public Path call() throws Exception {
-                String[] cmd = new String[]{"rsync", "-az", user + "@" + uri, local.toString()};
+                String[] cmd = new String[]{"rsync", "-a", user + "@" + uri, local.toString()};
                 String[] parts = uri.split(":", 2);
                 String[] pathList = parts[1].split("/");
                 ProcessBuilder pb = new ProcessBuilder(cmd);
