@@ -111,7 +111,7 @@ public class RSyncTransfer implements FileTransfer {
         threadPool.execute(timedTask);
 
         try {
-             timedTask.get(15, TimeUnit.MINUTES);
+             timedTask.get(1, TimeUnit.DAYS);
         } catch (InterruptedException  | ExecutionException | TimeoutException e) {
             log.error("rsync had a critical error", e);
             throw new FileTransferException("rsync had a critical error", e);
