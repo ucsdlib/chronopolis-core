@@ -9,6 +9,7 @@ import org.chronopolis.common.transfer.FileTransfer;
 import org.chronopolis.common.transfer.HttpsTransfer;
 import org.chronopolis.common.transfer.RSyncTransfer;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
+import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,15 +30,21 @@ public class BagDownloadStep implements Tasklet {
 
     private ReplicationSettings settings;
     private CollectionInitMessage message;
+    private ReplicationNotifier notifier;
 
     public BagDownloadStep(final ReplicationSettings settings,
-                           final CollectionInitMessage message) {
+                           final CollectionInitMessage message,
+                           final ReplicationNotifier notifier) {
         this.settings = settings;
         this.message = message;
+        this.notifier = notifier;
     }
 
     @Override
     public RepeatStatus execute(final StepContribution stepContribution, final ChunkContext chunkContext) throws Exception {
+        // For our notifier
+        String statusMessage = "success";
+
         // Set up our download parameters
         String collection = message.getCollection();
         String depositor = message.getDepositor();
@@ -63,8 +70,11 @@ public class BagDownloadStep implements Tasklet {
 
         try {
             transfer.getFile(uri, bagPath);
+            notifier.setRsyncStats(transfer.getStats());
         } catch (FileTransferException e) {
             log.error("File transfer exception", e);
+            notifier.setSuccess(false);
+            statusMessage = e.getMessage();
         }
 
 
@@ -78,6 +88,7 @@ public class BagDownloadStep implements Tasklet {
             hashCode = Files.hash(tagmanifest.toFile(), hashFunction);
         } catch (IOException e) {
             log.error("Error hashing tagmanifest", e);
+            statusMessage = e.getMessage();
         }
 
         String calculatedDigest = hashCode.toString();
@@ -88,11 +99,12 @@ public class BagDownloadStep implements Tasklet {
                       "\nFound {}\nExpected {}",
                     calculatedDigest,
                     tagDigest);
+            statusMessage = "Downloaded tag manifest does not match expected digest";
         } else {
             log.info("Successfully validated tagmanifest");
         }
 
-
+        notifier.setBagStep(statusMessage);
         return RepeatStatus.FINISHED;
     }
 }

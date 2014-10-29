@@ -27,4 +27,11 @@ public interface FileTransfer {
      * @throws FileTransferException
      */
     void put(Path localFile, String uri) throws FileTransferException;
+
+    /**
+     * Return the statistics for the given transfer (ie: transfer speed, amount, etc)
+     *
+     * @return
+     */
+    String getStats();
 }

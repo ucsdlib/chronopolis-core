@@ -1,6 +1,8 @@
 package org.chronopolis.common.transfer;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -26,31 +28,43 @@ public class RSyncTransfer implements FileTransfer {
     private final Logger log = LoggerFactory.getLogger(RSyncTransfer.class);
     private final ExecutorService threadPool = Executors.newSingleThreadExecutor();
     private final String user;
+    private String stats;
 
     public RSyncTransfer(String user) {
-      this.user = user;
+        this.user = user;
+        this.stats = "";
     }
 
     @Override
     public Path getFile(final String uri, final Path local) throws FileTransferException {
         // Taken from http://stackoverflow.com/questions/1246255/any-good-rsync-library-for-java
         // Need to test/modify command
-        // Currently uses passwordless SSH keys to login to sword
+        // Currently uses passwordless SSH keys to login
 
         log.debug(local.toString());
         Callable<Path> download = new Callable<Path>() {
             @Override
             public Path call() throws Exception {
-                String[] cmd = new String[]{"rsync", "-a", user + "@" + uri, local.toString()};
+                String[] cmd = new String[]{"rsync", "-a", "--stats", user + "@" + uri, local.toString()};
                 String[] parts = uri.split(":", 2);
                 String[] pathList = parts[1].split("/");
                 ProcessBuilder pb = new ProcessBuilder(cmd);
                 Process p = null;
                 try {
-                    log.info("Executing {} {} {} {}", cmd);
+                    log.info("Executing {} {} {} {} {}", cmd);
                     p = pb.start();
                     p.waitFor();
-                } catch (IOException e) {
+
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                    StringBuilder out = new StringBuilder();
+                    String line = null;
+                    while ((line = reader.readLine()) != null) {
+                        out.append(line).append("\n");
+                    }
+                    stats = out.toString();
+
+                    log.info("rsync exit stats:\n {}", stats);
+               } catch (IOException e) {
                     log.error("IO Exception in rsync ", e);
                     throw new FileTransferException("IOException in rsync", e);
                 } catch (InterruptedException e) {
@@ -119,6 +133,11 @@ public class RSyncTransfer implements FileTransfer {
             threadPool.shutdownNow();
         }
 
+    }
+
+    @Override
+    public String getStats() {
+        return stats;
     }
 
 }

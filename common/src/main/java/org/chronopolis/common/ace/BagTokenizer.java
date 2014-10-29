@@ -144,7 +144,7 @@ public class BagTokenizer {
                 files.append(p.toString());
                 files.append("\n");
             }
-            log.error("Error validating collection, ({}) bad files found:\n{}",
+            log.error("Error validating collection, {} bad files found:\n{}",
                     badFiles.size(), files.toString());
             return null;
         }

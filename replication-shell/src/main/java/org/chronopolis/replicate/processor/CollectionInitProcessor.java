@@ -14,6 +14,7 @@ import org.chronopolis.messaging.base.ChronProcessor;
 import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
+import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.batch.AceRegisterStep;
 import org.chronopolis.replicate.batch.BagDownloadStep;
 import org.chronopolis.replicate.batch.ReplicationStepListener;
@@ -100,21 +101,22 @@ public class CollectionInitProcessor implements ChronProcessor {
         // if we do, just sent an init complete message
         GsonCollection gsonCollection = aceService.getCollectionByName(collection, depositor);
         if (gsonCollection == null) {
+            ReplicationNotifier notifier = new ReplicationNotifier(msg);
             Job job = jobBuilderFactory.get("collection-replicate")
                     .start(stepBuilderFactory.get("token-replicate")
-                        .tasklet(new TokenDownloadStep(settings, msg))
+                        .tasklet(new TokenDownloadStep(settings, msg, notifier))
                         .listener(replicationStepListener)
                         .build())
                     .next(stepBuilderFactory.get("bag-replicate")
-                        .tasklet(new BagDownloadStep(settings, msg))
+                        .tasklet(new BagDownloadStep(settings, msg, notifier))
                         .listener(replicationStepListener)
                         .build())
                     .next(stepBuilderFactory.get("ace-register")
-                        .tasklet(new AceRegisterStep(aceService, settings, msg))
+                        .tasklet(new AceRegisterStep(aceService, settings, msg, notifier))
                         .listener(replicationStepListener)
                         .build())
                     .next(stepBuilderFactory.get("replication-success")
-                        .tasklet(new ReplicationSuccessStep(producer, msg, messageFactory, mailUtil, settings))
+                        .tasklet(new ReplicationSuccessStep(producer, messageFactory, mailUtil, settings, notifier))
                         .listener(replicationStepListener)
                         .build())
                     .build();
