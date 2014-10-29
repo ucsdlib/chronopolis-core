@@ -67,4 +67,9 @@ public class HttpsTransfer implements FileTransfer {
     public void put(final Path localFile, final String uri) throws FileTransferException {
         // TBD
     }
+
+    @Override
+    public String getStats() {
+        return "";
+    }
 }

@@ -7,6 +7,7 @@ import com.google.common.io.Files;
 import org.chronopolis.common.exception.FileTransferException;
 import org.chronopolis.common.exception.FixityException;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
+import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.ReplicationQueue;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.slf4j.Logger;
@@ -27,17 +28,22 @@ public class TokenDownloadStep implements Tasklet {
     private final Logger log = LoggerFactory.getLogger(TokenDownloadStep.class);
 
     private ReplicationSettings settings;
+    private ReplicationNotifier notifier;
     private CollectionInitMessage message;
 
     public TokenDownloadStep(final ReplicationSettings settings,
-                             final CollectionInitMessage message) {
+                             final CollectionInitMessage message,
+                             final ReplicationNotifier notifier) {
         this.settings = settings;
         this.message = message;
+        this.notifier = notifier;
     }
 
 
     @Override
     public RepeatStatus execute(final StepContribution stepContribution, final ChunkContext chunkContext) throws Exception {
+        String statusMessage = "success";
+
         String location = message.getTokenStore();
         String protocol = message.getProtocol();
         String digest = message.getTokenStoreDigest();
@@ -50,9 +56,13 @@ public class TokenDownloadStep implements Tasklet {
                     protocol);
         } catch (IOException e) {
             log.error("Error downloading token store", e);
+            notifier.setSuccess(false);
+            notifier.setTokenStep(e.getMessage());
             throw e;
         } catch (FileTransferException e) {
             log.error("File transfer exception", e);
+            notifier.setSuccess(false);
+            notifier.setTokenStep(e.getMessage());
             throw e;
         }
 
@@ -61,12 +71,16 @@ public class TokenDownloadStep implements Tasklet {
         try {
             // Check to make sure the download was successful
             if (!tokenStore.toFile().exists()) {
-                throw new IOException("TokenStore does does not exist");
+                throw new IOException("TokenStore "
+                        + tokenStore.toString()
+                        + " does does not exist");
             }
 
             hashCode = Files.hash(tokenStore.toFile(), hashFunction);
         } catch (IOException e) {
             log.error("Error hashing token store", e);
+            notifier.setSuccess(false);
+            notifier.setTokenStep(e.getMessage());
             throw new FixityException("Could not validate the fixity of the token store", e);
         }
 
@@ -79,11 +93,15 @@ public class TokenDownloadStep implements Tasklet {
                             "\nFound {}\nExpected {}",
                     calculatedDigest,
                     digest);
+
+            notifier.setSuccess(false);
+            notifier.setTokenStep("Downloaded token store does not match expected digest");
             throw new FixityException("Could not validate the fixity of the token store");
         } else {
             log.info("Successfully validated token store");
         }
 
+        notifier.setTokenStep(statusMessage);
         return RepeatStatus.FINISHED;
     }
 }

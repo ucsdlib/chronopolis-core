@@ -3,6 +3,7 @@ package org.chronopolis.replicate.batch;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
+import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,11 +31,16 @@ public class AceRegisterStep implements Tasklet {
     private AceService aceService;
     private ReplicationSettings settings;
     private CollectionInitMessage message;
+    private ReplicationNotifier notifier;
 
-    public AceRegisterStep(AceService aceService, ReplicationSettings settings, CollectionInitMessage message) {
+    public AceRegisterStep(AceService aceService,
+                           ReplicationSettings settings,
+                           CollectionInitMessage message,
+                           ReplicationNotifier notifier) {
         this.aceService = aceService;
         this.settings = settings;
         this.message = message;
+        this.notifier = notifier;
     }
 
     @Override
@@ -74,10 +80,13 @@ public class AceRegisterStep implements Tasklet {
         } catch (RetrofitError error) {
             log.error("Error registering ACE collection. Response code {} with reason {}",
                     error.getResponse().getStatus(), error.getResponse().getReason());
+            notifier.setSuccess(false);
+            notifier.setAceStep(error.getResponse().getReason());
             throw new RuntimeException(error);
         }
 
         long id = idMap.get("id");
+        final String[] statusMessage = {"success"};
 
         Callback tsCallback = new Callback() {
             @Override
@@ -91,6 +100,8 @@ public class AceRegisterStep implements Tasklet {
                 log.error("Error posting token store {} {}",
                         retrofitError.getResponse().getStatus(),
                         retrofitError.getBody());
+                notifier.setSuccess(false);
+                statusMessage[0] = retrofitError.getResponse().getReason();
                 callbackComplete.getAndSet(true);
             }
         };
@@ -114,13 +125,15 @@ public class AceRegisterStep implements Tasklet {
                 log.info("Could not start audit. {} {}",
                         error.getResponse().getStatus(),
                         error.getResponse().getReason());
+                notifier.setSuccess(false);
+                statusMessage[0] = error.getResponse().getReason();
                 callbackComplete.set(true);
             }
         });
         log.trace("Waiting for audit start to complete");
         waitForCallback(callbackComplete);
 
-
+        notifier.setAceStep(statusMessage[0]);
         return RepeatStatus.FINISHED;
     }
 
