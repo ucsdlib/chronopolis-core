@@ -1,26 +1,26 @@
 package org.chronopolis.common.transfer;
 
+import org.chronopolis.common.exception.FileTransferException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.chronopolis.common.exception.FileTransferException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * TODO: If the rsync cannot connect it will simply hang.
- *       We need some sort of prevention against that.
- *       Note: Can make a ScheduledFuture w/ a timeout
+ * We need some sort of prevention against that.
+ * Note: Can make a ScheduledFuture w/ a timeout
  *
  * @author shake
  */
@@ -53,18 +53,18 @@ public class RSyncTransfer implements FileTransfer {
                 try {
                     log.info("Executing {} {} {} {} {}", cmd);
                     p = pb.start();
-                    p.waitFor();
+                    int exit = p.waitFor();
 
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                    StringBuilder out = new StringBuilder();
-                    String line = null;
-                    while ((line = reader.readLine()) != null) {
-                        out.append(line).append("\n");
-                    }
-                    stats = out.toString();
+                    stats = stringFromStream(p.getInputStream());
 
                     log.info("rsync exit stats:\n {}", stats);
-               } catch (IOException e) {
+                    if (exit != 0) {
+                        log.error("rsync did not complete successfully (exit code {}) \n {}",
+                                exit,
+                                stringFromStream(p.getErrorStream()));
+                    }
+
+                } catch (IOException e) {
                     log.error("IO Exception in rsync ", e);
                     throw new FileTransferException("IOException in rsync", e);
                 } catch (InterruptedException e) {
@@ -90,6 +90,16 @@ public class RSyncTransfer implements FileTransfer {
         } finally {
             threadPool.shutdownNow();
         }
+    }
+
+    private String stringFromStream(InputStream is) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder out = new StringBuilder();
+        String line = null;
+        while ((line = reader.readLine()) != null) {
+            out.append(line).append("\n");
+        }
+        return out.toString();
     }
 
     @Override
@@ -125,8 +135,8 @@ public class RSyncTransfer implements FileTransfer {
         threadPool.execute(timedTask);
 
         try {
-             timedTask.get(1, TimeUnit.DAYS);
-        } catch (InterruptedException  | ExecutionException | TimeoutException e) {
+            timedTask.get(1, TimeUnit.DAYS);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
             log.error("rsync had a critical error", e);
             throw new FileTransferException("rsync had a critical error", e);
         } finally {
