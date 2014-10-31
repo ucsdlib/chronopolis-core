@@ -129,6 +129,7 @@ public class CollectionInitProcessor implements ChronProcessor {
                         .addString("token-store-digest", msg.getTokenStoreDigest())
                         .addString("bag-location", msg.getBagLocation())
                         .addString("tag-manifest-digest", msg.getTagManifestDigest())
+                        .addString("correlation-id", msg.getCorrelationId())
                         .toJobParameters());
             } catch (JobExecutionAlreadyRunningException e) {
                 e.printStackTrace();
