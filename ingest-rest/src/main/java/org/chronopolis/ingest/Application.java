@@ -1,8 +1,12 @@
 package org.chronopolis.ingest;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.chronopolis.ingest.api.StagingController;
 import org.chronopolis.ingest.model.Bag;
+import org.chronopolis.ingest.model.Node;
 import org.chronopolis.ingest.repository.BagRepository;
+import org.chronopolis.ingest.repository.NodeRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +19,7 @@ import org.springframework.context.annotation.ComponentScan;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -33,6 +38,9 @@ public class Application implements CommandLineRunner {
     BagRepository bagRepository;
 
     @Autowired
+    NodeRepository nodeRepository;
+
+    @Autowired
     IngestSettings ingestSettings;
 
     public static void main(String[] args) {
@@ -41,8 +49,15 @@ public class Application implements CommandLineRunner {
 
     @Override
     public void run(final String... args) throws Exception {
-        System.out.println("Creating test data...");
+        System.out.println("Creating nodes...");
+        for (String s : Sets.newHashSet("umiacs", "sdsc", "ncar", "ucsd")) {
+            Node n = new Node(s, s);
+            nodeRepository.save(n);
+        }
+
+        System.out.println("Creating bags...");
         Random r = new Random();
+        List<Bag> bagList = Lists.newArrayList();
         for (int i = 0; i < 100; i++) {
             Bag b = new Bag();
             b.setName("bag-" + i);
@@ -54,7 +69,13 @@ public class Application implements CommandLineRunner {
             b.setTagManifestDigest("");
             b.setTokenDigest("");
             b.setTokenLocation("chrono@chronopolis-stage:/export/tokens/test-bag-" + i + "-tokens");
-            // bagRepository.save(b);
+            bagRepository.save(b);
+            bagList.add(b);
+        }
+
+        System.out.println("Creating transfers...");
+        for (Bag b : bagList) {
+            // create xfer object for each node
         }
 
         Object[] values = new Object[]{ingestSettings.getNode(), ingestSettings.getBagStage(), ingestSettings.getTokenStage()};
