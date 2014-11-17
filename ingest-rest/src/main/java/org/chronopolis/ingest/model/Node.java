@@ -26,7 +26,7 @@ public class Node {
     public String username;
 
     // For JPA
-    public Node() {
+    Node() {
     }
 
     public Node(final String password, final String username) {

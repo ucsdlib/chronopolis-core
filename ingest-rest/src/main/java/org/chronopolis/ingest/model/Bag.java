@@ -14,17 +14,17 @@ public class Bag {
 
     @Id
     @GeneratedValue
-    Long id;
+    private Long id;
 
-    String name;
-    String depositor;
-    String location;
-    String tokenLocation;
-    String tokenDigest;
-    String tagManifestDigest;
-    String protocol;
-    String fixityAlgorithm;
-    long size;
+    private String name;
+    private String depositor;
+    private String location;
+    private String tokenLocation;
+    private String tokenDigest;
+    private String tagManifestDigest;
+    private String protocol;
+    private String fixityAlgorithm;
+    private long size;
 
     public Bag() {
     }
