@@ -17,7 +17,7 @@ public class ReplicationController {
 
     public static List<ReplicationAction> currentActions = new ArrayList<>();
 
-    @RequestMapping(value = "/action")
+    @RequestMapping(value = "/actions")
     public String updateAction(@RequestBody ReplicationAction action) {
         return "action-id";
     }

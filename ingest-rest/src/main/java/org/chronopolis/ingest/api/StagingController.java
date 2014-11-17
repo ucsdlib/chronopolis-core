@@ -35,7 +35,7 @@ public class StagingController {
         return bagRepository.findOne(bagId);
     }
 
-    @RequestMapping(value = "bag", method = RequestMethod.PUT)
+    @RequestMapping(value = "bags", method = RequestMethod.PUT)
     public String stageBag(@RequestBody IngestRequest request) {
         ChronPackager packager = new ChronPackager(request.getName(),
                 request.getFileName(),
