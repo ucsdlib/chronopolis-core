@@ -29,7 +29,7 @@ public class Node {
     Node() {
     }
 
-    public Node(final String password, final String username) {
+    public Node(final String username, final String password) {
         this.password = password;
         this.username = username;
     }
