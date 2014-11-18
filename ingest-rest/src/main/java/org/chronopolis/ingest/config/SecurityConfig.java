@@ -17,6 +17,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         auth.inMemoryAuthentication().withUser("admin").password("password").roles("ADMIN");
+        auth.inMemoryAuthentication().withUser("umiacs").password("umiacs").roles("USER");
+        auth.inMemoryAuthentication().withUser("sdsc").password("sdsc").roles("USER");
+        auth.inMemoryAuthentication().withUser("ncar").password("ncar").roles("USER");
     }
 
     @Override
@@ -29,11 +32,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
          */
 
         http.csrf().disable().authorizeRequests()
-                .antMatchers("/api/**").hasRole("ADMIN")
+                .antMatchers("/api/**").hasRole("USER")
                 .and()
             .httpBasic();
-
-
-
     }
 }
