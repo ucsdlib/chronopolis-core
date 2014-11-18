@@ -5,8 +5,10 @@ import com.google.common.collect.Sets;
 import org.chronopolis.ingest.api.StagingController;
 import org.chronopolis.ingest.model.Bag;
 import org.chronopolis.ingest.model.Node;
+import org.chronopolis.ingest.model.ReplicationAction;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
+import org.chronopolis.ingest.repository.ReplicationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +43,9 @@ public class Application implements CommandLineRunner {
     NodeRepository nodeRepository;
 
     @Autowired
+    ReplicationRepository replicationRepository;
+
+    @Autowired
     IngestSettings ingestSettings;
 
     public static void main(String[] args) {
@@ -50,9 +55,11 @@ public class Application implements CommandLineRunner {
     @Override
     public void run(final String... args) throws Exception {
         System.out.println("Creating nodes...");
+        List<Node> nodeList = Lists.newArrayList();
         for (String s : Sets.newHashSet("umiacs", "sdsc", "ncar", "ucsd")) {
             Node n = new Node(s, s);
             nodeRepository.save(n);
+            nodeList.add(n);
         }
 
         System.out.println("Creating bags...");
@@ -76,6 +83,15 @@ public class Application implements CommandLineRunner {
         System.out.println("Creating transfers...");
         for (Bag b : bagList) {
             // create xfer object for each node
+            for (Node n : nodeList) {
+                ReplicationAction action = new ReplicationAction(n,
+                        b.getId(),
+                        b.getTagManifestDigest(),
+                        b.getTokenDigest(),
+                        "",
+                        "");
+                replicationRepository.save(action);
+            }
         }
 
         Object[] values = new Object[]{ingestSettings.getNode(), ingestSettings.getBagStage(), ingestSettings.getTokenStage()};
