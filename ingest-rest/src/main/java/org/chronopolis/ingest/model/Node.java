@@ -1,11 +1,12 @@
 package org.chronopolis.ingest.model;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -19,7 +20,7 @@ public class Node {
     private Long id;
 
     @OneToMany(mappedBy = "node")
-    private Set<ReplicationAction> replications;
+    private Set<ReplicationAction> replications = new HashSet<>();
 
     @JsonIgnore
     public String password;

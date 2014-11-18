@@ -1,6 +1,7 @@
 package org.chronopolis.ingest.model;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -26,7 +27,7 @@ public class ReplicationAction {
     @Enumerated(EnumType.STRING)
     public ReplicationStatus status;
 
-    public String bagID;
+    public Long bagID;
     public String expectedTagFixity;
     public String expectedTokenFixity;
     public String receivedTagFixity;
@@ -37,7 +38,7 @@ public class ReplicationAction {
     }
 
     public ReplicationAction(final Node node,
-                             final String bagID,
+                             final Long bagID,
                              final String expectedTagFixity,
                              final String expectedTokenFixity,
                              final String receivedTagFixity,
@@ -59,7 +60,7 @@ public class ReplicationAction {
         return node;
     }
 
-    public String getBagID() {
+    public Long getBagID() {
         return bagID;
     }
 
