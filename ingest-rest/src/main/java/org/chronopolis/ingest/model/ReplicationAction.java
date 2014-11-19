@@ -40,6 +40,17 @@ public class ReplicationAction {
     public ReplicationAction(final Node node,
                              final Long bagID,
                              final String expectedTagFixity,
+                             final String expectedTokenFixity) {
+        this.status = ReplicationStatus.STARTED;
+        this.node = node;
+        this.bagID = bagID;
+        this.expectedTagFixity = expectedTagFixity;
+        this.expectedTokenFixity = expectedTokenFixity;
+    }
+
+    public ReplicationAction(final Node node,
+                             final Long bagID,
+                             final String expectedTagFixity,
                              final String expectedTokenFixity,
                              final String receivedTagFixity,
                              final String receivedTokenFixity) {
