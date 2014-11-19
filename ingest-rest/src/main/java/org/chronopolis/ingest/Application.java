@@ -5,7 +5,7 @@ import com.google.common.collect.Sets;
 import org.chronopolis.ingest.api.StagingController;
 import org.chronopolis.ingest.model.Bag;
 import org.chronopolis.ingest.model.Node;
-import org.chronopolis.ingest.model.ReplicationAction;
+import org.chronopolis.ingest.model.Replication;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
@@ -84,7 +84,7 @@ public class Application implements CommandLineRunner {
         for (Bag b : bagList) {
             // create xfer object for each node
             for (Node n : nodeList) {
-                ReplicationAction action = new ReplicationAction(n,
+                Replication action = new Replication(n,
                         b.getId(),
                         "",
                         "");

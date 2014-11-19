@@ -20,7 +20,7 @@ public class Node {
     private Long id;
 
     @OneToMany(mappedBy = "node")
-    private Set<ReplicationAction> replications = new HashSet<>();
+    private Set<Replication> replications = new HashSet<>();
 
     @JsonIgnore
     public String password;
@@ -39,7 +39,7 @@ public class Node {
         return id;
     }
 
-    public Set<ReplicationAction> getReplications() {
+    public Set<Replication> getReplications() {
         return replications;
     }
 

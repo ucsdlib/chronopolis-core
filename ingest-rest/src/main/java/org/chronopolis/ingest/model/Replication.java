@@ -14,7 +14,7 @@ import javax.persistence.ManyToOne;
  * Created by shake on 11/5/14.
  */
 @Entity
-public class ReplicationAction {
+public class Replication {
 
     @Id
     @GeneratedValue
@@ -37,11 +37,11 @@ public class ReplicationAction {
     public String receivedTokenFixity;
 
     // JPA...
-    ReplicationAction() {
+    Replication() {
     }
 
-    public ReplicationAction(final Node node,
-                             final Long bagID) {
+    public Replication(final Node node,
+                       final Long bagID) {
         this.status = ReplicationStatus.STARTED;
         this.node = node;
         this.bagID = bagID;
@@ -50,10 +50,10 @@ public class ReplicationAction {
         this.protocol = "rsync";
     }
 
-    public ReplicationAction(final Node node,
-                             final Long bagID,
-                             final String receivedTagFixity,
-                             final String receivedTokenFixity) {
+    public Replication(final Node node,
+                       final Long bagID,
+                       final String receivedTagFixity,
+                       final String receivedTokenFixity) {
         this.status = ReplicationStatus.STARTED;
         this.node = node;
         this.bagID = bagID;

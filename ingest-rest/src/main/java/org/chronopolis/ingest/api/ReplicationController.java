@@ -3,7 +3,7 @@ package org.chronopolis.ingest.api;
 import org.chronopolis.ingest.exception.BagNotFoundException;
 import org.chronopolis.ingest.model.Bag;
 import org.chronopolis.ingest.model.Node;
-import org.chronopolis.ingest.model.ReplicationAction;
+import org.chronopolis.ingest.model.Replication;
 import org.chronopolis.ingest.model.ReplicationRequest;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
@@ -38,7 +38,7 @@ public class ReplicationController {
     BagRepository bagRepository;
 
     @RequestMapping(value = "/replications", method = RequestMethod.PUT)
-    public ReplicationAction createReplication(Principal principal, @RequestBody ReplicationRequest request) {
+    public Replication createReplication(Principal principal, @RequestBody ReplicationRequest request) {
         // Node node = nodeRepository.get()
         // Create a new replication for the Node (user) based on the Bag ID
         // Return a 404 if the bag is not found
@@ -49,20 +49,20 @@ public class ReplicationController {
             throw new BagNotFoundException(request.getBagID());
         }
 
-        ReplicationAction action = new ReplicationAction(node,
+        Replication action = new Replication(node,
                 request.getBagID());
         replicationRepository.save(action);
         return action;
     }
 
     @RequestMapping(value = "/replications", method = RequestMethod.GET)
-    public Collection<ReplicationAction> replications(Principal principal) {
+    public Collection<Replication> replications(Principal principal) {
         return replicationRepository.findByNodeUsername(principal.getName());
     }
 
     @RequestMapping(value = "/replications/{id}")
-    public ReplicationAction findReplication(Principal principal, @PathVariable("id") Long actionId) {
-        ReplicationAction action = replicationRepository.findOne(actionId);
+    public Replication findReplication(Principal principal, @PathVariable("id") Long actionId) {
+        Replication action = replicationRepository.findOne(actionId);
         // return unauthorized
         if (!action.getNode().getUsername().equals(principal.getName())) {
             return null;
