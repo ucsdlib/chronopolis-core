@@ -29,5 +29,7 @@ appender("FILE", FileAppender) {
 }
 
 
+logger("org.springframework", ERROR)
+logger("org.hibernate", INFO)
 //logger("org.chronopolis", INFO, ["CONSOLE"])
 root(TRACE, ["FILE", "CONSOLE"])
