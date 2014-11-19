@@ -86,8 +86,6 @@ public class Application implements CommandLineRunner {
             for (Node n : nodeList) {
                 ReplicationAction action = new ReplicationAction(n,
                         b.getId(),
-                        b.getTagManifestDigest(),
-                        b.getTokenDigest(),
                         "",
                         "");
                 replicationRepository.save(action);

@@ -50,9 +50,8 @@ public class ReplicationController {
         }
 
         ReplicationAction action = new ReplicationAction(node,
-                request.getBagID(),
-                bag.getTagManifestDigest(),
-                bag.getTokenDigest());
+                request.getBagID()
+        );
         replicationRepository.save(action);
         return "ok";
     }
@@ -63,8 +62,14 @@ public class ReplicationController {
     }
 
     @RequestMapping(value = "/replications/{id}")
-    public ReplicationAction findReplication(@PathVariable("id") Long actionId) {
-        return replicationRepository.findOne(actionId);
+    public ReplicationAction findReplication(Principal principal, @PathVariable("id") Long actionId) {
+        ReplicationAction action = replicationRepository.findOne(actionId);
+        // return unauthorized
+        if (!action.getNode().getUsername().equals(principal.getName())) {
+            return null;
+        }
+
+        return action;
     }
 
 }

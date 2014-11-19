@@ -27,9 +27,12 @@ public class ReplicationAction {
     @Enumerated(EnumType.STRING)
     public ReplicationStatus status;
 
-    public Long bagID;
-    public String expectedTagFixity;
-    public String expectedTokenFixity;
+    private Long bagID;
+    private String bagLink;
+    private String tokenLink;
+    // TODO: enum type
+    private String protocol;
+
     public String receivedTagFixity;
     public String receivedTokenFixity;
 
@@ -38,27 +41,22 @@ public class ReplicationAction {
     }
 
     public ReplicationAction(final Node node,
-                             final Long bagID,
-                             final String expectedTagFixity,
-                             final String expectedTokenFixity) {
+                             final Long bagID) {
         this.status = ReplicationStatus.STARTED;
         this.node = node;
         this.bagID = bagID;
-        this.expectedTagFixity = expectedTagFixity;
-        this.expectedTokenFixity = expectedTokenFixity;
+        this.bagLink = "";
+        this.tokenLink = "";
+        this.protocol = "rsync";
     }
 
     public ReplicationAction(final Node node,
                              final Long bagID,
-                             final String expectedTagFixity,
-                             final String expectedTokenFixity,
                              final String receivedTagFixity,
                              final String receivedTokenFixity) {
         this.status = ReplicationStatus.STARTED;
         this.node = node;
         this.bagID = bagID;
-        this.expectedTagFixity = expectedTagFixity;
-        this.expectedTokenFixity = expectedTokenFixity;
         this.receivedTagFixity = receivedTagFixity;
         this.receivedTokenFixity = receivedTokenFixity;
     }
@@ -75,23 +73,19 @@ public class ReplicationAction {
         return bagID;
     }
 
-    public String getExpectedTagFixity() {
-        return expectedTagFixity;
-    }
-
-    public String getExpectedTokenFixity() {
-        return expectedTokenFixity;
-    }
-
-    public String getReceivedTagFixity() {
-        return receivedTagFixity;
-    }
-
-    public String getReceivedTokenFixity() {
-        return receivedTokenFixity;
-    }
-
     public ReplicationStatus getStatus() {
         return status;
+    }
+
+    public String getBagLink() {
+        return bagLink;
+    }
+
+    public String getTokenLink() {
+        return tokenLink;
+    }
+
+    public String getProtocol() {
+        return protocol;
     }
 }

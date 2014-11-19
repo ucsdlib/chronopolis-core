@@ -18,8 +18,12 @@ public class Bag {
 
     private String name;
     private String depositor;
+
+    // Both locations are relative
+    // TODO: It would be better to have them be Paths
     private String location;
     private String tokenLocation;
+
     private String tokenDigest;
     private String tagManifestDigest;
     private String protocol;
