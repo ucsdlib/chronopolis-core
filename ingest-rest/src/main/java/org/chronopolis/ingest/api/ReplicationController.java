@@ -38,7 +38,7 @@ public class ReplicationController {
     BagRepository bagRepository;
 
     @RequestMapping(value = "/replications", method = RequestMethod.PUT)
-    public String createReplication(Principal principal, @RequestBody ReplicationRequest request) {
+    public ReplicationAction createReplication(Principal principal, @RequestBody ReplicationRequest request) {
         // Node node = nodeRepository.get()
         // Create a new replication for the Node (user) based on the Bag ID
         // Return a 404 if the bag is not found
@@ -50,10 +50,9 @@ public class ReplicationController {
         }
 
         ReplicationAction action = new ReplicationAction(node,
-                request.getBagID()
-        );
+                request.getBagID());
         replicationRepository.save(action);
-        return "ok";
+        return action;
     }
 
     @RequestMapping(value = "/replications", method = RequestMethod.GET)
