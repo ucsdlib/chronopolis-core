@@ -9,7 +9,6 @@ import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.ingest.model.Bag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 
 import java.io.IOException;
@@ -28,13 +27,16 @@ public class ChronPackager {
     private final Logger log = LoggerFactory.getLogger(ChronPackager.class);
     private static final String TAR_TYPE = "application/x-tar";
 
-    String name;
-    String fileName;
-    String depositor;
-    String fixityAlgorithm;
-    IngestSettings settings;
+    private String name;
+    private String fileName;
+    private String depositor;
+    private String fixityAlgorithm;
+    private IngestSettings settings;
 
-    public ChronPackager(String name, String fileName, String depositor, IngestSettings settings) {
+    public ChronPackager(String name,
+                         String fileName,
+                         String depositor,
+                         IngestSettings settings) {
         this.name = name;
         this.fileName = fileName;
         this.depositor = depositor;
@@ -109,10 +111,12 @@ public class ChronPackager {
         bag.setProtocol("rsync");
         bag.setSize(1000);
 
+        /*
         SimpleMailMessage message = mailUtil.createMessage(settings.getNode(),
            "Package Ready to Replicate",
            bag.toString());
         mailUtil.send(message);
+        */
 
         return bag;
     }

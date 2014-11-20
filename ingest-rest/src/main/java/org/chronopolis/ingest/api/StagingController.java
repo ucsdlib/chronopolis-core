@@ -42,13 +42,25 @@ public class StagingController {
     }
 
     @RequestMapping(value = "bags", method = RequestMethod.PUT)
-    public String stageBag(Principal principal, @RequestBody IngestRequest request) {
+    public Bag stageBag(Principal principal, @RequestBody IngestRequest request) {
+        String name = request.getName();
+        String depositor = request.getDepositor();
+
+        // First check if the bag exists
+        Bag bag = bagRepository.findByNameAndDepositor(name, depositor);
+
+        if (bag != null) {
+            return bag;
+        }
+
+        // If not, create the bag + tokens, then save it
         ChronPackager packager = new ChronPackager(request.getName(),
                 request.getFileName(),
                 request.getDepositor(),
                 ingestSettings);
-        bagRepository.save(packager.packageForChronopolis());
-        return "ok";
+        bag = packager.packageForChronopolis();
+        bagRepository.save(bag);
+        return bag;
     }
 
 }
