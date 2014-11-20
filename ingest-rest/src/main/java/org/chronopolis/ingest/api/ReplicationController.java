@@ -43,7 +43,7 @@ public class ReplicationController {
         // Create a new replication for the Node (user) based on the Bag ID
         // Return a 404 if the bag is not found
         Node node = nodeRepository.findByUsername(principal.getName());
-        Bag bag = bagRepository.findById(request.getBagID());
+        Bag bag = bagRepository.findOne(request.getBagID());
 
         if (bag == null) {
             throw new BagNotFoundException(request.getBagID());

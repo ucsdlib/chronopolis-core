@@ -8,5 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
  */
 public interface BagRepository extends JpaRepository<Bag, Long> {
 
-    Bag findById(Long id);
+    // Bag findById(Long id);
+    Bag findByNameAndDepositor(String name, String depositor);
+
 }
