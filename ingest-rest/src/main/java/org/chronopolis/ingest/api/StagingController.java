@@ -3,6 +3,7 @@ package org.chronopolis.ingest.api;
 import org.chronopolis.ingest.ChronPackager;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.model.Bag;
+import org.chronopolis.ingest.model.BagStatus;
 import org.chronopolis.ingest.model.IngestRequest;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.slf4j.Logger;
@@ -33,7 +34,7 @@ public class StagingController {
 
     @RequestMapping(value = "bags", method = RequestMethod.GET)
     public Iterable<Bag> getBags(Principal principal) {
-        return bagRepository.findAll();
+        return bagRepository.findByStatus(BagStatus.STAGED);
     }
 
     @RequestMapping(value = "bags/{bag-id}", method = RequestMethod.GET)
