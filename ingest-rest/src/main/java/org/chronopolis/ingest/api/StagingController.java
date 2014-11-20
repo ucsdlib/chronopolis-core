@@ -50,9 +50,11 @@ public class StagingController {
         Bag bag = bagRepository.findByNameAndDepositor(name, depositor);
 
         if (bag != null) {
+            log.debug("Bag {} exists from depositor {}, skipping creation", name, depositor);
             return bag;
         }
 
+        log.debug("Creating bag {} for depositor {}", name, depositor);
         // If not, create the bag + tokens, then save it
         ChronPackager packager = new ChronPackager(request.getName(),
                 request.getFileName(),
