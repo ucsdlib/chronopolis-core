@@ -71,7 +71,6 @@ public class Application implements CommandLineRunner {
             b.setDepositor("test-depositor");
             b.setFixityAlgorithm("SHA-256");
             b.setLocation("chrono@chronopolis-stage:/export/bags/test-bag-" + i);
-            b.setProtocol("rsync");
             b.setSize(r.nextInt(50000));
             b.setTagManifestDigest("");
             b.setTokenDigest("");

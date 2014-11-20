@@ -26,7 +26,6 @@ public class Bag {
 
     private String tokenDigest;
     private String tagManifestDigest;
-    private String protocol;
     private String fixityAlgorithm;
     private long size;
 
@@ -88,14 +87,6 @@ public class Bag {
 
     public void setTagManifestDigest(final String tagManifestDigest) {
         this.tagManifestDigest = tagManifestDigest;
-    }
-
-    public String getProtocol() {
-        return protocol;
-    }
-
-    public void setProtocol(final String protocol) {
-        this.protocol = protocol;
     }
 
     public String getFixityAlgorithm() {

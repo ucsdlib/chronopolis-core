@@ -108,8 +108,7 @@ public class ChronPackager {
         bag.setTokenLocation(tokenStore.toString());
         bag.setLocation(bagLocation.toString());
         bag.setFixityAlgorithm("SHA-256");
-        bag.setProtocol("rsync");
-        bag.setSize(1000);
+        bag.setSize(1000); // TODO: Calculate actual size...
 
         /*
         SimpleMailMessage message = mailUtil.createMessage(settings.getNode(),
