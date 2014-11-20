@@ -43,12 +43,13 @@ public class Bag {
     private String fixityAlgorithm;
     private long size;
 
-    public Bag() {
+    Bag() { // JPA
     }
 
     public Bag(String name, String depositor) {
         this.name = name;
         this.depositor = depositor;
+        this.status = BagStatus.STAGED;
     }
 
     public Long getId() {

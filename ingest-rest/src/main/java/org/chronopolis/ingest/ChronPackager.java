@@ -66,9 +66,7 @@ public class ChronPackager {
         Path tokenStage = Paths.get(settings.getTokenStage());
         String tagManifestDigest; // = tokenizer.getTagManifestDigest();
 
-        Bag bag = new Bag();
-        bag.setName(name);
-        bag.setDepositor(depositor);
+        Bag bag = new Bag(name, depositor);
 
         // And create our tokens
         Path manifest = null;

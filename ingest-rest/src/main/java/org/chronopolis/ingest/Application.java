@@ -66,9 +66,7 @@ public class Application implements CommandLineRunner {
         Random r = new Random();
         List<Bag> bagList = Lists.newArrayList();
         for (int i = 0; i < 100; i++) {
-            Bag b = new Bag();
-            b.setName("bag-" + i);
-            b.setDepositor("test-depositor");
+            Bag b = new Bag("bag-" + i, "test-depositor");
             b.setFixityAlgorithm("SHA-256");
             b.setLocation("chrono@chronopolis-stage:/export/bags/test-bag-" + i);
             b.setSize(r.nextInt(50000));
