@@ -1,11 +1,17 @@
 package org.chronopolis.ingest.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
 /**
  * Representation of a bag in chronopolis
+ *
+ * TODO: Flesh out status and how to reflect that in chronopolis
  *
  * Created by shake on 11/5/14.
  */
@@ -24,8 +30,16 @@ public class Bag {
     private String location;
     private String tokenLocation;
 
+    @JsonIgnore
     private String tokenDigest;
+
+    @JsonIgnore
     private String tagManifestDigest;
+
+    @Enumerated(EnumType.STRING)
+    @JsonIgnore
+    private BagStatus status;
+
     private String fixityAlgorithm;
     private long size;
 
@@ -104,4 +118,5 @@ public class Bag {
     public void setSize(final long size) {
         this.size = size;
     }
+
 }
