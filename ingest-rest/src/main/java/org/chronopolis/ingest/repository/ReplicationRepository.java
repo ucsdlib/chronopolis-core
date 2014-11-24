@@ -11,4 +11,7 @@ import java.util.Collection;
 public interface ReplicationRepository extends JpaRepository<Replication, Long> {
 
     Collection<Replication> findByNodeUsername(String username);
+
+    Replication findByNodeUsernameAndBagID(String username, Long id);
+
 }

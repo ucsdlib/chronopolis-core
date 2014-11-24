@@ -8,6 +8,8 @@ import org.chronopolis.ingest.model.ReplicationRequest;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,6 +29,7 @@ import java.util.Collection;
 @RestController
 @RequestMapping("/api/staging")
 public class ReplicationController {
+    private final Logger log = LoggerFactory.getLogger(ReplicationController.class);
 
     @Autowired
     ReplicationRepository replicationRepository;
@@ -42,6 +45,7 @@ public class ReplicationController {
         // Node node = nodeRepository.get()
         // Create a new replication for the Node (user) based on the Bag ID
         // Return a 404 if the bag is not found
+        // If a replication already exists, return it instead of creating a new one
         Node node = nodeRepository.findByUsername(principal.getName());
         Bag bag = bagRepository.findOne(request.getBagID());
 
@@ -49,10 +53,35 @@ public class ReplicationController {
             throw new BagNotFoundException(request.getBagID());
         }
 
-        Replication action = new Replication(node,
-                request.getBagID());
-        replicationRepository.save(action);
+        Replication action = replicationRepository.findByNodeUsernameAndBagID(node.getUsername(), bag.getId());
+
+        if (action == null) {
+            log.info("Creating new replication for node {} and bag {}", node.getUsername(), bag.getId());
+            action = new Replication(node, request.getBagID());
+            replicationRepository.save(action);
+        }
         return action;
+    }
+
+    @RequestMapping(value = "/replications/{id}", method = RequestMethod.POST)
+    public Replication updateReplication(Principal principal,
+                                         @PathVariable("id") Long replicationID,
+                                         @RequestBody Replication replication) {
+        Node node = nodeRepository.findByUsername(principal.getName());
+        Replication update = replicationRepository.findOne(replication.getReplicationID());
+
+        if (!update.getNode().equals(node)) {
+            // unauthorized
+            return null;
+        }
+
+        log.info("Updating replication {}", replication.getReplicationID());
+        update.setReceivedTagFixity(replication.getReceivedTagFixity());
+        update.setReceivedTokenFixity(replication.getReceivedTokenFixity());
+        update.setStatus(replication.getStatus());
+        replicationRepository.save(update);
+
+        return update;
     }
 
     @RequestMapping(value = "/replications", method = RequestMethod.GET)
