@@ -18,14 +18,14 @@ public class Replication {
 
     @Id
     @GeneratedValue
-    private Long actionID;
+    private Long replicationID;
 
     @JsonIgnore
     @ManyToOne
     private Node node;
 
     @Enumerated(EnumType.STRING)
-    public ReplicationStatus status;
+    private ReplicationStatus status;
 
     private Long bagID;
     private String bagLink;
@@ -33,8 +33,8 @@ public class Replication {
     // TODO: enum type
     private String protocol;
 
-    public String receivedTagFixity;
-    public String receivedTokenFixity;
+    private String receivedTagFixity;
+    private String receivedTokenFixity;
 
     // JPA...
     Replication() {
@@ -61,8 +61,8 @@ public class Replication {
         this.receivedTokenFixity = receivedTokenFixity;
     }
 
-    public Long getActionID() {
-        return actionID;
+    public Long getReplicationID() {
+        return replicationID;
     }
 
     public Node getNode() {
@@ -77,6 +77,10 @@ public class Replication {
         return status;
     }
 
+    public void setStatus(ReplicationStatus status) {
+        this.status = status;
+    }
+
     public String getBagLink() {
         return bagLink;
     }
@@ -88,4 +92,21 @@ public class Replication {
     public String getProtocol() {
         return protocol;
     }
+
+    public void setReceivedTokenFixity(final String receivedTokenFixity) {
+        this.receivedTokenFixity = receivedTokenFixity;
+    }
+
+    public void setReceivedTagFixity(final String receivedTagFixity) {
+        this.receivedTagFixity = receivedTagFixity;
+    }
+
+    public String getReceivedTagFixity() {
+        return receivedTagFixity;
+    }
+
+    public String getReceivedTokenFixity() {
+        return receivedTokenFixity;
+    }
+
 }
