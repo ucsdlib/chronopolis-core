@@ -15,4 +15,5 @@ public class IngestSettings extends ChronopolisSettings {
     public String getStorageServer() {
         return "chronopolis-stage.umiacs.umd.edu";
     }
+
 }

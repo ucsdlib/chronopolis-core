@@ -5,7 +5,11 @@ import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.model.Bag;
 import org.chronopolis.ingest.model.BagStatus;
 import org.chronopolis.ingest.model.IngestRequest;
+import org.chronopolis.ingest.model.Node;
+import org.chronopolis.ingest.model.Replication;
 import org.chronopolis.ingest.repository.BagRepository;
+import org.chronopolis.ingest.repository.NodeRepository;
+import org.chronopolis.ingest.repository.ReplicationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +32,12 @@ public class StagingController {
 
     @Autowired
     BagRepository bagRepository;
+
+    @Autowired
+    NodeRepository nodeRepository;
+
+    @Autowired
+    ReplicationRepository replicationRepository;
 
     @Autowired
     IngestSettings ingestSettings;
@@ -63,6 +73,12 @@ public class StagingController {
                 ingestSettings);
         bag = packager.packageForChronopolis();
         bagRepository.save(bag);
+
+        for (Node node : nodeRepository.findAll()) {
+            Replication replication = new Replication(node, bag.getId());
+            replicationRepository.save(replication);
+        }
+
         return bag;
     }
 
