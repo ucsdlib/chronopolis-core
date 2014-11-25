@@ -1,6 +1,6 @@
 package org.chronopolis.ingest.repository;
 
-import org.chronopolis.ingest.model.Replication;
+import org.chronopolis.rest.models.Replication;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Collection;

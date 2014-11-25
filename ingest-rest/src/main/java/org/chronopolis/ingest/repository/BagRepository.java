@@ -1,7 +1,7 @@
 package org.chronopolis.ingest.repository;
 
-import org.chronopolis.ingest.model.Bag;
-import org.chronopolis.ingest.model.BagStatus;
+import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.BagStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Collection;

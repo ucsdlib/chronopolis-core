@@ -1,4 +1,4 @@
-package org.chronopolis.ingest.model;
+package org.chronopolis.rest.models;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;

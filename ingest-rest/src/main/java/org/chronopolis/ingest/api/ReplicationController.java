@@ -1,13 +1,13 @@
 package org.chronopolis.ingest.api;
 
 import org.chronopolis.ingest.exception.BagNotFoundException;
-import org.chronopolis.ingest.model.Bag;
-import org.chronopolis.ingest.model.Node;
-import org.chronopolis.ingest.model.Replication;
-import org.chronopolis.ingest.model.ReplicationRequest;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
+import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.Node;
+import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.models.ReplicationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

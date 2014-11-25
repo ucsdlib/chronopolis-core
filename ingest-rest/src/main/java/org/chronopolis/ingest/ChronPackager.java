@@ -6,10 +6,9 @@ import org.chronopolis.common.ace.BagTokenizer;
 import org.chronopolis.common.digest.Digest;
 import org.chronopolis.common.digest.DigestUtil;
 import org.chronopolis.common.mail.MailUtil;
-import org.chronopolis.ingest.model.Bag;
+import org.chronopolis.rest.models.Bag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.mail.SimpleMailMessage;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
