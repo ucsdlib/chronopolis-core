@@ -11,6 +11,8 @@ import org.chronopolis.common.settings.ChronopolisSettings;
 import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.messaging.pkg.PackageReadyMessage;
+import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.models.IngestRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -45,18 +47,21 @@ public class IntakeProducer implements CommandLineRunner {
     private ChronProducer producer;
     private ChronopolisSettings settings;
     private MessageFactory messageFactory;
+    private IngestAPI ingestAPI;
 
     @Autowired
     public IntakeProducer(ChronProducer producer,
                           MessageFactory messageFactory,
-                          ChronopolisSettings settings) {
+                          ChronopolisSettings settings,
+                          IngestAPI ingestAPI) {
         this.producer = producer;
         this.messageFactory = messageFactory;
         this.settings = settings;
+        this.ingestAPI = ingestAPI;
     }
 
     private enum PRODUCER_OPTION {
-        SEND_STATIC_INTAKE_REQUEST, CREATE_INTAKE_REQUEST, RESTORE_REQUEST, DIRECTORY_SCAN, QUIT, UNKNOWN;
+        SEND_STATIC_INTAKE_REQUEST, CREATE_INTAKE_REQUEST, RESTORE_REQUEST, DIRECTORY_SCAN, REST, QUIT, UNKNOWN;
 
         private static PRODUCER_OPTION fromString(String text) {
             switch (text) {
@@ -68,6 +73,8 @@ public class IntakeProducer implements CommandLineRunner {
                     return RESTORE_REQUEST;
                 case "D":
                     return DIRECTORY_SCAN;
+                case "T":
+                    return REST;
                 case "Q":
                 case "q":
                     return QUIT;
@@ -109,11 +116,27 @@ public class IntakeProducer implements CommandLineRunner {
                 directory = readLine();
 
                 scanDirectory(depositor, directory);
+            } else if (option.equals(PRODUCER_OPTION.REST)) {
+                System.out.print("Depositor: ");
+                depositor = readLine();
+                System.out.print("Bag Name: ");
+                bagName = readLine();
+
+                sendRest(depositor, bagName);
 
             } else {
                 System.out.println("Unknown?");
             }
         }
+    }
+
+    private void sendRest(final String depositor, final String bagName) {
+        String path = depositor + "/" + bagName;
+        IngestRequest request = new IngestRequest();
+        request.setDepositor(depositor);
+        request.setFileName(path);
+        request.setName(bagName);
+        ingestAPI.putBag(request);
     }
 
     /**

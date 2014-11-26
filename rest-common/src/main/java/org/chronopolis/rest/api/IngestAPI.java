@@ -1,7 +1,9 @@
 package org.chronopolis.rest.api;
 
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.IngestRequest;
 import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.models.ReplicationRequest;
 import retrofit.http.Body;
 import retrofit.http.GET;
 import retrofit.http.POST;
@@ -22,7 +24,7 @@ public interface IngestAPI {
     List<Bag> getBags();
 
     @PUT("/api/staging/bags")
-    Bag putBag(@Body String body);
+    Bag putBag(@Body IngestRequest body);
 
     @GET("/api/staging/bags/{bag-id}")
     Bag getBag(@Path("bag-id") Long bagId);
@@ -33,12 +35,12 @@ public interface IngestAPI {
     List<Replication> getReplications();
 
     @PUT("/api/staging/replications")
-    Replication putReplication(@Body String body);
+    Replication putReplication(@Body ReplicationRequest body);
 
     @GET("/api/staging/replications/{id}")
     Replication getReplication(@Path("id") Long id);
 
     @POST("/api/staging/replications/{id}")
-    Replication updateReplication(@Path("id") Long id, @Body String body);
+    Replication updateReplication(@Path("id") Long id, @Body Replication body);
 
 }

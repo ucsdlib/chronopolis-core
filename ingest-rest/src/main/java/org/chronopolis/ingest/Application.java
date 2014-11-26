@@ -31,7 +31,7 @@ import java.util.Random;
         IngestSettings.class,
         StagingController.class
 })
-@EntityScan(basePackages = "org.chronopolis.ingest.model")
+@EntityScan(basePackages = "org.chronopolis.rest.models")
 @EnableAutoConfiguration
 public class Application implements CommandLineRunner {
     private final Logger log = LoggerFactory.getLogger(Application.class);
