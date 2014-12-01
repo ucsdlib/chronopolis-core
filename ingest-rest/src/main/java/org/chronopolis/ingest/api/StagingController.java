@@ -25,7 +25,7 @@ import java.security.Principal;
  * Created by shake on 11/5/14.
  */
 @RestController
-@RequestMapping("/api/staging")
+@RequestMapping("/api/")
 public class StagingController {
 
     Logger log = LoggerFactory.getLogger(StagingController.class);

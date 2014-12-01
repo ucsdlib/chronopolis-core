@@ -20,13 +20,13 @@ public interface IngestAPI {
 
     // Bag methods
 
-    @GET("/api/staging/bags")
+    @GET("/api/bags")
     List<Bag> getBags();
 
-    @PUT("/api/staging/bags")
+    @PUT("/api/bags")
     Bag putBag(@Body IngestRequest body);
 
-    @GET("/api/staging/bags/{bag-id}")
+    @GET("/api/bags/{bag-id}")
     Bag getBag(@Path("bag-id") Long bagId);
 
     // Replication methods
