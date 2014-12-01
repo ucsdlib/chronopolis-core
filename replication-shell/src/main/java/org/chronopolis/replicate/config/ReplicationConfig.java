@@ -10,6 +10,7 @@ import org.chronopolis.common.ace.CredentialRequestInterceptor;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.settings.AMQPSettings;
 import org.chronopolis.common.settings.AceSettings;
+import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.common.settings.SMTPSettings;
 import org.chronopolis.db.common.RestoreRepository;
 import org.chronopolis.messaging.factory.MessageFactory;
@@ -40,12 +41,6 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
-import org.springframework.batch.core.repository.dao.ExecutionContextDao;
-import org.springframework.batch.core.repository.dao.JobExecutionDao;
-import org.springframework.batch.core.repository.dao.JobInstanceDao;
-import org.springframework.batch.core.repository.dao.StepExecutionDao;
-import org.springframework.batch.core.repository.support.MapJobRepositoryFactoryBean;
-import org.springframework.batch.core.repository.support.SimpleJobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -87,13 +82,19 @@ public class ReplicationConfig {
     }
 
     @Bean
-    IngestAPI ingestAPI(ReplicationSettings replicationSettings) {
-        // TODO: Read from settings
+    IngestAPI ingestAPI(IngestAPISettings apiSettings) {
+        String endpoint =  URIUtil.buildAceUri(
+                apiSettings.getIngestAPIHost(),
+                apiSettings.getIngestAPIPort(),
+                apiSettings.getIngestAPIPath()).toString();
+
         // TODO: This can timeout on long polls, see SO for potential fix
         // http://stackoverflow.com/questions/24669309/how-to-increase-timeout-for-retrofit-requests-in-robospice-android
         RestAdapter adapter = new RestAdapter.Builder()
-                .setEndpoint("http://localhost:8080")
-                .setRequestInterceptor(new CredentialRequestInterceptor("umiacs", "umiacs"))
+                .setEndpoint(endpoint)
+                .setRequestInterceptor(new CredentialRequestInterceptor(
+                        apiSettings.getIngestAPIUsername(),
+                        apiSettings.getIngestAPIPassword()))
                 .build();
 
         return adapter.create(IngestAPI.class);

@@ -6,6 +6,8 @@ import org.chronopolis.amqp.TopicProducer;
 import org.chronopolis.common.ace.CredentialRequestInterceptor;
 import org.chronopolis.common.settings.AMQPSettings;
 import org.chronopolis.common.settings.ChronopolisSettings;
+import org.chronopolis.common.settings.IngestAPISettings;
+import org.chronopolis.common.util.URIUtil;
 import org.chronopolis.intake.IntakeMessageListener;
 import org.chronopolis.intake.processor.PackageIngestCompleteProcessor;
 import org.chronopolis.intake.processor.PackageIngestStatusResponseProcessor;
@@ -27,13 +29,19 @@ import retrofit.RestAdapter;
 public class IntakeConfig {
 
     @Bean
-    public IngestAPI ingestAPI() {
-        // TODO: Read from settings
+    public IngestAPI ingestAPI(IngestAPISettings apiSettings) {
+        String endpoint =  URIUtil.buildAceUri(
+            apiSettings.getIngestAPIHost(),
+            apiSettings.getIngestAPIPort(),
+            apiSettings.getIngestAPIPath()).toString();
+
         // TODO: This can timeout on long polls, see SO for potential fix
         // http://stackoverflow.com/questions/24669309/how-to-increase-timeout-for-retrofit-requests-in-robospice-android
         RestAdapter adapter = new RestAdapter.Builder()
-                .setEndpoint("http://localhost:8080")
-                .setRequestInterceptor(new CredentialRequestInterceptor("umiacs", "umiacs"))
+                .setEndpoint(endpoint)
+                .setRequestInterceptor(new CredentialRequestInterceptor(
+                        apiSettings.getIngestAPIUsername(),
+                        apiSettings.getIngestAPIPassword()))
                 .build();
 
         return adapter.create(IngestAPI.class);
