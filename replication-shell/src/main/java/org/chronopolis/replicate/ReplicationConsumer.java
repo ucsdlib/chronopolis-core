@@ -47,6 +47,47 @@ public class ReplicationConsumer implements CommandLineRunner {
     @Autowired
     ReplicationSettings settings;
 
+    private enum OPTION {
+        RESTFUL_QUERY, QUIT, UNKNOWN;
+
+        private static OPTION fromString(String text) {
+            switch (text) {
+                case "R":
+                case "r":
+                    return RESTFUL_QUERY;
+                case "Q":
+                case "q":
+                    return QUIT;
+                default:
+                    return UNKNOWN;
+            }
+        }
+    }
+
+    private OPTION inputOption() {
+        OPTION option = OPTION.UNKNOWN;
+        while (option.equals(OPTION.UNKNOWN)) {
+            StringBuilder sb = new StringBuilder("Enter Option: ");
+            String sep = " | ";
+            for (OPTION value : OPTION.values()) {
+                if (!value.equals(OPTION.UNKNOWN)) {
+                    sb.append(value.name());
+                    sb.append(" [");
+                    sb.append(value.name().charAt(0));
+                    sb.append("]");
+                    sb.append(sep);
+                }
+            }
+
+            //The one difference, mwahhaha
+            sb.replace(sb.length() - sep.length(), sb.length(), " -> ");
+            System.out.println(sb.toString());
+            option = OPTION.fromString(readLine().trim());
+        }
+        return option;
+    }
+
+
     private static String readLine() {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -66,17 +107,14 @@ public class ReplicationConsumer implements CommandLineRunner {
 
         boolean done = false;
         while (!done) {
-
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ignored) {
-            }
-
-            System.out.println("Enter 'q' to exit: ");
-            if ("q".equalsIgnoreCase(readLine())) {
-                System.out.println("Shutting down");
+            OPTION option = inputOption();
+            if (option.equals(OPTION.RESTFUL_QUERY)) {
+                log.info("Query {} for replications");
+            } else if (option.equals(OPTION.QUIT)) {
+                log.info("Quitting");
                 done = true;
             }
+
         }
     }
 }
