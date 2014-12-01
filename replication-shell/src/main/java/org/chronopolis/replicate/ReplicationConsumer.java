@@ -5,6 +5,8 @@ import org.chronopolis.replicate.batch.TokenDownloadStep;
 import org.chronopolis.replicate.config.JPAConfiguration;
 import org.chronopolis.replicate.config.ReplicationConfig;
 import org.chronopolis.replicate.config.ReplicationSettings;
+import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.models.Replication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -28,6 +30,7 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 
 /**
  * Created by shake on 2/12/14.
@@ -46,6 +49,9 @@ public class ReplicationConsumer implements CommandLineRunner {
 
     @Autowired
     ReplicationSettings settings;
+
+    @Autowired
+    IngestAPI ingestAPI;
 
     private enum OPTION {
         RESTFUL_QUERY, QUIT, UNKNOWN;
@@ -110,6 +116,14 @@ public class ReplicationConsumer implements CommandLineRunner {
             OPTION option = inputOption();
             if (option.equals(OPTION.RESTFUL_QUERY)) {
                 log.info("Query {} for replications");
+
+                List<Replication> replications = ingestAPI.getReplications();
+                log.debug("Found {} replications", replications.size());
+
+                for (Replication replication : replications) {
+                    log.info("Starting job for replication id {}", replication.getReplicationID());
+                }
+
             } else if (option.equals(OPTION.QUIT)) {
                 log.info("Quitting");
                 done = true;

@@ -21,6 +21,7 @@ import org.chronopolis.replicate.processor.CollectionRestoreRequestProcessor;
 import org.chronopolis.replicate.processor.FileQueryProcessor;
 import org.chronopolis.replicate.processor.FileQueryResponseProcessor;
 import org.chronopolis.common.util.URIUtil;
+import org.chronopolis.rest.api.IngestAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Binding;
@@ -83,6 +84,19 @@ public class ReplicationConfig {
                 .build();
 
         return restAdapter.create(AceService.class);
+    }
+
+    @Bean
+    IngestAPI ingestAPI(ReplicationSettings replicationSettings) {
+        // TODO: Read from settings
+        // TODO: This can timeout on long polls, see SO for potential fix
+        // http://stackoverflow.com/questions/24669309/how-to-increase-timeout-for-retrofit-requests-in-robospice-android
+        RestAdapter adapter = new RestAdapter.Builder()
+                .setEndpoint("http://localhost:8080")
+                .setRequestInterceptor(new CredentialRequestInterceptor("umiacs", "umiacs"))
+                .build();
+
+        return adapter.create(IngestAPI.class);
     }
 
     /*
