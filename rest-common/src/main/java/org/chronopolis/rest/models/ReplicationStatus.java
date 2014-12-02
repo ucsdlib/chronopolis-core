@@ -5,6 +5,7 @@ package org.chronopolis.rest.models;
  */
 public enum ReplicationStatus {
 
+    PENDING,
     STARTED,
     SUCCESS,
     FAILURE;

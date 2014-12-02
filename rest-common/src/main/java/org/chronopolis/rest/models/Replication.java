@@ -42,7 +42,7 @@ public class Replication {
 
     public Replication(final Node node,
                        final Long bagID) {
-        this.status = ReplicationStatus.STARTED;
+        this.status = ReplicationStatus.PENDING;
         this.node = node;
         this.bagID = bagID;
         this.bagLink = "";
@@ -54,7 +54,7 @@ public class Replication {
                        final Long bagID,
                        final String receivedTagFixity,
                        final String receivedTokenFixity) {
-        this.status = ReplicationStatus.STARTED;
+        this.status = ReplicationStatus.PENDING;
         this.node = node;
         this.bagID = bagID;
         this.receivedTagFixity = receivedTagFixity;
