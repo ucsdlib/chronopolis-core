@@ -5,6 +5,8 @@ import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.config.ReplicationSettings;
+import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.Replication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -30,8 +32,11 @@ public class AceRegisterStep implements Tasklet {
 
     private AceService aceService;
     private ReplicationSettings settings;
-    private CollectionInitMessage message;
     private ReplicationNotifier notifier;
+    private String collection;
+    private String depositor;
+    private String fixityAlgorithm;
+    private int auditPeriod;
 
     public AceRegisterStep(AceService aceService,
                            ReplicationSettings settings,
@@ -39,17 +44,35 @@ public class AceRegisterStep implements Tasklet {
                            ReplicationNotifier notifier) {
         this.aceService = aceService;
         this.settings = settings;
-        this.message = message;
         this.notifier = notifier;
+        this.collection = message.getCollection();
+        this.depositor = message.getDepositor();
+        this.fixityAlgorithm = message.getFixityAlgorithm();
+        this.auditPeriod = message.getAuditPeriod();
+    }
+
+    public AceRegisterStep(AceService aceService,
+                           ReplicationSettings settings,
+                           ReplicationNotifier notifier,
+                           Replication replication) {
+        this.aceService = aceService;
+        this.settings = settings;
+        this.notifier = notifier;
+
+        Bag bag = replication.getBag();
+        this.collection = bag.getName();
+        this.depositor = bag.getDepositor();
+        this.fixityAlgorithm = bag.getFixityAlgorithm();
+        this.auditPeriod = 90;
     }
 
     @Override
     public RepeatStatus execute(final StepContribution stepContribution, final ChunkContext chunkContext) throws Exception {
         // Setup our collection settings
-        int auditPeriod = message.getAuditPeriod();
-        String collection = message.getCollection();
-        String depositor = message.getDepositor();
-        String fixityAlgorithm = message.getFixityAlgorithm();
+        // int auditPeriod = message.getAuditPeriod();
+        // String collection = message.getCollection();
+        // String depositor = message.getDepositor();
+        // String fixityAlgorithm = message.getFixityAlgorithm();
 
         // And an atomic for synchronous calls for retrofit
         // TODO: Why not use a lock?

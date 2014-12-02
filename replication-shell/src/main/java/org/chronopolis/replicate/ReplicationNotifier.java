@@ -1,6 +1,8 @@
 package org.chronopolis.replicate;
 
+import org.chronopolis.common.digest.Digest;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
+import org.chronopolis.rest.models.Replication;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -16,18 +18,46 @@ public class ReplicationNotifier implements Notifier {
     private String bagStep;
     private String tokenStep;
     private String rsyncStats;
+    private String origin;
+    private String messageText;
 
     public ReplicationNotifier(CollectionInitMessage message) {
+        this.origin = message.getOrigin();
+        this.messageText = message.toString();
         this.message = message;
         this.success = true;
+    }
+
+    public ReplicationNotifier(Replication replication) {
+        // temporary while the messaging is still part of the codebase
+        CollectionInitMessage empty = new CollectionInitMessage();
+        // Headers
+        empty.setCorrelationId("");
+        empty.setOrigin("");
+        empty.setReturnKey("");
+        empty.setDate("");
+
+        // Body
+        empty.setTokenStoreDigest("");
+        empty.setTokenStore("");
+        empty.setBagTagManifestDigest("");
+        empty.setBagLocation("");
+        empty.setDepositor("");
+        empty.setCollection("");
+        empty.setProtocol("");
+        empty.setAuditPeriod(-1);
+        empty.setFixityAlgorithm(Digest.SHA_256);
+        this.message = empty;
+        this.origin = "restful interface";
+        this.messageText = replication.toString();
     }
 
     @Override
     public String getNotificationBody() {
         StringWriter stringWriter = new StringWriter();
         PrintWriter textBody = new PrintWriter(stringWriter, true);
-        textBody.println("Message received from: " + message.getOrigin());
-        textBody.println(message.toString());
+        textBody.println("Message received from: " + origin);
+        textBody.println(messageText);
         textBody.println();
         textBody.println();
         textBody.println("Step status:");
