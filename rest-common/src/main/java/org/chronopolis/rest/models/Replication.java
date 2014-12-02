@@ -8,6 +8,7 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 /**
@@ -27,7 +28,10 @@ public class Replication {
     @Enumerated(EnumType.STRING)
     private ReplicationStatus status;
 
-    private Long bagID;
+    @ManyToOne
+    @JoinColumn(name="ID")
+    private Bag bag;
+
     private String bagLink;
     private String tokenLink;
     // TODO: enum type
@@ -41,22 +45,24 @@ public class Replication {
     }
 
     public Replication(final Node node,
-                       final Long bagID) {
+                       final Bag bag) {
         this.status = ReplicationStatus.PENDING;
         this.node = node;
-        this.bagID = bagID;
+        this.bag = bag;
+        // this.bagID = bagID;
         this.bagLink = "";
         this.tokenLink = "";
         this.protocol = "rsync";
     }
 
     public Replication(final Node node,
-                       final Long bagID,
+                       final Bag bag,
                        final String receivedTagFixity,
                        final String receivedTokenFixity) {
         this.status = ReplicationStatus.PENDING;
         this.node = node;
-        this.bagID = bagID;
+        this.bag = bag;
+        // this.bagID = bagID;
         this.receivedTagFixity = receivedTagFixity;
         this.receivedTokenFixity = receivedTokenFixity;
     }
@@ -69,9 +75,11 @@ public class Replication {
         return node;
     }
 
+    /*
     public Long getBagID() {
         return bagID;
     }
+    */
 
     public ReplicationStatus getStatus() {
         return status;
@@ -109,4 +117,7 @@ public class Replication {
         return receivedTokenFixity;
     }
 
+    public Bag getBag() {
+        return bag;
+    }
 }

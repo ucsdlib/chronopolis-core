@@ -20,7 +20,7 @@ public class Bag {
 
     @Id
     @GeneratedValue
-    private Long id;
+    private Long ID;
 
     private String name;
     private String depositor;
@@ -52,8 +52,8 @@ public class Bag {
         this.status = BagStatus.STAGED;
     }
 
-    public Long getId() {
-        return id;
+    public Long getID() {
+        return ID;
     }
 
     public String getName() {

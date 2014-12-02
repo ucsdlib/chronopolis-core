@@ -82,7 +82,7 @@ public class Application implements CommandLineRunner {
             // create xfer object for each node
             for (Node n : nodeList) {
                 Replication action = new Replication(n,
-                        b.getId(),
+                        b,
                         "",
                         "");
                 replicationRepository.save(action);

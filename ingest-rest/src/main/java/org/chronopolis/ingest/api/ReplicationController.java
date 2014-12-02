@@ -53,11 +53,11 @@ public class ReplicationController {
             throw new BagNotFoundException(request.getBagID());
         }
 
-        Replication action = replicationRepository.findByNodeUsernameAndBagID(node.getUsername(), bag.getId());
+        Replication action = replicationRepository.findByNodeUsernameAndBagID(node.getUsername(), bag.getID());
 
         if (action == null) {
-            log.info("Creating new replication for node {} and bag {}", node.getUsername(), bag.getId());
-            action = new Replication(node, request.getBagID());
+            log.info("Creating new replication for node {} and bag {}", node.getUsername(), bag.getID());
+            action = new Replication(node, bag);
             replicationRepository.save(action);
         }
         return action;

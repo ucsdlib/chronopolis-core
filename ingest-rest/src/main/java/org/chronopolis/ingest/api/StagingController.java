@@ -75,7 +75,7 @@ public class StagingController {
         bagRepository.save(bag);
 
         for (Node node : nodeRepository.findAll()) {
-            Replication replication = new Replication(node, bag.getId());
+            Replication replication = new Replication(node, bag);
             replicationRepository.save(replication);
         }
 
