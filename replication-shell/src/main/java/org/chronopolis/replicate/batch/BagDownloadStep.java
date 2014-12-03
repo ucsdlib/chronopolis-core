@@ -59,7 +59,7 @@ public class BagDownloadStep implements Tasklet {
         Bag bag = replication.getBag();
         this.collection = bag.getName();
         this.depositor = bag.getDepositor();
-        this.location = bag.getLocation();
+        this.location = replication.getBagLink();
         this.protocol = replication.getProtocol();
 
         // TODO: From the rest perspective, the flow gets changed a little:

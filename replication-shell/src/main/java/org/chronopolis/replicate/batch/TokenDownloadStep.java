@@ -52,7 +52,7 @@ public class TokenDownloadStep implements Tasklet {
         this.notifier = notifier;
 
         Bag bag = replication.getBag();
-        this.location = bag.getTokenLocation();
+        this.location = replication.getTokenLink();
         this.protocol = replication.getProtocol();
 
         // TODO: From the rest perspective, the flow gets changed a little:
