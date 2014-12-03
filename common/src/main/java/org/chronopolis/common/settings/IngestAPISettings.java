@@ -4,6 +4,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
+ * TODO: Let's just have a list of endpoints instead of trying to split it up.
+ * ex: [http://localhost:8080, https://naradev05.8443:ingest-rest]
+ *
  * Created by shake on 12/1/14.
  */
 @Component

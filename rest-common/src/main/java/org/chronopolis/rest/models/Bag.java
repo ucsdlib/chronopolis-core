@@ -20,6 +20,8 @@ public class Bag {
 
     @Id
     @GeneratedValue
+    // Because the replication class has a ManyToOne relationship, we need to
+    // define ID as uppercase so it can join correctly
     private Long ID;
 
     private String name;
