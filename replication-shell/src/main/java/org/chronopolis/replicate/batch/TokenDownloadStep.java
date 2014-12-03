@@ -109,18 +109,22 @@ public class TokenDownloadStep implements Tasklet {
         String calculatedDigest = hashCode.toString();
         log.trace("Calculated digest {} for token store", calculatedDigest);
 
-        if (!calculatedDigest.equalsIgnoreCase(digest)) {
-            // Fail
-            log.error("Downloaded token store does not match expected digest!" +
-                            "\nFound {}\nExpected {}",
-                    calculatedDigest,
-                    digest);
-
-            notifier.setSuccess(false);
-            notifier.setTokenStep("Downloaded token store does not match expected digest");
-            throw new FixityException("Could not validate the fixity of the token store");
+        if (digest.isEmpty()) {
+            // update replication object
         } else {
-            log.info("Successfully validated token store");
+            if (!calculatedDigest.equalsIgnoreCase(digest)) {
+                // Fail
+                log.error("Downloaded token store does not match expected digest!" +
+                                "\nFound {}\nExpected {}",
+                        calculatedDigest,
+                        digest);
+
+                notifier.setSuccess(false);
+                notifier.setTokenStep("Downloaded token store does not match expected digest");
+                throw new FixityException("Could not validate the fixity of the token store");
+            } else {
+                log.info("Successfully validated token store");
+            }
         }
 
         notifier.setTokenStep(statusMessage);

@@ -122,14 +122,18 @@ public class BagDownloadStep implements Tasklet {
         String calculatedDigest = hashCode.toString();
         log.trace("Calculated digest {} for tagmanifest", calculatedDigest);
 
-        if (!calculatedDigest.equalsIgnoreCase(tagDigest)) {
-            log.error("Downloaded tagmanifest does not match expected digest!" +
-                      "\nFound {}\nExpected {}",
-                    calculatedDigest,
-                    tagDigest);
-            statusMessage = "Downloaded tag manifest does not match expected digest";
+        if (tagDigest.isEmpty()) {
+            // update replication object
         } else {
-            log.info("Successfully validated tagmanifest");
+            if (!calculatedDigest.equalsIgnoreCase(tagDigest)) {
+                log.error("Downloaded tagmanifest does not match expected digest!" +
+                                "\nFound {}\nExpected {}",
+                        calculatedDigest,
+                        tagDigest);
+                statusMessage = "Downloaded tag manifest does not match expected digest";
+            } else {
+                log.info("Successfully validated tagmanifest");
+            }
         }
 
         notifier.setBagStep(statusMessage);
