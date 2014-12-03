@@ -2,30 +2,19 @@ package org.chronopolis.replicate;
 
 import org.chronopolis.db.common.model.RestoreRequest;
 import org.chronopolis.replicate.batch.ReplicationJobStarter;
-import org.chronopolis.replicate.batch.TokenDownloadStep;
-import org.chronopolis.replicate.config.JPAConfiguration;
 import org.chronopolis.replicate.config.ReplicationConfig;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.core.StepContribution;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.core.scope.context.ChunkContext;
-import org.springframework.batch.core.step.tasklet.Tasklet;
-import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -57,21 +46,17 @@ public class ReplicationConsumer implements CommandLineRunner {
     @Autowired
     ReplicationJobStarter jobStarter;
 
-    private enum OPTION {
-        RESTFUL_QUERY, QUIT, UNKNOWN;
-
-        private static OPTION fromString(String text) {
-            switch (text) {
-                case "R":
-                case "r":
-                    return RESTFUL_QUERY;
-                case "Q":
-                case "q":
-                    return QUIT;
-                default:
-                    return UNKNOWN;
-            }
+    private static String readLine() {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            return reader.readLine();
+        } catch (IOException ex) {
+            throw new RuntimeException("Can't read from STDIN");
         }
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.exit(SpringApplication.run(ReplicationConsumer.class, args));
     }
 
     private OPTION inputOption() {
@@ -97,18 +82,18 @@ public class ReplicationConsumer implements CommandLineRunner {
         return option;
     }
 
+    private void query(ReplicationStatus status, boolean update) {
+        List<Replication> replications = ingestAPI.getReplications(status);
+        log.debug("Found {} replications", replications.size());
 
-    private static String readLine() {
-        try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-            return reader.readLine();
-        } catch (IOException ex) {
-            throw new RuntimeException("Can't read from STDIN");
+        for (Replication replication : replications) {
+            log.info("Starting job for replication id {}", replication.getReplicationID());
+            if (update) {
+                replication.setStatus(ReplicationStatus.STARTED);
+                ingestAPI.updateReplication(replication.getReplicationID(), replication);
+            }
+            jobStarter.addJobFromRestful(replication);
         }
-    }
-
-    public static void main(String [] args) {
-        SpringApplication.exit(SpringApplication.run(ReplicationConsumer.class, args));
     }
 
     @Override
@@ -119,22 +104,33 @@ public class ReplicationConsumer implements CommandLineRunner {
         while (!done) {
             OPTION option = inputOption();
             if (option.equals(OPTION.RESTFUL_QUERY)) {
-                log.info("Query {} for replications");
+                log.info("Query for active replications");
+                query(ReplicationStatus.STARTED, false);
 
-                List<Replication> replications = ingestAPI.getReplications();
-                log.debug("Found {} replications", replications.size());
-
-                for (Replication replication : replications) {
-                    // TODO: Only add started/pending replications
-                    log.info("Starting job for replication id {}", replication.getReplicationID());
-                    jobStarter.addJobFromRestful(replication);
-                }
-
+                log.info("Query for new replications");
+                query(ReplicationStatus.PENDING, true);
             } else if (option.equals(OPTION.QUIT)) {
                 log.info("Quitting");
                 done = true;
             }
 
+        }
+    }
+
+    private enum OPTION {
+        RESTFUL_QUERY, QUIT, UNKNOWN;
+
+        private static OPTION fromString(String text) {
+            switch (text) {
+                case "R":
+                case "r":
+                    return RESTFUL_QUERY;
+                case "Q":
+                case "q":
+                    return QUIT;
+                default:
+                    return UNKNOWN;
+            }
         }
     }
 }

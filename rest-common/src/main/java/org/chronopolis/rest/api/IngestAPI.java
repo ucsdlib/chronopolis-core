@@ -4,11 +4,13 @@ import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.IngestRequest;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationRequest;
+import org.chronopolis.rest.models.ReplicationStatus;
 import retrofit.http.Body;
 import retrofit.http.GET;
 import retrofit.http.POST;
 import retrofit.http.PUT;
 import retrofit.http.Path;
+import retrofit.http.Query;
 
 import java.util.List;
 
@@ -32,7 +34,7 @@ public interface IngestAPI {
     // Replication methods
 
     @GET("/api/staging/replications")
-    List<Replication> getReplications();
+    List<Replication> getReplications(@Query("status") ReplicationStatus status);
 
     @PUT("/api/staging/replications")
     Replication putReplication(@Body ReplicationRequest body);
