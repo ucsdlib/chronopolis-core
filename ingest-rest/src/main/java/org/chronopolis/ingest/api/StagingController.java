@@ -89,6 +89,7 @@ public class StagingController {
 
         for (Node node : nodeRepository.findAll()) {
             Replication replication = new Replication(node, bag, bagLocation, tokenStore);
+            replication.setProtocol("rsync");
             replicationRepository.save(replication);
         }
 

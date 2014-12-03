@@ -119,4 +119,8 @@ public class Replication {
     public Bag getBag() {
         return bag;
     }
+
+    public void setProtocol(final String protocol) {
+        this.protocol = protocol;
+    }
 }
