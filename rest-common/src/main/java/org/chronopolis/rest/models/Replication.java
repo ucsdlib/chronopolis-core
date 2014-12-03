@@ -57,14 +57,13 @@ public class Replication {
 
     public Replication(final Node node,
                        final Bag bag,
-                       final String receivedTagFixity,
-                       final String receivedTokenFixity) {
+                       final String bagLink,
+                       final String tokenLink) {
         this.status = ReplicationStatus.PENDING;
         this.node = node;
         this.bag = bag;
-        // this.bagID = bagID;
-        this.receivedTagFixity = receivedTagFixity;
-        this.receivedTokenFixity = receivedTokenFixity;
+        this.bagLink = bagLink;
+        this.tokenLink = tokenLink;
     }
 
     public Long getReplicationID() {

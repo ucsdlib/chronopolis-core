@@ -74,8 +74,21 @@ public class StagingController {
         bag = packager.packageForChronopolis();
         bagRepository.save(bag);
 
+        // Set up where nodes will pull from
+        String user = ingestSettings.getExternalUser();
+        String server = ingestSettings.getStorageServer();
+        String tokenStore = new StringBuilder(user)
+                .append("@").append(server)
+                .append(":").append(bag.getTokenLocation())
+                .toString();
+        String bagLocation = new StringBuilder(user)
+                .append("@").append(server)
+                .append(":").append(bag.getLocation())
+                .toString();
+
+
         for (Node node : nodeRepository.findAll()) {
-            Replication replication = new Replication(node, bag);
+            Replication replication = new Replication(node, bag, bagLocation, tokenStore);
             replicationRepository.save(replication);
         }
 

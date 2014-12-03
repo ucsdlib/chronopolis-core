@@ -46,8 +46,11 @@ public class ChronPackager {
         BagTokenizer tokenizer;
         MailUtil mailUtil = new MailUtil();
 
+        Path bagStage = Paths.get(settings.getBagStage());
+        Path tokenStage = Paths.get(settings.getTokenStage());
+
         // Set up our paths
-        Path toBag = Paths.get(settings.getBagStage(), fileName);
+        Path toBag = bagStage.resolve(fileName);
         try {
             String mimeType = Files.probeContentType(toBag);
             if (mimeType != null && mimeType.equals(TAR_TYPE)) {
@@ -62,22 +65,21 @@ public class ChronPackager {
         fixityAlgorithm = "SHA-256";
         Digest fixity = Digest.fromString(fixityAlgorithm);
 
-        Path tokenStage = Paths.get(settings.getTokenStage());
         String tagManifestDigest; // = tokenizer.getTagManifestDigest();
 
         Bag bag = new Bag(name, depositor);
 
         // And create our tokens
-        Path manifest = null;
+        Path tokens = null;
         if (bag.getTokenLocation() != null) {
             log.info("Tokens already created for {}, skipping", name);
-            manifest = tokenStage.resolve(depositor)
+            tokens = tokenStage.resolve(depositor)
                                  .resolve(name + "-tokens");
             tagManifestDigest = bag.getTagManifestDigest();
         } else {
             tokenizer = new BagTokenizer(toBag, tokenStage, fixityAlgorithm, depositor);
             try {
-                manifest = tokenizer.getAceManifestWithValidation();
+                tokens = tokenizer.getAceManifestWithValidation();
             } catch (Exception e) {
                 log.error("Error creating ace manifest {}", e);
             }
@@ -86,24 +88,30 @@ public class ChronPackager {
         }
 
         // Create digests for replicate nodes to validate from
-        String tokenDigest = DigestUtil.digest(manifest, fixity.getName());
+        String tokenDigest = DigestUtil.digest(tokens, fixity.getName());
 
         bag.setTagManifestDigest(tagManifestDigest);
         bag.setTokenDigest(tokenDigest);
 
+
+        // Should end up being the relative location of the bag and tokens
+        // Could probably just use the filename for the relative bag path
+        Path relStore = tokenStage.relativize(tokens);
+        Path relBag = bagStage.relativize(toBag);
+
+        /*
         String user = settings.getExternalUser();
         String server = settings.getStorageServer();
-
-        // Should end up being the location for a download
         StringBuilder tokenStore = new StringBuilder(user);
         tokenStore.append("@").append(server);
-        tokenStore.append(":").append(manifest.toString());
+        tokenStore.append(":").append(tokens.toString());
         StringBuilder bagLocation = new StringBuilder(user);
         bagLocation.append("@").append(server);
         bagLocation.append(":").append(toBag.toString());
+        */
 
-        bag.setTokenLocation(tokenStore.toString());
-        bag.setLocation(bagLocation.toString());
+        bag.setTokenLocation(relStore.toString());
+        bag.setLocation(relBag.toString());
         bag.setFixityAlgorithm("SHA-256");
         bag.setSize(1000); // TODO: Calculate actual size...
 
