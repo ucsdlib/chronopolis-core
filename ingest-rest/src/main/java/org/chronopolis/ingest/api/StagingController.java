@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.Principal;
 
 /**
@@ -74,16 +76,21 @@ public class StagingController {
         bag = packager.packageForChronopolis();
         bagRepository.save(bag);
 
+        Path bagPath = Paths.get(ingestSettings.getBagStage(),
+                                 bag.getLocation());
+        Path tokenPath = Paths.get(ingestSettings.getTokenStage(),
+                                   bag.getTokenLocation());
+
         // Set up where nodes will pull from
         String user = ingestSettings.getExternalUser();
         String server = ingestSettings.getStorageServer();
         String tokenStore = new StringBuilder(user)
                 .append("@").append(server)
-                .append(":").append(bag.getTokenLocation())
+                .append(":").append(tokenPath.toString())
                 .toString();
         String bagLocation = new StringBuilder(user)
                 .append("@").append(server)
-                .append(":").append(bag.getLocation())
+                .append(":").append(bagPath.toString())
                 .toString();
 
 
