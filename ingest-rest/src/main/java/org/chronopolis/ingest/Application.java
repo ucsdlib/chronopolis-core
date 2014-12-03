@@ -9,6 +9,7 @@ import org.chronopolis.ingest.repository.ReplicationRepository;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.Node;
 import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,23 +69,29 @@ public class Application implements CommandLineRunner {
         for (int i = 0; i < 100; i++) {
             Bag b = new Bag("bag-" + i, "test-depositor");
             b.setFixityAlgorithm("SHA-256");
-            b.setLocation("chrono@chronopolis-stage:/export/bags/test-bag-" + i);
+            b.setLocation("bags/test-bag-" + i);
             b.setSize(r.nextInt(50000));
             b.setTagManifestDigest("");
             b.setTokenDigest("");
-            b.setTokenLocation("chrono@chronopolis-stage:/export/tokens/test-bag-" + i + "-tokens");
+            b.setTokenLocation("tokens/test-bag-" + i + "-tokens");
             bagRepository.save(b);
             bagList.add(b);
         }
 
         System.out.println("Creating transfers...");
+        Random ran = new Random();
         for (Bag b : bagList) {
             // create xfer object for each node
             for (Node n : nodeList) {
                 Replication action = new Replication(n,
                         b,
-                        "",
-                        "");
+                        ingestSettings.getBagStage() + "/" + b.getLocation() ,
+                        ingestSettings.getTokenStage() + "/" + b.getTokenLocation());
+
+                if (ran.nextInt(100) < 10) {
+                    action.setStatus(ReplicationStatus.STARTED);
+                }
+
                 replicationRepository.save(action);
             }
         }
