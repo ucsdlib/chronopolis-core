@@ -15,6 +15,7 @@ import org.chronopolis.common.settings.SMTPSettings;
 import org.chronopolis.db.common.RestoreRepository;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.ReplicateMessageListener;
+import org.chronopolis.replicate.batch.ReplicationJobStarter;
 import org.chronopolis.replicate.batch.ReplicationStepListener;
 import org.chronopolis.replicate.processor.CollectionInitProcessor;
 import org.chronopolis.replicate.processor.CollectionRestoreLocationProcessor;
@@ -98,6 +99,27 @@ public class ReplicationConfig {
                 .build();
 
         return adapter.create(IngestAPI.class);
+    }
+
+    @Bean
+    ReplicationJobStarter jobStarter(ChronProducer producer,
+                                     MessageFactory messageFactory,
+                                     ReplicationSettings settings,
+                                     MailUtil mailUtil,
+                                     AceService aceService,
+                                     ReplicationStepListener replicationStepListener,
+                                     JobLauncher jobLauncher,
+                                     JobBuilderFactory jobBuilderFactory,
+                                     StepBuilderFactory stepBuilderFactory) {
+        return new ReplicationJobStarter(producer,
+                messageFactory,
+                settings,
+                mailUtil,
+                aceService,
+                replicationStepListener,
+                jobLauncher,
+                jobBuilderFactory,
+                stepBuilderFactory);
     }
 
     /*

@@ -20,6 +20,8 @@ import org.springframework.batch.core.repository.JobExecutionAlreadyRunningExcep
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
 
+import java.util.Date;
+
 /**
  * Created by shake on 12/1/14.
  */
@@ -115,7 +117,48 @@ public class ReplicationJobStarter {
     }
 
     public void addJobFromRestful(Replication replication) {
+        String depositor = replication.getBag().getDepositor();
+        String collection = replication.getBag().getName();
 
+        GsonCollection gsonCollection = aceService.getCollectionByName(collection, depositor);
+        if (gsonCollection == null) {
+            ReplicationNotifier notifier = new ReplicationNotifier(replication);
+            Job job = jobBuilderFactory.get("collection-replicate")
+                    .start(stepBuilderFactory.get("token-replicate")
+                        .tasklet(new TokenDownloadStep(settings, notifier, replication))
+                        .listener(replicationStepListener)
+                        .build())
+                    .next(stepBuilderFactory.get("bag-replicate")
+                        .tasklet(new BagDownloadStep(settings, notifier, replication))
+                        .listener(replicationStepListener)
+                        .build())
+                    .next(stepBuilderFactory.get("ace-register")
+                        .tasklet(new AceRegisterStep(aceService, settings, notifier, replication))
+                        .listener(replicationStepListener)
+                        .build())
+                    .next(stepBuilderFactory.get("replication-success")
+                        .tasklet(new ReplicationSuccessStep(producer, messageFactory, mailUtil, settings, notifier))
+                        .listener(replicationStepListener)
+                        .build())
+                    .build();
+
+            try {
+                jobLauncher.run(job, new JobParametersBuilder()
+                        .addString("depositor", depositor)
+                        .addString("collection", collection)
+                        .addDate("date", new Date())
+                        .toJobParameters());
+            } catch (JobExecutionAlreadyRunningException e) {
+                e.printStackTrace();
+            } catch (JobRestartException e) {
+                e.printStackTrace();
+            } catch (JobInstanceAlreadyCompleteException e) {
+                e.printStackTrace();
+            } catch (JobParametersInvalidException e) {
+                e.printStackTrace();
+            }
+
+        }
     }
 
 }

@@ -1,6 +1,7 @@
 package org.chronopolis.replicate;
 
 import org.chronopolis.db.common.model.RestoreRequest;
+import org.chronopolis.replicate.batch.ReplicationJobStarter;
 import org.chronopolis.replicate.batch.TokenDownloadStep;
 import org.chronopolis.replicate.config.JPAConfiguration;
 import org.chronopolis.replicate.config.ReplicationConfig;
@@ -52,6 +53,9 @@ public class ReplicationConsumer implements CommandLineRunner {
 
     @Autowired
     IngestAPI ingestAPI;
+
+    @Autowired
+    ReplicationJobStarter jobStarter;
 
     private enum OPTION {
         RESTFUL_QUERY, QUIT, UNKNOWN;
@@ -121,7 +125,9 @@ public class ReplicationConsumer implements CommandLineRunner {
                 log.debug("Found {} replications", replications.size());
 
                 for (Replication replication : replications) {
+                    // TODO: Only add started/pending replications
                     log.info("Starting job for replication id {}", replication.getReplicationID());
+                    jobStarter.addJobFromRestful(replication);
                 }
 
             } else if (option.equals(OPTION.QUIT)) {
