@@ -8,6 +8,7 @@ import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.Node;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationRequest;
+import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
@@ -85,8 +87,13 @@ public class ReplicationController {
     }
 
     @RequestMapping(value = "/replications", method = RequestMethod.GET)
-    public Collection<Replication> replications(Principal principal) {
-        return replicationRepository.findByNodeUsername(principal.getName());
+    public Collection<Replication> replications(Principal principal,
+                                                @RequestParam(value = "status", required = false) ReplicationStatus status) {
+        if (status == null) {
+            return replicationRepository.findByNodeUsername(principal.getName());
+        } else {
+            return replicationRepository.findByStatusAndNodeUsername(status, principal.getName());
+        }
     }
 
     @RequestMapping(value = "/replications/{id}")
