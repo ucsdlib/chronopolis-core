@@ -21,10 +21,16 @@ public class ReplicationNotifier implements Notifier {
     private String origin;
     private String messageText;
 
+    private String calculatedTagDigest;
+    private String calculatedTokenDigest;
+
+
     public ReplicationNotifier(CollectionInitMessage message) {
         this.origin = message.getOrigin();
         this.messageText = message.toString();
         this.message = message;
+        this.calculatedTagDigest = message.getTagManifestDigest();
+        this.calculatedTokenDigest = message.getTokenStoreDigest();
         this.success = true;
     }
 
@@ -113,4 +119,11 @@ public class ReplicationNotifier implements Notifier {
         return message;
     }
 
+    public String getCalculatedTagDigest() {
+        return calculatedTagDigest;
+    }
+
+    public String getCalculatedTokenDigest() {
+        return calculatedTokenDigest;
+    }
 }
