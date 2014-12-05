@@ -23,6 +23,16 @@ public class BagAMQPStepListener implements StepExecutionListener {
     private MailUtil mailUtil;
     private String tagDigest;
 
+    public BagAMQPStepListener(ReplicationSettings settings,
+                               ReplicationNotifier notifier,
+                               MailUtil mailUtil,
+                               String tagDigest) {
+        this.settings = settings;
+        this.notifier = notifier;
+        this.mailUtil = mailUtil;
+        this.tagDigest = tagDigest;
+    }
+
     @Override
     public void beforeStep(final StepExecution stepExecution) {
     }
@@ -57,7 +67,8 @@ public class BagAMQPStepListener implements StepExecutionListener {
 
             mailUtil.send(mailUtil.createMessage(
                     settings.getNode(),
-                    "Replication Failed",
+                    "Replication Failed for collection "
+                            + notifier.getMessage().getCollection(),
                     stringWriter.toString()
             ));
 

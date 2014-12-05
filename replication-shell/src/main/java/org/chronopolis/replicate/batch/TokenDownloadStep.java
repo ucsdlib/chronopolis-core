@@ -66,10 +66,6 @@ public class TokenDownloadStep implements Tasklet {
     public RepeatStatus execute(final StepContribution stepContribution, final ChunkContext chunkContext) throws Exception {
         String statusMessage = "success";
 
-        // String location = message.getTokenStore();
-        // String protocol = message.getProtocol();
-        // String digest = message.getTokenStoreDigest();
-
         log.info("Downloading Token Store from {}", location);
         Path tokenStore;
         try {
@@ -109,6 +105,7 @@ public class TokenDownloadStep implements Tasklet {
         String calculatedDigest = hashCode.toString();
         log.trace("Calculated digest {} for token store", calculatedDigest);
 
+        /*
         if (digest.isEmpty()) {
             // update replication object
         } else {
@@ -126,6 +123,7 @@ public class TokenDownloadStep implements Tasklet {
                 log.info("Successfully validated token store");
             }
         }
+        */
 
         notifier.setTokenStep(statusMessage);
         return RepeatStatus.FINISHED;

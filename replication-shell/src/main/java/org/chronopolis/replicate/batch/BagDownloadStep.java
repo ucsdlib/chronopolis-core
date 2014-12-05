@@ -36,7 +36,6 @@ public class BagDownloadStep implements Tasklet {
     private String depositor;
     private String location;
     private String protocol;
-    private String tagDigest;
 
     public BagDownloadStep(final ReplicationSettings settings,
                            final CollectionInitMessage message,
@@ -47,7 +46,6 @@ public class BagDownloadStep implements Tasklet {
         this.depositor = message.getDepositor();
         this.location = message.getBagLocation();
         this.protocol = message.getProtocol();
-        this.tagDigest = message.getTagManifestDigest();
     }
 
     public BagDownloadStep(ReplicationSettings settings,
@@ -65,20 +63,12 @@ public class BagDownloadStep implements Tasklet {
         // TODO: From the rest perspective, the flow gets changed a little:
         // instead of checking against the tag digest we update the object and check if it
         // is reported as correct by the ingest service
-        this.tagDigest = "";
     }
 
     @Override
     public RepeatStatus execute(final StepContribution stepContribution, final ChunkContext chunkContext) throws Exception {
         // For our notifier
         String statusMessage = "success";
-
-        // Set up our download parameters
-        // String collection = message.getCollection();
-        // String depositor = message.getDepositor();
-        // String location = message.getBagLocation();
-        // String protocol = message.getProtocol();
-        // String tagDigest = message.getTagManifestDigest();
 
         // Replicate the collection
         log.info("Downloading bag from {}", location);
@@ -122,6 +112,7 @@ public class BagDownloadStep implements Tasklet {
         String calculatedDigest = hashCode.toString();
         log.trace("Calculated digest {} for tagmanifest", calculatedDigest);
 
+        /*
         if (tagDigest.isEmpty()) {
             // update replication object
         } else {
@@ -135,6 +126,7 @@ public class BagDownloadStep implements Tasklet {
                 log.info("Successfully validated tagmanifest");
             }
         }
+        */
 
         notifier.setBagStep(statusMessage);
         return RepeatStatus.FINISHED;
