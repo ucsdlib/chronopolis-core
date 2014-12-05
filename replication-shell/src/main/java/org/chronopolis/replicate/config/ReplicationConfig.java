@@ -234,24 +234,8 @@ public class ReplicationConfig {
     }
 
     @Bean
-    CollectionInitProcessor collectionInitProcessor(MessageFactory messageFactory,
-                                                    ReplicationSettings replicationSettings,
-                                                    AceService aceService,
-                                                    TopicProducer producer,
-                                                    MailUtil mailUtil,
-                                                    ReplicationStepListener replicationStepListener,
-                                                    JobBuilderFactory jobBuilderFactory,
-                                                    JobLauncher jobLauncher,
-                                                    StepBuilderFactory stepBuilderFactory) {
-        return new CollectionInitProcessor(producer,
-                messageFactory,
-                replicationSettings,
-                mailUtil,
-                aceService,
-                replicationStepListener,
-                jobBuilderFactory,
-                jobLauncher,
-                stepBuilderFactory);
+    CollectionInitProcessor collectionInitProcessor(ReplicationJobStarter replicationJobStarter) {
+        return new CollectionInitProcessor(replicationJobStarter);
     }
 
     @Bean
