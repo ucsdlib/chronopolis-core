@@ -96,6 +96,7 @@ public class ReplicationConfig {
                 .setRequestInterceptor(new CredentialRequestInterceptor(
                         apiSettings.getIngestAPIUsername(),
                         apiSettings.getIngestAPIPassword()))
+                // .setLogLevel(RestAdapter.LogLevel.FULL)
                 .build();
 
         return adapter.create(IngestAPI.class);

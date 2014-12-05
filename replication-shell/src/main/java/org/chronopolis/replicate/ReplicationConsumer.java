@@ -89,6 +89,7 @@ public class ReplicationConsumer implements CommandLineRunner {
         for (Replication replication : replications) {
             log.info("Starting job for replication id {}", replication.getReplicationID());
             if (update) {
+                log.info("Updating replication");
                 replication.setStatus(ReplicationStatus.STARTED);
                 ingestAPI.updateReplication(replication.getReplicationID(), replication);
             }

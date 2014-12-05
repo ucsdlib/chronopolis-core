@@ -15,6 +15,8 @@ import org.chronopolis.replicate.batch.listener.TokenRESTStepListener;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.Replication;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.JobParametersInvalidException;
@@ -31,6 +33,7 @@ import java.util.Date;
  * Created by shake on 12/1/14.
  */
 public class ReplicationJobStarter {
+    private final Logger log = LoggerFactory.getLogger(ReplicationJobStarter.class);
 
     private final ChronProducer producer;
     private final MessageFactory messageFactory;
@@ -184,6 +187,8 @@ public class ReplicationJobStarter {
                 e.printStackTrace();
             }
 
+        } else {
+            log.info("Already have collection, probably should update the replication object");
         }
     }
 
