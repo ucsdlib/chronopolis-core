@@ -8,3 +8,4 @@ This is how to submit a merge request through gitlab if you already are working 
 5. in gitlab select merge requests
 6. choose your feature/$feature-name as the source branch, and feature/develop as the target branch
 7. submit merge request
+8. when the merge request has been accepted, remove the branch from your local repository with `git branch -d feature/$feature-name`
