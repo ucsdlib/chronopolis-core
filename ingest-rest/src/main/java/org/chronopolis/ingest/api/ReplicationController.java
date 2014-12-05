@@ -77,6 +77,7 @@ public class ReplicationController {
             return null;
         }
 
+        // TODO: Ignore null values
         log.info("Updating replication {}", replication.getReplicationID());
         update.setReceivedTagFixity(replication.getReceivedTagFixity());
         update.setReceivedTokenFixity(replication.getReceivedTokenFixity());

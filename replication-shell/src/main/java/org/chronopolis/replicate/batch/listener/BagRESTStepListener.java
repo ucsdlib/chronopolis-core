@@ -3,6 +3,7 @@ package org.chronopolis.replicate.batch.listener;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.models.Replication;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
@@ -12,8 +13,9 @@ import org.springframework.batch.core.StepExecutionListener;
  */
 public class BagRESTStepListener implements StepExecutionListener {
 
-    private ReplicationSettings settings;
     private IngestAPI ingestAPI;
+    private Replication replication;
+    private ReplicationSettings settings;
     private ReplicationNotifier notifier;
 
     @Override
@@ -22,6 +24,11 @@ public class BagRESTStepListener implements StepExecutionListener {
 
     @Override
     public ExitStatus afterStep(final StepExecution stepExecution) {
-        return null;
+        String digest = notifier.getCalculatedTagDigest();
+
+        replication.setReceivedTagFixity(digest);
+        ingestAPI.updateReplication(replication.getReplicationID(), replication);
+
+        return ExitStatus.COMPLETED;
     }
 }
