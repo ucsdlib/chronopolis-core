@@ -8,7 +8,12 @@ import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.ReplicationNotifier;
+import org.chronopolis.replicate.batch.listener.BagAMQPStepListener;
+import org.chronopolis.replicate.batch.listener.BagRESTStepListener;
+import org.chronopolis.replicate.batch.listener.TokenAMQPStepListener;
+import org.chronopolis.replicate.batch.listener.TokenRESTStepListener;
 import org.chronopolis.replicate.config.ReplicationSettings;
+import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.Replication;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -27,12 +32,12 @@ import java.util.Date;
  */
 public class ReplicationJobStarter {
 
-
     private final ChronProducer producer;
     private final MessageFactory messageFactory;
     private final ReplicationSettings settings;
     private final MailUtil mailUtil;
     private final AceService aceService;
+    private final IngestAPI ingestAPI;
 
     private final ReplicationStepListener replicationStepListener;
     private JobLauncher jobLauncher;
@@ -45,6 +50,7 @@ public class ReplicationJobStarter {
                                  final ReplicationSettings replicationSettings,
                                  final MailUtil mailUtil,
                                  final AceService aceService,
+                                 final IngestAPI ingestAPI,
                                  final ReplicationStepListener replicationStepListener,
                                  final JobLauncher jobLauncher,
                                  final JobBuilderFactory jobBuilderFactory,
@@ -54,6 +60,7 @@ public class ReplicationJobStarter {
         this.settings = replicationSettings;
         this.mailUtil = mailUtil;
         this.aceService = aceService;
+        this.ingestAPI = ingestAPI;
         this.replicationStepListener = replicationStepListener;
         this.jobLauncher = jobLauncher;
         this.jobBuilderFactory = jobBuilderFactory;
@@ -71,14 +78,24 @@ public class ReplicationJobStarter {
         GsonCollection gsonCollection = aceService.getCollectionByName(collection, depositor);
         if (gsonCollection == null) {
             ReplicationNotifier notifier = new ReplicationNotifier(msg);
+            TokenAMQPStepListener tokenStepListener = new TokenAMQPStepListener(notifier,
+                    settings,
+                    mailUtil,
+                    msg.getTokenStoreDigest());
+
+            BagAMQPStepListener bagStepListener = new BagAMQPStepListener(settings,
+                    notifier,
+                    mailUtil,
+                    msg.getTagManifestDigest());
+
             Job job = jobBuilderFactory.get("collection-replicate")
                     .start(stepBuilderFactory.get("token-replicate")
                         .tasklet(new TokenDownloadStep(settings, msg, notifier))
-                        .listener(replicationStepListener)
+                        .listener(tokenStepListener)
                         .build())
                     .next(stepBuilderFactory.get("bag-replicate")
                         .tasklet(new BagDownloadStep(settings, msg, notifier))
-                        .listener(replicationStepListener)
+                        .listener(bagStepListener)
                         .build())
                     .next(stepBuilderFactory.get("ace-register")
                         .tasklet(new AceRegisterStep(aceService, settings, msg, notifier))
@@ -123,14 +140,23 @@ public class ReplicationJobStarter {
         GsonCollection gsonCollection = aceService.getCollectionByName(collection, depositor);
         if (gsonCollection == null) {
             ReplicationNotifier notifier = new ReplicationNotifier(replication);
+            TokenRESTStepListener tokenStepListener = new TokenRESTStepListener(ingestAPI,
+                    replication,
+                    notifier);
+            BagRESTStepListener bagStepListener = new BagRESTStepListener(ingestAPI,
+                    replication,
+                    settings,
+                    notifier);
+
+
             Job job = jobBuilderFactory.get("collection-replicate")
                     .start(stepBuilderFactory.get("token-replicate")
                         .tasklet(new TokenDownloadStep(settings, notifier, replication))
-                        .listener(replicationStepListener)
+                        .listener(tokenStepListener)
                         .build())
                     .next(stepBuilderFactory.get("bag-replicate")
                         .tasklet(new BagDownloadStep(settings, notifier, replication))
-                        .listener(replicationStepListener)
+                        .listener(bagStepListener)
                         .build())
                     .next(stepBuilderFactory.get("ace-register")
                         .tasklet(new AceRegisterStep(aceService, settings, notifier, replication))
