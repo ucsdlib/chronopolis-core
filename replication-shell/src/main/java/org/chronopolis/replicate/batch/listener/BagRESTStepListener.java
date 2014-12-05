@@ -18,6 +18,16 @@ public class BagRESTStepListener implements StepExecutionListener {
     private ReplicationSettings settings;
     private ReplicationNotifier notifier;
 
+    public BagRESTStepListener(IngestAPI ingestAPI,
+                               Replication replication,
+                               ReplicationSettings settings,
+                               ReplicationNotifier notifier) {
+        this.ingestAPI = ingestAPI;
+        this.replication = replication;
+        this.settings = settings;
+        this.notifier = notifier;
+    }
+
     @Override
     public void beforeStep(final StepExecution stepExecution) {
     }
