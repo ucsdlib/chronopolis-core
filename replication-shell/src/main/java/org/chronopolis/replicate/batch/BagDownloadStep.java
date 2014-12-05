@@ -128,6 +128,7 @@ public class BagDownloadStep implements Tasklet {
         }
         */
 
+        notifier.setCalculatedTagDigest(calculatedDigest);
         notifier.setBagStep(statusMessage);
         return RepeatStatus.FINISHED;
     }

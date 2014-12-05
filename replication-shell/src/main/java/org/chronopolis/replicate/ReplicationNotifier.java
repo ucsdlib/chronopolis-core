@@ -126,4 +126,12 @@ public class ReplicationNotifier implements Notifier {
     public String getCalculatedTokenDigest() {
         return calculatedTokenDigest;
     }
+
+    public void setCalculatedTokenDigest(final String calculatedTokenDigest) {
+        this.calculatedTokenDigest = calculatedTokenDigest;
+    }
+
+    public void setCalculatedTagDigest(final String calculatedTagDigest) {
+        this.calculatedTagDigest = calculatedTagDigest;
+    }
 }

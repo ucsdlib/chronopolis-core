@@ -125,6 +125,7 @@ public class TokenDownloadStep implements Tasklet {
         }
         */
 
+        notifier.setCalculatedTokenDigest(calculatedDigest);
         notifier.setTokenStep(statusMessage);
         return RepeatStatus.FINISHED;
     }
