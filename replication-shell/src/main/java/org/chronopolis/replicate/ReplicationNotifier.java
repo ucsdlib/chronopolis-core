@@ -3,7 +3,12 @@ package org.chronopolis.replicate;
 import org.chronopolis.common.digest.Digest;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.rest.models.Replication;
+import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -13,7 +18,7 @@ import java.io.StringWriter;
 public class ReplicationNotifier implements Notifier {
 
     private final CollectionInitMessage message;
-    private boolean success;
+    private boolean success = true;
     private String aceStep;
     private String bagStep;
     private String tokenStep;
@@ -31,7 +36,6 @@ public class ReplicationNotifier implements Notifier {
         this.message = message;
         this.calculatedTagDigest = message.getTagManifestDigest();
         this.calculatedTokenDigest = message.getTokenStoreDigest();
-        this.success = true;
     }
 
     public ReplicationNotifier(Replication replication) {
@@ -48,14 +52,22 @@ public class ReplicationNotifier implements Notifier {
         empty.setTokenStore("");
         empty.setBagTagManifestDigest("");
         empty.setBagLocation("");
-        empty.setDepositor("");
-        empty.setCollection("");
+        empty.setDepositor(replication.getBag().getDepositor());
+        empty.setCollection(replication.getBag().getName());
         empty.setProtocol("");
         empty.setAuditPeriod(-1);
         empty.setFixityAlgorithm(Digest.SHA_256);
         this.message = empty;
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
         this.origin = "restful interface";
-        this.messageText = replication.toString();
+        try {
+            this.messageText = mapper.writeValueAsString(replication.getBag());
+        } catch (IOException e) {
+            this.messageText = "Error writing replication object to json";
+        }
     }
 
     @Override
