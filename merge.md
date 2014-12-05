@@ -5,4 +5,6 @@ This is how to submit a merge request through gitlab if you already are working 
 2. git checkout -b feature/$feature-name $commit
 3. -edit/commit as normal if needed-
 4. git push -u origin feature/$feature-name
-5. in gitlab....
+5. in gitlab select merge requests
+6. choose your feature/$feature-name as the source branch, and feature/develop as the target branch
+7. submit merge request
