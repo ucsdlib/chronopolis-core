@@ -22,6 +22,9 @@ public class Node {
     @OneToMany(mappedBy = "node")
     private Set<Replication> replications = new HashSet<>();
 
+    @OneToMany(mappedBy = "node")
+    private Set<Restoration> restorations = new HashSet<>();
+
     @JsonIgnore
     public String password;
     public String username;
