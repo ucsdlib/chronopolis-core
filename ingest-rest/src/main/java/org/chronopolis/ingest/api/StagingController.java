@@ -70,7 +70,7 @@ public class StagingController {
         log.debug("Creating bag {} for depositor {}", name, depositor);
         // If not, create the bag + tokens, then save it
         ChronPackager packager = new ChronPackager(request.getName(),
-                request.getFileName(),
+                request.getLocation(),
                 request.getDepositor(),
                 ingestSettings);
         bag = packager.packageForChronopolis();

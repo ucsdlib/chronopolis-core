@@ -6,7 +6,7 @@ package org.chronopolis.rest.models;
 public class IngestRequest {
 
     String name;
-    String fileName;
+    String location;
     String depositor;
 
     public String getName() {
@@ -25,11 +25,11 @@ public class IngestRequest {
         this.depositor = depositor;
     }
 
-    public String getFileName() {
-        return fileName;
+    public String getLocation() {
+        return location;
     }
 
-    public void setFileName(final String fileName) {
-        this.fileName = fileName;
+    public void setLocation(final String location) {
+        this.location = location;
     }
 }

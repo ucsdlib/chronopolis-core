@@ -134,7 +134,7 @@ public class IntakeProducer implements CommandLineRunner {
         String path = depositor + "/" + bagName;
         IngestRequest request = new IngestRequest();
         request.setDepositor(depositor);
-        request.setFileName(path);
+        request.setLocation(path);
         request.setName(bagName);
         ingestAPI.putBag(request);
     }
