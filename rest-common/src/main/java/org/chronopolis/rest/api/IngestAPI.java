@@ -5,6 +5,7 @@ import org.chronopolis.rest.models.IngestRequest;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationRequest;
 import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.models.Restoration;
 import retrofit.http.Body;
 import retrofit.http.GET;
 import retrofit.http.POST;
@@ -44,5 +45,22 @@ public interface IngestAPI {
 
     @POST("/api/staging/replications/{id}")
     Replication updateReplication(@Path("id") Long id, @Body Replication body);
+
+    // Restore methods
+
+    @GET("/api/restorations")
+    List<Restoration> getRestorations();
+
+    @PUT("/api/restorations")
+    Restoration putRestoration(IngestRequest request);
+
+    @GET("/api/restorations/{id}")
+    Restoration getRestoration(@Path("id") Long id);
+
+    @PUT("/api/restorations/{id}")
+    Restoration acceptRestoration(@Path("id") Long id, @Body Restoration restoration);
+
+    @POST("/api/restorations/{id}")
+    Restoration updateRestoration(@Path("id") Long id, @Body Restoration restoration);
 
 }
