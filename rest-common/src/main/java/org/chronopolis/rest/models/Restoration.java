@@ -29,15 +29,16 @@ public class Restoration {
     private String depositor;
     private String name;
 
-    private String bagLink;
+    private String link;
     private String protocol;
 
     Restoration() { // JPA
     }
 
-    public Restoration(final String depositor, final String name) {
+    public Restoration(final String depositor, final String name, final String link) {
         this.depositor = depositor;
         this.name = name;
+        this.link = link;
         this.status = ReplicationStatus.PENDING;
     }
 
@@ -81,12 +82,12 @@ public class Restoration {
         this.name = name;
     }
 
-    public String getBagLink() {
-        return bagLink;
+    public String getLink() {
+        return link;
     }
 
-    public void setBagLink(final String bagLink) {
-        this.bagLink = bagLink;
+    public void setLink(final String link) {
+        this.link = link;
     }
 
     public String getProtocol() {

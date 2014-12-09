@@ -6,10 +6,12 @@ import org.chronopolis.ingest.api.StagingController;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
+import org.chronopolis.ingest.repository.RestoreRepository;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.Node;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.models.Restoration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +49,9 @@ public class Application implements CommandLineRunner {
     ReplicationRepository replicationRepository;
 
     @Autowired
+    RestoreRepository restoreRepository;
+
+    @Autowired
     IngestSettings ingestSettings;
 
     public static void main(String[] args) {
@@ -78,7 +83,7 @@ public class Application implements CommandLineRunner {
             bagList.add(b);
         }
 
-        System.out.println("Creating transfers...");
+        System.out.println("Creating transfers and restorations...");
         Random ran = new Random();
         for (Bag b : bagList) {
             // create xfer object for each node
@@ -94,6 +99,12 @@ public class Application implements CommandLineRunner {
 
                 replicationRepository.save(action);
             }
+
+            Restoration restoration = new Restoration(b.getDepositor(),
+                    b.getName(),
+                    ingestSettings.getRestore() + "/" + b.getLocation());
+            restoreRepository.save(restoration);
+
         }
 
         Object[] values = new Object[]{ingestSettings.getNode(), ingestSettings.getBagStage(), ingestSettings.getTokenStage()};
