@@ -78,6 +78,7 @@ public class ReplicationController {
         }
 
         // TODO: Ignore null values
+        // TODO: check against bag fixity values
         log.info("Updating replication {}", replication.getReplicationID());
         update.setReceivedTagFixity(replication.getReceivedTagFixity());
         update.setReceivedTokenFixity(replication.getReceivedTokenFixity());
