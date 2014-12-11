@@ -2,6 +2,7 @@ package org.chronopolis.ingest.api;
 
 import org.chronopolis.ingest.ChronPackager;
 import org.chronopolis.ingest.IngestSettings;
+import org.chronopolis.ingest.exception.BagNotFoundException;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
@@ -51,7 +52,11 @@ public class StagingController {
 
     @RequestMapping(value = "bags/{bag-id}", method = RequestMethod.GET)
     public Bag getBag(Principal principal, @PathVariable("bag-id") Long bagId) {
-        return bagRepository.findOne(bagId);
+        Bag bag = bagRepository.findOne(bagId);
+        if (bag == null) {
+            throw new BagNotFoundException(bagId);
+        }
+        return bag;
     }
 
     @RequestMapping(value = "bags", method = RequestMethod.PUT)
