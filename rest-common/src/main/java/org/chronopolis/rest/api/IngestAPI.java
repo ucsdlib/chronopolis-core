@@ -58,7 +58,7 @@ public interface IngestAPI {
     Restoration getRestoration(@Path("id") Long id);
 
     @PUT("/api/restorations/{id}")
-    Restoration acceptRestoration(@Path("id") Long id, @Body Restoration restoration);
+    Restoration acceptRestoration(@Path("id") Long id);
 
     @POST("/api/restorations/{id}")
     Restoration updateRestoration(@Path("id") Long id, @Body Restoration restoration);
