@@ -1,6 +1,7 @@
 package org.chronopolis.rest.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -20,6 +21,7 @@ public class Bag {
 
     @Id
     @GeneratedValue
+    @JsonProperty("id")
     // Because the replication class has a ManyToOne relationship, we need to
     // define ID as uppercase so it can join correctly
     private Long ID;
