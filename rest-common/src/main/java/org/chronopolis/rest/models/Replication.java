@@ -41,7 +41,7 @@ public class Replication {
     private String receivedTokenFixity;
 
     // JPA...
-    Replication() {
+    protected Replication() {
     }
 
     public Replication(final Node node,
@@ -123,4 +123,9 @@ public class Replication {
     public void setProtocol(final String protocol) {
         this.protocol = protocol;
     }
+
+    public String resourceID() {
+        return "replication/" + replicationID;
+    }
+
 }

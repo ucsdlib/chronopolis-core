@@ -3,11 +3,7 @@ package org.chronopolis.rest.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 /**
  * Representation of a bag in chronopolis
@@ -47,7 +43,7 @@ public class Bag {
     private String fixityAlgorithm;
     private long size;
 
-    Bag() { // JPA
+    protected Bag() { // JPA
     }
 
     public Bag(String name, String depositor) {
@@ -122,6 +118,10 @@ public class Bag {
 
     public void setSize(final long size) {
         this.size = size;
+    }
+
+    public String resourceID() {
+        return "bag/" + ID;
     }
 
 }

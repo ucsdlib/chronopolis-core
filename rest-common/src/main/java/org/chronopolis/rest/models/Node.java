@@ -30,7 +30,7 @@ public class Node {
     public String username;
 
     // For JPA
-    Node() {
+    protected Node() {
     }
 
     public Node(final String username, final String password) {
@@ -53,4 +53,9 @@ public class Node {
     public String getUsername() {
         return username;
     }
+
+    public String resourceID() {
+        return "node/" + id;
+    }
+
 }

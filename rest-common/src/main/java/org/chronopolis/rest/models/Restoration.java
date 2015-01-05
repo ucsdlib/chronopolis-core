@@ -32,7 +32,7 @@ public class Restoration {
     private String link;
     private String protocol;
 
-    Restoration() { // JPA
+    protected Restoration() { // JPA
     }
 
     public Restoration(final String depositor, final String name, final String link) {
@@ -97,4 +97,9 @@ public class Restoration {
     public void setProtocol(final String protocol) {
         this.protocol = protocol;
     }
+
+    public String resourceID() {
+        return "restore/" + restorationId;
+    }
+
 }
