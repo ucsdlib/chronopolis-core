@@ -73,9 +73,9 @@ public class ReplicationController {
         Node node = nodeRepository.findByUsername(principal.getName());
         Replication update = replicationRepository.findOne(replication.getReplicationID());
 
+        // check for unauthorized access
         if (!update.getNode().equals(node)) {
-            // unauthorized
-            return null;
+            throw new UnauthorizedException(principal.getName());
         }
 
         // TODO: Ignore null values
