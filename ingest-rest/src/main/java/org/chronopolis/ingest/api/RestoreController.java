@@ -1,5 +1,7 @@
 package org.chronopolis.ingest.api;
 
+import org.chronopolis.ingest.exception.ConflictException;
+import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.RestoreRepository;
 import org.chronopolis.rest.models.IngestRequest;
@@ -71,7 +73,7 @@ public class RestoreController {
             log.info("Restoration {} accepted from node {}, but was not found",
                     id,
                     principal.getName());
-            return null;
+            throw new NotFoundException(restoration.resourceID());
         }
 
         Node restoringNode = restoration.getNode();
@@ -82,7 +84,7 @@ public class RestoreController {
                     id,
                     principal.getName());
             // 409
-            return null;
+            throw new ConflictException();
         }
 
         log.info("Setting {} as the owner for replication {}",

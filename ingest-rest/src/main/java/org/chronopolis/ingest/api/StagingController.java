@@ -2,7 +2,7 @@ package org.chronopolis.ingest.api;
 
 import org.chronopolis.ingest.ChronPackager;
 import org.chronopolis.ingest.IngestSettings;
-import org.chronopolis.ingest.exception.BagNotFoundException;
+import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
@@ -54,7 +54,7 @@ public class StagingController {
     public Bag getBag(Principal principal, @PathVariable("bag-id") Long bagId) {
         Bag bag = bagRepository.findOne(bagId);
         if (bag == null) {
-            throw new BagNotFoundException(bagId);
+            throw new NotFoundException(bag.resourceID());
         }
         return bag;
     }

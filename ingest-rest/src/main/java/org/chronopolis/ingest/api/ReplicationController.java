@@ -1,6 +1,7 @@
 package org.chronopolis.ingest.api;
 
-import org.chronopolis.ingest.exception.BagNotFoundException;
+import org.chronopolis.ingest.exception.NotFoundException;
+import org.chronopolis.ingest.exception.UnauthorizedException;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
@@ -52,7 +53,7 @@ public class ReplicationController {
         Bag bag = bagRepository.findOne(request.getBagID());
 
         if (bag == null) {
-            throw new BagNotFoundException(request.getBagID());
+            throw new NotFoundException(bag.resourceID());
         }
 
         Replication action = replicationRepository.findByNodeUsernameAndBagID(node.getUsername(), bag.getID());
@@ -101,9 +102,10 @@ public class ReplicationController {
     @RequestMapping(value = "/replications/{id}")
     public Replication findReplication(Principal principal, @PathVariable("id") Long actionId) {
         Replication action = replicationRepository.findOne(actionId);
+
         // return unauthorized
         if (!action.getNode().getUsername().equals(principal.getName())) {
-            return null;
+            throw new UnauthorizedException(principal.getName());
         }
 
         return action;
