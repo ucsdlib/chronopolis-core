@@ -1,7 +1,9 @@
 package org.chronopolis.ingest.api;
 
+import org.chronopolis.ingest.exception.BadRequestException;
 import org.chronopolis.ingest.exception.ConflictException;
 import org.chronopolis.ingest.exception.NotFoundException;
+import org.chronopolis.ingest.exception.UnauthorizedException;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.RestoreRepository;
 import org.chronopolis.rest.models.IngestRequest;
@@ -98,7 +100,32 @@ public class RestoreController {
     @RequestMapping(value = "/{id}", method = RequestMethod.POST)
     public Restoration updateRestoration(Principal principal,
                                          @PathVariable("id") Long id,
-                                         @RequestBody Restoration restoration) {
+                                         @RequestBody Restoration updated) {
+        Restoration restoration = restoreRepository.findOne(id);
+
+        // check to make sure someone has accepted the restoration
+        if (restoration.getNode() == null) {
+            throw new BadRequestException("Restoration has no associated node and cannot be updated");
+        }
+
+        // check to make sure the correct node is updating the restoration
+        if (!restoration.getNode().getUsername().equals(principal.getName())) {
+            throw new UnauthorizedException(principal.getName());
+        }
+
+        ReplicationStatus status = updated.getStatus();
+
+        // We want to control success/failure status here, so in the event of these two update to 'transferred'
+        if (status.equals(ReplicationStatus.SUCCESS) || status.equals(ReplicationStatus.TRANSFERRED)) {
+            restoration.setStatus(ReplicationStatus.TRANSFERRED);
+        } else if (status.equals(ReplicationStatus.STARTED)) {
+            restoration.setStatus(ReplicationStatus.STARTED);
+        } else {
+            // client side failure... tbd what to do
+            restoration.setStatus(ReplicationStatus.FAILURE);
+        }
+
+        restoreRepository.save(restoration);
         return restoration;
     }
 

@@ -7,6 +7,7 @@ public enum ReplicationStatus {
 
     PENDING,
     STARTED,
+    TRANSFERRED,
     SUCCESS,
     FAILURE;
 
