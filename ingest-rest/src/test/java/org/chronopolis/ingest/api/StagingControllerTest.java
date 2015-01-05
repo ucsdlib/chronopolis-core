@@ -1,12 +1,8 @@
 package org.chronopolis.ingest.api;
 
-import org.chronopolis.common.ace.CredentialRequestInterceptor;
 import org.chronopolis.ingest.TestApplication;
 import org.chronopolis.ingest.repository.BagRepository;
-import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.IngestRequest;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,11 +13,9 @@ import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import retrofit.RestAdapter;
 
 import java.util.List;
 import java.util.Random;
