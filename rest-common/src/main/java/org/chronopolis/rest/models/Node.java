@@ -26,8 +26,10 @@ public class Node {
     private Set<Restoration> restorations = new HashSet<>();
 
     @JsonIgnore
+    @Deprecated
     public String password;
     public String username;
+    private boolean enabled;
 
     // For JPA
     protected Node() {
@@ -36,6 +38,7 @@ public class Node {
     public Node(final String username, final String password) {
         this.password = password;
         this.username = username;
+        this.enabled = true;
     }
 
     public Long getId() {
@@ -58,4 +61,11 @@ public class Node {
         return "node/" + id;
     }
 
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 }
