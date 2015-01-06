@@ -7,14 +7,11 @@ import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.config.ReplicationSettings;
-import org.chronopolis.replicate.util.MailFunctions;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.mail.SimpleMailMessage;
-
-import java.util.HashMap;
 
 /**
  * Created by shake on 8/26/14.

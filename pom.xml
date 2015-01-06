@@ -22,6 +22,7 @@
         <module>amqp-core</module>
         <module>common</module>
         <module>chron-db</module>
+        <module>rest-common</module>
     </modules>
 
     <profiles>
@@ -31,6 +32,7 @@
             <modules>
                 <module>ingest-shell</module>
                 <module>intake-shell</module>
+                <module>ingest-rest</module>
                 <module>replication-shell</module>
             </modules>
        </profile>
@@ -51,6 +53,7 @@
             <modules>
                 <module>intake-shell</module>
                 <module>ingest-shell</module>
+                <module>ingest-rest</module>
                 <module>replication-shell</module>
                 <module>replication-frontend</module>
                 <module>duracloud-intake</module>
@@ -224,11 +227,13 @@
             </dependency>
 
             <!-- misc spring -->
+            <!--
             <dependency>
                 <groupId>org.springframework.amqp</groupId>
                 <artifactId>spring-rabbit</artifactId>
                 <version>1.1.4.RELEASE</version>
             </dependency>
+            -->
 
             <dependency>
                 <groupId>org.springframework</groupId>
@@ -421,10 +426,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!--
         <dependency>
             <groupId>org.springframework.amqp</groupId>
             <artifactId>spring-rabbit</artifactId>
         </dependency>
+        -->
 
         <!-- logging -->
         <dependency>

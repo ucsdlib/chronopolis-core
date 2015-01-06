@@ -11,6 +11,8 @@ import org.chronopolis.common.transfer.RSyncTransfer;
 import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.config.ReplicationSettings;
+import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.Replication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -29,28 +31,44 @@ public class BagDownloadStep implements Tasklet {
     private final Logger log = LoggerFactory.getLogger(BagDownloadStep.class);
 
     private ReplicationSettings settings;
-    private CollectionInitMessage message;
     private ReplicationNotifier notifier;
+    private String collection;
+    private String depositor;
+    private String location;
+    private String protocol;
 
     public BagDownloadStep(final ReplicationSettings settings,
                            final CollectionInitMessage message,
                            final ReplicationNotifier notifier) {
         this.settings = settings;
-        this.message = message;
         this.notifier = notifier;
+        this.collection = message.getCollection();
+        this.depositor = message.getDepositor();
+        this.location = message.getBagLocation();
+        this.protocol = message.getProtocol();
+    }
+
+    public BagDownloadStep(ReplicationSettings settings,
+                           ReplicationNotifier notifier,
+                           Replication replication) {
+        this.settings = settings;
+        this.notifier = notifier;
+
+        Bag bag = replication.getBag();
+        this.collection = bag.getName();
+        this.depositor = bag.getDepositor();
+        this.location = replication.getBagLink();
+        this.protocol = replication.getProtocol();
+
+        // TODO: From the rest perspective, the flow gets changed a little:
+        // instead of checking against the tag digest we update the object and check if it
+        // is reported as correct by the ingest service
     }
 
     @Override
     public RepeatStatus execute(final StepContribution stepContribution, final ChunkContext chunkContext) throws Exception {
         // For our notifier
         String statusMessage = "success";
-
-        // Set up our download parameters
-        String collection = message.getCollection();
-        String depositor = message.getDepositor();
-        String location = message.getBagLocation();
-        String protocol = message.getProtocol();
-        String tagDigest = message.getTagManifestDigest();
 
         // Replicate the collection
         log.info("Downloading bag from {}", location);
@@ -94,16 +112,23 @@ public class BagDownloadStep implements Tasklet {
         String calculatedDigest = hashCode.toString();
         log.trace("Calculated digest {} for tagmanifest", calculatedDigest);
 
-        if (!calculatedDigest.equalsIgnoreCase(tagDigest)) {
-            log.error("Downloaded tagmanifest does not match expected digest!" +
-                      "\nFound {}\nExpected {}",
-                    calculatedDigest,
-                    tagDigest);
-            statusMessage = "Downloaded tag manifest does not match expected digest";
+        /*
+        if (tagDigest.isEmpty()) {
+            // update replication object
         } else {
-            log.info("Successfully validated tagmanifest");
+            if (!calculatedDigest.equalsIgnoreCase(tagDigest)) {
+                log.error("Downloaded tagmanifest does not match expected digest!" +
+                                "\nFound {}\nExpected {}",
+                        calculatedDigest,
+                        tagDigest);
+                statusMessage = "Downloaded tag manifest does not match expected digest";
+            } else {
+                log.info("Successfully validated tagmanifest");
+            }
         }
+        */
 
+        notifier.setCalculatedTagDigest(calculatedDigest);
         notifier.setBagStep(statusMessage);
         return RepeatStatus.FINISHED;
     }
