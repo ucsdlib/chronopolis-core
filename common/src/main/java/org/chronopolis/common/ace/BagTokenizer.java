@@ -146,7 +146,10 @@ public class BagTokenizer {
             }
             log.error("Error validating collection, {} bad files found:\n{}",
                     badFiles.size(), files.toString());
-            return null;
+            throw new RuntimeException("Error validating collection, "
+                    + badFiles.size()
+                    + " bad files found:\n"
+                    + files.toString());
         }
 
         log.info("Creating tokens");

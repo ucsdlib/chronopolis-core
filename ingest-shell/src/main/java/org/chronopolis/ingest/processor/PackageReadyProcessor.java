@@ -136,6 +136,10 @@ public class PackageReadyProcessor implements ChronProcessor {
                 ci.setTokensGenerated(true);
             } catch (Exception e) {
                 log.error("Error creating ace manifest {}", e);
+                SimpleMailMessage message = mailUtil.createMessage(settings.getNode(),
+                        "Ingest failed for package " + packageName,
+                        e.toString());
+                mailUtil.send(message);
                 success = false;
             }
             tagManifestDigest = tokenizer.getTagManifestDigest();

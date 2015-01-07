@@ -1,11 +1,14 @@
 package org.chronopolis.ingest.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
 
 import javax.sql.DataSource;
 
@@ -21,18 +24,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication().withUser("admin").password("password").roles("ADMIN");
-        auth.inMemoryAuthentication().withUser("umiacs").password("umiacs").roles("USER");
-        auth.inMemoryAuthentication().withUser("sdsc").password("sdsc").roles("USER");
-        auth.inMemoryAuthentication().withUser("ncar").password("ncar").roles("USER");
+        auth.jdbcAuthentication().dataSource(this.dataSource);
 
-        // todo testing with
-        /*
-        auth.jdbcAuthentication().dataSource(dataSource)
-                .usersByUsernameQuery("SELECT username,password FROM node where username=?")
-                .authoritiesByUsernameQuery("SELECT username, role FROM user_role WHERE username=?");
-        */
-
+        // We're going to keep our user and node domain objects split for now
+        // ie: let the spring security stuff worry about authentication
+        // otherwise we could do something like this to use our node domain object
+        // .usersByUsernameQuery("select username, password, enabled from node where username=?");
     }
 
     @Override
@@ -49,4 +46,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
             .httpBasic();
     }
+
+    @Bean
+    // This is for accessing and updating our users
+    public JdbcUserDetailsManager jdbcUserDetailsManager(AuthenticationManager authenticationManager) {
+        JdbcUserDetailsManager manager = new JdbcUserDetailsManager();
+        manager.setDataSource(dataSource);
+        manager.setAuthenticationManager(authenticationManager);
+        return manager;
+    }
+
 }
