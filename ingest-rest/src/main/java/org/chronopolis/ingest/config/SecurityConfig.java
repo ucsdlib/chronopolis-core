@@ -24,7 +24,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.jdbcAuthentication().dataSource(this.dataSource);
+        auth.jdbcAuthentication()
+                .dataSource(this.dataSource);
+                // TODO: Get the password encoder working
+                // .passwordEncoder(new ShaPasswordEncoder());
 
         // We're going to keep our user and node domain objects split for now
         // ie: let the spring security stuff worry about authentication
