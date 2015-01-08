@@ -3,7 +3,6 @@ package org.chronopolis.ingest.api;
 import org.chronopolis.ingest.TestApplication;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.rest.models.Bag;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,11 +17,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.util.List;
-import java.util.Random;
 
 import static org.junit.Assert.assertEquals;
 
 
+/**
+ * Because of the application.properties, we don't need to load any bags here.
+ * It is done through the DevConfig class
+ *
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = TestApplication.class)
 @WebAppConfiguration
@@ -35,32 +38,6 @@ public class StagingControllerTest {
 
     @Autowired
     BagRepository bagRepository;
-
-    @Before
-    public void setup() {
-        createBags();
-    }
-
-    /*
-    @After
-    public void teardown() {
-        bagRepository.deleteAll();
-    }
-    */
-
-    private void createBags() {
-        Random r = new Random();
-        for (int i = 0; i < 10; i++) {
-            Bag b = new Bag("bag-" + i, "test-depositor");
-            b.setFixityAlgorithm("SHA-256");
-            b.setLocation("bags/test-bag-" + i);
-            b.setSize(r.nextInt(50000));
-            b.setTagManifestDigest("");
-            b.setTokenDigest("");
-            b.setTokenLocation("tokens/test-bag-" + i + "-tokens");
-            bagRepository.save(b);
-        }
-    }
 
     @Test
     public void testGetBags() throws Exception {
@@ -92,5 +69,6 @@ public class StagingControllerTest {
     public void testStageBag() throws Exception {
         // TODO: Actual staging involves creating tokens - is there any way to get around this?
         // slash is that something we want to test?
+        // maybe just test that we don't try to restage any bags
     }
 }
