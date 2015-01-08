@@ -15,6 +15,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.orm.jpa.EntityScan;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 
 import java.io.BufferedReader;
@@ -34,6 +35,9 @@ import java.util.Random;
 @EnableAutoConfiguration
 public class Application implements CommandLineRunner {
     private final Logger log = LoggerFactory.getLogger(Application.class);
+
+    @Autowired
+    ApplicationContext context;
 
     @Autowired
     BagRepository bagRepository;
@@ -56,55 +60,10 @@ public class Application implements CommandLineRunner {
 
     @Override
     public void run(final String... args) throws Exception {
-        System.out.println("Creating nodes...");
-        List<Node> nodeList = Lists.newArrayList();
-        for (String s : Sets.newHashSet("umiacs", "sdsc", "ncar", "ucsd")) {
-            Node n = new Node(s, s);
-            nodeRepository.save(n);
-            nodeList.add(n);
-        }
-
-        System.out.println("Creating bags...");
-        Random r = new Random();
-        List<Bag> bagList = Lists.newArrayList();
-        for (int i = 0; i < 10; i++) {
-            Bag b = new Bag("bag-" + i, "test-depositor");
-            b.setFixityAlgorithm("SHA-256");
-            b.setLocation("bags/test-bag-" + i);
-            b.setSize(r.nextInt(50000));
-            b.setTagManifestDigest("");
-            b.setTokenDigest("");
-            b.setTokenLocation("tokens/test-bag-" + i + "-tokens");
-            bagRepository.save(b);
-            bagList.add(b);
-        }
-
-        System.out.println("Creating transfers and restorations...");
-        Random ran = new Random();
-        for (Bag b : bagList) {
-            // create xfer object for each node
-            for (Node n : nodeList) {
-                Replication action = new Replication(n,
-                        b,
-                        ingestSettings.getBagStage() + "/" + b.getLocation() ,
-                        ingestSettings.getTokenStage() + "/" + b.getTokenLocation());
-
-                if (ran.nextInt(100) < 10) {
-                    action.setStatus(ReplicationStatus.STARTED);
-                }
-
-                replicationRepository.save(action);
-            }
-
-            Restoration restoration = new Restoration(b.getDepositor(),
-                    b.getName(),
-                    ingestSettings.getRestore() + "/" + b.getLocation());
-            restoreRepository.save(restoration);
-
-        }
-
+        // TODO: Make the node an admin?
         Object[] values = new Object[]{ingestSettings.getNode(), ingestSettings.getBagStage(), ingestSettings.getTokenStage()};
-        log.info("Autowired properties with settings: {}", values);
+        log.info("Autowired properties with settings: {} {} {}", values);
+
         boolean done = false;
         System.out.println("Enter 'q' to quit");
         while (!done) {
