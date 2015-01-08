@@ -75,7 +75,7 @@ public class RestoreController {
             log.info("Restoration {} accepted from node {}, but was not found",
                     id,
                     principal.getName());
-            throw new NotFoundException(restoration.resourceID());
+            throw new NotFoundException("restore/" + id);
         }
 
         Node restoringNode = restoration.getNode();

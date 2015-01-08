@@ -54,7 +54,7 @@ public class StagingController {
     public Bag getBag(Principal principal, @PathVariable("bag-id") Long bagId) {
         Bag bag = bagRepository.findOne(bagId);
         if (bag == null) {
-            throw new NotFoundException(bag.resourceID());
+            throw new NotFoundException("bag/" + bagId);
         }
         return bag;
     }

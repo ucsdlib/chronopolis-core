@@ -53,7 +53,7 @@ public class ReplicationController {
         Bag bag = bagRepository.findOne(request.getBagID());
 
         if (bag == null) {
-            throw new NotFoundException(bag.resourceID());
+            throw new NotFoundException("bag/" + request.getBagID());
         }
 
         Replication action = replicationRepository.findByNodeUsernameAndBagID(node.getUsername(), bag.getID());
