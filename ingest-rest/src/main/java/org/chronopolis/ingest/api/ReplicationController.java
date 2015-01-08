@@ -99,7 +99,7 @@ public class ReplicationController {
         }
     }
 
-    @RequestMapping(value = "/replications/{id}")
+    @RequestMapping(value = "/replications/{id}", method = RequestMethod.GET)
     public Replication findReplication(Principal principal, @PathVariable("id") Long actionId) {
         Replication action = replicationRepository.findOne(actionId);
 

@@ -3,6 +3,7 @@ package org.chronopolis.ingest.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -44,8 +45,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
          * </http>
          */
 
+        /**
+         * Most of the time the client only interacts through GETs and POSTs,
+         * whereas the admin user will also PUT in order to create bags or
+         * restore requests. However, a client may also PUT on
+         * /api/restorations/{id}, so we need to add that as well
+         */
+
         http.csrf().disable().authorizeRequests()
-                .antMatchers("/api/**").hasRole("USER")
+                .antMatchers(HttpMethod.GET, "/api/**").hasRole("USER")
+                .antMatchers(HttpMethod.POST, "/api/**").hasRole("USER")
+                .antMatchers(HttpMethod.PUT, "/api/restorations/**").hasRole("USER")
+                .antMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")
                 .and()
             .httpBasic();
     }
