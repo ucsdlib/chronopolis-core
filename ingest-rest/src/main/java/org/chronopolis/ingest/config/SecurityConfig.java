@@ -4,14 +4,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.access.AccessDecisionManager;
+import org.springframework.security.access.AccessDecisionVoter;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
+import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
+import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
+import org.springframework.security.web.access.expression.WebExpressionVoter;
 
 import javax.sql.DataSource;
+import java.util.Arrays;
 
 /**
  * Created by shake on 11/10/14.
@@ -52,7 +60,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
          * /api/restorations/{id}, so we need to add that as well
          */
 
+        AccessDecisionManager decisionManager = accessDecisionManager();
+
         http.csrf().disable().authorizeRequests()
+                .accessDecisionManager(decisionManager)
                 .antMatchers(HttpMethod.GET, "/api/**").hasRole("USER")
                 .antMatchers(HttpMethod.POST, "/api/**").hasRole("USER")
                 .antMatchers(HttpMethod.PUT, "/api/restorations/**").hasRole("USER")
@@ -68,6 +79,22 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         manager.setDataSource(dataSource);
         manager.setAuthenticationManager(authenticationManager);
         return manager;
+    }
+
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        RoleHierarchyImpl hierarchy = new RoleHierarchyImpl();
+        hierarchy.setHierarchy("ROLE_ADMIN > ROLE_USER");
+        return hierarchy;
+    }
+
+    @Bean
+    public AccessDecisionManager accessDecisionManager() {
+        WebExpressionVoter webExpressionVoter = new WebExpressionVoter();
+        DefaultWebSecurityExpressionHandler expressionHandler = new DefaultWebSecurityExpressionHandler();
+        expressionHandler.setRoleHierarchy(roleHierarchy());
+        webExpressionVoter.setExpressionHandler(expressionHandler);
+        return new AffirmativeBased(Arrays.asList((AccessDecisionVoter) webExpressionVoter));
     }
 
 }
