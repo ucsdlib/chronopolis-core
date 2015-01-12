@@ -13,6 +13,8 @@ import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,11 +24,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * TODO: We'll probably want a separate class to handle common db stuff
  * using the 3 repository classes
- *
+ * <p/>
  * Created by shake on 11/5/14.
  */
 @RestController
@@ -90,13 +93,35 @@ public class ReplicationController {
     }
 
     @RequestMapping(value = "/replications", method = RequestMethod.GET)
-    public Collection<Replication> replications(Principal principal,
-                                                @RequestParam(value = "status", required = false) ReplicationStatus status) {
-        if (status == null) {
-            return replicationRepository.findByNodeUsername(principal.getName());
+    public Iterable<Replication> replications(Principal principal,
+                                              @RequestParam Map<String, String> params) {
+        // @RequestParam(value = "status", required = false) ReplicationStatus status) {
+        Iterable<Replication> replications;
+        ReplicationStatus status = params.containsKey("status") ? ReplicationStatus.valueOf(params.get("status")) : null;
+        Integer pageNum = params.containsKey("page") ? Integer.parseInt(params.get("page")) : -1;
+        Integer pageSize = params.containsKey("page_size") ? Integer.parseInt(params.get("page_size")) : 20;
+        String name = principal.getName();
+        log.info("Params for replication: {} {} {}", new Object[]{ status.name(), pageNum, pageSize});
+
+        // TODO: maybe we can make this look a bit... cleaner.
+        // if there was no page param
+        if (pageNum == -1) {
+            if (status == null) {
+                replications = replicationRepository.findByNodeUsername(name);
+            } else {
+                replications = replicationRepository.findByStatusAndNodeUsername(status, name);
+            }
+
         } else {
-            return replicationRepository.findByStatusAndNodeUsername(status, principal.getName());
+            Pageable pageable = new PageRequest(pageNum, pageSize);
+            if (status == null) {
+                replications = replicationRepository.findByNodeUsername(name, pageable);
+            } else {
+                replications = replicationRepository.findByStatusAndNodeUsername(status, name, pageable);
+            }
         }
+
+        return replications;
     }
 
     @RequestMapping(value = "/replications/{id}", method = RequestMethod.GET)

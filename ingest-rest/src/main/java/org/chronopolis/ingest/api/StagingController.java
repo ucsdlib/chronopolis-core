@@ -14,15 +14,18 @@ import org.chronopolis.rest.models.Replication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Principal;
+import java.util.Map;
 
 /**
  * Created by shake on 11/5/14.
@@ -30,6 +33,8 @@ import java.security.Principal;
 @RestController
 @RequestMapping("/api")
 public class StagingController {
+    final String PAGE_PARAM = "page";
+    final String PAGE_SIZE_PARAM = "page_size";
 
     Logger log = LoggerFactory.getLogger(StagingController.class);
 
@@ -46,7 +51,19 @@ public class StagingController {
     IngestSettings ingestSettings;
 
     @RequestMapping(value = "bags", method = RequestMethod.GET)
-    public Iterable<Bag> getBags(Principal principal) {
+    public Iterable<Bag> getBags(Principal principal,
+                                 @RequestParam Map<String, String> params) {
+        Integer pageNum = params.containsKey(PAGE_PARAM)
+                ? Integer.parseInt(params.get(PAGE_PARAM))
+                : -1;
+        Integer pageSize = params.containsKey(PAGE_SIZE_PARAM)
+                ? Integer.parseInt(params.get(PAGE_SIZE_PARAM))
+                : 20;
+
+        if (pageNum != -1) {
+            return bagRepository.findAll(new PageRequest(pageNum, pageSize));
+        }
+
         return bagRepository.findByStatus(BagStatus.STAGED);
     }
 

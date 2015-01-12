@@ -13,16 +13,21 @@ import org.chronopolis.rest.models.Restoration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
-import java.util.Collection;
+import java.util.Map;
 
 /**
+ * TODO: Add status param for accepted restores
+ *
  * Created by shake on 12/10/14.
  */
 @RestController
@@ -38,8 +43,20 @@ public class RestoreController {
 
 
     @RequestMapping(method = RequestMethod.GET)
-    public Collection<Restoration> getRestorations(Principal principal) {
-        return restoreRepository.findByStatus(ReplicationStatus.PENDING);
+    public Iterable<Restoration> getRestorations(Principal principal,
+                                                 @RequestParam Map<String, String> params) {
+        Integer page = params.containsKey("page") ? Integer.parseInt(params.get("page")) : -1;
+        Integer pageSize = params.containsKey("page_size") ? Integer.parseInt(params.get("page_size")) : 20;
+
+        Iterable<Restoration> restorations;
+        if (page == -1) {
+            restorations = restoreRepository.findByStatus(ReplicationStatus.PENDING);
+        } else {
+            Pageable pageable = new PageRequest(page, pageSize);
+            restorations = restoreRepository.findByStatus(ReplicationStatus.PENDING, pageable);
+        }
+
+        return restorations;
     }
 
     @RequestMapping(method = RequestMethod.PUT)
