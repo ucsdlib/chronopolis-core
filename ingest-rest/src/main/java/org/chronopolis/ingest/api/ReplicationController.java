@@ -23,8 +23,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
-import java.util.Collection;
 import java.util.Map;
+
+import static org.chronopolis.ingest.api.Params.PAGE;
+import static org.chronopolis.ingest.api.Params.PAGE_SIZE;
+import static org.chronopolis.ingest.api.Params.STATUS;
 
 /**
  * TODO: We'll probably want a separate class to handle common db stuff
@@ -95,11 +98,11 @@ public class ReplicationController {
     @RequestMapping(value = "/replications", method = RequestMethod.GET)
     public Iterable<Replication> replications(Principal principal,
                                               @RequestParam Map<String, String> params) {
-        // @RequestParam(value = "status", required = false) ReplicationStatus status) {
+        // @RequestParam(value = STATUS, required = false) ReplicationStatus status) {
         Iterable<Replication> replications;
-        ReplicationStatus status = params.containsKey("status") ? ReplicationStatus.valueOf(params.get("status")) : null;
-        Integer pageNum = params.containsKey("page") ? Integer.parseInt(params.get("page")) : -1;
-        Integer pageSize = params.containsKey("page_size") ? Integer.parseInt(params.get("page_size")) : 20;
+        ReplicationStatus status = params.containsKey(STATUS) ? ReplicationStatus.valueOf(params.get(STATUS)) : null;
+        Integer pageNum = params.containsKey(PAGE) ? Integer.parseInt(params.get(PAGE)) : -1;
+        Integer pageSize = params.containsKey(PAGE_SIZE) ? Integer.parseInt(params.get(PAGE_SIZE)) : 20;
         String name = principal.getName();
         log.info("Params for replication: {} {} {}", new Object[]{ status.name(), pageNum, pageSize});
 

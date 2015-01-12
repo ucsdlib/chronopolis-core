@@ -25,6 +25,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.security.Principal;
 import java.util.Map;
 
+import static org.chronopolis.ingest.api.Params.PAGE;
+import static org.chronopolis.ingest.api.Params.PAGE_SIZE;
+
 /**
  * TODO: Add status param for accepted restores
  *
@@ -45,8 +48,8 @@ public class RestoreController {
     @RequestMapping(method = RequestMethod.GET)
     public Iterable<Restoration> getRestorations(Principal principal,
                                                  @RequestParam Map<String, String> params) {
-        Integer page = params.containsKey("page") ? Integer.parseInt(params.get("page")) : -1;
-        Integer pageSize = params.containsKey("page_size") ? Integer.parseInt(params.get("page_size")) : 20;
+        Integer page = params.containsKey(PAGE) ? Integer.parseInt(params.get(PAGE)) : -1;
+        Integer pageSize = params.containsKey(PAGE_SIZE) ? Integer.parseInt(params.get(PAGE_SIZE)) : 20;
 
         Iterable<Restoration> restorations;
         if (page == -1) {

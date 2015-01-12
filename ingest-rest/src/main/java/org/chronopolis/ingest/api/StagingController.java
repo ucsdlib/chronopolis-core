@@ -27,15 +27,15 @@ import java.nio.file.Paths;
 import java.security.Principal;
 import java.util.Map;
 
+import static org.chronopolis.ingest.api.Params.PAGE;
+import static org.chronopolis.ingest.api.Params.PAGE_SIZE;
+
 /**
  * Created by shake on 11/5/14.
  */
 @RestController
 @RequestMapping("/api")
 public class StagingController {
-    final String PAGE_PARAM = "page";
-    final String PAGE_SIZE_PARAM = "page_size";
-
     Logger log = LoggerFactory.getLogger(StagingController.class);
 
     @Autowired
@@ -53,11 +53,11 @@ public class StagingController {
     @RequestMapping(value = "bags", method = RequestMethod.GET)
     public Iterable<Bag> getBags(Principal principal,
                                  @RequestParam Map<String, String> params) {
-        Integer pageNum = params.containsKey(PAGE_PARAM)
-                ? Integer.parseInt(params.get(PAGE_PARAM))
+        Integer pageNum = params.containsKey(PAGE)
+                ? Integer.parseInt(params.get(PAGE))
                 : -1;
-        Integer pageSize = params.containsKey(PAGE_SIZE_PARAM)
-                ? Integer.parseInt(params.get(PAGE_SIZE_PARAM))
+        Integer pageSize = params.containsKey(PAGE_SIZE)
+                ? Integer.parseInt(params.get(PAGE_SIZE))
                 : 20;
 
         if (pageNum != -1) {
