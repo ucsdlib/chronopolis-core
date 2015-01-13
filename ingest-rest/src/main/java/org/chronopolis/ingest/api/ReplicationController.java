@@ -104,7 +104,6 @@ public class ReplicationController {
         Integer pageNum = params.containsKey(PAGE) ? Integer.parseInt(params.get(PAGE)) : -1;
         Integer pageSize = params.containsKey(PAGE_SIZE) ? Integer.parseInt(params.get(PAGE_SIZE)) : 20;
         String name = principal.getName();
-        log.info("Params for replication: {} {} {}", new Object[]{ status.name(), pageNum, pageSize});
 
         // TODO: maybe we can make this look a bit... cleaner.
         // if there was no page param
