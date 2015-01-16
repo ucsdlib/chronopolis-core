@@ -117,6 +117,7 @@ public class StagingController {
 
 
         for (Node node : nodeRepository.findAll()) {
+            log.trace("Creating replication object for {}", node.getUsername());
             Replication replication = new Replication(node, bag, bagLocation, tokenStore);
             replication.setProtocol("rsync");
             replicationRepository.save(replication);
