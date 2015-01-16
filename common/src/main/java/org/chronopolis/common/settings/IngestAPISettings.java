@@ -3,6 +3,9 @@ package org.chronopolis.common.settings;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * TODO: Let's just have a list of endpoints instead of trying to split it up.
  * ex: [http://localhost:8080, https://naradev05.8443:ingest-rest]
@@ -26,6 +29,8 @@ public class IngestAPISettings {
 
     @Value("${ingest.api.password:umiacs}")
     private String ingestAPIPassword;
+
+    private List<String> ingestEndpoints;
 
 
     public String getIngestAPIHost() {
@@ -66,5 +71,18 @@ public class IngestAPISettings {
 
     public void setIngestAPIPassword(final String ingestAPIPassword) {
         this.ingestAPIPassword = ingestAPIPassword;
+    }
+
+    public List<String> getIngestEndpoints() {
+        return ingestEndpoints;
+    }
+
+    @Value("${ingest.api.endpoints:http://localhost}")
+    public void setIngestEndpoints(String ingestEndpoints) {
+        System.out.println("Splitting endpoints");
+        String[] endpoints = ingestEndpoints.split(",");
+        if (endpoints.length > 0) {
+            this.ingestEndpoints = Arrays.asList(endpoints);
+        }
     }
 }
