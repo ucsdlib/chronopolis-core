@@ -180,6 +180,9 @@ public class BagTokenizer {
         return manifest.get();
     }
 
+    public void shutdown() {
+        manifestService.shutdown();
+    }
 
     /**
      * Create an ACE Token Manifest from the manifest-alg.txt and tagmanifest-alg.txt

@@ -10,10 +10,12 @@ import org.chronopolis.common.ace.CredentialRequestInterceptor;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.settings.AMQPSettings;
 import org.chronopolis.common.settings.AceSettings;
+import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.common.settings.SMTPSettings;
 import org.chronopolis.db.common.RestoreRepository;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.ReplicateMessageListener;
+import org.chronopolis.replicate.batch.ReplicationJobStarter;
 import org.chronopolis.replicate.batch.ReplicationStepListener;
 import org.chronopolis.replicate.processor.CollectionInitProcessor;
 import org.chronopolis.replicate.processor.CollectionRestoreLocationProcessor;
@@ -21,6 +23,7 @@ import org.chronopolis.replicate.processor.CollectionRestoreRequestProcessor;
 import org.chronopolis.replicate.processor.FileQueryProcessor;
 import org.chronopolis.replicate.processor.FileQueryResponseProcessor;
 import org.chronopolis.common.util.URIUtil;
+import org.chronopolis.rest.api.IngestAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Binding;
@@ -39,12 +42,6 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
-import org.springframework.batch.core.repository.dao.ExecutionContextDao;
-import org.springframework.batch.core.repository.dao.JobExecutionDao;
-import org.springframework.batch.core.repository.dao.JobInstanceDao;
-import org.springframework.batch.core.repository.dao.StepExecutionDao;
-import org.springframework.batch.core.repository.support.MapJobRepositoryFactoryBean;
-import org.springframework.batch.core.repository.support.SimpleJobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -83,6 +80,49 @@ public class ReplicationConfig {
                 .build();
 
         return restAdapter.create(AceService.class);
+    }
+
+    @Bean
+    IngestAPI ingestAPI(IngestAPISettings apiSettings) {
+        String endpoint =  URIUtil.buildAceUri(
+                apiSettings.getIngestAPIHost(),
+                apiSettings.getIngestAPIPort(),
+                apiSettings.getIngestAPIPath()).toString();
+
+        // TODO: This can timeout on long polls, see SO for potential fix
+        // http://stackoverflow.com/questions/24669309/how-to-increase-timeout-for-retrofit-requests-in-robospice-android
+        RestAdapter adapter = new RestAdapter.Builder()
+                .setEndpoint(endpoint)
+                .setRequestInterceptor(new CredentialRequestInterceptor(
+                        apiSettings.getIngestAPIUsername(),
+                        apiSettings.getIngestAPIPassword()))
+                // .setLogLevel(RestAdapter.LogLevel.FULL)
+                .build();
+
+        return adapter.create(IngestAPI.class);
+    }
+
+    @Bean
+    ReplicationJobStarter jobStarter(ChronProducer producer,
+                                     MessageFactory messageFactory,
+                                     ReplicationSettings settings,
+                                     MailUtil mailUtil,
+                                     AceService aceService,
+                                     IngestAPI ingestAPI,
+                                     ReplicationStepListener replicationStepListener,
+                                     JobLauncher jobLauncher,
+                                     JobBuilderFactory jobBuilderFactory,
+                                     StepBuilderFactory stepBuilderFactory) {
+        return new ReplicationJobStarter(producer,
+                messageFactory,
+                settings,
+                mailUtil,
+                aceService,
+                ingestAPI,
+                replicationStepListener,
+                jobLauncher,
+                jobBuilderFactory,
+                stepBuilderFactory);
     }
 
     /*
@@ -195,24 +235,8 @@ public class ReplicationConfig {
     }
 
     @Bean
-    CollectionInitProcessor collectionInitProcessor(MessageFactory messageFactory,
-                                                    ReplicationSettings replicationSettings,
-                                                    AceService aceService,
-                                                    TopicProducer producer,
-                                                    MailUtil mailUtil,
-                                                    ReplicationStepListener replicationStepListener,
-                                                    JobBuilderFactory jobBuilderFactory,
-                                                    JobLauncher jobLauncher,
-                                                    StepBuilderFactory stepBuilderFactory) {
-        return new CollectionInitProcessor(producer,
-                messageFactory,
-                replicationSettings,
-                mailUtil,
-                aceService,
-                replicationStepListener,
-                jobBuilderFactory,
-                jobLauncher,
-                stepBuilderFactory);
+    CollectionInitProcessor collectionInitProcessor(ReplicationJobStarter replicationJobStarter) {
+        return new CollectionInitProcessor(replicationJobStarter);
     }
 
     @Bean

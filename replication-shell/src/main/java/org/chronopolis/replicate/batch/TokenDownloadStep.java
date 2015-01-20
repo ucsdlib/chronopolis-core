@@ -10,6 +10,8 @@ import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.ReplicationQueue;
 import org.chronopolis.replicate.config.ReplicationSettings;
+import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.Replication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -29,24 +31,40 @@ public class TokenDownloadStep implements Tasklet {
 
     private ReplicationSettings settings;
     private ReplicationNotifier notifier;
-    private CollectionInitMessage message;
+    private String location;
+    private String protocol;
+    private String digest;
 
     public TokenDownloadStep(final ReplicationSettings settings,
                              final CollectionInitMessage message,
                              final ReplicationNotifier notifier) {
         this.settings = settings;
-        this.message = message;
         this.notifier = notifier;
+        this.location = message.getTokenStore();
+        this.protocol = message.getProtocol();
+        this.digest = message.getTokenStoreDigest();
+    }
+
+    public TokenDownloadStep(ReplicationSettings settings,
+                             ReplicationNotifier notifier,
+                             Replication replication) {
+        this.settings = settings;
+        this.notifier = notifier;
+
+        Bag bag = replication.getBag();
+        this.location = replication.getTokenLink();
+        this.protocol = replication.getProtocol();
+
+        // TODO: From the rest perspective, the flow gets changed a little:
+        // instead of checking against the tag digest we update the object and check if it
+        // is reported as correct by the ingest service
+        this.digest = "";
     }
 
 
     @Override
     public RepeatStatus execute(final StepContribution stepContribution, final ChunkContext chunkContext) throws Exception {
         String statusMessage = "success";
-
-        String location = message.getTokenStore();
-        String protocol = message.getProtocol();
-        String digest = message.getTokenStoreDigest();
 
         log.info("Downloading Token Store from {}", location);
         Path tokenStore;
@@ -87,20 +105,27 @@ public class TokenDownloadStep implements Tasklet {
         String calculatedDigest = hashCode.toString();
         log.trace("Calculated digest {} for token store", calculatedDigest);
 
-        if (!calculatedDigest.equalsIgnoreCase(digest)) {
-            // Fail
-            log.error("Downloaded token store does not match expected digest!" +
-                            "\nFound {}\nExpected {}",
-                    calculatedDigest,
-                    digest);
-
-            notifier.setSuccess(false);
-            notifier.setTokenStep("Downloaded token store does not match expected digest");
-            throw new FixityException("Could not validate the fixity of the token store");
+        /*
+        if (digest.isEmpty()) {
+            // update replication object
         } else {
-            log.info("Successfully validated token store");
-        }
+            if (!calculatedDigest.equalsIgnoreCase(digest)) {
+                // Fail
+                log.error("Downloaded token store does not match expected digest!" +
+                                "\nFound {}\nExpected {}",
+                        calculatedDigest,
+                        digest);
 
+                notifier.setSuccess(false);
+                notifier.setTokenStep("Downloaded token store does not match expected digest");
+                throw new FixityException("Could not validate the fixity of the token store");
+            } else {
+                log.info("Successfully validated token store");
+            }
+        }
+        */
+
+        notifier.setCalculatedTokenDigest(calculatedDigest);
         notifier.setTokenStep(statusMessage);
         return RepeatStatus.FINISHED;
     }
