@@ -108,9 +108,23 @@ public class BagTokenizer {
         for (Path manifest : manifests) {
             try {
                 BufferedReader br = Files.newBufferedReader(manifest, Charset.forName("UTF-8"));
+                int lineNum = 0; // Do we ever expect a collection to have > 2^32-1 lines?
                 while ((line = br.readLine()) != null) {
                     log.trace("Processing {}", line);
                     String [] split = line.split("\\s+", 2);
+
+                    if (split.length == 0) {
+                        // We don't want to crash on empty lines, just issue a warning
+                        log.warn("Line {} is empty", lineNum);
+                        continue;
+                    } else if (split.length == 1) {
+                        // TODO: How do we want to handle this?
+                        // Mark the manifest as invalid and halt tokenization?
+                        log.error("Line {} is invalid: {}", lineNum, line);
+                        badFiles.add(Paths.get(split[0]));
+                        continue;
+                    }
+
                     String digest = split[0];
                     Path path = Paths.get(bag.toString(), split[1]);
                     String calculatedDigest = DigestUtil.digest(path, fixityAlgorithm.getName());
@@ -124,6 +138,8 @@ public class BagTokenizer {
                                 stf);
                         badFiles.add(path);
                     }
+
+                    ++lineNum;
                 }
             } catch (IOException e) {
                 log.error("Error reading file " + manifest.toString());
