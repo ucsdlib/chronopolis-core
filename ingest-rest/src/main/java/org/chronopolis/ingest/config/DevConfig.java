@@ -43,7 +43,10 @@ public class DevConfig {
         System.out.println("Creating nodes...");
         List<Node> nodeList = Lists.newArrayList();
         for (String s : Sets.newHashSet("umiacs", "sdsc", "ncar", "ucsd")) {
-            Node n = new Node(s, s);
+            Node n = nodeRepository.findByUsername(s);
+            if (n == null) {
+                n = new Node(s, s);
+            }
             nodeRepository.save(n);
             nodeList.add(n);
         }
