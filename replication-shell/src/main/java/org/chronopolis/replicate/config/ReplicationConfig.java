@@ -84,10 +84,13 @@ public class ReplicationConfig {
 
     @Bean
     IngestAPI ingestAPI(IngestAPISettings apiSettings) {
-        String endpoint =  URIUtil.buildAceUri(
+        // TODO: Create a list of endpoints
+        String endpoint = apiSettings.getIngestEndpoints().get(0);
+        /*                URIUtil.buildAceUri(
                 apiSettings.getIngestAPIHost(),
                 apiSettings.getIngestAPIPort(),
                 apiSettings.getIngestAPIPath()).toString();
+                */
 
         // TODO: This can timeout on long polls, see SO for potential fix
         // http://stackoverflow.com/questions/24669309/how-to-increase-timeout-for-retrofit-requests-in-robospice-android
@@ -96,7 +99,7 @@ public class ReplicationConfig {
                 .setRequestInterceptor(new CredentialRequestInterceptor(
                         apiSettings.getIngestAPIUsername(),
                         apiSettings.getIngestAPIPassword()))
-                // .setLogLevel(RestAdapter.LogLevel.FULL)
+                .setLogLevel(RestAdapter.LogLevel.FULL)
                 .build();
 
         return adapter.create(IngestAPI.class);
