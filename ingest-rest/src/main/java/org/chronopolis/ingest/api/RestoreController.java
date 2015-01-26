@@ -80,7 +80,19 @@ public class RestoreController {
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public Restoration getRestoration(Principal principal,
                                       @PathVariable("id") Long id) {
-        return restoreRepository.findOne(id);
+        Restoration restoration = restoreRepository.findOne(id);
+        // check if it exists
+        if (restoration == null) {
+            throw new NotFoundException("restore/" + id);
+        }
+
+        Node node = restoration.getNode();
+        // check if the user is authorized to access the resource
+        if (node != null && !node.getUsername().equals(principal.getName())) {
+            throw new UnauthorizedException("restore/" + id);
+        }
+
+        return restoration;
     }
 
 
