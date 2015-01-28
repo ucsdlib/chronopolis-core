@@ -31,6 +31,15 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.UUID;
 
+import gov.loc.repository.bagit.BagFactory;
+import gov.loc.repository.bagit.PreBag;
+import gov.loc.repository.bagit.Bag;
+import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
+
+import java.io.File;
+import java.util.Date;
+
+
 /**
  * Totally based off of Andrew's Producer for DPN
  *
@@ -61,7 +70,7 @@ public class IntakeProducer implements CommandLineRunner {
     }
 
     private enum PRODUCER_OPTION {
-        SEND_STATIC_INTAKE_REQUEST, CREATE_INTAKE_REQUEST, RESTORE_REQUEST, DIRECTORY_SCAN, REST, QUIT, UNKNOWN;
+        SEND_STATIC_INTAKE_REQUEST, CREATE_INTAKE_REQUEST, RESTORE_REQUEST, DIRECTORY_SCAN, REST, BAG_IT, QUIT, UNKNOWN;
 
         private static PRODUCER_OPTION fromString(String text) {
             switch (text) {
@@ -75,6 +84,8 @@ public class IntakeProducer implements CommandLineRunner {
                     return DIRECTORY_SCAN;
                 case "T":
                     return REST;
+	        case "B":
+		    return BAG_IT;
                 case "Q":
                 case "q":
                     return QUIT;
@@ -107,7 +118,7 @@ public class IntakeProducer implements CommandLineRunner {
                 bagName = readLine();
 
                 sendRestore(depositor, bagName);
-             } else if (option.equals(PRODUCER_OPTION.QUIT)) {
+	    } else if (option.equals(PRODUCER_OPTION.QUIT)) {
                 done = true;
             } else if (option.equals(PRODUCER_OPTION.DIRECTORY_SCAN)) {
                 System.out.print("Depositor: ");
@@ -123,7 +134,12 @@ public class IntakeProducer implements CommandLineRunner {
                 bagName = readLine();
 
                 sendRest(depositor, bagName);
-
+	    } else if (option.equals(PRODUCER_OPTION.BAG_IT)) {
+                System.out.print("Bag Directory: ");
+                directory = readLine();
+		System.out.print("Bag Name: ");
+                bagName = readLine();
+                bagIt(directory, bagName);
             } else {
                 System.out.println("Unknown?");
             }
@@ -161,8 +177,50 @@ public class IntakeProducer implements CommandLineRunner {
             }
         }
 
+    }
+
+
+    /**
+     * Create a bag under /stage/bagName
+     * Should be of the form
+     *
+     */
+    private void bagIt(final String directory, final String bagName) {
+
+	// get the path for a bag 
+        Path bagPath = Paths.get(directory);
+	if (!bagPath.toFile().exists()) {
+	    System.out.println("ERROR: The directory "+directory+" does exist.");
+	    return;
+	}
+
+	// get the bag destination folder  
+        String bagStage = settings.getBagStage();
+	File bagDir = new File(bagStage+"/"+bagName);
+	if (bagDir.exists()) {
+	    System.out.println("ERROR: The bag "+bagStage+"/"+bagName+" exists.");
+	    return;
+	}
+
+        BagFactory bf = new BagFactory();
+        PreBag pb = bf.createPreBag(bagPath.toFile());
+        pb.makeBagInPlace(BagFactory.Version.V0_97, false);
+        Bag b = bf.createBag(bagPath.toFile(), BagFactory.LoadOption.BY_FILES);
+
+        //adding some optional metadata: 
+        Date d = new Date();
+        b.getBagInfoTxt().putList("createDate", d.toString());
+        b.getBagInfoTxt().putList("modified", d.toString());
+        b.getBagInfoTxt().putList("numberOfModifications", Integer.toString(1));
+
+        b.makeComplete();
+        FileSystemWriter fsw = new FileSystemWriter(bf);
+        fsw.write(b, bagDir);
+        System.out.println("The bag "+bagStage+"/"+bagName+" is created.");
 
     }
+
+
 
     /**
      * Send a restore request message for a bag in chronopolis
