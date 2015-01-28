@@ -84,17 +84,34 @@ public class ReplicationController {
             throw new UnauthorizedException(principal.getName());
         }
 
-        // TODO: Ignore null values
-        // TODO: check against bag fixity values
         log.info("Updating replication {}", replication.getReplicationID());
-        update.setReceivedTagFixity(replication.getReceivedTagFixity());
-        update.setReceivedTokenFixity(replication.getReceivedTokenFixity());
+
+        // check if the fixity values are non-null, and if so update them
+        String receivedTokenFixity = replication.getReceivedTokenFixity();
+        if (receivedTokenFixity != null) {
+            update.setReceivedTokenFixity(receivedTokenFixity);
+        }
+
+        String receivedTagFixity = replication.getReceivedTagFixity();
+        if (receivedTagFixity != null) {
+            update.setReceivedTagFixity(receivedTagFixity);
+        }
 
         Bag bag = update.getBag();
         String digest = bag.getTokenDigest();
-        if (digest != null && digest.equals(replication.getReceivedTokenFixity())) {
+        String tagDigest = bag.getTagManifestDigest();
+        // these should never be null, but for the time being just check anyways
+        boolean correctTokens = digest != null && digest.equals(receivedTokenFixity);
+        boolean correctManifest = tagDigest != null && tagDigest.equals(receivedTagFixity);
+
+        // if both fixities match we have a success
+        // if neither fixity is null and we had at least 1 mismatch, set as failure
+        if (correctTokens && correctManifest) {
             update.setStatus(ReplicationStatus.SUCCESS);
+        } else if (receivedTagFixity != null && receivedTokenFixity != null) {
+            update.setStatus(ReplicationStatus.FAILURE);
         } else {
+            // TODO: We may just want to leave the status as STARTED
             update.setStatus(replication.getStatus());
         }
 
