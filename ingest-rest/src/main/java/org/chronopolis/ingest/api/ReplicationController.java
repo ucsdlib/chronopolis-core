@@ -89,7 +89,15 @@ public class ReplicationController {
         log.info("Updating replication {}", replication.getReplicationID());
         update.setReceivedTagFixity(replication.getReceivedTagFixity());
         update.setReceivedTokenFixity(replication.getReceivedTokenFixity());
-        update.setStatus(replication.getStatus());
+
+	Bag bag = update.getBag();
+	String digest = bag.getTokenDigest();
+	if (digest != null && digest.equals(replication.getReceivedTokenFixity())) {
+	    update.setStatus(ReplicationStatus.SUCCESS);
+	} else {
+	    update.setStatus(replication.getStatus());
+	}
+
         replicationRepository.save(update);
 
         return update;
