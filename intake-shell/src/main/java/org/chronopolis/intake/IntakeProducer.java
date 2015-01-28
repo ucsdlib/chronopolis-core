@@ -84,8 +84,8 @@ public class IntakeProducer implements CommandLineRunner {
                     return DIRECTORY_SCAN;
                 case "T":
                     return REST;
-	        case "B":
-		    return BAG_IT;
+                case "B":
+                    return BAG_IT;
                 case "Q":
                 case "q":
                     return QUIT;
@@ -118,7 +118,7 @@ public class IntakeProducer implements CommandLineRunner {
                 bagName = readLine();
 
                 sendRestore(depositor, bagName);
-	    } else if (option.equals(PRODUCER_OPTION.QUIT)) {
+            } else if (option.equals(PRODUCER_OPTION.QUIT)) {
                 done = true;
             } else if (option.equals(PRODUCER_OPTION.DIRECTORY_SCAN)) {
                 System.out.print("Depositor: ");
@@ -134,10 +134,10 @@ public class IntakeProducer implements CommandLineRunner {
                 bagName = readLine();
 
                 sendRest(depositor, bagName);
-	    } else if (option.equals(PRODUCER_OPTION.BAG_IT)) {
+            } else if (option.equals(PRODUCER_OPTION.BAG_IT)) {
                 System.out.print("Bag Directory: ");
                 directory = readLine();
-		System.out.print("Bag Name: ");
+                System.out.print("Bag Name: ");
                 bagName = readLine();
                 bagIt(directory, bagName);
             } else {
@@ -159,10 +159,10 @@ public class IntakeProducer implements CommandLineRunner {
      * Scan a directory and send each bag underneath it
      * Should be of the form
      * /stage/directory/
-     *            | bag_1/
-     *            | bag_2/
-     *            ...
-     *            | bag_n/
+     * | bag_1/
+     * | bag_2/
+     * ...
+     * | bag_n/
      *
      * @param depositor
      * @param directory
@@ -183,24 +183,23 @@ public class IntakeProducer implements CommandLineRunner {
     /**
      * Create a bag under /stage/bagName
      * Should be of the form
-     *
      */
     private void bagIt(final String directory, final String bagName) {
 
-	// get the path for a bag 
+        // get the path for a bag
         Path bagPath = Paths.get(directory);
-	if (!bagPath.toFile().exists()) {
-	    System.out.println("ERROR: The directory "+directory+" does exist.");
-	    return;
-	}
+        if (!bagPath.toFile().exists()) {
+            System.out.println("ERROR: The directory " + directory + " does exist.");
+            return;
+        }
 
-	// get the bag destination folder  
+        // get the bag destination folder
         String bagStage = settings.getBagStage();
-	File bagDir = new File(bagStage+"/"+bagName);
-	if (bagDir.exists()) {
-	    System.out.println("ERROR: The bag "+bagStage+"/"+bagName+" exists.");
-	    return;
-	}
+        File bagDir = new File(bagStage + "/" + bagName);
+        if (bagDir.exists()) {
+            System.out.println("ERROR: The bag " + bagStage + "/" + bagName + " exists.");
+            return;
+        }
 
         BagFactory bf = new BagFactory();
         PreBag pb = bf.createPreBag(bagPath.toFile());
@@ -216,10 +215,9 @@ public class IntakeProducer implements CommandLineRunner {
         b.makeComplete();
         FileSystemWriter fsw = new FileSystemWriter(bf);
         fsw.write(b, bagDir);
-        System.out.println("The bag "+bagStage+"/"+bagName+" is created.");
+        System.out.println("The bag " + bagStage + "/" + bagName + " is created.");
 
     }
-
 
 
     /**
@@ -238,7 +236,7 @@ public class IntakeProducer implements CommandLineRunner {
         Path collectionPath = Paths.get(settings.getBagStage(), location);
 
         // Calculate the bag size for our message
-        final int [] bagSize = {0};
+        final int[] bagSize = {0};
         try {
             Files.walkFileTree(collectionPath, new SimpleFileVisitor<Path>() {
                 @Override
@@ -296,7 +294,7 @@ public class IntakeProducer implements CommandLineRunner {
         }
     }
 
-    public static void main(String [] args) {
+    public static void main(String[] args) {
         SpringApplication.exit(SpringApplication.run(IntakeProducer.class, args));
     }
 }

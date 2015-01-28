@@ -90,13 +90,13 @@ public class ReplicationController {
         update.setReceivedTagFixity(replication.getReceivedTagFixity());
         update.setReceivedTokenFixity(replication.getReceivedTokenFixity());
 
-	Bag bag = update.getBag();
-	String digest = bag.getTokenDigest();
-	if (digest != null && digest.equals(replication.getReceivedTokenFixity())) {
-	    update.setStatus(ReplicationStatus.SUCCESS);
-	} else {
-	    update.setStatus(replication.getStatus());
-	}
+        Bag bag = update.getBag();
+        String digest = bag.getTokenDigest();
+        if (digest != null && digest.equals(replication.getReceivedTokenFixity())) {
+            update.setStatus(ReplicationStatus.SUCCESS);
+        } else {
+            update.setStatus(replication.getStatus());
+        }
 
         replicationRepository.save(update);
 
