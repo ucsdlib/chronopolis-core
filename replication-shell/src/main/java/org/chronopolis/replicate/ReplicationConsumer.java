@@ -99,8 +99,6 @@ public class ReplicationConsumer implements CommandLineRunner {
 
     @Override
     public void run(final String... strings) throws Exception {
-        log.info("{}", settings.getInboundKey());
-
         boolean done = false;
         while (!done) {
             OPTION option = inputOption();
