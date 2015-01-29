@@ -1,5 +1,7 @@
 package org.chronopolis.common.settings;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +16,7 @@ import java.util.List;
  */
 @Component
 public class IngestAPISettings {
+    private final Logger log = LoggerFactory.getLogger(IngestAPISettings.class);
 
     @Value("${ingest.api.endpoint:localhost}")
     private String ingestAPIHost;
@@ -79,8 +82,9 @@ public class IngestAPISettings {
 
     @Value("${ingest.api.endpoints:http://localhost}")
     public void setIngestEndpoints(String ingestEndpoints) {
-        System.out.println("Splitting endpoints");
+        log.debug("Splitting endpoints");
         String[] endpoints = ingestEndpoints.split(",");
+        log.debug("Found {} endpoints: {}", endpoints.length, endpoints);
         if (endpoints.length > 0) {
             this.ingestEndpoints = Arrays.asList(endpoints);
         }
