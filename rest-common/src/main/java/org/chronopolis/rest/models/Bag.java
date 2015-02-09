@@ -40,8 +40,8 @@ public class Bag {
     @JsonIgnore
     private String tagManifestDigest;
 
-    @Enumerated(EnumType.STRING)
     @JsonIgnore
+    @Enumerated(EnumType.STRING)
     private BagStatus status;
 
     private String fixityAlgorithm;
