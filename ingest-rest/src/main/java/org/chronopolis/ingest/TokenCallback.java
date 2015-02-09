@@ -19,8 +19,13 @@ import java.util.List;
 public class TokenCallback implements RequestBatchCallback {
     private final Logger log = LoggerFactory.getLogger(TokenCallback.class);
 
-    TokenRepository tokenRepository;
-    Bag bag;
+    private TokenRepository repository;
+    private Bag bag;
+
+    public TokenCallback(TokenRepository repository, Bag bag) {
+        this.repository = repository;
+        this.bag = bag;
+    }
 
 
     @Override
@@ -39,7 +44,7 @@ public class TokenCallback implements RequestBatchCallback {
                 );
 
                 // TODO: Can batch insert if needed
-                tokenRepository.save(token);
+                repository.save(token);
             } else {
                 log.error("Received error for token: {} Code {}",
                         tr.getName(), tr.getStatusCode());
