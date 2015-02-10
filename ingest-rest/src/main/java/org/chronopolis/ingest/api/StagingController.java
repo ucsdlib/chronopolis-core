@@ -22,8 +22,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.security.Principal;
 import java.util.Map;
 
@@ -76,6 +77,61 @@ public class StagingController {
         return bag;
     }
 
+    @RequestMapping(value = "bags", method = RequestMethod.POST)
+    public Bag stageBag(Principal principal, @RequestBody IngestRequest request)  {
+        String name = request.getName();
+        String depositor = request.getDepositor();
+
+        Bag bag = bagRepository.findByNameAndDepositor(name, depositor);
+        if (bag != null) {
+            log.debug("Bag {} exists from depositor {}, skipping creation", name, depositor);
+            return bag;
+        }
+
+        bag = new Bag(name, depositor);
+        try {
+            initializeBag(bag, request.getLocation());
+        } catch (IOException e) {
+            log.error("Error initializing bag {}:{}", depositor, name);
+            return null;
+        }
+
+        bagRepository.save(bag);
+
+        return bag;
+    }
+
+    /**
+     * Set the location, fixity value, size, and total number of files for the bag
+     *
+     * @param bag
+     * @param fileName
+     */
+    private void initializeBag(Bag bag, String fileName) throws IOException {
+        Path stage = Paths.get(ingestSettings.getBagStage());
+        Path bagPath = stage.resolve(fileName);
+
+        // TODO: Get these passed in the ingest request
+        final long[] bagSize = {0};
+        final long[] fileCount = {0};
+        Files.walkFileTree(bagPath, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                fileCount[0]++;
+                bagSize[0] += attrs.size();
+                return FileVisitResult.CONTINUE;
+            }
+        });
+
+        Path relBag = stage.relativize(bagPath);
+        bag.setLocation(relBag.toString());
+        bag.setSize(bagSize[0]);
+        bag.setTotalFiles(fileCount[0]);
+        bag.setFixityAlgorithm("SHA-256");
+    }
+
+
+    /*
     @RequestMapping(value = "bags", method = RequestMethod.PUT)
     public Bag stageBag(Principal principal, @RequestBody IngestRequest request) {
         String name = request.getName();
@@ -125,5 +181,6 @@ public class StagingController {
 
         return bag;
     }
+    */
 
 }
