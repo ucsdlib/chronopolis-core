@@ -28,7 +28,6 @@ public class Tokenizer {
 
     private final Logger log = LoggerFactory.getLogger(Tokenizer.class);
     private final Path bag;
-    private final Path tokenStage;
     private final Digest fixityAlgorithm;
     private final Set<Path> manifests;
 
@@ -36,11 +35,9 @@ public class Tokenizer {
     private TokenRequestBatch batch;
 
     public Tokenizer(final Path bag,
-                     final Path tokenStage,
                      final String fixityAlgorithm,
                      final RequestBatchCallback callback) {
         this.bag = bag;
-        this.tokenStage = tokenStage;
         this.fixityAlgorithm = Digest.fromString(fixityAlgorithm);
         this.manifests = new HashSet<>();
         this.callback = callback;
@@ -78,6 +75,12 @@ public class Tokenizer {
             boolean corrupt = false;
             while ((line = br.readLine()) != null) {
                 String []split = line.split("\\s+", 2);
+                if (split.length != 2) {
+                    log.error("Error found in manifest: {}", split);
+                    continue;
+                }
+
+
                 String digest = split[0];
                 Path path = Paths.get(bag.toString(), split[1]);
                 String calculatedDigest = DigestUtil.digest(path, alg);
