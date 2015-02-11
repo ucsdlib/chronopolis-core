@@ -28,6 +28,9 @@ public class AceToken {
     String algorithm;
     Long round;
 
+    protected AceToken() { // JPA
+    }
+
     public AceToken(final Bag bag,
                     final Date createDate,
                     final String filename,
