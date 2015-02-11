@@ -1,5 +1,7 @@
 package org.chronopolis.rest.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -18,6 +20,7 @@ public class AceToken {
     Long id;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "bag")
     Bag bag;
 
