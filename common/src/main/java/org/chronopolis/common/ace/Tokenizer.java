@@ -99,6 +99,8 @@ public class Tokenizer {
 
         }
 
+        batch.close();
+
     }
 
     private void addTokenRequest(Path path, String digest) throws InterruptedException {
