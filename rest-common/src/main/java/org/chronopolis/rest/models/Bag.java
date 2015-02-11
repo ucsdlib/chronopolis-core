@@ -136,4 +136,12 @@ public class Bag {
     public void setTotalFiles(final long totalFiles) {
         this.totalFiles = totalFiles;
     }
+
+    public BagStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(final BagStatus status) {
+        this.status = status;
+    }
 }
