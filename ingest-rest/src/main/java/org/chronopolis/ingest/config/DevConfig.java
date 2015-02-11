@@ -7,12 +7,14 @@ import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
 import org.chronopolis.ingest.repository.RestoreRepository;
+import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.rest.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
@@ -34,6 +36,9 @@ public class DevConfig {
 
     @Autowired
     RestoreRepository restoreRepository;
+
+    @Autowired
+    TokenRepository tokenRepository;
 
     @Autowired
     IngestSettings ingestSettings;
@@ -62,8 +67,16 @@ public class DevConfig {
             b.setTagManifestDigest("");
             b.setTokenDigest("");
             b.setTokenLocation("tokens/test-bag-" + i + "-tokens");
+            b.setTotalFiles(5);
             bagRepository.save(b);
             bagList.add(b);
+
+            System.out.printf("Creating tokens for bag %d...\n", i);
+            for (int j = 0; j < 5; j++) {
+                AceToken token = new AceToken(b, new Date(), "file-"+j,
+                        "proof-"+j, "ims-service", "SHA-256", new Long(j));
+                tokenRepository.save(token);
+            }
         }
 
         System.out.println("Creating transfers and restorations...");
