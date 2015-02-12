@@ -18,10 +18,10 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = TestApplication.class)
 @WebAppConfiguration
 @IntegrationTest("server.port:0")
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringApplicationConfiguration(classes = TestApplication.class)
 public class RestoreControllerTest {
 
     @Value("${local.server.port}")

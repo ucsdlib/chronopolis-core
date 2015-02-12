@@ -25,10 +25,11 @@ import static org.junit.Assert.assertEquals;
  * It is done through the DevConfig class
  *
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = TestApplication.class)
+
 @WebAppConfiguration
 @IntegrationTest("server.port:0")
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringApplicationConfiguration(classes = TestApplication.class)
 public class StagingControllerTest {
 
     @Value("${local.server.port}")
