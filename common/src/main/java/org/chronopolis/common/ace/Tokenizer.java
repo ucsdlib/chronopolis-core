@@ -41,7 +41,7 @@ public class Tokenizer {
         this.fixityAlgorithm = Digest.fromString(fixityAlgorithm);
         this.manifests = new HashSet<>();
         this.callback = callback;
-        // addManifests();
+        addManifests();
     }
 
     private void addManifests() {
@@ -65,7 +65,7 @@ public class Tokenizer {
         manifests.add(manifest);
     }
 
-    public void fullTokenize() throws IOException, InterruptedException {
+    public void tokenize(Set<Path> filter) throws IOException, InterruptedException {
         String line;
         String alg = fixityAlgorithm.getName();
         batch = createIMSConnection();
@@ -80,8 +80,12 @@ public class Tokenizer {
                     continue;
                 }
 
-
                 String digest = split[0];
+                Path rel = Paths.get(split[1]);
+                if (filter.contains(rel)) {
+                    continue;
+                }
+
                 Path path = Paths.get(bag.toString(), split[1]);
                 String calculatedDigest = DigestUtil.digest(path, alg);
 
@@ -96,11 +100,9 @@ public class Tokenizer {
                 String manifestDigest = DigestUtil.digest(manifest, alg);
                 addTokenRequest(manifest, manifestDigest);
             }
-
         }
 
         batch.close();
-
     }
 
     private void addTokenRequest(Path path, String digest) throws InterruptedException {
