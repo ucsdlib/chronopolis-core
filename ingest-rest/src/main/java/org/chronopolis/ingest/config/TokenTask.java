@@ -1,5 +1,6 @@
 package org.chronopolis.ingest.config;
 
+import com.google.common.collect.Sets;
 import org.chronopolis.common.ace.Tokenizer;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.TokenCallback;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -27,6 +29,9 @@ import java.util.Collection;
 public class TokenTask {
     private final Logger log = LoggerFactory.getLogger(TokenTask.class);
 
+    // TODO: Don't use this as a way to test if we're already making tokens...
+    private static boolean tokening = false;
+
     @Autowired
     TokenRepository tokenRepository;
 
@@ -36,7 +41,15 @@ public class TokenTask {
     @Autowired
     IngestSettings settings;
 
+    @Scheduled(cron = "0 */5 * * * *")
     public void tokenize() {
+        if (tokening) {
+            log.info("Already creating tokens, skipping this run");
+            return;
+        }
+
+        log.info("Creating tokens");
+        tokening = true;
         Collection<Bag> bags = repository.findByStatus(BagStatus.STAGED);
         for (Bag bag : bags) {
             // TODO: Should just be part of the bag
@@ -47,23 +60,29 @@ public class TokenTask {
             Path toBag = Paths.get(settings.getBagStage(), bag.getLocation());
             Tokenizer tokenizer = new Tokenizer(toBag, bag.getFixityAlgorithm(), callback);
 
+            // We have 3 states we check for:
+            // * if there are no tokens, start from the beginning
+            // * if there are less tokens than the number of files in the bag, do a partial tokenization
+            // * if tokenization is complete, update the status of the bag
             if (tokens.size() == 0) {
-                // From the beginning
+                boolean complete = true;
                 try {
-                    tokenizer.fullTokenize();
+                    tokenizer.tokenize(Sets.<Path>newHashSet());
                 } catch (IOException e) {
                     log.error("Error tokenizing: ", e);
                 } catch (InterruptedException e) {
                     log.error("Interrupted", e);
                 }
-
             } else if (tokens.size() < bag.getTotalFiles()) {
-                // Partial tokenization
 
+            } else if (tokens.size() == bag.getTotalFiles()) {
+                log.info("Updating status of {}", bag.getName());
+                bag.setStatus(BagStatus.TOKENIZED);
             }
 
             log.debug("Finished tokenizing {}", bag.getName());
         }
+        tokening = false;
 
     }
 

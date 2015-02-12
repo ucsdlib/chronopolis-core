@@ -33,6 +33,7 @@ public class TokenCallback implements RequestBatchCallback {
                                final List<TokenResponse> responses) {
         for (TokenResponse tr : responses) {
             if (tr.getStatusCode() == StatusCode.SUCCESS) {
+                log.trace("Success for token {}", tr.getName());
                 AceToken token = new AceToken(
                         bag,
                         tr.getTimestamp().toGregorianCalendar().getTime(),
