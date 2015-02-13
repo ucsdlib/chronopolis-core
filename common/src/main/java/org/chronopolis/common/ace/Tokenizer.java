@@ -96,7 +96,7 @@ public class Tokenizer {
                 }
             }
 
-            if (!corrupt) {
+            if (!corrupt && manifest.getFileName().endsWith("tagmanifest-sha256.txt")) {
                 String manifestDigest = DigestUtil.digest(manifest, alg);
                 addTokenRequest(manifest, manifestDigest);
             }
