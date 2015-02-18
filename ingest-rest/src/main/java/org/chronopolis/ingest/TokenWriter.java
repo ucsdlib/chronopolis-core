@@ -4,13 +4,19 @@ import com.google.common.hash.HashingOutputStream;
 import edu.umiacs.ace.token.TokenStoreWriter;
 import org.chronopolis.rest.models.AceToken;
 
+import javax.annotation.Nullable;
+import java.io.IOException;
+
 
 /**
  * Created by shake on 2/13/15.
  */
 public class TokenWriter extends TokenStoreWriter<AceToken> {
     final String ims;
-    HashingOutputStream os;
+    final HashingOutputStream os;
+
+    @Nullable
+    private String digest;
 
     public TokenWriter(HashingOutputStream os, String ims) {
         super(os);
@@ -32,7 +38,14 @@ public class TokenWriter extends TokenStoreWriter<AceToken> {
     }
 
     public String getTokenDigest() {
-        return os.hash().toString();
+        return digest;
+    }
+
+    @Override
+    public void close() throws IOException {
+        super.close();
+
+        this.digest = os.hash().toString();
     }
 
 
