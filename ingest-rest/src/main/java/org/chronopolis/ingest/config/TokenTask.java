@@ -64,26 +64,24 @@ public class TokenTask {
             // TODO: Should just be part of the bag
             Collection<AceToken> tokens = tokenRepository.findByBagID(bag.getID());
 
-            // Setup everything we need
-            TokenCallback callback = new TokenCallback(tokenRepository, bag);
-            Path toBag = Paths.get(settings.getBagStage(), bag.getLocation());
-
             // We have 3 states we check for:
-            // * if there are no tokens, start from the beginning
-            // * if there are less tokens than the number of files in the bag, do a partial tokenization
+            // * if there are less tokens than the number of files in the bag, tokenize the bag
+            //   * there's a chance no tokens have been made, in which case
+            //     the filter returns an empty set
             // * if tokenization is complete, update the status of the bag
-            if (tokens.size() == 0) {
+            if (tokens.size() < bag.getTotalFiles()) {
+                // Setup everything we need
+                TokenCallback callback = new TokenCallback(tokenRepository, bag);
+                Path toBag = Paths.get(settings.getBagStage(), bag.getLocation());
                 Tokenizer tokenizer = new Tokenizer(toBag, bag.getFixityAlgorithm(), callback);
-                boolean complete = true;
+
                 try {
-                    tokenizer.tokenize(Sets.<Path>newHashSet());
+                    tokenizer.tokenize(filter(tokens));
                 } catch (IOException e) {
                     log.error("Error tokenizing: ", e);
                 } catch (InterruptedException e) {
                     log.error("Interrupted", e);
                 }
-            } else if (tokens.size() < bag.getTotalFiles()) {
-
             } else if (tokens.size() == bag.getTotalFiles()) {
                 // TODO: May want to decouple this
                 log.info("Writing tokens for bag {}", bag.getID());
@@ -96,11 +94,12 @@ public class TokenTask {
 
                 repository.save(bag);
             }
+            // If greater, set the bag as an error?
 
             log.debug("Finished tokenizing {}", bag.getName());
         }
-        tokening = false;
 
+        tokening = false;
     }
 
     private Set<Path> filter(Collection<AceToken> tokens) {
