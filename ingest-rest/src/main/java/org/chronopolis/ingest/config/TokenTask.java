@@ -1,6 +1,8 @@
 package org.chronopolis.ingest.config;
 
 import com.google.common.collect.Sets;
+import com.google.common.hash.Hashing;
+import com.google.common.hash.HashingOutputStream;
 import org.chronopolis.common.ace.Tokenizer;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.TokenCallback;
@@ -127,7 +129,8 @@ public class TokenTask {
         Path store = dir.resolve(filename);
         try (OutputStream os = Files.newOutputStream(store, CREATE)) {
             String ims = "ims.umiacs.umd.edu";
-            TokenWriter writer = new TokenWriter(os, ims);
+            HashingOutputStream hos = new HashingOutputStream(Hashing.sha256(), os);
+            TokenWriter writer = new TokenWriter(hos, ims);
 
             for (AceToken token : tokens) {
                 writer.startToken(token);
@@ -137,6 +140,8 @@ public class TokenTask {
 
             // The stream will close on it's own, but call this anyways
             writer.close();
+            bag.setTokenDigest(writer.getTokenDigest());
+            log.info("TokenStore Digest for bag {}: {}", bag.getID(), writer.getTokenDigest());
         } catch (IOException ex) {
             log.error("Error writing manifest {} ", ex);
             return false;
