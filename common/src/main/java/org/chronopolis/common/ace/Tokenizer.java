@@ -28,8 +28,13 @@ public class Tokenizer {
 
     private final Logger log = LoggerFactory.getLogger(Tokenizer.class);
     private final Path bag;
-    private final Digest fixityAlgorithm;
+
+    // TODO: Remove
     private final Set<Path> manifests;
+
+    private final Digest fixityAlgorithm;
+    private Path manifest;
+    private Path tagmanifest;
 
     private final RequestBatchCallback callback;
     private TokenRequestBatch batch;
@@ -63,46 +68,70 @@ public class Tokenizer {
 
         manifests.add(tagManifest);
         manifests.add(manifest);
+        this.manifest = manifest;
+        this.tagmanifest = tagManifest;
     }
 
     public void tokenize(Set<Path> filter) throws IOException, InterruptedException {
-        String line;
-        String alg = fixityAlgorithm.getName();
         batch = createIMSConnection();
 
-        for (Path manifest : manifests) {
-            BufferedReader br = Files.newBufferedReader(manifest, Charset.defaultCharset());
-            boolean corrupt = false;
-            while ((line = br.readLine()) != null) {
-                String []split = line.split("\\s+", 2);
-                if (split.length != 2) {
-                    log.error("Error found in manifest: {}", split);
-                    continue;
-                }
-
-                String digest = split[0];
-                Path rel = Paths.get(split[1]);
-                if (filter.contains(rel)) {
-                    continue;
-                }
-
-                Path path = Paths.get(bag.toString(), split[1]);
-                String calculatedDigest = DigestUtil.digest(path, alg);
-
-                if (digest.equals(calculatedDigest)) {
-                    addTokenRequest(path, digest);
-                } else {
-                    corrupt = true;
-                }
+        try {
+            // Digest the manifest
+            boolean corrupt = tokenize(filter, manifest);
+            if (corrupt) {
+                log.error("Error(s) found in manifest, skipping it until all are corrected");
+                filter.add(manifest);
             }
 
-            if (!corrupt && manifest.getFileName().endsWith("tagmanifest-sha256.txt")) {
-                String manifestDigest = DigestUtil.digest(manifest, alg);
-                addTokenRequest(manifest, manifestDigest);
+            // Then the tag-manifest
+            tokenize(filter, tagmanifest);
+        } finally {
+            // Make sure the batch gets closed if we are interrupted
+            batch.close();
+        }
+    }
+
+    private boolean tokenize(Set<Path> filter, Path manifest) throws IOException, InterruptedException {
+        String line;
+        boolean corrupt = false;
+        String alg = fixityAlgorithm.getName();
+        BufferedReader br = Files.newBufferedReader(manifest, Charset.defaultCharset());
+
+        while ((line = br.readLine()) != null) {
+            String[] split = line.split("\\s+", 2);
+            if (split.length != 2) {
+                log.error("Error found in manifest: {}", split);
+                continue;
+            }
+
+            String digest = split[0];
+            Path rel = Paths.get(split[1]);
+            if (filter.contains(rel)) {
+                continue;
+            }
+
+            Path path = Paths.get(bag.toString(), split[1]);
+            String calculatedDigest = DigestUtil.digest(path, alg);
+
+            if (digest.equals(calculatedDigest)) {
+                addTokenRequest(path, digest);
+            } else {
+                log.error("Error in file {}: digest found {} (expected {})",
+                        new Object[]{
+                                split[1],
+                                calculatedDigest,
+                                digest});
+                corrupt = true;
             }
         }
 
-        batch.close();
+        // TODO: Move this into the public method instead
+        if (!corrupt && manifest.getFileName().endsWith("tagmanifest-sha256.txt")) {
+            String manifestDigest = DigestUtil.digest(manifest, alg);
+            addTokenRequest(manifest, manifestDigest);
+        }
+
+        return corrupt;
     }
 
     private void addTokenRequest(Path path, String digest) throws InterruptedException {
