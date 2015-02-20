@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 /**
@@ -20,10 +21,9 @@ import javax.persistence.Id;
 public class Bag {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonProperty("id")
-    // Because the replication class has a ManyToOne relationship, we need to
-    // define ID as uppercase so it can join correctly
+    // TODO: We can rename this to identity once we fix the schema
     private Long ID;
 
     private String name;
