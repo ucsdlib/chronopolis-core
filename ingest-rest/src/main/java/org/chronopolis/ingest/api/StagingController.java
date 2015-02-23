@@ -65,7 +65,7 @@ public class StagingController {
             return bagRepository.findAll(new PageRequest(pageNum, pageSize));
         }
 
-        return bagRepository.findByStatus(BagStatus.STAGED);
+        return bagRepository.findAll();
     }
 
     @RequestMapping(value = "bags/{bag-id}", method = RequestMethod.GET)
