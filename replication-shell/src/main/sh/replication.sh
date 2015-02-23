@@ -19,14 +19,14 @@ SPRING_CONFIG_LOCATION="/etc/chronopolis/"
 
 JAVA_BIN=/usr/bin/java
 JAVA_CMD="$JAVA_BIN -jar $REPL_JAR"
-PARAMS="spring.config.location=$SPRING_CONFIG_LOCATION"
+PARAMS="--spring.config.location=$SPRING_CONFIG_LOCATION"
 
 RETVAL=0
 
 case "$1" in
     start)
-    echo -n "Starting the replication service"
-    daemon --user "$CHRON_USER" --pidfile "$REPL_PID_FILE" $JAVA_CMD > /dev/null
+    echo "Starting the replication service"
+    daemon --user "$CHRON_USER" --pidfile "$REPL_PID_FILE" $JAVA_CMD > /dev/null 2>&1 &
     RETVAL=$?
 
     # This bit is from the jenkins init script, I'm not sure if we'll need it though
@@ -43,9 +43,10 @@ case "$1" in
     else
         failure
     fi
-    RETVAL=$0
+    RETVAL=$?
     ;;
     stop)
+    echo "Stopping the replication service"
     killproc replication
     ;;
     restart)
