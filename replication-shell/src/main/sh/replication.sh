@@ -8,7 +8,7 @@
 ### END INIT INFO
 
 # User to execute as
-CHRON_USER="chron"
+CHRON_USER="chronopolis"
 
 REPL_JAR="/usr/lib/chronopolis/replication.jar"
 REPL_PID_FILE="/var/run/replication.pid"
@@ -21,18 +21,20 @@ JAVA_BIN=/usr/bin/java
 JAVA_CMD="$JAVA_BIN -jar $REPL_JAR"
 PARAMS="--spring.config.location=$SPRING_CONFIG_LOCATION"
 
+. /etc/init.d/functions
+
 RETVAL=0
 
 case "$1" in
     start)
     echo "Starting the replication service"
-    daemon --user "$CHRON_USER" --pidfile "$REPL_PID_FILE" $JAVA_CMD > /dev/null 2>&1 &
+    daemon --user "$CHRON_USER" --pidfile "$REPL_PID_FILE" $JAVA_CMD $PARAMS > /dev/null 2>&1 &
     RETVAL=$?
 
     # This bit is from the jenkins init script, I'm not sure if we'll need it though
     if [ $RETVAL = 0 ]; then
         success
-        echo > "$REPL_PID_FILE"
+        # echo > "$REPL_PID_FILE"
         /bin/ps hww -u "$CHRON_USER" -o sess,ppid,pid,cmd | \
         while read sess ppid pid cmd; do
         [ $ppid = 1 ] || continue
