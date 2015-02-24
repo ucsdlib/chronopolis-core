@@ -20,3 +20,10 @@
 
 ## logs
 *.log
+
+# RPM Stuff
+/replication-shell/rpm/BUILD/
+/replication-shell/rpm/BUILDROOT/
+/replication-shell/rpm/RPMS/
+/replication-shell/rpm/SRPMS/
+/replication-shell/rpm/tmp/
