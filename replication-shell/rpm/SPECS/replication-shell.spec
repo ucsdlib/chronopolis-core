@@ -40,7 +40,7 @@ rm -rf "%{buildroot}"
 %defattr(-,root,root)
 # conf
 %dir %{_confdir}
-%config %{_confdir}/application.properties
+%config %attr(0644,-,-) %{_confdir}/application.properties
 # jar
 %dir %attr(0755,chronopolis,chronopolis) %{_prefix}
 %{_prefix}/%{service}.jar
