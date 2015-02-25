@@ -55,7 +55,7 @@
                 <module>ingest-shell</module>
                 <module>ingest-rest</module>
                 <module>replication-shell</module>
-                <module>replication-frontend</module>
+                <!-- <module>replication-frontend</module> -->
                 <module>duracloud-intake</module>
                 <module>duracloud-backend</module>
                 <module>logger</module>
