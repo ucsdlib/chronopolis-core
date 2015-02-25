@@ -32,14 +32,14 @@ case "$1" in
     RETVAL=$?
 
     # This bit is from the jenkins init script, I'm not sure if we'll need it though
-    if [ $RETVAL = 0 ]; then
+    if [ $RETVAL -eq 0 ]; then
         success
         # echo > "$REPL_PID_FILE"
         /bin/ps hww -u "$CHRON_USER" -o sess,ppid,pid,cmd | \
         while read sess ppid pid cmd; do
-        [ $ppid = 1 ] || continue
+        [ $ppid -eq 1 ] || continue
         echo "$cmd" | grep $REPL_JAR > /dev/null
-        [ $? = 0 ] || continue
+        [ $? -eq 0 ] || continue
         echo $pid > $REPL_PID_FILE
         done
     else
