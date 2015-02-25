@@ -25,5 +25,6 @@
 /replication-shell/rpm/BUILD/
 /replication-shell/rpm/BUILDROOT/
 /replication-shell/rpm/RPMS/
+/replication-shell/rpm/SOURCES/
 /replication-shell/rpm/SRPMS/
 /replication-shell/rpm/tmp/
