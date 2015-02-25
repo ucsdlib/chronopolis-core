@@ -34,40 +34,6 @@
                 </executions>
                 -->
             </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>rpm-maven-plugin</artifactId>
-                <configuration>
-                    <name>replication-shell</name>
-                    <group>System Environment/Daemons</group>
-                    <release>1</release>
-                    <mappings>
-                        <mapping>
-                            <directory>/etc/chronopolis</directory>
-                            <username>root</username>
-                            <groupname>root</groupname>
-                            <sources>
-                                <source>
-                                    <location>target/classes/application.properties</location>
-                                </source>
-                            </sources>
-                        </mapping>
-                        <mapping>
-                            <directory>/usr/lib/chronopolis</directory>
-                            <username>chronopolis</username>
-                            <groupname>chronopolis</groupname>
-                            <sources>
-                                <source>
-                                    <location>target/${build.finalName}.jar</location>
-                                </source>
-                            </sources>
-                        </mapping>
-                    </mappings>
-                    <preinstallScriptlet>
-                        <script>echo "hello"</script>
-                    </preinstallScriptlet>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
 
