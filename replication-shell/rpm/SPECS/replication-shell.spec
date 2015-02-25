@@ -1,6 +1,6 @@
+%define __jar_repack {%nil}
 %define _prefix %{_usr}/lib/chronopolis
 %define _confdir /etc/chronopolis
-# %define _confile %{_confdir}/application.properties
 %define service replication
 
 Name: replication-shell
@@ -13,11 +13,10 @@ Summary: Chronopolis Replication Service
 License: UMD
 URL: https://gitlab.umiacs.umd.edu/chronopolis
 Group: System Environment/Daemons
-PreReq: /usr/sbin/groupadd /usr/sbin/useradd
+Requires: /usr/sbin/groupadd /usr/sbin/useradd
 autoprov: yes
 autoreq: yes
 BuildArch: noarch
-# BuildRoot: /narahomes/shake/git/chronopolis-core/replication-shell/target/rpm/replication-shell/buildroot
 BuildRoot: ${_tmppath}/build-%{name}-%{version}
 
 %description
@@ -35,13 +34,6 @@ rm -rf "%{buildroot}"
 %__install -D -m0755 "%{SOURCE1}" "%{buildroot}/etc/init.d/%{service}"
 %__install -D -m0600 "%{SOURCE2}" "%{buildroot}%{_confdir}/application.properties"
 
-# if [ -d $RPM_BUILD_ROOT ];
-# then
-#   mv /narahomes/shake/git/chronopolis-core/replication-shell/target/rpm/replication-shell/tmp-buildroot/* $RPM_BUILD_ROOT
-# else
-#   mv /narahomes/shake/git/chronopolis-core/replication-shell/target/rpm/replication-shell/tmp-buildroot $RPM_BUILD_ROOT
-# fi
-# chmod -R +w $RPM_BUILD_ROOT
 
 %files
 
