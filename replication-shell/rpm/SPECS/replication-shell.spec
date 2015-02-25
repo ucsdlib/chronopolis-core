@@ -4,7 +4,7 @@
 %define service replication
 
 Name: replication-shell
-Version: 1.0
+Version: %{ver}
 Release: 1
 Source: replication-shell.jar
 Source1: replication.sh
