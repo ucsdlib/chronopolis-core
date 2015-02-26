@@ -21,6 +21,9 @@ public class DaemonService implements ReplicationService {
 
     @Override
     public void replicate() {
+        System.out.close();
+        System.err.close();
+
         try {
             while (true) {
                 Thread.sleep(30000);
