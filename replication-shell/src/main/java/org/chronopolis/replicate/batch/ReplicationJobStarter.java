@@ -178,13 +178,13 @@ public class ReplicationJobStarter {
                         .addDate("date", new Date())
                         .toJobParameters());
             } catch (JobExecutionAlreadyRunningException e) {
-                e.printStackTrace();
+                log.error("JobExecutionException", e);
             } catch (JobRestartException e) {
-                e.printStackTrace();
+                log.error("JobRestarException", e);
             } catch (JobInstanceAlreadyCompleteException e) {
-                e.printStackTrace();
+                log.error("JobAlreadyCompletedException", e);
             } catch (JobParametersInvalidException e) {
-                e.printStackTrace();
+                log.error("JobInvalidParamsException", e);
             }
 
         } else {
