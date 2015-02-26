@@ -49,6 +49,6 @@ rm -rf "%{buildroot}"
 %dir %attr(0755,chronopolis,chronopolis) /var/log/chronopolis
 
 %pre
-/usr/sbin/groupadd -r chronopolis > /dev/null 2>&1
+/usr/sbin/groupadd -r chronopolis > /dev/null 2>&1 || :
 /usr/sbin/useradd -r -g chronopolis -c "Chronopolis Service User" \
-        -s /bin/bash -d /usr/lib/chronopolis/ chronopolis > /dev/null 2>&1
+        -s /bin/bash -d /usr/lib/chronopolis/ chronopolis > /dev/null 2>&1 || :
