@@ -22,6 +22,10 @@ import java.sql.SQLException;
 @EnableTransactionManagement
 public class JPAConfiguration {
 
+    /*
+    * With the new ingest service we don't need to keep track of our replications,
+    * so we can just use an in memory db for spring-batch
+    * TODO: Remove all this
     @Bean
     public DataSource dataSource(ReplicationDBSettings settings) throws SQLException {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
@@ -31,6 +35,7 @@ public class JPAConfiguration {
         dataSource.setPassword(settings.getPassword());
         return dataSource;
     }
+    */
 
     /*
      * These end up being autoconfigured by spring-boot

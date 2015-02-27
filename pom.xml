@@ -55,7 +55,7 @@
                 <module>ingest-shell</module>
                 <module>ingest-rest</module>
                 <module>replication-shell</module>
-                <module>replication-frontend</module>
+                <!-- <module>replication-frontend</module> -->
                 <module>duracloud-intake</module>
                 <module>duracloud-backend</module>
                 <module>logger</module>
@@ -74,6 +74,12 @@
                         <source>1.7</source>
                         <target>1.7</target>
                     </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>rpm-maven-plugin</artifactId>
+                    <version>2.1.2</version>
                 </plugin>
 
                 <!--
