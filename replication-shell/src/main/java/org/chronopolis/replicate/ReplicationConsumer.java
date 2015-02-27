@@ -1,5 +1,7 @@
 package org.chronopolis.replicate;
 
+import com.sun.akuma.Daemon;
+import com.sun.akuma.JavaVMArguments;
 import org.chronopolis.db.common.model.RestoreRequest;
 import org.chronopolis.replicate.batch.ReplicationJobStarter;
 import org.chronopolis.replicate.config.ReplicationConfig;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -37,11 +40,30 @@ import java.util.List;
 @EntityScan(basePackageClasses = RestoreRequest.class)
 @EnableAutoConfiguration
 public class ReplicationConsumer implements CommandLineRunner {
+    private static final Logger log = LoggerFactory.getLogger(ReplicationConsumer.class);
 
     @Autowired
     ReplicationService service;
 
     public static void main(String[] args) {
+        log.debug("Started with args: {}", args);
+        Daemon d = new Daemon.WithoutChdir();
+        try {
+            if (d.isDaemonized()) {
+                d.init();
+            } else {
+                // We never have a long list of args so I don't think we need
+                // to care about performance
+                // But basically only go into daemon mode if we specify
+                if (Arrays.asList(args).contains("--daemonize")) {
+                    d.daemonize();
+                    System.exit(0);
+                }
+            }
+        } catch (Exception e) {
+            log.error("", e);
+        }
+
         SpringApplication.run(ReplicationConsumer.class, args);
     }
 
