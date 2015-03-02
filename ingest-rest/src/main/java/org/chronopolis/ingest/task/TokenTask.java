@@ -1,4 +1,4 @@
-package org.chronopolis.ingest.config;
+package org.chronopolis.ingest.task;
 
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
@@ -50,17 +50,16 @@ public class TokenTask {
     @Autowired
     IngestSettings settings;
 
+    @Autowired
+    TokenThreadPoolExecutor executor;
+
     @Scheduled(cron = "0 */5 * * * *")
     public void tokenize() {
-        if (tokening) {
-            log.info("Already creating tokens, skipping this run");
-            return;
-        }
-
-        log.info("Creating tokens");
-        tokening = true;
         Collection<Bag> bags = repository.findByStatus(BagStatus.STAGED);
         for (Bag bag : bags) {
+            executor.submitBagIfAvailable(bag, settings, repository, tokenRepository);
+        }
+            /*
             // TODO: Should just be part of the bag
             Collection<AceToken> tokens = tokenRepository.findByBagID(bag.getID());
 
@@ -100,8 +99,10 @@ public class TokenTask {
         }
 
         tokening = false;
+        */
     }
 
+    /*
     private Set<Path> filter(Collection<AceToken> tokens) {
         Set<Path> filter = Sets.newHashSet();
         for (final AceToken token : tokens) {
@@ -109,6 +110,7 @@ public class TokenTask {
         }
         return filter;
     }
+    */
 
     /**
      * Write a token to a file identified by the bag name and date
@@ -117,6 +119,7 @@ public class TokenTask {
      * @param tokens
      * @return
      */
+    /*
     private boolean writeTokens(Bag bag, Collection<AceToken> tokens) {
         Path stage = Paths.get(settings.getTokenStage());
         Path dir = stage.resolve(bag.getDepositor());
@@ -150,5 +153,6 @@ public class TokenTask {
 
         return true;
     }
+    */
 
 }

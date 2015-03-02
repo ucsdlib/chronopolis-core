@@ -1,4 +1,4 @@
-package org.chronopolis.ingest.config;
+package org.chronopolis.ingest.task;
 
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.repository.BagRepository;
