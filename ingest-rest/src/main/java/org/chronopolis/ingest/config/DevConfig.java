@@ -8,6 +8,7 @@ import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
 import org.chronopolis.ingest.repository.RestoreRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
+import org.chronopolis.ingest.task.TokenThreadPoolExecutor;
 import org.chronopolis.rest.models.AceToken;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.Node;
@@ -22,6 +23,8 @@ import org.springframework.context.annotation.Profile;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by shake on 1/8/15.
@@ -47,6 +50,12 @@ public class DevConfig {
 
     @Autowired
     IngestSettings ingestSettings;
+
+    @Bean
+    public TokenThreadPoolExecutor TokenThreadPoolExecutor() {
+        return new TokenThreadPoolExecutor(4, 6, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(10));
+    }
+
 
     @Bean
     public boolean createData() {
