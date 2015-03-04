@@ -3,7 +3,12 @@ package org.chronopolis.rest.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 
 /**
  * Representation of a bag in chronopolis
@@ -13,13 +18,12 @@ import javax.persistence.*;
  * Created by shake on 11/5/14.
  */
 @Entity
-public class Bag {
+public class Bag implements Comparable<Bag> {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonProperty("id")
-    // Because the replication class has a ManyToOne relationship, we need to
-    // define ID as uppercase so it can join correctly
+    // TODO: We can rename this to identity once we fix the schema
     private Long ID;
 
     private String name;
@@ -36,12 +40,13 @@ public class Bag {
     @JsonIgnore
     private String tagManifestDigest;
 
-    @Enumerated(EnumType.STRING)
     @JsonIgnore
+    @Enumerated(EnumType.STRING)
     private BagStatus status;
 
     private String fixityAlgorithm;
     private long size;
+    private long totalFiles;
 
     protected Bag() { // JPA
     }
@@ -124,4 +129,60 @@ public class Bag {
         return "bag/" + ID;
     }
 
+    public long getTotalFiles() {
+        return totalFiles;
+    }
+
+    public void setTotalFiles(final long totalFiles) {
+        this.totalFiles = totalFiles;
+    }
+
+    public BagStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(final BagStatus status) {
+        this.status = status;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        final Bag bag = (Bag) o;
+
+        if (size != bag.size) return false;
+        if (totalFiles != bag.totalFiles) return false;
+        if (!ID.equals(bag.ID)) return false;
+        if (!depositor.equals(bag.depositor)) return false;
+        if (!fixityAlgorithm.equals(bag.fixityAlgorithm)) return false;
+        if (!location.equals(bag.location)) return false;
+        if (!name.equals(bag.name)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = ID.hashCode();
+        result = 31 * result + name.hashCode();
+        result = 31 * result + depositor.hashCode();
+        result = 31 * result + location.hashCode();
+        result = 31 * result + fixityAlgorithm.hashCode();
+        result = 31 * result + (int) (size ^ (size >>> 32));
+        result = 31 * result + (int) (totalFiles ^ (totalFiles >>> 32));
+        return result;
+    }
+
+    @Override
+    public int compareTo(final Bag bag) {
+        if (this.equals(bag)) {
+            return 0;
+        } else if (size > bag.size) {
+            return 1;
+        } else {
+            return -1;
+        }
+    }
 }

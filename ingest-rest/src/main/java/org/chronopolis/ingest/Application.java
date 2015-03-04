@@ -5,6 +5,7 @@ import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
 import org.chronopolis.ingest.repository.RestoreRepository;
+import org.chronopolis.ingest.task.TokenTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +25,8 @@ import java.io.InputStreamReader;
  */
 @ComponentScan(basePackageClasses = {
         IngestSettings.class,
-        StagingController.class
+        StagingController.class,
+        TokenTask.class
 })
 @EntityScan(basePackages = "org.chronopolis.rest.models")
 @EnableAutoConfiguration

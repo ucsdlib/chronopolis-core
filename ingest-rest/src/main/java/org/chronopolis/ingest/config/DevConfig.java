@@ -7,14 +7,24 @@ import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
 import org.chronopolis.ingest.repository.RestoreRepository;
-import org.chronopolis.rest.models.*;
+import org.chronopolis.ingest.repository.TokenRepository;
+import org.chronopolis.ingest.task.TokenThreadPoolExecutor;
+import org.chronopolis.rest.models.AceToken;
+import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.Node;
+import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.models.Restoration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by shake on 1/8/15.
@@ -36,7 +46,16 @@ public class DevConfig {
     RestoreRepository restoreRepository;
 
     @Autowired
+    TokenRepository tokenRepository;
+
+    @Autowired
     IngestSettings ingestSettings;
+
+    @Bean
+    public TokenThreadPoolExecutor TokenThreadPoolExecutor() {
+        return new TokenThreadPoolExecutor(4, 6, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(10));
+    }
+
 
     @Bean
     public boolean createData() {
@@ -62,8 +81,16 @@ public class DevConfig {
             b.setTagManifestDigest("");
             b.setTokenDigest("");
             b.setTokenLocation("tokens/test-bag-" + i + "-tokens");
+            b.setTotalFiles(5);
             bagRepository.save(b);
             bagList.add(b);
+
+            System.out.printf("Creating tokens for bag %d...\n", i);
+            for (int j = 0; j < 5; j++) {
+                AceToken token = new AceToken(b, new Date(), "file-"+j,
+                        "proof-"+j, "ims-service", "SHA-256", new Long(j));
+                tokenRepository.save(token);
+            }
         }
 
         System.out.println("Creating transfers and restorations...");
