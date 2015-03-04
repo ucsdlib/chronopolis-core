@@ -95,7 +95,7 @@ public class TokenRunner implements Runnable {
     }
 
     public Bag getBag() {
-        return null;
+        return bag;
     }
 
     private Set<Path> filter(Collection<AceToken> tokens) {
