@@ -34,13 +34,12 @@ public class TokenTask {
     @Autowired
     TokenThreadPoolExecutor executor;
 
-    @Scheduled(cron = "0 */5 * * * *")
+    @Scheduled(cron = "0 */30 * * * *")
     public void tokenize() {
         if (executor.getActiveCount() > 0) {
             log.debug("Waiting for executor to finish before starting more tokens");
             return;
         }
-
 
         Collection<Bag> bags = repository.findByStatus(BagStatus.STAGED);
         for (Bag bag : bags) {

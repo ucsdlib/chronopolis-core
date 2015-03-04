@@ -39,10 +39,6 @@ public class TokenRunner implements Runnable {
     private BagRepository repository;
     private TokenRepository tokenRepository;
 
-    public TokenRunner() {
-
-    }
-
     public TokenRunner(final Bag bag,
                        final String bagStage,
                        final String tokenStage,
@@ -65,6 +61,7 @@ public class TokenRunner implements Runnable {
         //   * there's a chance no tokens have been made, in which case
         //     the filter returns an empty set
         // * if tokenization is complete, update the status of the bag
+        // TODO: Send email on failures
         if (tokens.size() < bag.getTotalFiles()) {
             // Setup everything we need
             Path toBag = Paths.get(bagStage, bag.getLocation());

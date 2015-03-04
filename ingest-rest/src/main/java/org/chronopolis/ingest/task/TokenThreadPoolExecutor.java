@@ -34,6 +34,8 @@ public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
      * Submit a bag for tokenization. If the bag has already been submitted, or
      * there are any errors when submitting, return false
      *
+     * TODO: Is this the best name for the method?
+     *
      * @param b               - the bag to submit
      * @param settings        - the settings for the ingest service
      * @param bagRepository   - the repository which holds the bags
@@ -73,6 +75,12 @@ public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
         return submitted;
     }
 
+    /**
+     * Method to remove the bag from our working set, if r is an instance of a TokenRunner
+     *
+     * @param r
+     * @param t
+     */
     protected void afterExecute(Runnable r, Throwable t) {
         super.afterExecute(r, t);
 
