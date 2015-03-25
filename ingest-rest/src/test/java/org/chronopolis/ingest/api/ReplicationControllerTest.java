@@ -4,21 +4,19 @@ import org.chronopolis.ingest.TestApplication;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.TestRestTemplate;
+import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-@WebAppConfiguration
-@IntegrationTest("server.port:0")
 @RunWith(SpringJUnit4ClassRunner.class)
+@WebIntegrationTest("server.port:0")
 @SpringApplicationConfiguration(classes = TestApplication.class)
 public class ReplicationControllerTest {
 
@@ -26,12 +24,12 @@ public class ReplicationControllerTest {
     private int port;
 
 
-    @Test
+    // @Test
     public void testCreateReplication() throws Exception {
 
     }
 
-    @Test
+    // @Test
     public void testUpdateReplication() throws Exception {
 
     }
