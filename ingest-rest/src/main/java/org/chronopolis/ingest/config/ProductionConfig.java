@@ -51,6 +51,7 @@ public class ProductionConfig {
             }
         });
 
+        // TODO: Also set ROLE_ADMIN for our user
         if (usernames.isEmpty()) {
             log.info("No users found, registering default admin user");
             template.update(INSERT_ADMIN, new PreparedStatementSetter() {

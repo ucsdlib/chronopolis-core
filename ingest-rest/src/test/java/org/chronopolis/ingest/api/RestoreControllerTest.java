@@ -1,7 +1,9 @@
 package org.chronopolis.ingest.api;
 
+import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;
 import org.chronopolis.ingest.repository.RestoreRepository;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +28,7 @@ import static org.junit.Assert.assertEquals;
         @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:sql/createRestorations.sql"),
         @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = "classpath:sql/deleteRestorations.sql")
 })
-public class RestoreControllerTest {
+public class RestoreControllerTest extends IngestTest {
 
     @Value("${local.server.port}")
     private int port;

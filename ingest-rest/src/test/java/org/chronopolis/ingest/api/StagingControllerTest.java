@@ -1,5 +1,6 @@
 package org.chronopolis.ingest.api;
 
+import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.rest.models.Bag;
@@ -34,7 +35,7 @@ import static org.junit.Assert.assertEquals;
         @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:sql/createBags.sql"),
         @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = "classpath:sql/deleteBags.sql")
 })
-public class StagingControllerTest {
+public class StagingControllerTest extends IngestTest {
 
     @Value("${local.server.port}")
     private int port;
