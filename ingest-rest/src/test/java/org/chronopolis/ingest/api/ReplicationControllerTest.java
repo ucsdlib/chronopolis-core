@@ -9,6 +9,8 @@ import org.springframework.boot.test.TestRestTemplate;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.List;
@@ -18,6 +20,10 @@ import static org.junit.Assert.assertEquals;
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebIntegrationTest("server.port:0")
 @SpringApplicationConfiguration(classes = TestApplication.class)
+@SqlGroup({
+        @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:sql/createReplications.sql"),
+        @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = "classpath:sql/deleteReplications.sql")
+})
 public class ReplicationControllerTest {
 
     @Value("${local.server.port}")
@@ -39,7 +45,7 @@ public class ReplicationControllerTest {
         ResponseEntity<List> entity = new TestRestTemplate("umiacs", "umiacs")
                 .getForEntity("http://localhost:" + port + "/api/staging/replications", List.class);
 
-        assertEquals(10, entity.getBody().size());
+        assertEquals(2, entity.getBody().size());
     }
 
     @Test
