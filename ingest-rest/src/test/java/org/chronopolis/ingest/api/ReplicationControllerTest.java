@@ -43,7 +43,7 @@ public class ReplicationControllerTest extends IngestTest {
     @Test
     public void testReplications() throws Exception {
         ResponseEntity<List> entity = new TestRestTemplate("umiacs", "umiacs")
-                .getForEntity("http://localhost:" + port + "/api/staging/replications", List.class);
+                .getForEntity("http://localhost:" + port + "/api/replications", List.class);
 
         assertEquals(2, entity.getBody().size());
     }
@@ -52,7 +52,7 @@ public class ReplicationControllerTest extends IngestTest {
     public void testFindReplication() throws Exception {
         // as we have 4 nodes and umiacs is the last, we know the 4th replication will be for umiacs
         ResponseEntity entity = new TestRestTemplate("umiacs", "umiacs")
-                .getForEntity("http://localhost:" + port + "/api/staging/replications/4", Object.class);
+                .getForEntity("http://localhost:" + port + "/api/replications/4", Object.class);
 
 
         assertEquals(HttpStatus.OK, entity.getStatusCode());
@@ -61,14 +61,14 @@ public class ReplicationControllerTest extends IngestTest {
     @Test
     public void testUnauthorizedGetReplication() throws Exception {
         ResponseEntity entity = new TestRestTemplate("umiacs", "umiacs")
-                .getForEntity("http://localhost:" + port + "/api/staging/replications/3", Object.class);
+                .getForEntity("http://localhost:" + port + "/api/replications/3", Object.class);
 
         assertEquals(HttpStatus.UNAUTHORIZED, entity.getStatusCode());
     }
 
     public void testNonExistentReplication() throws Exception {
         ResponseEntity entity = new TestRestTemplate("umiacs", "umiacs")
-                .getForEntity("http://localhost:" + port + "/api/staging/replications/12727", Object.class);
+                .getForEntity("http://localhost:" + port + "/api/replications/12727", Object.class);
 
         assertEquals(HttpStatus.NOT_FOUND, entity.getStatusCode());
     }
