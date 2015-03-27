@@ -11,6 +11,7 @@ public class IngestTest {
     public static void init() {
         System.setProperty("spring.datasource.url", "jdbc:hsqldb:mem:memdb");
         System.setProperty("spring.datasource.initialize", "true");
+        System.setProperty("spring.jpa.hibernate.ddl-auto", "validate");
     }
 
 }
