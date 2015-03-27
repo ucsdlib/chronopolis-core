@@ -2,7 +2,6 @@ package org.chronopolis.ingest.api;
 
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;

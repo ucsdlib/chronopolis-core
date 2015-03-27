@@ -2,11 +2,9 @@ package org.chronopolis.ingest.api;
 
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;
-import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.rest.models.Bag;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.TestRestTemplate;
@@ -39,9 +37,6 @@ public class StagingControllerTest extends IngestTest {
 
     @Value("${local.server.port}")
     private int port;
-
-    @Autowired
-    BagRepository bagRepository;
 
     @Test
     public void testGetBags() throws Exception {

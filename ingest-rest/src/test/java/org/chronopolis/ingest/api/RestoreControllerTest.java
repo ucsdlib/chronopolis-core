@@ -2,11 +2,8 @@ package org.chronopolis.ingest.api;
 
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;
-import org.chronopolis.ingest.repository.RestoreRepository;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.TestRestTemplate;
@@ -32,9 +29,6 @@ public class RestoreControllerTest extends IngestTest {
 
     @Value("${local.server.port}")
     private int port;
-
-    @Autowired
-    RestoreRepository repository;
 
     @Test
     public void testGetRestorations() throws Exception {
