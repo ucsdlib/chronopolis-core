@@ -6,6 +6,17 @@ sources=SOURCES
 finaljar=$sources/replication-shell.jar
 retval=0
 
+if [ "$1" = "clean" ]; then
+    echo "Cleaning"
+    rm -rf BUILD/
+    rm -rf BUILDROOT/
+    rm -rf RPMS/
+    rm -rf SRPMS/
+    rm -rf SOURCES/
+    rm -rf tmp/
+    exit 0
+fi
+
 if [ ! -d $sources ]; then
     mkdir $sources
 fi
