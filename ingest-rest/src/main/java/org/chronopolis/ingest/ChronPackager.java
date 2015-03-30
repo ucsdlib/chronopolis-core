@@ -100,7 +100,7 @@ public class ChronPackager {
         Path relBag = bagStage.relativize(toBag);
 
         /*
-        String user = settings.getExternalUser();
+        String user = settings.getReplicationUser();
         String server = settings.getStorageServer();
         StringBuilder tokenStore = new StringBuilder(user);
         tokenStore.append("@").append(server);

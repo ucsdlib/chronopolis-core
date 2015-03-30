@@ -30,8 +30,8 @@ import java.util.concurrent.TimeUnit;
  * Created by shake on 1/8/15.
  */
 @Configuration
-@Profile("development")
-public class DevConfig {
+@Profile("test-data")
+public class TestConfig {
 
     @Autowired
     BagRepository bagRepository;

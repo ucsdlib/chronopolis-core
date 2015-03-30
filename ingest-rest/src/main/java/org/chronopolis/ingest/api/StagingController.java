@@ -1,16 +1,12 @@
 package org.chronopolis.ingest.api;
 
-import org.chronopolis.ingest.ChronPackager;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
 import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.IngestRequest;
-import org.chronopolis.rest.models.Node;
-import org.chronopolis.rest.models.Replication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +19,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.Principal;
 import java.util.Map;
@@ -160,7 +160,7 @@ public class StagingController {
                                    bag.getTokenLocation());
 
         // Set up where nodes will pull from
-        String user = ingestSettings.getExternalUser();
+        String user = ingestSettings.getReplicationUser();
         String server = ingestSettings.getStorageServer();
         String tokenStore = new StringBuilder(user)
                 .append("@").append(server)

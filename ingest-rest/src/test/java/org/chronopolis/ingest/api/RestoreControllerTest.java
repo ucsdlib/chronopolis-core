@@ -1,34 +1,34 @@
 package org.chronopolis.ingest.api;
 
+import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;
-import org.chronopolis.ingest.repository.RestoreRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.TestRestTemplate;
+import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-@WebAppConfiguration
-@IntegrationTest("server.port:0")
+@WebIntegrationTest("server.port:0")
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = TestApplication.class)
-public class RestoreControllerTest {
+@SqlGroup({
+        @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:sql/createRestorations.sql"),
+        @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = "classpath:sql/deleteRestorations.sql")
+})
+public class RestoreControllerTest extends IngestTest {
 
     @Value("${local.server.port}")
     private int port;
-
-    @Autowired
-    RestoreRepository repository;
 
     @Test
     public void testGetRestorations() throws Exception {
@@ -36,7 +36,7 @@ public class RestoreControllerTest {
                 .getForEntity("http://localhost:" + port + "/api/restorations", List.class);
 
         assertEquals(HttpStatus.OK, entity.getStatusCode());
-        assertEquals(10, entity.getBody().size());
+        assertEquals(1, entity.getBody().size());
     }
 
     @Test
@@ -60,7 +60,7 @@ public class RestoreControllerTest {
         assertEquals(HttpStatus.NOT_FOUND, entity.getStatusCode());
     }
 
-    @Test
+    // @Test
     public void testUpdateRestoration() throws Exception {
 
     }
