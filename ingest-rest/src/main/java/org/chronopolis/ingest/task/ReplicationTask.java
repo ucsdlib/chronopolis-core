@@ -46,7 +46,7 @@ public class ReplicationTask {
 
     @Scheduled(cron = "0 */10 * * * *")
     public void createReplications() {
-        String user = settings.getExternalUser();
+        String user = settings.getReplicationUser();
         String server = settings.getStorageServer();
         String bagStage = settings.getBagStage();
         String tokenStage = settings.getTokenStage();

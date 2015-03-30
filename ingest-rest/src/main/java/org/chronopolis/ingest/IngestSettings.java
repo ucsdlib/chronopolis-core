@@ -10,22 +10,22 @@ import org.springframework.stereotype.Component;
 @Component
 public class IngestSettings extends ChronopolisSettings {
 
-    @Value("${ingest.external.user:chrono}")
-    private String externalUser;
+    @Value("${ingest.replication.user:chrono}")
+    private String replicationUser;
 
     @Value("${ingest.replication.server:chronopolis-stage.umiacs.umd.edu}")
     private String replicationServer;
 
-    public String getExternalUser() {
-        return externalUser;
+    public String getReplicationUser() {
+        return replicationUser;
     }
 
     public String getStorageServer() {
         return replicationServer;
     }
 
-    public void setExternalUser(final String externalUser) {
-        this.externalUser = externalUser;
+    public void setReplicationUser(final String replicationUser) {
+        this.replicationUser = replicationUser;
     }
 
     public void setReplicationServer(final String replicationServer) {

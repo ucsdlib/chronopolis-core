@@ -34,16 +34,16 @@ public interface IngestAPI {
 
     // Replication methods
 
-    @GET("/api/staging/replications")
+    @GET("/api/replications")
     List<Replication> getReplications(@Query("status") ReplicationStatus status);
 
-    @PUT("/api/staging/replications")
+    @PUT("/api/replications")
     Replication putReplication(@Body ReplicationRequest body);
 
-    @GET("/api/staging/replications/{id}")
+    @GET("/api/replications/{id}")
     Replication getReplication(@Path("id") Long id);
 
-    @POST("/api/staging/replications/{id}")
+    @POST("/api/replications/{id}")
     Replication updateReplication(@Path("id") Long id, @Body Replication body);
 
     // Restore methods

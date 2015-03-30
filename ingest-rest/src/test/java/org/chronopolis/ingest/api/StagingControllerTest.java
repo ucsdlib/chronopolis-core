@@ -1,17 +1,18 @@
 package org.chronopolis.ingest.api;
 
+import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;
-import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.rest.models.Bag;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.TestRestTemplate;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.List;
@@ -28,13 +29,14 @@ import static org.junit.Assert.assertEquals;
 @WebIntegrationTest("server.port:0")
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = TestApplication.class)
-public class StagingControllerTest {
+@SqlGroup({
+        @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:sql/createBags.sql"),
+        @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = "classpath:sql/deleteBags.sql")
+})
+public class StagingControllerTest extends IngestTest {
 
     @Value("${local.server.port}")
     private int port;
-
-    @Autowired
-    BagRepository bagRepository;
 
     @Test
     public void testGetBags() throws Exception {

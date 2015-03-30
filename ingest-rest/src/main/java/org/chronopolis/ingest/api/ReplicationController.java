@@ -36,7 +36,7 @@ import static org.chronopolis.ingest.api.Params.STATUS;
  * Created by shake on 11/5/14.
  */
 @RestController
-@RequestMapping("/api/staging")
+@RequestMapping("/api/replications")
 public class ReplicationController {
     private final Logger log = LoggerFactory.getLogger(ReplicationController.class);
 
@@ -49,7 +49,7 @@ public class ReplicationController {
     @Autowired
     BagRepository bagRepository;
 
-    @RequestMapping(value = "/replications", method = RequestMethod.PUT)
+    @RequestMapping(method = RequestMethod.PUT)
     public Replication createReplication(Principal principal, @RequestBody ReplicationRequest request) {
         // Node node = nodeRepository.get()
         // Create a new replication for the Node (user) based on the Bag ID
@@ -72,7 +72,7 @@ public class ReplicationController {
         return action;
     }
 
-    @RequestMapping(value = "/replications/{id}", method = RequestMethod.POST)
+    @RequestMapping(value = "/{id}", method = RequestMethod.POST)
     public Replication updateReplication(Principal principal,
                                          @PathVariable("id") Long replicationID,
                                          @RequestBody Replication replication) {
@@ -120,7 +120,7 @@ public class ReplicationController {
         return update;
     }
 
-    @RequestMapping(value = "/replications", method = RequestMethod.GET)
+    @RequestMapping(method = RequestMethod.GET)
     public Iterable<Replication> replications(Principal principal,
                                               @RequestParam Map<String, String> params) {
         // @RequestParam(value = STATUS, required = false) ReplicationStatus status) {
@@ -151,7 +151,7 @@ public class ReplicationController {
         return replications;
     }
 
-    @RequestMapping(value = "/replications/{id}", method = RequestMethod.GET)
+    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public Replication findReplication(Principal principal, @PathVariable("id") Long actionId) {
         Replication action = replicationRepository.findOne(actionId);
 
