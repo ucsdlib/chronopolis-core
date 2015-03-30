@@ -78,6 +78,9 @@ public class ReplicationQueryTask {
             if (!filter.contains(filterString)) {
                 log.info("Starting job for replication id {}", replication.getReplicationID());
                 jobStarter.addJobFromRestful(replication);
+
+                // Add our current execution to our filter list
+                filter.add(filterString);
             }
         }
     }
