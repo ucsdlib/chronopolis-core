@@ -7,7 +7,7 @@ Name: ingest-server
 Version: %{ver}
 Release: 1
 Source: ingest-server.jar
-Source1: ingest.sh
+Source1: ingest-server.sh
 Source2: application.properties
 Summary: Chronopolis Ingest Server
 License: UMD
