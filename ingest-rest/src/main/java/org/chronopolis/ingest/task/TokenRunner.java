@@ -11,6 +11,9 @@ import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.rest.models.AceToken;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.BagStatus;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +23,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Set;
 
 import static java.nio.file.StandardOpenOption.CREATE;
@@ -120,7 +122,8 @@ public class TokenRunner implements Runnable {
             dir.toFile().mkdirs();
         }
 
-        String filename = bag.getName() + new Date();
+        DateTimeFormatter formatter = ISODateTimeFormat.date().withZoneUTC();
+        String filename = bag.getName() + formatter.print(new DateTime());
         Path store = dir.resolve(filename);
         try (OutputStream os = Files.newOutputStream(store, CREATE)) {
             String ims = "ims.umiacs.umd.edu";
