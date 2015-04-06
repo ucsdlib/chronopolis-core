@@ -36,6 +36,7 @@ public class AceRegisterStep implements Tasklet {
     private String collection;
     private String depositor;
     private String fixityAlgorithm;
+    private String tokenLocation;
     private int auditPeriod;
 
     public AceRegisterStep(AceService aceService,
@@ -63,6 +64,7 @@ public class AceRegisterStep implements Tasklet {
         this.collection = bag.getName();
         this.depositor = bag.getDepositor();
         this.fixityAlgorithm = bag.getFixityAlgorithm();
+        this.tokenLocation = bag.getTokenLocation();
         this.auditPeriod = 90;
     }
 
@@ -81,7 +83,7 @@ public class AceRegisterStep implements Tasklet {
 
         Path collectionPath = Paths.get(settings.getPreservation(), depositor, collection);
         // TODO: Get stage for manifest?
-        Path manifest = Paths.get(settings.getPreservation(), collection + "-tokens");
+        Path manifest = Paths.get(settings.getPreservation(), tokenLocation);
 
         log.trace("Building ACE json");
         GsonCollection aceGson = new GsonCollection.Builder()
@@ -129,6 +131,7 @@ public class AceRegisterStep implements Tasklet {
             }
         };
 
+        log.info("Loading token store for {}...", collection);
         aceService.loadTokenStore(id, new TypedFile("ASCII Text", manifest.toFile()), tsCallback);
 
         // Since the callback is asynchronous, we need to wait for it to complete before moving on
