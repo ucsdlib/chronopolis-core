@@ -109,7 +109,13 @@ public class BagDownloadStep implements Tasklet {
             statusMessage = e.getMessage();
         }
 
-        String calculatedDigest = hashCode.toString();
+        String calculatedDigest;
+        if (hashCode != null) {
+            calculatedDigest = hashCode.toString();
+        } else {
+            calculatedDigest = "";
+        }
+
         log.trace("Calculated digest {} for tagmanifest", calculatedDigest);
 
         /*
