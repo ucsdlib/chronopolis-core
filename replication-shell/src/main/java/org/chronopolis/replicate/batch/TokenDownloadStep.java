@@ -34,6 +34,7 @@ public class TokenDownloadStep implements Tasklet {
     private String location;
     private String protocol;
     private String digest;
+    private String depositor;
 
     public TokenDownloadStep(final ReplicationSettings settings,
                              final CollectionInitMessage message,
@@ -43,6 +44,7 @@ public class TokenDownloadStep implements Tasklet {
         this.location = message.getTokenStore();
         this.protocol = message.getProtocol();
         this.digest = message.getTokenStoreDigest();
+        this.depositor = message.getDepositor();
     }
 
     public TokenDownloadStep(ReplicationSettings settings,
@@ -54,6 +56,7 @@ public class TokenDownloadStep implements Tasklet {
         Bag bag = replication.getBag();
         this.location = replication.getTokenLink();
         this.protocol = replication.getProtocol();
+        this.depositor = bag.getDepositor();
 
         // TODO: From the rest perspective, the flow gets changed a little:
         // instead of checking against the tag digest we update the object and check if it
@@ -70,7 +73,7 @@ public class TokenDownloadStep implements Tasklet {
         Path tokenStore;
         try {
             tokenStore = ReplicationQueue.getFileImmediate(location,
-                    Paths.get(settings.getPreservation()),
+                    Paths.get(settings.getPreservation(), depositor),
                     protocol);
         } catch (IOException e) {
             log.error("Error downloading token store", e);
