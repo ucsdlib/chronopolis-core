@@ -30,10 +30,7 @@ public class IntakeConfig {
 
     @Bean
     public IngestAPI ingestAPI(IngestAPISettings apiSettings) {
-        String endpoint =  URIUtil.buildAceUri(
-            apiSettings.getIngestAPIHost(),
-            apiSettings.getIngestAPIPort(),
-            apiSettings.getIngestAPIPath()).toString();
+        String endpoint = apiSettings.getIngestEndpoints().get(0);
 
         // TODO: This can timeout on long polls, see SO for potential fix
         // http://stackoverflow.com/questions/24669309/how-to-increase-timeout-for-retrofit-requests-in-robospice-android
