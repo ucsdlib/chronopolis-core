@@ -70,7 +70,7 @@ public class IntakeProducer implements CommandLineRunner {
     }
 
     private enum PRODUCER_OPTION {
-        SEND_STATIC_INTAKE_REQUEST, CREATE_INTAKE_REQUEST, RESTORE_REQUEST, DIRECTORY_SCAN, REST, BAG_IT, QUIT, UNKNOWN;
+        SEND_STATIC_INTAKE_REQUEST, CREATE_INTAKE_REQUEST, RESTORE_REQUEST, DIRECTORY_SCAN, T_REST, BAG_IT, QUIT, UNKNOWN;
 
         private static PRODUCER_OPTION fromString(String text) {
             switch (text) {
@@ -83,7 +83,7 @@ public class IntakeProducer implements CommandLineRunner {
                 case "D":
                     return DIRECTORY_SCAN;
                 case "T":
-                    return REST;
+                    return T_REST;
                 case "B":
                     return BAG_IT;
                 case "Q":
@@ -127,7 +127,7 @@ public class IntakeProducer implements CommandLineRunner {
                 directory = readLine();
 
                 scanDirectory(depositor, directory);
-            } else if (option.equals(PRODUCER_OPTION.REST)) {
+            } else if (option.equals(PRODUCER_OPTION.T_REST)) {
                 System.out.print("Depositor: ");
                 depositor = readLine();
                 System.out.print("Bag Name: ");
