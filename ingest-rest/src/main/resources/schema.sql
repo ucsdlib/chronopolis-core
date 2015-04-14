@@ -23,6 +23,7 @@ CREATE TABLE bag (
   fixity_algorithm VARCHAR(255),
   size bigint not null,
   total_files bigint not null,
+  required_replications int,
   PRIMARY KEY (id)
 );
 
@@ -70,6 +71,11 @@ CREATE TABLE ace_token (
   PRIMARY KEY (id)
 );
 
+CREATE TABLE bag_replications (
+  bag_id bigint,
+  node_id bigint
+);
+
 ALTER TABLE replication
   ADD CONSTRAINT FK_repl_bag FOREIGN KEY (bag_id) REFERENCES bag;
 
@@ -80,4 +86,10 @@ ALTER TABLE restoration
   ADD CONSTRAINT FK_rest_node FOREIGN KEY (node_id) REFERENCES node;
 
 ALTER TABLE ace_token
-  ADD CONSTRAINT FK_bag FOREIGN KEY (bag) REFERENCES bag;
+  ADD CONSTRAINT FK_token_bag FOREIGN KEY (bag) REFERENCES bag;
+
+ALTER TABLE bag_replications
+  ADD CONSTRAINT FK_br_bag FOREIGN KEY (bag_id) REFERENCES bag;
+
+ALTER TABLE bag_replications
+  ADD CONSTRAINT FK_br_node FOREIGN KEY (node_id) REFERENCES node;
