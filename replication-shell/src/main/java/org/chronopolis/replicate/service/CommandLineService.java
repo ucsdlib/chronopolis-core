@@ -88,11 +88,11 @@ public class CommandLineService implements ReplicationService {
         log.debug("Found {} replications", replications.size());
 
         for (Replication replication : replications) {
-            log.info("Starting job for replication id {}", replication.getReplicationID());
+            log.info("Starting job for replication id {}", replication.getID());
             if (update) {
                 log.info("Updating replication");
                 replication.setStatus(ReplicationStatus.STARTED);
-                ingestAPI.updateReplication(replication.getReplicationID(), replication);
+                ingestAPI.updateReplication(replication.getID(), replication);
             }
             jobStarter.addJobFromRestful(replication);
         }

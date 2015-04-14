@@ -71,12 +71,12 @@ public class ReplicationQueryTask {
             if (update) {
                 log.info("Updating replication");
                 replication.setStatus(ReplicationStatus.STARTED);
-                ingestAPI.updateReplication(replication.getReplicationID(), replication);
+                ingestAPI.updateReplication(replication.getID(), replication);
             }
 
             // Make sure we don't have a replication already in progress
             if (!filter.contains(filterString)) {
-                log.info("Starting job for replication id {}", replication.getReplicationID());
+                log.info("Starting job for replication id {}", replication.getID());
                 jobStarter.addJobFromRestful(replication);
 
                 // Add our current execution to our filter list

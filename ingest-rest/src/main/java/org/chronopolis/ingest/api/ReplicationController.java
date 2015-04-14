@@ -77,14 +77,14 @@ public class ReplicationController {
                                          @PathVariable("id") Long replicationID,
                                          @RequestBody Replication replication) {
         Node node = nodeRepository.findByUsername(principal.getName());
-        Replication update = replicationRepository.findOne(replication.getReplicationID());
+        Replication update = replicationRepository.findOne(replication.getID());
 
         // check for unauthorized access
         if (!update.getNode().equals(node)) {
             throw new UnauthorizedException(principal.getName());
         }
 
-        log.info("Updating replication {}", replication.getReplicationID());
+        log.info("Updating replication {}", replication.getID());
 
         // check if the fixity values are non-null, and if so update them
         String receivedTokenFixity = replication.getReceivedTokenFixity();

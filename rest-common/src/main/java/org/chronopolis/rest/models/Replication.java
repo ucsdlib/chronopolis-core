@@ -9,7 +9,6 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 /**
@@ -20,7 +19,7 @@ public class Replication {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long replicationID;
+    private Long id;
 
     @JsonIgnore
     @ManyToOne
@@ -30,7 +29,6 @@ public class Replication {
     private ReplicationStatus status;
 
     @ManyToOne
-    @JoinColumn(name="ID")
     private Bag bag;
 
     private String bagLink;
@@ -67,8 +65,8 @@ public class Replication {
         this.tokenLink = tokenLink;
     }
 
-    public Long getReplicationID() {
-        return replicationID;
+    public Long getID() {
+        return id;
     }
 
     public Node getNode() {
@@ -123,10 +121,6 @@ public class Replication {
 
     public void setProtocol(final String protocol) {
         this.protocol = protocol;
-    }
-
-    public String resourceID() {
-        return "replication/" + replicationID;
     }
 
 }
