@@ -77,7 +77,7 @@ CREATE SEQUENCE ace_token_id_seq;
 CREATE TABLE ace_token (
     id bigint PRIMARY KEY DEFAULT nextval('ace_token_id_seq'),
     create_date timestamp,
-    filename varchar(255),
+    filename text,
     proof text,
     ims_service varchar(255),
     algorithm varchar(255),
