@@ -4,15 +4,18 @@
 /intake/target/
 /intake-shell/target/
 /intake-shell/intake.properties
+/ingest-rest/target/
 /ingest-shell/target/
 /ingest-shell/ingest.properties
 /logger/target/
 /amqp-test/target/
 /duracloud-rest/target/
+/duracloud-intake/target/
 /replication-shell/target/
 /replication-shell/replication.properties
 /replication-frontend/target/
 /jpatest/nbproject/private/
+/rest-common/target/
 
 ## Intellij stuff
 /.idea/
