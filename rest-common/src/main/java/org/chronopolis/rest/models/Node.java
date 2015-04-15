@@ -3,9 +3,11 @@ package org.chronopolis.rest.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,6 +27,10 @@ public class Node {
 
     @OneToMany(mappedBy = "node")
     private Set<Restoration> restorations = new HashSet<>();
+
+    @JsonIgnore
+    @ManyToMany(fetch = FetchType.EAGER, mappedBy = "replicatingNodes")
+    private Set<Bag> bags = new HashSet<>();
 
     @JsonIgnore
     @Deprecated

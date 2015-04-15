@@ -37,7 +37,7 @@ public class BagRESTStepListener implements StepExecutionListener {
         String digest = notifier.getCalculatedTagDigest();
 
         replication.setReceivedTagFixity(digest);
-        ingestAPI.updateReplication(replication.getReplicationID(), replication);
+        ingestAPI.updateReplication(replication.getID(), replication);
 
         return ExitStatus.COMPLETED;
     }

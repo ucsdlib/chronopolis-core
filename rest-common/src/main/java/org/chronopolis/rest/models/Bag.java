@@ -6,9 +6,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
+import javax.persistence.Transient;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Representation of a bag in chronopolis
@@ -19,6 +27,8 @@ import javax.persistence.Id;
  */
 @Entity
 public class Bag implements Comparable<Bag> {
+    @Transient
+    private final int DEFAULT_REPLICATIONS = 3;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,6 +58,17 @@ public class Bag implements Comparable<Bag> {
     private long size;
     private long totalFiles;
 
+    private int requiredReplications;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "bag_replications",
+        joinColumns = {
+                @JoinColumn(name = "bag_id", nullable = false, updatable = false)},
+        inverseJoinColumns = {
+                @JoinColumn(name = "node_id", nullable = false, updatable = false)
+    })
+    private Set<Node> replicatingNodes = new HashSet<>();
+
     protected Bag() { // JPA
     }
 
@@ -55,6 +76,7 @@ public class Bag implements Comparable<Bag> {
         this.name = name;
         this.depositor = depositor;
         this.status = BagStatus.STAGED;
+        // this.requiredReplications = DEFAULT_REPLICATIONS;
     }
 
     public Long getID() {
@@ -184,5 +206,13 @@ public class Bag implements Comparable<Bag> {
         } else {
             return -1;
         }
+    }
+
+    public Set<Node> getReplicatingNodes() {
+        return replicatingNodes;
+    }
+
+    public int getRequiredReplications() {
+        return requiredReplications;
     }
 }

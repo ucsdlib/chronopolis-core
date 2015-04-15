@@ -34,7 +34,7 @@ public class TokenRESTStepListener implements StepExecutionListener {
         String digest = notifier.getCalculatedTokenDigest();
 
         replication.setReceivedTokenFixity(digest);
-        ingestAPI.updateReplication(replication.getReplicationID(), replication);
+        ingestAPI.updateReplication(replication.getID(), replication);
 
         return ExitStatus.COMPLETED;
     }

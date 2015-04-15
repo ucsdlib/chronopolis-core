@@ -29,7 +29,8 @@ CREATE TABLE bag (
     status varchar(255),
     fixity_algorithm varchar(255),
     size bigint NOT NULL,
-    total_files bigint NOT NULL
+    total_files bigint NOT NULL,
+    required_replications int
 );
 
 DROP TABLE IF EXISTS node CASCADE;
@@ -42,19 +43,18 @@ CREATE TABLE node (
     password varchar(255)
 );
 
--- TODO: replicationid -> id; id -> bag_id
 DROP TABLE IF EXISTS replication;
 DROP SEQUENCE IF EXISTS replication_replicationid_seq;
 CREATE SEQUENCE replication_replicationid_seq;
 CREATE TABLE replication (
-    replicationid bigint PRIMARY KEY DEFAULT nextval('replication_replicationid_seq'),
+    id bigint PRIMARY KEY DEFAULT nextval('replication_replicationid_seq'),
     status varchar(255),
     bag_link varchar(255),
     token_link varchar(255),
     protocol varchar(255),
     received_tag_fixity varchar(255),
     received_token_fixity varchar(255),
-    id bigint,
+    bag_id bigint,
     node_id bigint
 );
 
@@ -85,9 +85,14 @@ CREATE TABLE ace_token (
     bag bigint
 );
 
+DROP TABLE IF EXISTS bag_replications;
+CREATE TABLE bag_replications (
+    bag_id bigint,
+    node_id bigint
+);
 
 ALTER TABLE replication
-    ADD CONSTRAINT FK_repl_bag FOREIGN KEY (id) REFERENCES bag;
+    ADD CONSTRAINT FK_repl_bag FOREIGN KEY (bag_id) REFERENCES bag;
 
 ALTER TABLE replication
     ADD CONSTRAINT FK_repl_node FOREIGN KEY (node_id) REFERENCES node;
@@ -96,4 +101,10 @@ ALTER TABLE restoration
     ADD CONSTRAINT FL_rest_node FOREIGN KEY (node_id) REFERENCES node;
 
 ALTER TABLE ace_token
-    ADD CONSTRAINT FK_bag FOREIGN KEY (bag) REFERENCES bag;
+    ADD CONSTRAINT FK_token_bag FOREIGN KEY (bag) REFERENCES bag;
+
+ALTER TABLE bag_replications
+    ADD CONSTRAINT FK_br_bag FOREIGN KEY (bag_id) REFERENCES bag;
+
+ALTER TABLE bag_replications
+    ADD CONSTRAINT FK_br_node FOREIGN KEY (node_id) REFERENCES node;
