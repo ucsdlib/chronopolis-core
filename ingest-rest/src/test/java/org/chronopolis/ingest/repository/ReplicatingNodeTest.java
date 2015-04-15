@@ -16,6 +16,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.util.Set;
 
 /**
+ * Test for the ManyToMany relationship between bags and nodes. One is a simple
+ * query for a bag which already has replications, and the other is adding them
+ * and testing they persist.
+ *
  * Created by shake on 4/14/15.
  */
 @RunWith(SpringJUnit4ClassRunner.class)
