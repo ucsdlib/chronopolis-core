@@ -28,7 +28,7 @@
             <!--@thymesVar id="replication" type="org.chronopolis.rest.models.Replication"-->
             <tr th:each="replication: ${replications}">
                 <td th:text="${replication.ID}"></td>
-                <td th:text="${replication.node}"></td>
+                <td th:text="${replication.node.username}"></td>
                 <td th:text="${replication.bagLink}"></td>
                 <td th:text="${replication.receivedTagFixity}"></td>
                 <td th:text="${replication.tokenLink}"></td>
