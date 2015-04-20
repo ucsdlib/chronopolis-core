@@ -1,0 +1,16 @@
+/* Totally taken from some bootstrap example */
+@media(min-width: 768px) {
+ .sidebar {
+    position: fixed;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    z-index: 1000;
+    display: block;
+    padding: 20px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background-color: #F5F5F5;
+    border-right: 1px solid #EEE;
+    }
+}
