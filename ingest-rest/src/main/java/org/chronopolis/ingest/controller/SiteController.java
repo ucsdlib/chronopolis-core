@@ -83,9 +83,10 @@ public class SiteController {
         Collection<SimpleGrantedAuthority> authorities = new HashSet<>();
         // Since we only have 2 roles at the moment it's easy to create users like this,
         // but we really should update this to have all authorities sent in the request
-        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
         if (user.isAdmin()) {
             authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        } else {
+            authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
         }
 
         UserDetails userDetails = new User(user.getUsername(), user.getPassword(), authorities);
