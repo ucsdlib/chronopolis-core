@@ -82,7 +82,7 @@ public class BagController {
     public String getReplications(Model model, Principal principal) {
         log.info("Getting replications for user {}", principal.getName());
         Collection<Replication> replications;
-        if (hasRoleAdmin()) {
+        if (ControllerUtil.hasRoleAdmin()) {
             replications = replicationRepository.findAll();
         } else {
             replications = replicationRepository.findByNodeUsername(principal.getName());
@@ -90,21 +90,6 @@ public class BagController {
 
         model.addAttribute("replications", replications);
         return "replications";
-    }
-
-    public boolean hasRoleAdmin() {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getPrincipal();
-
-        for (GrantedAuthority authority : userDetails.getAuthorities()) {
-            if (authority.getAuthority().equalsIgnoreCase("ROLE_ADMIN")) {
-                return true;
-            }
-        }
-
-        log.debug("User does not have admin role");
-        return false;
     }
 
     // I pulled this from the StagingController, it really doesn't need to be duplicated
