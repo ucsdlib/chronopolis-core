@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Chronopolis Ingestion Service</title>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <script src="webjars/jquery/2.1.1/jquery.min.js"/>
+    <link href="../static/css/bootstrap.min.css"
+          th:href="@{/css/bootstrap.min.css}"
+          rel="stylesheet"/>
+    <link href="../static/css/bootstrap-responsive.min.css"
+          th:href="@{/css/bootstrap-responsive.min.css}"
+          rel="stylesheet"/>
+
+</head>
+<body>
+<div class="container-fluid">
+    <div th:include="layout :: left"></div>
+    <form enctype="application/json" method="post" name="ingest">
+        <div><label>Bag Name: <input type="text" name="name" placeholder="bag-name"/></label></div>
+        <div><label>Depositor: <input type="text" name="depositor" placeholder="depositor-name"/></label></div>
+        <div><label>Location: <input type="text" name="location" placeholder="depositor-name/bag-name"/></label></div>
+        <input type="submit" value="Create Bag"/> <!-- onclick="submit()"/> -->
+    </form>
+</div>
+<!--
+    <script type="text/javascript">
+        $("#ingest").submit(function(event) {
+            event.preventDefault();
+            var data = JSON.stringify($("#ingest").serializeArray);
+            console.log("Submitting " + data)
+
+            $.ajax({
+                type: "POST",
+                url: "/api/bags",
+                data: data,
+                dataType: "json",
+                contentType: "application/json"
+            });
+        });
+    </script>
+    -->
+</body>
+</html>
