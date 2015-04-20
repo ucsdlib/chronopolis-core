@@ -7,35 +7,48 @@
     <link href="../static/css/bootstrap.min.css"
           th:href="@{/css/bootstrap.min.css}"
           rel="stylesheet"/>
-    <link href="../static/css/bootstrap-responsive.min.css"
-          th:href="@{/css/bootstrap-responsive.min.css}"
-          rel="stylesheet"/>
+    <link href="../css/nav.css"
+          th:href="@{/css/nav.css}"
+          rel="stylesheet" type="text/css"/>
 </head>
-<body>
+<body role="document">
 <div class="container-fluid">
     <div th:include="layout :: left"></div>
+
+    <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
     <div th:include="fragments/users :: table"></div>
 
-    <div sec:authorize="hasRole('ROLE_ADMIN')">
+    <div sec:authorize="hasRole('ROLE_ADMIN')" class="row">
         <h4>Add New User</h4>
-        <form enctype="application/json" method="post" name="ingest" action="/users/add" th:action="@{/users/add}">
-            <div><label>Username: <input type="text" name="username" placeholder="node-name"/></label></div>
-            <div><label>Password: <input type="text" name="password" placeholder="temp-password"/></label></div>
-            <div><label>Admin: <input type="checkbox" name="admin"/></label></div>
-            <div><label>Is a Node: <input type="checkbox" name="node"/></label></div>
-            <input type="submit" value="Create User"/>
+
+        <form enctype="application/json" method="post" name="ingest" action="/users/add"
+              th:action="@{/users/add}">
+            <div class="form-group">
+                <div><label>Username: <input type="text" class="form-control" name="username"
+                                             placeholder="node-name"/></label></div>
+                <div><label>Password: <input type="text" class="form-control" name="password"
+                                             placeholder="temp-password"/></label></div>
+                <div><label>Admin: <input type="checkbox" name="admin"/></label></div>
+                <div><label>Is a Node: <input type="checkbox" name="node"/></label></div>
+            </div>
+            <input type="submit" class="btn btn-small" value="Create User"/>
         </form>
     </div>
 
-    <div>
+    <div class="row">
         <h4>Update Password</h4>
-        <form enctype="application/json" method="post" name="ingest" action="/users/update" th:action="@{/users/update}">
-            <div><label>Current Password: <input type="password" name="oldPassword" placeholder="current-password"/></label></div>
-            <div><label>New Password: <input type="password" name="newPassword" placeholder="new-password"/></label></div>
-            <input type="submit" value="Create Bag"/>
+
+        <form enctype="application/json" method="post" name="ingest" action="/users/update"
+              th:action="@{/users/update}">
+            <div><label>Current Password: <input type="password" name="oldPassword"
+                                                 placeholder="current-password"/></label></div>
+            <div><label>New Password: <input type="password" name="newPassword" placeholder="new-password"/></label>
+            </div>
+            <input type="submit" class="btn btn-small" value="Create Bag"/>
         </form>
     </div>
 
 </div>
+    </div>
 </body>
 </html>
