@@ -6,6 +6,7 @@ import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.Node;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationRequest;
@@ -108,14 +109,24 @@ public class ReplicationController {
         // if neither fixity is null and we had at least 1 mismatch, set as failure
         if (correctTokens && correctManifest) {
             update.setStatus(ReplicationStatus.SUCCESS);
+            bag.getReplicatingNodes().add(node);
         } else if (receivedTagFixity != null && receivedTokenFixity != null) {
             update.setStatus(ReplicationStatus.FAILURE);
+
+            // TODO: Create new replication request
+
         } else {
             // TODO: We may just want to leave the status as STARTED
             update.setStatus(replication.getStatus());
         }
 
+        // Check our bag to see if it has the required replications
+        if (bag.getReplicatingNodes().size() == bag.getRequiredReplications()) {
+            bag.setStatus(BagStatus.REPLICATED);
+        }
+
         replicationRepository.save(update);
+        bagRepository.save(bag);
 
         return update;
     }
