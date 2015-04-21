@@ -3,6 +3,7 @@ package org.chronopolis.ingest.controller;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
+import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.IngestRequest;
 import org.chronopolis.rest.models.Replication;
@@ -14,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -41,15 +43,38 @@ public class BagController {
     ReplicationRepository replicationRepository;
 
     @Autowired
+    TokenRepository tokenRepository;
+
+    @Autowired
     IngestSettings settings;
 
     @RequestMapping(value= "/bags", method = RequestMethod.GET)
     public String getBags(Model model, Principal principal) {
         log.info("Getting bags for user {}", principal.getName());
 
-        model.addAttribute("bags", bagRepository.findAll());
-        // model.addAttribute("bags", new ArrayList<Bag>());
+        Collection<Bag> bags = bagRepository.findAll();
+        model.addAttribute("bags", bags);
+
+        /*
+        log.debug("Adding count for bags");
+        for (Bag bag : bags) {
+            model.addAttribute(String.valueOf(bag.getID()),
+                               tokenRepository.countByBagID(bag.getID()));
+        }
+        log.debug("Done adding count");
+        */
+
         return "bags";
+    }
+
+    @RequestMapping(value = "/bags/{id}", method = RequestMethod.GET)
+    public String getBag(Model model, @PathVariable("id") Long id) {
+        log.info("Getting bag {}", id);
+
+        model.addAttribute("bags", bagRepository.findOne(id));
+        model.addAttribute("tokens", tokenRepository.countByBagID(id));
+
+        return "bag";
     }
 
     @RequestMapping(value = "/bags/add", method = RequestMethod.GET)

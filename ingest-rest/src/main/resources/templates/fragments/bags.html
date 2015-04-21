@@ -10,7 +10,32 @@
 
 </head>
 <body>
-    <div th:fragment="table">
+    <div th:fragment="simple-table">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Depositor</th>
+                <th>Name</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!--@thymesVar id="bags" type="List<Bag>"-->
+            <!--@thymesVar id="bag" type="org.chronopolis.rest.models.Bag"-->
+            <tr th:each="bag: ${bags}">
+                <td><a th:text="${bag.ID}" th:href="@{/bags/} + ${bag.ID}"></a></td>
+                <td th:text="${bag.depositor}"></td>
+                <td th:text="${bag.name}"></td>
+                <td th:text="${bag.status}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- This is typically only for an individual bag, as getting the token count
+         can be a long operation over multiple bags -->
+    <div th:fragment="extended-table">
         <table class="table table-striped">
             <thead>
             <tr>
@@ -19,11 +44,13 @@
                 <th>Name</th>
                 <th>Size</th>
                 <th>Total Files</th>
+                <th>Total Tokens</th>
                 <th>Status</th>
             </tr>
             </thead>
             <tbody>
             <!--@thymesVar id="bags" type="List<Bag>"-->
+            <!--@thymesVar id="tokens" type="Long"-->
             <!--@thymesVar id="bag" type="org.chronopolis.rest.models.Bag"-->
             <tr th:each="bag: ${bags}">
                 <td th:text="${bag.ID}"></td>
@@ -31,6 +58,7 @@
                 <td th:text="${bag.name}"></td>
                 <td th:text="${bag.size}"></td>
                 <td th:text="${bag.totalFiles}"></td>
+                <td th:text="${tokens}"></td>
                 <td th:text="${bag.status}"></td>
             </tr>
             </tbody>
