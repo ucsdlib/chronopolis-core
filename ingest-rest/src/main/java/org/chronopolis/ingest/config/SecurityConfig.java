@@ -68,8 +68,25 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/api/**").hasRole("USER")
                 .antMatchers(HttpMethod.PUT, "/api/restorations/**").hasRole("USER")
                 .antMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")
+                .antMatchers("/css/**").permitAll()
+                .antMatchers("/js/**").permitAll()
+                .antMatchers("/bags").hasRole("USER")
+                .antMatchers("/replications").hasRole("USER")
+                .antMatchers("/users").hasRole("USER")
+                .antMatchers("/users/update").hasRole("USER")
+                .antMatchers("/users/add").hasRole("ADMIN")
+                .antMatchers("/").permitAll()
+                    .anyRequest().permitAll()
+                .and()
+                .formLogin()
+                    .loginPage("/login")
+                    .permitAll()
+                    .and()
+                .logout()
+                    .permitAll()
                 .and()
             .httpBasic();
+
     }
 
     @Bean

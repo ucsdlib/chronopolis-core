@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en">
+    <meta charset="UTF-8"/>
+    <title></title>
+    <link href="../static/css/bootstrap.min.css"
+          th:href="@{/css/bootstrap.min.css}"
+          rel="stylesheet">
+    </link>
+
+</head>
+<body>
+    <div th:fragment="table">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Bag ID</th>
+                <th>Replicating Node</th>
+                <th>Bag Link</th>
+                <th>Received TagManifest Fixity</th>
+                <th>Token Link</th>
+                <th>Received Token Fixity</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!--@thymesVar id="replications" type="Set<Bag>"-->
+            <!--@thymesVar id="replication" type="org.chronopolis.rest.models.Replication"-->
+            <tr th:each="replication: ${replications}">
+                <td th:text="${replication.ID}"></td>
+                <td th:text="${replication.bag.ID}"></td>
+                <td th:text="${replication.node.username}"></td>
+                <td th:text="${replication.bagLink}"></td>
+                <td th:text="${replication.receivedTagFixity}"></td>
+                <td th:text="${replication.tokenLink}"></td>
+                <td th:text="${replication.receivedTokenFixity}"></td>
+                <td th:text="${replication.status}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

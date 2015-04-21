@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:th="http://www.thymeleaf.org">
+    <body>
+        <div th:fragment="head">
+            <div class="navbar navbar-inverse navbar-fixed-top">
+                <div class="navbar-inner">
+                    <div class="container-fluid">
+                        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </a>
+                        <a class="brand" href="/" th:href="@{/}">Registry</a>
+                        <a class="brand" href="/login" th:href="@{/login}">Log In</a>
+                        <!--
+                        <div class="nav-collapse collapse">
+                            <p class="navbar-text pull-right">
+                            </p>
+                            <ul class="nav">
+                                <li><a href="/">Home</a></li>
+                            </ul>
+                        </div>--> <!--/.nav-collapse -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div th:fragment="left">
+            <div class="col-sm-3 col-md-2 sidebar">
+                <ul class="nav nav-list">
+                    <li class="nav-header">Navigation</li>
+                    <li class="active"><a href="/"
+                           th:href="@{/}">Index</a></li>
+                    <li><a href="/login"
+                           th:href="@{/login}">Log In</a></li>
+                    <li><a href="/bags"
+                           th:href="@{/bags}">All Bags</a></li>
+                    <li><a href="/bags/add"
+                           th:href="@{/bags/add}">Add Bags</a></li>
+                    <li><a href="/replications"
+                        th:href="@{/replications}">Replications</a></li>
+                    <li><a href="/users"
+                           th:href="@{/users}">Users</a></li>
+                </ul>
+            </div>
+        </div>
+        <div th:fragment="foot">
+            <footer>
+            <p>Chron/DPN Infos</p>
+            </footer>
+        </div>
+    </body>
+</html>

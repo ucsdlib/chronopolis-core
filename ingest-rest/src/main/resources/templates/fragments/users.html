@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en">
+    <meta charset="UTF-8"/>
+    <title></title>
+    <link href="../static/css/bootstrap.min.css"
+          th:href="@{/css/bootstrap.min.css}"
+          rel="stylesheet">
+    </link>
+
+</head>
+<body>
+<div th:fragment="table" class="user-table" style="box-sizing: border-box">
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Username</th>
+            <th>Enabled</th>
+            <th>Roles</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!--@thymesVar id="users" type="Collection<User>"-->
+        <!--@thymesVar id="user" type="org.springframework.security.core.userdetails.UserDetails"-->
+        <tr th:each="user: ${users}">
+            <td th:text="${user.username}"></td>
+            <td th:text="${user.isEnabled()}"></td>
+            <td><label th:each="role: ${user.getAuthorities()}" th:text="${role}"></label></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

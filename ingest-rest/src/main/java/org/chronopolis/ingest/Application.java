@@ -2,6 +2,7 @@ package org.chronopolis.ingest;
 
 import com.sun.akuma.Daemon;
 import org.chronopolis.ingest.api.StagingController;
+import org.chronopolis.ingest.controller.SiteController;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
@@ -14,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
@@ -30,6 +33,7 @@ import java.util.Arrays;
         IngestSettings.class,
         IngestService.class,
         StagingController.class,
+        SiteController.class,
         TokenTask.class
 })
 @EntityScan(basePackages = "org.chronopolis.rest.models")
@@ -66,7 +70,5 @@ public class Application implements CommandLineRunner {
     public void run(final String... args) throws Exception {
         service.runServer();
     }
-
-
 
 }

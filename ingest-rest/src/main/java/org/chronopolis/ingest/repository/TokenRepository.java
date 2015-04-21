@@ -12,4 +12,6 @@ public interface TokenRepository extends JpaRepository<AceToken, Long> {
 
     List<AceToken> findByBagID(Long bagID);
 
+    Long countByBagID(Long bagID);
+
 }
