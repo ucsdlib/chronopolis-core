@@ -79,7 +79,7 @@ public class SiteController {
 
     @RequestMapping(value = "/users/add", method = RequestMethod.POST)
     public String createUser(Model model, UserRequest user) {
-        log.debug("Request to create user: {} {} {} {}", new Object[]{user.getUsername(), user.getPassword(), user.isAdmin(), user.isNode()});
+        log.debug("Request to create user: {} {} {}", new Object[]{user.getUsername(), user.isAdmin(), user.isNode()});
         Collection<SimpleGrantedAuthority> authorities = new HashSet<>();
         // Since we only have 2 roles at the moment it's easy to create users like this,
         // but we really should update this to have all authorities sent in the request
