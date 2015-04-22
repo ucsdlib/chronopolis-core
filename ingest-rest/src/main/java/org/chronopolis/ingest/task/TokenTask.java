@@ -36,12 +36,14 @@ public class TokenTask {
 
     @Scheduled(cron = "0 */30 * * * *")
     public void tokenize() {
+        log.info("Searching for bags to tokenize");
         if (executor.getActiveCount() > 0) {
-            log.debug("Waiting for executor to finish before starting more tokens");
+            log.info("Waiting for executor to finish before starting more tokens");
             return;
         }
 
         Collection<Bag> bags = repository.findByStatus(BagStatus.STAGED);
+        log.debug("Submitting {} bags", bags.size());
         for (Bag bag : bags) {
             executor.submitBagIfAvailable(bag, settings, repository, tokenRepository);
         }

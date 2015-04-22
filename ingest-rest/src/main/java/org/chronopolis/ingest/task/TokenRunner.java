@@ -65,6 +65,8 @@ public class TokenRunner implements Runnable {
         // * if tokenization is complete, update the status of the bag
         // TODO: Send email on failures
         if (tokens.size() < bag.getTotalFiles()) {
+            log.info("Starting tokenizer for bag {}", bag.getName());
+
             // Setup everything we need
             Path toBag = Paths.get(bagStage, bag.getLocation());
             TokenCallback callback = new TokenCallback(tokenRepository, bag);
@@ -79,7 +81,7 @@ public class TokenRunner implements Runnable {
             }
         } else if (tokens.size() == bag.getTotalFiles()) {
             // TODO: May want to decouple this
-            log.info("Writing tokens for bag {}", bag.getID());
+            log.info("Writing tokens for bag {}", bag.getName());
             boolean written = writeTokens(bag, tokens);
 
             if (written) {
