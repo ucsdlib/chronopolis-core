@@ -34,7 +34,7 @@ public class TokenTask {
     @Autowired
     TokenThreadPoolExecutor executor;
 
-    @Scheduled(cron = "0 */30 * * * *")
+    @Scheduled(cron = "${ingest.cron.tokens:0 */30 * * * *}")
     public void tokenize() {
         log.info("Searching for bags to tokenize");
         if (executor.getActiveCount() > 0) {
