@@ -76,7 +76,7 @@ public class Bag implements Comparable<Bag> {
         this.name = name;
         this.depositor = depositor;
         this.status = BagStatus.STAGED;
-        // this.requiredReplications = DEFAULT_REPLICATIONS;
+        this.requiredReplications = DEFAULT_REPLICATIONS;
     }
 
     public Long getID() {
