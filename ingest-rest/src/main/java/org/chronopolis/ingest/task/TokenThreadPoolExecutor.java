@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -56,9 +58,10 @@ public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
                     bagRepository,
                     tokenRepository);
 
-            // submit the runnable
+            // submit the runnable with the bag
+            // this ensures we can retrieve the bag in afterExecute
             try {
-                this.submit(tr);
+                this.submit(tr, b);
             } catch (NullPointerException e) {
                 log.error("Cannot submit null bag!", e);
                 submitted = false;
@@ -68,6 +71,7 @@ public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
             }
 
         } else {
+            log.debug("Bag {} already submitted, skipping", b.getName());
             submitted = false;
         }
 
@@ -83,11 +87,20 @@ public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
      */
     protected void afterExecute(Runnable r, Throwable t) {
         super.afterExecute(r, t);
+        log.debug("After execute");
 
-        if (r instanceof TokenRunner) {
-            // remove the bag from our working set
-            TokenRunner tr = (TokenRunner) r;
-            workingBags.remove(tr.getBag());
+        if (r instanceof FutureTask) {
+            // Remove the bag from our working set
+            FutureTask<Bag> task = (FutureTask<Bag>) r;
+            try {
+                Bag b = task.get();
+                log.debug("Removing {} from the working set", b.getName());
+                workingBags.remove(b);
+            } catch (InterruptedException e) {
+                log.error("Interrupted in afterExecute", e);
+            } catch (ExecutionException e) {
+                log.error("Execution error in afterExecute", e);
+            }
         }
 
         // if there was an exception... we'll need to figure out what to do
@@ -95,6 +108,7 @@ public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
             log.error("Error while tokenizing bag:", t);
         }
 
+        log.debug("Ending");
     }
 
 }
