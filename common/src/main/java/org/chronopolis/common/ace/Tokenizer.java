@@ -35,6 +35,7 @@ public class Tokenizer {
     private final Digest fixityAlgorithm;
     private Path manifest;
     private Path tagmanifest;
+    private String tagIdentifier;
 
     private final RequestBatchCallback callback;
     private TokenRequestBatch batch;
@@ -50,6 +51,10 @@ public class Tokenizer {
     }
 
     private void addManifests() {
+        tagIdentifier = "tagmanifest-"
+                + fixityAlgorithm.getBagitIdentifier()
+                + ".txt";
+
         Path tagManifest = bag.resolve("tagmanifest-"
                 + fixityAlgorithm.getBagitIdentifier()
                 + ".txt");
@@ -106,6 +111,7 @@ public class Tokenizer {
 
             String digest = split[0];
             Path rel = Paths.get(split[1]);
+            // Skip the current item if we already have it
             if (filter.contains(rel)) {
                 continue;
             }
@@ -126,7 +132,12 @@ public class Tokenizer {
         }
 
         // TODO: Move this into the public method instead
-        if (!corrupt && manifest.getFileName().endsWith("tagmanifest-sha256.txt")) {
+        // No corruptions (all manifests good)
+        // Skip the manifest
+        // Skip if we've already digested the tag manifest (tokenizer gets called multiple times)
+        if (!corrupt
+            && manifest.getFileName().endsWith(tagIdentifier)
+            && !filter.contains(tagIdentifier)) {
             String manifestDigest = DigestUtil.digest(manifest, alg);
             addTokenRequest(manifest, manifestDigest);
         }
