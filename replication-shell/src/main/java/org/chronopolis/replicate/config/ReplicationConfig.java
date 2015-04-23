@@ -12,6 +12,7 @@ import org.chronopolis.messaging.base.ChronMessage;
 import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.batch.ReplicationJobStarter;
 import org.chronopolis.replicate.batch.ReplicationStepListener;
+import org.chronopolis.rest.api.ErrorLogger;
 import org.chronopolis.rest.api.IngestAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,7 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -41,6 +43,14 @@ public class ReplicationConfig {
     @Autowired
     JobRepository jobRepository;
 
+    @Value("${debug.retrofit:NONE}")
+    String retrofitLogLevel;
+
+    @Bean
+    ErrorLogger logger() {
+        return new ErrorLogger();
+    }
+
     @Bean
     AceService aceService(AceSettings aceSettings) {
         // Next build the retrofit adapter
@@ -54,6 +64,8 @@ public class ReplicationConfig {
 
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(endpoint)
+                .setErrorHandler(logger())
+                .setLogLevel(RestAdapter.LogLevel.valueOf(retrofitLogLevel))
                 .setRequestInterceptor(interceptor)
                 .build();
 
@@ -74,6 +86,8 @@ public class ReplicationConfig {
         // http://stackoverflow.com/questions/24669309/how-to-increase-timeout-for-retrofit-requests-in-robospice-android
         RestAdapter adapter = new RestAdapter.Builder()
                 .setEndpoint(endpoint)
+                .setErrorHandler(logger())
+                .setLogLevel(RestAdapter.LogLevel.valueOf(retrofitLogLevel))
                 .setRequestInterceptor(new CredentialRequestInterceptor(
                         apiSettings.getIngestAPIUsername(),
                         apiSettings.getIngestAPIPassword()))
