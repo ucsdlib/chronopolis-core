@@ -94,8 +94,8 @@ public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
             FutureTask<Bag> task = (FutureTask<Bag>) r;
             try {
                 Bag b = task.get();
-                log.debug("Removing {} from the working set", b.getName());
-                workingBags.remove(b);
+                boolean success = workingBags.remove(b);
+                log.debug("Removal of {} from the working set: {}", b.getName(), success);
             } catch (InterruptedException e) {
                 log.error("Interrupted in afterExecute", e);
             } catch (ExecutionException e) {
