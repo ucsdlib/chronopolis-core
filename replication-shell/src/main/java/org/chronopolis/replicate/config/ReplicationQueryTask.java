@@ -36,7 +36,7 @@ public class ReplicationQueryTask {
     @Autowired
     private JobExplorer explorer;
 
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "${replication.cron:0 0 * * * *}")
     public void checkForReplications() {
         Set<String> filter = activeReplications();
 

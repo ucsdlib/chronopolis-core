@@ -38,6 +38,8 @@ public class ProductionConfig {
      * We only need to grab the usernames, and check if any exist
      * If none do, we create a default admin user
      *
+     * TODO: Use the UserDetailsManager
+     *
      */
     @Bean
     public boolean checkUsers(DataSource dataSource) {
