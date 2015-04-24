@@ -71,16 +71,16 @@ public class TokenDownloadStep implements Tasklet {
 
         log.info("Downloading Token Store from {}", location);
 
-        // Get the token store name
-        // Hopefully the location isn't null/empty :D
-        String[] splits = location.split("/");
-        String ts = splits[splits.length-1];
-
         Path tokenStore;
+
+        // Make sure the directory for the depositor exists before pulling
+        Path stage = Paths.get(settings.getPreservation(), depositor);
+        checkDirExists(stage);
+
         try {
             tokenStore = ReplicationQueue.getFileImmediate(
                     location,
-                    Paths.get(settings.getPreservation(), depositor, ts),
+                    stage,
                     protocol);
         } catch (IOException e) {
             log.error("Error downloading token store", e);
@@ -138,5 +138,11 @@ public class TokenDownloadStep implements Tasklet {
         notifier.setCalculatedTokenDigest(calculatedDigest);
         notifier.setTokenStep(statusMessage);
         return RepeatStatus.FINISHED;
+    }
+
+    private void checkDirExists(Path stage) {
+        if (!stage.toFile().exists()) {
+            stage.toFile().mkdirs();
+        }
     }
 }
