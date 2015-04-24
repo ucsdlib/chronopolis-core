@@ -53,7 +53,7 @@ public class ReplicationQueryTask {
         for (JobExecution execution : executions) {
             JobParameters params = execution.getJobParameters();
             String depositor = params.getString("depositor");
-            String collection  = params.getString("collection");
+            String collection = params.getString("collection");
 
             filter.add(depositor + ":" + collection);
         }

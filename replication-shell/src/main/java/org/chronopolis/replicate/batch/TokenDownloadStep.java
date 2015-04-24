@@ -70,10 +70,17 @@ public class TokenDownloadStep implements Tasklet {
         String statusMessage = "success";
 
         log.info("Downloading Token Store from {}", location);
+
+        // Get the token store name
+        // Hopefully the location isn't null/empty :D
+        String[] splits = location.split("/");
+        String ts = splits[splits.length-1];
+
         Path tokenStore;
         try {
-            tokenStore = ReplicationQueue.getFileImmediate(location,
-                    Paths.get(settings.getPreservation(), depositor),
+            tokenStore = ReplicationQueue.getFileImmediate(
+                    location,
+                    Paths.get(settings.getPreservation(), depositor, ts),
                     protocol);
         } catch (IOException e) {
             log.error("Error downloading token store", e);

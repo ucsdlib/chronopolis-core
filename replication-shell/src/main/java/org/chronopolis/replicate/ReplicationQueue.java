@@ -40,13 +40,13 @@ public class ReplicationQueue implements Runnable {
                                    String file) {
         StringBuilder uriBuilder = new StringBuilder(base);
 
-        if ( group != null && !group.isEmpty()) {
+        if (group != null && !group.isEmpty()) {
             uriBuilder.append(group).append(SLASH);
         }
-        if ( collection != null && !collection.isEmpty()) {
+        if (collection != null && !collection.isEmpty()) {
             uriBuilder.append(collection).append(SLASH);
         }
-        if ( file != null && !file.isEmpty()) {
+        if (file != null && !file.isEmpty()) {
             uriBuilder.append(file);
         }
 

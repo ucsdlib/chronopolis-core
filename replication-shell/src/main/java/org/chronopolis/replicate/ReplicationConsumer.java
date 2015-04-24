@@ -1,15 +1,10 @@
 package org.chronopolis.replicate;
 
 import com.sun.akuma.Daemon;
-import com.sun.akuma.JavaVMArguments;
 import org.chronopolis.db.common.model.RestoreRequest;
-import org.chronopolis.replicate.batch.ReplicationJobStarter;
 import org.chronopolis.replicate.config.ReplicationConfig;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.replicate.service.ReplicationService;
-import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.models.Replication;
-import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,11 +15,7 @@ import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Created by shake on 2/12/14.
