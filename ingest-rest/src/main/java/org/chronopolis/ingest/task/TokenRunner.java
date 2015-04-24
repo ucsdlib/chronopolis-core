@@ -74,6 +74,11 @@ public class TokenRunner implements Runnable {
 
             try {
                 tokenizer.tokenize(filter(tokens));
+                String tagDigest = tokenizer.getTagManifestDigest();
+                log.info("Captured {} as the tagmanifest digest for {}",
+                        tagDigest,
+                        bag.getName());
+                bag.setTagManifestDigest(tagDigest);
             } catch (IOException e) {
                 log.error("Error tokenizing: ", e);
             } catch (InterruptedException e) {
@@ -89,13 +94,11 @@ public class TokenRunner implements Runnable {
                 bag.setStatus(BagStatus.TOKENIZED);
             }
 
-            repository.save(bag);
         }
         // If greater, set the bag as an error?
 
-        log.debug("Finished tokenizing {}", bag.getName());
-
-
+        repository.save(bag);
+        log.debug("Exiting TokenRunner for {}", bag.getName());
     }
 
     public Bag getBag() {

@@ -36,6 +36,7 @@ public class Tokenizer {
     private Path manifest;
     private Path tagmanifest;
     private String tagIdentifier;
+    private String tagDigest;
 
     private final RequestBatchCallback callback;
     private TokenRequestBatch batch;
@@ -47,6 +48,7 @@ public class Tokenizer {
         this.fixityAlgorithm = Digest.fromString(fixityAlgorithm);
         this.manifests = new HashSet<>();
         this.callback = callback;
+        this.tagDigest = null;
         addManifests();
     }
 
@@ -77,6 +79,14 @@ public class Tokenizer {
         this.tagmanifest = tagManifest;
     }
 
+    /**
+     * Create tokens for a bag based on the manifest and tagmanifest
+     * TODO: Digest the tagmanifest first, then the manifest
+     *
+     * @param filter Set of paths to exclude from tokenization
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public void tokenize(Set<Path> filter) throws IOException, InterruptedException {
         batch = createIMSConnection();
 
@@ -86,6 +96,7 @@ public class Tokenizer {
             if (corrupt) {
                 log.error("Error(s) found in manifest, skipping it until all are corrected");
                 filter.add(manifest);
+                filter.add(tagmanifest); // Make sure we don't create a request for the tagmanifest
             }
 
             // Then the tag-manifest
@@ -135,14 +146,18 @@ public class Tokenizer {
         // No corruptions (all manifests good)
         // Skip the manifest
         // Skip if we've already digested the tag manifest (tokenizer gets called multiple times)
-        if (!corrupt
-            && manifest.getFileName().endsWith(tagIdentifier)
-            && !filter.contains(tagIdentifier)) {
-            String manifestDigest = DigestUtil.digest(manifest, alg);
-            addTokenRequest(manifest, manifestDigest);
+        if (!corrupt &&
+            manifest.getFileName().endsWith(tagIdentifier) &&
+            !filter.contains(tagIdentifier)) {
+            tagDigest = DigestUtil.digest(manifest, alg);
+            addTokenRequest(manifest, tagDigest);
         }
 
         return corrupt;
+    }
+
+    public String getTagManifestDigest() {
+        return tagDigest;
     }
 
     private void addTokenRequest(Path path, String digest) throws InterruptedException {
