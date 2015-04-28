@@ -1,10 +1,12 @@
 package org.chronopolis.ingest.controller;
 
 import org.chronopolis.ingest.IngestSettings;
+import org.chronopolis.ingest.models.BagUpdate;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.IngestRequest;
 import org.chronopolis.rest.models.Replication;
 import org.slf4j.Logger;
@@ -27,6 +29,7 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -71,7 +74,25 @@ public class BagController {
     public String getBag(Model model, @PathVariable("id") Long id) {
         log.info("Getting bag {}", id);
 
+        // TODO: Could probably use model.addAllAttributes and use that for
+        // common pages
         model.addAttribute("bags", bagRepository.findOne(id));
+        model.addAttribute("statuses", Arrays.asList(BagStatus.values()));
+        model.addAttribute("tokens", tokenRepository.countByBagID(id));
+
+        return "bag";
+    }
+
+    @RequestMapping(value = "/bags/{id}", method = RequestMethod.POST)
+    public String updateBag(Model model, @PathVariable("id") Long id, BagUpdate update) {
+        log.info("Updating bag {}: status = {}", id, update.getStatus());
+
+        Bag bag = bagRepository.findOne(id);
+        bag.setStatus(update.getStatus());
+        bagRepository.save(bag);
+
+        model.addAttribute("bags", bag);
+        model.addAttribute("statuses", Arrays.asList(BagStatus.values()));
         model.addAttribute("tokens", tokenRepository.countByBagID(id));
 
         return "bag";

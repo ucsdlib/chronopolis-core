@@ -36,6 +36,7 @@
     <!-- This is typically only for an individual bag, as getting the token count
          can be a long operation over multiple bags -->
     <div th:fragment="extended-table">
+        <form method="POST">
         <table class="table table-striped">
             <thead>
             <tr>
@@ -59,10 +60,22 @@
                 <td th:text="${bag.size}"></td>
                 <td th:text="${bag.totalFiles}"></td>
                 <td th:text="${tokens}"></td>
-                <td th:text="${bag.status}"></td>
+                <td>
+
+                <!--@thymesVar id="statuses" type="List" -->
+                <select name="status" id="status">
+                    <option th:each="status : ${statuses}"
+                            th:value="${status.value}" th:text="${status.value}"
+                            th:selected="${status == bag.status}">
+                    </option>
+                    <!-- <td th:text="${bag.status}"></td> -->
+                </select>
+                </td>
             </tr>
             </tbody>
         </table>
+            <input type="submit" value="Update Bag" class="btn btn-small"/>
+        </form>
     </div>
 </body>
 </html>
