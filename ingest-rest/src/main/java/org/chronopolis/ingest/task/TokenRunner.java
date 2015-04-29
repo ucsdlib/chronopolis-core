@@ -136,6 +136,11 @@ public class TokenRunner implements Runnable {
             TokenWriter writer = new TokenWriter(hos, ims);
 
             for (AceToken token : tokens) {
+                // Make sure we have a leading /
+                if (!token.getFilename().startsWith("/")) {
+                    token.setFilename("/" + token.getFilename());
+                }
+
                 writer.startToken(token);
                 writer.addIdentifier(token.getFilename());
                 writer.writeTokenEntry();
