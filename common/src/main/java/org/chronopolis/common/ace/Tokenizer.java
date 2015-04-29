@@ -121,13 +121,14 @@ public class Tokenizer {
             }
 
             String digest = split[0];
-            Path rel = Paths.get(split[1]);
+            String filePath = split[1];
+            Path rel = Paths.get(filePath);
             // Skip the current item if we already have it
             if (filter.contains(rel)) {
                 continue;
             }
 
-            Path path = Paths.get(bag.toString(), split[1]);
+            Path path = Paths.get(bag.toString(), filePath);
             String calculatedDigest = DigestUtil.digest(path, alg);
 
             if (digest.equals(calculatedDigest)) {
@@ -135,7 +136,7 @@ public class Tokenizer {
             } else {
                 log.error("Error in file {}: digest found {} (expected {})",
                         new Object[]{
-                                split[1],
+                                filePath,
                                 calculatedDigest,
                                 digest});
                 corrupt = true;
@@ -162,9 +163,12 @@ public class Tokenizer {
 
     private void addTokenRequest(Path path, String digest) throws InterruptedException {
         Path rel = path.subpath(bag.getNameCount(), path.getNameCount());
+
+        // ACE requires a leading /, so let's make sure we get that in the token request
+        Path ace = Paths.get("/", rel.toString());
         TokenRequest req = new TokenRequest();
         req.setHashValue(digest);
-        req.setName(rel.toString());
+        req.setName(ace.toString());
         batch.add(req);
     }
 
