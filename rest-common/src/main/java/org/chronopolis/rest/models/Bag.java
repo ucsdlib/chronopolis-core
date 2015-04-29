@@ -2,6 +2,8 @@ package org.chronopolis.rest.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -13,7 +15,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
 import javax.persistence.Transient;
 import java.util.HashSet;
 import java.util.Set;
@@ -27,6 +28,9 @@ import java.util.Set;
  */
 @Entity
 public class Bag implements Comparable<Bag> {
+    @Transient
+    private final Logger log = LoggerFactory.getLogger(Bag.class);
+    
     @Transient
     private final int DEFAULT_REPLICATIONS = 3;
 
@@ -67,6 +71,7 @@ public class Bag implements Comparable<Bag> {
         inverseJoinColumns = {
                 @JoinColumn(name = "node_id", nullable = false, updatable = false)
     })
+    @JsonIgnore
     private Set<Node> replicatingNodes = new HashSet<>();
 
     protected Bag() { // JPA
