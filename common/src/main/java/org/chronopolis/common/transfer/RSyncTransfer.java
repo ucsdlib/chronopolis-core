@@ -45,13 +45,13 @@ public class RSyncTransfer implements FileTransfer {
         Callable<Path> download = new Callable<Path>() {
             @Override
             public Path call() throws Exception {
-                String[] cmd = new String[]{"rsync", "-a", "--stats", user + "@" + uri, local.toString()};
+                String[] cmd = new String[]{"rsync", "-a", "-e ssh -o 'PasswordAuthentication no'", "--stats", user + "@" + uri, local.toString()};
                 String[] parts = uri.split(":", 2);
                 String[] pathList = parts[1].split("/");
                 ProcessBuilder pb = new ProcessBuilder(cmd);
                 Process p = null;
                 try {
-                    log.info("Executing {} {} {} {} {}", cmd);
+                    log.info("Executing {} {} {} {} {} {}", cmd);
                     p = pb.start();
                     int exit = p.waitFor();
 
@@ -62,6 +62,7 @@ public class RSyncTransfer implements FileTransfer {
                         log.error("rsync did not complete successfully (exit code {}) \n {}",
                                 exit,
                                 stringFromStream(p.getErrorStream()));
+                        throw new FileTransferException("rsync did not complete successfully (exit code " + exit + ")");
                     }
 
                 } catch (IOException e) {
