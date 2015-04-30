@@ -44,7 +44,7 @@ public class ReplicationTask {
     @Autowired
     ReplicationRepository replicationRepository;
 
-    @Scheduled(cron = "0 */10 * * * *")
+    @Scheduled(cron = "${ingest.cron.request:0 */10 * * * *}")
     public void createReplications() {
         String user = settings.getReplicationUser();
         String server = settings.getStorageServer();
