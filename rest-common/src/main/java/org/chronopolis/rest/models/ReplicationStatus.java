@@ -9,6 +9,8 @@ public enum ReplicationStatus {
     STARTED,
     TRANSFERRED,
     SUCCESS,
-    FAILURE;
+    FAILURE_TOKEN_STORE,
+    FAILURE_TAG_MANIFEST,
+    FAILURE
 
 }
