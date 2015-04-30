@@ -116,7 +116,7 @@ public class BagDownloadStep implements Tasklet {
             calculatedDigest = "";
         }
 
-        log.trace("Calculated digest {} for tagmanifest", calculatedDigest);
+        log.info("Calculated digest {} for tagmanifest", calculatedDigest);
 
         /*
         if (tagDigest.isEmpty()) {

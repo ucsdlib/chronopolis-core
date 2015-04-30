@@ -113,7 +113,7 @@ public class TokenDownloadStep implements Tasklet {
         }
 
         String calculatedDigest = hashCode.toString();
-        log.trace("Calculated digest {} for token store", calculatedDigest);
+        log.info("Calculated digest {} for token store", calculatedDigest);
 
         /*
         if (digest.isEmpty()) {
