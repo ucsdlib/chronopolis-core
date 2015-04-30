@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.util.Map;
+import java.util.Set;
 
 import static org.chronopolis.ingest.api.Params.PAGE;
 import static org.chronopolis.ingest.api.Params.PAGE_SIZE;
@@ -79,6 +80,7 @@ public class ReplicationController {
                                          @RequestBody Replication replication) {
         Node node = nodeRepository.findByUsername(principal.getName());
         Replication update = replicationRepository.findOne(replication.getID());
+        Bag bag = update.getBag();
 
         // check for unauthorized access
         if (!update.getNode().equals(node)) {
@@ -87,42 +89,51 @@ public class ReplicationController {
 
         log.info("Updating replication {}", replication.getID());
 
-        // check if the fixity values are non-null, and if so update them
         String receivedTokenFixity = replication.getReceivedTokenFixity();
-        if (receivedTokenFixity != null) {
-            update.setReceivedTokenFixity(receivedTokenFixity);
-        }
-
         String receivedTagFixity = replication.getReceivedTagFixity();
-        if (receivedTagFixity != null) {
-            update.setReceivedTagFixity(receivedTagFixity);
-        }
+        boolean success = true;
 
-        Bag bag = update.getBag();
-        String digest = bag.getTokenDigest();
-        String tagDigest = bag.getTagManifestDigest();
-        // these should never be null, but for the time being just check anyways
-        boolean correctTokens = digest != null && digest.equals(receivedTokenFixity);
-        boolean correctManifest = tagDigest != null && tagDigest.equals(receivedTagFixity);
-
-        // if both fixities match we have a success
-        // if neither fixity is null and we had at least 1 mismatch, set as failure
-        if (correctTokens && correctManifest) {
-            update.setStatus(ReplicationStatus.SUCCESS);
-            bag.getReplicatingNodes().add(node);
-        } else if (receivedTagFixity != null && receivedTokenFixity != null) {
-            update.setStatus(ReplicationStatus.FAILURE);
-
-            // TODO: Create new replication request
-
+        // Only update status if we were given a fixity value
+        if (receivedTokenFixity != null) {
+            log.debug("Received token fixity of {}", receivedTokenFixity);
+            update.setReceivedTokenFixity(receivedTokenFixity);
+            // Check against the stored digest
+            if (!bag.getTokenDigest().equals(receivedTokenFixity)) {
+                // log.info("Received invalid token store fixity for bag {} from {}");
+                update.setStatus(ReplicationStatus.FAILURE_TOKEN_STORE);
+                success = false;
+            }
         } else {
-            // TODO: We may just want to leave the status as STARTED
-            update.setStatus(replication.getStatus());
+            success = false;
         }
 
-        // Check our bag to see if it has the required replications
-        if (bag.getReplicatingNodes().size() == bag.getRequiredReplications()) {
-            bag.setStatus(BagStatus.REPLICATED);
+        if (receivedTagFixity != null) {
+            log.debug("Received tag fixity of {}", receivedTagFixity);
+            update.setReceivedTagFixity(receivedTagFixity);
+            // Check against the stored digest
+            if (!bag.getTagManifestDigest().equals(receivedTagFixity)) {
+                // log.info("Received invalid tagmanifest fixity for bag {} from {}");
+                update.setStatus(ReplicationStatus.FAILURE_TAG_MANIFEST);
+                success = false;
+            }
+        } else {
+            success = false;
+        }
+
+        // If we were able to validate all the manifests: yay
+        // else check if the replicating node reported any problems
+        if (success) {
+            update.setStatus(ReplicationStatus.SUCCESS);
+            Set<Node> nodes = bag.getReplicatingNodes();
+            nodes.add(node);
+
+            // And last check to see if the bag has been replicated
+            if (nodes.size() >= bag.getRequiredReplications()) {
+                bag.setStatus(BagStatus.REPLICATED);
+            }
+        } else if (replication.getStatus() == ReplicationStatus.FAILURE){
+            // log.info("Received error for replication {} from {}");
+            update.setStatus(ReplicationStatus.FAILURE);
         }
 
         replicationRepository.save(update);
