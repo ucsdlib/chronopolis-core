@@ -13,9 +13,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Message listener for replication services. Delegate to a message processor
+ * depending on the message received.
  *
  * @author shake
  */
+@Deprecated
 public class ReplicateMessageListener extends ChronMessageListener {
     private static final Logger log = LoggerFactory.getLogger(ReplicateMessageListener.class);
     private final ChronProcessor fileQueryProcessor;
@@ -36,6 +39,12 @@ public class ReplicateMessageListener extends ChronMessageListener {
         this.collectionRestoreLocationProcessor = collectionRestoreLocationProcessor;
     }
 
+    /**
+     * Retrieve the message processor for a given message
+     *
+     * @param type - The type of message which needs to be processed
+     * @return - The {@Link ChronProcessor} for the message
+     */
     @Override
     public ChronProcessor getProcessor(MessageType type) {
         switch (type) {

@@ -13,6 +13,11 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 /**
+ * Listener for after the bag-download step when triggered by an AMQP message.
+ *
+ * We want to notify on failure of the digests matching
+ *
+ *
  * Created by shake on 12/4/14.
  */
 public class BagAMQPStepListener implements StepExecutionListener {
@@ -62,7 +67,7 @@ public class BagAMQPStepListener implements StepExecutionListener {
                 for (StackTraceElement element : t.getStackTrace()) {
                     textBody.println(element);
                 }
-            };
+            }
 
 
             mailUtil.send(mailUtil.createMessage(

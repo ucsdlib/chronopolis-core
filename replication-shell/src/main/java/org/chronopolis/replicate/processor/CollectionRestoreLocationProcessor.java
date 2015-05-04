@@ -24,6 +24,7 @@ import java.nio.file.Paths;
 /**
  * Created by shake on 8/7/14.
  */
+@Deprecated
 public class CollectionRestoreLocationProcessor implements ChronProcessor {
     private final Logger log = LoggerFactory.getLogger(CollectionRestoreLocationProcessor.class);
 

@@ -25,6 +25,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * Step for handling interaction with ACE. We do a few things:
+ * * Register a collection
+ * * Upload the token store
+ * * Start an initial audit
+ *
+ *
  * Created by shake on 8/22/14.
  */
 public class AceRegisterStep implements Tasklet {
@@ -68,6 +74,15 @@ public class AceRegisterStep implements Tasklet {
         this.auditPeriod = 90;
     }
 
+    /**
+     * Add a collection and token store to ACE
+     *
+     *
+     * @param stepContribution
+     * @param chunkContext
+     * @return
+     * @throws Exception
+     */
     @Override
     public RepeatStatus execute(final StepContribution stepContribution, final ChunkContext chunkContext) throws Exception {
         // Setup our collection settings

@@ -15,6 +15,7 @@ import org.chronopolis.messaging.factory.MessageFactory;
 /**
  * Created by shake on 8/7/14.
  */
+@Deprecated
 public class CollectionRestoreRequestProcessor implements ChronProcessor {
 
     private final ChronProducer producer;

@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author shake
  */
+@Deprecated
 public class CollectionInitProcessor implements ChronProcessor {
     private static final Logger log = LoggerFactory.getLogger(CollectionInitProcessor.class);
 

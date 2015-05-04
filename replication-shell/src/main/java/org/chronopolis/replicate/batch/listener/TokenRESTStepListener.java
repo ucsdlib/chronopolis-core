@@ -12,6 +12,11 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 
 /**
+ *
+ * Step listener for after the token-download step when triggered from the RESTful
+ * interface. If there was an error validating the token store, we want to stop
+ * the job so that we do not attempt to register bad tokens with ACE.
+ *
  * Created by shake on 12/4/14.
  */
 public class TokenRESTStepListener implements StepExecutionListener {

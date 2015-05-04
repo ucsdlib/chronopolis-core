@@ -25,6 +25,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
+ * Class to download the actual bag. Handles both the rsync (could change in the future)
+ * and the hashing of the tagmanifest on completion.
+ *
  * Created by shake on 8/22/14.
  */
 public class BagDownloadStep implements Tasklet {
@@ -117,22 +120,6 @@ public class BagDownloadStep implements Tasklet {
         }
 
         log.info("Calculated digest {} for tagmanifest", calculatedDigest);
-
-        /*
-        if (tagDigest.isEmpty()) {
-            // update replication object
-        } else {
-            if (!calculatedDigest.equalsIgnoreCase(tagDigest)) {
-                log.error("Downloaded tagmanifest does not match expected digest!" +
-                                "\nFound {}\nExpected {}",
-                        calculatedDigest,
-                        tagDigest);
-                statusMessage = "Downloaded tag manifest does not match expected digest";
-            } else {
-                log.info("Successfully validated tagmanifest");
-            }
-        }
-        */
 
         notifier.setCalculatedTagDigest(calculatedDigest);
         notifier.setBagStep(statusMessage);

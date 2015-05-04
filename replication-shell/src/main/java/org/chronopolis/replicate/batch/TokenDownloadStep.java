@@ -24,6 +24,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
+ * Step to download and hash the token store for a given collection.
+ *
+ *
  * Created by shake on 8/22/14.
  */
 public class TokenDownloadStep implements Tasklet {
@@ -114,26 +117,6 @@ public class TokenDownloadStep implements Tasklet {
 
         String calculatedDigest = hashCode.toString();
         log.info("Calculated digest {} for token store", calculatedDigest);
-
-        /*
-        if (digest.isEmpty()) {
-            // update replication object
-        } else {
-            if (!calculatedDigest.equalsIgnoreCase(digest)) {
-                // Fail
-                log.error("Downloaded token store does not match expected digest!" +
-                                "\nFound {}\nExpected {}",
-                        calculatedDigest,
-                        digest);
-
-                notifier.setSuccess(false);
-                notifier.setTokenStep("Downloaded token store does not match expected digest");
-                throw new FixityException("Could not validate the fixity of the token store");
-            } else {
-                log.info("Successfully validated token store");
-            }
-        }
-        */
 
         notifier.setCalculatedTokenDigest(calculatedDigest);
         notifier.setTokenStep(statusMessage);

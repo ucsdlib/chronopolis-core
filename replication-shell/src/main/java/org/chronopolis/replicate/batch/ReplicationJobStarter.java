@@ -30,6 +30,10 @@ import org.springframework.batch.core.repository.JobRestartException;
 import java.util.Date;
 
 /**
+ * Submits a Job to the {@link JobLauncher}
+ *
+ * TODO: Trim the fat
+ *
  * Created by shake on 12/1/14.
  */
 public class ReplicationJobStarter {
@@ -71,6 +75,7 @@ public class ReplicationJobStarter {
     }
 
 
+    @Deprecated
     public void addJobFromMessage(CollectionInitMessage msg) {
         String depositor = msg.getDepositor();
         String collection = msg.getCollection();
@@ -136,6 +141,11 @@ public class ReplicationJobStarter {
         }
     }
 
+    /**
+     * Add a replication job which was received from the RESTful interface
+     *
+     * @param replication
+     */
     public void addJobFromRestful(Replication replication) {
         String depositor = replication.getBag().getDepositor();
         String collection = replication.getBag().getName();

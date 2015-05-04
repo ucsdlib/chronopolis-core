@@ -13,6 +13,7 @@ import org.chronopolis.messaging.file.FileQueryResponseMessage;
  *
  * @author shake
  */
+@Deprecated
 public class FileQueryResponseProcessor implements ChronProcessor {
     private ChronProducer producer;
 

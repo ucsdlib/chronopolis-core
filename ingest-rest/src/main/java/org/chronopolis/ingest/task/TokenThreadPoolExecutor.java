@@ -7,6 +7,7 @@ import org.chronopolis.rest.models.Bag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.Time;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -95,6 +96,34 @@ public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
             try {
                 Bag b = task.get();
                 boolean success = workingBags.remove(b);
+                if (success == false) {
+                    log.debug("Bag is null?: {}", b == null);
+                    log.debug("Bag Info: {} {} {} {} {} {} {}", new Object[]{
+                            b.getSize(),
+                            b.getTotalFiles(),
+                            b.getID(),
+                            b.getDepositor(),
+                            b.getFixityAlgorithm(),
+                            b.getLocation(),
+                            b.getName()
+                    });
+
+                    boolean contains = workingBags.contains(b);
+
+                    // submit a busy task and try to remove the bag again
+                    if (contains) {
+                        log.debug("Submitting busy task");
+                        this.submit(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    TimeUnit.SECONDS.sleep(5);
+                                } catch (InterruptedException e) {
+                                }
+                            }
+                        }, b);
+                    }
+                }
                 log.debug("Removal of {} from the working set: {}", b.getName(), success);
             } catch (InterruptedException e) {
                 log.error("Interrupted in afterExecute", e);

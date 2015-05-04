@@ -19,6 +19,10 @@ import java.io.InputStreamReader;
 import java.util.List;
 
 /**
+ * Service for running the replication-shell in development mode. Give a prompt for interacting
+ * with the user, allowing them to decide when to query the ingest-server
+ *
+ *
  * Created by shake on 2/23/15.
  */
 @Component
@@ -38,7 +42,11 @@ public class CommandLineService implements ReplicationService {
     @Autowired
     ReplicationJobStarter jobStarter;
 
-
+    /**
+     * Main entry point for the class, display the prompt and when we receive
+     * the QUIT option, tell Spring to shutdown
+     *
+     */
     @Override
     public void replicate() {
         boolean done = false;
@@ -60,6 +68,11 @@ public class CommandLineService implements ReplicationService {
         SpringApplication.exit(context);
     }
 
+    /**
+     * Create a prompt and read the input for the next option
+     *
+     * @return the input given
+     */
     private OPTION inputOption() {
         OPTION option = OPTION.UNKNOWN;
         while (option.equals(OPTION.UNKNOWN)) {
@@ -83,6 +96,12 @@ public class CommandLineService implements ReplicationService {
         return option;
     }
 
+    /**
+     * Send queries to the ingest-server to receive ongoing replications
+     *
+     * @param status - the status of replications to query for
+     * @param update - whether or not to update the requests while replicating
+     */
     private void query(ReplicationStatus status, boolean update) {
         List<Replication> replications = ingestAPI.getReplications(status);
         log.debug("Found {} replications", replications.size());
@@ -98,6 +117,11 @@ public class CommandLineService implements ReplicationService {
         }
     }
 
+    /**
+     * Read in from stdin
+     *
+     * @return
+     */
     private String readLine() {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));

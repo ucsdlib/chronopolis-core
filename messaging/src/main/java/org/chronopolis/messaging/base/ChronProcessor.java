@@ -8,6 +8,7 @@ package org.chronopolis.messaging.base;
  *
  * @author shake
  */
+@Deprecated
 public interface ChronProcessor {
 
     /**

@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
+ * Service for running the replication-shell in production
+ *
  * Created by shake on 2/23/15.
  */
 @Component
@@ -19,6 +21,11 @@ public class DaemonService implements ReplicationService {
     @Autowired
     ApplicationContext context;
 
+    /**
+     * The main entry point for the class. Shutdown the output streams and spin
+     * until we are interrupted, in which case shutdown via Spring
+     *
+     */
     @Override
     public void replicate() {
         System.out.close();

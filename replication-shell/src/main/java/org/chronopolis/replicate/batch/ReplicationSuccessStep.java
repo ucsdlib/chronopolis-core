@@ -14,6 +14,9 @@ import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.mail.SimpleMailMessage;
 
 /**
+ * Final step of the replication job. Determine whether or not the replication
+ * was successful and send an email to chron-support regarding its status.
+ *
  * Created by shake on 8/26/14.
  */
 public class ReplicationSuccessStep implements Tasklet {

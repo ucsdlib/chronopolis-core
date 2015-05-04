@@ -18,15 +18,16 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 
 /**
+ * Main class for the replication shell
+ *
  * Created by shake on 2/12/14.
  */
 @Component
 @ComponentScan(basePackageClasses = {
-        ReplicationConfig.class,
-        ReplicationSettings.class,
-        ReplicationService.class
+        ReplicationSettings.class,   // scan the o.c.r.config package
+        ReplicationService.class     // scan the o.c.r.service package
 }, basePackages = {
-        "org.chronopolis.common.settings"
+        "org.chronopolis.common.settings" // make sure we can load other settings (like AceSettings)
 })
 @EntityScan(basePackageClasses = RestoreRequest.class)
 @EnableAutoConfiguration
@@ -38,6 +39,8 @@ public class ReplicationConsumer implements CommandLineRunner {
 
     public static void main(String[] args) {
         log.debug("Started with args: {}", args);
+
+        // Try to daemonize if necessary
         Daemon d = new Daemon.WithoutChdir();
         try {
             if (d.isDaemonized()) {
