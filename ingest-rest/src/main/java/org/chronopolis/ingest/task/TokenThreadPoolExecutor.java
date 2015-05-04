@@ -96,6 +96,7 @@ public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
             try {
                 Bag b = task.get();
                 boolean success = workingBags.remove(b);
+                /*
                 if (success == false) {
                     log.debug("Bag is null?: {}", b == null);
                     log.debug("Bag Info: {} {} {} {} {} {} {}", new Object[]{
@@ -124,6 +125,7 @@ public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
                         }, b);
                     }
                 }
+                */
                 log.debug("Removal of {} from the working set: {}", b.getName(), success);
             } catch (InterruptedException e) {
                 log.error("Interrupted in afterExecute", e);
