@@ -32,11 +32,12 @@ import org.springframework.core.task.TaskExecutor;
 import retrofit.RestAdapter;
 
 /**
+ * Configuration for the beans used by the replication-shell
+ *
  * Created by shake on 4/16/14.
  */
 @Configuration
 @EnableBatchProcessing
-@Import({JPAConfiguration.class})
 public class ReplicationConfig {
     public final Logger log = LoggerFactory.getLogger(ReplicationConfig.class);
 
@@ -46,11 +47,22 @@ public class ReplicationConfig {
     @Value("${debug.retrofit:NONE}")
     String retrofitLogLevel;
 
+    /**
+     * Logger to capture why errors happened in Retrofit
+     *
+     * @return
+     */
     @Bean
     ErrorLogger logger() {
         return new ErrorLogger();
     }
 
+    /**
+     * Retrofit adapter for interacting with the ACE REST API
+     *
+     * @param aceSettings - Settings to connect to ACE with
+     * @return
+     */
     @Bean
     AceService aceService(AceSettings aceSettings) {
         // Next build the retrofit adapter
@@ -72,6 +84,12 @@ public class ReplicationConfig {
         return restAdapter.create(AceService.class);
     }
 
+    /**
+     * Retrofit adapter for interacting with the ingest-server REST API
+     *
+     * @param apiSettings - Settings to connect to the ingest-server with
+     * @return
+     */
     @Bean
     IngestAPI ingestAPI(IngestAPISettings apiSettings) {
         // TODO: Create a list of endpoints
@@ -97,6 +115,11 @@ public class ReplicationConfig {
         return adapter.create(IngestAPI.class);
     }
 
+    /**
+     * Null producer for the {@link ReplicationJobStarter}
+     *
+     * @return
+     */
     @Bean
     ChronProducer producer() {
         // Return a null producer
@@ -107,11 +130,32 @@ public class ReplicationConfig {
         };
     }
 
+    /**
+     * MessageFactory needed for the {@link ReplicationJobStarter}
+     *
+     * @param chronopolisSettings
+     * @return
+     */
     @Bean
     MessageFactory messageFactory(ReplicationSettings chronopolisSettings) {
         return new MessageFactory(chronopolisSettings);
     }
 
+    /**
+     * Class to handle creation of replication jobs through spring-batch
+     *
+     * @param producer
+     * @param messageFactory
+     * @param settings
+     * @param mailUtil
+     * @param aceService
+     * @param ingestAPI
+     * @param replicationStepListener
+     * @param jobLauncher
+     * @param jobBuilderFactory
+     * @param stepBuilderFactory
+     * @return
+     */
     @Bean
     ReplicationJobStarter jobStarter(ChronProducer producer,
                                      MessageFactory messageFactory,
@@ -135,12 +179,25 @@ public class ReplicationConfig {
                 stepBuilderFactory);
     }
 
+    /**
+     * Step listener for the {@link ReplicationJobStarter}
+     *
+     * @param replicationSettings
+     * @param mailUtil
+     * @return
+     */
     @Bean
     ReplicationStepListener replicationStepListener(ReplicationSettings replicationSettings,
                                                     MailUtil mailUtil) {
         return new ReplicationStepListener(replicationSettings, mailUtil);
     }
 
+    /**
+     * Class to send email notifications regarding replications
+     *
+     * @param smtpSettings - The settings to use for smtp messages
+     * @return
+     */
     @Bean
     MailUtil mailUtil(SMTPSettings smtpSettings) {
         MailUtil mailUtil = new MailUtil();
@@ -151,6 +208,12 @@ public class ReplicationConfig {
         return mailUtil;
     }
 
+    /**
+     * Async task executor so we can have multiple threads execute at once
+     * for spring-batch
+     *
+     * @return
+     */
     @Bean
     TaskExecutor simpleAsyncTaskExecutor() {
         SimpleAsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
@@ -158,17 +221,14 @@ public class ReplicationConfig {
         return taskExecutor;
     }
 
-    /*
-    @Bean
-    JobRepository jobRepository() throws Exception {
-        MapJobRepositoryFactoryBean factory =
-                new MapJobRepositoryFactoryBean();
-        factory.afterPropertiesSet();
-        return factory.getObject();
 
-    }
-    */
-
+    /**
+     * SimpleJobLauncher so that we use the {@link TaskExecutor}
+     *
+     * @param jobRepository
+     * @param simpleAsyncTaskExecutor
+     * @return
+     */
     @Bean
     JobLauncher jobLauncher(JobRepository jobRepository, TaskExecutor simpleAsyncTaskExecutor) {
         SimpleJobLauncher jobLauncher = new SimpleJobLauncher();

@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Scheduled task for checking the ingest-server for replication requests
+ *
  * Created by shake on 12/10/14.
  */
 @Component
@@ -36,6 +38,11 @@ public class ReplicationQueryTask {
     @Autowired
     private JobExplorer explorer;
 
+    /**
+     * Check the ingest-server for pending and started replications
+     *
+     *
+     */
     @Scheduled(cron = "${replication.cron:0 0 * * * *}")
     public void checkForReplications() {
         Set<String> filter = activeReplications();
@@ -47,6 +54,12 @@ public class ReplicationQueryTask {
         query(ReplicationStatus.PENDING, filter, true);
     }
 
+    /**
+     * Create a set of ongoing replications, specified by
+     * depositor:collection
+     *
+     * @return Set of active replications
+     */
     private Set<String> activeReplications() {
         Set<String> filter = new HashSet<>();
         Set<JobExecution> executions = explorer.findRunningJobExecutions("collection-replicate");
@@ -61,6 +74,14 @@ public class ReplicationQueryTask {
         return filter;
     }
 
+    /**
+     * Query the ingest-server and add requests to the {@link ReplicationJobStarter}
+     * if they are not already being replicated
+     *
+     * @param status - the status of the request to get
+     * @param filter - the Set of active replications to filter on
+     * @param update - whether or not to update the stats (to STARTED)
+     */
     private void query(ReplicationStatus status, Set<String> filter, boolean update) {
         List<Replication> replications = ingestAPI.getReplications(status);
         log.debug("Found {} replications", replications.size());
