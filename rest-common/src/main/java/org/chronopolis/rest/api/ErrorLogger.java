@@ -6,6 +6,9 @@ import retrofit.ErrorHandler;
 import retrofit.RetrofitError;
 
 /**
+ * Retrofit {@link ErrorHandler} to log errors which happen from retrofit,
+ * so that the reasons do not get lost in the stack trace
+ *
  * Created by shake on 4/23/15.
  */
 public class ErrorLogger implements ErrorHandler {

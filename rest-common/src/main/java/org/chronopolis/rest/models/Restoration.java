@@ -11,6 +11,8 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
 /**
+ * Representation of a Restore request in our DB
+ *
  * Created by shake on 12/8/14.
  */
 @Entity

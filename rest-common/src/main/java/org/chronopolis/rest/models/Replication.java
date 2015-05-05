@@ -12,6 +12,9 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
 /**
+ * Representation of a Replication request
+ *
+ *
  * Created by shake on 11/5/14.
  */
 @Entity

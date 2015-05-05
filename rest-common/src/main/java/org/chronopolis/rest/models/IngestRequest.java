@@ -1,6 +1,8 @@
 package org.chronopolis.rest.models;
 
 /**
+ * Request for creating a new Bag
+ *
  * Created by shake on 11/6/14.
  */
 public class IngestRequest {

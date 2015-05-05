@@ -17,6 +17,8 @@ import java.util.List;
 
 
 /**
+ * Interface laying out the RESTful functions of the ingest-server
+ *
  * Created by shake on 11/25/14.
  */
 public interface IngestAPI {

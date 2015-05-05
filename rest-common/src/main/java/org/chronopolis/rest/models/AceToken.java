@@ -11,6 +11,8 @@ import javax.persistence.ManyToOne;
 import java.util.Date;
 
 /**
+ * Entity representing an ACE Token in our DB
+ *
  * Created by shake on 2/4/15.
  */
 @Entity
@@ -18,19 +20,19 @@ public class AceToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
 
     @ManyToOne
     @JsonIgnore
     @JoinColumn(name = "bag")
-    Bag bag;
+    private Bag bag;
 
-    Date createDate;
-    String filename;
-    String proof;
-    String imsService;
-    String algorithm;
-    Long round;
+    private Date createDate;
+    private String filename;
+    private String proof;
+    private String imsService;
+    private String algorithm;
+    private Long round;
 
     protected AceToken() { // JPA
     }

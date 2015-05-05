@@ -1,6 +1,10 @@
 package org.chronopolis.rest.models;
 
 /**
+ * Request for updating a password
+ *
+ * Need old/new because that's what the UserDetailsManager expects
+ *
  * Created by shake on 1/7/15.
  */
 public class PasswordUpdate {

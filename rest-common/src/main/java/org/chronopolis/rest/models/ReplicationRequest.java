@@ -1,7 +1,7 @@
 package org.chronopolis.rest.models;
 
 /**
- * TODO: Move to a different package?
+ * Request for when a Node wants to Replicate content.
  *
  * Created by shake on 11/19/14.
  */

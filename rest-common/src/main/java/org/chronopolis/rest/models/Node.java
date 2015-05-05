@@ -13,6 +13,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Representation of a node in chronopolis
+ *
+ * TODO: Remove password/enabled
+ *
  * Created by shake on 11/17/14.
  */
 @Entity
