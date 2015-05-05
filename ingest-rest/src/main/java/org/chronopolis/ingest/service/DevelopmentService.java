@@ -12,6 +12,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 /**
+ * Service for running in development mode. We want to be able to easily shutdown the server,
+ * so we read stdin for input related to shutting down.
+ *
  * Created by shake on 3/26/15.
  */
 @Component

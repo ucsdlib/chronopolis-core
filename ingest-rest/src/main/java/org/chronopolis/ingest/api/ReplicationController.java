@@ -32,9 +32,11 @@ import static org.chronopolis.ingest.api.Params.PAGE_SIZE;
 import static org.chronopolis.ingest.api.Params.STATUS;
 
 /**
+ * REST controller for replication methods
+ *
  * TODO: We'll probably want a separate class to handle common db stuff
  * using the 3 repository classes
- * <p/>
+ *
  * Created by shake on 11/5/14.
  */
 @RestController
@@ -51,9 +53,15 @@ public class ReplicationController {
     @Autowired
     BagRepository bagRepository;
 
+    /**
+     * Create a replication request for a given node and bag
+     *
+     * @param principal - authentication information
+     * @param request - request containing the bag id to replicate
+     * @return
+     */
     @RequestMapping(method = RequestMethod.PUT)
     public Replication createReplication(Principal principal, @RequestBody ReplicationRequest request) {
-        // Node node = nodeRepository.get()
         // Create a new replication for the Node (user) based on the Bag ID
         // Return a 404 if the bag is not found
         // If a replication already exists, return it instead of creating a new one
@@ -74,6 +82,14 @@ public class ReplicationController {
         return action;
     }
 
+    /**
+     * Update a given replication based on the id of the path used
+     *
+     * @param principal - authentication information
+     * @param replicationID - the id of the replication to update
+     * @param replication - the updated replication sent from the client
+     * @return
+     */
     @RequestMapping(value = "/{id}", method = RequestMethod.POST)
     public Replication updateReplication(Principal principal,
                                          @PathVariable("id") Long replicationID,
@@ -122,6 +138,7 @@ public class ReplicationController {
 
         // If we were able to validate all the manifests: yay
         // else check if the replicating node reported any problems
+        // TODO: Hold out on failure until x number of times?
         if (success) {
             update.setStatus(ReplicationStatus.SUCCESS);
             Set<Node> nodes = bag.getReplicatingNodes();
@@ -142,6 +159,14 @@ public class ReplicationController {
         return update;
     }
 
+    /**
+     * Retrieve all replications associated with a particular node/user
+     *
+     *
+     * @param principal - authentication information
+     * @param params - query parameters used for searching
+     * @return
+     */
     @RequestMapping(method = RequestMethod.GET)
     public Iterable<Replication> replications(Principal principal,
                                               @RequestParam Map<String, String> params) {
@@ -173,6 +198,13 @@ public class ReplicationController {
         return replications;
     }
 
+    /**
+     * Retrieve a single replication based on its ID
+     *
+     * @param principal - authentication information
+     * @param actionId - the ID to search for
+     * @return
+     */
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public Replication findReplication(Principal principal, @PathVariable("id") Long actionId) {
         Replication action = replicationRepository.findOne(actionId);

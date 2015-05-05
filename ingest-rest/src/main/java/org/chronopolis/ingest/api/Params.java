@@ -1,6 +1,8 @@
 package org.chronopolis.ingest.api;
 
 /**
+ * Basic query parameter names for us to use
+ *
  * Created by shake on 1/12/15.
  */
 public class Params {

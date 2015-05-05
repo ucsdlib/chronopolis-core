@@ -11,6 +11,9 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Production service - sleep until we're interrupted at which point we shut down
+ * via Spring
+ *
  * Created by shake on 3/26/15.
  */
 @Component

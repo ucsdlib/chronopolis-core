@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Collection;
 
 /**
+ * Repository for interacting with {@link Replication} requests
+ *
  * Created by shake on 11/18/2014.
  */
 public interface ReplicationRepository extends JpaRepository<Replication, Long> {

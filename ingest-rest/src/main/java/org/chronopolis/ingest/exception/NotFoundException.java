@@ -4,6 +4,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
+ * Exception caused by HTTP 404
+ *
  * Created by shake on 11/19/14.
  */
 @ResponseStatus(HttpStatus.NOT_FOUND)

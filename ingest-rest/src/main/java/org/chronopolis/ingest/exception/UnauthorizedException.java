@@ -4,6 +4,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
+ * Exception caused by HTTP 401
+ *
  * Created by shake on 1/5/15.
  */
 @ResponseStatus(HttpStatus.UNAUTHORIZED)

@@ -32,6 +32,8 @@ import static org.chronopolis.ingest.api.Params.PAGE;
 import static org.chronopolis.ingest.api.Params.PAGE_SIZE;
 
 /**
+ * REST Controller for controlling actions associated with bags
+ *
  * Created by shake on 11/5/14.
  */
 @RestController
@@ -51,6 +53,13 @@ public class StagingController {
     @Autowired
     IngestSettings ingestSettings;
 
+    /**
+     * Retrieve all the bags we know about
+     *
+     * @param principal - authentication information
+     * @param params - Query parameters used for searching
+     * @return
+     */
     @RequestMapping(value = "bags", method = RequestMethod.GET)
     public Iterable<Bag> getBags(Principal principal,
                                  @RequestParam Map<String, String> params) {
@@ -68,6 +77,13 @@ public class StagingController {
         return bagRepository.findAll();
     }
 
+    /**
+     * Retrieve information about a single bag
+     *
+     * @param principal - authentication information
+     * @param bagId - the bag id to retrieve
+     * @return
+     */
     @RequestMapping(value = "bags/{bag-id}", method = RequestMethod.GET)
     public Bag getBag(Principal principal, @PathVariable("bag-id") Long bagId) {
         Bag bag = bagRepository.findOne(bagId);
@@ -77,6 +93,13 @@ public class StagingController {
         return bag;
     }
 
+    /**
+     * Notification that a bag exists and is ready to be ingested into Chronopolis
+     *
+     * @param principal - authentication information
+     * @param request - the request containing the bag name, depositor, and location of the bag
+     * @return
+     */
     @RequestMapping(value = "bags", method = RequestMethod.POST)
     public Bag stageBag(Principal principal, @RequestBody IngestRequest request)  {
         String name = request.getName();
@@ -129,58 +152,5 @@ public class StagingController {
         bag.setTotalFiles(fileCount[0]);
         bag.setFixityAlgorithm("SHA-256");
     }
-
-
-    /*
-    @RequestMapping(value = "bags", method = RequestMethod.PUT)
-    public Bag stageBag(Principal principal, @RequestBody IngestRequest request) {
-        String name = request.getName();
-        String depositor = request.getDepositor();
-
-        // First check if the bag exists
-        Bag bag = bagRepository.findByNameAndDepositor(name, depositor);
-
-        if (bag != null) {
-            log.debug("Bag {} exists from depositor {}, skipping creation", name, depositor);
-            return bag;
-        }
-
-        log.debug("Creating bag {} for depositor {}", name, depositor);
-        // If not, create the bag + tokens, then save it
-        ChronPackager packager = new ChronPackager(request.getName(),
-                request.getLocation(),
-                request.getDepositor(),
-                ingestSettings);
-        bag = packager.packageForChronopolis();
-        bagRepository.save(bag);
-
-        Path bagPath = Paths.get(ingestSettings.getBagStage(),
-                                 bag.getLocation());
-        Path tokenPath = Paths.get(ingestSettings.getTokenStage(),
-                                   bag.getTokenLocation());
-
-        // Set up where nodes will pull from
-        String user = ingestSettings.getReplicationUser();
-        String server = ingestSettings.getStorageServer();
-        String tokenStore = new StringBuilder(user)
-                .append("@").append(server)
-                .append(":").append(tokenPath.toString())
-                .toString();
-        String bagLocation = new StringBuilder(user)
-                .append("@").append(server)
-                .append(":").append(bagPath.toString())
-                .toString();
-
-
-        for (Node node : nodeRepository.findAll()) {
-            log.trace("Creating replication object for {}", node.getUsername());
-            Replication replication = new Replication(node, bag, bagLocation, tokenStore);
-            replication.setProtocol("rsync");
-            replicationRepository.save(replication);
-        }
-
-        return bag;
-    }
-    */
 
 }

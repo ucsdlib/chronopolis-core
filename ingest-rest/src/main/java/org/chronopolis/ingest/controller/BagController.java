@@ -33,6 +33,8 @@ import java.util.Arrays;
 import java.util.Collection;
 
 /**
+ * Controller for handling bag/replication related requests
+ *
  * Created by shake on 4/17/15.
  */
 @Controller
@@ -51,6 +53,15 @@ public class BagController {
     @Autowired
     IngestSettings settings;
 
+    /**
+     * Retrieve information about all bags
+     *
+     * TODO: Pagination so we don't return a massive list of bags all at once
+     *
+     * @param model - the view model
+     * @param principal - authentication information
+     * @return
+     */
     @RequestMapping(value= "/bags", method = RequestMethod.GET)
     public String getBags(Model model, Principal principal) {
         log.info("Getting bags for user {}", principal.getName());
@@ -70,6 +81,13 @@ public class BagController {
         return "bags";
     }
 
+    /**
+     * Get information about a single bag
+     *
+     * @param model - the view model
+     * @param id - the id of the bag
+     * @return
+     */
     @RequestMapping(value = "/bags/{id}", method = RequestMethod.GET)
     public String getBag(Model model, @PathVariable("id") Long id) {
         log.info("Getting bag {}", id);
@@ -83,6 +101,14 @@ public class BagController {
         return "bag";
     }
 
+    /**
+     * Handler for updating a bag
+     *
+     * @param model - the viewmodel
+     * @param id - id of the bag to update
+     * @param update - the updated information
+     * @return
+     */
     @RequestMapping(value = "/bags/{id}", method = RequestMethod.POST)
     public String updateBag(Model model, @PathVariable("id") Long id, BagUpdate update) {
         log.info("Updating bag {}: status = {}", id, update.getStatus());
@@ -98,11 +124,25 @@ public class BagController {
         return "bag";
     }
 
+    /**
+     * Retrieve the page for adding bags
+     *
+     * @param model - the view model
+     * @return
+     */
     @RequestMapping(value = "/bags/add", method = RequestMethod.GET)
     public String addBag(Model model) {
         return "addbag";
     }
 
+    /**
+     * Handler for adding bags
+     *
+     * @param model - the view model
+     * @param request - the request containing the bag name, depositor, and location
+     * @return
+     * @throws IOException
+     */
     @RequestMapping(value = "/bags/add", method = RequestMethod.POST)
     public String addBag(Model model, IngestRequest request) throws IOException {
         log.info("Adding new bag");
@@ -121,9 +161,19 @@ public class BagController {
         }
         bagRepository.save(bag);
 
+        // TODO: Redirect to /bags/{id}?
         return "redirect:/bags";
     }
 
+    /**
+     * Get all replications
+     * If admin, return a list of all replications
+     * else return a list for the given user
+     *
+     * @param model - the viewmodel
+     * @param principal - authentication information
+     * @return
+     */
     @RequestMapping(value = "/replications", method = RequestMethod.GET)
     public String getReplications(Model model, Principal principal) {
         log.info("Getting replications for user {}", principal.getName());

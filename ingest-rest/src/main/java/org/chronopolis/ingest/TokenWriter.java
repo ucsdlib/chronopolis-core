@@ -9,6 +9,13 @@ import java.io.IOException;
 
 
 /**
+ * Simple extension of a {@link TokenStoreWriter} for writing our
+ * {@link AceToken}s to a file. We make sure that the header information
+ * and proofs are written correctly.
+ *
+ * In addition, we want to keep track of the digest as we write the file
+ * so that we can store it for replications to check against.
+ *
  * Created by shake on 2/13/15.
  */
 public class TokenWriter extends TokenStoreWriter<AceToken> {
@@ -47,41 +54,5 @@ public class TokenWriter extends TokenStoreWriter<AceToken> {
 
         this.digest = os.hash().toString();
     }
-
-
-    /*
-    @Override
-    public void writeTokenEntry() throws IOException {
-        Check.notNegative("IdentifierList Size", Integer.valueOf(this.identifierList.size()));
-        Check.notNegative("IdentifierList Size", Integer.valueOf(this.levelList.size()));
-        Check.notNegative("Round", Long.valueOf(this.round));
-        String header = this.digestAlgorithm + " " + this.ims + " " + this.imsService + " " + this.round + " " + this.formattedDate + " ";
-        StringBuilder entryBody = new StringBuilder();
-        Iterator block = this.identifierList.iterator();
-
-        String level;
-        while(block.hasNext()) {
-            level = (String)block.next();
-            entryBody.append(level);
-            entryBody.append("\n");
-        }
-
-        entryBody.append("\n");
-        block = this.levelList.iterator();
-
-        while(block.hasNext()) {
-            level = (String)block.next();
-            entryBody.append(level);
-            entryBody.append("\n");
-        }
-
-        entryBody.append("\n");
-        byte[] block1 = entryBody.toString().getBytes("UTF-8");
-        header = header + block1.length + "\n";
-        this.tokenStore.write(header.getBytes("UTF-8"));
-        this.tokenStore.write(block1);
-        this.clear();
-    }
-    */
 
 }

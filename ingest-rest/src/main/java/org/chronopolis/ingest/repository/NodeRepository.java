@@ -4,6 +4,8 @@ import org.chronopolis.rest.models.Node;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
+ * Repository for interacting with {@link Node}s
+ *
  * Created by shake on 11/17/14.
  */
 public interface NodeRepository extends JpaRepository<Node, Long> {

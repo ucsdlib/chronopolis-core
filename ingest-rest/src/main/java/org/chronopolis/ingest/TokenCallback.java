@@ -5,6 +5,7 @@ import edu.umiacs.ace.ims.api.IMSUtil;
 import edu.umiacs.ace.ims.api.RequestBatchCallback;
 import edu.umiacs.ace.ims.ws.TokenRequest;
 import edu.umiacs.ace.ims.ws.TokenResponse;
+import org.chronopolis.common.ace.Tokenizer;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.rest.models.AceToken;
 import org.chronopolis.rest.models.Bag;
@@ -14,6 +15,9 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
+ * Callback for our {@link Tokenizer}. When receiving tokens from the IMS, we want to
+ * save them to our database
+ *
  * Created by shake on 2/5/15.
  */
 public class TokenCallback implements RequestBatchCallback {

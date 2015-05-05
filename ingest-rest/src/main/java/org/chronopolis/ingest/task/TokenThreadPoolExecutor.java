@@ -7,7 +7,6 @@ import org.chronopolis.rest.models.Bag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Time;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -18,6 +17,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Our own thread pool executor which keeps track of the Bags it currently has in queue.
+ * This is done so that we don't attempt to tokenize bags multiple times
+ *
+ *
  * Created by shake on 2/27/15.
  */
 public class TokenThreadPoolExecutor extends ThreadPoolExecutor {

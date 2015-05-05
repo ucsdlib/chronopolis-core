@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Collection;
 
 /**
+ * Repository for interacting with {@link Restoration}s
+ *
  * Created by shake on 12/8/14.
  */
 public interface RestoreRepository extends JpaRepository<Restoration, Long> {

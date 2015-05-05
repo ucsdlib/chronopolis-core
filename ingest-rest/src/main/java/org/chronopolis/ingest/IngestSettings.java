@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
+ * Settings for our ingest-server
+ *
  * Created by shake on 11/6/14.
  */
 @Component

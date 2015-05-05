@@ -15,6 +15,8 @@ import org.springframework.stereotype.Component;
 import java.util.Collection;
 
 /**
+ * Basic task to submit threads for tokenization
+ *
  * Created by shake on 2/6/2015.
  */
 @Component

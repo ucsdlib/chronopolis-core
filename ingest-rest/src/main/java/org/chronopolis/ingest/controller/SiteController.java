@@ -22,6 +22,8 @@ import java.util.Collection;
 import java.util.HashSet;
 
 /**
+ * Controller for handling basic site interaction/administration
+ *
  * Created by shake on 4/15/15.
  */
 @Controller
@@ -35,18 +37,37 @@ public class SiteController {
     @Autowired
     NodeRepository repository;
 
+    /**
+     * Get the index page
+     *
+     * @param model
+     * @return
+     */
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public String getIndex(Model model) {
         log.debug("GET index");
         return "index";
     }
 
+    /**
+     * Get the login page
+     *
+     * @return
+     */
     @RequestMapping(value = "/login")
     public String login() {
         log.debug("LOGIN");
         return "login";
     }
 
+    /**
+     * Return a list of all users if called by an admin, otherwise only add the current
+     * user
+     *
+     * @param model
+     * @param principal
+     * @return
+     */
     @RequestMapping(value = "/users", method = RequestMethod.GET)
     public String getUsers(Model model, Principal principal) {
         Collection<UserDetails> users = new ArrayList<>();
@@ -77,6 +98,13 @@ public class SiteController {
         return "users";
     }
 
+    /**
+     * Handle creation of a user
+     *
+     * @param model
+     * @param user
+     * @return
+     */
     @RequestMapping(value = "/users/add", method = RequestMethod.POST)
     public String createUser(Model model, UserRequest user) {
         log.debug("Request to create user: {} {} {}", new Object[]{user.getUsername(), user.isAdmin(), user.isNode()});
@@ -103,6 +131,13 @@ public class SiteController {
         return "redirect:/users";
     }
 
+    /**
+     * Handler for updating the current users password
+     *
+     * @param model
+     * @param update
+     * @return
+     */
     @RequestMapping(value = "/users/update", method = RequestMethod.POST)
     public String updateUser(Model model, PasswordUpdate update) {
         manager.changePassword(update.getOldPassword(), update.getNewPassword());

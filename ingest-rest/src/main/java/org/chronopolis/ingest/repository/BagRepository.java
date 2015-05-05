@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Collection;
 
 /**
+ * Repository for interacting with {@link Bag}s
+ *
  * Created by shake on 11/6/14.
  */
 public interface BagRepository extends JpaRepository<Bag, Long> {

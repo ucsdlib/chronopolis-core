@@ -1,6 +1,8 @@
 package org.chronopolis.ingest.models;
 
 /**
+ * Model for creating a user
+ *
  * Created by shake on 4/20/15.
  */
 public class UserRequest {
