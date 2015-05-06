@@ -28,8 +28,8 @@ public interface IngestAPI {
     @GET("/api/bags")
     List<Bag> getBags();
 
-    @PUT("/api/bags")
-    Bag putBag(@Body IngestRequest body);
+    @POST("/api/bags")
+    Bag stageBag(@Body IngestRequest body);
 
     @GET("/api/bags/{bag-id}")
     Bag getBag(@Path("bag-id") Long bagId);
