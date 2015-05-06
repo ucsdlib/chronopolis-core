@@ -75,6 +75,15 @@ public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
             }
 
         } else {
+            
+            // I've noticed bags can get "trapped" in the working set if they aren't
+            // properly removed in the afterExecute method. To remedy that, if all
+            // threads are dead and we couldn't submit, clear the working set
+            if (getActiveCount() == 0) {
+                log.debug("No active threads, but bags exist in working set. Purging.");
+                workingBags.clear();
+            }
+
             log.debug("Bag {} already submitted, skipping", b.getName());
             submitted = false;
         }
@@ -96,44 +105,16 @@ public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
         if (r instanceof FutureTask) {
             // Remove the bag from our working set
             FutureTask<Bag> task = (FutureTask<Bag>) r;
+            Bag b = null;
             try {
-                Bag b = task.get();
-                boolean success = workingBags.remove(b);
-                /*
-                if (success == false) {
-                    log.debug("Bag is null?: {}", b == null);
-                    log.debug("Bag Info: {} {} {} {} {} {} {}", new Object[]{
-                            b.getSize(),
-                            b.getTotalFiles(),
-                            b.getID(),
-                            b.getDepositor(),
-                            b.getFixityAlgorithm(),
-                            b.getLocation(),
-                            b.getName()
-                    });
-
-                    boolean contains = workingBags.contains(b);
-
-                    // submit a busy task and try to remove the bag again
-                    if (contains) {
-                        log.debug("Submitting busy task");
-                        this.submit(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    TimeUnit.SECONDS.sleep(5);
-                                } catch (InterruptedException e) {
-                                }
-                            }
-                        }, b);
-                    }
-                }
-                */
-                log.debug("Removal of {} from the working set: {}", b.getName(), success);
+                b = task.get();
             } catch (InterruptedException e) {
                 log.error("Interrupted in afterExecute", e);
             } catch (ExecutionException e) {
                 log.error("Execution error in afterExecute", e);
+            } finally {
+                boolean success = workingBags.remove(b);
+                log.debug("Removal of {} from the working set: {}", b.getName(), success);
             }
         }
 
