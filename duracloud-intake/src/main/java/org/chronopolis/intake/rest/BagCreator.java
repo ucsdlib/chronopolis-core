@@ -44,12 +44,6 @@ public class BagCreator {
     @Autowired
     private SnapshotJobManager snapshotJobManager;
 
-    @RequestMapping("test")
-    public String testIt() {
-        return "test";
-    }
-
-
     /**
      * New method to initialize a snapshot for duracloud
      *

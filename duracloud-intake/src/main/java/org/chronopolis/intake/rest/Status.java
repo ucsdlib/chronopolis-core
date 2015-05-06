@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 
 /**
+ * Controller for passing status information back to Duraspace
+ * Still not certain what should be given
+ *
  * Created by shake on 3/10/14.
  */
 @RestController

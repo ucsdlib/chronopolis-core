@@ -8,6 +8,7 @@ import org.chronopolis.messaging.pkg.PackageIngestCompleteMessage;
 /**
  * Created by shake on 7/17/14.
  */
+@Deprecated
 public class PackageIngestCompleteProcessor implements ChronProcessor {
 
     public PackageIngestCompleteProcessor() {

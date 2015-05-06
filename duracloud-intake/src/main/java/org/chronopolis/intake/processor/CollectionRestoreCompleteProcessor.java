@@ -23,6 +23,7 @@ import static org.chronopolis.messaging.Indicator.ACK;
 /**
  * Created by shake on 7/17/14.
  */
+@Deprecated
 public class CollectionRestoreCompleteProcessor implements ChronProcessor {
     private final Logger log = LoggerFactory.getLogger(CollectionRestoreCompleteProcessor.class);
 

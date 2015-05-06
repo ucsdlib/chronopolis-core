@@ -16,13 +16,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 /**
+ *
  * Created by shake on 8/1/14.
  */
-// TODO: Use packages or packageClasses?
 @ComponentScan(basePackageClasses = {ChronopolisSettings.class,
-        IntakeSettings.class,
-        JPASettings.class,
-        JPAConfiguration.class},
+        IntakeSettings.class},
+        // JPASettings.class,
+        // JPAConfiguration.class},
         basePackages = {"org.chronopolis.intake.config",
                         "org.chronopolis.intake.rest"})
 @EntityScan(basePackageClasses = {Status.class})

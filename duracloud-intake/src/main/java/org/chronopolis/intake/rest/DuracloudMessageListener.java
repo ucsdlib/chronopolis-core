@@ -9,6 +9,7 @@ import org.chronopolis.messaging.base.ChronProcessor;
 /**
  * Created by shake on 8/6/14.
  */
+@Deprecated
 public class DuracloudMessageListener extends ChronMessageListener {
 
     private final CollectionRestoreCompleteProcessor collectionRestoreCompleteProcessor;
