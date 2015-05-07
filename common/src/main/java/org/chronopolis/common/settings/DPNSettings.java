@@ -1,66 +1,45 @@
 package org.chronopolis.common.settings;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by shake on 9/30/14.
  */
 @Component
 public class DPNSettings {
+    private final Logger log = LoggerFactory.getLogger(DPNSettings.class);
 
-    @Value("${dpn.web.host:localhost}")
-    private String dpnWebHost;
+    @Value("${dpn.api-key:admin}")
+    private String apiKey;
 
-    @Value("${dpn.web.port:8080}")
-    private Integer dpnWebPort;
+    private List<String> dpnEndpoints;
 
-    @Value("${dpn.web.path:}")
-    private String dpnWebPath;
-
-    @Value("${dpn.web.user:user}")
-    private String dpnUser;
-
-    @Value("${dpn.web.password:password}")
-    private String dpnPassword;
-
-    public String getDpnWebHost() {
-        return dpnWebHost;
+    public String getApiKey() {
+        return apiKey;
     }
 
-    public void setDpnWebHost(final String dpnWebHost) {
-        this.dpnWebHost = dpnWebHost;
+    public void setApiKey(final String apiKey) {
+        this.apiKey = apiKey;
     }
 
-    public Integer getDpnWebPort() {
-        return dpnWebPort;
+    public List<String> getDPNEndpoints() {
+        return dpnEndpoints;
     }
 
-    public void setDpnWebPort(final Integer dpnWebPort) {
-        this.dpnWebPort = dpnWebPort;
+    @Value("${dpn.endpoints:http://localhost}")
+    public void setIngestEndpoints(String ingestEndpoints) {
+        log.debug("Splitting dpn endpoints");
+        String[] endpoints = ingestEndpoints.split(",");
+        log.debug("Found {} endpoints: {}", endpoints.length, endpoints);
+        if (endpoints.length > 0) {
+            this.dpnEndpoints = Arrays.asList(endpoints);
+        }
     }
 
-    public String getDpnWebPath() {
-        return dpnWebPath;
-    }
-
-    public void setDpnWebPath(final String dpnWebPath) {
-        this.dpnWebPath = dpnWebPath;
-    }
-
-    public String getDpnUser() {
-        return dpnUser;
-    }
-
-    public void setDpnUser(final String dpnUser) {
-        this.dpnUser = dpnUser;
-    }
-
-    public String getDpnPassword() {
-        return dpnPassword;
-    }
-
-    public void setDpnPassword(final String dpnPassword) {
-        this.dpnPassword = dpnPassword;
-    }
 }
