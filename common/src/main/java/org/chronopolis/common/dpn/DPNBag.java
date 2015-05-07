@@ -144,6 +144,11 @@ public class DPNBag {
         return this;
     }
 
+    public DPNBag addFixity(String algorithm, String digest) {
+        this.fixities.put(algorithm, digest);
+        return this;
+    }
+
     public DateTime getCreatedAt() {
         return createdAt;
     }
