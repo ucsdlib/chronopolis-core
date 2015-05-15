@@ -24,7 +24,7 @@ public class DPNBag {
     private List<String> interpretive;
     private List<String> rights;
     private List<String> replicatingNodes;
-    private Map<String, String> fixities;
+    private List<Fixity> fixities;
 
     private DateTime createdAt;
     private DateTime updatedAt;
@@ -36,7 +36,7 @@ public class DPNBag {
         this.interpretive = new ArrayList<>();
         this.rights = new ArrayList<>();
         this.replicatingNodes = new ArrayList<>();
-        this.fixities = new HashMap<>();
+        this.fixities = new ArrayList<>();
     }
 
     public char getBagType() {
@@ -135,17 +135,24 @@ public class DPNBag {
         return this;
     }
 
-    public Map<String, String> getFixities() {
+    public List<Fixity> getFixities() {
         return fixities;
     }
 
-    public DPNBag setFixities(Map<String, String> fixities) {
+    public DPNBag setFixities(List<Fixity> fixities) {
         this.fixities = fixities;
         return this;
     }
 
+    /**
+     * TODO: Do a get before adding a new value
+     *
+     * @param algorithm
+     * @param digest
+     * @return
+     */
     public DPNBag addFixity(String algorithm, String digest) {
-        this.fixities.put(algorithm, digest);
+        this.fixities.add(new Fixity(digest));
         return this;
     }
 
