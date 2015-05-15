@@ -56,11 +56,13 @@ public class ReplicationController {
     /**
      * Create a replication request for a given node and bag
      *
+     * TODO: Return a 201
+     *
      * @param principal - authentication information
      * @param request - request containing the bag id to replicate
      * @return
      */
-    @RequestMapping(method = RequestMethod.PUT)
+    @RequestMapping(method = RequestMethod.POST)
     public Replication createReplication(Principal principal, @RequestBody ReplicationRequest request) {
         // Create a new replication for the Node (user) based on the Bag ID
         // Return a 404 if the bag is not found
@@ -90,7 +92,7 @@ public class ReplicationController {
      * @param replication - the updated replication sent from the client
      * @return
      */
-    @RequestMapping(value = "/{id}", method = RequestMethod.POST)
+    @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
     public Replication updateReplication(Principal principal,
                                          @PathVariable("id") Long replicationID,
                                          @RequestBody Replication replication) {
