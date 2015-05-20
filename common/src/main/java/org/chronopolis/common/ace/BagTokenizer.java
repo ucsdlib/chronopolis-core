@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author shake
  */
+@Deprecated
 public class BagTokenizer {
     private final Logger log = LoggerFactory.getLogger(BagTokenizer.class);
     private final ExecutorService manifestService = Executors.newCachedThreadPool();

@@ -28,8 +28,8 @@ public interface IngestAPI {
     @GET("/api/bags")
     List<Bag> getBags();
 
-    @PUT("/api/bags")
-    Bag putBag(@Body IngestRequest body);
+    @POST("/api/bags")
+    Bag stageBag(@Body IngestRequest body);
 
     @GET("/api/bags/{bag-id}")
     Bag getBag(@Path("bag-id") Long bagId);
@@ -39,13 +39,13 @@ public interface IngestAPI {
     @GET("/api/replications")
     List<Replication> getReplications(@Query("status") ReplicationStatus status);
 
-    @PUT("/api/replications")
-    Replication putReplication(@Body ReplicationRequest body);
+    @POST("/api/replications")
+    Replication createReplication(@Body ReplicationRequest body);
 
     @GET("/api/replications/{id}")
     Replication getReplication(@Path("id") Long id);
 
-    @POST("/api/replications/{id}")
+    @PUT("/api/replications/{id}")
     Replication updateReplication(@Path("id") Long id, @Body Replication body);
 
     // Restore methods

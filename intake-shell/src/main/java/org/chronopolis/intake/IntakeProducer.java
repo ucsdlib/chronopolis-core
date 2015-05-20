@@ -152,7 +152,7 @@ public class IntakeProducer implements CommandLineRunner {
         request.setDepositor(depositor);
         request.setLocation(path);
         request.setName(bagName);
-        ingestAPI.putBag(request);
+        ingestAPI.stageBag(request);
     }
 
     /**

@@ -15,10 +15,13 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Class to create ACE tokens from a BagIt bag.
+ * Reads in the manifest and tagmanifest for entries
+ * to use.
+ *
  * Created by shake on 2/4/15.
  */
 public class Tokenizer {
@@ -28,9 +31,6 @@ public class Tokenizer {
 
     private final Logger log = LoggerFactory.getLogger(Tokenizer.class);
     private final Path bag;
-
-    // TODO: Remove
-    private final Set<Path> manifests;
 
     private final Digest fixityAlgorithm;
     private Path manifest;
@@ -46,7 +46,6 @@ public class Tokenizer {
                      final RequestBatchCallback callback) {
         this.bag = bag;
         this.fixityAlgorithm = Digest.fromString(fixityAlgorithm);
-        this.manifests = new HashSet<>();
         this.callback = callback;
         this.tagDigest = null;
         addManifests();
@@ -73,8 +72,6 @@ public class Tokenizer {
             throw new RuntimeException("Manifest does not exist!");
         }
 
-        manifests.add(tagManifest);
-        manifests.add(manifest);
         this.manifest = manifest;
         this.tagmanifest = tagManifest;
     }
@@ -107,7 +104,20 @@ public class Tokenizer {
         }
     }
 
-    private boolean tokenize(Set<Path> filter, Path manifest) throws IOException, InterruptedException {
+    /**
+     * The bulk of the tokenization process. We read the given manifest, and
+     * process the entries as they come in. As we digest each file in the manifest,
+     * if the two digests match we create a token request (for ACE).
+     *
+     *
+     * @param filter A set of paths we have already digested
+     * @param manifest The manifest to read
+     * @return true if there are errors in the manifest, false otherwise
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    private boolean tokenize(Set<Path> filter, Path manifest) throws IOException,
+            InterruptedException {
         String line;
         boolean corrupt = false;
         String alg = fixityAlgorithm.getName();
@@ -147,11 +157,11 @@ public class Tokenizer {
         // No corruptions (all manifests good)
         // Skip the manifest
         // Skip if we've already digested the tag manifest (tokenizer gets called multiple times)
-        if (!corrupt &&
-            manifest.getFileName().endsWith(tagIdentifier) &&
-            !filter.contains(tagIdentifier)) {
-            tagDigest = DigestUtil.digest(manifest, alg);
-            addTokenRequest(manifest, tagDigest);
+        if (!filter.contains(tagmanifest)) {
+            if (!corrupt && manifest.getFileName().endsWith(tagIdentifier)) {
+                tagDigest = DigestUtil.digest(manifest, alg);
+                addTokenRequest(manifest, tagDigest);
+            }
         }
 
         return corrupt;
@@ -161,6 +171,13 @@ public class Tokenizer {
         return tagDigest;
     }
 
+    /**
+     * Add an ACE TokenRequest to the {@link RequestBatchCallback}
+     *
+     * @param path The path of the file to add
+     * @param digest The digest of the file
+     * @throws InterruptedException
+     */
     private void addTokenRequest(Path path, String digest) throws InterruptedException {
         Path rel = path.subpath(bag.getNameCount(), path.getNameCount());
 
@@ -172,6 +189,11 @@ public class Tokenizer {
         batch.add(req);
     }
 
+    /**
+     * Create a connection to the IMS Service for ACE
+     *
+     * @return {@link TokenRequestBatch}
+     */
     private TokenRequestBatch createIMSConnection() {
         IMSService ims;
         // TODO: Use the AceSettings to get the ims host name
