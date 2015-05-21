@@ -6,6 +6,7 @@ import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationRequest;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.chronopolis.rest.models.Restoration;
+import org.springframework.data.domain.Page;
 import retrofit.http.Body;
 import retrofit.http.GET;
 import retrofit.http.POST;
@@ -26,7 +27,7 @@ public interface IngestAPI {
     // Bag methods
 
     @GET("/api/bags")
-    List<Bag> getBags();
+    Page<Bag> getBags();
 
     @POST("/api/bags")
     Bag stageBag(@Body IngestRequest body);
@@ -37,7 +38,7 @@ public interface IngestAPI {
     // Replication methods
 
     @GET("/api/replications")
-    List<Replication> getReplications(@Query("status") ReplicationStatus status);
+    Page<Replication> getReplications(@Query("status") ReplicationStatus status);
 
     @POST("/api/replications")
     Replication createReplication(@Body ReplicationRequest body);

@@ -34,6 +34,8 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.lang.reflect.Field;
@@ -78,7 +80,7 @@ public class ReplicationQueryTaskTest {
     @Autowired
     Job job;
 
-    List<Replication> replications;
+    Page<Replication> replications;
 
     Replication replication;
 
@@ -92,13 +94,14 @@ public class ReplicationQueryTaskTest {
         f.setAccessible(true);
         f.set(task, jobExplorer);
 
-        replications = new ArrayList<>();
+        ArrayList<Replication> replicationList = new ArrayList<>();
         Node n = new Node("test", "test");
         Bag b = new Bag("test-bag", "test-depositor");
         replication = new Replication(n, b);
         for (int i = 0; i < 5; i++) {
-            replications.add(replication);
+            replicationList.add(replication);
         }
+        replications = new PageImpl<>(replicationList);
     }
 
     @Test
