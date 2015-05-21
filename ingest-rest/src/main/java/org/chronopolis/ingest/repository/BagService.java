@@ -11,9 +11,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
+
+import static org.chronopolis.ingest.repository.PredicateUtil.setExpression;
 
 /**
  * Service to build queries for bags from the search criteria
@@ -30,6 +30,11 @@ public class BagService {
     @Autowired
     public BagService(BagRepository bagRepository) {
         this.bagRepository = bagRepository;
+    }
+
+    // TODO: use search criteria
+    public Bag findBag(Long bagId) {
+        return bagRepository.findOne(bagId);
     }
 
     public Page<Bag> findBags(BagSearchCriteria criteria, Pageable pageable) {
@@ -63,16 +68,6 @@ public class BagService {
         log.debug("Using predicate to query bags");
         // Return a single page of the query asked for
         return bagRepository.findAll(predicate, pageable);
-    }
-
-    private BooleanExpression setExpression(BooleanExpression predicate, BooleanExpression other) {
-        // If the predicate is null, use the other expression
-        if (predicate == null) {
-            return other;
-        }
-
-        // Else return the combination of the two
-        return predicate.and(other);
     }
 
 }
