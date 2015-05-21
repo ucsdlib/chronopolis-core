@@ -39,7 +39,7 @@ public class ReplicationService {
 
         Map<Object, BooleanExpression> criteriaMap = criteria.getCriteria();
         for (Object o : criteriaMap.keySet()) {
-            setPredicate(o, predicate, criteriaMap.get(o));
+            predicate = setExpression(predicate, criteriaMap.get(o));
         }
 
         return replicationRepository.findOne(predicate);
@@ -50,7 +50,7 @@ public class ReplicationService {
 
         Map<Object, BooleanExpression> criteriaMap = criteria.getCriteria();
         for (Object o : criteriaMap.keySet()) {
-            setPredicate(o, predicate, criteriaMap.get(o));
+            predicate = setExpression(predicate, criteriaMap.get(o));
         }
 
         if (predicate == null) {
@@ -64,12 +64,6 @@ public class ReplicationService {
 
     public void save(Replication replication) {
         replicationRepository.save(replication);
-    }
-
-    public void setPredicate(Object criteria, BooleanExpression predicate, BooleanExpression expression) {
-        if (criteria != null) {
-            setExpression(predicate, expression);
-        }
     }
 
 }
