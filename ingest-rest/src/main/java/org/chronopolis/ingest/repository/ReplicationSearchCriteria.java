@@ -18,6 +18,7 @@ public class ReplicationSearchCriteria {
     private QReplication replication;
 
     private Map<Object, BooleanExpression> criteria;
+    private Long id;
     private Long bagId;
     private String nodeUsername;
     private ReplicationStatus status;
@@ -25,6 +26,14 @@ public class ReplicationSearchCriteria {
     public ReplicationSearchCriteria() {
         replication = QReplication.replication;
         criteria = new HashMap<>();
+    }
+
+    public ReplicationSearchCriteria withId(Long id) {
+        if (id != null) {
+            criteria.put(id, replication.id.eq(id));
+            this.id = id;
+        }
+        return this;
     }
 
     public ReplicationSearchCriteria withBagId(Long bagId) {
@@ -49,6 +58,10 @@ public class ReplicationSearchCriteria {
             this.status = status;
         }
         return this;
+    }
+
+    public Long getId() {
+        return id;
     }
 
     public Long getBagId() {
