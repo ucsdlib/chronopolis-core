@@ -1,10 +1,13 @@
 package org.chronopolis.ingest.api;
 
+import org.chronopolis.ingest.controller.ControllerUtil;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.exception.UnauthorizedException;
 import org.chronopolis.ingest.repository.BagRepository;
+import org.chronopolis.ingest.repository.BagService;
 import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.ReplicationRepository;
+import org.chronopolis.ingest.repository.ReplicationSearchCriteria;
+import org.chronopolis.ingest.repository.ReplicationService;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.Node;
@@ -15,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,13 +47,16 @@ public class ReplicationController {
     private final Logger log = LoggerFactory.getLogger(ReplicationController.class);
 
     @Autowired
-    ReplicationRepository replicationRepository;
-
-    @Autowired
     NodeRepository nodeRepository;
 
     @Autowired
     BagRepository bagRepository;
+
+    @Autowired
+    BagService bagService;
+
+    @Autowired
+    ReplicationService replicationService;
 
     /**
      * Create a replication request for a given node and bag
@@ -63,7 +68,8 @@ public class ReplicationController {
      * @return
      */
     @RequestMapping(method = RequestMethod.POST)
-    public Replication createReplication(Principal principal, @RequestBody ReplicationRequest request) {
+    public Replication createReplication(Principal principal,
+                                         @RequestBody ReplicationRequest request) {
         // Create a new replication for the Node (user) based on the Bag ID
         // Return a 404 if the bag is not found
         // If a replication already exists, return it instead of creating a new one
@@ -74,18 +80,27 @@ public class ReplicationController {
             throw new NotFoundException("bag/" + request.getBagID());
         }
 
-        Replication action = replicationRepository.findByNodeUsernameAndBagID(node.getUsername(), bag.getID());
+        ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
+                .withBagId(bag.getID())
+                .withNodeUsername(node.getUsername());
+
+        // TODO: This can actually return multiple replications, we'll want to filter as well
+        Replication action = replicationService.getReplication(criteria);
 
         if (action == null) {
-            log.info("Creating new replication for node {} and bag {}", node.getUsername(), bag.getID());
+            log.info("Creating new replication for node {} and bag {}",
+                    node.getUsername(),
+                    bag.getID());
+
             action = new Replication(node, bag);
-            replicationRepository.save(action);
+            replicationService.save(action);
         }
         return action;
     }
 
     /**
      * Update a given replication based on the id of the path used
+     * TODO: 404 if not found
      *
      * @param principal - authentication information
      * @param replicationID - the id of the replication to update
@@ -96,8 +111,12 @@ public class ReplicationController {
     public Replication updateReplication(Principal principal,
                                          @PathVariable("id") Long replicationID,
                                          @RequestBody Replication replication) {
-        Node node = nodeRepository.findByUsername(principal.getName());
-        Replication update = replicationRepository.findOne(replication.getID());
+        Replication update = replicationService.getReplication(
+                new ReplicationSearchCriteria()
+                        .withId(replicationID)
+                        .withNodeUsername(principal.getName())
+        );
+        Node node = update.getNode();
         Bag bag = update.getBag();
 
         // check for unauthorized access
@@ -105,6 +124,7 @@ public class ReplicationController {
             throw new UnauthorizedException(principal.getName());
         }
 
+        // TODO: Move logic outside of here?
         log.info("Updating replication {}", replication.getID());
 
         String receivedTokenFixity = replication.getReceivedTokenFixity();
@@ -155,7 +175,7 @@ public class ReplicationController {
             update.setStatus(ReplicationStatus.FAILURE);
         }
 
-        replicationRepository.save(update);
+        replicationService.save(update);
         bagRepository.save(bag);
 
         return update;
@@ -172,32 +192,28 @@ public class ReplicationController {
     @RequestMapping(method = RequestMethod.GET)
     public Iterable<Replication> replications(Principal principal,
                                               @RequestParam Map<String, String> params) {
-        // @RequestParam(value = STATUS, required = false) ReplicationStatus status) {
-        Iterable<Replication> replications;
-        ReplicationStatus status = params.containsKey(STATUS) ? ReplicationStatus.valueOf(params.get(STATUS)) : null;
-        Integer pageNum = params.containsKey(PAGE) ? Integer.parseInt(params.get(PAGE)) : -1;
-        Integer pageSize = params.containsKey(PAGE_SIZE) ? Integer.parseInt(params.get(PAGE_SIZE)) : 20;
-        String name = principal.getName();
-
-        // TODO: maybe we can make this look a bit... cleaner.
-        // if there was no page param
-        if (pageNum == -1) {
-            if (status == null) {
-                replications = replicationRepository.findByNodeUsername(name);
-            } else {
-                replications = replicationRepository.findByStatusAndNodeUsername(status, name);
-            }
-
-        } else {
-            Pageable pageable = new PageRequest(pageNum, pageSize);
-            if (status == null) {
-                replications = replicationRepository.findByNodeUsername(name, pageable);
-            } else {
-                replications = replicationRepository.findByStatusAndNodeUsername(status, name, pageable);
-            }
+        Integer page = params.containsKey(PAGE)
+                ? Integer.parseInt(params.get(PAGE))
+                : 0;
+        Integer pageSize = params.containsKey(PAGE_SIZE)
+                ? Integer.parseInt(params.get(PAGE_SIZE))
+                : 20;
+        String name = null;
+        if (!ControllerUtil.hasRoleAdmin()) {
+            name = principal.getName();
         }
 
-        return replications;
+        // null is handled fine so we can set that as a default
+        ReplicationStatus status = params.containsKey(STATUS)
+                ? ReplicationStatus.valueOf(params.get(STATUS))
+                : null;
+
+        // TODO: May want a function to build the criteria from the request params
+        ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
+                .withNodeUsername(name)
+                .withStatus(status);
+
+        return replicationService.getReplications(criteria, new PageRequest(page, pageSize));
     }
 
     /**
@@ -209,7 +225,9 @@ public class ReplicationController {
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public Replication findReplication(Principal principal, @PathVariable("id") Long actionId) {
-        Replication action = replicationRepository.findOne(actionId);
+        Replication action = replicationService.getReplication(
+                new ReplicationSearchCriteria().withId(actionId)
+        );
 
         // return unauthorized
         if (!action.getNode().getUsername().equals(principal.getName())) {
