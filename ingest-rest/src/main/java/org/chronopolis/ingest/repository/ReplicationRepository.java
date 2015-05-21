@@ -5,6 +5,7 @@ import org.chronopolis.rest.models.ReplicationStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 
 import java.util.Collection;
 
@@ -13,7 +14,8 @@ import java.util.Collection;
  *
  * Created by shake on 11/18/2014.
  */
-public interface ReplicationRepository extends JpaRepository<Replication, Long> {
+public interface ReplicationRepository extends JpaRepository<Replication, Long>,
+                                               QueryDslPredicateExecutor<Replication> {
 
     Collection<Replication> findByStatusAndNodeUsername(ReplicationStatus status, String username);
     Page<Replication> findByStatusAndNodeUsername(ReplicationStatus status, String username, Pageable pageable);

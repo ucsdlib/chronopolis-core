@@ -14,7 +14,8 @@ import java.util.Collection;
  *
  * Created by shake on 11/6/14.
  */
-public interface BagRepository extends JpaRepository<Bag, Long>, QueryDslPredicateExecutor {
+public interface BagRepository extends JpaRepository<Bag, Long>,
+                                       QueryDslPredicateExecutor<Bag> {
 
     // Bag findById(Long id);
     Bag findByNameAndDepositor(String name, String depositor);
