@@ -73,6 +73,7 @@ public class TokenRunner implements Runnable {
 
     @Override
     public void run() {
+        // TODO: Only get filenames
         Collection<AceToken> tokens = tokenRepository.findByBagID(bag.getID());
 
         // We have 3 states we check for:
@@ -136,6 +137,8 @@ public class TokenRunner implements Runnable {
 
     /**
      * Write a token to a file identified by the bag name and date
+     * TODO: Pull a subset of the tokens at a time in order to write them,
+     *       so that we do not run out of heap space
      *
      * @param bag
      * @param tokens
