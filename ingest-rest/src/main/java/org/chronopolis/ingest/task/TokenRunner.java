@@ -34,6 +34,22 @@ import static java.nio.file.StandardOpenOption.CREATE;
  * Created by shake on 2/27/15.
  */
 public class TokenRunner implements Runnable {
+
+    /**
+     * Factory class to make testing easier.
+     *
+     */
+    static class Factory {
+        Runnable makeTokenRunner(Bag b,
+                                 String bagStage,
+                                 String tokenStage,
+                                 BagRepository bagRepository,
+                                 TokenRepository tokenRepository) {
+            return new TokenRunner(b, bagStage, tokenStage, bagRepository, tokenRepository);
+        }
+    }
+
+
     private final Logger log = LoggerFactory.getLogger(TokenRunner.class);
 
     private Bag bag;
