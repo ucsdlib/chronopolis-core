@@ -80,7 +80,7 @@ public class ReplicationQueryTaskTest {
     @Autowired
     Job job;
 
-    Page<Replication> replications;
+    PageImpl<Replication> replications;
 
     Replication replication;
 

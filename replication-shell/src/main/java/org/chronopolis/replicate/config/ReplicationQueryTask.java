@@ -12,6 +12,7 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -84,7 +85,7 @@ public class ReplicationQueryTask {
      * @param update - whether or not to update the stats (to STARTED)
      */
     private void query(ReplicationStatus status, Set<String> filter, boolean update) {
-        Page<Replication> replications = ingestAPI.getReplications(status);
+        PageImpl<Replication> replications = ingestAPI.getReplications(status);
         log.debug("Found {} replications", replications.getNumberOfElements());
 
         for (Replication replication : replications) {
