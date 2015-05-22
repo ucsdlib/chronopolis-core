@@ -65,6 +65,8 @@ public class TokenRunner implements Runnable {
         //     the filter returns an empty set
         // * if tokenization is complete, update the status of the bag
         // TODO: Send email on failures
+        // TODO: If filter contains tagmanifest, check for orphans
+        // log.debug("{}: Token size: {} Total Files: {}", new Object[]{bag.getName(), tokens.size(), bag.getTotalFiles()});
         if (tokens.size() < bag.getTotalFiles()) {
             log.info("Starting tokenizer for bag {}", bag.getName());
 
@@ -75,11 +77,13 @@ public class TokenRunner implements Runnable {
 
             try {
                 tokenizer.tokenize(filter(tokens));
-                String tagDigest = tokenizer.getTagManifestDigest();
-                log.info("Captured {} as the tagmanifest digest for {}",
-                        tagDigest,
-                        bag.getName());
-                bag.setTagManifestDigest(tagDigest);
+                if (bag.getTagManifestDigest() == null) {
+                    String tagDigest = tokenizer.getTagManifestDigest();
+                    log.info("Captured {} as the tagmanifest digest for {}",
+                            tagDigest,
+                            bag.getName());
+                    bag.setTagManifestDigest(tagDigest);
+                }
             } catch (IOException e) {
                 log.error("Error tokenizing: ", e);
             } catch (InterruptedException e) {
