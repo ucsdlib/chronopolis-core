@@ -49,9 +49,6 @@ public class ReplicationController {
     NodeRepository nodeRepository;
 
     @Autowired
-    BagRepository bagRepository;
-
-    @Autowired
     BagService bagService;
 
     @Autowired
@@ -73,10 +70,10 @@ public class ReplicationController {
         // Return a 404 if the bag is not found
         // If a replication already exists, return it instead of creating a new one
         Node node = nodeRepository.findByUsername(principal.getName());
-        Bag bag = bagRepository.findOne(request.getBagID());
+        Bag bag = bagService.findBag(request.getBagID());
 
         if (bag == null) {
-            throw new NotFoundException("bag/" + request.getBagID());
+            throw new NotFoundException("Bag " + request.getBagID());
         }
 
         ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
@@ -110,21 +107,14 @@ public class ReplicationController {
     public Replication updateReplication(Principal principal,
                                          @PathVariable("id") Long replicationID,
                                          @RequestBody Replication replication) {
-        Replication update;
+        ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
+                .withId(replicationID);
 
-        // Admin can update all replications
-        if (ControllerUtil.hasRoleAdmin()) {
-            update = replicationService.getReplication(
-                    new ReplicationSearchCriteria()
-                            .withId(replicationID)
-            );
-        } else { // users can only update their replications
-            update = replicationService.getReplication(
-                    new ReplicationSearchCriteria()
-                            .withId(replicationID)
-                            .withNodeUsername(principal.getName())
-            );
+        // If a user is not an admin, make sure we only search for THEIR replications
+        if (!ControllerUtil.hasRoleAdmin()) {
+            criteria.withNodeUsername(principal.getName());
         }
+        Replication update = replicationService.getReplication(criteria);
 
         if (update == null) {
             throw new NotFoundException("Replication " + replicationID);
@@ -177,6 +167,9 @@ public class ReplicationController {
 
             // And last check to see if the bag has been replicated
             if (nodes.size() >= bag.getRequiredReplications()) {
+                log.debug("Setting bag {}::{} as replicated",
+                        bag.getDepositor(),
+                        bag.getName());
                 bag.setStatus(BagStatus.REPLICATED);
             }
         } else if (isClientStatus(replication.getStatus())) {
@@ -186,8 +179,6 @@ public class ReplicationController {
         }
 
         replicationService.save(update);
-        bagRepository.save(bag);
-
         return update;
     }
 

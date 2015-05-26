@@ -64,6 +64,7 @@ public class ReplicationService {
 
     public void save(Replication replication) {
         replicationRepository.save(replication);
+        bagRepository.save(replication.getBag());
     }
 
 }
