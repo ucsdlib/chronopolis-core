@@ -13,6 +13,8 @@ import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
 
+import java.util.Map;
+
 import static org.chronopolis.ingest.repository.PredicateUtil.setExpression;
 
 /**
@@ -38,25 +40,10 @@ public class BagService {
     }
 
     public Page<Bag> findBags(BagSearchCriteria criteria, Pageable pageable) {
-        QBag bag = QBag.bag;
-        String name = criteria.getName();
-        String depositor = criteria.getDepositor();
-        BagStatus status = criteria.getStatus();
-
         BooleanExpression predicate = null;
-
-        if (!name.equals("")) {
-            predicate = bag.name.eq(name);
-        }
-
-        if (!depositor.equals("")) {
-            BooleanExpression depEq = bag.depositor.eq(criteria.getDepositor());
-            predicate = setExpression(predicate, depEq);
-        }
-
-        if (status != null) {
-            BooleanExpression statusEq = bag.status.eq(criteria.getStatus());
-            predicate = setExpression(predicate, statusEq);
+        Map<Object, BooleanExpression> criteriaMap = criteria.getCriteria();
+        for (Object o : criteriaMap.keySet()) {
+            predicate = setExpression(predicate, criteriaMap.get(o));
         }
 
         // No predicate, return a single page
