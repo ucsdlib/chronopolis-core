@@ -2,7 +2,6 @@ package org.chronopolis.ingest.api;
 
 import org.chronopolis.ingest.controller.ControllerUtil;
 import org.chronopolis.ingest.exception.NotFoundException;
-import org.chronopolis.ingest.exception.UnauthorizedException;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.BagService;
 import org.chronopolis.ingest.repository.NodeRepository;
@@ -35,10 +34,10 @@ import static org.chronopolis.ingest.api.Params.STATUS;
 
 /**
  * REST controller for replication methods
- *
+ * <p/>
  * TODO: We'll probably want a separate class to handle common db stuff
  * using the 3 repository classes
- *
+ * <p/>
  * Created by shake on 11/5/14.
  */
 @RestController
@@ -60,11 +59,11 @@ public class ReplicationController {
 
     /**
      * Create a replication request for a given node and bag
-     *
+     * <p/>
      * TODO: Return a 201
      *
      * @param principal - authentication information
-     * @param request - request containing the bag id to replicate
+     * @param request   - request containing the bag id to replicate
      * @return
      */
     @RequestMapping(method = RequestMethod.POST)
@@ -100,31 +99,41 @@ public class ReplicationController {
 
     /**
      * Update a given replication based on the id of the path used
-     * TODO: 404 if not found
+     * TODO: Update state properly
      *
-     * @param principal - authentication information
+     * @param principal     - authentication information
      * @param replicationID - the id of the replication to update
-     * @param replication - the updated replication sent from the client
+     * @param replication   - the updated replication sent from the client
      * @return
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
     public Replication updateReplication(Principal principal,
                                          @PathVariable("id") Long replicationID,
                                          @RequestBody Replication replication) {
-        Replication update = replicationService.getReplication(
-                new ReplicationSearchCriteria()
-                        .withId(replicationID)
-                        .withNodeUsername(principal.getName())
-        );
+        Replication update;
+
+        // Admin can update all replications
+        if (ControllerUtil.hasRoleAdmin()) {
+            update = replicationService.getReplication(
+                    new ReplicationSearchCriteria()
+                            .withId(replicationID)
+            );
+        } else { // users can only update their replications
+            update = replicationService.getReplication(
+                    new ReplicationSearchCriteria()
+                            .withId(replicationID)
+                            .withNodeUsername(principal.getName())
+            );
+        }
+
+        if (update == null) {
+            throw new NotFoundException("Replication " + replicationID);
+        }
+
         Node node = update.getNode();
         Bag bag = update.getBag();
 
-        // check for unauthorized access
-        if (!update.getNode().equals(node)) {
-            throw new UnauthorizedException(principal.getName());
-        }
-
-        // TODO: Move logic outside of here?
+        // TODO: Move logic outside of here? (yes)
         log.info("Updating replication {}", replication.getID());
 
         String receivedTokenFixity = replication.getReceivedTokenFixity();
@@ -170,9 +179,10 @@ public class ReplicationController {
             if (nodes.size() >= bag.getRequiredReplications()) {
                 bag.setStatus(BagStatus.REPLICATED);
             }
-        } else if (replication.getStatus() == ReplicationStatus.FAILURE){
+        } else if (isClientStatus(replication.getStatus())) {
+            // clientStatus.contains(replication.getStatus())
             // log.info("Received error for replication {} from {}");
-            update.setStatus(ReplicationStatus.FAILURE);
+            update.setStatus(replication.getStatus());
         }
 
         replicationService.save(update);
@@ -182,11 +192,24 @@ public class ReplicationController {
     }
 
     /**
+     * Return true if this is a status set by the client
+     *
+     * TODO: This can be done in the enumerated type.
+     *
+     * @param status
+     * @return
+     */
+    private boolean isClientStatus(ReplicationStatus status) {
+        return status == ReplicationStatus.STARTED
+            || status == ReplicationStatus.TRANSFERRED
+            || status == ReplicationStatus.FAILURE;
+    }
+
+    /**
      * Retrieve all replications associated with a particular node/user
      *
-     *
      * @param principal - authentication information
-     * @param params - query parameters used for searching
+     * @param params    - query parameters used for searching
      * @return
      */
     @RequestMapping(method = RequestMethod.GET)
@@ -220,19 +243,15 @@ public class ReplicationController {
      * Retrieve a single replication based on its ID
      *
      * @param principal - authentication information
-     * @param actionId - the ID to search for
+     * @param actionId  - the ID to search for
      * @return
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public Replication findReplication(Principal principal, @PathVariable("id") Long actionId) {
+    public Replication findReplication(Principal principal,
+                                       @PathVariable("id") Long actionId) {
         Replication action = replicationService.getReplication(
                 new ReplicationSearchCriteria().withId(actionId)
         );
-
-        // return unauthorized
-        if (!action.getNode().getUsername().equals(principal.getName())) {
-            throw new UnauthorizedException(principal.getName());
-        }
 
         return action;
     }
