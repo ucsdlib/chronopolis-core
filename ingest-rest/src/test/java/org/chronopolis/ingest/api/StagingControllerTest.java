@@ -2,6 +2,7 @@ package org.chronopolis.ingest.api;
 
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;
+import org.chronopolis.ingest.support.PageImpl;
 import org.chronopolis.rest.models.Bag;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,8 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -40,11 +39,11 @@ public class StagingControllerTest extends IngestTest {
 
     @Test
     public void testGetBags() throws Exception {
-        ResponseEntity<List> entity = new TestRestTemplate("umiacs", "umiacs")
-                .getForEntity("http://localhost:" + port + "/api/bags", List.class);
+        ResponseEntity<PageImpl> entity = new TestRestTemplate("umiacs", "umiacs")
+                .getForEntity("http://localhost:" + port + "/api/bags", PageImpl.class);
 
         assertEquals(HttpStatus.OK, entity.getStatusCode());
-        assertEquals(10, entity.getBody().size());
+        assertEquals(10, entity.getBody().getTotalElements());
     }
 
     @Test
