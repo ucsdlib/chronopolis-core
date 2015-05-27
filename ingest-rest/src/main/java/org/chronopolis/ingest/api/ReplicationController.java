@@ -136,7 +136,9 @@ public class ReplicationController {
             update.setReceivedTokenFixity(receivedTokenFixity);
             // Check against the stored digest
             if (!bag.getTokenDigest().equals(receivedTokenFixity)) {
-                // log.info("Received invalid token store fixity for bag {} from {}");
+                log.info("Received invalid token store fixity for bag {} from {}",
+                        bag.getID(),
+                        node.getUsername());
                 update.setStatus(ReplicationStatus.FAILURE_TOKEN_STORE);
                 success = false;
             }
@@ -149,7 +151,9 @@ public class ReplicationController {
             update.setReceivedTagFixity(receivedTagFixity);
             // Check against the stored digest
             if (!bag.getTagManifestDigest().equals(receivedTagFixity)) {
-                // log.info("Received invalid tagmanifest fixity for bag {} from {}");
+                log.info("Received invalid tagmanifest fixity for bag {} from {}",
+                        bag.getID(),
+                        node.getUsername());
                 update.setStatus(ReplicationStatus.FAILURE_TAG_MANIFEST);
                 success = false;
             }
@@ -172,9 +176,9 @@ public class ReplicationController {
                         bag.getName());
                 bag.setStatus(BagStatus.REPLICATED);
             }
-        } else if (isClientStatus(replication.getStatus())) {
-            // clientStatus.contains(replication.getStatus())
-            // log.info("Received error for replication {} from {}");
+        } else if (isClientStatus(replication.getStatus())   // Check if the client is giving us a status
+                && !isFailureStatus(update.getStatus())) {   // and that we haven't already set a failed state
+            log.info("Updating status from client");
             update.setStatus(replication.getStatus());
         }
 
@@ -194,6 +198,17 @@ public class ReplicationController {
         return status == ReplicationStatus.STARTED
             || status == ReplicationStatus.TRANSFERRED
             || status == ReplicationStatus.FAILURE;
+    }
+
+    /**
+     * Return true if the status is a failure mode set by the server
+     *
+     * @param status
+     * @return
+     */
+    private boolean isFailureStatus(ReplicationStatus status) {
+        return status == ReplicationStatus.FAILURE_TOKEN_STORE
+            || status == ReplicationStatus.FAILURE_TAG_MANIFEST;
     }
 
     /**
