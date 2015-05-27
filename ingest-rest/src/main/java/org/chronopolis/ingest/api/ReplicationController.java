@@ -134,8 +134,10 @@ public class ReplicationController {
         if (receivedTokenFixity != null) {
             log.debug("Received token fixity of {}", receivedTokenFixity);
             update.setReceivedTokenFixity(receivedTokenFixity);
+
+            String digest = bag.getTokenDigest();
             // Check against the stored digest
-            if (!bag.getTokenDigest().equals(receivedTokenFixity)) {
+            if (digest == null || !digest.equals(receivedTokenFixity)) {
                 log.info("Received invalid token store fixity for bag {} from {}",
                         bag.getID(),
                         node.getUsername());
@@ -149,8 +151,10 @@ public class ReplicationController {
         if (receivedTagFixity != null) {
             log.debug("Received tag fixity of {}", receivedTagFixity);
             update.setReceivedTagFixity(receivedTagFixity);
+
+            String digest = bag.getTagManifestDigest();
             // Check against the stored digest
-            if (!bag.getTagManifestDigest().equals(receivedTagFixity)) {
+            if (digest == null || !digest.equals(receivedTagFixity)) {
                 log.info("Received invalid tagmanifest fixity for bag {} from {}",
                         bag.getID(),
                         node.getUsername());
