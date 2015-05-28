@@ -1,9 +1,11 @@
 package org.chronopolis.ingest.api;
 
+import junit.framework.Assert;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;
 import org.chronopolis.ingest.support.PageImpl;
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.IngestRequest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
@@ -61,6 +63,24 @@ public class StagingControllerTest extends IngestTest {
                 .getForEntity("http://localhost:" + port + "/api/bags/12015851", Object.class);
 
         assertEquals(HttpStatus.NOT_FOUND, entity.getStatusCode());
+    }
+
+    @Test
+    public void testStageExistingBag() throws Exception {
+        // need admin credentials for creating resources
+        TestRestTemplate template = new TestRestTemplate("admin", "admin");
+        IngestRequest request = new IngestRequest();
+        // All defined the createBags.sql
+        request.setName("bag-0");
+        request.setDepositor("test-depositor");
+        request.setLocation("bags/test-bag-0");
+
+        ResponseEntity<Bag> bag = template.postForEntity(
+                "http://localhost:" + port + "/api/bags",
+                request,
+                Bag.class);
+
+        assertEquals(Long.valueOf(1), bag.getBody().getID());
     }
 
     // @Test
