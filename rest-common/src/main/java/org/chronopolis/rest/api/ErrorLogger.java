@@ -18,11 +18,17 @@ public class ErrorLogger implements ErrorHandler {
     public Throwable handleError(RetrofitError retrofitError) {
         log.debug("Handling error from retrofit");
 
-        String url = retrofitError.getUrl();
-        int status = retrofitError.getResponse().getStatus();
-        String reason = retrofitError.getResponse().getReason();
-        log.error("Error in http call: url: {} status: {} reason: {}",new Object[]{url, status, reason});
+        // default throwable, if the error from retrofit is null
+        Throwable cause = new Throwable("Retrofit error is null");
 
-        return retrofitError.getCause();
+        if (retrofitError != null) {
+            String url = retrofitError.getUrl();
+            int status = retrofitError.getResponse().getStatus();
+            String reason = retrofitError.getResponse().getReason();
+            log.error("Error in http call: url: {} status: {} reason: {}", new Object[]{url, status, reason});
+            cause = retrofitError.getCause();
+        }
+
+        return cause;
     }
 }
