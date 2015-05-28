@@ -1,7 +1,6 @@
 package org.chronopolis.replicate.config;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import org.chronopolis.replicate.batch.ReplicationJobStarter;
 import org.chronopolis.replicate.test.TestApplication;
 import org.chronopolis.rest.api.IngestAPI;
@@ -16,36 +15,27 @@ import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.core.JobParametersInvalidException;
-import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.explore.JobExplorer;
-import org.springframework.batch.core.job.SimpleJob;
 import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
-import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
-import org.springframework.batch.core.repository.JobRestartException;
-import org.springframework.batch.core.scope.context.ChunkContext;
-import org.springframework.batch.core.step.tasklet.Tasklet;
-import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+
+import static org.mockito.Mockito.anyMap;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 /**
@@ -116,14 +106,14 @@ public class ReplicationQueryTaskTest {
 
     @Test
     public void testCheckForReplications() throws Exception {
-        Mockito.when(ingestAPI.getReplications(Mockito.anyMap())).thenReturn(replications);
+        when(ingestAPI.getReplications(anyMap())).thenReturn(replications);
 
         // Ok so this is kind of bad behavior, but our bag has a null id so...
-        Mockito.when(ingestAPI.getBag(null)).thenReturn(b);
+        when(ingestAPI.getBag(null)).thenReturn(b);
         task.checkForReplications();
 
         // We should have only executed our job starter once
-        Mockito.verify(jobStarter).addJobFromRestful(replication);
+        verify(jobStarter).addJobFromRestful(replication);
     }
 
     @Test
@@ -135,11 +125,11 @@ public class ReplicationQueryTaskTest {
             .addString("collection", replication.getBag().getName())
             .addDate("date", new Date())
             .toJobParameters());
-        Mockito.when(ingestAPI.getReplications(Mockito.anyMap())).thenReturn(replications);
-        Mockito.when(ingestAPI.getBag(null)).thenReturn(b);
-        // Mockito.when(ingestAPI.getReplications(pending)).thenReturn(replications);
+        when(ingestAPI.getReplications(anyMap())).thenReturn(replications);
+        when(ingestAPI.getBag(null)).thenReturn(b);
+
         task.checkForReplications();
-        Mockito.verify(jobStarter, Mockito.times(0)).addJobFromRestful(replication);
+        verify(jobStarter, times(0)).addJobFromRestful(replication);
 
     }
 }
