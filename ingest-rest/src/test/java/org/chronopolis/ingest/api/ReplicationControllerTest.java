@@ -1,9 +1,5 @@
 package org.chronopolis.ingest.api;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import junit.framework.Assert;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;
@@ -12,7 +8,6 @@ import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.TestRestTemplate;
@@ -22,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 
 import static org.junit.Assert.assertEquals;
 
@@ -37,14 +31,6 @@ public class ReplicationControllerTest extends IngestTest {
 
     @Value("${local.server.port}")
     private int port;
-
-    @Autowired
-    ObjectMapper mapper;
-
-    @JsonCreator
-    public static ReplicationStatus forValue(String value) {
-        return ReplicationStatus.valueOf(value);
-    }
 
     // @Test
     public void testCreateReplication() throws Exception {
