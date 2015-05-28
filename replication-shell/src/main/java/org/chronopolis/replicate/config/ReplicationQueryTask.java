@@ -18,12 +18,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
  * Scheduled task for checking the ingest-server for replication requests
- *
+ * <p/>
  * Created by shake on 12/10/14.
  */
 @Component
@@ -42,8 +43,6 @@ public class ReplicationQueryTask {
 
     /**
      * Check the ingest-server for pending and started replications
-     *
-     *
      */
     @Scheduled(cron = "${replication.cron:0 0 * * * *}")
     public void checkForReplications() {
@@ -85,11 +84,28 @@ public class ReplicationQueryTask {
      * @param update - whether or not to update the stats (to STARTED)
      */
     private void query(ReplicationStatus status, Set<String> filter, boolean update) {
+        int page = 0;
+        int pageSize = 20;
+        boolean hasNext = true;
+
+
         Map<String, Object> params = new HashMap<>();
         params.put("status", status);
-        Page<Replication> replications = ingestAPI.getReplications(params);
-        log.debug("Found {} replications", replications.getNumberOfElements());
+        params.put("page_size", pageSize);
+        params.put("page", page);
 
+        while (hasNext) {
+            Page<Replication> replications = ingestAPI.getReplications(params);
+            log.debug("Found {} replications", replications.getNumberOfElements());
+
+            hasNext = replications.hasNext();
+            params.put("page", ++page);
+
+            startReplications(replications.getContent(), filter, update);
+        }
+    }
+
+    private void startReplications(List<Replication> replications, Set<String> filter, boolean update) {
         for (Replication replication : replications) {
             log.debug("Replication {} has bag-id {}", replication.getID(), replication.getBagId());
             Bag bag = ingestAPI.getBag(replication.getBagId());
