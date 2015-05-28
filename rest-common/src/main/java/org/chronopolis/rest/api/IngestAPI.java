@@ -14,8 +14,10 @@ import retrofit.http.POST;
 import retrofit.http.PUT;
 import retrofit.http.Path;
 import retrofit.http.Query;
+import retrofit.http.QueryMap;
 
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -28,7 +30,7 @@ public interface IngestAPI {
     // Bag methods
 
     @GET("/api/bags")
-    PageImpl<Bag> getBags();
+    PageImpl<Bag> getBags(@QueryMap Map<String, Object> params);
 
     @POST("/api/bags")
     Bag stageBag(@Body IngestRequest body);
@@ -39,7 +41,7 @@ public interface IngestAPI {
     // Replication methods
 
     @GET("/api/replications")
-    PageImpl<Replication> getReplications(@Query("status") ReplicationStatus status);
+    PageImpl<Replication> getReplications(@QueryMap Map<String, Object> params);
 
     @POST("/api/replications")
     Replication createReplication(@Body ReplicationRequest body);

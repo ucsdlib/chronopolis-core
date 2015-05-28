@@ -17,7 +17,9 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Service for running the replication-shell in development mode. Give a prompt for interacting
@@ -104,7 +106,9 @@ public class CommandLineService implements ReplicationService {
      * @param update - whether or not to update the requests while replicating
      */
     private void query(ReplicationStatus status, boolean update) {
-        Page<Replication> replications = ingestAPI.getReplications(status);
+        Map<String, Object> params = new HashMap<>();
+        params.put("status", status);
+        Page<Replication> replications = ingestAPI.getReplications(params);
         log.debug("Found {} replications", replications.getNumberOfElements());
 
         for (Replication replication : replications) {

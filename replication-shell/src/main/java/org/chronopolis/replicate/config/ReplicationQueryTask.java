@@ -16,7 +16,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -83,7 +85,9 @@ public class ReplicationQueryTask {
      * @param update - whether or not to update the stats (to STARTED)
      */
     private void query(ReplicationStatus status, Set<String> filter, boolean update) {
-        Page<Replication> replications = ingestAPI.getReplications(status);
+        Map<String, Object> params = new HashMap<>();
+        params.put("status", status);
+        Page<Replication> replications = ingestAPI.getReplications(params);
         log.debug("Found {} replications", replications.getNumberOfElements());
 
         for (Replication replication : replications) {

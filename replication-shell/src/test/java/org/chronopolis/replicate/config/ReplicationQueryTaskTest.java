@@ -1,5 +1,7 @@
 package org.chronopolis.replicate.config;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import org.chronopolis.replicate.batch.ReplicationJobStarter;
 import org.chronopolis.replicate.test.TestApplication;
 import org.chronopolis.rest.api.IngestAPI;
@@ -41,7 +43,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -80,9 +84,12 @@ public class ReplicationQueryTaskTest {
     @Autowired
     Job job;
 
+    Bag b;
+    Replication replication;
+    Map<String, Object> started;
+    Map<String, Object> pending;
     PageImpl<Replication> replications;
 
-    Replication replication;
 
     @Before
     public void init() throws NoSuchFieldException, IllegalAccessException {
@@ -96,18 +103,23 @@ public class ReplicationQueryTaskTest {
 
         ArrayList<Replication> replicationList = new ArrayList<>();
         Node n = new Node("test", "test");
-        Bag b = new Bag("test-bag", "test-depositor");
+        b = new Bag("test-bag", "test-depositor");
         replication = new Replication(n, b);
         for (int i = 0; i < 5; i++) {
             replicationList.add(replication);
         }
         replications = new PageImpl<>(replicationList);
+
+        started = ImmutableMap.of("status", (Object) ReplicationStatus.STARTED);
+        pending = ImmutableMap.of("status", (Object) ReplicationStatus.PENDING);
     }
 
     @Test
     public void testCheckForReplications() throws Exception {
-        Mockito.when(ingestAPI.getReplications(ReplicationStatus.STARTED)).thenReturn(replications);
-        Mockito.when(ingestAPI.getReplications(ReplicationStatus.PENDING)).thenReturn(replications);
+        Mockito.when(ingestAPI.getReplications(Mockito.anyMap())).thenReturn(replications);
+
+        // Ok so this is kind of bad behavior, but our bag has a null id so...
+        Mockito.when(ingestAPI.getBag(null)).thenReturn(b);
         task.checkForReplications();
 
         // We should have only executed our job starter once
@@ -123,8 +135,9 @@ public class ReplicationQueryTaskTest {
             .addString("collection", replication.getBag().getName())
             .addDate("date", new Date())
             .toJobParameters());
-        Mockito.when(ingestAPI.getReplications(ReplicationStatus.STARTED)).thenReturn(replications);
-        Mockito.when(ingestAPI.getReplications(ReplicationStatus.PENDING)).thenReturn(replications);
+        Mockito.when(ingestAPI.getReplications(Mockito.anyMap())).thenReturn(replications);
+        Mockito.when(ingestAPI.getBag(null)).thenReturn(b);
+        // Mockito.when(ingestAPI.getReplications(pending)).thenReturn(replications);
         task.checkForReplications();
         Mockito.verify(jobStarter, Mockito.times(0)).addJobFromRestful(replication);
 
