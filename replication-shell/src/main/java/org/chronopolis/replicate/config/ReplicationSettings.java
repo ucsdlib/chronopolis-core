@@ -12,15 +12,21 @@ import org.springframework.stereotype.Component;
 @Component
 public class ReplicationSettings extends ChronopolisSettings {
 
+    @Deprecated
     private final String broadcastQueueBinding = RoutingKey.REPLICATE_BROADCAST.asRoute();
+    @Deprecated
     private String directQueueBinding;
+    @Deprecated
     private String broadcastQueueName;
+    @Deprecated
     private String directQueueName;
 
+    @Deprecated
     public String getBroadcastQueueBinding() {
         return broadcastQueueBinding;
     }
 
+    @Deprecated
     public String getDirectQueueBinding() {
         if (directQueueBinding == null) {
             directQueueBinding = "replicate.direct." + getNode();
@@ -28,6 +34,7 @@ public class ReplicationSettings extends ChronopolisSettings {
         return directQueueBinding;
     }
 
+    @Deprecated
     public String getBroadcastQueueName() {
         if (broadcastQueueName == null) {
             broadcastQueueName = "replicate-broadcast-" + getNode();
@@ -35,6 +42,7 @@ public class ReplicationSettings extends ChronopolisSettings {
         return broadcastQueueName;
     }
 
+    @Deprecated
     public String getDirectQueueName() {
         if (directQueueName == null) {
             directQueueName = "replicate-direct-" + getNode();
@@ -43,6 +51,7 @@ public class ReplicationSettings extends ChronopolisSettings {
     }
 
     @Override
+    @Deprecated
     public String getInboundKey() {
         return directQueueBinding;
     }

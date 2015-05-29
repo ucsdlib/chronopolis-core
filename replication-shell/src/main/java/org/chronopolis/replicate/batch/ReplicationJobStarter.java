@@ -156,7 +156,8 @@ public class ReplicationJobStarter {
             TokenRESTStepListener tokenStepListener = new TokenRESTStepListener(ingestAPI,
                     replication,
                     notifier);
-            BagRESTStepListener bagStepListener = new BagRESTStepListener(ingestAPI,
+            BagRESTStepListener bagStepListener = new BagRESTStepListener(mailUtil,
+                    ingestAPI,
                     replication,
                     settings,
                     notifier);
