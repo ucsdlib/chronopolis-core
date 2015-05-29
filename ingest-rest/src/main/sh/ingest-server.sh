@@ -27,7 +27,7 @@ RETVAL=0
 
 case "$1" in
     start)
-    echo "Starting the replication service"
+    echo "Starting the ingest server"
     daemon --user "$CHRON_USER" --pidfile "$REPL_PID_FILE" $JAVA_CMD $PARAMS > /dev/null 2>&1
     RETVAL=$?
 
