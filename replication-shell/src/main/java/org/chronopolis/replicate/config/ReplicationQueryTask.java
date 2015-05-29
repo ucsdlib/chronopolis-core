@@ -85,7 +85,7 @@ public class ReplicationQueryTask {
      */
     private void query(ReplicationStatus status, Set<String> filter, boolean update) {
         int page = 0;
-        int pageSize = 20;
+        int pageSize = 1;
         boolean hasNext = true;
 
 
@@ -94,12 +94,20 @@ public class ReplicationQueryTask {
         params.put("page_size", pageSize);
         params.put("page", page);
 
+        // TODO: As replications get updated, the state can change and alter the
+        // amount of pages. We might want to switch this to only work on one page
+        // at a time or figure something else out.
         while (hasNext) {
             Page<Replication> replications = ingestAPI.getReplications(params);
-            log.debug("Found {} replications", replications.getNumberOfElements());
+            log.debug("[{}] On page {} with {} replications. {} total.", new Object[]{
+                    status,
+                    replications.getNumber(),
+                    replications.getNumberOfElements(),
+                    replications.getTotalElements()});
 
+            ++page;
             hasNext = replications.hasNext();
-            params.put("page", ++page);
+            params.put("page", page);
 
             startReplications(replications.getContent(), filter, update);
         }
