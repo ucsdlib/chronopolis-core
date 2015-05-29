@@ -83,10 +83,22 @@ public class StagingControllerTest extends IngestTest {
         assertEquals(Long.valueOf(1), bag.getBody().getID());
     }
 
-    // @Test
+    /*
+    @Test
     public void testStageBag() throws Exception {
-        // TODO: Actual staging involves creating tokens - is there any way to get around this?
-        // slash is that something we want to test?
-        // maybe just test that we don't try to restage any bags
+        // need admin credentials for creating resources
+        TestRestTemplate template = new TestRestTemplate("admin", "admin");
+        IngestRequest request = new IngestRequest();
+        // All defined the createBags.sql
+        request.setName("new-bag-1");
+        request.setDepositor("test-depositor");
+        request.setLocation("test-depositor/new-bag-1");
+
+        ResponseEntity<Bag> bag = template.postForEntity(
+                "http://localhost:" + port + "/api/bags",
+                request,
+                Bag.class);
     }
+    */
+
 }
