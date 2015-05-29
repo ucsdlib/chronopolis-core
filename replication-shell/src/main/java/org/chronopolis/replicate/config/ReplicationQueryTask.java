@@ -85,7 +85,7 @@ public class ReplicationQueryTask {
      */
     private void query(ReplicationStatus status, Set<String> filter, boolean update) {
         int page = 0;
-        int pageSize = 1;
+        int pageSize = 20;
         boolean hasNext = true;
 
 
