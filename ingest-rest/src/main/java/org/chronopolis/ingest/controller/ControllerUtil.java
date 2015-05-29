@@ -30,7 +30,7 @@ public class ControllerUtil {
             }
         }
 
-        log.debug("User does not have admin role");
+        log.trace("User {} does not have admin role", userDetails.getUsername());
         return false;
     }
 

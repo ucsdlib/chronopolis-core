@@ -33,6 +33,9 @@ public class Tokenizer {
     private final Path bag;
 
     private final Digest fixityAlgorithm;
+
+    // What the tagmanifest looks like in our filter
+    private Path aceTag;
     private Path manifest;
     private Path tagmanifest;
     private String tagIdentifier;
@@ -62,6 +65,9 @@ public class Tokenizer {
         Path manifest = bag.resolve("manifest-"
                 + fixityAlgorithm.getBagitIdentifier()
                 + ".txt");
+        Path aceTag = Paths.get("/tagmanifest-"
+                + fixityAlgorithm.getBagitIdentifier()
+                + ".txt");
 
         if (!tagManifest.toFile().exists()) {
             log.error("Could not find tag manifest at {}", tagManifest);
@@ -72,6 +78,7 @@ public class Tokenizer {
             throw new RuntimeException("Manifest does not exist!");
         }
 
+        this.aceTag = aceTag;
         this.manifest = manifest;
         this.tagmanifest = tagManifest;
     }
@@ -132,9 +139,12 @@ public class Tokenizer {
 
             String digest = split[0];
             String filePath = split[1];
+            Path ace = Paths.get("/");
             Path rel = Paths.get(filePath);
+
             // Skip the current item if we already have it
-            if (filter.contains(rel)) {
+            // use a leading slash as our ace_tokens have it as well
+            if (filter.contains(ace.resolve(rel))) {
                 continue;
             }
 
@@ -153,11 +163,13 @@ public class Tokenizer {
             }
         }
 
+        br.close();
+
         // TODO: Move this into the public method instead
         // No corruptions (all manifests good)
         // Skip the manifest
         // Skip if we've already digested the tag manifest (tokenizer gets called multiple times)
-        if (!filter.contains(tagmanifest)) {
+        if (!filter.contains(aceTag)) {
             if (!corrupt && manifest.getFileName().endsWith(tagIdentifier)) {
                 tagDigest = DigestUtil.digest(manifest, alg);
                 addTokenRequest(manifest, tagDigest);

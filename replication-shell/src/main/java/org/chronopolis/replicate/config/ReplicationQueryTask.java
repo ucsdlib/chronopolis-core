@@ -11,17 +11,20 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * Scheduled task for checking the ingest-server for replication requests
- *
+ * <p/>
  * Created by shake on 12/10/14.
  */
 @Component
@@ -40,8 +43,6 @@ public class ReplicationQueryTask {
 
     /**
      * Check the ingest-server for pending and started replications
-     *
-     *
      */
     @Scheduled(cron = "${replication.cron:0 0 * * * *}")
     public void checkForReplications() {
@@ -83,11 +84,40 @@ public class ReplicationQueryTask {
      * @param update - whether or not to update the stats (to STARTED)
      */
     private void query(ReplicationStatus status, Set<String> filter, boolean update) {
-        List<Replication> replications = ingestAPI.getReplications(status);
-        log.debug("Found {} replications", replications.size());
+        int page = 0;
+        int pageSize = 1;
+        boolean hasNext = true;
 
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("status", status);
+        params.put("page_size", pageSize);
+        params.put("page", page);
+
+        // TODO: As replications get updated, the state can change and alter the
+        // amount of pages. We might want to switch this to only work on one page
+        // at a time or figure something else out.
+        while (hasNext) {
+            Page<Replication> replications = ingestAPI.getReplications(params);
+            log.debug("[{}] On page {} with {} replications. {} total.", new Object[]{
+                    status,
+                    replications.getNumber(),
+                    replications.getNumberOfElements(),
+                    replications.getTotalElements()});
+
+            ++page;
+            hasNext = replications.hasNext();
+            params.put("page", page);
+
+            startReplications(replications.getContent(), filter, update);
+        }
+    }
+
+    private void startReplications(List<Replication> replications, Set<String> filter, boolean update) {
         for (Replication replication : replications) {
-            Bag bag = replication.getBag();
+            log.debug("Replication {} has bag-id {}", replication.getID(), replication.getBagId());
+            Bag bag = ingestAPI.getBag(replication.getBagId());
+            replication.setBag(bag);
             String filterString = bag.getDepositor() + ":" + bag.getName();
             if (update) {
                 log.info("Updating replication");

@@ -5,6 +5,7 @@ import org.chronopolis.rest.models.BagStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 
 import java.util.Collection;
 
@@ -13,7 +14,8 @@ import java.util.Collection;
  *
  * Created by shake on 11/6/14.
  */
-public interface BagRepository extends JpaRepository<Bag, Long> {
+public interface BagRepository extends JpaRepository<Bag, Long>,
+                                       QueryDslPredicateExecutor<Bag> {
 
     // Bag findById(Long id);
     Bag findByNameAndDepositor(String name, String depositor);

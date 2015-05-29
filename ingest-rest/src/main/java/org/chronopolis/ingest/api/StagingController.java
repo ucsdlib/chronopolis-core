@@ -5,9 +5,10 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.BagRepository;
-import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.ReplicationRepository;
+import org.chronopolis.ingest.repository.BagSearchCriteria;
+import org.chronopolis.ingest.repository.BagService;
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.IngestRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,8 +35,11 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.security.Principal;
 import java.util.Map;
 
+import static org.chronopolis.ingest.api.Params.DEPOSITOR;
+import static org.chronopolis.ingest.api.Params.NAME;
 import static org.chronopolis.ingest.api.Params.PAGE;
 import static org.chronopolis.ingest.api.Params.PAGE_SIZE;
+import static org.chronopolis.ingest.api.Params.STATUS;
 
 /**
  * REST Controller for controlling actions associated with bags
@@ -53,10 +57,7 @@ public class StagingController {
     BagRepository bagRepository;
 
     @Autowired
-    NodeRepository nodeRepository;
-
-    @Autowired
-    ReplicationRepository replicationRepository;
+    BagService bagService;
 
     @Autowired
     IngestSettings ingestSettings;
@@ -73,16 +74,24 @@ public class StagingController {
                                  @RequestParam Map<String, String> params) {
         Integer pageNum = params.containsKey(PAGE)
                 ? Integer.parseInt(params.get(PAGE))
-                : -1;
+                : 0;
         Integer pageSize = params.containsKey(PAGE_SIZE)
                 ? Integer.parseInt(params.get(PAGE_SIZE))
                 : 20;
 
+        BagSearchCriteria criteria = new BagSearchCriteria()
+                .withDepositor(params.containsKey(DEPOSITOR) ? params.get(DEPOSITOR) : null)
+                .withName(params.containsKey(NAME) ? params.get(NAME) : null)
+                .withStatus(params.containsKey(STATUS) ? BagStatus.valueOf(params.get(STATUS)) : null);
+
+        return bagService.findBags(criteria, new PageRequest(pageNum, pageSize));
+        /*
         if (pageNum != -1) {
             return bagRepository.findAll(new PageRequest(pageNum, pageSize));
         }
 
         return bagRepository.findAll();
+        */
     }
 
     /**

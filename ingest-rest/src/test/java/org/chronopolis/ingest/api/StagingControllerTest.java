@@ -1,8 +1,11 @@
 package org.chronopolis.ingest.api;
 
+import junit.framework.Assert;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;
+import org.chronopolis.ingest.support.PageImpl;
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.IngestRequest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,8 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -40,11 +41,11 @@ public class StagingControllerTest extends IngestTest {
 
     @Test
     public void testGetBags() throws Exception {
-        ResponseEntity<List> entity = new TestRestTemplate("umiacs", "umiacs")
-                .getForEntity("http://localhost:" + port + "/api/bags", List.class);
+        ResponseEntity<PageImpl> entity = new TestRestTemplate("umiacs", "umiacs")
+                .getForEntity("http://localhost:" + port + "/api/bags", PageImpl.class);
 
         assertEquals(HttpStatus.OK, entity.getStatusCode());
-        assertEquals(10, entity.getBody().size());
+        assertEquals(10, entity.getBody().getTotalElements());
     }
 
     @Test
@@ -64,10 +65,40 @@ public class StagingControllerTest extends IngestTest {
         assertEquals(HttpStatus.NOT_FOUND, entity.getStatusCode());
     }
 
-    // @Test
-    public void testStageBag() throws Exception {
-        // TODO: Actual staging involves creating tokens - is there any way to get around this?
-        // slash is that something we want to test?
-        // maybe just test that we don't try to restage any bags
+    @Test
+    public void testStageExistingBag() throws Exception {
+        // need admin credentials for creating resources
+        TestRestTemplate template = new TestRestTemplate("admin", "admin");
+        IngestRequest request = new IngestRequest();
+        // All defined the createBags.sql
+        request.setName("bag-0");
+        request.setDepositor("test-depositor");
+        request.setLocation("bags/test-bag-0");
+
+        ResponseEntity<Bag> bag = template.postForEntity(
+                "http://localhost:" + port + "/api/bags",
+                request,
+                Bag.class);
+
+        assertEquals(Long.valueOf(1), bag.getBody().getID());
     }
+
+    /*
+    @Test
+    public void testStageBag() throws Exception {
+        // need admin credentials for creating resources
+        TestRestTemplate template = new TestRestTemplate("admin", "admin");
+        IngestRequest request = new IngestRequest();
+        // All defined the createBags.sql
+        request.setName("new-bag-1");
+        request.setDepositor("test-depositor");
+        request.setLocation("test-depositor/new-bag-1");
+
+        ResponseEntity<Bag> bag = template.postForEntity(
+                "http://localhost:" + port + "/api/bags",
+                request,
+                Bag.class);
+    }
+    */
+
 }

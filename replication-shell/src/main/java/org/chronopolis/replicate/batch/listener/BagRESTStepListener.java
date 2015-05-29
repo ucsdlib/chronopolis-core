@@ -45,10 +45,21 @@ public class BagRESTStepListener implements StepExecutionListener {
     public ExitStatus afterStep(final StepExecution stepExecution) {
         // Check if we were able to download, if not let the ingest-server know
         if (notifier.isSuccess()) {
+            // A boolean in case we can't communicate with the ingest-server
+            boolean failure = false;
             String digest = notifier.getCalculatedTagDigest();
             replication.setReceivedTagFixity(digest);
-            Replication updated = ingestAPI.updateReplication(replication.getID(), replication);
-            if (updated.getStatus() == ReplicationStatus.FAILURE_TAG_MANIFEST) {
+            Replication updated = null;
+
+            // If there are any exceptions, fail and stop replication
+            try {
+                updated = ingestAPI.updateReplication(replication.getID(), replication);
+            } catch (Exception e) {
+                log.error("Error communicating with the ingest-server", e);
+                failure = true;
+            }
+
+            if (failure || updated.getStatus() == ReplicationStatus.FAILURE_TAG_MANIFEST) {
                 log.error("Error validating tagmanifest");
                 stepExecution.upgradeStatus(BatchStatus.STOPPED);
                 return ExitStatus.FAILED;

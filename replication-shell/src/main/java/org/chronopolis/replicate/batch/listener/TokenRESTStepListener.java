@@ -47,6 +47,8 @@ public class TokenRESTStepListener implements StepExecutionListener {
             String digest = notifier.getCalculatedTokenDigest();
 
             replication.setReceivedTokenFixity(digest);
+
+            // There's a chance this can fail, but we can still rsync the bag? maybe?
             Replication updated = ingestAPI.updateReplication(replication.getID(), replication);
             if (updated.getStatus() == ReplicationStatus.FAILURE_TOKEN_STORE) {
                 log.error("Error validating token store");

@@ -27,6 +27,7 @@ public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
     private final Logger log = LoggerFactory.getLogger(TokenThreadPoolExecutor.class);
 
     private Set<Bag> workingBags = new ConcurrentSkipListSet<>();
+    private TokenRunner.Factory factory;
 
     public TokenThreadPoolExecutor(int corePoolSize,
                                    int maximumPoolSize,
@@ -34,6 +35,7 @@ public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
                                    TimeUnit unit,
                                    BlockingQueue<Runnable> workQueue) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
+        factory = new TokenRunner.Factory();
     }
 
     /**
@@ -56,7 +58,7 @@ public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
 
         // Try to add the bag to the set
         if (workingBags.add(b)) {
-            TokenRunner tr = new TokenRunner(b,
+            Runnable tr = factory.makeTokenRunner(b,
                     settings.getBagStage(),
                     settings.getTokenStage(),
                     bagRepository,

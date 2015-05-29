@@ -1,7 +1,9 @@
 package org.chronopolis.rest.models;
 
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSetter;
 
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -10,6 +12,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.Transient;
 
 /**
  * Representation of a Replication request
@@ -24,14 +27,15 @@ public class Replication {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JsonIgnore
     @ManyToOne
+    @JsonIgnore
     private Node node;
 
     @Enumerated(EnumType.STRING)
     private ReplicationStatus status;
 
     @ManyToOne
+    @JsonIgnore
     private Bag bag;
 
     private String bagLink;
@@ -42,6 +46,15 @@ public class Replication {
     private String receivedTagFixity;
     private String receivedTokenFixity;
 
+    // For JSON (ignored because we use the JsonGetter/Setter below)
+    @Transient
+    @JsonIgnore
+    private String nodeUser;
+
+    @Transient
+    @JsonIgnore
+    private Long bagId;
+
     // JPA...
     protected Replication() {
     }
@@ -51,6 +64,8 @@ public class Replication {
         this.status = ReplicationStatus.PENDING;
         this.node = node;
         this.bag = bag;
+        this.nodeUser = node.getUsername();
+        this.bagId = bag.getID();
         // this.bagID = bagID;
         this.bagLink = "";
         this.tokenLink = "";
@@ -64,6 +79,8 @@ public class Replication {
         this.status = ReplicationStatus.PENDING;
         this.node = node;
         this.bag = bag;
+        this.nodeUser = node.getUsername();
+        this.bagId = bag.getID();
         this.bagLink = bagLink;
         this.tokenLink = tokenLink;
     }
@@ -76,11 +93,33 @@ public class Replication {
         return node;
     }
 
-    /*
-    public Long getBagID() {
-        return bagID;
+    @JsonGetter("bagId")
+    public Long getBagId() {
+        // Because JPA/Hibernate sets fields through reflection,
+        // this may need to be set here
+        if (bagId == null) {
+            bagId = bag.getID();
+        }
+        return bagId;
     }
-    */
+
+    @JsonGetter("nodeUsername")
+    public String getNodeUser() {
+        if (nodeUser == null) {
+            nodeUser = node.getUsername();
+        }
+        return nodeUser;
+    }
+
+    @JsonSetter("bagId")
+    public void setBagId(Long id) {
+        this.bagId = id;
+    }
+
+    @JsonSetter("nodeUsername")
+    public void setNodeUser(String username) {
+        this.nodeUser = username;
+    }
 
     public ReplicationStatus getStatus() {
         return status;
@@ -126,4 +165,7 @@ public class Replication {
         this.protocol = protocol;
     }
 
+    public void setBag(Bag bag) {
+        this.bag = bag;
+    }
 }

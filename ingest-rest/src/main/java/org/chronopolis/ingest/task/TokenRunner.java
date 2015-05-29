@@ -34,6 +34,22 @@ import static java.nio.file.StandardOpenOption.CREATE;
  * Created by shake on 2/27/15.
  */
 public class TokenRunner implements Runnable {
+
+    /**
+     * Factory class to make testing easier.
+     *
+     */
+    static class Factory {
+        Runnable makeTokenRunner(Bag b,
+                                 String bagStage,
+                                 String tokenStage,
+                                 BagRepository bagRepository,
+                                 TokenRepository tokenRepository) {
+            return new TokenRunner(b, bagStage, tokenStage, bagRepository, tokenRepository);
+        }
+    }
+
+
     private final Logger log = LoggerFactory.getLogger(TokenRunner.class);
 
     private Bag bag;
@@ -57,6 +73,7 @@ public class TokenRunner implements Runnable {
 
     @Override
     public void run() {
+        // TODO: Only get filenames
         Collection<AceToken> tokens = tokenRepository.findByBagID(bag.getID());
 
         // We have 3 states we check for:
@@ -65,6 +82,8 @@ public class TokenRunner implements Runnable {
         //     the filter returns an empty set
         // * if tokenization is complete, update the status of the bag
         // TODO: Send email on failures
+        // TODO: If filter contains tagmanifest, check for orphans
+        // log.debug("{}: Token size: {} Total Files: {}", new Object[]{bag.getName(), tokens.size(), bag.getTotalFiles()});
         if (tokens.size() < bag.getTotalFiles()) {
             log.info("Starting tokenizer for bag {}", bag.getName());
 
@@ -75,11 +94,13 @@ public class TokenRunner implements Runnable {
 
             try {
                 tokenizer.tokenize(filter(tokens));
-                String tagDigest = tokenizer.getTagManifestDigest();
-                log.info("Captured {} as the tagmanifest digest for {}",
-                        tagDigest,
-                        bag.getName());
-                bag.setTagManifestDigest(tagDigest);
+                if (bag.getTagManifestDigest() == null) {
+                    String tagDigest = tokenizer.getTagManifestDigest();
+                    log.info("Captured {} as the tagmanifest digest for {}",
+                            tagDigest,
+                            bag.getName());
+                    bag.setTagManifestDigest(tagDigest);
+                }
             } catch (IOException e) {
                 log.error("Error tokenizing: ", e);
             } catch (InterruptedException e) {
@@ -116,6 +137,8 @@ public class TokenRunner implements Runnable {
 
     /**
      * Write a token to a file identified by the bag name and date
+     * TODO: Pull a subset of the tokens at a time in order to write them,
+     *       so that we do not run out of heap space
      *
      * @param bag
      * @param tokens

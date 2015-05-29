@@ -65,7 +65,7 @@ public class TokenAMQPStepListener implements StepExecutionListener {
                 for (StackTraceElement element : t.getStackTrace()) {
                     textBody.println(element);
                 }
-            };
+            }
 
 
             mailUtil.send(mailUtil.createMessage(

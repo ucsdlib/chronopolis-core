@@ -64,10 +64,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         http.csrf().disable().authorizeRequests()
                 .accessDecisionManager(decisionManager)
-                .antMatchers(HttpMethod.GET, "/api/**").hasRole("USER")
-                .antMatchers(HttpMethod.POST, "/api/**").hasRole("USER")
-                .antMatchers(HttpMethod.PUT, "/api/restorations/**").hasRole("USER")
-                .antMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")
+                // RESTful paths
+                .antMatchers(HttpMethod.GET, "/api/**").hasRole("SERVICE")
+                .antMatchers(HttpMethod.PUT, "/api/**").hasRole("USER")
+                .antMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
+                // Webapp paths
                 .antMatchers("/css/**").permitAll()
                 .antMatchers("/js/**").permitAll()
                 .antMatchers("/bags").hasRole("USER")
@@ -101,7 +102,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public RoleHierarchy roleHierarchy() {
         RoleHierarchyImpl hierarchy = new RoleHierarchyImpl();
-        hierarchy.setHierarchy("ROLE_ADMIN > ROLE_USER");
+        hierarchy.setHierarchy("ROLE_ADMIN > ROLE_USER and ROLE_USER > ROLE_SERVICE");
         return hierarchy;
     }
 

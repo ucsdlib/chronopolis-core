@@ -11,12 +11,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Service for running the replication-shell in development mode. Give a prompt for interacting
@@ -103,8 +106,10 @@ public class CommandLineService implements ReplicationService {
      * @param update - whether or not to update the requests while replicating
      */
     private void query(ReplicationStatus status, boolean update) {
-        List<Replication> replications = ingestAPI.getReplications(status);
-        log.debug("Found {} replications", replications.size());
+        Map<String, Object> params = new HashMap<>();
+        params.put("status", status);
+        Page<Replication> replications = ingestAPI.getReplications(params);
+        log.debug("Found {} replications", replications.getNumberOfElements());
 
         for (Replication replication : replications) {
             log.info("Starting job for replication id {}", replication.getID());
