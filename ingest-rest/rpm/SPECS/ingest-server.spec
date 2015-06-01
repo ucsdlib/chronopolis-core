@@ -13,7 +13,7 @@ Summary: Chronopolis Ingest Server
 License: UMD
 URL: https://gitlab.umiacs.umd.edu/chronopolis
 Group: System Environment/Daemons
-Requires: /usr/sbin/groupadd /usr/sbin/useradd postgresql-server
+Requires: /usr/sbin/groupadd, /usr/sbin/useradd, postgresql-server >= 8.1
 autoprov: yes
 autoreq: yes
 BuildArch: noarch
