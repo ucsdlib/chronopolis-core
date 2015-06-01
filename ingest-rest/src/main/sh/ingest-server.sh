@@ -7,6 +7,9 @@
 # Description:   Start the Chronopolis ingest API server
 ### END INIT INFO
 
+# Amount of time to attempt to communicate with the serve
+TIMEOUT=15
+
 # User to execute as
 CHRON_USER="chronopolis"
 
@@ -29,6 +32,19 @@ case "$1" in
     start)
     echo "Starting the ingest server"
     daemon --user "$CHRON_USER" --pidfile "$REPL_PID_FILE" $JAVA_CMD $PARAMS > /dev/null 2>&1
+
+    echo "Attempting to connect to server..."
+    while [ $TIMEOUT -gt 0 ]; do
+        # Try to connect to the server
+        curl -I -X GET http://localhost:8080 > /dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            break
+        fi
+        sleep 1
+        let TIMEOUT=${TIMEOUT}-1
+    done
+
+    # We could also use the value of the timeout
     RETVAL=$?
 
     # This bit is from the jenkins init script, I'm not sure if we'll need it though
@@ -44,11 +60,13 @@ case "$1" in
     else
         failure
     fi
+    echo
     RETVAL=$?
     ;;
     stop)
     echo "Stopping the ingest server"
     killproc ingest-server
+    echo
     ;;
     restart)
     $0 stop
