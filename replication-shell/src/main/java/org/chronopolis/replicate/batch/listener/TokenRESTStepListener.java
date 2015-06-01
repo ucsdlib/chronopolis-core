@@ -1,6 +1,8 @@
 package org.chronopolis.replicate.batch.listener;
 
+import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.replicate.ReplicationNotifier;
+import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
@@ -10,6 +12,8 @@ import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
+
+import static org.chronopolis.replicate.batch.listener.Util.sendFailure;
 
 /**
  *
@@ -22,15 +26,21 @@ import org.springframework.batch.core.StepExecutionListener;
 public class TokenRESTStepListener implements StepExecutionListener {
     private final Logger log = LoggerFactory.getLogger(TokenRESTStepListener.class);
 
+    private MailUtil mail;
     private IngestAPI ingestAPI;
     private Replication replication;
+    private ReplicationSettings settings;
     private ReplicationNotifier notifier;
 
-    public TokenRESTStepListener(IngestAPI ingestAPI,
+    public TokenRESTStepListener(MailUtil mail,
+                                 IngestAPI ingestAPI,
                                  Replication replication,
+                                 ReplicationSettings settings,
                                  ReplicationNotifier notifier) {
+        this.mail = mail;
         this.ingestAPI = ingestAPI;
         this.replication = replication;
+        this.settings = settings;
         this.notifier = notifier;
     }
 
@@ -54,6 +64,9 @@ public class TokenRESTStepListener implements StepExecutionListener {
                 log.error("Error validating token store");
                 // stop the execution
                 stepExecution.upgradeStatus(BatchStatus.STOPPED);
+                updated.setBag(replication.getBag());
+                updated.setNodeUser(settings.getNode());
+                sendFailure(mail, settings, updated, stepExecution.getFailureExceptions());
                 return ExitStatus.FAILED;
             }
         } else {

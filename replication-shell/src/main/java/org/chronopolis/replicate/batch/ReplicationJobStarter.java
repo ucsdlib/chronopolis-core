@@ -153,8 +153,10 @@ public class ReplicationJobStarter {
         GsonCollection gsonCollection = aceService.getCollectionByName(collection, depositor);
         if (gsonCollection == null) {
             ReplicationNotifier notifier = new ReplicationNotifier(replication);
-            TokenRESTStepListener tokenStepListener = new TokenRESTStepListener(ingestAPI,
+            TokenRESTStepListener tokenStepListener = new TokenRESTStepListener(mailUtil,
+                    ingestAPI,
                     replication,
+                    settings,
                     notifier);
             BagRESTStepListener bagStepListener = new BagRESTStepListener(mailUtil,
                     ingestAPI,
