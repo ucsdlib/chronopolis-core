@@ -113,21 +113,10 @@ public class AceRegisterStep implements Tasklet {
                 .build();
 
         log.debug("POSTing {}", aceGson.toJsonJackson());
-        Map<String, Integer> idMap = null;
-        try {
-            idMap = aceService.addCollection(aceGson);
-            log.info("Successfully registered collection {}", collection);
-        } catch (RetrofitError error) {
-            log.error("Error registering ACE collection. Response code {} with reason {}",
-                    error.getResponse().getStatus(), error.getResponse().getReason());
-            notifier.setSuccess(false);
-            notifier.setAceStep(error.getResponse().getReason());
-            throw new RuntimeException(error);
-        }
+        Map<String, Integer> idMap = loadCollection(aceGson);
 
         long id = idMap.get("id");
         final String[] statusMessage = {"success"};
-
         Callback tsCallback = new Callback() {
             @Override
             public void success(final Object o, final Response response) {
@@ -137,11 +126,12 @@ public class AceRegisterStep implements Tasklet {
 
             @Override
             public void failure(final RetrofitError retrofitError) {
-                log.error("Error posting token store {} {}",
+                log.error("Error POSTing token store {} {}",
                         retrofitError.getResponse().getStatus(),
                         retrofitError.getBody());
                 notifier.setSuccess(false);
-                statusMessage[0] = retrofitError.getResponse().getReason();
+                statusMessage[0] = "Error loading token store: "
+                        + retrofitError.getResponse().getReason();
                 callbackComplete.getAndSet(true);
             }
         };
@@ -167,7 +157,8 @@ public class AceRegisterStep implements Tasklet {
                         error.getResponse().getStatus(),
                         error.getResponse().getReason());
                 notifier.setSuccess(false);
-                statusMessage[0] = error.getResponse().getReason();
+                statusMessage[0] = "Error starting audit: "
+                        + error.getResponse().getReason();
                 callbackComplete.set(true);
             }
         });
@@ -178,6 +169,28 @@ public class AceRegisterStep implements Tasklet {
         return RepeatStatus.FINISHED;
     }
 
+    /**
+     * Register a collection into ACE
+     *
+     * @param collection The collection to register
+     * @return Response from ACE containing the id of the collection
+     */
+    private Map<String, Integer> loadCollection(GsonCollection collection) {
+        try {
+            Map<String, Integer> idMap = aceService.addCollection(collection);
+            log.info("Successfully registered collection {}", collection);
+            return idMap;
+        } catch (RetrofitError error) {
+            log.error("Error registering ACE collection. Response code {} with reason {}",
+                    error.getResponse().getStatus(), error.getResponse().getReason());
+            notifier.setSuccess(false);
+            notifier.setAceStep("Error registering collection: "
+                    + error.getResponse().getReason());
+            throw new RuntimeException(error);
+        }
+
+    }
+
     private void waitForCallback(AtomicBoolean callbackComplete) {
         while (!callbackComplete.get()) {
             try {
@@ -186,6 +199,6 @@ public class AceRegisterStep implements Tasklet {
                 log.error("Sleep interrupted", e);
             }
         }
-     }
+    }
 
 }
