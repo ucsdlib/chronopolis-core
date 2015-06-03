@@ -67,6 +67,7 @@ public class RSyncTransfer implements FileTransfer {
 
                 } catch (IOException e) {
                     log.error("IO Exception in rsync ", e);
+                    p.destroy();
                     throw new FileTransferException("IOException in rsync", e);
                 } catch (InterruptedException e) {
                     log.error("rsync was interrupted", e);
