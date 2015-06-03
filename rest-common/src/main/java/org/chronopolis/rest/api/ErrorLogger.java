@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.ErrorHandler;
 import retrofit.RetrofitError;
+import retrofit.client.Response;
 
 /**
  * Retrofit {@link ErrorHandler} to log errors which happen from retrofit,
@@ -23,9 +24,14 @@ public class ErrorLogger implements ErrorHandler {
 
         if (retrofitError != null) {
             String url = retrofitError.getUrl();
-            int status = retrofitError.getResponse().getStatus();
-            String reason = retrofitError.getResponse().getReason();
-            log.error("Error in http call: url: {} status: {} reason: {}", new Object[]{url, status, reason});
+            Response response = retrofitError.getResponse();
+            if (response != null) {
+                int status = response.getStatus();
+                String reason = response.getReason();
+                log.error("Error in http call: url: {} status: {} reason: {}", new Object[]{url, status, reason});
+            } else {
+                log.error("Error communicating with server; No Response");
+            }
             cause = retrofitError.getCause();
         }
 
