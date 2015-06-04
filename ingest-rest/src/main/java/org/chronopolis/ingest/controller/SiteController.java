@@ -100,6 +100,7 @@ public class SiteController {
 
     /**
      * Handle creation of a user
+     * TODO: Make sure user does not exist before creating
      *
      * @param model
      * @param user

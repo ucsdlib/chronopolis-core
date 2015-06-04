@@ -68,14 +68,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, "/api/**").hasRole("SERVICE")
                 .antMatchers(HttpMethod.PUT, "/api/**").hasRole("USER")
                 .antMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
+                .antMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
                 // Webapp paths
+                // resources
                 .antMatchers("/css/**").permitAll()
                 .antMatchers("/js/**").permitAll()
-                .antMatchers("/bags").hasRole("USER")
-                .antMatchers("/replications").hasRole("USER")
-                .antMatchers("/users").hasRole("USER")
-                .antMatchers("/users/update").hasRole("USER")
-                .antMatchers("/users/add").hasRole("ADMIN")
+                // controllers
+                .antMatchers(HttpMethod.GET,
+                        "/bags/**",
+                        "/replications/**",
+                        "/users/**").hasRole("USER")
+                .antMatchers(HttpMethod.POST,
+                        "/bags/add",
+                        "/users/add").hasRole("ADMIN")
                 .antMatchers("/").permitAll()
                     .anyRequest().permitAll()
                 .and()
