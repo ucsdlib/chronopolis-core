@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -31,9 +32,9 @@ import java.util.Date;
 
 /**
  * Submits a Job to the {@link JobLauncher}
- *
+ * <p/>
  * TODO: Trim the fat
- *
+ * <p/>
  * Created by shake on 12/1/14.
  */
 public class ReplicationJobStarter {
@@ -96,44 +97,13 @@ public class ReplicationJobStarter {
                     mailUtil,
                     msg.getTagManifestDigest());
 
-            Job job = jobBuilderFactory.get("collection-replicate")
-                    .start(stepBuilderFactory.get("token-replicate")
-                        .tasklet(new TokenDownloadStep(settings, msg, notifier))
-                        .listener(tokenStepListener)
-                        .build())
-                    .next(stepBuilderFactory.get("bag-replicate")
-                        .tasklet(new BagDownloadStep(settings, msg, notifier))
-                        .listener(bagStepListener)
-                        .build())
-                    .next(stepBuilderFactory.get("ace-register")
-                        .tasklet(new AceRegisterStep(aceService, settings, msg, notifier))
-                        .listener(replicationStepListener)
-                        .build())
-                    .next(stepBuilderFactory.get("replication-success")
-                        .tasklet(new ReplicationSuccessStep(producer, messageFactory, mailUtil, settings, notifier))
-                        .listener(replicationStepListener)
-                        .build())
-                    .build();
+            TokenDownloadStep tds = new TokenDownloadStep(settings, msg, notifier);
+            BagDownloadStep bds = new BagDownloadStep(settings, msg, notifier);
+            AceRegisterStep ars = new AceRegisterStep(aceService, settings, msg, notifier);
+            ReplicationSuccessStep rss = new ReplicationSuccessStep(producer, messageFactory, mailUtil, settings, notifier);
 
-            try {
-                jobLauncher.run(job, new JobParametersBuilder()
-                        .addString("depositor", depositor)
-                        .addString("collection", collection)
-                        .addString("token-store-location", msg.getTokenStore())
-                        .addString("token-store-digest", msg.getTokenStoreDigest())
-                        .addString("bag-location", msg.getBagLocation())
-                        .addString("tag-manifest-digest", msg.getTagManifestDigest())
-                        .addString("correlation-id", msg.getCorrelationId())
-                        .toJobParameters());
-            } catch (JobExecutionAlreadyRunningException e) {
-                e.printStackTrace();
-            } catch (JobRestartException e) {
-                e.printStackTrace();
-            } catch (JobInstanceAlreadyCompleteException e) {
-                e.printStackTrace();
-            } catch (JobParametersInvalidException e) {
-                e.printStackTrace();
-            }
+            createJob(depositor, collection, tds, bds, ars, rss, tokenStepListener, bagStepListener);
+
         } else {
             CollectionInitCompleteMessage reply =
                     messageFactory.collectionInitCompleteMessage(msg.getCorrelationId());
@@ -163,46 +133,73 @@ public class ReplicationJobStarter {
                     replication,
                     settings,
                     notifier);
+            TokenDownloadStep tds = new TokenDownloadStep(settings, notifier, replication);
+            BagDownloadStep bds = new BagDownloadStep(settings, notifier, replication);
+            AceRegisterStep ars = new AceRegisterStep(aceService, settings, notifier, replication);
+            ReplicationSuccessStep rss = new ReplicationSuccessStep(producer, messageFactory, mailUtil, settings, notifier);
 
-
-            Job job = jobBuilderFactory.get("collection-replicate")
-                    .start(stepBuilderFactory.get("token-replicate")
-                        .tasklet(new TokenDownloadStep(settings, notifier, replication))
-                        .listener(tokenStepListener)
-                        .build())
-                    .next(stepBuilderFactory.get("bag-replicate")
-                        .tasklet(new BagDownloadStep(settings, notifier, replication))
-                        .listener(bagStepListener)
-                        .build())
-                    .next(stepBuilderFactory.get("ace-register")
-                        .tasklet(new AceRegisterStep(aceService, settings, notifier, replication))
-                        .listener(replicationStepListener)
-                        .build())
-                    .next(stepBuilderFactory.get("replication-success")
-                        .tasklet(new ReplicationSuccessStep(producer, messageFactory, mailUtil, settings, notifier))
-                        .listener(replicationStepListener)
-                        .build())
-                    .build();
-
-            try {
-                jobLauncher.run(job, new JobParametersBuilder()
-                        .addString("depositor", depositor)
-                        .addString("collection", collection)
-                        .addDate("date", new Date())
-                        .toJobParameters());
-            } catch (JobExecutionAlreadyRunningException e) {
-                log.error("JobExecutionException", e);
-            } catch (JobRestartException e) {
-                log.error("JobRestarException", e);
-            } catch (JobInstanceAlreadyCompleteException e) {
-                log.error("JobAlreadyCompletedException", e);
-            } catch (JobParametersInvalidException e) {
-                log.error("JobInvalidParamsException", e);
-            }
+            createJob(depositor, collection, tds, bds, ars, rss, tokenStepListener, bagStepListener);
 
         } else {
             log.info("Already have collection, probably should update the replication object");
         }
+    }
+
+    /**
+     * Build a job and launch it with the given parameters
+     *
+     * @param depositor
+     * @param collection
+     * @param tokenDownloadStep
+     * @param bagDownloadStep
+     * @param aceRegisterStep
+     * @param replicationSuccessStep
+     * @param tokenStepListener
+     * @param bagStepListener
+     */
+    private void createJob(String depositor,
+                           String collection,
+                           TokenDownloadStep tokenDownloadStep,
+                           BagDownloadStep bagDownloadStep,
+                           AceRegisterStep aceRegisterStep,
+                           ReplicationSuccessStep replicationSuccessStep,
+                           StepExecutionListener tokenStepListener,
+                           StepExecutionListener bagStepListener) {
+        Job job = jobBuilderFactory.get("collection-replicate")
+                .start(stepBuilderFactory.get("token-replicate")
+                        .tasklet(tokenDownloadStep)
+                        .listener(tokenStepListener)
+                        .build())
+                .next(stepBuilderFactory.get("bag-replicate")
+                        .tasklet(bagDownloadStep)
+                        .listener(bagStepListener)
+                        .build())
+                .next(stepBuilderFactory.get("ace-register")
+                        .tasklet(aceRegisterStep)
+                        .listener(replicationStepListener)
+                        .build())
+                .next(stepBuilderFactory.get("replication-success")
+                        .tasklet(replicationSuccessStep)
+                        .listener(replicationStepListener)
+                        .build())
+                .build();
+
+        try {
+            jobLauncher.run(job, new JobParametersBuilder()
+                    .addString("depositor", depositor)
+                    .addString("collection", collection)
+                    .addDate("date", new Date())
+                    .toJobParameters());
+        } catch (JobExecutionAlreadyRunningException e) {
+            log.error("JobExecutionException", e);
+        } catch (JobRestartException e) {
+            log.error("JobRestartException", e);
+        } catch (JobInstanceAlreadyCompleteException e) {
+            log.error("JobAlreadyCompletedException", e);
+        } catch (JobParametersInvalidException e) {
+            log.error("JobInvalidParamsException", e);
+        }
+
     }
 
 }
