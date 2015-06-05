@@ -2,7 +2,6 @@ package org.chronopolis.replicate;
 
 import com.sun.akuma.Daemon;
 import org.chronopolis.db.common.model.RestoreRequest;
-import org.chronopolis.replicate.config.ReplicationConfig;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.replicate.service.ReplicationService;
 import org.slf4j.Logger;
