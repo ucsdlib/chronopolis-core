@@ -148,13 +148,16 @@ public class ReplicationJobStarter {
             log.debug("Already have collection, state {}", gsonCollection.getState());
             if (gsonCollection.getState() == 'E') {
                 log.info("Error in collection, replicating again");
+                replication.setStatus(ReplicationStatus.FAILURE);
             } else if (gsonCollection.getState() == 'N') {
                 log.info("Loading ACE settings for collection");
+                replication.setStatus(ReplicationStatus.TRANSFERRED);
             } else if (gsonCollection.getState() == 'A') {
                 log.info("Updating replication to note success");
                 replication.setStatus(ReplicationStatus.SUCCESS);
-                ingestAPI.updateReplication(replication.getID(), replication);
             }
+
+            ingestAPI.updateReplication(replication.getID(), replication);
         }
     }
 
