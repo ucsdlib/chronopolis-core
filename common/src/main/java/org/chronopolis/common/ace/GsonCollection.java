@@ -2,8 +2,6 @@ package org.chronopolis.common.ace;
 
 
 import com.google.gson.Gson;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
@@ -24,6 +22,7 @@ public class GsonCollection {
     private final String group;
     private final String storage;
     private final Setting settings;
+    private final int state;
 
     private GsonCollection(final Builder builder) {
         this.digestAlgorithm = builder.digestAlgorithm;
@@ -32,6 +31,7 @@ public class GsonCollection {
         this.group = builder.group;
         this.storage = builder.storage;
         this.settings = builder.settings;
+        this.state = builder.state;
     }
 
     public String getDigestAlgorithm() {
@@ -70,6 +70,10 @@ public class GsonCollection {
 
     public String getGroup() {
         return group;
+    }
+
+    public int getState() {
+        return state;
     }
 
     public static class Setting {
@@ -126,6 +130,7 @@ public class GsonCollection {
         private String group;
         private String storage;
         private Setting settings;
+        public int state;
 
         public Builder() {
             this.settings = new Setting();
@@ -153,6 +158,11 @@ public class GsonCollection {
 
         public Builder storage(final String storage) {
             this.storage = storage;
+            return this;
+        }
+
+        public Builder state(final int state) {
+            this.state = state;
             return this;
         }
 

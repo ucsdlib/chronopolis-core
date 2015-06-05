@@ -15,6 +15,7 @@ import org.chronopolis.replicate.batch.listener.TokenRESTStepListener;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -141,7 +142,19 @@ public class ReplicationJobStarter {
             createJob(depositor, collection, tds, bds, ars, rss, tokenStepListener, bagStepListener);
 
         } else {
-            log.info("Already have collection, probably should update the replication object");
+            // A active
+            // N - never completely scanned (default for new collections)
+            // E
+            log.debug("Already have collection, state {}", gsonCollection.getState());
+            if (gsonCollection.getState() == 'E') {
+                log.info("Error in collection, replicating again");
+            } else if (gsonCollection.getState() == 'N') {
+                log.info("Loading ACE settings for collection");
+            } else if (gsonCollection.getState() == 'A') {
+                log.info("Updating replication to note success");
+                replication.setStatus(ReplicationStatus.SUCCESS);
+                ingestAPI.updateReplication(replication.getID(), replication);
+            }
         }
     }
 
