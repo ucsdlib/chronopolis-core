@@ -2,7 +2,6 @@ package org.chronopolis.ingest.api;
 
 import org.chronopolis.ingest.controller.ControllerUtil;
 import org.chronopolis.ingest.exception.NotFoundException;
-import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.BagService;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationSearchCriteria;
@@ -165,6 +164,11 @@ public class ReplicationController {
             success = false;
         }
 
+        // Check if the client says it succeeded (likely from a previous replication)
+        if (isClientSuccess(replication.getStatus())) {
+            success = true;
+        }
+
         // If we were able to validate all the manifests: yay
         // else check if the replicating node reported any problems
         // TODO: Hold out on failure until x number of times?
@@ -188,6 +192,16 @@ public class ReplicationController {
 
         replicationService.save(update);
         return update;
+    }
+
+    /**
+     * Return true if the status = success
+     *
+     * @param status
+     * @return
+     */
+    private boolean isClientSuccess(ReplicationStatus status) {
+        return status == ReplicationStatus.SUCCESS;
     }
 
     /**
@@ -265,5 +279,13 @@ public class ReplicationController {
 
         return action;
     }
+
+    /*
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    public void deleteReplication(Principal principal,
+                                  @PathVariable("id") Long replicationId) {
+        replicationService.delete(replicationId);
+    }
+    */
 
 }
