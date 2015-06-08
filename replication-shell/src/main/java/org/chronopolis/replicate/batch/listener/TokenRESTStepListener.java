@@ -74,6 +74,7 @@ public class TokenRESTStepListener implements StepExecutionListener {
             // General failure
             replication.setStatus(ReplicationStatus.FAILURE);
             ingestAPI.updateReplication(replication.getID(), replication);
+            sendFailure(mail, settings, replication, stepExecution.getFailureExceptions());
         }
 
         return ExitStatus.COMPLETED;
