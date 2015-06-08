@@ -24,6 +24,7 @@ PARAMS="--spring.config.location=$SPRING_CONFIG_LOCATION --daemonize"
 . /etc/init.d/functions
 
 RETVAL=0
+COUNTDOWN=1
 
 case "$1" in
     start)
@@ -31,21 +32,37 @@ case "$1" in
     daemon --user "$CHRON_USER" --pidfile "$REPL_PID_FILE" $JAVA_CMD $PARAMS > /dev/null 2>&1
     RETVAL=$?
 
-    # This bit is from the jenkins init script, I'm not sure if we'll need it though
+    echo "Waiting for startup to complete..."
+    while [ $COUNTDOWN -gt 0 ]; do
+        sleep 8 # This seems to be the minimum amount of time to get consistent results
+        let COUNTDOWN=0
+    done
+
+    # This from the jenkins init script... slightly modified for our use
     if [ $RETVAL -eq 0 ]; then
-        success
-        # echo > "$REPL_PID_FILE"
-        /bin/ps hww -u "$CHRON_USER" -o sess,ppid,pid,cmd | \
+        # Create a pipe to read from so we can still alter $RUNNING
+        if [ ! -p check_pipe ]; then
+            mkfifo check_pipe
+        fi
+
+        /bin/ps hww -u "$CHRON_USER" -o sess,ppid,pid,cmd > check_pipe &
         while read sess ppid pid cmd; do
-        [ $ppid -eq 1 ] || continue
-        echo "$cmd" | grep $REPL_JAR > /dev/null
-        [ $? -eq 0 ] || continue
-        echo $pid > $REPL_PID_FILE
-        done
+            [ $ppid -eq 1 ] || continue
+            echo "$cmd" | grep $REPL_JAR > /dev/null
+            [ $? -eq 0 ] || continue
+            echo $pid > $REPL_PID_FILE
+            let RUNNING=0
+            echo $RUNNING
+        done < check_pipe
+    fi
+
+    if [ $RUNNING -eq 0 ]; then
+        success
     else
         failure
     fi
-    RETVAL=$?
+
+    RETVAL=$RUNNING
     ;;
     stop)
     echo "Stopping the replication service"
