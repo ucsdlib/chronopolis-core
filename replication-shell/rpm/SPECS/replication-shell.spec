@@ -1,11 +1,17 @@
 %define __jar_repack {%nil}
+# Compatibility with ncar
+%define _source_payload w0.gzdio
+%define _binary_payload w0.gzdio
+%define _binary_filedigest_algorithm 1
+
+# For use below
 %define _prefix %{_usr}/lib/chronopolis
 %define _confdir /etc/chronopolis
 %define service replication
 
 Name: replication-shell
 Version: %{ver}
-Release: 1
+Release: 1%{?dist}
 Source: replication-shell.jar
 Source1: replication.sh
 Source2: application.properties
