@@ -55,7 +55,6 @@
                 <module>ingest-shell</module>
                 <module>ingest-rest</module>
                 <module>replication-shell</module>
-                <!-- <module>replication-frontend</module> -->
                 <module>duracloud-intake</module>
                 <module>duracloud-backend</module>
             </modules>
@@ -64,10 +63,20 @@
 
     <distributionManagement>
         <repository>
-            <id>gitlab</id>
-            <url>https://gitlab.umiacs.umd.edu/chronopolis/chronopolis-core</url>
+            <id>adapt-releases</id>
+            <name>ADAPT Internal Releases</name>
+            <url>https://scm.umiacs.umd.edu/maven/adapt/content/repositories/releases/</url>
         </repository>
+        <snapshotRepository>
+            <id>adapt-snapshots</id>
+            <name>ADAPT Snapshots</name>
+            <url>https://scm.umiacs.umd.edu/maven/adapt/content/repositories/snapshots/</url>
+        </snapshotRepository>
     </distributionManagement>
+
+    <scm>
+        <connection>scm:git:git@gitlab.umiacs.umd.edu:chronopolis/chronopolis-core.git</connection>
+    </scm>
 
 
     <build>
