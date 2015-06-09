@@ -62,6 +62,13 @@
         </profile>
     </profiles>
 
+    <distributionManagement>
+        <repository>
+            <id>gitlab</id>
+            <url>https://gitlab.umiacs.umd.edu/chronopolis/chronopolis-core</url>
+        </repository>
+    </distributionManagement>
+
 
     <build>
         <pluginManagement>
@@ -80,19 +87,25 @@
                     <artifactId>rpm-maven-plugin</artifactId>
                     <version>2.1.2</version>
                 </plugin>
-
-                <!--
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-checkstyle-plugin</artifactId>
-                    <configuration>
-                        <failOnViolation>false</failOnViolation>
-                        <configLocation>chron-checker.xml</configLocation>
-                    </configuration>
-                </plugin>
-                -->
             </plugins>
         </pluginManagement>
+    </build>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>2.1</version>
+            </plugin>
+            <plugin>
+                <artifactId>maven-scm-plugin</artifactId>
+                <version>1.8.1</version>
+                <configuration>
+                    <tag>${project.artifactId}-${project.version}</tag>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
 
 
