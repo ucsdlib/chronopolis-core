@@ -5,11 +5,11 @@
     <parent>
         <groupId>org.chronopolis</groupId>
         <artifactId>chronopolis</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
     <groupId>org.chronopolis</groupId>
     <artifactId>ingest-shell</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Ingest Shell</name>
     <url>http://maven.apache.org</url>
@@ -82,7 +82,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
-            <version>1.1.4.RELEASE</version>
         </dependency>
 
         <dependency>

@@ -11,7 +11,7 @@
 
     <groupId>org.chronopolis</groupId>
     <artifactId>chronopolis</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Core Chronopolis</name>
@@ -58,7 +58,6 @@
                 <!-- <module>replication-frontend</module> -->
                 <module>duracloud-intake</module>
                 <module>duracloud-backend</module>
-                <module>logger</module>
             </modules>
         </profile>
     </profiles>
@@ -155,6 +154,18 @@
             <dependency>
                 <groupId>org.chronopolis</groupId>
                 <artifactId>chron-db</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.chronopolis</groupId>
+                <artifactId>duracloud-backend</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.chronopolis</groupId>
+                <artifactId>rest-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
