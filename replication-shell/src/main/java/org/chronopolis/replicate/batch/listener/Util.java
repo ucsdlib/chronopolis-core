@@ -33,7 +33,7 @@ public class Util {
         try {
             textBody.println(mapper.writeValueAsString(replication));
         } catch (JsonProcessingException e) {
-            log.info("Error writing replication as bag", e);
+            log.info("Error writing replication as json", e);
             // ignore
         }
         textBody.println();
