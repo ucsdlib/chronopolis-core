@@ -246,7 +246,11 @@ public class ReplicationController {
                 ? Integer.parseInt(params.get(PAGE_SIZE))
                 : 20;
         String name = null;
-        if (!ControllerUtil.hasRoleAdmin()) {
+
+        // Workaround for giving service accounts a view into all replications
+        // TODO: Add request param for name
+        Node node = nodeRepository.findByUsername(principal.getName());
+        if (node != null) {
             name = principal.getName();
         }
 
