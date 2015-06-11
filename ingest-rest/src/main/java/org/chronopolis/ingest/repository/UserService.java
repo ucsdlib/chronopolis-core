@@ -34,9 +34,11 @@ public class UserService {
 
     public void createUser(UserRequest request) {
         if (manager.userExists(request.getUsername())) {
+            log.debug("User already exists, avoiding creation");
             return;
         }
 
+        log.info("Creating new user {}", request.getUsername());
         String username = request.getUsername();
         String password = request.getPassword();
 
@@ -60,7 +62,10 @@ public class UserService {
                 repository.save(new Node(username, password));
             }
         }
+    }
 
+    public UserDetails getUser(String username) {
+        return manager.loadUserByUsername(username);
     }
 
 }
