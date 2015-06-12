@@ -25,14 +25,15 @@ cd ../
 
 # Get the version of the build and trim off the -SNAPSHOT
 echo "Getting version from maven..."
-version=`mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec | sed 's/-.*//'`
+full_version=`mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec | sed 's/-.*//'`
+version=`echo $full_version | sed 's/-.*//'`
 
 if [ $? -ne 0 ]; then
     echo "Error getting version from maven exec plugin"
     exit
 fi
 
-jarfile=target/replication-shell-$version-SNAPSHOT.jar
+jarfile=target/replication-shell-$full_version.jar
 
 if [ ! -e $jarfile ]; then
     echo "Building latest jar..."
