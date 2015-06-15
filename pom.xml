@@ -11,7 +11,7 @@
 
     <groupId>org.chronopolis</groupId>
     <artifactId>chronopolis</artifactId>
-    <version>1.0.0-RELEASE</version>
+    <version>1.0.1-RELEASE</version>
     <packaging>pom</packaging>
 
     <name>Core Chronopolis</name>
