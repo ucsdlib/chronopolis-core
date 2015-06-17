@@ -54,7 +54,6 @@ public class Bag implements Comparable<Bag> {
     @JsonIgnore
     private String tagManifestDigest;
 
-    @JsonIgnore
     @Enumerated(EnumType.STRING)
     private BagStatus status;
 
