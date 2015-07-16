@@ -5,7 +5,7 @@
 
 Name: ingest-server
 Version: %{ver}
-Release: 1
+Release: %{rel}%{?dist}
 Source: ingest-server.jar
 Source1: ingest-server.sh
 Source2: application.properties

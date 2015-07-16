@@ -11,7 +11,7 @@
 
 Name: replication-shell
 Version: %{ver}
-Release: 1%{?dist}
+Release: %{rel}%{?dist}
 Source: replication-shell.jar
 Source1: replication.sh
 Source2: application.properties

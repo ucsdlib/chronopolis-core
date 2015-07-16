@@ -25,14 +25,16 @@ cd ../
 
 # Get the version of the build and trim off the -SNAPSHOT
 echo "Getting version from maven..."
-version=`mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec | sed 's/-.*//'`
+full_version=`mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec`
+version=`echo $full_version | sed 's/-.*//'`
+release_type=`echo $full_version | sed 's/.*-//'`
 
 if [ $? -ne 0 ]; then
     echo "Error getting version from maven exec plugin"
     exit
 fi
 
-jarfile=target/ingest-rest-$version-SNAPSHOT.jar
+jarfile=target/ingest-rest-$version-$release_type.jar
 
 if [ ! -e $jarfile ]; then
     echo "Building latest jar..."
@@ -53,4 +55,4 @@ cp src/main/sh/ingest-server.sh rpm/$sources
 
 # cd back to where we started and build the rpm
 cd $rpmdir
-rpmbuild -ba --define="_topdir $PWD" --define="_tmppath $PWD/tmp" --define="ver $version" SPECS/ingest-server.spec
+rpmbuild -ba --define="_topdir $PWD" --define="_tmppath $PWD/tmp" --define="ver $version" --define="rel $BUILD_NUMBER" SPECS/ingest-server.spec
