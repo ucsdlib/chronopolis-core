@@ -5,16 +5,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import javax.persistence.Transient;
 import java.util.HashSet;
 import java.util.Set;
@@ -63,15 +61,8 @@ public class Bag implements Comparable<Bag> {
 
     private int requiredReplications;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "bag_replications",
-        joinColumns = {
-                @JoinColumn(name = "bag_id", nullable = false, updatable = false)},
-        inverseJoinColumns = {
-                @JoinColumn(name = "node_id", nullable = false, updatable = false)
-    })
-    @JsonIgnore
-    private Set<Node> replicatingNodes = new HashSet<>();
+    @OneToMany(mappedBy = "bag", cascade = CascadeType.ALL)
+    private Set<BagDistribution> distributions = new HashSet<>();
 
     protected Bag() { // JPA
     }
@@ -212,11 +203,15 @@ public class Bag implements Comparable<Bag> {
         }
     }
 
-    public Set<Node> getReplicatingNodes() {
-        return replicatingNodes;
-    }
-
     public int getRequiredReplications() {
         return requiredReplications;
+    }
+
+    public Set<BagDistribution> getDistributions() {
+        return distributions;
+    }
+
+    public void addDistribution(BagDistribution dist) {
+        distributions.add(dist);
     }
 }
