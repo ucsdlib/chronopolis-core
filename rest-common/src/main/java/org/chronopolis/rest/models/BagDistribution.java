@@ -28,7 +28,7 @@ public class BagDistribution {
     @JsonIgnore
     private Bag bag;
 
-    @OneToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private Node node;
 
     @Enumerated(EnumType.STRING)
