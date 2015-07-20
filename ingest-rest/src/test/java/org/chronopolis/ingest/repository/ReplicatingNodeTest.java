@@ -13,7 +13,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.Set;
+import static org.chronopolis.rest.models.BagDistribution.BagDistributionStatus.REPLICATE;
 
 /**
  * Test for the ManyToMany relationship between bags and nodes. One is a simple
@@ -46,8 +46,9 @@ public class ReplicatingNodeTest extends IngestTest {
     public void testUpdateReplications() {
         // Add replicating nodes
         Bag bag = bagRepository.findOne(new Long(2));
-        Set<Node> nodes = bag.getReplicatingNodes();
-        nodes.addAll(nodeRepository.findAll());
+        for (Node node : nodeRepository.findAll()) {
+            bag.addDistribution(node, REPLICATE);
+        }
         bagRepository.save(bag);
 
         // And test that we pulled them all
