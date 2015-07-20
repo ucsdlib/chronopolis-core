@@ -17,6 +17,7 @@ public class IngestTest {
         System.setProperty("spring.datasource.data", "classpath:/data.sql");
         System.setProperty("spring.datasource.schema", "classpath:/schema.sql");
         System.setProperty("spring.jpa.hibernate.ddl-auto", "validate");
+        System.setProperty("flyway.enabled", "false");
     }
 
 }
