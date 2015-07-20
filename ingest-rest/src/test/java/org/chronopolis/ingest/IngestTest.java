@@ -18,6 +18,8 @@ public class IngestTest {
         System.setProperty("spring.datasource.schema", "classpath:/schema.sql");
         System.setProperty("spring.jpa.hibernate.ddl-auto", "validate");
         System.setProperty("flyway.enabled", "false");
+        // TODO: Play around with creating h2 specific migrations
+        // System.setProperty("flyway.locations", "classpath:test/db/migration");
     }
 
 }
