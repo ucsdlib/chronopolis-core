@@ -16,6 +16,9 @@ ALTER TABLE bag_distribution
 INSERT INTO bag_distribution (bag_id, node_id)
 SELECT * FROM bag_replications;
 
+-- we assume all previous entries are replications
+UPDATE bag_distribution SET status = 'REPLICATE';
+
 -- drop the constraints/old table
 -- ALTER TABLE bag_replications
 --     DROP CONSTRAINT FK_br_bag;
