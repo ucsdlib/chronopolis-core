@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by shake on 2/3/14.
  */
+@Deprecated
 public class PackageReadyReplyProcessor implements ChronProcessor {
     private final Logger log = LoggerFactory.getLogger(PackageReadyReplyProcessor.class);
 
