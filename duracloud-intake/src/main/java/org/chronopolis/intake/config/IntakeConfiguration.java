@@ -1,15 +1,14 @@
 package org.chronopolis.intake.config;
 
 import org.chronopolis.common.ace.CredentialRequestInterceptor;
-import org.chronopolis.common.dpn.DPNService;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.common.settings.SMTPSettings;
 import org.chronopolis.earth.api.LocalAPI;
+import org.chronopolis.intake.duracloud.PropertiesDataCollector;
 import org.chronopolis.intake.duracloud.batch.SnapshotJobManager;
 import org.chronopolis.intake.duracloud.batch.SnapshotTasklet;
 import org.chronopolis.intake.duracloud.config.IntakeSettings;
-import org.chronopolis.intake.duracloud.PropertiesDataCollector;
 import org.chronopolis.rest.api.ErrorLogger;
 import org.chronopolis.rest.api.IngestAPI;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
