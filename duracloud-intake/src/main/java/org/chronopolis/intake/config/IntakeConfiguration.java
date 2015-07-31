@@ -5,6 +5,7 @@ import org.chronopolis.common.dpn.DPNService;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.common.settings.SMTPSettings;
+import org.chronopolis.earth.api.LocalAPI;
 import org.chronopolis.intake.duracloud.batch.SnapshotJobManager;
 import org.chronopolis.intake.duracloud.batch.SnapshotTasklet;
 import org.chronopolis.intake.duracloud.config.IntakeSettings;
@@ -75,13 +76,13 @@ public class IntakeConfiguration {
                                     @Value("#{jobParameters[collectionName]}") String collectionName,
                                     IntakeSettings settings,
                                     IngestAPI ingestAPI,
-                                    DPNService dpnService) {
+                                    LocalAPI localAPI) {
         return new SnapshotTasklet(snapshotID,
                 collectionName,
                 depositor,
                 intakeSettings,
                 ingestAPI,
-                dpnService);
+                localAPI);
     }
 
     @Bean(destroyMethod = "destroy")
