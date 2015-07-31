@@ -5,6 +5,7 @@ import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.BagDistribution;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.Node;
 import org.chronopolis.rest.models.Replication;
@@ -20,6 +21,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+
+import static org.chronopolis.rest.models.BagDistribution.*;
 
 /**
  * Simple task to create replications for bags which have finished tokenizing
@@ -51,7 +55,6 @@ public class ReplicationTask {
         String bagStage = settings.getBagStage();
         String tokenStage = settings.getTokenStage();
 
-        List<Node> nodes = nodeRepository.findAll();
         Collection<Bag> bags = bagRepository.findByStatus(BagStatus.TOKENIZED);
 
         for (Bag bag : bags) {
@@ -69,8 +72,14 @@ public class ReplicationTask {
                     .toString();
 
             // And create the transfer requests
+            Set<BagDistribution> distributions = bag.getDistributions();
             List<Replication> repls = new ArrayList<>();
-            for (final Node node : nodes) {
+            for (BagDistribution dist : distributions) {
+                if (dist.getStatus() == BagDistributionStatus.REPLICATE) {
+                    continue;
+                }
+
+                Node node = dist.getNode();
                 log.debug("Creating replication object for node {} for bag {}",
                         node.getUsername(), bag.getID());
                 Replication replication = new Replication(node, bag, bagLink, tokenLink);
