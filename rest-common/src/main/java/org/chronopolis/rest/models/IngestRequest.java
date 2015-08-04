@@ -13,7 +13,7 @@ public class IngestRequest {
     String location;
     String depositor;
     int requiredReplications;
-    List<String> nodeReplications;
+    List<String> replicatingNodes;
 
     public String getName() {
         return name;
@@ -48,12 +48,12 @@ public class IngestRequest {
         return this;
     }
 
-    public List<String> getNodeReplications() {
-        return nodeReplications;
+    public List<String> getReplicatingNodes() {
+        return replicatingNodes;
     }
 
-    public IngestRequest setNodeReplications(List<String> nodeReplications) {
-        this.nodeReplications = nodeReplications;
+    public IngestRequest setReplicatingNodes(List<String> replicatingNodes) {
+        this.replicatingNodes = replicatingNodes;
         return this;
     }
 }
