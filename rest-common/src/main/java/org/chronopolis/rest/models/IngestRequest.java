@@ -38,4 +38,22 @@ public class IngestRequest {
     public void setLocation(final String location) {
         this.location = location;
     }
+
+    public int getRequiredReplications() {
+        return requiredReplications;
+    }
+
+    public IngestRequest setRequiredReplications(int requiredReplications) {
+        this.requiredReplications = requiredReplications;
+        return this;
+    }
+
+    public List<String> getNodeReplications() {
+        return nodeReplications;
+    }
+
+    public IngestRequest setNodeReplications(List<String> nodeReplications) {
+        this.nodeReplications = nodeReplications;
+        return this;
+    }
 }
