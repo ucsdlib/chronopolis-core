@@ -7,9 +7,14 @@ import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.BagSearchCriteria;
 import org.chronopolis.ingest.repository.BagService;
+import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.rest.models.Bag;
+// import org.chronopolis.rest.models.BagDistribution;
+import org.chronopolis.rest.models.BagDistribution;
+import org.chronopolis.rest.models.BagDistribution.BagDistributionStatus;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.IngestRequest;
+import org.chronopolis.rest.models.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +38,8 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static org.chronopolis.ingest.api.Params.DEPOSITOR;
@@ -55,6 +62,9 @@ public class StagingController {
 
     @Autowired
     BagRepository bagRepository;
+
+    @Autowired
+    NodeRepository nodeRepository;
 
     @Autowired
     BagService bagService;
@@ -110,6 +120,22 @@ public class StagingController {
         return bag;
     }
 
+    /*
+    @RequestMapping(value = "bags/{bag-id}/dist/{node-id}", method = RequestMethod.POST)
+    public BagDistribution distmag(@PathVariable("bag-id") Long bagId,
+                       @PathVariable("node-id") Long nodeId) {
+        Bag bag = bagRepository.findOne(bagId);
+        Node node = nodeRepository.findOne(nodeId);
+        BagDistribution dist = new BagDistribution();
+        dist.setBag(bag);
+        dist.setNode(node);
+        dist.setStatus(BagDistribution.BagDistributionStatus.DISTRIBUTE);
+        bag.addDistribution(dist);
+        bagRepository.save(bag);
+        return dist;
+    }
+    */
+
     /**
      * Notification that a bag exists and is ready to be ingested into Chronopolis
      *
@@ -130,7 +156,7 @@ public class StagingController {
 
         bag = new Bag(name, depositor);
         try {
-            initializeBag(bag, request.getLocation());
+            initializeBag(bag, request);
         } catch (IOException e) {
             log.error("Error initializing bag {}:{}", depositor, name);
             return null;
@@ -142,12 +168,26 @@ public class StagingController {
     }
 
     /**
+     * Iterate through a list of node usernames and add them to the BagDistribution table
+     *
+     * @param bag
+     * @param replicatingNodes
+     */
+    private void createBagDistributions(Bag bag, List<String> replicatingNodes) {
+        for (String nodeName : replicatingNodes) {
+            Node node = nodeRepository.findByUsername(nodeName);
+            bag.addDistribution(node, BagDistributionStatus.DISTRIBUTE);
+        }
+    }
+
+    /**
      * Set the location, fixity value, size, and total number of files for the bag
      *
      * @param bag
-     * @param fileName
+     * @param request
      */
-    private void initializeBag(Bag bag, String fileName) throws IOException {
+    private void initializeBag(Bag bag, IngestRequest request) throws IOException {
+        String fileName = request.getLocation();
         Path stage = Paths.get(ingestSettings.getBagStage());
         Path bagPath = stage.resolve(fileName);
 
@@ -174,12 +214,15 @@ public class StagingController {
         bag.setSize(bagSize[0]);
         bag.setTotalFiles(fileCount[0]);
         bag.setFixityAlgorithm("SHA-256");
+
+        createBagDistributions(bag, request.getReplicatingNodes());
     }
 
 
     /**
      * Explode a tarball for a given transfer
-     *  @param tarball
+     *
+     * @param tarball
      * @param depositor
      */
     private Path untar(Path tarball, String depositor) throws IOException {
