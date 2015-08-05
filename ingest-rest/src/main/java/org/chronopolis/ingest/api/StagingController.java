@@ -174,6 +174,10 @@ public class StagingController {
      * @param replicatingNodes
      */
     private void createBagDistributions(Bag bag, List<String> replicatingNodes) {
+        if (replicatingNodes == null) {
+            replicatingNodes = new ArrayList<>();
+        }
+
         for (String nodeName : replicatingNodes) {
             Node node = nodeRepository.findByUsername(nodeName);
             bag.addDistribution(node, BagDistributionStatus.DISTRIBUTE);
