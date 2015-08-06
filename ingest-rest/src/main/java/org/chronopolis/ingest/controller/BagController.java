@@ -32,6 +32,8 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.Collection;
 
+import static org.chronopolis.ingest.BagInitializer.initializeBag;
+
 /**
  * Controller for handling bag/replication related requests
  *
@@ -153,7 +155,7 @@ public class BagController {
         if (bag == null) {
             bag = new Bag(name, depositor);
             try {
-                initializeBag(bag, request.getLocation());
+                initializeBag(bag, request);
             } catch (IOException e) {
                 log.error("Error creating bag", e);
                 throw e;
@@ -187,32 +189,5 @@ public class BagController {
         model.addAttribute("replications", replications);
         return "replications";
     }
-
-    // I pulled this from the StagingController, it really doesn't need to be duplicated
-    // TODO: Either figure out how to get the addbag html page to use the rest api or
-    //       find a place so this can be shared code
-    public void initializeBag(Bag bag, String filename) throws IOException {
-        Path stage = Paths.get(settings.getBagStage());
-        Path bagPath = stage.resolve(filename);
-
-        // TODO: Get these passed in the ingest request
-        final long[] bagSize = {0};
-        final long[] fileCount = {0};
-        Files.walkFileTree(bagPath, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                fileCount[0]++;
-                bagSize[0] += attrs.size();
-                return FileVisitResult.CONTINUE;
-            }
-        });
-
-        Path relBag = stage.relativize(bagPath);
-        bag.setLocation(relBag.toString());
-        bag.setSize(bagSize[0]);
-        bag.setTotalFiles(fileCount[0]);
-        bag.setFixityAlgorithm("SHA-256");
-    }
-
 
 }
