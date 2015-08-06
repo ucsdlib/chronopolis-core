@@ -60,16 +60,10 @@ public class ReplicationTask {
         for (Bag bag : bags) {
             // Set up the links for nodes to pull from
             Path tokenPath = Paths.get(tokenStage, bag.getTokenLocation());
-            String tokenLink = new StringBuilder(user)
-                    .append("@").append(server)
-                    .append(":").append(tokenPath.toString())
-                    .toString();
+            String tokenLink =  buildLink(user, server, tokenPath);
 
             Path bagPath = Paths.get(bagStage, bag.getLocation());
-            String bagLink = new StringBuilder(user)
-                    .append("@").append(server)
-                    .append(":").append(bagPath.toString())
-                    .toString();
+            String bagLink = buildLink(user, server, bagPath);
 
             // And create the transfer requests
             Set<BagDistribution> distributions = bag.getDistributions();
@@ -93,6 +87,13 @@ public class ReplicationTask {
             bagRepository.save(bag);
         }
 
+    }
+
+    private String buildLink(String user, String server, Path file) {
+        return new StringBuilder(user)
+                    .append("@").append(server)
+                    .append(":").append(file.toString())
+                    .toString();
     }
 
 }
