@@ -1,13 +1,15 @@
 package org.chronopolis.ingest.api;
 
-import junit.framework.Assert;
+import com.google.common.collect.ImmutableList;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;
+import org.chronopolis.ingest.repository.BagService;
 import org.chronopolis.ingest.support.PageImpl;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.IngestRequest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.TestRestTemplate;
@@ -22,11 +24,9 @@ import static org.junit.Assert.assertEquals;
 
 
 /**
- * Because of the application.properties, we don't need to load any bags here.
- * It is done through the DevConfig class
+ * Tests for the staging API
  *
  */
-
 @WebIntegrationTest("server.port:0")
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = TestApplication.class)
@@ -38,6 +38,9 @@ public class StagingControllerTest extends IngestTest {
 
     @Value("${local.server.port}")
     private int port;
+
+    @Autowired
+    BagService bagService;
 
     @Test
     public void testGetBags() throws Exception {
@@ -83,13 +86,12 @@ public class StagingControllerTest extends IngestTest {
         assertEquals(Long.valueOf(1), bag.getBody().getID());
     }
 
-    /*
     @Test
-    public void testStageBag() throws Exception {
+    public void testStageBagWithoutReplications() throws Exception {
         // need admin credentials for creating resources
         TestRestTemplate template = new TestRestTemplate("admin", "admin");
         IngestRequest request = new IngestRequest();
-        // All defined the createBags.sql
+
         request.setName("new-bag-1");
         request.setDepositor("test-depositor");
         request.setLocation("test-depositor/new-bag-1");
@@ -98,7 +100,33 @@ public class StagingControllerTest extends IngestTest {
                 "http://localhost:" + port + "/api/bags",
                 request,
                 Bag.class);
+
+        assertEquals(Long.valueOf(11), bag.getBody().getID());
+        assertEquals(Long.valueOf(3), Long.valueOf(bag.getBody().getTotalFiles()));
     }
-    */
+
+    @Test
+    /**
+     * Test with specifying replicating nodes to ensure they get saved
+     *
+     */
+    public void testStageBagWithReplications() throws Exception {
+        // need admin credentials for creating resources
+        TestRestTemplate template = new TestRestTemplate("admin", "admin");
+        IngestRequest request = new IngestRequest();
+
+        request.setName("new-bag-1-1");
+        request.setDepositor("test-depositor");
+        request.setLocation("test-depositor/new-bag-1");
+        request.setReplicatingNodes(ImmutableList.of("umiacs"));
+
+        ResponseEntity<Bag> bag = template.postForEntity(
+                "http://localhost:" + port + "/api/bags",
+                request,
+                Bag.class);
+
+        assertEquals(1, bag.getBody().getDistributions().size());
+    }
+
 
 }
