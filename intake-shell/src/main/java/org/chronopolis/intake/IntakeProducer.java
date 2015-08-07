@@ -29,6 +29,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import gov.loc.repository.bagit.BagFactory;
@@ -148,10 +150,17 @@ public class IntakeProducer implements CommandLineRunner {
 
     private void sendRest(final String depositor, final String bagName) {
         String path = depositor + "/" + bagName;
+        // TODO: Remove magic values...
+        List<String> replicatingNodes = new ArrayList<>();
+        replicatingNodes.add("ncar");
+        replicatingNodes.add("ucsd");
+        replicatingNodes.add("umiacs");
         IngestRequest request = new IngestRequest();
         request.setDepositor(depositor);
         request.setLocation(path);
         request.setName(bagName);
+        request.setReplicatingNodes(replicatingNodes);
+
         ingestAPI.stageBag(request);
     }
 
