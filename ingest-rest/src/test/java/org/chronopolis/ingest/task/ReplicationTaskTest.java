@@ -3,6 +3,7 @@ package org.chronopolis.ingest.task;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;
 import org.chronopolis.ingest.repository.ReplicationRepository;
+import org.chronopolis.rest.models.Replication;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,10 @@ import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.util.List;
+
+import static junit.framework.Assert.assertEquals;
 
 /**
  * Tests to validate replications are created properly
@@ -36,7 +41,10 @@ public class ReplicationTaskTest extends IngestTest {
     public void testCreateReplications() throws Exception {
         task.createReplications();
 
-        repository.findAll();
+        // Based on the sql we should only have 3 replications
+        // (only 3 bag_distribution records created)
+        List<Replication> all = repository.findAll();
+        assertEquals(3, all.size());
     }
 
 }
