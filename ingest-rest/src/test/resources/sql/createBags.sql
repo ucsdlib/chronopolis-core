@@ -13,3 +13,4 @@ INSERT INTO bag VALUES(10, 'bag-9', 'test-depositor', 'bags/test-bag-9', 'tokens
 INSERT INTO bag_distribution VALUES(1, 10, 1, 'DISTRIBUTE');
 INSERT INTO bag_distribution VALUES(2, 10, 2, 'DISTRIBUTE');
 INSERT INTO bag_distribution VALUES(3, 10, 4, 'DISTRIBUTE');
+INSERT INTO bag_distribution VALUES(4, 10, 3, 'REPLICATE');
