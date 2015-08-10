@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author shake
  */
+@Deprecated
 public class PackageIngestStatusResponseProcessor implements ChronProcessor {
     private final Logger log = LoggerFactory.getLogger(PackageIngestStatusResponseProcessor.class);
 

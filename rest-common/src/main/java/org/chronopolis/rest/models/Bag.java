@@ -2,9 +2,11 @@ package org.chronopolis.rest.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -12,12 +14,12 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import javax.persistence.Transient;
 import java.util.HashSet;
 import java.util.Set;
+
+import static org.chronopolis.rest.models.BagDistribution.*;
 
 /**
  * Representation of a bag in chronopolis
@@ -63,15 +65,8 @@ public class Bag implements Comparable<Bag> {
 
     private int requiredReplications;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "bag_replications",
-        joinColumns = {
-                @JoinColumn(name = "bag_id", nullable = false, updatable = false)},
-        inverseJoinColumns = {
-                @JoinColumn(name = "node_id", nullable = false, updatable = false)
-    })
-    @JsonIgnore
-    private Set<Node> replicatingNodes = new HashSet<>();
+    @OneToMany(mappedBy = "bag", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private Set<BagDistribution> distributions = new HashSet<>();
 
     protected Bag() { // JPA
     }
@@ -212,11 +207,39 @@ public class Bag implements Comparable<Bag> {
         }
     }
 
+    public int getRequiredReplications() {
+        return requiredReplications;
+    }
+
+    public Set<BagDistribution> getDistributions() {
+        return distributions;
+    }
+
+    /**
+     * Helper for adding a BagDistribution object to a Bag
+     *
+     * @param node The node who will receive the bag
+     * @param status The initial status to use
+     */
+    public void addDistribution(Node node, BagDistributionStatus status) {
+        BagDistribution distribution = new BagDistribution();
+        distribution.setBag(this);
+        distribution.setNode(node);
+        distribution.setStatus(status);
+        distributions.add(distribution);
+    }
+
     public Set<Node> getReplicatingNodes() {
+        Set<Node> replicatingNodes = new HashSet<>();
+        for (BagDistribution distribution : distributions) {
+            if (distribution.getStatus() == BagDistributionStatus.REPLICATE) {
+                replicatingNodes.add(distribution.getNode());
+            }
+        }
         return replicatingNodes;
     }
 
-    public int getRequiredReplications() {
-        return requiredReplications;
+    public void addDistribution(BagDistribution dist) {
+        distributions.add(dist);
     }
 }
