@@ -16,6 +16,9 @@ import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -73,8 +76,8 @@ public class TokenRunner implements Runnable {
 
     @Override
     public void run() {
-        // TODO: Only get filenames
-        Collection<AceToken> tokens = tokenRepository.findByBagID(bag.getID());
+        Long bagId = bag.getID();
+        Long size = tokenRepository.countByBagID(bagId);
 
         // We have 3 states we check for:
         // * if there are less tokens than the number of files in the bag, tokenize the bag
@@ -84,7 +87,8 @@ public class TokenRunner implements Runnable {
         // TODO: Send email on failures
         // TODO: If filter contains tagmanifest, check for orphans
         // log.debug("{}: Token size: {} Total Files: {}", new Object[]{bag.getName(), tokens.size(), bag.getTotalFiles()});
-        if (tokens.size() < bag.getTotalFiles()) {
+        if (size < bag.getTotalFiles()) {
+            Collection<AceToken> tokens = tokenRepository.findByBagID(bagId);
             log.info("Starting tokenizer for bag {}", bag.getName());
 
             // Setup everything we need
@@ -106,10 +110,10 @@ public class TokenRunner implements Runnable {
             } catch (InterruptedException e) {
                 log.error("Interrupted", e);
             }
-        } else if (tokens.size() == bag.getTotalFiles()) {
+        } else if (size == bag.getTotalFiles()) {
             // TODO: May want to decouple this
             log.info("Writing tokens for bag {}", bag.getName());
-            boolean written = writeTokens(bag, tokens);
+            boolean written = writeTokens(bag);
 
             if (written) {
                 log.info("Updating status of {}", bag.getName());
@@ -139,45 +143,62 @@ public class TokenRunner implements Runnable {
      * Write a token to a file identified by the bag name and date
      * TODO: Pull a subset of the tokens at a time in order to write them,
      *       so that we do not run out of heap space
+     * TODO: Remove various magic values
      *
      * @param bag
-     * @param tokens
      * @return
      */
-    private boolean writeTokens(Bag bag, Collection<AceToken> tokens) {
+    private boolean writeTokens(Bag bag) {
+        Long bagId = bag.getID();
+        String name = bag.getName();
+        String depositor = bag.getDepositor();
+
         Path stage = Paths.get(tokenStage);
-        Path dir = stage.resolve(bag.getDepositor());
+        Path dir = stage.resolve(depositor);
         if (!dir.toFile().exists()) {
             dir.toFile().mkdirs();
         }
 
+        Pageable pageable = new PageRequest(0, 1000);
         DateTimeFormatter formatter = ISODateTimeFormat.date().withZoneUTC();
-        String filename = bag.getName() + formatter.print(new DateTime());
+        String filename = name + formatter.print(new DateTime()) + "-tokens";
         Path store = dir.resolve(filename);
         try (OutputStream os = Files.newOutputStream(store, CREATE)) {
             String ims = "ims.umiacs.umd.edu";
             HashingOutputStream hos = new HashingOutputStream(Hashing.sha256(), os);
             TokenWriter writer = new TokenWriter(hos, ims);
 
-            for (AceToken token : tokens) {
-                // Make sure we have a leading /
-                if (!token.getFilename().startsWith("/")) {
-                    token.setFilename("/" + token.getFilename());
+            boolean next = true;
+            while (next) {
+                log.debug("Iterating page # {} size {} offset {}",
+                        new Object[]{pageable.getPageNumber(), pageable.getPageSize(), pageable.getOffset()});
+                Page<AceToken> tokens = tokenRepository.findByBagID(bagId, pageable);
+
+                for (AceToken token : tokens) {
+                    log.trace("Writing {}", token.getFilename());
+                    // Make sure we have a leading /
+                    if (!token.getFilename().startsWith("/")) {
+                        token.setFilename("/" + token.getFilename());
+                    }
+
+                    writer.startToken(token);
+                    writer.addIdentifier(token.getFilename());
+                    writer.writeTokenEntry();
                 }
 
-                writer.startToken(token);
-                writer.addIdentifier(token.getFilename());
-                writer.writeTokenEntry();
+                next = tokens.hasNext();
+                pageable = tokens.nextPageable();
             }
 
             // The stream will close on it's own, but call this anyways
             writer.close();
             bag.setTokenDigest(writer.getTokenDigest());
-            log.info("TokenStore Digest for bag {}: {}", bag.getID(), writer.getTokenDigest());
+            log.info("TokenStore Digest for bag {}: {}", bagId, writer.getTokenDigest());
         } catch (IOException ex) {
             log.error("Error writing manifest {} ", ex);
             return false;
         }
+
         log.info("Finished writing tokens");
         bag.setTokenLocation(stage.relativize(store).toString());
 
