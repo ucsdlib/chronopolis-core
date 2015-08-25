@@ -4,7 +4,9 @@ import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.common.hash.HashingOutputStream;
 import org.chronopolis.common.ace.Tokenizer;
+import org.chronopolis.common.util.Filter;
 import org.chronopolis.ingest.TokenCallback;
+import org.chronopolis.ingest.TokenFilter;
 import org.chronopolis.ingest.TokenWriter;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
@@ -88,8 +90,8 @@ public class TokenRunner implements Runnable {
         // TODO: If filter contains tagmanifest, check for orphans
         // log.debug("{}: Token size: {} Total Files: {}", new Object[]{bag.getName(), tokens.size(), bag.getTotalFiles()});
         if (size < bag.getTotalFiles()) {
-            Collection<AceToken> tokens = tokenRepository.findByBagID(bagId);
             log.info("Starting tokenizer for bag {}", bag.getName());
+            Filter<Path> filter = new TokenFilter(tokenRepository, bagId);
 
             // Setup everything we need
             Path toBag = Paths.get(bagStage, bag.getLocation());
@@ -97,7 +99,7 @@ public class TokenRunner implements Runnable {
             Tokenizer tokenizer = new Tokenizer(toBag, bag.getFixityAlgorithm(), callback);
 
             try {
-                tokenizer.tokenize(filter(tokens));
+                tokenizer.tokenize(filter);
                 if (bag.getTagManifestDigest() == null) {
                     String tagDigest = tokenizer.getTagManifestDigest();
                     log.info("Captured {} as the tagmanifest digest for {}",
