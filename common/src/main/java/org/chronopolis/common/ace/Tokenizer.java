@@ -6,6 +6,7 @@ import edu.umiacs.ace.ims.api.TokenRequestBatch;
 import edu.umiacs.ace.ims.ws.TokenRequest;
 import org.chronopolis.common.digest.Digest;
 import org.chronopolis.common.digest.DigestUtil;
+import org.chronopolis.common.util.Filter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +16,6 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Set;
 
 /**
  * Class to create ACE tokens from a BagIt bag.
@@ -25,6 +25,23 @@ import java.util.Set;
  * Created by shake on 2/4/15.
  */
 public class Tokenizer {
+
+    /**
+     * Factory class to allow for mocking of IMS connections
+     *
+     */
+    public static class IMSFactory {
+        public TokenRequestBatch createIMSConnection(RequestBatchCallback callback) {
+            IMSService ims;
+            // TODO: Use the AceSettings to get the ims host name
+            ims = IMSService.connect("ims.umiacs.umd.edu", SSL_PORT, true);
+            return ims.createImmediateTokenRequestBatch("SHA-256",
+                callback,
+                MAX_QUEUE_LEN,
+                TIMEOUT);
+        }
+    }
+
     private static final int SSL_PORT = 443;
     private static final int MAX_QUEUE_LEN = 1000;
     private static final int TIMEOUT = 5000;
@@ -44,6 +61,8 @@ public class Tokenizer {
     private final RequestBatchCallback callback;
     private TokenRequestBatch batch;
 
+    private IMSFactory factory;
+
     public Tokenizer(final Path bag,
                      final String fixityAlgorithm,
                      final RequestBatchCallback callback) {
@@ -51,6 +70,7 @@ public class Tokenizer {
         this.fixityAlgorithm = Digest.fromString(fixityAlgorithm);
         this.callback = callback;
         this.tagDigest = null;
+        this.factory = new Tokenizer.IMSFactory();
         addManifests();
     }
 
@@ -91,8 +111,8 @@ public class Tokenizer {
      * @throws IOException
      * @throws InterruptedException
      */
-    public void tokenize(Set<Path> filter) throws IOException, InterruptedException {
-        batch = createIMSConnection();
+    public void tokenize(Filter<Path> filter) throws IOException, InterruptedException {
+        batch = factory.createIMSConnection(callback);
 
         try {
             // Digest the manifest
@@ -123,7 +143,7 @@ public class Tokenizer {
      * @throws IOException
      * @throws InterruptedException
      */
-    private boolean tokenize(Set<Path> filter, Path manifest) throws IOException,
+    private boolean tokenize(Filter<Path> filter, Path manifest) throws IOException,
             InterruptedException {
         String line;
         boolean corrupt = false;
@@ -205,7 +225,6 @@ public class Tokenizer {
      * Create a connection to the IMS Service for ACE
      *
      * @return {@link TokenRequestBatch}
-     */
     private TokenRequestBatch createIMSConnection() {
         IMSService ims;
         // TODO: Use the AceSettings to get the ims host name
@@ -215,6 +234,7 @@ public class Tokenizer {
                 MAX_QUEUE_LEN,
                 TIMEOUT);
     }
+    */
 
 
 }
