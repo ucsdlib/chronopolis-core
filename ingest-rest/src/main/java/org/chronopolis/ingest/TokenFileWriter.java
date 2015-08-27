@@ -24,6 +24,7 @@ import static java.nio.file.StandardOpenOption.CREATE;
 
 /**
  * Class which writes tokenstores
+ * TODO: Runnable?
  *
  * Created by shake on 8/26/15.
  */
