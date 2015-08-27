@@ -59,27 +59,18 @@ public class TokenizerTest extends IngestTest {
     TokenCallback fullCallback;
     TokenCallback partialCallback;
 
-    @Autowired
-    IngestSettings settings;
-
-    @Autowired
-    BagRepository bagRepository;
-
-    @Autowired
-    TokenRepository tokenRepository;
+    // Autowired Beans
+    @Autowired IngestSettings settings;
+    @Autowired BagRepository bagRepository;
+    @Autowired TokenRepository tokenRepository;
 
     // Two tokenizers for each bag we do
-    @InjectMocks
-    Tokenizer fullTokenizer;
+    @InjectMocks Tokenizer fullTokenizer;
+    @InjectMocks Tokenizer partialTokenizer;
 
-    @InjectMocks
-    Tokenizer partialTokenizer;
-
-    @Mock
-    Tokenizer.IMSFactory factory;
-
-    @Mock
-    TokenRequestBatch batch;
+    // Our mocks which get injected
+    @Mock Tokenizer.IMSFactory factory;
+    @Mock TokenRequestBatch batch;
 
     @Before
     public void setup() {
