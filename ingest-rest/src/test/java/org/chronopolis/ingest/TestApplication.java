@@ -9,7 +9,8 @@ import org.springframework.context.annotation.ComponentScan;
 
 @ComponentScan(basePackageClasses = {
         IngestSettings.class,
-        StagingController.class
+        StagingController.class,
+        BagInitializer.class
 })
 @EntityScan(basePackages = "org.chronopolis.rest.models")
 @EnableAutoConfiguration

@@ -24,6 +24,7 @@ public class IngestTest {
         // Get the test resources root
         URL bags = ClassLoader.getSystemClassLoader().getResource("bags");
         System.setProperty("chron.stage.bags", bags.getFile());
+        System.setProperty("chron.stage.tokens", bags.getFile());
 
         // TODO: Play around with creating h2 specific migrations
         // System.setProperty("flyway.locations", "classpath:test/db/migration");
