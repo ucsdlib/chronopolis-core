@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -76,14 +77,7 @@ public class StagingController {
                 .withName(params.containsKey(NAME) ? params.get(NAME) : null)
                 .withStatus(params.containsKey(STATUS) ? BagStatus.valueOf(params.get(STATUS)) : null);
 
-        return bagService.findBags(criteria, new PageRequest(pageNum, pageSize));
-        /*
-        if (pageNum != -1) {
-            return bagRepository.findAll(new PageRequest(pageNum, pageSize));
-        }
-
-        return bagRepository.findAll();
-        */
+        return bagService.findBags(criteria, new PageRequest(pageNum, pageSize, Sort.Direction.ASC, "id"));
     }
 
     /**
