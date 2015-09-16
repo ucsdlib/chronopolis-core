@@ -12,9 +12,6 @@ import org.chronopolis.rest.models.Replication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,12 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.security.Principal;
 import java.util.Arrays;
 import java.util.Collection;
@@ -74,8 +65,8 @@ public class BagController {
         /*
         log.debug("Adding count for bags");
         for (Bag bag : bags) {
-            model.addAttribute(String.valueOf(bag.getID()),
-                               tokenRepository.countByBagID(bag.getID()));
+            model.addAttribute(String.valueOf(bag.getId()),
+                               tokenRepository.countByBagId(bag.getId()));
         }
         log.debug("Done adding count");
         */
@@ -98,7 +89,7 @@ public class BagController {
         // common pages
         model.addAttribute("bags", bagRepository.findOne(id));
         model.addAttribute("statuses", Arrays.asList(BagStatus.values()));
-        model.addAttribute("tokens", tokenRepository.countByBagID(id));
+        model.addAttribute("tokens", tokenRepository.countByBagId(id));
 
         return "bag";
     }
@@ -121,7 +112,7 @@ public class BagController {
 
         model.addAttribute("bags", bag);
         model.addAttribute("statuses", Arrays.asList(BagStatus.values()));
-        model.addAttribute("tokens", tokenRepository.countByBagID(id));
+        model.addAttribute("tokens", tokenRepository.countByBagId(id));
 
         return "bag";
     }

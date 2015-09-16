@@ -9,11 +9,11 @@ public class ReplicationRequest {
 
     private Long bagID;
 
-    public Long getBagID() {
+    public Long getBagId() {
         return bagID;
     }
 
-    public void setBagID(final Long bagID) {
+    public void setBagId(final Long bagID) {
         this.bagID = bagID;
     }
 }

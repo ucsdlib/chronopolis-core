@@ -75,7 +75,7 @@ public class ReplicationTask {
 
                 Node node = dist.getNode();
                 log.debug("Creating replication object for node {} for bag {}",
-                        node.getUsername(), bag.getID());
+                        node.getUsername(), bag.getId());
                 Replication replication = new Replication(node, bag, bagLink, tokenLink);
                 replication.setProtocol("rsync");
                 repls.add(replication);

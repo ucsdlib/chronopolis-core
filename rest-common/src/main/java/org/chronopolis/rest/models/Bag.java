@@ -1,8 +1,6 @@
 package org.chronopolis.rest.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +17,7 @@ import javax.persistence.Transient;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.chronopolis.rest.models.BagDistribution.*;
+import static org.chronopolis.rest.models.BagDistribution.BagDistributionStatus;
 
 /**
  * Representation of a bag in chronopolis
@@ -38,9 +36,7 @@ public class Bag implements Comparable<Bag> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonProperty("id")
-    // TODO: We can rename this to identity once we fix the schema
-    private Long ID;
+    private Long id;
 
     private String name;
     private String depositor;
@@ -78,8 +74,8 @@ public class Bag implements Comparable<Bag> {
         this.requiredReplications = DEFAULT_REPLICATIONS;
     }
 
-    public Long getID() {
-        return ID;
+    public Long getId() {
+        return id;
     }
 
     public String getName() {
@@ -147,7 +143,7 @@ public class Bag implements Comparable<Bag> {
     }
 
     public String resourceID() {
-        return "bag/" + ID;
+        return "bag/" + id;
     }
 
     public long getTotalFiles() {
@@ -175,7 +171,7 @@ public class Bag implements Comparable<Bag> {
 
         if (size != bag.size) return false;
         if (totalFiles != bag.totalFiles) return false;
-        if (!ID.equals(bag.ID)) return false;
+        if (!id.equals(bag.id)) return false;
         if (!depositor.equals(bag.depositor)) return false;
         if (!fixityAlgorithm.equals(bag.fixityAlgorithm)) return false;
         if (!location.equals(bag.location)) return false;
@@ -186,7 +182,7 @@ public class Bag implements Comparable<Bag> {
 
     @Override
     public int hashCode() {
-        int result = ID.hashCode();
+        int result = id.hashCode();
         result = 31 * result + name.hashCode();
         result = 31 * result + depositor.hashCode();
         result = 31 * result + location.hashCode();

@@ -72,7 +72,7 @@ public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
                 log.error("Cannot submit null bag!", e);
                 submitted = false;
             } catch (RejectedExecutionException e) {
-                log.error("Bag {} rejected!", b.getID(), e);
+                log.error("Bag {} rejected!", b.getId(), e);
                 submitted = false;
             }
 

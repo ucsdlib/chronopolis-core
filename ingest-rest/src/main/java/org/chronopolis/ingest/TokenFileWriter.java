@@ -47,7 +47,7 @@ public class TokenFileWriter {
      * @return
      */
     public boolean writeTokens(Bag bag) {
-        Long bagId = bag.getID();
+        Long bagId = bag.getId();
         String name = bag.getName();
         String depositor = bag.getDepositor();
 
@@ -71,7 +71,7 @@ public class TokenFileWriter {
             while (next) {
                 log.debug("Iterating page # {} size {} offset {}",
                         new Object[]{pageable.getPageNumber(), pageable.getPageSize(), pageable.getOffset()});
-                Page<AceToken> tokens = repository.findByBagID(bagId, pageable);
+                Page<AceToken> tokens = repository.findByBagId(bagId, pageable);
 
                 for (AceToken token : tokens) {
                     log.trace("Writing {}", token.getFilename());

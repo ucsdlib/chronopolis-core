@@ -72,8 +72,8 @@ public class TokenRunner implements Runnable {
 
     @Override
     public void run() {
-        Long bagId = bag.getID();
-        Long size = tokenRepository.countByBagID(bagId);
+        Long bagId = bag.getId();
+        Long size = tokenRepository.countByBagId(bagId);
 
         // We have 3 states we check for:
         // * if there are less tokens than the number of files in the bag, tokenize the bag
