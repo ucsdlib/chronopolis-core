@@ -46,10 +46,7 @@ public class Bag implements Comparable<Bag> {
     private String location;
     private String tokenLocation;
 
-    @JsonIgnore
     private String tokenDigest;
-
-    @JsonIgnore
     private String tagManifestDigest;
 
     @Enumerated(EnumType.STRING)
@@ -110,6 +107,7 @@ public class Bag implements Comparable<Bag> {
         this.tokenLocation = tokenLocation;
     }
 
+    @JsonIgnore
     public String getTokenDigest() {
         return tokenDigest;
     }
@@ -118,6 +116,7 @@ public class Bag implements Comparable<Bag> {
         this.tokenDigest = tokenDigest;
     }
 
+    @JsonIgnore
     public String getTagManifestDigest() {
         return tagManifestDigest;
     }
@@ -207,6 +206,7 @@ public class Bag implements Comparable<Bag> {
         return requiredReplications;
     }
 
+    @JsonIgnore
     public Set<BagDistribution> getDistributions() {
         return distributions;
     }
@@ -225,11 +225,11 @@ public class Bag implements Comparable<Bag> {
         distributions.add(distribution);
     }
 
-    public Set<Node> getReplicatingNodes() {
-        Set<Node> replicatingNodes = new HashSet<>();
+    public Set<String> getReplicatingNodes() {
+        Set<String> replicatingNodes = new HashSet<>();
         for (BagDistribution distribution : distributions) {
             if (distribution.getStatus() == BagDistributionStatus.REPLICATE) {
-                replicatingNodes.add(distribution.getNode());
+                replicatingNodes.add(distribution.getNode().getUsername());
             }
         }
         return replicatingNodes;

@@ -125,7 +125,9 @@ public class StagingControllerTest extends IngestTest {
                 request,
                 Bag.class);
 
-        assertEquals(1, bag.getBody().getDistributions().size());
+        // Pull from the database to check the distribution record
+        Bag fromDb = bagService.findBag(bag.getBody().getId());
+        assertEquals(1, fromDb.getDistributions().size());
     }
 
 

@@ -7,6 +7,7 @@ import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationSearchCriteria;
 import org.chronopolis.ingest.repository.ReplicationService;
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.BagDistribution;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.Node;
 import org.chronopolis.rest.models.Replication;
@@ -30,6 +31,7 @@ import java.util.Set;
 import static org.chronopolis.ingest.api.Params.PAGE;
 import static org.chronopolis.ingest.api.Params.PAGE_SIZE;
 import static org.chronopolis.ingest.api.Params.STATUS;
+import static org.chronopolis.rest.models.BagDistribution.BagDistributionStatus.REPLICATE;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 
 /**
@@ -175,11 +177,20 @@ public class ReplicationController {
         // else check if the replicating node reported any problems
         // TODO: Hold out on failure until x number of times?
         if (success) {
+            // First set the new distribution record
+            // TODO: Get this from the DB
             update.setStatus(ReplicationStatus.SUCCESS);
-            Set<Node> nodes = bag.getReplicatingNodes();
-            nodes.add(node);
+            Set<BagDistribution> distributions = bag.getDistributions();
+            for (BagDistribution distribution : distributions) {
+                if (distribution.getNode().equals(node)) {
+                    distribution.setStatus(REPLICATE);
+                }
+            }
 
-            // And last check to see if the bag has been replicated
+
+            // Then check to see if the bag has been fully replicated
+            // TODO: This can be gathered from the above
+            Set<String> nodes = bag.getReplicatingNodes();
             if (nodes.size() >= bag.getRequiredReplications()) {
                 log.debug("Setting bag {}::{} as replicated",
                         bag.getDepositor(),

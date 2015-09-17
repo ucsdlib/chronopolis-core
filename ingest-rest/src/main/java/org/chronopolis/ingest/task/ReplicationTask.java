@@ -69,6 +69,7 @@ public class ReplicationTask {
             Set<BagDistribution> distributions = bag.getDistributions();
             List<Replication> repls = new ArrayList<>();
             for (BagDistribution dist : distributions) {
+                // Ignore replications which already occurred
                 if (dist.getStatus() == BagDistributionStatus.REPLICATE) {
                     continue;
                 }

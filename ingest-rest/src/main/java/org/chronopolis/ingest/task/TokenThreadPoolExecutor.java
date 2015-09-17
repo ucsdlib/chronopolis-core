@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
     private final Logger log = LoggerFactory.getLogger(TokenThreadPoolExecutor.class);
 
+    // TODO: Check bag compareTo
     private Set<Bag> workingBags = new ConcurrentSkipListSet<>();
     private TokenRunner.Factory factory;
 

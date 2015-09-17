@@ -4,7 +4,6 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.BagDistribution;
 import org.chronopolis.rest.models.IngestRequest;
 import org.chronopolis.rest.models.Node;
 import org.slf4j.Logger;
@@ -25,6 +24,8 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.chronopolis.rest.models.BagDistribution.BagDistributionStatus.DISTRIBUTE;
 
 /**
  * Class to initialize bags... or something
@@ -61,7 +62,7 @@ public class BagInitializer {
             Node node = repository.findByUsername(nodeName);
             if (node != null) {
                 log.debug("Creating dist record for {}", nodeName);
-                bag.addDistribution(node, BagDistribution.BagDistributionStatus.DISTRIBUTE);
+                bag.addDistribution(node, DISTRIBUTE);
             }
         }
     }
