@@ -1,6 +1,8 @@
 package org.chronopolis.ingest.api;
 
+import com.google.common.collect.ImmutableMap;
 import org.chronopolis.ingest.IngestSettings;
+import org.chronopolis.ingest.controller.ControllerUtil;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.BagSearchCriteria;
@@ -12,8 +14,6 @@ import org.chronopolis.rest.models.IngestRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,8 +28,10 @@ import java.util.Map;
 import static org.chronopolis.ingest.BagInitializer.initializeBag;
 import static org.chronopolis.ingest.api.Params.DEPOSITOR;
 import static org.chronopolis.ingest.api.Params.NAME;
-import static org.chronopolis.ingest.api.Params.PAGE;
-import static org.chronopolis.ingest.api.Params.PAGE_SIZE;
+import static org.chronopolis.ingest.api.Params.SORT_BY_SIZE;
+import static org.chronopolis.ingest.api.Params.SORT_BY_TOTAL_FILES;
+import static org.chronopolis.ingest.api.Params.SORT_SIZE;
+import static org.chronopolis.ingest.api.Params.SORT_TOTAL_FILES;
 import static org.chronopolis.ingest.api.Params.STATUS;
 
 /**
@@ -65,19 +67,13 @@ public class StagingController {
     @RequestMapping(value = "bags", method = RequestMethod.GET)
     public Iterable<Bag> getBags(Principal principal,
                                  @RequestParam Map<String, String> params) {
-        Integer pageNum = params.containsKey(PAGE)
-                ? Integer.parseInt(params.get(PAGE))
-                : 0;
-        Integer pageSize = params.containsKey(PAGE_SIZE)
-                ? Integer.parseInt(params.get(PAGE_SIZE))
-                : 20;
-
         BagSearchCriteria criteria = new BagSearchCriteria()
                 .withDepositor(params.containsKey(DEPOSITOR) ? params.get(DEPOSITOR) : null)
                 .withName(params.containsKey(NAME) ? params.get(NAME) : null)
                 .withStatus(params.containsKey(STATUS) ? BagStatus.valueOf(params.get(STATUS)) : null);
 
-        return bagService.findBags(criteria, new PageRequest(pageNum, pageSize, Sort.Direction.ASC, "id"));
+
+        return bagService.findBags(criteria, ControllerUtil.createPageRequest(params, valid()));
     }
 
     /**
@@ -143,5 +139,15 @@ public class StagingController {
         return bag;
     }
 
+    /**
+     * Return a map of valid parameters
+     *
+     * @return
+     */
+    private Map<String, String> valid() {
+        return ImmutableMap.of(
+                SORT_BY_TOTAL_FILES, SORT_TOTAL_FILES,
+                SORT_BY_SIZE, SORT_SIZE);
+    }
 
 }

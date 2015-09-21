@@ -1,5 +1,6 @@
 package org.chronopolis.ingest.api;
 
+import com.google.common.collect.ImmutableMap;
 import org.chronopolis.ingest.controller.ControllerUtil;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.BagService;
@@ -28,11 +29,8 @@ import java.security.Principal;
 import java.util.Map;
 import java.util.Set;
 
-import static org.chronopolis.ingest.api.Params.PAGE;
-import static org.chronopolis.ingest.api.Params.PAGE_SIZE;
 import static org.chronopolis.ingest.api.Params.STATUS;
 import static org.chronopolis.rest.models.BagDistribution.BagDistributionStatus.REPLICATE;
-import static org.springframework.data.domain.Sort.Direction.ASC;
 
 /**
  * REST controller for replication methods
@@ -252,12 +250,6 @@ public class ReplicationController {
     @RequestMapping(method = RequestMethod.GET)
     public Iterable<Replication> replications(Principal principal,
                                               @RequestParam Map<String, String> params) {
-        Integer page = params.containsKey(PAGE)
-                ? Integer.parseInt(params.get(PAGE))
-                : 0;
-        Integer pageSize = params.containsKey(PAGE_SIZE)
-                ? Integer.parseInt(params.get(PAGE_SIZE))
-                : 20;
         String name = null;
         if (!ControllerUtil.hasRoleAdmin()) {
             name = principal.getName();
@@ -273,7 +265,9 @@ public class ReplicationController {
                 .withNodeUsername(name)
                 .withStatus(status);
 
-        return replicationService.getReplications(criteria, new PageRequest(page, pageSize, ASC, "id"));
+        PageRequest pr = ControllerUtil.createPageRequest(params, ImmutableMap.<String, String>of());
+
+        return replicationService.getReplications(criteria, pr);
     }
 
     /**
