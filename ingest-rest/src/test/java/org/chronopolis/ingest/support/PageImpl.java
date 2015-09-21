@@ -1,5 +1,6 @@
 package org.chronopolis.ingest.support;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -68,6 +69,19 @@ public class PageImpl<T> implements Page<T> {
         return sort;
     }
 
+    @JsonSetter("sort")
+    public void setSort(List<SortSerializer> sorts) {
+        List<Sort.Order> sorders = new ArrayList<>();
+
+        for (SortSerializer sort: sorts) {
+            Sort.Direction dir = Sort.Direction.fromString(sort.direction);
+            Sort.NullHandling nh = Sort.NullHandling.valueOf(sort.nullHandling);
+            sorders.add(new Sort.Order(dir, sort.property, nh));
+        }
+
+        this.sort = new Sort(sorders);
+    }
+
     @Override
     public boolean isFirst() {
         return first;
@@ -101,5 +115,36 @@ public class PageImpl<T> implements Page<T> {
     @Override
     public Iterator iterator() {
         return content.iterator();
+    }
+
+    public static class SortSerializer {
+        String direction;
+        String property;
+        boolean ignoreCase;
+        String nullHandling;
+        boolean ascending;
+
+        public SortSerializer() {
+        }
+
+        public String getDirection() {
+            return direction;
+        }
+
+        public String getProperty() {
+            return property;
+        }
+
+        public boolean isIgnoreCase() {
+            return ignoreCase;
+        }
+
+        public String getNullHandling() {
+            return nullHandling;
+        }
+
+        public boolean isAscending() {
+            return ascending;
+        }
     }
 }

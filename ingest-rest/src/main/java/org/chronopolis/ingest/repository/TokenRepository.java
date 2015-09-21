@@ -17,9 +17,9 @@ import java.util.List;
 public interface TokenRepository extends JpaRepository<AceToken, Long> ,
                                          QueryDslPredicateExecutor<AceToken> {
 
-    List<AceToken> findByBagID(Long bagID);
-    Page<AceToken> findByBagID(Long bagId, Pageable pable);
+    List<AceToken> findByBagId(Long bagId);
+    Page<AceToken> findByBagId(Long bagId, Pageable pable);
 
-    Long countByBagID(Long bagID);
+    Long countByBagId(Long bagId);
 
 }

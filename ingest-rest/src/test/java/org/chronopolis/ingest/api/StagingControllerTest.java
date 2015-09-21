@@ -83,7 +83,7 @@ public class StagingControllerTest extends IngestTest {
                 request,
                 Bag.class);
 
-        assertEquals(Long.valueOf(1), bag.getBody().getID());
+        assertEquals(Long.valueOf(1), bag.getBody().getId());
     }
 
     @Test
@@ -101,7 +101,7 @@ public class StagingControllerTest extends IngestTest {
                 request,
                 Bag.class);
 
-        assertEquals(Long.valueOf(11), bag.getBody().getID());
+        assertEquals(Long.valueOf(11), bag.getBody().getId());
         assertEquals(Long.valueOf(3), Long.valueOf(bag.getBody().getTotalFiles()));
     }
 
@@ -125,7 +125,9 @@ public class StagingControllerTest extends IngestTest {
                 request,
                 Bag.class);
 
-        assertEquals(1, bag.getBody().getDistributions().size());
+        // Pull from the database to check the distribution record
+        Bag fromDb = bagService.findBag(bag.getBody().getId());
+        assertEquals(1, fromDb.getDistributions().size());
     }
 
 

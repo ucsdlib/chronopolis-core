@@ -23,6 +23,6 @@ public interface ReplicationRepository extends JpaRepository<Replication, Long>,
     Collection<Replication> findByNodeUsername(String username);
     Page<Replication> findByNodeUsername(String username, Pageable pageable);
 
-    Replication findByNodeUsernameAndBagID(String username, Long id);
+    // Replication findByNodeUsernameAndBagId(String username, Long id);
 
 }

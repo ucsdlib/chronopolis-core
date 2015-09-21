@@ -41,7 +41,7 @@ public class TokenFilter implements Filter<Path> {
     }
 
     private boolean dbContains(Path path) {
-        BooleanExpression predicate = token.bag.ID.eq(id)
+        BooleanExpression predicate = token.bag.id.eq(id)
                 .and(token.filename.eq(path.toString()));
         AceToken one = repository.findOne(predicate);
         return one != null;
