@@ -1,8 +1,8 @@
 package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableMap;
+import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.IngestSettings;
-import org.chronopolis.ingest.controller.ControllerUtil;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.BagSearchCriteria;
@@ -41,7 +41,7 @@ import static org.chronopolis.ingest.api.Params.STATUS;
  */
 @RestController
 @RequestMapping("/api")
-public class StagingController {
+public class StagingController extends IngestController {
 
     private final Logger log = LoggerFactory.getLogger(StagingController.class);
 
@@ -72,8 +72,7 @@ public class StagingController {
                 .withName(params.containsKey(NAME) ? params.get(NAME) : null)
                 .withStatus(params.containsKey(STATUS) ? BagStatus.valueOf(params.get(STATUS)) : null);
 
-
-        return bagService.findBags(criteria, ControllerUtil.createPageRequest(params, valid()));
+        return bagService.findBags(criteria, createPageRequest(params, valid()));
     }
 
     /**

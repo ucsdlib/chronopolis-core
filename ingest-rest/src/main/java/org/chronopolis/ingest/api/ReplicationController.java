@@ -1,7 +1,7 @@
 package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableMap;
-import org.chronopolis.ingest.controller.ControllerUtil;
+import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.BagService;
 import org.chronopolis.ingest.repository.NodeRepository;
@@ -42,7 +42,7 @@ import static org.chronopolis.rest.models.BagDistribution.BagDistributionStatus.
  */
 @RestController
 @RequestMapping("/api/replications")
-public class ReplicationController {
+public class ReplicationController extends IngestController {
     private final Logger log = LoggerFactory.getLogger(ReplicationController.class);
 
     @Autowired
@@ -111,7 +111,7 @@ public class ReplicationController {
                 .withId(replicationId);
 
         // If a user is not an admin, make sure we only search for THEIR replications
-        if (!ControllerUtil.hasRoleAdmin()) {
+        if (!hasRoleAdmin()) {
             criteria.withNodeUsername(principal.getName());
         }
         Replication update = replicationService.getReplication(criteria);
@@ -251,7 +251,7 @@ public class ReplicationController {
     public Iterable<Replication> replications(Principal principal,
                                               @RequestParam Map<String, String> params) {
         String name = null;
-        if (!ControllerUtil.hasRoleAdmin()) {
+        if (!hasRoleAdmin()) {
             name = principal.getName();
         }
 
@@ -265,7 +265,7 @@ public class ReplicationController {
                 .withNodeUsername(name)
                 .withStatus(status);
 
-        PageRequest pr = ControllerUtil.createPageRequest(params, ImmutableMap.<String, String>of());
+        PageRequest pr = createPageRequest(params, ImmutableMap.<String, String>of());
 
         return replicationService.getReplications(criteria, pr);
     }

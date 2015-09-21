@@ -1,5 +1,6 @@
 package org.chronopolis.ingest.controller;
 
+import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.models.BagUpdate;
 import org.chronopolis.ingest.repository.BagRepository;
@@ -31,7 +32,7 @@ import static org.chronopolis.ingest.BagInitializer.initializeBag;
  * Created by shake on 4/17/15.
  */
 @Controller
-public class BagController {
+public class BagController extends IngestController {
     private final Logger log = LoggerFactory.getLogger(BagController.class);
 
     @Autowired
@@ -61,15 +62,6 @@ public class BagController {
 
         Collection<Bag> bags = bagRepository.findAll();
         model.addAttribute("bags", bags);
-
-        /*
-        log.debug("Adding count for bags");
-        for (Bag bag : bags) {
-            model.addAttribute(String.valueOf(bag.getId()),
-                               tokenRepository.countByBagId(bag.getId()));
-        }
-        log.debug("Done adding count");
-        */
 
         return "bags";
     }
@@ -171,7 +163,7 @@ public class BagController {
     public String getReplications(Model model, Principal principal) {
         log.info("Getting replications for user {}", principal.getName());
         Collection<Replication> replications;
-        if (ControllerUtil.hasRoleAdmin()) {
+        if (hasRoleAdmin()) {
             replications = replicationRepository.findAll();
         } else {
             replications = replicationRepository.findByNodeUsername(principal.getName());

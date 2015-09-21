@@ -1,4 +1,4 @@
-package org.chronopolis.ingest.controller;
+package org.chronopolis.ingest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,12 +17,12 @@ import static org.chronopolis.ingest.api.Params.SORT_DIRECTION;
 import static org.chronopolis.ingest.api.Params.SORT_ID;
 
 /**
- * Some utility functions for our controllers
+ * Class to hold utility methods for controllers
  *
- * Created by shake on 4/20/15.
+ * Created by shake on 9/21/15.
  */
-public class ControllerUtil {
-    private static final Logger log = LoggerFactory.getLogger(ControllerUtil.class);
+public class IngestController {
+    private static final Logger log = LoggerFactory.getLogger(IngestController.class);
 
     /**
      * Determine if the user in our current context has administrative privileges

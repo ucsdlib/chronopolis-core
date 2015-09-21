@@ -1,5 +1,6 @@
 package org.chronopolis.ingest.controller;
 
+import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.models.UserRequest;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.rest.models.Node;
@@ -27,7 +28,7 @@ import java.util.HashSet;
  * Created by shake on 4/15/15.
  */
 @Controller
-public class SiteController {
+public class SiteController extends IngestController {
 
     private final Logger log = LoggerFactory.getLogger(SiteController.class);
 
@@ -75,7 +76,7 @@ public class SiteController {
         String user = principal.getName();
 
         // Give admins a view into all users
-        if (ControllerUtil.hasRoleAdmin()) {
+        if (hasRoleAdmin()) {
             // TODO: This is pretty ugly but it lets us get all the users, except the admin...
             //       Maybe we could use the jdbctemplate and execute our own query instead
             //       since we're only doing a SELECT anyways
