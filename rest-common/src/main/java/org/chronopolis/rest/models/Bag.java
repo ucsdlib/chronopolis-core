@@ -238,4 +238,9 @@ public class Bag implements Comparable<Bag> {
     public void addDistribution(BagDistribution dist) {
         distributions.add(dist);
     }
+
+    public Bag setRequiredReplications(int requiredReplications) {
+        this.requiredReplications = requiredReplications;
+        return this;
+    }
 }

@@ -101,6 +101,7 @@ public class BagInitializer {
         bag.setSize(bagSize[0]);
         bag.setTotalFiles(fileCount[0]);
         bag.setFixityAlgorithm("SHA-256");
+        bag.setRequiredReplications(request.getRequiredReplications());
 
         createBagDistributions(bag, request.getReplicatingNodes());
     }
