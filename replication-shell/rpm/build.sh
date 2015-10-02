@@ -55,4 +55,4 @@ cp src/main/sh/replication.sh rpm/$sources
 
 # cd back to where we started and build the rpm
 cd $rpmdir
-rpmbuild -ba --define="_topdir $PWD" --define="_tmppath $PWD/tmp" --define="ver $version" --define="rel $BUILD_VERSION" SPECS/replication-shell.spec
+rpmbuild -ba --define="_topdir $PWD" --define="_tmppath $PWD/tmp" --define="ver $version" --define="rel $BUILD_NUMBER" SPECS/replication-shell.spec
