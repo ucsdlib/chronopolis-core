@@ -59,7 +59,7 @@ public class BagRESTStepListener implements StepExecutionListener {
 
             // If there are any exceptions, fail and stop replication
             try {
-                updated = ingestAPI.updateReplication(replication.getID(), replication);
+                updated = ingestAPI.updateReplication(replication.getId(), replication);
             } catch (Exception e) {
                 log.error("Error communicating with the ingest-server", e);
                 stepExecution.getFailureExceptions().add(e);
@@ -77,7 +77,7 @@ public class BagRESTStepListener implements StepExecutionListener {
         } else {
             // general failure
             replication.setStatus(ReplicationStatus.FAILURE);
-            ingestAPI.updateReplication(replication.getID(), replication);
+            ingestAPI.updateReplication(replication.getId(), replication);
             sendFailure(mail, settings, replication, stepExecution.getFailureExceptions());
         }
 

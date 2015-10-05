@@ -18,7 +18,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -112,11 +111,11 @@ public class CommandLineService implements ReplicationService {
         log.debug("Found {} replications", replications.getNumberOfElements());
 
         for (Replication replication : replications) {
-            log.info("Starting job for replication id {}", replication.getID());
+            log.info("Starting job for replication id {}", replication.getId());
             if (update) {
                 log.info("Updating replication");
                 replication.setStatus(ReplicationStatus.STARTED);
-                ingestAPI.updateReplication(replication.getID(), replication);
+                ingestAPI.updateReplication(replication.getId(), replication);
             }
             jobStarter.addJobFromRestful(replication);
         }

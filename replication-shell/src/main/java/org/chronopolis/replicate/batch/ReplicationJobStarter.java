@@ -157,7 +157,7 @@ public class ReplicationJobStarter {
                 replication.setStatus(ReplicationStatus.SUCCESS);
             }
 
-            ingestAPI.updateReplication(replication.getID(), replication);
+            ingestAPI.updateReplication(replication.getId(), replication);
         }
     }
 

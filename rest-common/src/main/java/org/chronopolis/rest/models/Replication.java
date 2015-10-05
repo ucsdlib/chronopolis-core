@@ -85,7 +85,7 @@ public class Replication {
         this.tokenLink = tokenLink;
     }
 
-    public Long getID() {
+    public Long getId() {
         return id;
     }
 

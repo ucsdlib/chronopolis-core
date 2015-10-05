@@ -124,7 +124,7 @@ public class ReplicationController extends IngestController {
         Bag bag = update.getBag();
 
         // TODO: Move logic outside of here? (yes)
-        log.info("Updating replication {}", replication.getID());
+        log.info("Updating replication {}", replication.getId());
 
         String receivedTokenFixity = replication.getReceivedTokenFixity();
         String receivedTagFixity = replication.getReceivedTagFixity();
