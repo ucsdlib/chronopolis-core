@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# TODO: Fill the SOURCES folder with the artifacts after a maven build... maybe just execute the mvn install here
 rpmdir=$PWD
 sources=SOURCES
 finaljar=$sources/replication-shell.jar
@@ -34,7 +33,7 @@ if [ $? -ne 0 ]; then
     exit
 fi
 
-jarfile=target/replication-shell-$version-SNAPSHOT.jar
+jarfile=target/replication-shell-$version-$release_type.jar
 
 if [ ! -e $jarfile ]; then
     echo "Building latest jar..."
