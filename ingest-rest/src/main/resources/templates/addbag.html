@@ -21,10 +21,11 @@
         <div><label>Depositor: <input type="text" name="depositor" placeholder="depositor-name"/></label></div>
         <div><label>Location: <input type="text" name="location" placeholder="depositor-name/bag-name"/></label></div>
 
-        <!-- TODO: Iterate through nodes -->
-        <div><label>Replicate to NCAR<input type="checkbox" name="replicatingNodes" value="ncar"/></label></div>
-        <div><label>Replicate to UCSD<input type="checkbox" name="replicatingNodes" value="ucsd"/></label></div>
-        <div><label>Replicate to UMIACS <input type="checkbox" name="replicatingNodes" value="umiacs"/></label></div>
+        <!--@thymesVar id="nodes" type="List<Node>"-->
+        <!--@thymesVar id="node" type="org.chronopolis.rest.models.Node"-->
+        <div th:each="node: ${nodes}">
+            <div><label th:text="'Replicate to ' + ${node.username}"/><input type="checkbox" name="replicatingNodes" th:value="${node.username}"/></div>
+        </div>
         <input type="submit" value="Create Bag"/> <!-- onclick="submit()"/> -->
     </form>
         </div>

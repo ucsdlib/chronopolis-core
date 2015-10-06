@@ -4,6 +4,7 @@ import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.models.BagUpdate;
 import org.chronopolis.ingest.repository.BagRepository;
+import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.rest.models.Bag;
@@ -43,6 +44,9 @@ public class BagController extends IngestController {
 
     @Autowired
     TokenRepository tokenRepository;
+
+    @Autowired
+    NodeRepository nodeRepository;
 
     @Autowired
     IngestSettings settings;
@@ -117,6 +121,7 @@ public class BagController extends IngestController {
      */
     @RequestMapping(value = "/bags/add", method = RequestMethod.GET)
     public String addBag(Model model) {
+        model.addAttribute("nodes", nodeRepository.findAll());
         return "addbag";
     }
 
@@ -134,6 +139,8 @@ public class BagController extends IngestController {
         String name = request.getName();
         String depositor = request.getDepositor();
         Bag bag = bagRepository.findByNameAndDepositor(name, depositor);
+        request.setRequiredReplications(request.getReplicatingNodes().size());
+
         // only add new bags
         if (bag == null) {
             bag = new Bag(name, depositor);
