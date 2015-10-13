@@ -132,6 +132,8 @@ public class ReplicationQueryTask {
 
                 // Add our current execution to our filter list
                 filter.add(filterString);
+            } else {
+                log.info("Skipping replication {}, already in progress", replication.getId());
             }
         }
     }
