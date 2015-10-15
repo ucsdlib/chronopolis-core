@@ -2,6 +2,7 @@ package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableMap;
 import org.chronopolis.ingest.IngestController;
+import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.BagService;
 import org.chronopolis.ingest.repository.NodeRepository;
@@ -54,6 +55,9 @@ public class ReplicationController extends IngestController {
     @Autowired
     ReplicationService replicationService;
 
+    @Autowired
+    IngestSettings settings;
+
     /**
      * Create a replication request for a given node and bag
      * <p/>
@@ -64,11 +68,13 @@ public class ReplicationController extends IngestController {
      * @return
      */
     @RequestMapping(method = RequestMethod.POST)
-    public Replication createReplication(Principal principal,
-                                         @RequestBody ReplicationRequest request) {
+    public Replication createReplication(@RequestBody ReplicationRequest request) {
+        return replicationService.create(request, settings);
+
         // Create a new replication for the Node (user) based on the Bag Id
         // Return a 404 if the bag is not found
         // If a replication already exists, return it instead of creating a new one
+        /*
         Node node = nodeRepository.findByUsername(principal.getName());
         Bag bag = bagService.findBag(request.getBagId());
 
@@ -92,6 +98,7 @@ public class ReplicationController extends IngestController {
             replicationService.save(action);
         }
         return action;
+        */
     }
 
     /**
