@@ -7,13 +7,23 @@ package org.chronopolis.rest.models;
  */
 public class ReplicationRequest {
 
-    private Long bagID;
+    private Long bagId;
+    private Long nodeId;
 
     public Long getBagId() {
-        return bagID;
+        return bagId;
     }
 
-    public void setBagId(final Long bagID) {
-        this.bagID = bagID;
+    public void setBagId(final Long bagId) {
+        this.bagId = bagId;
+    }
+
+    public Long getNodeId() {
+        return nodeId;
+    }
+
+    public ReplicationRequest setNodeId(Long nodeId) {
+        this.nodeId = nodeId;
+        return this;
     }
 }
