@@ -70,40 +70,12 @@ public class ReplicationController extends IngestController {
     @RequestMapping(method = RequestMethod.POST)
     public Replication createReplication(@RequestBody ReplicationRequest request) {
         return replicationService.create(request, settings);
-
-        // Create a new replication for the Node (user) based on the Bag Id
-        // Return a 404 if the bag is not found
-        // If a replication already exists, return it instead of creating a new one
-        /*
-        Node node = nodeRepository.findByUsername(principal.getName());
-        Bag bag = bagService.findBag(request.getBagId());
-
-        if (bag == null) {
-            throw new NotFoundException("Bag " + request.getBagId());
-        }
-
-        ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
-                .withBagId(bag.getId())
-                .withNodeUsername(node.getUsername());
-
-        // TODO: This can actually return multiple replications, we'll want to filter as well
-        Replication action = replicationService.getReplication(criteria);
-
-        if (action == null) {
-            log.info("Creating new replication for node {} and bag {}",
-                    node.getUsername(),
-                    bag.getId());
-
-            action = new Replication(node, bag);
-            replicationService.save(action);
-        }
-        return action;
-        */
     }
 
     /**
      * Update a given replication based on the id of the path used
      * TODO: Update state properly
+     * TODO: either create a new endpoint (../fixity) or move to the bag/repl object
      *
      * @param principal     - authentication information
      * @param replicationId - the id of the replication to update
@@ -133,12 +105,12 @@ public class ReplicationController extends IngestController {
         // TODO: Move logic outside of here? (yes)
         log.info("Updating replication {}", replication.getId());
 
-        String receivedTokenFixity = replication.getReceivedTokenFixity();
-        String receivedTagFixity = replication.getReceivedTagFixity();
+        // String receivedTokenFixity = replication.getReceivedTokenFixity();
+        // String receivedTagFixity = replication.getReceivedTagFixity();
         boolean success = true;
 
         // Only update status if we were given a fixity value
-        // TODO: separate these (either a new endpoint (../fixity) or move to the bag object)
+        /*
         if (receivedTokenFixity != null) {
             log.debug("Received token fixity of {}", receivedTokenFixity);
             update.setReceivedTokenFixity(receivedTokenFixity);
@@ -172,8 +144,10 @@ public class ReplicationController extends IngestController {
         } else {
             success = false;
         }
+        */
 
         // Check if the client says it succeeded (likely from a previous replication)
+        /*
         if (isClientSuccess(replication.getStatus())) {
             success = true;
         }
@@ -206,6 +180,16 @@ public class ReplicationController extends IngestController {
                 && !isFailureStatus(update.getStatus())) {   // and that we haven't already set a failed state
             log.info("Updating status from client");
             update.setStatus(replication.getStatus());
+        }
+        */
+
+        // only allow updates to nominal
+        if (!isFailureStatus(update.getStatus())) {
+            update.setReceivedTokenFixity(replication.getReceivedTokenFixity());
+            update.setReceivedTagFixity(replication.getReceivedTagFixity());
+            if (isClientStatus(replication.getStatus())) {
+                update.setStatus(replication.getStatus());
+            }
         }
 
         replicationService.save(update);
@@ -244,7 +228,8 @@ public class ReplicationController extends IngestController {
      */
     private boolean isFailureStatus(ReplicationStatus status) {
         return status == ReplicationStatus.FAILURE_TOKEN_STORE
-            || status == ReplicationStatus.FAILURE_TAG_MANIFEST;
+            || status == ReplicationStatus.FAILURE_TAG_MANIFEST
+            || status == ReplicationStatus.FAILURE;
     }
 
     /**
