@@ -4,8 +4,10 @@ package org.chronopolis.rest.models;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
+import org.chronopolis.rest.listener.ReplicationUpdateListener;
 
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
@@ -21,6 +23,7 @@ import javax.persistence.Transient;
  * Created by shake on 11/5/14.
  */
 @Entity
+@EntityListeners(ReplicationUpdateListener.class)
 public class Replication {
 
     @Id
