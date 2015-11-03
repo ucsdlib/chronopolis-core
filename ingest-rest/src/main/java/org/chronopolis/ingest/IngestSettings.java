@@ -12,6 +12,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class IngestSettings extends ChronopolisSettings {
 
+    @Value("${ingest.ajp.enabled:true}")
+    private Boolean ajpEnabled;
+
+    @Value("${ingest.ajp.port:8009}")
+    private Integer ajpPort;
+
     @Value("${ingest.replication.user:chrono}")
     private String replicationUser;
 
@@ -32,5 +38,23 @@ public class IngestSettings extends ChronopolisSettings {
 
     public void setReplicationServer(final String replicationServer) {
         this.replicationServer = replicationServer;
+    }
+
+    public Boolean isAjpEnabled() {
+        return ajpEnabled;
+    }
+
+    public IngestSettings setAjpEnabled(Boolean ajpEnabled) {
+        this.ajpEnabled = ajpEnabled;
+        return this;
+    }
+
+    public Integer getAjpPort() {
+        return ajpPort;
+    }
+
+    public IngestSettings setAjpPort(Integer ajpPort) {
+        this.ajpPort = ajpPort;
+        return this;
     }
 }

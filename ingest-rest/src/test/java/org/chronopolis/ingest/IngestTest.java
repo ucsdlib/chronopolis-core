@@ -20,6 +20,7 @@ public class IngestTest {
         System.setProperty("spring.datasource.schema", "classpath:/schema.sql");
         System.setProperty("spring.jpa.hibernate.ddl-auto", "validate");
         System.setProperty("flyway.enabled", "false");
+        System.setProperty("ingest.ajp.enabled", "false");
 
         // Get the test resources root
         URL bags = ClassLoader.getSystemClassLoader().getResource("bags");
