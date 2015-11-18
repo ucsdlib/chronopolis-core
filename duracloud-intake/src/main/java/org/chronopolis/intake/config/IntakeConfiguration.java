@@ -94,6 +94,8 @@ public class IntakeConfiguration {
                 stepBuilderFactory,
                 jobLauncher,
                 snapshotTasklet,
+                null,
+                null,
                 new PropertiesDataCollector(settings));
     }
 
