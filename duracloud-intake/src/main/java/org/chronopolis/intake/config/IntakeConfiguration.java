@@ -93,8 +93,8 @@ public class IntakeConfiguration {
         return new SnapshotJobManager(jobBuilderFactory,
                 stepBuilderFactory,
                 jobLauncher,
-                snapshotTasklet,
                 null,
+                snapshotTasklet,
                 null,
                 new PropertiesDataCollector(settings));
     }
