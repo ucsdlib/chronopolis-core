@@ -144,12 +144,26 @@ public class Replication {
         return protocol;
     }
 
-    public void setReceivedTokenFixity(final String receivedTokenFixity) {
-        this.receivedTokenFixity = receivedTokenFixity;
+    /**
+     * Update the receivedTokenFixity of a replication if it has not already been set
+     *
+     * @param fixity the received fixity value
+     */
+    public void setReceivedTokenFixity(final String fixity) {
+        if (receivedTokenFixity == null) {
+            this.receivedTokenFixity = fixity;
+        }
     }
 
-    public void setReceivedTagFixity(final String receivedTagFixity) {
-        this.receivedTagFixity = receivedTagFixity;
+    /**
+     * Update the received tag fixity of a replication if it has not already been set
+     *
+     * @param fixity the received fixity value
+     */
+    public void setReceivedTagFixity(final String fixity) {
+        if (receivedTagFixity == null) {
+            this.receivedTagFixity = fixity;
+        }
     }
 
     public String getReceivedTagFixity() {
