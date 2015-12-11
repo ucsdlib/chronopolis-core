@@ -77,6 +77,7 @@ public class BagRESTStepListener implements StepExecutionListener {
         } else {
             // general failure
             replication.setStatus(ReplicationStatus.FAILURE);
+            replication.setNodeUser(settings.getNode());
             ingestAPI.updateReplication(replication.getId(), replication);
             sendFailure(mail, settings, replication, stepExecution.getFailureExceptions());
         }
