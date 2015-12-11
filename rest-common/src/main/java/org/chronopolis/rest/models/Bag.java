@@ -1,10 +1,10 @@
 package org.chronopolis.rest.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -12,12 +12,12 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import javax.persistence.Transient;
 import java.util.HashSet;
 import java.util.Set;
+
+import static org.chronopolis.rest.models.BagDistribution.BagDistributionStatus;
 
 /**
  * Representation of a bag in chronopolis
@@ -36,9 +36,7 @@ public class Bag implements Comparable<Bag> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonProperty("id")
-    // TODO: We can rename this to identity once we fix the schema
-    private Long ID;
+    private Long id;
 
     private String name;
     private String depositor;
@@ -48,13 +46,9 @@ public class Bag implements Comparable<Bag> {
     private String location;
     private String tokenLocation;
 
-    @JsonIgnore
     private String tokenDigest;
-
-    @JsonIgnore
     private String tagManifestDigest;
 
-    @JsonIgnore
     @Enumerated(EnumType.STRING)
     private BagStatus status;
 
@@ -64,15 +58,8 @@ public class Bag implements Comparable<Bag> {
 
     private int requiredReplications;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "bag_replications",
-        joinColumns = {
-                @JoinColumn(name = "bag_id", nullable = false, updatable = false)},
-        inverseJoinColumns = {
-                @JoinColumn(name = "node_id", nullable = false, updatable = false)
-    })
-    @JsonIgnore
-    private Set<Node> replicatingNodes = new HashSet<>();
+    @OneToMany(mappedBy = "bag", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private Set<BagDistribution> distributions = new HashSet<>();
 
     protected Bag() { // JPA
     }
@@ -84,8 +71,8 @@ public class Bag implements Comparable<Bag> {
         this.requiredReplications = DEFAULT_REPLICATIONS;
     }
 
-    public Long getID() {
-        return ID;
+    public Long getId() {
+        return id;
     }
 
     public String getName() {
@@ -120,6 +107,7 @@ public class Bag implements Comparable<Bag> {
         this.tokenLocation = tokenLocation;
     }
 
+    @JsonIgnore
     public String getTokenDigest() {
         return tokenDigest;
     }
@@ -128,6 +116,7 @@ public class Bag implements Comparable<Bag> {
         this.tokenDigest = tokenDigest;
     }
 
+    @JsonIgnore
     public String getTagManifestDigest() {
         return tagManifestDigest;
     }
@@ -153,7 +142,7 @@ public class Bag implements Comparable<Bag> {
     }
 
     public String resourceID() {
-        return "bag/" + ID;
+        return "bag/" + id;
     }
 
     public long getTotalFiles() {
@@ -181,7 +170,7 @@ public class Bag implements Comparable<Bag> {
 
         if (size != bag.size) return false;
         if (totalFiles != bag.totalFiles) return false;
-        if (!ID.equals(bag.ID)) return false;
+        if (!id.equals(bag.id)) return false;
         if (!depositor.equals(bag.depositor)) return false;
         if (!fixityAlgorithm.equals(bag.fixityAlgorithm)) return false;
         if (!location.equals(bag.location)) return false;
@@ -192,7 +181,7 @@ public class Bag implements Comparable<Bag> {
 
     @Override
     public int hashCode() {
-        int result = ID.hashCode();
+        int result = id.hashCode();
         result = 31 * result + name.hashCode();
         result = 31 * result + depositor.hashCode();
         result = 31 * result + location.hashCode();
@@ -213,11 +202,45 @@ public class Bag implements Comparable<Bag> {
         }
     }
 
-    public Set<Node> getReplicatingNodes() {
+    public int getRequiredReplications() {
+        return requiredReplications;
+    }
+
+    @JsonIgnore
+    public Set<BagDistribution> getDistributions() {
+        return distributions;
+    }
+
+    /**
+     * Helper for adding a BagDistribution object to a Bag
+     *
+     * @param node The node who will receive the bag
+     * @param status The initial status to use
+     */
+    public void addDistribution(Node node, BagDistributionStatus status) {
+        BagDistribution distribution = new BagDistribution();
+        distribution.setBag(this);
+        distribution.setNode(node);
+        distribution.setStatus(status);
+        distributions.add(distribution);
+    }
+
+    public Set<String> getReplicatingNodes() {
+        Set<String> replicatingNodes = new HashSet<>();
+        for (BagDistribution distribution : distributions) {
+            if (distribution.getStatus() == BagDistributionStatus.REPLICATE) {
+                replicatingNodes.add(distribution.getNode().getUsername());
+            }
+        }
         return replicatingNodes;
     }
 
-    public int getRequiredReplications() {
-        return requiredReplications;
+    public void addDistribution(BagDistribution dist) {
+        distributions.add(dist);
+    }
+
+    public Bag setRequiredReplications(int requiredReplications) {
+        this.requiredReplications = requiredReplications;
+        return this;
     }
 }

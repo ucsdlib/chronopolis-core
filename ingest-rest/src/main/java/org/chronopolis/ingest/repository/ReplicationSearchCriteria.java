@@ -31,7 +31,7 @@ public class ReplicationSearchCriteria {
 
     public ReplicationSearchCriteria withId(Long id) {
         if (id != null) {
-            criteria.put("ID", replication.id.eq(id));
+            criteria.put("id", replication.id.eq(id));
             this.id = id;
         }
         return this;
@@ -39,7 +39,7 @@ public class ReplicationSearchCriteria {
 
     public ReplicationSearchCriteria withBagId(Long bagId) {
         if (bagId != null) {
-            criteria.put("BAG_ID", replication.bag.ID.eq(bagId));
+            criteria.put("BAG_ID", replication.bag.id.eq(bagId));
             this.bagId = bagId;
         }
         return this;

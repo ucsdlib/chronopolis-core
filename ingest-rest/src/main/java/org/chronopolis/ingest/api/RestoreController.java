@@ -1,5 +1,6 @@
 package org.chronopolis.ingest.api;
 
+import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.exception.BadRequestException;
 import org.chronopolis.ingest.exception.ConflictException;
 import org.chronopolis.ingest.exception.NotFoundException;
@@ -35,7 +36,7 @@ import static org.chronopolis.ingest.api.Params.PAGE_SIZE;
  */
 @RestController
 @RequestMapping("/api/restorations")
-public class RestoreController {
+public class RestoreController extends IngestController {
     private final Logger log = LoggerFactory.getLogger(RestoreController.class);
 
     @Autowired

@@ -20,6 +20,9 @@ public class DPNSettings {
     @Value("${dpn.api-key:admin}")
     private String apiKey;
 
+    @Value("${dpn.node:chron}")
+    private String dpnNode;
+
     private List<String> dpnEndpoints;
 
     public String getApiKey() {
@@ -44,4 +47,12 @@ public class DPNSettings {
         }
     }
 
+    public String getDpnNode() {
+        return dpnNode;
+    }
+
+    public DPNSettings setDpnNode(String dpnNode) {
+        this.dpnNode = dpnNode;
+        return this;
+    }
 }

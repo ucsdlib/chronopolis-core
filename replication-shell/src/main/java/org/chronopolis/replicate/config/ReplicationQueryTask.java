@@ -115,23 +115,25 @@ public class ReplicationQueryTask {
 
     private void startReplications(List<Replication> replications, Set<String> filter, boolean update) {
         for (Replication replication : replications) {
-            log.debug("Replication {} has bag-id {}", replication.getID(), replication.getBagId());
+            log.debug("Replication {} has bag-id {}", replication.getId(), replication.getBagId());
             Bag bag = ingestAPI.getBag(replication.getBagId());
             replication.setBag(bag);
             String filterString = bag.getDepositor() + ":" + bag.getName();
             if (update) {
                 log.info("Updating replication");
                 replication.setStatus(ReplicationStatus.STARTED);
-                ingestAPI.updateReplication(replication.getID(), replication);
+                ingestAPI.updateReplication(replication.getId(), replication);
             }
 
             // Make sure we don't have a replication already in progress
             if (!filter.contains(filterString)) {
-                log.info("Starting job for replication id {}", replication.getID());
+                log.info("Starting job for replication id {}", replication.getId());
                 jobStarter.addJobFromRestful(replication);
 
                 // Add our current execution to our filter list
                 filter.add(filterString);
+            } else {
+                log.info("Skipping replication {}, already in progress", replication.getId());
             }
         }
     }

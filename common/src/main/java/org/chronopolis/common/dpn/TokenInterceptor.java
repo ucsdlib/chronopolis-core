@@ -15,7 +15,7 @@ public class TokenInterceptor implements RequestInterceptor {
 
     @Override
     public void intercept(RequestFacade requestFacade) {
-        String tokenAuth = "token " + token;
+        String tokenAuth = "Token token=" + token;
         requestFacade.addHeader("Authorization", tokenAuth);
 
         requestFacade.addHeader("Accept", "*/*");

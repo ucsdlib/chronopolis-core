@@ -1,15 +1,14 @@
 package org.chronopolis.intake.config;
 
-import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.common.ace.CredentialRequestInterceptor;
-import org.chronopolis.common.dpn.DPNService;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.common.settings.SMTPSettings;
+import org.chronopolis.earth.api.LocalAPI;
+import org.chronopolis.intake.duracloud.PropertiesDataCollector;
 import org.chronopolis.intake.duracloud.batch.SnapshotJobManager;
 import org.chronopolis.intake.duracloud.batch.SnapshotTasklet;
 import org.chronopolis.intake.duracloud.config.IntakeSettings;
-import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.rest.api.ErrorLogger;
 import org.chronopolis.rest.api.IngestAPI;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -76,24 +75,28 @@ public class IntakeConfiguration {
                                     @Value("#{jobParameters[collectionName]}") String collectionName,
                                     IntakeSettings settings,
                                     IngestAPI ingestAPI,
-                                    DPNService dpnService) {
+                                    LocalAPI localAPI) {
         return new SnapshotTasklet(snapshotID,
                 collectionName,
                 depositor,
                 intakeSettings,
                 ingestAPI,
-                dpnService);
+                localAPI);
     }
 
     @Bean(destroyMethod = "destroy")
     SnapshotJobManager snapshotJobManager(JobBuilderFactory jobBuilderFactory,
                                           StepBuilderFactory stepBuilderFactory,
                                           JobLauncher jobLauncher,
-                                          SnapshotTasklet snapshotTasklet) {
+                                          SnapshotTasklet snapshotTasklet,
+                                          IntakeSettings settings) {
         return new SnapshotJobManager(jobBuilderFactory,
                 stepBuilderFactory,
                 jobLauncher,
-                snapshotTasklet);
+                null,
+                snapshotTasklet,
+                null,
+                new PropertiesDataCollector(settings));
     }
 
 

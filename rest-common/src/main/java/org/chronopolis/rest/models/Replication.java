@@ -65,7 +65,7 @@ public class Replication {
         this.node = node;
         this.bag = bag;
         this.nodeUser = node.getUsername();
-        this.bagId = bag.getID();
+        this.bagId = bag.getId();
         // this.bagID = bagID;
         this.bagLink = "";
         this.tokenLink = "";
@@ -80,12 +80,12 @@ public class Replication {
         this.node = node;
         this.bag = bag;
         this.nodeUser = node.getUsername();
-        this.bagId = bag.getID();
+        this.bagId = bag.getId();
         this.bagLink = bagLink;
         this.tokenLink = tokenLink;
     }
 
-    public Long getID() {
+    public Long getId() {
         return id;
     }
 
@@ -98,7 +98,7 @@ public class Replication {
         // Because JPA/Hibernate sets fields through reflection,
         // this may need to be set here
         if (bagId == null) {
-            bagId = bag.getID();
+            bagId = bag.getId();
         }
         return bagId;
     }

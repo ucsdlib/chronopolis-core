@@ -6,16 +6,21 @@ import edu.umiacs.ace.ims.api.TokenRequestBatch;
 import edu.umiacs.ace.ims.ws.TokenRequest;
 import org.chronopolis.common.digest.Digest;
 import org.chronopolis.common.digest.DigestUtil;
+import org.chronopolis.common.util.Filter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Formatter;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * Class to create ACE tokens from a BagIt bag.
@@ -25,6 +30,23 @@ import java.util.Set;
  * Created by shake on 2/4/15.
  */
 public class Tokenizer {
+
+    /**
+     * Factory class to allow for mocking of IMS connections
+     *
+     */
+    public static class IMSFactory {
+        public TokenRequestBatch createIMSConnection(RequestBatchCallback callback) {
+            IMSService ims;
+            // TODO: Use the AceSettings to get the ims host name
+            ims = IMSService.connect("ims.umiacs.umd.edu", SSL_PORT, true);
+            return ims.createImmediateTokenRequestBatch("SHA-256",
+                callback,
+                MAX_QUEUE_LEN,
+                TIMEOUT);
+        }
+    }
+
     private static final int SSL_PORT = 443;
     private static final int MAX_QUEUE_LEN = 1000;
     private static final int TIMEOUT = 5000;
@@ -40,17 +62,22 @@ public class Tokenizer {
     private Path tagmanifest;
     private String tagIdentifier;
     private String tagDigest;
+    private Set<Path> extraTagmanifests;
 
     private final RequestBatchCallback callback;
     private TokenRequestBatch batch;
+
+    private IMSFactory factory;
 
     public Tokenizer(final Path bag,
                      final String fixityAlgorithm,
                      final RequestBatchCallback callback) {
         this.bag = bag;
         this.fixityAlgorithm = Digest.fromString(fixityAlgorithm);
+        this.extraTagmanifests = new HashSet<>();
         this.callback = callback;
         this.tagDigest = null;
+        this.factory = new Tokenizer.IMSFactory();
         addManifests();
     }
 
@@ -59,12 +86,12 @@ public class Tokenizer {
                 + fixityAlgorithm.getBagitIdentifier()
                 + ".txt";
 
-        Path tagManifest = bag.resolve("tagmanifest-"
-                + fixityAlgorithm.getBagitIdentifier()
-                + ".txt");
+        Path tagManifest = bag.resolve(tagIdentifier);
         Path manifest = bag.resolve("manifest-"
                 + fixityAlgorithm.getBagitIdentifier()
                 + ".txt");
+
+        // ACE holds files in a relative context, without the preceding directories
         Path aceTag = Paths.get("/tagmanifest-"
                 + fixityAlgorithm.getBagitIdentifier()
                 + ".txt");
@@ -81,6 +108,19 @@ public class Tokenizer {
         this.aceTag = aceTag;
         this.manifest = manifest;
         this.tagmanifest = tagManifest;
+
+        scanForExtra();
+    }
+
+    private void scanForExtra() {
+        String identifier = fixityAlgorithm.getBagitIdentifier();
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(bag, new TagFilter(identifier))) {
+            for (Path path : stream) {
+                extraTagmanifests.add(path);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Could not read bag directory");
+        }
     }
 
     /**
@@ -91,8 +131,8 @@ public class Tokenizer {
      * @throws IOException
      * @throws InterruptedException
      */
-    public void tokenize(Set<Path> filter) throws IOException, InterruptedException {
-        batch = createIMSConnection();
+    public void tokenize(Filter<Path> filter) throws IOException, InterruptedException {
+        batch = factory.createIMSConnection(callback);
 
         try {
             // Digest the manifest
@@ -105,6 +145,16 @@ public class Tokenizer {
 
             // Then the tag-manifest
             tokenize(filter, tagmanifest);
+
+            // Digest any extra tagmanifests
+            for (Path tag: extraTagmanifests) {
+                String alg = fixityAlgorithm.getName();
+                if (!filter.contains(tag)) {
+                    String digest = DigestUtil.digest(tag, alg);
+                    addTokenRequest(tag, digest);
+                    filter.add(tag);
+                }
+            }
         } finally {
             // Make sure the batch gets closed if we are interrupted
             batch.close();
@@ -123,7 +173,7 @@ public class Tokenizer {
      * @throws IOException
      * @throws InterruptedException
      */
-    private boolean tokenize(Set<Path> filter, Path manifest) throws IOException,
+    private boolean tokenize(Filter<Path> filter, Path manifest) throws IOException,
             InterruptedException {
         String line;
         boolean corrupt = false;
@@ -153,6 +203,7 @@ public class Tokenizer {
 
             if (digest.equals(calculatedDigest)) {
                 addTokenRequest(path, digest);
+                filter.add(ace.resolve(rel));
             } else {
                 log.error("Error in file {}: digest found {} (expected {})",
                         new Object[]{
@@ -201,20 +252,22 @@ public class Tokenizer {
         batch.add(req);
     }
 
-    /**
-     * Create a connection to the IMS Service for ACE
-     *
-     * @return {@link TokenRequestBatch}
-     */
-    private TokenRequestBatch createIMSConnection() {
-        IMSService ims;
-        // TODO: Use the AceSettings to get the ims host name
-        ims = IMSService.connect("ims.umiacs.umd.edu", SSL_PORT, true);
-        return ims.createImmediateTokenRequestBatch("SHA-256",
-                callback,
-                MAX_QUEUE_LEN,
-                TIMEOUT);
-    }
+    private class TagFilter implements DirectoryStream.Filter<Path> {
+        // Use a negative look ahead with a word boundary to exclude certain words
+        private final String regex = "tagmanifest-(?!\\b%s\\b)\\w+.txt";
 
+        private final Pattern pattern;
+
+        private TagFilter(String tagType) {
+            Formatter f = new Formatter();
+            this.pattern = Pattern.compile(f.format(regex, tagType).toString());
+        }
+
+        @Override
+        public boolean accept(Path path) throws IOException {
+            // We don't care about using what was found, just if it exists
+            return pattern.matcher(path.getFileName().toString()).find();
+        }
+    }
 
 }
