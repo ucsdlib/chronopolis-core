@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.chronopolis</groupId>
         <artifactId>chronopolis</artifactId>
-        <version>1.0.1-RELEASE</version>
+        <version>1.1.0-RELEASE</version>
     </parent>
     <packaging>jar</packaging>
 

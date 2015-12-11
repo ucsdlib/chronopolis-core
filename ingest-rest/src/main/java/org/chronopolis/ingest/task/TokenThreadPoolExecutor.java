@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
     private final Logger log = LoggerFactory.getLogger(TokenThreadPoolExecutor.class);
 
+    // TODO: Check bag compareTo
     private Set<Bag> workingBags = new ConcurrentSkipListSet<>();
     private TokenRunner.Factory factory;
 
@@ -72,7 +73,7 @@ public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
                 log.error("Cannot submit null bag!", e);
                 submitted = false;
             } catch (RejectedExecutionException e) {
-                log.error("Bag {} rejected!", b.getID(), e);
+                log.error("Bag {} rejected!", b.getId(), e);
                 submitted = false;
             }
 

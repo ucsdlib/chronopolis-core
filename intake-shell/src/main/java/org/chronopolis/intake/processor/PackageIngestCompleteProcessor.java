@@ -18,6 +18,7 @@ import static org.chronopolis.messaging.MessageConstant.STATUS_SUCCESS;
  *
  * @author shake
  */
+@Deprecated
 public class PackageIngestCompleteProcessor implements ChronProcessor {
     private final Logger log = LoggerFactory.getLogger(PackageIngestCompleteProcessor.class);
 

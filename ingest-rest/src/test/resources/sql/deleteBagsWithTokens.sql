@@ -1,0 +1,2 @@
+DELETE FROM ace_token;
+DELETE FROM bag;

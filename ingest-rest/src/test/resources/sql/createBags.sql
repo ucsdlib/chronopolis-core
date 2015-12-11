@@ -7,4 +7,10 @@ INSERT INTO bag VALUES(6, 'bag-5', 'test-depositor', 'bags/test-bag-5', 'tokens/
 INSERT INTO bag VALUES(7, 'bag-6', 'test-depositor', 'bags/test-bag-6', 'tokens/test-bag-6', '', '', 'STAGED', 'SHA-256', 1500, 5, 3);
 INSERT INTO bag VALUES(8, 'bag-7', 'test-depositor', 'bags/test-bag-7', 'tokens/test-bag-7', '', '', 'STAGED', 'SHA-256', 1500, 5, 3);
 INSERT INTO bag VALUES(9, 'bag-8', 'test-depositor', 'bags/test-bag-8', 'tokens/test-bag-8', '', '', 'STAGED', 'SHA-256', 1500, 5, 3);
-INSERT INTO bag VALUES(10, 'bag-9', 'test-depositor', 'bags/test-bag-9', 'tokens/test-bag-9', '', '', 'STAGED', 'SHA-256', 1500, 5, 3);
+INSERT INTO bag VALUES(10, 'bag-9', 'test-depositor', 'bags/test-bag-9', 'tokens/test-bag-9', '', '', 'TOKENIZED', 'SHA-256', 1500, 5, 3);
+
+-- Create some distribution records too
+INSERT INTO bag_distribution VALUES(1, 10, 1, 'DISTRIBUTE');
+INSERT INTO bag_distribution VALUES(2, 10, 2, 'DISTRIBUTE');
+INSERT INTO bag_distribution VALUES(3, 10, 4, 'DISTRIBUTE');
+INSERT INTO bag_distribution VALUES(4, 10, 3, 'REPLICATE');

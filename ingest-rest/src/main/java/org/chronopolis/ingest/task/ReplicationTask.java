@@ -5,6 +5,7 @@ import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.BagDistribution;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.Node;
 import org.chronopolis.rest.models.Replication;
@@ -20,6 +21,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+
+import static org.chronopolis.rest.models.BagDistribution.*;
 
 /**
  * Simple task to create replications for bags which have finished tokenizing
@@ -51,28 +55,28 @@ public class ReplicationTask {
         String bagStage = settings.getBagStage();
         String tokenStage = settings.getTokenStage();
 
-        List<Node> nodes = nodeRepository.findAll();
         Collection<Bag> bags = bagRepository.findByStatus(BagStatus.TOKENIZED);
 
         for (Bag bag : bags) {
             // Set up the links for nodes to pull from
             Path tokenPath = Paths.get(tokenStage, bag.getTokenLocation());
-            String tokenLink = new StringBuilder(user)
-                    .append("@").append(server)
-                    .append(":").append(tokenPath.toString())
-                    .toString();
+            String tokenLink =  buildLink(user, server, tokenPath);
 
             Path bagPath = Paths.get(bagStage, bag.getLocation());
-            String bagLink = new StringBuilder(user)
-                    .append("@").append(server)
-                    .append(":").append(bagPath.toString())
-                    .toString();
+            String bagLink = buildLink(user, server, bagPath);
 
             // And create the transfer requests
+            Set<BagDistribution> distributions = bag.getDistributions();
             List<Replication> repls = new ArrayList<>();
-            for (final Node node : nodes) {
+            for (BagDistribution dist : distributions) {
+                // Ignore replications which already occurred
+                if (dist.getStatus() == BagDistributionStatus.REPLICATE) {
+                    continue;
+                }
+
+                Node node = dist.getNode();
                 log.debug("Creating replication object for node {} for bag {}",
-                        node.getUsername(), bag.getID());
+                        node.getUsername(), bag.getId());
                 Replication replication = new Replication(node, bag, bagLink, tokenLink);
                 replication.setProtocol("rsync");
                 repls.add(replication);
@@ -84,6 +88,13 @@ public class ReplicationTask {
             bagRepository.save(bag);
         }
 
+    }
+
+    private String buildLink(String user, String server, Path file) {
+        return new StringBuilder(user)
+                    .append("@").append(server)
+                    .append(":").append(file.toString())
+                    .toString();
     }
 
 }

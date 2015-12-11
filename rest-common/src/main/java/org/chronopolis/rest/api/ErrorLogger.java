@@ -30,7 +30,7 @@ public class ErrorLogger implements ErrorHandler {
                 String reason = response.getReason();
                 log.error("Error in http call: url: {} status: {} reason: {}", new Object[]{url, status, reason});
             } else {
-                log.error("Error communicating with server; No Response");
+                log.error("Error communicating with server ({}); No Response", url);
             }
             cause = retrofitError.getCause();
         }

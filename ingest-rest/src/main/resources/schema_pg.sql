@@ -85,11 +85,21 @@ CREATE TABLE ace_token (
     bag bigint
 );
 
-DROP TABLE IF EXISTS bag_replications;
-CREATE TABLE bag_replications (
+DROP SEQUENCE IF EXISTS bag_distribution_id_seq;
+CREATE SEQUENCE bag_distribution_id_seq;
+DROP TABLE IF EXISTS bag_distribution;
+CREATE TABLE bag_distribution (
+    id bigint PRIMARY KEY DEFAULT nextval('bag_distribution_id_seq'),
     bag_id bigint,
-    node_id bigint
+    node_id bigint,
+    status varchar(255) -- DEFAULT 'DISTRIBUTE'
 );
+
+ALTER TABLE bag_distribution
+    ADD CONSTRAINT FK_bd_bag FOREIGN KEY (bag_id) REFERENCES bag;
+
+ALTER TABLE bag_distribution
+    ADD CONSTRAINT FK_bd_node FOREIGN KEY (node_id) REFERENCES node;
 
 ALTER TABLE replication
     ADD CONSTRAINT FK_repl_bag FOREIGN KEY (bag_id) REFERENCES bag;
@@ -103,8 +113,3 @@ ALTER TABLE restoration
 ALTER TABLE ace_token
     ADD CONSTRAINT FK_token_bag FOREIGN KEY (bag) REFERENCES bag;
 
-ALTER TABLE bag_replications
-    ADD CONSTRAINT FK_br_bag FOREIGN KEY (bag_id) REFERENCES bag;
-
-ALTER TABLE bag_replications
-    ADD CONSTRAINT FK_br_node FOREIGN KEY (node_id) REFERENCES node;

@@ -18,7 +18,8 @@ public class VersionController {
     }
 
     private class Version {
-        private final String version = "1.0-beta";
+        private final String version =
+                getClass().getPackage().getImplementationVersion();
 
         public String getVersion() {
             return version;

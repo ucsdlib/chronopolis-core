@@ -1,5 +1,7 @@
 package org.chronopolis.rest.models;
 
+import java.util.List;
+
 /**
  * Request for creating a new Bag
  *
@@ -10,6 +12,8 @@ public class IngestRequest {
     String name;
     String location;
     String depositor;
+    int requiredReplications;
+    List<String> replicatingNodes;
 
     public String getName() {
         return name;
@@ -33,5 +37,23 @@ public class IngestRequest {
 
     public void setLocation(final String location) {
         this.location = location;
+    }
+
+    public int getRequiredReplications() {
+        return requiredReplications;
+    }
+
+    public IngestRequest setRequiredReplications(int requiredReplications) {
+        this.requiredReplications = requiredReplications;
+        return this;
+    }
+
+    public List<String> getReplicatingNodes() {
+        return replicatingNodes;
+    }
+
+    public IngestRequest setReplicatingNodes(List<String> replicatingNodes) {
+        this.replicatingNodes = replicatingNodes;
+        return this;
     }
 }

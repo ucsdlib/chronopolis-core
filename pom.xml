@@ -2,7 +2,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                               http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -11,7 +10,7 @@
 
     <groupId>org.chronopolis</groupId>
     <artifactId>chronopolis</artifactId>
-    <version>1.0.1-RELEASE</version>
+    <version>1.1.0-RELEASE</version>
     <packaging>pom</packaging>
 
     <name>Core Chronopolis</name>
@@ -97,9 +96,8 @@
                 </plugin>
             </plugins>
         </pluginManagement>
-
         <plugins>
-            <plugin>
+           <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>versions-maven-plugin</artifactId>
                 <version>2.1</version>
@@ -186,6 +184,12 @@
                 <groupId>org.chronopolis</groupId>
                 <artifactId>rest-common</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.chronopolis</groupId>
+                <artifactId>earth-core</artifactId>
+                <version>1.0-SNAPSHOT</version>
             </dependency>
 
             <!-- Apache libs -->
