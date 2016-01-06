@@ -15,12 +15,8 @@
             <thead>
             <tr>
                 <th>ID</th>
-                <th>Bag ID</th>
+                <th>Bag ID</th> <!-- Name instead? -->
                 <th>Replicating Node</th>
-                <th>Bag Link</th>
-                <th>Received TagManifest Fixity</th>
-                <th>Token Link</th>
-                <th>Received Token Fixity</th>
                 <th>Status</th>
             </tr>
             </thead>
@@ -28,17 +24,46 @@
             <!--@thymesVar id="replications" type="Set<Bag>"-->
             <!--@thymesVar id="replication" type="org.chronopolis.rest.models.Replication"-->
             <tr th:each="replication: ${replications}">
-                <td th:text="${replication.id}"></td>
+                <td><a th:href="@{'/replication/' + ${replication.id}}" th:text="${replication.id}"></a></td>
                 <td th:text="${replication.bag.id}"></td>
                 <td th:text="${replication.node.username}"></td>
-                <td th:text="${replication.bagLink}"></td>
-                <td th:text="${replication.receivedTagFixity}"></td>
-                <td th:text="${replication.tokenLink}"></td>
-                <td th:text="${replication.receivedTokenFixity}"></td>
                 <td th:text="${replication.status}"></td>
             </tr>
             </tbody>
         </table>
+
+        <div th:replace="fragments/page :: page"></div>
     </div>
+
+    <!--
+    <div th:fragment="element">
+        <table class="table table-striped">
+            <thead>
+                <th>ID</th>
+                <th>Bag ID</th>
+                <th>Replicating Node</th>
+                <th>Bag Link</th>
+                <th>Received TagManifest Fixity</th>
+                <th>Token Link</th>
+                <th>Received Token Fixity</th>
+                <th>Status</th>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td th:text="${replication.id}"></td>
+                    <td th:text="${replication.bag.id}"></td>
+                    <td th:text="${replication.node.username}"></td>
+                    <td th:text="${replication.bagLink}"></td>
+                    <td th:text="${replication.receivedTagFixity}"></td>
+                    <td th:text="${replication.tokenLink}"></td>
+                    <td th:text="${replication.receivedTokenFixity}"></td>
+                    <td th:text="${replication.status}"></td>
+                </tr>
+            </tbody>
+ 
+        </table>
+    </div>
+    -->
 </body>
 </html>

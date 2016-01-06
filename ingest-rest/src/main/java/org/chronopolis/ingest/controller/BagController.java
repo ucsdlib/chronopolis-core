@@ -2,10 +2,13 @@ package org.chronopolis.ingest.controller;
 
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.IngestSettings;
+import org.chronopolis.ingest.PageWrapper;
 import org.chronopolis.ingest.models.BagUpdate;
-import org.chronopolis.ingest.repository.BagRepository;
+import org.chronopolis.ingest.repository.BagSearchCriteria;
+import org.chronopolis.ingest.repository.BagService;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
+import org.chronopolis.ingest.repository.ReplicationSearchCriteria;
 import org.chronopolis.ingest.repository.ReplicationService;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.rest.models.Bag;
@@ -16,16 +19,19 @@ import org.chronopolis.rest.models.ReplicationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Arrays;
-import java.util.Collection;
 
 import static org.chronopolis.ingest.BagInitializer.initializeBag;
 
@@ -37,9 +43,10 @@ import static org.chronopolis.ingest.BagInitializer.initializeBag;
 @Controller
 public class BagController extends IngestController {
     private final Logger log = LoggerFactory.getLogger(BagController.class);
+    private final Integer DEFAULT_PAGE_SIZE = 10;
 
     @Autowired
-    BagRepository bagRepository;
+    BagService bagService;
 
     @Autowired
     ReplicationRepository replicationRepository;
@@ -56,21 +63,33 @@ public class BagController extends IngestController {
     @Autowired
     IngestSettings settings;
 
+    // TODO: Param Map
     /**
      * Retrieve information about all bags
      *
-     * TODO: Pagination so we don't return a massive list of bags all at once
      *
      * @param model - the view model
      * @param principal - authentication information
-     * @return
+     * @return stringstring
      */
     @RequestMapping(value= "/bags", method = RequestMethod.GET)
-    public String getBags(Model model, Principal principal) {
+    public String getBags(Model model, Principal principal,
+                          @RequestParam(defaultValue = "0", required = false) Integer page,
+                          @RequestParam(required = false) String depositor,
+                          @RequestParam(required = false) BagStatus status) {
         log.info("Getting bags for user {}", principal.getName());
+        if (page == null) {
+            page = 0;
+        }
+        BagSearchCriteria criteria = new BagSearchCriteria()
+                .withDepositor(depositor)
+                .withStatus(status);
 
-        Collection<Bag> bags = bagRepository.findAll();
+        Sort s = new Sort(Sort.Direction.ASC, "id");
+        Page<Bag> bags = bagService.findBags(criteria, new PageRequest(page, DEFAULT_PAGE_SIZE, s));
+        PageWrapper<Bag> pages = new PageWrapper<>(bags, "/bags");
         model.addAttribute("bags", bags);
+        model.addAttribute("pages", pages);
 
         return "bags";
     }
@@ -88,7 +107,7 @@ public class BagController extends IngestController {
 
         // TODO: Could probably use model.addAllAttributes and use that for
         // common pages
-        model.addAttribute("bags", bagRepository.findOne(id));
+        model.addAttribute("bags", bagService.findBag(id));
         model.addAttribute("statuses", Arrays.asList(BagStatus.values()));
         model.addAttribute("tokens", tokenRepository.countByBagId(id));
 
@@ -107,9 +126,9 @@ public class BagController extends IngestController {
     public String updateBag(Model model, @PathVariable("id") Long id, BagUpdate update) {
         log.info("Updating bag {}: status = {}", id, update.getStatus());
 
-        Bag bag = bagRepository.findOne(id);
+        Bag bag = bagService.findBag(id);
         bag.setStatus(update.getStatus());
-        bagRepository.save(bag);
+        bagService.saveBag(bag);
 
         model.addAttribute("bags", bag);
         model.addAttribute("statuses", Arrays.asList(BagStatus.values()));
@@ -143,7 +162,11 @@ public class BagController extends IngestController {
         log.info("Adding new bag");
         String name = request.getName();
         String depositor = request.getDepositor();
-        Bag bag = bagRepository.findByNameAndDepositor(name, depositor);
+        BagSearchCriteria criteria = new BagSearchCriteria()
+                .withDepositor(depositor)
+                .withName(name);
+        Bag bag = bagService.findBags(criteria, new PageRequest(0, 1)).getContent().get(0);
+
         request.setRequiredReplications(request.getReplicatingNodes().size());
 
         // only add new bags
@@ -156,11 +179,15 @@ public class BagController extends IngestController {
                 throw e;
             }
         }
-        bagRepository.save(bag);
+
+        bagService.saveBag(bag);
 
         // TODO: Redirect to /bags/{id}?
         return "redirect:/bags";
     }
+
+    //
+    // Replication stuff
 
     /**
      * Get all replications
@@ -172,20 +199,25 @@ public class BagController extends IngestController {
      * @return
      */
     @RequestMapping(value = "/replications", method = RequestMethod.GET)
-    public String getReplications(Model model, Principal principal) {
+    public String getReplications(Model model, Principal principal,
+                                  @RequestParam(defaultValue = "0", required = false) Integer page) {
         log.info("Getting replications for user {}", principal.getName());
-        Collection<Replication> replications;
-        if (hasRoleAdmin()) {
-            replications = replicationRepository.findAll();
-        } else {
-            replications = replicationRepository.findByNodeUsername(principal.getName());
-        }
+        Page<Replication> replications;
+
+        Sort s = new Sort(Sort.Direction.ASC, "id");
+        replications = replicationService.getReplications(new ReplicationSearchCriteria(), new PageRequest(page, DEFAULT_PAGE_SIZE, s));
 
         model.addAttribute("replications", replications);
+        model.addAttribute("pages", new PageWrapper<Replication>(replications, "/replications"));
         return "replications";
     }
 
-        /**
+    @RequestMapping(value = "/replications/{id}", method = RequestMethod.GET)
+    public String getReplication(Model model, @PathVariable("id") Long id) {
+        return "replication";
+    }
+
+    /**
      * Get all replications
      * If admin, return a list of all replications
      * else return a list for the given user
@@ -196,7 +228,7 @@ public class BagController extends IngestController {
      */
     @RequestMapping(value = "/replications/add", method = RequestMethod.GET)
     public String addReplications(Model model, Principal principal) {
-        model.addAttribute("bags", bagRepository.findAll());
+        // model.addAttribute("bags", bagRepository.findAll());
         model.addAttribute("nodes", nodeRepository.findAll());
         return "addreplication";
     }
@@ -218,6 +250,5 @@ public class BagController extends IngestController {
         // TODO: replicatons/id
         return "redirect:/replications";
     }
-
 
 }
