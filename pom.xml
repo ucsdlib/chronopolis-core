@@ -17,10 +17,7 @@
 
     <!-- Core Modules -->
     <modules>
-        <module>messaging</module>
-        <module>amqp-core</module>
         <module>common</module>
-        <module>chron-db</module>
         <module>rest-common</module>
     </modules>
 
@@ -150,21 +147,10 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>org.chronopolis</groupId>
-                <artifactId>chron-messaging</artifactId>
-                <version>${project.version}</version>
-            </dependency>
 
             <dependency>
                 <groupId>org.chronopolis</groupId>
                 <artifactId>chron-common</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.chronopolis</groupId>
-                <artifactId>amqp-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

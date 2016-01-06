@@ -6,7 +6,6 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import org.chronopolis.common.exception.FileTransferException;
 import org.chronopolis.common.exception.FixityException;
-import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.ReplicationQueue;
 import org.chronopolis.replicate.config.ReplicationSettings;
@@ -38,17 +37,6 @@ public class TokenDownloadStep implements Tasklet {
     private String protocol;
     private String digest;
     private String depositor;
-
-    public TokenDownloadStep(final ReplicationSettings settings,
-                             final CollectionInitMessage message,
-                             final ReplicationNotifier notifier) {
-        this.settings = settings;
-        this.notifier = notifier;
-        this.location = message.getTokenStore();
-        this.protocol = message.getProtocol();
-        this.digest = message.getTokenStoreDigest();
-        this.depositor = message.getDepositor();
-    }
 
     public TokenDownloadStep(ReplicationSettings settings,
                              ReplicationNotifier notifier,

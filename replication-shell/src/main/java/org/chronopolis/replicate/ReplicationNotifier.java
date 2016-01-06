@@ -1,12 +1,8 @@
 package org.chronopolis.replicate;
 
-import org.chronopolis.common.digest.Digest;
-import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.rest.models.Replication;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -17,7 +13,6 @@ import java.io.StringWriter;
  */
 public class ReplicationNotifier implements Notifier {
 
-    private final CollectionInitMessage message;
     private boolean success = true;
     private String aceStep;
     private String bagStep;
@@ -29,16 +24,8 @@ public class ReplicationNotifier implements Notifier {
     private String calculatedTagDigest;
     private String calculatedTokenDigest;
 
-
-    public ReplicationNotifier(CollectionInitMessage message) {
-        this.origin = message.getOrigin();
-        this.messageText = message.toString();
-        this.message = message;
-        this.calculatedTagDigest = message.getTagManifestDigest();
-        this.calculatedTokenDigest = message.getTokenStoreDigest();
-    }
-
     public ReplicationNotifier(Replication replication) {
+        /*
         // temporary while the messaging is still part of the codebase
         CollectionInitMessage empty = new CollectionInitMessage();
         // Headers
@@ -58,6 +45,7 @@ public class ReplicationNotifier implements Notifier {
         empty.setAuditPeriod(-1);
         empty.setFixityAlgorithm(Digest.SHA_256);
         this.message = empty;
+        */
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -125,10 +113,6 @@ public class ReplicationNotifier implements Notifier {
 
     public void setRsyncStats(final String rsyncStats) {
         this.rsyncStats = rsyncStats;
-    }
-
-    public CollectionInitMessage getMessage() {
-        return message;
     }
 
     public String getCalculatedTagDigest() {
