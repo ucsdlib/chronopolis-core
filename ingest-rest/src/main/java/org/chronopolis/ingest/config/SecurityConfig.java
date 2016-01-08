@@ -19,7 +19,8 @@ import org.springframework.security.web.access.expression.DefaultWebSecurityExpr
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 
 import javax.sql.DataSource;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by shake on 11/10/14.
@@ -117,7 +118,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         DefaultWebSecurityExpressionHandler expressionHandler = new DefaultWebSecurityExpressionHandler();
         expressionHandler.setRoleHierarchy(roleHierarchy());
         webExpressionVoter.setExpressionHandler(expressionHandler);
-        return new AffirmativeBased(Arrays.asList((AccessDecisionVoter) webExpressionVoter));
+        List<AccessDecisionVoter<? extends Object>> voters = new ArrayList<>();
+        voters.add(webExpressionVoter);
+        return new AffirmativeBased(voters);
     }
 
 }

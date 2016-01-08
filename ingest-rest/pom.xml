@@ -10,7 +10,6 @@
         <version>1.1.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>org.chronopolis</groupId>
     <artifactId>ingest-rest</artifactId>
     <version>1.1.0-SNAPSHOT</version>
 
@@ -43,6 +42,14 @@
     </build>
 
     <dependencies>
+        <!--
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <optional>true</optional>
+        </dependency>
+        -->
+
         <dependency>
             <groupId>org.chronopolis</groupId>
             <artifactId>chron-common</artifactId>
@@ -63,11 +70,13 @@
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
+        <!--jjj
         <dependency>
             <groupId>org.thymeleaf.extras</groupId>
-            <artifactId>thymeleaf-extras-springsecurity3</artifactId>
-            <version>2.1.1.RELEASE</version>
+            <artifactId>thymeleaf-extras-springsecurity4</artifactId>
+            <version>3.0.0.RELEASE</version>
         </dependency>
+        -->
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
