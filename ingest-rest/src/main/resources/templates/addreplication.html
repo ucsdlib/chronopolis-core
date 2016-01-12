@@ -13,9 +13,11 @@
 
 </head>
 <body>
-<div class="container-fluid">
-    <div th:include="layout :: left"></div>
-    <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+
+
+    <header th:replace="layout :: head"></header>
+    <div th:replace="layout :: left"></div>
+    <div class="content">
     <form enctype="application/json" method="post" name="replication">
         <!--@thymesVar id="bags" type="List<Bag>"-->
         <!--@thymesVar id="bag" type="org.chronopolis.rest.models.Bag"-->
@@ -36,6 +38,5 @@
         <input type="submit" value="Create Replication"/> <!-- onclick="submit()"/> -->
     </form>
         </div>
-</div>
 </body>
 </html>
