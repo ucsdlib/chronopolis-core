@@ -2,8 +2,6 @@ package org.chronopolis.ingest.repository;
 
 import com.mysema.query.types.expr.BooleanExpression;
 import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.BagStatus;
-import org.chronopolis.rest.models.QBag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +10,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
-
 import java.util.Map;
 
 import static org.chronopolis.ingest.repository.PredicateUtil.setExpression;
@@ -55,6 +52,10 @@ public class BagService {
         log.debug("Using predicate to query bags");
         // Return a single page of the query asked for
         return bagRepository.findAll(predicate, pageable);
+    }
+
+    public void saveBag(Bag bag) {
+        bagRepository.save(bag);
     }
 
 }
