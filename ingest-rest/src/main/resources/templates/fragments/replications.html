@@ -11,6 +11,7 @@
           th:href="@{/css/bootstrap.min.css}"
           rel="">
     </link>
+
 </head>
 <body>
 <div th:fragment="table">
@@ -18,14 +19,14 @@
         <div class="panel-heading">
             <h3 class="panel-title">Replications</h3>
             <div class="pull-right">
-                <button class="btn btn-default btn-xs btn-filter" data-toggle="dropdown"><span
+                <button id="dropdown" class="btn btn-default btn-xs btn-filter" data-toggle="dropdown"><span
                         class="glyphicon glyphicon-filter"></span>
                     Filter
                 </button>
             </div>
         </div>
 
-        <div class="panel-body" style="display: none">
+        <div class="panel-body" id="filter-body" style="display: none">
             <form class="form-horizontal" role="form">
                 <div class="input-group input-group-sm">
                     <span class="input-group-addon" id="sizing-addon-1">Bag</span>
@@ -46,6 +47,11 @@
                                                                        aria-hidden="true"></span></button>
             </form>
         </div>
+        <!-- shove it here-->
+
+
+
+
 
         <table class="table table-striped">
             <thead>

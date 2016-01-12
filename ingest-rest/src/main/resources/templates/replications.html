@@ -10,13 +10,20 @@
     <link href="../static/css/nav.css"
           th:href="@{/css/nav.css}"
           rel="stylesheet" type="text/css"/>
+    <script src="../js/jquery-2.2.0.min.js"
+            th:src="@{/js/jquery-2.2.0.min.js}"
+            type="text/javascript"></script>
+    <script src="../js/form.js"
+            th:src="@{/js/form.js}"
+            type="text/javascript">
+    </script>
 </head>
-<body >
-        <header th:replace="layout :: head"></header>
-        <div th:replace="layout :: left"></div>
+<body>
+<header th:replace="layout :: head"></header>
+<div th:replace="layout :: left"></div>
 
-        <div class="content">
-            <div th:replace="fragments/replications :: table"></div>
-        </div>
+<div class="content">
+    <div th:replace="fragments/replications :: table"></div>
+</div>
 </body>
 </html>

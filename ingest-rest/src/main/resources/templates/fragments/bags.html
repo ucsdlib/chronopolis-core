@@ -15,8 +15,24 @@
             <div class="panel-heading">
                 <h3 class="panel-title">Bags</h3>
                 <div class="pull-right">
-                    <button class="btn btn-default btn-xs btn-filter"><span class="glyphicon glyphicon-filter"></span> Filter</button>
+                    <button id="dropdown" class="btn btn-default btn-xs btn-filter"><span class="glyphicon glyphicon-filter"></span> Filter</button>
                 </div>
+            </div>
+            <div id="filter-body" class="panel-body" style="display: none">
+            <form class="form-horizontal" role="form">
+                <div class="input-group form-group-sm">
+                    <span class="input-group-addon">Node</span>
+                    <input type="text" class="form-control" id="node-table-filter" placeholder="Search Node"/>
+                </div>
+                <br/>
+                <div class="input-group form-group-sm">
+                    <span class="input-group-addon">Status</span>
+                    <input type="text" class="form-control" id="status-table-filter" placeholder="Search Bag Status"/>
+                </div>
+                <br/>
+                <button th:type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search"
+                                                                       aria-hidden="true"></span></button>
+            </form>
             </div>
 
         <table class="table table-striped">
