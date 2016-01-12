@@ -11,6 +11,14 @@
 </head>
 <body>
     <div th:fragment="simple-table">
+        <div class="panel panel-info filterable">
+            <div class="panel-heading">
+                <h3 class="panel-title">Bags</h3>
+                <div class="pull-right">
+                    <button class="btn btn-default btn-xs btn-filter"><span class="glyphicon glyphicon-filter"></span> Filter</button>
+                </div>
+            </div>
+
         <table class="table table-striped">
             <thead>
             <tr>
@@ -36,8 +44,7 @@
         <!--<input type="button" value="next" class="btn btn-small" th:href="@{/bags/(page=${bags.number})}" />-->
 
         <div th:replace="fragments/page :: page"></div>
-
-        <!-- + ${bags.pageNumber}" -->
+        </div>
     </div>
 
     <!-- This is typically only for an individual bag, as getting the token count

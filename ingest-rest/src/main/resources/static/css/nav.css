@@ -63,8 +63,12 @@ div.sidebar {
 /* Content rules */
 @media (min-height: 50px) {
     div.content {
-        width: 100%;
         padding: 20px;
         margin-left: 200px;
+        margin-top: 50px;
     }
+}
+
+.filterable .panel-heading .pull-right {
+    margin-top: -20px;
 }

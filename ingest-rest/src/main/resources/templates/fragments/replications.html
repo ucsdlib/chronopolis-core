@@ -7,10 +7,46 @@
           th:href="@{/css/bootstrap.min.css}"
           rel="stylesheet">
     </link>
-
+    <link href="../static/css/bootstrap.min.css"
+          th:href="@{/css/bootstrap.min.css}"
+          rel="">
+    </link>
 </head>
 <body>
-    <div th:fragment="table">
+<div th:fragment="table">
+    <div class="panel panel-info filterable">
+        <div class="panel-heading">
+            <h3 class="panel-title">Replications</h3>
+            <div class="pull-right">
+                <button class="btn btn-default btn-xs btn-filter" data-toggle="dropdown"><span
+                        class="glyphicon glyphicon-filter"></span>
+                    Filter
+                </button>
+            </div>
+        </div>
+
+        <div class="panel-body" style="display: none">
+            <form class="form-horizontal" role="form">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-addon" id="sizing-addon-1">Bag</span>
+                    <input type="text" class="form-control" id="bag-table-filter" placeholder="Search Bag"/>
+                </div>
+                <br/>
+                <div class="input-group form-group-sm">
+                    <span class="input-group-addon" id="sizing-addon-2">Node</span>
+                    <input type="text" class="form-control" id="node-table-filter" placeholder="Search Node"/>
+                </div>
+                <br/>
+                <div class="input-group form-group-sm">
+                    <span class="input-group-addon" id="sizing-addon-3">Status</span>
+                    <input type="text" class="form-control" id="status-table-filter" placeholder="Search Status"/>
+                </div>
+                <br/>
+                <button th:type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search"
+                                                                       aria-hidden="true"></span></button>
+            </form>
+        </div>
+
         <table class="table table-striped">
             <thead>
             <tr>
@@ -24,7 +60,7 @@
             <!--@thymesVar id="replications" type="Set<Bag>"-->
             <!--@thymesVar id="replication" type="org.chronopolis.rest.models.Replication"-->
             <tr th:each="replication: ${replications}">
-                <td><a th:href="@{'/replication/' + ${replication.id}}" th:text="${replication.id}"></a></td>
+                <td><a th:href="@{'/replications/' + ${replication.id}}" th:text="${replication.id}"></a></td>
                 <td th:text="${replication.bag.id}"></td>
                 <td th:text="${replication.node.username}"></td>
                 <td th:text="${replication.status}"></td>
@@ -34,36 +70,6 @@
 
         <div th:replace="fragments/page :: page"></div>
     </div>
-
-    <!--
-    <div th:fragment="element">
-        <table class="table table-striped">
-            <thead>
-                <th>ID</th>
-                <th>Bag ID</th>
-                <th>Replicating Node</th>
-                <th>Bag Link</th>
-                <th>Received TagManifest Fixity</th>
-                <th>Token Link</th>
-                <th>Received Token Fixity</th>
-                <th>Status</th>
-            </thead>
-
-            <tbody>
-                <tr>
-                    <td th:text="${replication.id}"></td>
-                    <td th:text="${replication.bag.id}"></td>
-                    <td th:text="${replication.node.username}"></td>
-                    <td th:text="${replication.bagLink}"></td>
-                    <td th:text="${replication.receivedTagFixity}"></td>
-                    <td th:text="${replication.tokenLink}"></td>
-                    <td th:text="${replication.receivedTokenFixity}"></td>
-                    <td th:text="${replication.status}"></td>
-                </tr>
-            </tbody>
- 
-        </table>
-    </div>
-    -->
+</div>
 </body>
 </html>
