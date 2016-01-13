@@ -10,30 +10,41 @@
 
 </head>
 <body>
-    <div th:fragment="simple-table">
-        <div class="panel panel-info filterable">
-            <div class="panel-heading">
-                <h3 class="panel-title">Bags</h3>
-                <div class="pull-right">
-                    <button id="dropdown" class="btn btn-default btn-xs btn-filter"><span class="glyphicon glyphicon-filter"></span> Filter</button>
-                </div>
+<div th:fragment="simple-table">
+    <div class="panel panel-info filterable">
+        <div class="panel-heading">
+            <h3 class="panel-title">Bags</h3>
+            <div class="pull-right">
+                <button id="dropdown" class="btn btn-default btn-xs btn-filter"><span
+                        class="glyphicon glyphicon-filter"></span> Filter
+                </button>
             </div>
-            <div id="filter-body" class="panel-body" style="display: none">
-            <form class="form-horizontal" role="form">
+        </div>
+        <div id="filter-body" class="panel-body" style="display: none">
+            <form class="form-horizontal" role="form" th:action="@{/bags}" method="GET">
                 <div class="input-group form-group-sm">
-                    <span class="input-group-addon">Node</span>
-                    <input type="text" class="form-control" id="node-table-filter" placeholder="Search Node"/>
+                    <span class="input-group-addon">Depositor</span>
+                    <input type="text" class="form-control" id="depositor-table-filter" name="depositor"
+                           placeholder="Search Depositor"/>
                 </div>
                 <br/>
+                <!--
+                <div class="input-group form-group-sm">
+                    <span class="input-group-addon">Bag Name</span>
+                    <input type="text" class="form-control" id="name-table-filter" name="name" placeholder="Search Name"/>
+                </div>
+                <br/>
+                -->
                 <div class="input-group form-group-sm">
                     <span class="input-group-addon">Status</span>
-                    <input type="text" class="form-control" id="status-table-filter" placeholder="Search Bag Status"/>
+                    <input type="text" class="form-control" id="status-table-filter" name="status"
+                           placeholder="Search Bag Status"/>
                 </div>
                 <br/>
                 <button th:type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search"
                                                                        aria-hidden="true"></span></button>
             </form>
-            </div>
+        </div>
 
         <table class="table table-striped">
             <thead>
@@ -60,13 +71,13 @@
         <!--<input type="button" value="next" class="btn btn-small" th:href="@{/bags/(page=${bags.number})}" />-->
 
         <div th:replace="fragments/page :: page"></div>
-        </div>
     </div>
+</div>
 
-    <!-- This is typically only for an individual bag, as getting the token count
-         can be a long operation over multiple bags -->
-    <div th:fragment="extended-table">
-        <form method="POST">
+<!-- This is typically only for an individual bag, as getting the token count
+     can be a long operation over multiple bags -->
+<div th:fragment="extended-table">
+    <form method="POST">
         <table class="table table-striped">
             <thead>
             <tr>
@@ -92,20 +103,20 @@
                 <td th:text="${tokens}"></td>
                 <td>
 
-                <!--@thymesVar id="statuses" type="List" -->
-                <select name="status" id="status">
-                    <option th:each="status : ${statuses}"
-                            th:value="${status.value}" th:text="${status.value}"
-                            th:selected="${status == bag.status}">
-                    </option>
-                    <!-- <td th:text="${bag.status}"></td> -->
-                </select>
+                    <!--@thymesVar id="statuses" type="List" -->
+                    <select name="status" id="status">
+                        <option th:each="status : ${statuses}"
+                                th:value="${status.value}" th:text="${status.value}"
+                                th:selected="${status == bag.status}">
+                        </option>
+                        <!-- <td th:text="${bag.status}"></td> -->
+                    </select>
                 </td>
             </tr>
             </tbody>
         </table>
-            <input type="submit" value="Update Bag" class="btn btn-small"/>
-        </form>
-    </div>
+        <input type="submit" value="Update Bag" class="btn btn-small"/>
+    </form>
+</div>
 </body>
 </html>

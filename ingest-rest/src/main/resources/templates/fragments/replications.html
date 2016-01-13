@@ -27,20 +27,20 @@
         </div>
 
         <div class="panel-body" id="filter-body" style="display: none">
-            <form class="form-horizontal" role="form">
+            <form class="form-horizontal" role="form" method="GET" th:action="@{/replications}">
                 <div class="input-group input-group-sm">
                     <span class="input-group-addon" id="sizing-addon-1">Bag</span>
-                    <input type="text" class="form-control" id="bag-table-filter" placeholder="Search Bag"/>
+                    <input type="text" class="form-control" id="bag-table-filter" name="bag" placeholder="Search Bag"/>
                 </div>
                 <br/>
                 <div class="input-group form-group-sm">
                     <span class="input-group-addon" id="sizing-addon-2">Node</span>
-                    <input type="text" class="form-control" id="node-table-filter" placeholder="Search Node"/>
+                    <input type="text" class="form-control" id="node-table-filter" name="node" placeholder="Search Node"/>
                 </div>
                 <br/>
                 <div class="input-group form-group-sm">
                     <span class="input-group-addon" id="sizing-addon-3">Status</span>
-                    <input type="text" class="form-control" id="status-table-filter" placeholder="Search Status"/>
+                    <input type="text" class="form-control" id="status-table-filter" name="status" placeholder="Search Status"/>
                 </div>
                 <br/>
                 <button th:type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search"
