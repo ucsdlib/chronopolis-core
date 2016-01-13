@@ -16,6 +16,7 @@ import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.IngestRequest;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationRequest;
+import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,20 +79,35 @@ public class BagController extends IngestController {
                           @RequestParam(required = false) String depositor,
                           @RequestParam(required = false) BagStatus status) {
         log.info("Getting bags for user {}", principal.getName());
-        if (page == null) {
-            page = 0;
-        }
+
         BagSearchCriteria criteria = new BagSearchCriteria()
                 .withDepositor(depositor)
                 .withStatus(status);
 
         Sort s = new Sort(Sort.Direction.ASC, "id");
         Page<Bag> bags = bagService.findBags(criteria, new PageRequest(page, DEFAULT_PAGE_SIZE, s));
-        PageWrapper<Bag> pages = new PageWrapper<>(bags, "/bags");
+
+        boolean start;
+        StringBuilder url = new StringBuilder("/bags");
+        // if we don't append anything, let start continue being true
+        start = !append(url, "depositor", depositor, true);
+        // we only want start to remain true if (start == true && append failed)
+        append(url, "status", status, start);
+
+
+        PageWrapper<Bag> pages = new PageWrapper<>(bags, url.toString());
         model.addAttribute("bags", bags);
         model.addAttribute("pages", pages);
 
         return "bags";
+    }
+
+    private boolean append(StringBuilder url, String name, BagStatus status, boolean start) {
+        if (status != null) {
+            return append(url, name, status.name(), start);
+        }
+
+        return false;
     }
 
     /**
@@ -200,20 +216,66 @@ public class BagController extends IngestController {
      */
     @RequestMapping(value = "/replications", method = RequestMethod.GET)
     public String getReplications(Model model, Principal principal,
-                                  @RequestParam(defaultValue = "0", required = false) Integer page) {
+                                  @RequestParam(defaultValue = "0", required = false) Integer page,
+                                  @RequestParam(required = false) String node,
+                                  @RequestParam(required = false) String bag,
+                                  @RequestParam(required = false) ReplicationStatus status) {
         log.info("Getting replications for user {}", principal.getName());
         Page<Replication> replications;
+        ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
+                .withNodeUsername(node)
+                .withStatus(status);
 
         Sort s = new Sort(Sort.Direction.ASC, "id");
-        replications = replicationService.getReplications(new ReplicationSearchCriteria(), new PageRequest(page, DEFAULT_PAGE_SIZE, s));
+        replications = replicationService.getReplications(criteria, new PageRequest(page, DEFAULT_PAGE_SIZE, s));
+
+        StringBuilder url = new StringBuilder("/replications");
+
+        boolean start;
+        // if we don't append anything, let start continue being true
+        start = !append(url, "bag", bag, true);
+        // we only want start to remain true if (start == true && append failed)
+        start = (start && !append(url, "node", node, start));
+        append(url, "status", status, start);
 
         model.addAttribute("replications", replications);
-        model.addAttribute("pages", new PageWrapper<Replication>(replications, "/replications"));
+        model.addAttribute("pages", new PageWrapper<>(replications, url.toString()));
+
         return "replications";
+    }
+
+    private boolean append(StringBuilder builder, String name, ReplicationStatus value, boolean start) {
+        if (value != null) {
+            return append(builder, name, value.name(), start);
+        }
+
+        return false;
+    }
+
+    private boolean append(StringBuilder builder, String name, String value, boolean start) {
+        if (value != null && !value.isEmpty()) {
+            if (start) {
+                builder.append("?");
+            } else {
+                builder.append("&");
+            }
+            builder.append(name).append("=").append(value);
+
+            return true;
+        }
+
+        return false;
     }
 
     @RequestMapping(value = "/replications/{id}", method = RequestMethod.GET)
     public String getReplication(Model model, @PathVariable("id") Long id) {
+        ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
+                .withId(id);
+
+        Replication replication = replicationService.getReplication(criteria);
+        log.info("Found replication {}::{}", replication.getId(), replication.getNode().getUsername());
+        model.addAttribute("replication", replication);
+
         return "replication";
     }
 
