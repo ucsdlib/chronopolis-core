@@ -44,7 +44,7 @@ import static org.chronopolis.ingest.BagInitializer.initializeBag;
 @Controller
 public class BagController extends IngestController {
     private final Logger log = LoggerFactory.getLogger(BagController.class);
-    private final Integer DEFAULT_PAGE_SIZE = 10;
+    private final Integer DEFAULT_PAGE_SIZE = 20;
 
     @Autowired
     BagService bagService;
