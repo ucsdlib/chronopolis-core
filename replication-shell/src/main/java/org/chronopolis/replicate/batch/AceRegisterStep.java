@@ -186,7 +186,7 @@ public class AceRegisterStep implements Tasklet {
                 log.error("Error registering ACE collection. Response code {} with reason {}",
                         response.code(),
                         response.message());
-                throw new RuntimeException(response.message());
+                throw new RuntimeException(response.raw().request().url() + ": " + response.message());
             }
 
             Map<String, Integer> idMap = response.body();

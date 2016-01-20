@@ -75,10 +75,10 @@ public class ReplicationConfig {
 
         // TODO: Test
         HttpUrl url = new HttpUrl.Builder()
-                .scheme("https")
+                .scheme("http")
                 .host(aceSettings.getAmHost())
                 .port(aceSettings.getAmPort())
-                .addPathSegment(aceSettings.getAmPath()).build();
+                .build();
 
         OkHttpClient client = new OkHttpClient.Builder()
                 .addInterceptor(new OkBasicInterceptor(aceSettings.getAmUser(), aceSettings.getAmPassword()))
@@ -87,6 +87,7 @@ public class ReplicationConfig {
         Retrofit restAdapter = new Retrofit.Builder()
                 .baseUrl(endpoint)
                 .client(client)
+                .addConverterFactory(GsonConverterFactory.create())
                 // .setErrorHandler(logger())
                 // .setLogLevel(Retrofit.LogLevel.valueOf(retrofitLogLevel))
                 .build();
