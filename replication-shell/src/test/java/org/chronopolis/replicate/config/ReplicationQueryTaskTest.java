@@ -24,7 +24,6 @@ import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import retrofit2.Call;
@@ -85,7 +84,7 @@ public class ReplicationQueryTaskTest {
     Map<String, Object> pending;
 
     Call<Bag> bagCall;
-    Call<Page<Replication>> replications;
+    Call<PageImpl<Replication>> replications;
 
 
     @Before
@@ -106,7 +105,7 @@ public class ReplicationQueryTaskTest {
             replicationList.add(replication);
         }
 
-        Page<Replication> page = new PageImpl<>(replicationList);
+        PageImpl<Replication> page = new PageImpl<>(replicationList);
 
         replications = new CallWrapper<>(page);
         bagCall = new CallWrapper<>(b);

@@ -12,6 +12,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Component;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -110,9 +111,9 @@ public class CommandLineService implements ReplicationService {
         Map<String, Object> params = new HashMap<>();
         Page<Replication> replications;
         params.put("status", status);
-        Call<Page<Replication>> call = ingestAPI.getReplications(params);
+        Call<PageImpl<Replication>> call = ingestAPI.getReplications(params);
         try {
-            Response<Page<Replication>> execute = call.execute();
+            Response<PageImpl<Replication>> execute = call.execute();
             replications = execute.body();
         } catch (IOException e) {
             log.error("Error getting replications from server", e);
