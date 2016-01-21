@@ -6,12 +6,12 @@
 
     <groupId>org.chronopolis</groupId>
     <artifactId>rest-common</artifactId>
-    <version>1.1.0-RELEASE</version>
+    <version>1.1.1-RELEASE</version>
 
     <parent>
         <groupId>org.chronopolis</groupId>
         <artifactId>chronopolis</artifactId>
-        <version>1.1.0-RELEASE</version>
+        <version>1.1.1-RELEASE</version>
     </parent>
 
     <dependencies>

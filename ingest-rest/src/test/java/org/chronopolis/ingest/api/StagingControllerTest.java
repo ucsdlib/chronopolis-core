@@ -119,6 +119,7 @@ public class StagingControllerTest extends IngestTest {
         request.setDepositor("test-depositor");
         request.setLocation("test-depositor/new-bag-1");
         request.setReplicatingNodes(ImmutableList.of("umiacs"));
+        request.setRequiredReplications(1);
 
         ResponseEntity<Bag> bag = template.postForEntity(
                 "http://localhost:" + port + "/api/bags",

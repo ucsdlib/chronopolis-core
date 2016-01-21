@@ -42,18 +42,21 @@ public class BagInitializer {
 
     @Autowired
     public BagInitializer(NodeRepository repository, IngestSettings settings) {
-        this.settings = settings;
-        this.repository = repository;
+        BagInitializer.settings = settings;
+        BagInitializer.repository = repository;
     }
 
     /**
      * Iterate through a list of node usernames and add them to the BagDistribution table
      * TODO: Should we make distribution records for all nodes if the request is empty/null
+     * TODO: List<String> -> List<Node> for replicating nodes
+     * TODO: Use replicatingNodes size as number of required replications? (implicit association)
      *
      * @param bag
      * @param replicatingNodes
      */
     private static void createBagDistributions(Bag bag, List<String> replicatingNodes) {
+        int numDistributions = 0;
         if (replicatingNodes == null) {
             replicatingNodes = new ArrayList<>();
         }
@@ -63,9 +66,19 @@ public class BagInitializer {
             if (node != null) {
                 log.debug("Creating dist record for {}", nodeName);
                 bag.addDistribution(node, DISTRIBUTE);
+                numDistributions++;
+            }
+        }
+
+        if (numDistributions < bag.getRequiredReplications()) {
+            for (Node node : repository.findAll()) {
+                log.debug("Creating dist record for {}", node.getUsername());
+                bag.addDistribution(node, DISTRIBUTE);
+                numDistributions++;
             }
         }
     }
+
 
     /**
      * Set the location, fixity value, size, and total number of files for the bag
@@ -101,7 +114,11 @@ public class BagInitializer {
         bag.setSize(bagSize[0]);
         bag.setTotalFiles(fileCount[0]);
         bag.setFixityAlgorithm("SHA-256");
-        bag.setRequiredReplications(request.getRequiredReplications());
+
+        // could put this in the bag object...
+        if (request.getRequiredReplications() > 0) {
+            bag.setRequiredReplications(request.getRequiredReplications());
+        }
 
         createBagDistributions(bag, request.getReplicatingNodes());
     }
