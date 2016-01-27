@@ -1,8 +1,11 @@
 package org.chronopolis.replicate.config;
 
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
 import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.CredentialRequestInterceptor;
+import org.chronopolis.common.ace.OkBasicInterceptor;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.settings.AceSettings;
 import org.chronopolis.common.settings.IngestAPISettings;
@@ -26,10 +29,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
-import retrofit.RestAdapter;
+import retrofit2.GsonConverterFactory;
+import retrofit2.Retrofit;
 
 /**
  * Configuration for the beans used by the replication-shell
@@ -70,15 +73,23 @@ public class ReplicationConfig {
                 aceSettings.getAmPort(),
                 aceSettings.getAmPath()).toString();
 
-        CredentialRequestInterceptor interceptor = new CredentialRequestInterceptor(
-                aceSettings.getAmUser(),
-                aceSettings.getAmPassword());
+        // TODO: Test
+        HttpUrl url = new HttpUrl.Builder()
+                .scheme("http")
+                .host(aceSettings.getAmHost())
+                .port(aceSettings.getAmPort())
+                .build();
 
-        RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint(endpoint)
-                .setErrorHandler(logger())
-                .setLogLevel(RestAdapter.LogLevel.valueOf(retrofitLogLevel))
-                .setRequestInterceptor(interceptor)
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(new OkBasicInterceptor(aceSettings.getAmUser(), aceSettings.getAmPassword()))
+                .build();
+
+        Retrofit restAdapter = new Retrofit.Builder()
+                .baseUrl(endpoint)
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create())
+                // .setErrorHandler(logger())
+                // .setLogLevel(Retrofit.LogLevel.valueOf(retrofitLogLevel))
                 .build();
 
         return restAdapter.create(AceService.class);
@@ -94,22 +105,19 @@ public class ReplicationConfig {
     IngestAPI ingestAPI(IngestAPISettings apiSettings) {
         // TODO: Create a list of endpoints
         String endpoint = apiSettings.getIngestEndpoints().get(0);
-        /*                URIUtil.buildAceUri(
-                apiSettings.getIngestAPIHost(),
-                apiSettings.getIngestAPIPort(),
-                apiSettings.getIngestAPIPath()).toString();
-                */
-
-        // TODO: This can timeout on long polls, see SO for potential fix
-        // http://stackoverflow.com/questions/24669309/how-to-increase-timeout-for-retrofit-requests-in-robospice-android
-        RestAdapter adapter = new RestAdapter.Builder()
-                .setEndpoint(endpoint)
-                .setErrorHandler(logger())
-                .setLogLevel(RestAdapter.LogLevel.valueOf(retrofitLogLevel))
-                .setRequestInterceptor(new CredentialRequestInterceptor(
-                        apiSettings.getIngestAPIUsername(),
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(new OkBasicInterceptor(apiSettings.getIngestAPIUsername(),
                         apiSettings.getIngestAPIPassword()))
-                // .setLogLevel(RestAdapter.LogLevel.FULL)
+                .build();
+
+
+        Retrofit adapter = new Retrofit.Builder()
+                .baseUrl(endpoint)
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create())
+                // .setErrorHandler(logger())
+                // .setLogLevel(Retrofit.LogLevel.valueOf(retrofitLogLevel))
+                // .setLogLevel(Retrofit.LogLevel.FULL)
                 .build();
 
         return adapter.create(IngestAPI.class);

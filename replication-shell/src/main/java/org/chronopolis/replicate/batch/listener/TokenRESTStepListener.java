@@ -12,6 +12,9 @@ import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
+import retrofit2.Call;
+
+import java.io.IOException;
 
 import static org.chronopolis.replicate.batch.listener.Util.sendFailure;
 
@@ -59,7 +62,15 @@ public class TokenRESTStepListener implements StepExecutionListener {
             replication.setReceivedTokenFixity(digest);
 
             // There's a chance this can fail, but we can still rsync the bag? maybe?
-            Replication updated = ingestAPI.updateReplication(replication.getId(), replication);
+            Replication updated;
+            Call<Replication> call = ingestAPI.updateReplication(replication.getId(), replication);
+            try {
+                updated = call.execute().body();
+            } catch (IOException e) {
+                log.error("Unable to update replication", e);
+                return ExitStatus.FAILED;
+            }
+
             if (updated.getStatus() == ReplicationStatus.FAILURE_TOKEN_STORE) {
                 log.error("Error validating token store");
                 // stop the execution

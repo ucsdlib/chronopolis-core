@@ -12,7 +12,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Component;
+import retrofit2.Call;
+import retrofit2.Response;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -106,8 +109,17 @@ public class CommandLineService implements ReplicationService {
      */
     private void query(ReplicationStatus status, boolean update) {
         Map<String, Object> params = new HashMap<>();
+        Page<Replication> replications;
         params.put("status", status);
-        Page<Replication> replications = ingestAPI.getReplications(params);
+        Call<PageImpl<Replication>> call = ingestAPI.getReplications(params);
+        try {
+            Response<PageImpl<Replication>> execute = call.execute();
+            replications = execute.body();
+        } catch (IOException e) {
+            log.error("Error getting replications from server", e);
+            return;
+        }
+
         log.debug("Found {} replications", replications.getNumberOfElements());
 
         for (Replication replication : replications) {

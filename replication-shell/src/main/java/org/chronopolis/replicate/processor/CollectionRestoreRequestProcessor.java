@@ -44,7 +44,8 @@ public class CollectionRestoreRequestProcessor implements ChronProcessor {
 
         // Check to make sure we actually have the collection
         // TODO: May want to make sure the collection is valid
-        GsonCollection collection = aceService.getCollectionByName(msg.getCollection(), msg.getDepositor());
+        // GsonCollection collection = aceService.getCollectionByName(msg.getCollection(), msg.getDepositor());
+        GsonCollection collection = null;
         if (collection == null) {
             att = Indicator.NAK;
         } else {

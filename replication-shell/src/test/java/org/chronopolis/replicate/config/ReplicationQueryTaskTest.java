@@ -26,7 +26,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
@@ -78,7 +82,9 @@ public class ReplicationQueryTaskTest {
     Replication replication;
     Map<String, Object> started;
     Map<String, Object> pending;
-    PageImpl<Replication> replications;
+
+    Call<Bag> bagCall;
+    Call<PageImpl<Replication>> replications;
 
 
     @Before
@@ -98,7 +104,11 @@ public class ReplicationQueryTaskTest {
         for (int i = 0; i < 5; i++) {
             replicationList.add(replication);
         }
-        replications = new PageImpl<>(replicationList);
+
+        PageImpl<Replication> page = new PageImpl<>(replicationList);
+
+        replications = new CallWrapper<>(page);
+        bagCall = new CallWrapper<>(b);
 
         started = ImmutableMap.of("status", (Object) ReplicationStatus.STARTED);
         pending = ImmutableMap.of("status", (Object) ReplicationStatus.PENDING);
@@ -109,7 +119,7 @@ public class ReplicationQueryTaskTest {
         when(ingestAPI.getReplications(anyMap())).thenReturn(replications);
 
         // Ok so this is kind of bad behavior, but our bag has a null id so...
-        when(ingestAPI.getBag(null)).thenReturn(b);
+        when(ingestAPI.getBag(null)).thenReturn(bagCall);
         task.checkForReplications();
 
         // We should have only executed our job starter once
@@ -126,10 +136,47 @@ public class ReplicationQueryTaskTest {
             .addDate("date", new Date())
             .toJobParameters());
         when(ingestAPI.getReplications(anyMap())).thenReturn(replications);
-        when(ingestAPI.getBag(null)).thenReturn(b);
+        when(ingestAPI.getBag(null)).thenReturn(bagCall);
 
         task.checkForReplications();
         verify(jobStarter, times(0)).addJobFromRestful(replication);
 
+    }
+
+    public class CallWrapper<E> implements Call<E> {
+
+        E e;
+
+        public CallWrapper(E e) {
+            this.e = e;
+        }
+
+        @Override
+        public Response<E> execute() throws IOException {
+            return Response.success(e);
+        }
+
+        @Override
+        public void enqueue(Callback<E> callback) {
+        }
+
+        @Override
+        public boolean isExecuted() {
+            return false;
+        }
+
+        @Override
+        public void cancel() {
+        }
+
+        @Override
+        public boolean isCanceled() {
+            return false;
+        }
+
+        @Override
+        public Call<E> clone() {
+            return null;
+        }
     }
 }

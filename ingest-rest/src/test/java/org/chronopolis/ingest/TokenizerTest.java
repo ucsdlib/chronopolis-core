@@ -41,6 +41,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
+ * Test for our tokenizer
+ *
  * Created by shake on 8/25/15.
  */
 @RunWith(SpringJUnit4ClassRunner.class)

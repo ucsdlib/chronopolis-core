@@ -123,7 +123,7 @@ public class BagInitializer {
         createBagDistributions(bag, request.getReplicatingNodes());
     }
 
-        /**
+    /**
      * Explode a tarball for a given transfer
      *
      * @param tarball

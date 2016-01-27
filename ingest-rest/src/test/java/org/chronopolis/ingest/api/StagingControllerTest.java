@@ -1,10 +1,13 @@
 package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableList;
+import okhttp3.OkHttpClient;
+import org.chronopolis.common.ace.OkBasicInterceptor;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;
 import org.chronopolis.ingest.repository.BagService;
 import org.chronopolis.ingest.support.PageImpl;
+import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.IngestRequest;
 import org.junit.Test;
@@ -19,6 +22,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import retrofit2.Call;
+import retrofit2.Retrofit;
 
 import static org.junit.Assert.assertEquals;
 
@@ -41,6 +46,30 @@ public class StagingControllerTest extends IngestTest {
 
     @Autowired
     BagService bagService;
+
+    // @Test
+    public void testSerial() throws Exception {
+       ResponseEntity<Bag> entity = new TestRestTemplate("umiacs", "umiacs")
+               .getForEntity("http://localhost:" + port + "/api/bags/10", Bag.class);
+
+        Bag bag = bagService.findBag((long) 10);
+        System.out.println(bag.getReplicatingNodes());
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(new OkBasicInterceptor("umiacs", "umiacs"))
+                .build();
+
+        Retrofit adapter = new Retrofit.Builder()
+                .baseUrl("http://localhost:" + port)
+                .client(client)
+                // .setRequestInterceptor(new CredentialRequestInterceptor("umiacs", "umiacs"))
+                // .setLogLevel(RestAdapter.LogLevel.FULL)
+                .build();
+
+        IngestAPI api = adapter.create(IngestAPI.class);
+        Call<Bag> call = api.getBag((long) 10);
+        Bag bag1 = call.execute().body();
+        System.out.println(bag1.getTokenLocation());
+    }
 
     @Test
     public void testGetBags() throws Exception {

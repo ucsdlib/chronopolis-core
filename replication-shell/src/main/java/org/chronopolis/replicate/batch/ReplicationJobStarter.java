@@ -28,7 +28,10 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
+import retrofit2.Call;
+import retrofit2.Response;
 
+import java.io.IOException;
 import java.util.Date;
 
 /**
@@ -85,7 +88,8 @@ public class ReplicationJobStarter {
         // check to see if we already have the collection
         // if we don't, replicate it
         // if we do, just sent an init complete message
-        GsonCollection gsonCollection = aceService.getCollectionByName(collection, depositor);
+        // Call<GsonCollection> gsonCollection = aceService.getCollectionByName(collection, depositor);
+        GsonCollection gsonCollection = null;
         if (gsonCollection == null) {
             ReplicationNotifier notifier = new ReplicationNotifier(msg);
             TokenAMQPStepListener tokenStepListener = new TokenAMQPStepListener(notifier,
@@ -121,7 +125,15 @@ public class ReplicationJobStarter {
         String depositor = replication.getBag().getDepositor();
         String collection = replication.getBag().getName();
 
-        GsonCollection gsonCollection = aceService.getCollectionByName(collection, depositor);
+        GsonCollection gsonCollection = null;
+        Call<GsonCollection> call = aceService.getCollectionByName(collection, depositor);
+        try {
+            Response<GsonCollection> response = call.execute();
+            gsonCollection = response.body();
+        } catch (IOException e) {
+            log.error("Error communicating with server", e);
+        }
+
         if (gsonCollection == null) {
             ReplicationNotifier notifier = new ReplicationNotifier(replication);
             TokenRESTStepListener tokenStepListener = new TokenRESTStepListener(mailUtil,
