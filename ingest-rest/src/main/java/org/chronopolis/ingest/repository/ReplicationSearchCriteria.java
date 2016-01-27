@@ -22,6 +22,7 @@ public class ReplicationSearchCriteria {
     private Long id;
     private Long bagId;
     private String nodeUsername;
+    private String bagName;
     private ReplicationStatus status;
 
     public ReplicationSearchCriteria() {
@@ -49,6 +50,14 @@ public class ReplicationSearchCriteria {
         if (nodeUsername != null && !nodeUsername.isEmpty()) {
             criteria.put("NODE_USERNAME", replication.node.username.eq(nodeUsername));
             this.nodeUsername = nodeUsername;
+        }
+        return this;
+    }
+
+    public ReplicationSearchCriteria withBagName(String bagName) {
+        if (bagName != null && !bagName.isEmpty()) {
+            criteria.put("BAG_NAME", replication.bag.name.eq(bagName));
+            this.bagName = bagName;
         }
         return this;
     }

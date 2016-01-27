@@ -224,6 +224,7 @@ public class BagController extends IngestController {
         Page<Replication> replications;
         ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
                 .withNodeUsername(node)
+                .withBagName(bag)
                 .withStatus(status);
 
         Sort s = new Sort(Sort.Direction.ASC, "id");
