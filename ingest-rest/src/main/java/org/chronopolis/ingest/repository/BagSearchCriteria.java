@@ -28,7 +28,7 @@ public class BagSearchCriteria {
     }
 
     public BagSearchCriteria withName(String name) {
-        if (name != null) {
+        if (name != null && !name.isEmpty()) {
             this.name = name;
             criteria.put(Params.NAME, bag.name.eq(name));
         }
@@ -36,7 +36,7 @@ public class BagSearchCriteria {
     }
 
     public BagSearchCriteria withDepositor(String depositor) {
-        if (depositor != null) {
+        if (depositor != null && !depositor.isEmpty()) {
             this.depositor = depositor;
             criteria.put(Params.DEPOSITOR, bag.depositor.eq(depositor));
         }

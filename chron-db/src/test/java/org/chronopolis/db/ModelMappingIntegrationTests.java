@@ -4,14 +4,15 @@
  */
 package org.chronopolis.db;
 
-import javax.persistence.EntityManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.transaction.TransactionConfiguration;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
 
 import static org.chronopolis.db.JPAAssertions.assertTableExists;
 import static org.chronopolis.db.JPAAssertions.assertTableHasColumn;
@@ -22,8 +23,9 @@ import static org.chronopolis.db.JPAAssertions.assertTableHasColumn;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {JPATestConfiguration.class})
+@Rollback
 @Transactional
-@TransactionConfiguration(defaultRollback = true)
+// @TransactionConfiguration(defaultRollback = true)
 public class ModelMappingIntegrationTests {
     
     @Autowired
