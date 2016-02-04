@@ -34,8 +34,6 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.Arrays;
 
-import static org.chronopolis.ingest.BagInitializer.initializeBag;
-
 /**
  * Controller for handling bag/replication related requests
  *
@@ -188,12 +186,14 @@ public class BagController extends IngestController {
         // only add new bags
         if (bag == null) {
             bag = new Bag(name, depositor);
+            /*
             try {
                 initializeBag(bag, request);
             } catch (IOException e) {
                 log.error("Error creating bag", e);
                 throw e;
             }
+            */
         }
 
         bagService.saveBag(bag);

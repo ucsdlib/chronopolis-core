@@ -131,7 +131,8 @@ public class StagingControllerTest extends IngestTest {
                 Bag.class);
 
         assertEquals(Long.valueOf(11), bag.getBody().getId());
-        assertEquals(Long.valueOf(3), Long.valueOf(bag.getBody().getTotalFiles()));
+        // This now happens after the initial commit of information to the repository
+        // assertEquals(Long.valueOf(3), Long.valueOf(bag.getBody().getTotalFiles()));
     }
 
     @Test
