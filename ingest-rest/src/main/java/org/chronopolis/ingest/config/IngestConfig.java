@@ -27,12 +27,19 @@ public class IngestConfig {
     final String AJP_PROTOCOL = "AJP/1.3";
     final String AJP_SCHEME = "http";
 
+    /*
     @Bean
     public TokenThreadPoolExecutor tokenThreadPoolExecutor() {
         return new TokenThreadPoolExecutor(4, 6, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
     }
+    */
 
-    @Bean(destroyMethod = "destroy")
+    @Bean(name = "tokenExecutor", destroyMethod = "destroy")
+    public TrackingThreadPoolExecutor<Bag> tokenizingThreadPoolExecutor() {
+        return new TrackingThreadPoolExecutor<Bag>(4, 6, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+    }
+
+    @Bean(name = "bagExecutor", destroyMethod = "destroy")
     public TrackingThreadPoolExecutor<Bag> bagThreadPoolExecutor() {
         return new TrackingThreadPoolExecutor<>(4, 6, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
     }
