@@ -4,7 +4,6 @@ import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
-import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.models.Bag;
@@ -46,19 +45,6 @@ public class AceRegisterStep implements Tasklet {
     private String fixityAlgorithm;
     private String tokenLocation;
     private int auditPeriod;
-
-    public AceRegisterStep(AceService aceService,
-                           ReplicationSettings settings,
-                           CollectionInitMessage message,
-                           ReplicationNotifier notifier) {
-        this.aceService = aceService;
-        this.settings = settings;
-        this.notifier = notifier;
-        this.collection = message.getCollection();
-        this.depositor = message.getDepositor();
-        this.fixityAlgorithm = message.getFixityAlgorithm();
-        this.auditPeriod = message.getAuditPeriod();
-    }
 
     public AceRegisterStep(AceService aceService,
                            ReplicationSettings settings,

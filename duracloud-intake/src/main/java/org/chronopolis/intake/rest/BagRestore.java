@@ -1,16 +1,12 @@
 package org.chronopolis.intake.rest;
 
 import org.chronopolis.common.mail.MailUtil;
-import org.chronopolis.db.intake.StatusRepository;
-import org.chronopolis.db.intake.model.Status;
 import org.chronopolis.intake.duracloud.config.IntakeSettings;
 import org.chronopolis.intake.duracloud.model.DuracloudRestore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -29,8 +25,6 @@ import java.nio.file.Paths;
 public class BagRestore {
     private static final Logger log = LoggerFactory.getLogger(BagRestore.class);
 
-    @Autowired
-    private StatusRepository statusRepository;
 
     @Autowired
     private IntakeSettings settings;
@@ -49,16 +43,15 @@ public class BagRestore {
 
         // grab the depositor and collection name from the bagstatus
         // and forward that through to the ingest service
-        Status status = statusRepository.findByBagId(snapshotId);
-        ResponseEntity entity;
+        ResponseEntity entity = null;
 
+        /*
         if (status == null) {
             log.info("Bag {} not found", snapshotId);
             entity = new ResponseEntity(HttpStatus.NOT_FOUND);
         } else if (status.isReplicated()) {
             log.info("Bag {} found and is replicated", snapshotId);
             entity = new ResponseEntity(HttpStatus.OK);
-            /*
             ChronMessage message = messageFactory.collectionRestoreRequestMessage(
                     status.getCollectionName(),
                     status.getDepositor(),
@@ -66,7 +59,6 @@ public class BagRestore {
             );
 
             producer.send(message, RoutingKey.INGEST_BROADCAST.asRoute());
-            */
 
             SimpleMailMessage smm = new SimpleMailMessage();
             smm.setFrom(mailUtil.getSmtpFrom());
@@ -80,8 +72,9 @@ public class BagRestore {
             log.info("Bag {} found and is not replicated", snapshotId);
             entity = new ResponseEntity(HttpStatus.BAD_REQUEST);
         }
+        */
 
-        return entity;
+        return null;
     }
 
 }

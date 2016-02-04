@@ -8,7 +8,6 @@ import org.chronopolis.common.exception.FileTransferException;
 import org.chronopolis.common.transfer.FileTransfer;
 import org.chronopolis.common.transfer.HttpsTransfer;
 import org.chronopolis.common.transfer.RSyncTransfer;
-import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.models.Bag;
@@ -39,17 +38,6 @@ public class BagDownloadStep implements Tasklet {
     private String depositor;
     private String location;
     private String protocol;
-
-    public BagDownloadStep(final ReplicationSettings settings,
-                           final CollectionInitMessage message,
-                           final ReplicationNotifier notifier) {
-        this.settings = settings;
-        this.notifier = notifier;
-        this.collection = message.getCollection();
-        this.depositor = message.getDepositor();
-        this.location = message.getBagLocation();
-        this.protocol = message.getProtocol();
-    }
 
     public BagDownloadStep(ReplicationSettings settings,
                            ReplicationNotifier notifier,

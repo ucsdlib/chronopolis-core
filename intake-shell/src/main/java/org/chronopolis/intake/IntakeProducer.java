@@ -4,13 +4,11 @@
  */
 package org.chronopolis.intake;
 
-import org.chronopolis.amqp.ChronProducer;
-import org.chronopolis.amqp.RoutingKey;
-import org.chronopolis.common.digest.Digest;
+import gov.loc.repository.bagit.Bag;
+import gov.loc.repository.bagit.BagFactory;
+import gov.loc.repository.bagit.PreBag;
+import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
 import org.chronopolis.common.settings.ChronopolisSettings;
-import org.chronopolis.messaging.base.ChronMessage;
-import org.chronopolis.messaging.factory.MessageFactory;
-import org.chronopolis.messaging.pkg.PackageReadyMessage;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.IngestRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,25 +19,14 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import gov.loc.repository.bagit.BagFactory;
-import gov.loc.repository.bagit.PreBag;
-import gov.loc.repository.bagit.Bag;
-import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
-
-import java.io.File;
 import java.util.Date;
+import java.util.List;
 
 
 /**
@@ -55,18 +42,12 @@ import java.util.Date;
 @EnableAutoConfiguration
 public class IntakeProducer implements CommandLineRunner {
 
-    private ChronProducer producer;
     private ChronopolisSettings settings;
-    private MessageFactory messageFactory;
     private IngestAPI ingestAPI;
 
     @Autowired
-    public IntakeProducer(ChronProducer producer,
-                          MessageFactory messageFactory,
-                          ChronopolisSettings settings,
+    public IntakeProducer(ChronopolisSettings settings,
                           IngestAPI ingestAPI) {
-        this.producer = producer;
-        this.messageFactory = messageFactory;
         this.settings = settings;
         this.ingestAPI = ingestAPI;
     }
@@ -104,23 +85,7 @@ public class IntakeProducer implements CommandLineRunner {
             PRODUCER_OPTION option = inputOption();
             String depositor, bagName, directory;
 
-            if (option.equals(PRODUCER_OPTION.SEND_STATIC_INTAKE_REQUEST)) {
-                sendMessage("umiacs", "myDPNBag", "myDPNBag");
-            } else if (option.equals(PRODUCER_OPTION.CREATE_INTAKE_REQUEST)) {
-                System.out.print("Depositor: ");
-                depositor = readLine();
-                System.out.print("Bag Name: ");
-                bagName = readLine();
-
-                sendMessage(depositor, bagName, bagName);
-            } else if (option.equals(PRODUCER_OPTION.RESTORE_REQUEST)) {
-                System.out.print("Depositor: ");
-                depositor = readLine();
-                System.out.print("Bag Name: ");
-                bagName = readLine();
-
-                sendRestore(depositor, bagName);
-            } else if (option.equals(PRODUCER_OPTION.QUIT)) {
+            if (option.equals(PRODUCER_OPTION.QUIT)) {
                 done = true;
             } else if (option.equals(PRODUCER_OPTION.DIRECTORY_SCAN)) {
                 System.out.print("Depositor: ");
@@ -182,7 +147,7 @@ public class IntakeProducer implements CommandLineRunner {
             Path bag = toScan.resolve(f);
             if (bag.toFile().isDirectory()) {
                 System.out.printf("Sending %s %s %s\n", depositor, directory + "/" + f, f);
-                sendMessage(depositor, directory + "/" + f, f);
+                // sendMessage(depositor, directory + "/" + f, f);
             }
         }
 
@@ -226,49 +191,6 @@ public class IntakeProducer implements CommandLineRunner {
         fsw.write(b, bagDir);
         System.out.println("The bag " + bagStage + "/" + bagName + " is created.");
 
-    }
-
-
-    /**
-     * Send a restore request message for a bag in chronopolis
-     *
-     * @param depositor
-     * @param bagName
-     */
-    private void sendRestore(final String depositor, final String bagName) {
-        Path location = Paths.get(settings.getRestore(), UUID.randomUUID().toString());
-        ChronMessage restore = messageFactory.collectionRestoreRequestMessage(bagName, depositor, location.toString());
-        producer.send(restore, RoutingKey.INGEST_BROADCAST.asRoute());
-    }
-
-    private void sendMessage(String depositor, String location, String bagName) {
-        Path collectionPath = Paths.get(settings.getBagStage(), location);
-
-        // Calculate the bag size for our message
-        final int[] bagSize = {0};
-        try {
-            Files.walkFileTree(collectionPath, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path path, BasicFileAttributes basicFileAttributes) throws IOException {
-                    bagSize[0] += basicFileAttributes.size();
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-        } catch (IOException e) {
-            // We don't really care about errors here, at least not yet
-            System.out.println("Could not calculate bag size");
-            bagSize[0] = 0;
-        }
-
-        PackageReadyMessage msg = messageFactory.packageReadyMessage(
-                depositor,
-                Digest.SHA_256,
-                location,
-                bagName,
-                bagSize[0]
-        );
-
-        producer.send(msg, RoutingKey.INGEST_BROADCAST.asRoute());
     }
 
     private PRODUCER_OPTION inputOption() {

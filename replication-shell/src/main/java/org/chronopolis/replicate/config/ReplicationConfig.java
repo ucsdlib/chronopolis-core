@@ -2,7 +2,6 @@ package org.chronopolis.replicate.config;
 
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
-import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.CredentialRequestInterceptor;
 import org.chronopolis.common.ace.OkBasicInterceptor;
@@ -11,8 +10,6 @@ import org.chronopolis.common.settings.AceSettings;
 import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.common.settings.SMTPSettings;
 import org.chronopolis.common.util.URIUtil;
-import org.chronopolis.messaging.base.ChronMessage;
-import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.batch.ReplicationJobStarter;
 import org.chronopolis.replicate.batch.ReplicationStepListener;
 import org.chronopolis.rest.api.ErrorLogger;
@@ -124,36 +121,8 @@ public class ReplicationConfig {
     }
 
     /**
-     * Null producer for the {@link ReplicationJobStarter}
-     *
-     * @return
-     */
-    @Bean
-    ChronProducer producer() {
-        // Return a null producer
-        return new ChronProducer() {
-            @Override
-            public void send(ChronMessage message, String routingKey) {
-            }
-        };
-    }
-
-    /**
-     * MessageFactory needed for the {@link ReplicationJobStarter}
-     *
-     * @param chronopolisSettings
-     * @return
-     */
-    @Bean
-    MessageFactory messageFactory(ReplicationSettings chronopolisSettings) {
-        return new MessageFactory(chronopolisSettings);
-    }
-
-    /**
      * Class to handle creation of replication jobs through spring-batch
      *
-     * @param producer
-     * @param messageFactory
      * @param settings
      * @param mailUtil
      * @param aceService
@@ -165,9 +134,7 @@ public class ReplicationConfig {
      * @return
      */
     @Bean
-    ReplicationJobStarter jobStarter(ChronProducer producer,
-                                     MessageFactory messageFactory,
-                                     ReplicationSettings settings,
+    ReplicationJobStarter jobStarter(ReplicationSettings settings,
                                      MailUtil mailUtil,
                                      AceService aceService,
                                      IngestAPI ingestAPI,
@@ -175,9 +142,7 @@ public class ReplicationConfig {
                                      JobLauncher jobLauncher,
                                      JobBuilderFactory jobBuilderFactory,
                                      StepBuilderFactory stepBuilderFactory) {
-        return new ReplicationJobStarter(producer,
-                messageFactory,
-                settings,
+        return new ReplicationJobStarter(settings,
                 mailUtil,
                 aceService,
                 ingestAPI,

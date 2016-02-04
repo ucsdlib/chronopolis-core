@@ -36,10 +36,6 @@
 
     <pluginRepositories>
         <pluginRepository>
-            <id>onejar-maven-plugin.googlecode.com</id>
-            <url>http://onejar-maven-plugin.googlecode.com/svn/mavenrepo</url>
-        </pluginRepository>
-        <pluginRepository>
             <id>spring-snapshots</id>
             <url>http://repo.spring.io/snapshot</url>
         </pluginRepository>
@@ -67,16 +63,6 @@
         <dependency>
             <groupId>org.chronopolis</groupId>
             <artifactId>chron-db</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.chronopolis</groupId>
-            <artifactId>chron-messaging</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.chronopolis</groupId>
-            <artifactId>amqp-core</artifactId>
         </dependency>
 
         <dependency>
