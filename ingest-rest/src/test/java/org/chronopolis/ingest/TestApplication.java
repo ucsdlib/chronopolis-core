@@ -1,6 +1,7 @@
 package org.chronopolis.ingest;
 
 import org.chronopolis.ingest.api.StagingController;
+import org.chronopolis.ingest.task.BagInitializer;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
