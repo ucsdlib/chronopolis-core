@@ -44,7 +44,7 @@ public class TokenTask {
             return;
         }
 
-        Collection<Bag> bags = repository.findByStatus(BagStatus.STAGED);
+        Collection<Bag> bags = repository.findByStatus(BagStatus.DEPOSITED);
         log.debug("Submitting {} bags", bags.size());
         for (Bag bag : bags) {
             executor.submitBagIfAvailable(bag, settings, repository, tokenRepository);
