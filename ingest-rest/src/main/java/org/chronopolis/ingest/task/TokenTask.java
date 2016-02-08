@@ -51,6 +51,7 @@ public class TokenTask {
         }
         */
 
+        // Might need pagination in the future
         Collection<Bag> bags = repository.findByStatus(BagStatus.INITIALIZED);
         log.debug("Submitting {} bags", bags.size());
         for (Bag bag : bags) {

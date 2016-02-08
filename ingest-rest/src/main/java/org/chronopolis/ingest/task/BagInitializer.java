@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -58,7 +59,7 @@ public class BagInitializer {
      * Single threaded for now, could easily submit to a thread pool
      * (each job is backed by a bag, reject duplicate bags for long jobs)
      */
-    // @Scheduled(cron = "${ingest.cron.initialize:0 */1 * * * *}")
+    @Scheduled(cron = "${ingest.cron.initialize:0 */1 * * * *}")
     public void initializeBags() {
         BagSearchCriteria criteria = new BagSearchCriteria()
                 .withStatus(BagStatus.DEPOSITED);
