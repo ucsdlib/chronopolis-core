@@ -60,7 +60,8 @@ public class TokenFileWriter {
         DateTimeFormatter formatter = ISODateTimeFormat.date().withZoneUTC();
 
         // TODO: Configurable names for tokens
-        String filename = name + formatter.print(new DateTime()); // + "-tokens";
+        // TODO: Slashes in a filename will break the writer, should do mkdirs on the last parent dir
+        String filename = name + "_" + formatter.print(new DateTime());
         Path store = dir.resolve(filename);
         try (OutputStream os = Files.newOutputStream(store, CREATE)) {
             String ims = "ims.umiacs.umd.edu";
@@ -94,7 +95,7 @@ public class TokenFileWriter {
             bag.setTokenDigest(writer.getTokenDigest());
             log.info("TokenStore Digest for bag {}: {}", bagId, writer.getTokenDigest());
         } catch (IOException ex) {
-            log.error("Error writing manifest {} ", ex);
+            log.error("Error writing token store {}", store, ex);
             return false;
         }
 

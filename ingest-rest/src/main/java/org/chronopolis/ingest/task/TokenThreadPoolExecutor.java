@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
  *
  * Created by shake on 2/27/15.
  */
+@Deprecated
 public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
     private final Logger log = LoggerFactory.getLogger(TokenThreadPoolExecutor.class);
 
@@ -74,6 +75,7 @@ public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
                 submitted = false;
             } catch (RejectedExecutionException e) {
                 log.error("Bag {} rejected!", b.getId(), e);
+                workingBags.remove(b);
                 submitted = false;
             }
 
@@ -98,8 +100,8 @@ public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
     /**
      * Method to remove the bag from our working set, if r is an instance of a TokenRunner
      *
-     * @param r
-     * @param t
+     * @param r the runnable which was executed
+     * @param t a (possible) thrown exception
      */
     protected void afterExecute(Runnable r, Throwable t) {
         super.afterExecute(r, t);
@@ -107,17 +109,19 @@ public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
 
         if (r instanceof FutureTask) {
             // Remove the bag from our working set
-            FutureTask<Bag> task = (FutureTask<Bag>) r;
-            Bag b = null;
+            FutureTask task = (FutureTask) r;
+            Bag b;
             try {
-                b = task.get();
+                Object o = task.get();
+                if (o instanceof Bag) {
+                    b = (Bag) o;
+                    boolean success = workingBags.remove(b);
+                    log.debug("Removal of {} from the working set: {}", b.getName(), success);
+                }
             } catch (InterruptedException e) {
                 log.error("Interrupted in afterExecute", e);
             } catch (ExecutionException e) {
                 log.error("Execution error in afterExecute", e);
-            } finally {
-                boolean success = workingBags.remove(b);
-                log.debug("Removal of {} from the working set: {}", b.getName(), success);
             }
         }
 

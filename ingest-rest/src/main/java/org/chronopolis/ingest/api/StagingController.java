@@ -11,6 +11,7 @@ import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.IngestRequest;
+import org.chronopolis.rest.models.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +22,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
-import static org.chronopolis.ingest.BagInitializer.initializeBag;
 import static org.chronopolis.ingest.api.Params.DEPOSITOR;
 import static org.chronopolis.ingest.api.Params.NAME;
 import static org.chronopolis.ingest.api.Params.SORT_BY_SIZE;
@@ -33,6 +36,7 @@ import static org.chronopolis.ingest.api.Params.SORT_BY_TOTAL_FILES;
 import static org.chronopolis.ingest.api.Params.SORT_SIZE;
 import static org.chronopolis.ingest.api.Params.SORT_TOTAL_FILES;
 import static org.chronopolis.ingest.api.Params.STATUS;
+import static org.chronopolis.rest.models.BagDistribution.BagDistributionStatus.DISTRIBUTE;
 
 /**
  * REST Controller for controlling actions associated with bags
@@ -91,22 +95,6 @@ public class StagingController extends IngestController {
         return bag;
     }
 
-    /*
-    @RequestMapping(value = "bags/{bag-id}/dist/{node-id}", method = RequestMethod.POST)
-    public BagDistribution distmag(@PathVariable("bag-id") Long bagId,
-                       @PathVariable("node-id") Long nodeId) {
-        Bag bag = bagRepository.findOne(bagId);
-        Node node = nodeRepository.findOne(nodeId);
-        BagDistribution dist = new BagDistribution();
-        dist.setBag(bag);
-        dist.setNode(node);
-        dist.setStatus(BagDistribution.BagDistributionStatus.DISTRIBUTE);
-        bag.addDistribution(dist);
-        bagRepository.save(bag);
-        return dist;
-    }
-    */
-
     /**
      * Notification that a bag exists and is ready to be ingested into Chronopolis
      *
@@ -125,18 +113,59 @@ public class StagingController extends IngestController {
             return bag;
         }
 
+        String fileName = request.getLocation();
+        Path stage = Paths.get(ingestSettings.getBagStage());
+        Path bagPath = stage.resolve(fileName);
+        Path relPath = stage.relativize(bagPath);
+
         bag = new Bag(name, depositor);
-        try {
-            initializeBag(bag, request);
-        } catch (IOException e) {
-            log.error("Error initializing bag {}:{}", depositor, name);
-            return null;
+        bag.setFixityAlgorithm("SHA-256");
+        bag.setLocation(relPath.toString());
+
+        if (request.getRequiredReplications() > 0) {
+            bag.setRequiredReplications(request.getRequiredReplications());
         }
 
+        createBagDistributions(bag, request.getReplicatingNodes());
         bagRepository.save(bag);
 
         return bag;
     }
+
+    /**
+     * Iterate through a list of node usernames and add them to the BagDistribution table
+     * TODO: List<String> -> List<Node> for replicating nodes
+     * TODO: Find a home for this
+     *
+     * @param bag
+     * @param replicatingNodes
+     */
+    private void createBagDistributions(Bag bag, List<String> replicatingNodes) {
+        int numDistributions = 0;
+        if (replicatingNodes == null) {
+            replicatingNodes = new ArrayList<>();
+        }
+
+        for (String nodeName : replicatingNodes) {
+            Node node = nodeRepository.findByUsername(nodeName);
+            if (node != null) {
+                log.debug("Creating dist record for {}", nodeName);
+                bag.addDistribution(node, DISTRIBUTE);
+                numDistributions++;
+            }
+        }
+
+        if (numDistributions < bag.getRequiredReplications()) {
+            for (Node node : nodeRepository.findAll()) {
+                log.debug("Creating dist record for {}", node.getUsername());
+                bag.addDistribution(node, DISTRIBUTE);
+                numDistributions++;
+            }
+        }
+
+        // if the distributions is still less, set error?
+    }
+
 
     /**
      * Return a map of valid parameters
