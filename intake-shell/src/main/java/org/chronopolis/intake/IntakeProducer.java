@@ -17,6 +17,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
+import retrofit2.Call;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -146,8 +147,19 @@ public class IntakeProducer implements CommandLineRunner {
         for (String f : toScan.toFile().list()) {
             Path bag = toScan.resolve(f);
             if (bag.toFile().isDirectory()) {
-                System.out.printf("Sending %s %s %s\n", depositor, directory + "/" + f, f);
+                System.out.printf("Sending %s %s %s!!\n", depositor, directory + "/" + f, f);
                 // sendMessage(depositor, directory + "/" + f, f);
+                IngestRequest req = new IngestRequest();
+                req.setDepositor(depositor);
+                req.setLocation(directory + "/" + f);
+                req.setName(f);
+                Call<org.chronopolis.rest.models.Bag> call = ingestAPI.stageBag(req);
+                try {
+                    call.execute();
+                } catch (IOException e) {
+                    System.out.println("Error in call!");
+                    System.out.println(e.toString());
+                }
             }
         }
 

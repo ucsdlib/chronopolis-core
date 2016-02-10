@@ -1,9 +1,13 @@
 package org.chronopolis.replicate.config;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import okhttp3.HttpUrl;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import okhttp3.Response;
 import org.chronopolis.common.ace.AceService;
-import org.chronopolis.common.ace.CredentialRequestInterceptor;
 import org.chronopolis.common.ace.OkBasicInterceptor;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.settings.AceSettings;
@@ -14,6 +18,9 @@ import org.chronopolis.replicate.batch.ReplicationJobStarter;
 import org.chronopolis.replicate.batch.ReplicationStepListener;
 import org.chronopolis.rest.api.ErrorLogger;
 import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.support.PageDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -28,14 +35,20 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.data.domain.PageImpl;
 import retrofit2.GsonConverterFactory;
 import retrofit2.Retrofit;
+
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.List;
 
 /**
  * Configuration for the beans used by the replication-shell
  *
  * Created by shake on 4/16/14.
  */
+@SuppressWarnings("ALL")
 @Configuration
 @EnableBatchProcessing
 public class ReplicationConfig {
@@ -103,15 +116,33 @@ public class ReplicationConfig {
         // TODO: Create a list of endpoints
         String endpoint = apiSettings.getIngestEndpoints().get(0);
         OkHttpClient client = new OkHttpClient.Builder()
-                .addInterceptor(new OkBasicInterceptor(apiSettings.getIngestAPIUsername(),
+                .addInterceptor(new Interceptor() {
+                    @Override
+                    public Response intercept(Chain chain) throws IOException {
+                        for (String s : chain.request().headers().names()) {
+                            log.info(chain.request().headers().get(s));
+                        }
+                        return chain.proceed(chain.request());
+                    }
+                })
+                .addNetworkInterceptor(new OkBasicInterceptor(apiSettings.getIngestAPIUsername(),
                         apiSettings.getIngestAPIPassword()))
                 .build();
 
+        Type bagPage = new TypeToken<PageImpl<Bag>>() {}.getType();
+        Type bagList = new TypeToken<List<Bag>>() {}.getType();
+        Type replPage = new TypeToken<PageImpl<Replication>>() {}.getType();
+        Type replList = new TypeToken<List<Replication>>() {}.getType();
+
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(bagPage, new PageDeserializer(bagList))
+                .registerTypeAdapter(replPage, new PageDeserializer(replList))
+                .create();
 
         Retrofit adapter = new Retrofit.Builder()
                 .baseUrl(endpoint)
                 .client(client)
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(gson))
                 // .setErrorHandler(logger())
                 // .setLogLevel(Retrofit.LogLevel.valueOf(retrofitLogLevel))
                 // .setLogLevel(Retrofit.LogLevel.FULL)

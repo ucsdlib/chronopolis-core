@@ -105,7 +105,7 @@ public class AceRegisterStep implements Tasklet {
 
         long id = idMap.get("id");
         final String[] statusMessage = {"success"};
-        Callback tsCallback = new Callback() {
+        Callback<Void> tsCallback = new Callback<Void>() {
             @Override
             public void onResponse(Response response) {
                 log.info("Successfully posted token store");
@@ -125,7 +125,7 @@ public class AceRegisterStep implements Tasklet {
 
         log.info("Loading token store for {}...", collection);
         Call<Void> call = aceService.loadTokenStore(id, RequestBody.create(MediaType.parse("ASCII Text"), manifest.toFile()));
-        Response<Void> response = call.execute();
+        call.enqueue(tsCallback);
 
         // Since the callback is asynchronous, we need to wait for it to complete before moving on
         log.trace("Waiting for token register to complete");
@@ -150,7 +150,16 @@ public class AceRegisterStep implements Tasklet {
                 callbackComplete.set(true);
             }
         }); */
-        auditCall.execute();
+        try {
+            Response<Void> execute = auditCall.execute();
+            if (!execute.isSuccess()) {
+                throw new IOException(execute.message());
+            }
+        } catch (IOException e) {
+            log.error("Error starting audit", e);
+            notifier.setSuccess(false);
+            statusMessage[0] = "Error starting audit";
+        }
         log.trace("Waiting for audit start to complete");
         // waitForCallback(callbackComplete);
 
