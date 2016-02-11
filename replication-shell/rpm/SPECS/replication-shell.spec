@@ -8,10 +8,11 @@
 %define _prefix %{_usr}/lib/chronopolis
 %define _confdir /etc/chronopolis
 %define service replication
+%define build_date %(date +"%Y%m%d")
 
 Name: replication-shell
 Version: %{ver}
-Release: %{rel}%{?dist}
+Release: %{build_date}%{?dist}
 Source: replication-shell.jar
 Source1: replication.sh
 Source2: application.properties
