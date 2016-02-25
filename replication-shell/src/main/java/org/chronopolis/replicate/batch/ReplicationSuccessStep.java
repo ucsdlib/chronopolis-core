@@ -35,11 +35,9 @@ public class ReplicationSuccessStep implements Tasklet {
         String nodeName = settings.getNode();
 
         String subject = "";
-        /*
         String subject = notifier.isSuccess()
                 ? "Successful replication of " + message.getCollection()
                 : "Failure in replication of " + message.getCollection();
-        */
 
 
         SimpleMailMessage mailMessage = mailUtil.createMessage(nodeName,
