@@ -34,10 +34,9 @@ public class ReplicationSuccessStep implements Tasklet {
     public RepeatStatus execute(final StepContribution stepContribution, final ChunkContext chunkContext) throws Exception {
         String nodeName = settings.getNode();
 
-        String subject = "";
         String subject = notifier.isSuccess()
-                ? "Successful replication of " + message.getCollection()
-                : "Failure in replication of " + message.getCollection();
+                ? "Successful replication of " + notifier.getCollection()
+                : "Failure in replication of " + notifier.getCollection();
 
 
         SimpleMailMessage mailMessage = mailUtil.createMessage(nodeName,
