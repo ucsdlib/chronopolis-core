@@ -36,6 +36,16 @@ public class BagService {
         return bagRepository.findOne(bagId);
     }
 
+    public Bag findBag(BagSearchCriteria criteria) {
+        BooleanExpression predicate = null;
+        Map<Object, BooleanExpression> criteriaMap = criteria.getCriteria();
+        for (Object o : criteriaMap.keySet()) {
+            predicate = setExpression(predicate, criteriaMap.get(o));
+        }
+
+        return bagRepository.findOne(predicate);
+    }
+
     public Page<Bag> findBags(BagSearchCriteria criteria, Pageable pageable) {
         BooleanExpression predicate = null;
         Map<Object, BooleanExpression> criteriaMap = criteria.getCriteria();
