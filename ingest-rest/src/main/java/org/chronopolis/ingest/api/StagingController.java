@@ -116,6 +116,7 @@ public class StagingController extends IngestController {
         String fileName = request.getLocation();
         Path stage = Paths.get(ingestSettings.getBagStage());
         Path bagPath = stage.resolve(fileName);
+        // Not sure what the point of this is, since the file name should be relative
         Path relPath = stage.relativize(bagPath);
 
         bag = new Bag(name, depositor);

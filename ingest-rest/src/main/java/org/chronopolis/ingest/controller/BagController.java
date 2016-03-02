@@ -14,6 +14,7 @@ import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.IngestRequest;
+import org.chronopolis.rest.models.Node;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationRequest;
 import org.chronopolis.rest.models.ReplicationStatus;
@@ -32,7 +33,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+
+import static org.chronopolis.rest.models.BagDistribution.BagDistributionStatus.DISTRIBUTE;
 
 /**
  * Controller for handling bag/replication related requests
@@ -179,13 +184,21 @@ public class BagController extends IngestController {
         BagSearchCriteria criteria = new BagSearchCriteria()
                 .withDepositor(depositor)
                 .withName(name);
-        Bag bag = bagService.findBags(criteria, new PageRequest(0, 1)).getContent().get(0);
+        Bag bag = bagService.findBag(criteria);
 
         request.setRequiredReplications(request.getReplicatingNodes().size());
 
         // only add new bags
         if (bag == null) {
             bag = new Bag(name, depositor);
+            bag.setFixityAlgorithm("SHA-256");
+            bag.setLocation(request.getLocation());
+
+            if (request.getRequiredReplications() > 0) {
+                bag.setRequiredReplications(request.getRequiredReplications());
+            }
+
+            createBagDistributions(bag, request.getReplicatingNodes());
             /*
             try {
                 initializeBag(bag, request);
@@ -200,6 +213,33 @@ public class BagController extends IngestController {
 
         // TODO: Redirect to /bags/{id}?
         return "redirect:/bags";
+    }
+
+    // Copied from StagingController, unify both soon (before next release)
+    private void createBagDistributions(Bag bag, List<String> replicatingNodes) {
+        int numDistributions = 0;
+        if (replicatingNodes == null) {
+            replicatingNodes = new ArrayList<>();
+        }
+
+        for (String nodeName : replicatingNodes) {
+            Node node = nodeRepository.findByUsername(nodeName);
+            if (node != null) {
+                log.debug("Creating dist record for {}", nodeName);
+                bag.addDistribution(node, DISTRIBUTE);
+                numDistributions++;
+            }
+        }
+
+        if (numDistributions < bag.getRequiredReplications()) {
+            for (Node node : nodeRepository.findAll()) {
+                log.debug("Creating dist record for {}", node.getUsername());
+                bag.addDistribution(node, DISTRIBUTE);
+                numDistributions++;
+            }
+        }
+
+        // if the distributions is still less, set error?
     }
 
     //

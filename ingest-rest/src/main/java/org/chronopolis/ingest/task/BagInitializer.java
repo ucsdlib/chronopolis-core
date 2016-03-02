@@ -83,6 +83,7 @@ public class BagInitializer {
             try {
                 log.debug("Initializing {}", bag.getName());
                 initializeBag(bag);
+                log.debug("Finished initializing {}", bag.getName());
                 bag.setStatus(BagStatus.INITIALIZED);
             } catch (IOException e) {
                 log.error("Error initializing bag {}", bag.getName(), e);
@@ -103,6 +104,7 @@ public class BagInitializer {
             Path bagPath = stage.resolve(bag.getLocation());
 
             // check if we should untar the bag
+            log.debug("Probing mime type for {}", bag.getName());
             String mimeType = Files.probeContentType(bagPath);
             if (mimeType != null && mimeType.equals(TAR_TYPE)) {
                 bagPath = untar(bagPath, bag.getDepositor());
@@ -113,6 +115,7 @@ public class BagInitializer {
             }
 
             // TODO: Get these passed in the ingest request
+            log.debug("Counting files for {}", bag.getName());
             final long[] bagSize = {0};
             final long[] fileCount = {0};
             Files.walkFileTree(bagPath, new SimpleFileVisitor<Path>() {
@@ -136,6 +139,7 @@ public class BagInitializer {
          * @param depositor
          */
         private Path untar(Path tarball, String depositor) throws IOException {
+            log.debug("Untarring {}", bag.getName());
             String stage = settings.getBagStage();
 
             // Set up our tar stream and channel
