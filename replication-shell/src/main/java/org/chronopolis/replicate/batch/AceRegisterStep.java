@@ -128,28 +128,14 @@ public class AceRegisterStep implements Tasklet {
         call.enqueue(tsCallback);
 
         // Since the callback is asynchronous, we need to wait for it to complete before moving on
+        // TODO: Should use something like the SimpleCallback to wait for it to complete
+        //       or we could wrap it in a try/catch
         log.trace("Waiting for token register to complete");
-        // waitForCallback(callbackComplete);
+        waitForCallback(callbackComplete);
         callbackComplete.set(false);
 
-        Call<Void> auditCall = aceService.startAudit(id);/*, new Callback<Void>() {
-            @Override
-            public void onResponse(Response<Void> response) {
-                log.info("Successfully started audit");
-                callbackComplete.set(true);
-            }
+        Call<Void> auditCall = aceService.startAudit(id);
 
-            @Override
-            public void onFailure(Throwable throwable) {
-                log.info("Could not start audit. {} {}",
-                        throwable.getMessage(),
-                        throwable);
-                notifier.setSuccess(false);
-                statusMessage[0] = "Error starting audit: "
-                        + throwable.getMessage();
-                callbackComplete.set(true);
-            }
-        }); */
         try {
             Response<Void> execute = auditCall.execute();
             if (!execute.isSuccess()) {
@@ -197,8 +183,8 @@ public class AceRegisterStep implements Tasklet {
         }
     }
 
-    private void waitForCallback(AtomicBoolean callbackComplete) {
-        while (!callbackComplete.get()) {
+    private void waitForCallback(AtomicBoolean complete) {
+        while (!complete.get()) {
             try {
                 TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {
