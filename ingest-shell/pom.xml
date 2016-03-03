@@ -5,11 +5,11 @@
     <parent>
         <groupId>org.chronopolis</groupId>
         <artifactId>chronopolis</artifactId>
-        <version>1.1.1-RELEASE</version>
+        <version>1.2.0-RELEASE</version>
     </parent>
     <groupId>org.chronopolis</groupId>
     <artifactId>ingest-shell</artifactId>
-    <version>1.1.1-RELEASE</version>
+    <version>1.2.0-RELEASE</version>
     <packaging>jar</packaging>
     <name>Ingest Shell</name>
     <url>http://maven.apache.org</url>
@@ -36,10 +36,6 @@
 
     <pluginRepositories>
         <pluginRepository>
-            <id>onejar-maven-plugin.googlecode.com</id>
-            <url>http://onejar-maven-plugin.googlecode.com/svn/mavenrepo</url>
-        </pluginRepository>
-        <pluginRepository>
             <id>spring-snapshots</id>
             <url>http://repo.spring.io/snapshot</url>
         </pluginRepository>
@@ -65,28 +61,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.chronopolis</groupId>
-            <artifactId>chron-db</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.chronopolis</groupId>
-            <artifactId>chron-messaging</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.chronopolis</groupId>
-            <artifactId>amqp-core</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.amqp</groupId>
-            <artifactId>spring-rabbit</artifactId>
         </dependency>
 
         <dependency>

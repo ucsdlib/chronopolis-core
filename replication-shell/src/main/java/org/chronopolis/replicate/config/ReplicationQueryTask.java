@@ -12,10 +12,14 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import retrofit2.Call;
+import retrofit2.Response;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -48,11 +52,16 @@ public class ReplicationQueryTask {
     public void checkForReplications() {
         Set<String> filter = activeReplications();
 
-        log.info("Query for active replications");
-        query(ReplicationStatus.STARTED, filter, false);
+        try {
+            log.info("Query for active replications");
+            query(ReplicationStatus.STARTED, filter, false);
 
-        log.info("Query for new replications");
-        query(ReplicationStatus.PENDING, filter, true);
+            log.info("Query for new replications");
+            query(ReplicationStatus.PENDING, filter, true);
+        } catch (IOException e) {
+            log.error("Error checking for replications", e);
+        }
+
     }
 
     /**
@@ -83,7 +92,7 @@ public class ReplicationQueryTask {
      * @param filter - the Set of active replications to filter on
      * @param update - whether or not to update the stats (to STARTED)
      */
-    private void query(ReplicationStatus status, Set<String> filter, boolean update) {
+    private void query(ReplicationStatus status, Set<String> filter, boolean update) throws IOException {
         int page = 0;
         int pageSize = 20;
         boolean hasNext = true;
@@ -98,7 +107,9 @@ public class ReplicationQueryTask {
         // amount of pages. We might want to switch this to only work on one page
         // at a time or figure something else out.
         while (hasNext) {
-            Page<Replication> replications = ingestAPI.getReplications(params);
+            Call<PageImpl<Replication>> call = ingestAPI.getReplications(params);
+            Response<PageImpl<Replication>> response = call.execute();
+            Page<Replication> replications = response.body();
             log.debug("[{}] On page {} with {} replications. {} total.", new Object[]{
                     status,
                     replications.getNumber(),
@@ -113,10 +124,13 @@ public class ReplicationQueryTask {
         }
     }
 
-    private void startReplications(List<Replication> replications, Set<String> filter, boolean update) {
+    private void startReplications(List<Replication> replications, Set<String> filter, boolean update) throws IOException {
         for (Replication replication : replications) {
             log.debug("Replication {} has bag-id {}", replication.getId(), replication.getBagId());
-            Bag bag = ingestAPI.getBag(replication.getBagId());
+            Call<Bag> call = ingestAPI.getBag(replication.getBagId());
+            Response<Bag> response = call.execute();
+            Bag bag = response.body();
+
             replication.setBag(bag);
             String filterString = bag.getDepositor() + ":" + bag.getName();
             if (update) {

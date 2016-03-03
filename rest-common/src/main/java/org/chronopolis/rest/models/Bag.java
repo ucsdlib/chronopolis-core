@@ -1,6 +1,7 @@
 package org.chronopolis.rest.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.collect.ComparisonChain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,7 +68,7 @@ public class Bag implements Comparable<Bag> {
     public Bag(String name, String depositor) {
         this.name = name;
         this.depositor = depositor;
-        this.status = BagStatus.STAGED;
+        this.status = BagStatus.DEPOSITED;
         this.requiredReplications = DEFAULT_REPLICATIONS;
     }
 
@@ -168,12 +169,8 @@ public class Bag implements Comparable<Bag> {
 
         final Bag bag = (Bag) o;
 
-        if (size != bag.size) return false;
-        if (totalFiles != bag.totalFiles) return false;
         if (!id.equals(bag.id)) return false;
         if (!depositor.equals(bag.depositor)) return false;
-        if (!fixityAlgorithm.equals(bag.fixityAlgorithm)) return false;
-        if (!location.equals(bag.location)) return false;
         if (!name.equals(bag.name)) return false;
 
         return true;
@@ -181,25 +178,39 @@ public class Bag implements Comparable<Bag> {
 
     @Override
     public int hashCode() {
+        // Objects.hash(id, name, depositor);
         int result = id.hashCode();
         result = 31 * result + name.hashCode();
         result = 31 * result + depositor.hashCode();
-        result = 31 * result + location.hashCode();
-        result = 31 * result + fixityAlgorithm.hashCode();
-        result = 31 * result + (int) (size ^ (size >>> 32));
-        result = 31 * result + (int) (totalFiles ^ (totalFiles >>> 32));
         return result;
     }
 
     @Override
     public int compareTo(final Bag bag) {
+        /*
         if (this.equals(bag)) {
             return 0;
-        } else if (size > bag.size) {
+        } else {
+            return (depositor + name).compareTo(bag.depositor + bag.name);
+        }
+
+        else if (size > bag.size) {
             return 1;
         } else {
             return -1;
-        }
+        }*/
+
+        return ComparisonChain.start()
+                .compare(id, bag.id)
+                .compare(depositor, bag.depositor)
+                .compare(name, bag.name)
+                .result();
+
+    }
+
+    @Override
+    public String toString() {
+        return depositor + "::" + name;
     }
 
     public int getRequiredReplications() {

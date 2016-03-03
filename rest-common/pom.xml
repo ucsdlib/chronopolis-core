@@ -4,14 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.chronopolis</groupId>
     <artifactId>rest-common</artifactId>
-    <version>1.1.1-RELEASE</version>
+    <version>1.2.0-RELEASE</version>
 
     <parent>
         <groupId>org.chronopolis</groupId>
         <artifactId>chronopolis</artifactId>
-        <version>1.1.1-RELEASE</version>
+        <version>1.2.0-RELEASE</version>
     </parent>
 
     <dependencies>
@@ -32,8 +31,19 @@
         </dependency>
 
         <dependency>
-            <groupId>com.squareup.retrofit</groupId>
+            <groupId>com.squareup.retrofit2</groupId>
             <artifactId>retrofit</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.squareup.retrofit2</groupId>
+            <artifactId>converter-gson</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>19.0</version>
         </dependency>
     </dependencies>
 

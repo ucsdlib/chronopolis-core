@@ -31,3 +31,9 @@
 /replication-shell/rpm/SOURCES/
 /replication-shell/rpm/SRPMS/
 /replication-shell/rpm/tmp/
+/duracloud-backend/rpm/BUILD/
+/duracloud-backend/rpm/BUILDROOT/
+/duracloud-backend/rpm/RPMS/
+/duracloud-backend/rpm/SOURCES/
+/duracloud-backend/rpm/SRPMS/
+/duracloud-backend/rpm/tmp/

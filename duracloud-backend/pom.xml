@@ -7,12 +7,11 @@
     <parent>
         <groupId>org.chronopolis</groupId>
         <artifactId>chronopolis</artifactId>
-        <version>1.1.1-RELEASE</version>
+        <version>1.2.0-RELEASE</version>
     </parent>
 
-    <groupId>org.chronopolis</groupId>
     <artifactId>duracloud-backend</artifactId>
-    <version>1.1.1-RELEASE</version>
+    <version>1.2.0-RELEASE</version>
 
     <build>
         <plugins>
@@ -33,6 +32,12 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.chronopolis</groupId>
+            <artifactId>bag-writer</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
         </dependency>
@@ -52,16 +57,26 @@
             <artifactId>earth-core</artifactId>
         </dependency>
 
+        <!--
         <dependency>
             <groupId>org.chronopolis.ingest</groupId>
             <artifactId>bagger</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+        -->
 
         <dependency>
-            <groupId>com.squareup.retrofit</groupId>
+            <groupId>com.squareup.retrofit2</groupId>
             <artifactId>retrofit</artifactId>
         </dependency>
+
+        <!--
+        <dependency>
+            <groupId>com.squareup.okhttp</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>2.6.0</version>
+        </dependency>
+        -->
 
         <dependency>
             <groupId>com.h2database</groupId>
@@ -72,7 +87,6 @@
         <dependency>
             <groupId>org.springframework.batch</groupId>
             <artifactId>spring-batch-core</artifactId>
-            <version>3.0.1.RELEASE</version>
         </dependency>
 
         <dependency>
@@ -81,5 +95,4 @@
         </dependency>
     </dependencies>
 
-    
 </project>

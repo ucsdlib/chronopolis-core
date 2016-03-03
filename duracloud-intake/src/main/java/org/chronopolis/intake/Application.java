@@ -1,13 +1,9 @@
 package org.chronopolis.intake;
 
 import org.chronopolis.common.settings.ChronopolisSettings;
-import org.chronopolis.db.intake.model.Status;
 import org.chronopolis.intake.duracloud.config.IntakeSettings;
-import org.chronopolis.intake.duracloud.config.JPAConfiguration;
-import org.chronopolis.intake.duracloud.config.JPASettings;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 
@@ -31,7 +27,6 @@ import java.security.cert.X509Certificate;
         // JPAConfiguration.class},
         basePackages = {"org.chronopolis.intake.config",
                         "org.chronopolis.intake.rest"})
-@EntityScan(basePackageClasses = {Status.class})
 @EnableAutoConfiguration
 public class Application {
 

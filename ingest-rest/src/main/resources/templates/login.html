@@ -10,10 +10,10 @@
           rel="stylesheet" type="text/css"/>
 </head>
 <body>
-<div class="container-fluid">
-    <div th:include="layout :: left"></div>
+    <header th:replace="layout :: head"></header>
+    <div th:replace="layout :: left"></div>
         <!-- Taken from https://spring.io/guides/gs/securing-web/ -->
-    <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+    <div class="content">
         <div th:if="${param.error}">
             Invalid username and password.
         </div>
@@ -25,7 +25,6 @@
             <div><label> Password: <input type="password" name="password"/> </label></div>
             <div><input type="submit" value="Sign In"/></div>
         </form>
-    </div>
     </div>
 </body>
 </html>

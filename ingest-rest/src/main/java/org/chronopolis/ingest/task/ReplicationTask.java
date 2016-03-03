@@ -27,6 +27,7 @@ import static org.chronopolis.rest.models.BagDistribution.*;
 
 /**
  * Simple task to create replications for bags which have finished tokenizing
+ * TODO: Rename ReplicationCreateTask
  *
  *
  * Created by shake on 2/13/15.

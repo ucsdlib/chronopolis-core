@@ -2,7 +2,9 @@ package org.chronopolis.ingest.config;
 
 import org.apache.catalina.connector.Connector;
 import org.chronopolis.ingest.IngestSettings;
+import org.chronopolis.ingest.TrackingThreadPoolExecutor;
 import org.chronopolis.ingest.task.TokenThreadPoolExecutor;
+import org.chronopolis.rest.models.Bag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
@@ -25,9 +27,21 @@ public class IngestConfig {
     final String AJP_PROTOCOL = "AJP/1.3";
     final String AJP_SCHEME = "http";
 
+    /*
     @Bean
-    public TokenThreadPoolExecutor TokenThreadPoolExecutor() {
+    public TokenThreadPoolExecutor tokenThreadPoolExecutor() {
         return new TokenThreadPoolExecutor(4, 6, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+    }
+    */
+
+    @Bean(name = "tokenExecutor", destroyMethod = "destroy")
+    public TrackingThreadPoolExecutor<Bag> tokenizingThreadPoolExecutor() {
+        return new TrackingThreadPoolExecutor<Bag>(4, 6, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+    }
+
+    @Bean(name = "bagExecutor", destroyMethod = "destroy")
+    public TrackingThreadPoolExecutor<Bag> bagThreadPoolExecutor() {
+        return new TrackingThreadPoolExecutor<>(4, 6, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
     }
 
     @Bean

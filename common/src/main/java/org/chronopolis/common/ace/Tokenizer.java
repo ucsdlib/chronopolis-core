@@ -116,6 +116,7 @@ public class Tokenizer {
         String identifier = fixityAlgorithm.getBagitIdentifier();
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(bag, new TagFilter(identifier))) {
             for (Path path : stream) {
+                log.debug("Adding extra file {}", path);
                 extraTagmanifests.add(path);
             }
         } catch (IOException e) {
@@ -148,11 +149,13 @@ public class Tokenizer {
 
             // Digest any extra tagmanifests
             for (Path tag: extraTagmanifests) {
+                Path rel = tag.subpath(bag.getNameCount(), tag.getNameCount());
+                Path filterPath = Paths.get("/").resolve(rel);
                 String alg = fixityAlgorithm.getName();
-                if (!filter.contains(tag)) {
+                if (!filter.contains(filterPath)) {
                     String digest = DigestUtil.digest(tag, alg);
                     addTokenRequest(tag, digest);
-                    filter.add(tag);
+                    filter.add(filterPath);
                 }
             }
         } finally {

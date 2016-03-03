@@ -9,12 +9,13 @@ import org.chronopolis.intake.duracloud.remote.model.SnapshotDetails;
 import org.chronopolis.intake.duracloud.remote.model.SnapshotHistory;
 import org.chronopolis.intake.duracloud.remote.model.SnapshotStatus;
 import org.chronopolis.intake.duracloud.remote.model.Snapshots;
-import retrofit.http.Body;
-import retrofit.http.GET;
-import retrofit.http.POST;
-import retrofit.http.Path;
-import retrofit.http.Query;
-import retrofit.http.QueryMap;
+import retrofit2.Call;
+import retrofit2.http.Body;
+import retrofit2.http.GET;
+import retrofit2.http.POST;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
+import retrofit2.http.QueryMap;
 
 import java.util.Map;
 
@@ -25,22 +26,22 @@ import java.util.Map;
  */
 public interface BridgeAPI {
 
-    @GET("/snapshot")
-    Snapshots getSnapshots(@Query("host") String host, @Query("status") SnapshotStatus status);
+    @GET("snapshot")
+    Call<Snapshots> getSnapshots(@Query("host") String host, @Query("status") SnapshotStatus status);
 
-    @GET("/snapshot/{snapshotId}")
-    SnapshotDetails getSnapshotDetails(@Path("snapshotId") String snapshotId);
+    @GET("snapshot/{snapshotId}")
+    Call<SnapshotDetails> getSnapshotDetails(@Path("snapshotId") String snapshotId);
 
-    @GET("/snapshot/{snapshotId}/content")
-    SnapshotContent getSnapshotContent(@Path("snapshotId") String snapshotId);
+    @GET("snapshot/{snapshotId}/content")
+    Call<SnapshotContent> getSnapshotContent(@Path("snapshotId") String snapshotId);
 
-    @POST("/snapshot/{snapshotId}/complete")
-    SnapshotComplete completeSnapshot(@Path("snapshotId") String snapshotId, @Body AlternateIds alternateIds);
+    @POST("snapshot/{snapshotId}/complete")
+    Call<SnapshotComplete> completeSnapshot(@Path("snapshotId") String snapshotId, @Body AlternateIds alternateIds);
 
-    @GET("/snapshot/{snapshotId}/history")
-    SnapshotHistory getSnapshotHistory(@Path("snapshotId") String snapshotId, @QueryMap Map<String, String> params);
+    @GET("snapshot/{snapshotId}/history")
+    Call<SnapshotHistory> getSnapshotHistory(@Path("snapshotId") String snapshotId, @QueryMap Map<String, String> params);
 
-    @POST("/snapshot/{snapshotId}/history")
-    HistorySummary postHistory(@Path("snapshotId") String snapshotId, @Body History history);
+    @POST("snapshot/{snapshotId}/history")
+    Call<HistorySummary> postHistory(@Path("snapshotId") String snapshotId, @Body History history);
 
 }

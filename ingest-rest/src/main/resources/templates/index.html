@@ -12,15 +12,23 @@
           rel="stylesheet" type="text/css"/>
 </head>
 <body style="padding-top: 50px">
-<div class="container-fluid">
-    <div class="row">
-          <div th:include="layout :: left"/>
-        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-            <div><h1 th:inline="text">Logged in as [[${#httpServletRequest.remoteUser}]]!</h1></div>
+<!-- <div class="container-fluid">
+    <div class="row"> -->
+        <header th:replace="layout :: head"></header>
+
+        <div class="page-layout">
+            <div th:replace="layout :: left"></div>
+            <div class="content"></div>
+       </div>
+
+
+            <!--class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">-->
+<!--
+            <div><h2 th:inline="text">Logged in as [[${#httpServletRequest.remoteUser}]]</h2></div>
             <form th:action="@{/logout}" method="post">
                 <input type="submit" value="Sign Out"/>
             </form>
-        </div>
+        </div>-->
         <!--
         <div class="col-sm-9 col-sm-offset col-md-offset-2 main">
             <div><h1 th:inline="text">Logged in as [[${#httpServletRequest.remoteUser}]]!</h1></div>
@@ -28,8 +36,7 @@
                 <input type="submit" value="Sign Out"/>
             </form>
         </div>
-        -->
-    </div>
 </div>
+        -->
 </body>
 </html>

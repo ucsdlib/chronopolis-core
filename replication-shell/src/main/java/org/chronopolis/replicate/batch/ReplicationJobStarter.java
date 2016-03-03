@@ -1,16 +1,10 @@
 package org.chronopolis.replicate.batch;
 
-import org.chronopolis.amqp.ChronProducer;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.common.mail.MailUtil;
-import org.chronopolis.messaging.collection.CollectionInitCompleteMessage;
-import org.chronopolis.messaging.collection.CollectionInitMessage;
-import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.ReplicationNotifier;
-import org.chronopolis.replicate.batch.listener.BagAMQPStepListener;
 import org.chronopolis.replicate.batch.listener.BagRESTStepListener;
-import org.chronopolis.replicate.batch.listener.TokenAMQPStepListener;
 import org.chronopolis.replicate.batch.listener.TokenRESTStepListener;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
@@ -28,7 +22,10 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
+import retrofit2.Call;
+import retrofit2.Response;
 
+import java.io.IOException;
 import java.util.Date;
 
 /**
@@ -41,8 +38,6 @@ import java.util.Date;
 public class ReplicationJobStarter {
     private final Logger log = LoggerFactory.getLogger(ReplicationJobStarter.class);
 
-    private final ChronProducer producer;
-    private final MessageFactory messageFactory;
     private final ReplicationSettings settings;
     private final MailUtil mailUtil;
     private final AceService aceService;
@@ -54,9 +49,7 @@ public class ReplicationJobStarter {
     private StepBuilderFactory stepBuilderFactory;
 
 
-    public ReplicationJobStarter(final ChronProducer producer,
-                                 final MessageFactory messageFactory,
-                                 final ReplicationSettings replicationSettings,
+    public ReplicationJobStarter(final ReplicationSettings replicationSettings,
                                  final MailUtil mailUtil,
                                  final AceService aceService,
                                  final IngestAPI ingestAPI,
@@ -64,8 +57,6 @@ public class ReplicationJobStarter {
                                  final JobLauncher jobLauncher,
                                  final JobBuilderFactory jobBuilderFactory,
                                  final StepBuilderFactory stepBuilderFactory) {
-        this.producer = producer;
-        this.messageFactory = messageFactory;
         this.settings = replicationSettings;
         this.mailUtil = mailUtil;
         this.aceService = aceService;
@@ -77,41 +68,6 @@ public class ReplicationJobStarter {
     }
 
 
-    @Deprecated
-    public void addJobFromMessage(CollectionInitMessage msg) {
-        String depositor = msg.getDepositor();
-        String collection = msg.getCollection();
-
-        // check to see if we already have the collection
-        // if we don't, replicate it
-        // if we do, just sent an init complete message
-        GsonCollection gsonCollection = aceService.getCollectionByName(collection, depositor);
-        if (gsonCollection == null) {
-            ReplicationNotifier notifier = new ReplicationNotifier(msg);
-            TokenAMQPStepListener tokenStepListener = new TokenAMQPStepListener(notifier,
-                    settings,
-                    mailUtil,
-                    msg.getTokenStoreDigest());
-
-            BagAMQPStepListener bagStepListener = new BagAMQPStepListener(settings,
-                    notifier,
-                    mailUtil,
-                    msg.getTagManifestDigest());
-
-            TokenDownloadStep tds = new TokenDownloadStep(settings, msg, notifier);
-            BagDownloadStep bds = new BagDownloadStep(settings, msg, notifier);
-            AceRegisterStep ars = new AceRegisterStep(aceService, settings, msg, notifier);
-            ReplicationSuccessStep rss = new ReplicationSuccessStep(producer, messageFactory, mailUtil, settings, notifier);
-
-            createJob(depositor, collection, tds, bds, ars, rss, tokenStepListener, bagStepListener);
-
-        } else {
-            CollectionInitCompleteMessage reply =
-                    messageFactory.collectionInitCompleteMessage(msg.getCorrelationId());
-            producer.send(reply, msg.getReturnKey());
-        }
-    }
-
     /**
      * Add a replication job which was received from the RESTful interface
      *
@@ -121,7 +77,15 @@ public class ReplicationJobStarter {
         String depositor = replication.getBag().getDepositor();
         String collection = replication.getBag().getName();
 
-        GsonCollection gsonCollection = aceService.getCollectionByName(collection, depositor);
+        GsonCollection gsonCollection = null;
+        Call<GsonCollection> call = aceService.getCollectionByName(collection, depositor);
+        try {
+            Response<GsonCollection> response = call.execute();
+            gsonCollection = response.body();
+        } catch (IOException e) {
+            log.error("Error communicating with server", e);
+        }
+
         if (gsonCollection == null) {
             ReplicationNotifier notifier = new ReplicationNotifier(replication);
             TokenRESTStepListener tokenStepListener = new TokenRESTStepListener(mailUtil,
@@ -137,7 +101,7 @@ public class ReplicationJobStarter {
             TokenDownloadStep tds = new TokenDownloadStep(settings, notifier, replication);
             BagDownloadStep bds = new BagDownloadStep(settings, notifier, replication);
             AceRegisterStep ars = new AceRegisterStep(aceService, settings, notifier, replication);
-            ReplicationSuccessStep rss = new ReplicationSuccessStep(producer, messageFactory, mailUtil, settings, notifier);
+            ReplicationSuccessStep rss = new ReplicationSuccessStep(mailUtil, settings, notifier);
 
             createJob(depositor, collection, tds, bds, ars, rss, tokenStepListener, bagStepListener);
 

@@ -1,6 +1,8 @@
 package org.chronopolis.intake.config;
 
+import okhttp3.OkHttpClient;
 import org.chronopolis.common.ace.CredentialRequestInterceptor;
+import org.chronopolis.common.ace.OkBasicInterceptor;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.common.settings.SMTPSettings;
@@ -21,7 +23,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import retrofit.RestAdapter;
+import retrofit2.Retrofit;
 
 /**
  * Created by shake on 8/4/14.
@@ -43,15 +45,22 @@ public class IntakeConfiguration {
     IngestAPI ingestAPI(IngestAPISettings settings) {
         String endpoint = settings.getIngestEndpoints().get(0);
 
-        // TODO: This can timeout on long polls, see SO for potential fix
-        // http://stackoverflow.com/questions/24669309/how-to-increase-timeout-for-retrofit-requests-in-robospice-android
-        RestAdapter adapter = new RestAdapter.Builder()
-                .setEndpoint(endpoint)
-                .setErrorHandler(logger())
-                .setLogLevel(RestAdapter.LogLevel.FULL)
-                .setRequestInterceptor(new CredentialRequestInterceptor(
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(new OkBasicInterceptor(
                         settings.getIngestAPIUsername(),
                         settings.getIngestAPIPassword()))
+                .build();
+
+        // TODO: This can timeout on long polls, see SO for potential fix
+        // http://stackoverflow.com/questions/24669309/how-to-increase-timeout-for-retrofit-requests-in-robospice-android
+        Retrofit adapter = new Retrofit.Builder()
+                .baseUrl(endpoint)
+                .client(client)
+                // .setErrorHandler(logger())
+                // .setLogLevel(RestAdapter.LogLevel.FULL)
+                // .setRequestInterceptor(new CredentialRequestInterceptor(
+                //         settings.getIngestAPIUsername(),
+                //         settings.getIngestAPIPassword()))
                 .build();
 
         return adapter.create(IngestAPI.class);

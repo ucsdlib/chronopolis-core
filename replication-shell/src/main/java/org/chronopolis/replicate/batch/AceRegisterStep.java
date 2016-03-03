@@ -1,8 +1,9 @@
 package org.chronopolis.replicate.batch;
 
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
-import org.chronopolis.messaging.collection.CollectionInitMessage;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.models.Bag;
@@ -13,11 +14,11 @@ import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
-import retrofit.Callback;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
-import retrofit.mime.TypedFile;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
@@ -44,19 +45,6 @@ public class AceRegisterStep implements Tasklet {
     private String fixityAlgorithm;
     private String tokenLocation;
     private int auditPeriod;
-
-    public AceRegisterStep(AceService aceService,
-                           ReplicationSettings settings,
-                           CollectionInitMessage message,
-                           ReplicationNotifier notifier) {
-        this.aceService = aceService;
-        this.settings = settings;
-        this.notifier = notifier;
-        this.collection = message.getCollection();
-        this.depositor = message.getDepositor();
-        this.fixityAlgorithm = message.getFixityAlgorithm();
-        this.auditPeriod = message.getAuditPeriod();
-    }
 
     public AceRegisterStep(AceService aceService,
                            ReplicationSettings settings,
@@ -117,53 +105,49 @@ public class AceRegisterStep implements Tasklet {
 
         long id = idMap.get("id");
         final String[] statusMessage = {"success"};
-        Callback tsCallback = new Callback() {
+        Callback<Void> tsCallback = new Callback<Void>() {
             @Override
-            public void success(final Object o, final Response response) {
+            public void onResponse(Response response) {
                 log.info("Successfully posted token store");
                 callbackComplete.getAndSet(true);
             }
 
             @Override
-            public void failure(final RetrofitError retrofitError) {
-                log.error("Error POSTing token store {} {}",
-                        retrofitError.getResponse().getStatus(),
-                        retrofitError.getBody());
+            public void onFailure(Throwable throwable) {
+                                log.error("Error POSTing token store {} {}",
+                                        throwable.getMessage(), throwable);
                 notifier.setSuccess(false);
                 statusMessage[0] = "Error loading token store: "
-                        + retrofitError.getResponse().getReason();
+                        + throwable.getMessage();
                 callbackComplete.getAndSet(true);
             }
         };
 
         log.info("Loading token store for {}...", collection);
-        aceService.loadTokenStore(id, new TypedFile("ASCII Text", manifest.toFile()), tsCallback);
+        Call<Void> call = aceService.loadTokenStore(id, RequestBody.create(MediaType.parse("ASCII Text"), manifest.toFile()));
+        call.enqueue(tsCallback);
 
         // Since the callback is asynchronous, we need to wait for it to complete before moving on
+        // TODO: Should use something like the SimpleCallback to wait for it to complete
+        //       or we could wrap it in a try/catch
         log.trace("Waiting for token register to complete");
         waitForCallback(callbackComplete);
         callbackComplete.set(false);
 
-        aceService.startAudit(id, new Callback<Void>() {
-            @Override
-            public void success(final Void aVoid, final Response response) {
-                log.info("Successfully started audit");
-                callbackComplete.set(true);
-            }
+        Call<Void> auditCall = aceService.startAudit(id);
 
-            @Override
-            public void failure(final RetrofitError error) {
-                log.info("Could not start audit. {} {}",
-                        error.getResponse().getStatus(),
-                        error.getResponse().getReason());
-                notifier.setSuccess(false);
-                statusMessage[0] = "Error starting audit: "
-                        + error.getResponse().getReason();
-                callbackComplete.set(true);
+        try {
+            Response<Void> execute = auditCall.execute();
+            if (!execute.isSuccess()) {
+                throw new IOException(execute.message());
             }
-        });
+        } catch (IOException e) {
+            log.error("Error starting audit", e);
+            notifier.setSuccess(false);
+            statusMessage[0] = "Error starting audit";
+        }
         log.trace("Waiting for audit start to complete");
-        waitForCallback(callbackComplete);
+        // waitForCallback(callbackComplete);
 
         notifier.setAceStep(statusMessage[0]);
         return RepeatStatus.FINISHED;
@@ -177,22 +161,30 @@ public class AceRegisterStep implements Tasklet {
      */
     private Map<String, Integer> loadCollection(GsonCollection collection) {
         try {
-            Map<String, Integer> idMap = aceService.addCollection(collection);
+            Call<Map<String, Integer>> addCall = aceService.addCollection(collection);
+            Response<Map<String, Integer>> response = addCall.execute();
+            if (!response.isSuccess()) {
+                log.error("Error registering ACE collection. Response code {} with reason {}",
+                        response.code(),
+                        response.message());
+                throw new RuntimeException(response.raw().request().url() + ": " + response.message());
+            }
+
+            Map<String, Integer> idMap = response.body();
             log.info("Successfully registered collection {}", collection);
             return idMap;
-        } catch (RetrofitError error) {
-            log.error("Error registering ACE collection. Response code {} with reason {}",
-                    error.getResponse().getStatus(), error.getResponse().getReason());
+        } catch (IOException e) {
+            log.error("Error communicating with ACE server {}",
+                    e.getMessage(), e);
             notifier.setSuccess(false);
             notifier.setAceStep("Error registering collection: "
-                    + error.getResponse().getReason());
-            throw new RuntimeException(error);
+                    + e.getMessage());
+            throw new RuntimeException(e);
         }
-
     }
 
-    private void waitForCallback(AtomicBoolean callbackComplete) {
-        while (!callbackComplete.get()) {
+    private void waitForCallback(AtomicBoolean complete) {
+        while (!complete.get()) {
             try {
                 TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {

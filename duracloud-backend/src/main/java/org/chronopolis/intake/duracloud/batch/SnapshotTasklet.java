@@ -8,11 +8,6 @@ import org.chronopolis.earth.api.LocalAPI;
 import org.chronopolis.earth.models.Bag;
 import org.chronopolis.earth.models.Node;
 import org.chronopolis.earth.models.Replication;
-import org.chronopolis.ingest.bagger.IngestionType;
-import org.chronopolis.ingest.pkg.ChronPackage;
-import org.chronopolis.ingest.pkg.DpnBagWriter;
-import org.chronopolis.ingest.pkg.ManifestBuilder;
-import org.chronopolis.ingest.pkg.Unit;
 import org.chronopolis.intake.duracloud.config.IntakeSettings;
 import org.chronopolis.intake.duracloud.model.BaggingHistory;
 import org.chronopolis.rest.api.IngestAPI;
@@ -77,6 +72,7 @@ public class SnapshotTasklet implements Tasklet {
 
     @Override
     public RepeatStatus execute(final StepContribution stepContribution, final ChunkContext chunkContext) throws Exception {
+        /*
         ManifestBuilder builder = new ManifestBuilder();
 
         Path duraBase = Paths.get(settings.getDuracloudSnapshotStage());
@@ -140,11 +136,12 @@ public class SnapshotTasklet implements Tasklet {
             }
         }
 
+        */
         return RepeatStatus.FINISHED;
     }
 
     private void updateDuracloudHistory(String saveName, String receipt) {
-        BaggingHistory history = new BaggingHistory(false);
+        BaggingHistory history = new BaggingHistory(snapshotID, false);
         history.addBaggingData(saveName, receipt);
     }
 
@@ -155,7 +152,6 @@ public class SnapshotTasklet implements Tasklet {
      * Create replication requests
      *
      * @param chronPackage the package to create replications for
-     */
     private void createDPNReplications(ChronPackage chronPackage) {
         // TODO: Remove magic values
         //       - hostname : should be set in external properties
@@ -164,12 +160,14 @@ public class SnapshotTasklet implements Tasklet {
                 chronPackage.getSaveName() + ".tar");
         settings.getDuracloudSnapshotStage();
         String ourNode = dpn.getNode();
-        int replications = 2;
+        int replications = 0;
         int count = 0;
 
 
         // 5 nodes -> page size of 5
-        Node myNode = dpn.getNodeAPI().getNode(settings.getNode());
+        // Node myNode = dpn.getNodeAPI().getNode(settings.getNode());
+        Node myNode = new Node();
+        myNode.setReplicateTo(ImmutableList.<String>of());
         List<String> nodes = myNode.getReplicateTo();
 
         Random r = new Random();
@@ -211,19 +209,16 @@ public class SnapshotTasklet implements Tasklet {
 
                 }
             });
-            */
             ++count;
         }
-
-
     }
+     */
 
     /**
      * Use the {@link IngestAPI} to register the bag with Chronopolis
      *
      * @param chronPackage - the bag to register
      * @param location - the relative location of the bag
-     */
     private void pushToChronopolis(ChronPackage chronPackage, Path location) {
         IngestRequest chronRequest = new IngestRequest();
         chronRequest.setName(chronPackage.getSaveName());
@@ -235,12 +230,12 @@ public class SnapshotTasklet implements Tasklet {
 
         chronAPI.stageBag(chronRequest);
     }
+     */
 
     /**
      * Register the bag with the DPN REST API
      *
      * @param chronPackage
-     */
     private void registerDPNObject(ChronPackage chronPackage, final String receipt) {
         // We know the bag writer is a DpnBagWriter because IngestionType == DPN
         DpnBagWriter writer = (DpnBagWriter) chronPackage.getBuildListenerWriter();
@@ -287,8 +282,8 @@ public class SnapshotTasklet implements Tasklet {
 
             }
         });
-        */
     }
+    */
 
     private void getMember() {
     }
