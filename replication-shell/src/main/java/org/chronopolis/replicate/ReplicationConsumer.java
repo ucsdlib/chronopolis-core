@@ -1,7 +1,6 @@
 package org.chronopolis.replicate;
 
 import com.sun.akuma.Daemon;
-import org.chronopolis.db.common.model.RestoreRequest;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.replicate.service.ReplicationService;
 import org.slf4j.Logger;
@@ -10,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
@@ -28,7 +26,6 @@ import java.util.Arrays;
 }, basePackages = {
         "org.chronopolis.common.settings" // make sure we can load other settings (like AceSettings)
 })
-@EntityScan(basePackageClasses = RestoreRequest.class)
 @EnableAutoConfiguration
 public class ReplicationConsumer implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(ReplicationConsumer.class);
