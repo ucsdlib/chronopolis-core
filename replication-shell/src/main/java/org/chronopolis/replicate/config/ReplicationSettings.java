@@ -1,6 +1,7 @@
 package org.chronopolis.replicate.config;
 
 import org.chronopolis.common.settings.ChronopolisSettings;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -10,5 +11,17 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ReplicationSettings extends ChronopolisSettings {
+
+    @Value("${smtp.send-on-success:false}")
+    private Boolean sendOnSuccess;
+
+    public Boolean sendOnSuccess() {
+        return sendOnSuccess;
+    }
+
+    public ReplicationSettings setSendOnSuccess(Boolean sendOnSuccess) {
+        this.sendOnSuccess = sendOnSuccess;
+        return this;
+    }
 
 }

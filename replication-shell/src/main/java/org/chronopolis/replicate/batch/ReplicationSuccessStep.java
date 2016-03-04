@@ -38,11 +38,13 @@ public class ReplicationSuccessStep implements Tasklet {
                 ? "Successful replication of " + notifier.getCollection()
                 : "Failure in replication of " + notifier.getCollection();
 
-
-        SimpleMailMessage mailMessage = mailUtil.createMessage(nodeName,
-                subject,
-                notifier.getNotificationBody());
-        mailUtil.send(mailMessage);
+        // Send on failure or success if we want it
+        if (settings.sendOnSuccess() || !notifier.isSuccess()) {
+            SimpleMailMessage mailMessage = mailUtil.createMessage(nodeName,
+                    subject,
+                    notifier.getNotificationBody());
+            mailUtil.send(mailMessage);
+        }
 
         return RepeatStatus.FINISHED;
     }
