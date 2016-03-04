@@ -4,6 +4,7 @@ import com.mysema.query.types.expr.BooleanExpression;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.BagDistribution;
 import org.chronopolis.rest.models.Node;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationRequest;
@@ -20,8 +21,10 @@ import javax.transaction.Transactional;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.Set;
 
 import static org.chronopolis.ingest.repository.PredicateUtil.setExpression;
+import static org.chronopolis.rest.models.BagDistribution.BagDistributionStatus.DISTRIBUTE;
 
 /**
  * Class to help querying for replication objects based on various values.
@@ -92,6 +95,21 @@ public class ReplicationService {
 
         if (bag == null) {
             throw new NotFoundException("Bag " + request.getBagId());
+        }
+
+        // create a dist object if it's missing
+        BagDistribution bagDistribution = null;
+        Set<BagDistribution> distributions = bag.getDistributions();
+        for (BagDistribution distribution : distributions) {
+            if (distribution.getNode().equals(node)) {
+                bagDistribution = distribution;
+            }
+        }
+
+        if (bagDistribution == null) {
+            bag.addDistribution(node, DISTRIBUTE);
+            // not sure if this is the best place for this...
+            bagRepository.save(bag);
         }
 
         // vars to help create replication stuff

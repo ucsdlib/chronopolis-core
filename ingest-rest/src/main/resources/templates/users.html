@@ -12,10 +12,11 @@
           rel="stylesheet" type="text/css"/>
 </head>
 <body role="document">
-<div class="container-fluid">
-    <div th:include="layout :: left"></div>
 
-    <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+    <header th:replace="layout :: head"></header>
+    <div th:replace="layout :: left"></div>
+
+    <div class="content">
     <div th:include="fragments/users :: table"></div>
 
     <div sec:authorize="hasRole('ROLE_ADMIN')" class="row">
@@ -44,11 +45,10 @@
                                                  placeholder="current-password"/></label></div>
             <div><label>New Password: <input type="password" name="newPassword" placeholder="new-password"/></label>
             </div>
-            <input type="submit" class="btn btn-small" value="Create Bag"/>
+            <input type="submit" class="btn btn-small" value="Update Password"/>
         </form>
     </div>
 
 </div>
-    </div>
 </body>
 </html>

@@ -2,10 +2,11 @@
 %define _prefix %{_usr}/lib/chronopolis
 %define _confdir /etc/chronopolis
 %define service ingest-server
+%define build_time %(date +"%Y%m%d")
 
 Name: ingest-server
 Version: %{ver}
-Release: %{rel}%{?dist}
+Release: %{build_time}%{?dist}
 Source: ingest-server.jar
 Source1: ingest-server.sh
 Source2: application.properties

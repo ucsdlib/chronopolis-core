@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title></title>
+    <link href="../static/css/bootstrap.min.css"
+          th:href="@{/css/bootstrap.min.css}"
+          rel="stylesheet">
+    </link>
+</head>
+<body>
+    <div th:fragment="page">
+        <ul class="pagination">
+            <!--/*@thymesVar id="pages" type="org.chronopolis.ingest.PageWrapper"*/-->
+            <li><a th:href="@{${pages.url}(page=${pages.previous})}" aria-label="Previous">&laquo;</a></li>
+            <li th:each="page: ${pages.pages}" th:class="(${page} == ${pages.current} ? 'active' : '')">
+                <a th:text="${page}" th:href="@{${pages.url}(page=${page})}"></a>
+            </li>
+            <li><a th:href="@{${pages.url}(page=${pages.next})}" aria-label="Next">&raquo;</a></li>
+        </ul>
+    </div>
+</body>
+</html>

@@ -243,7 +243,11 @@ public class ReplicationController extends IngestController {
     public Iterable<Replication> replications(Principal principal,
                                               @RequestParam Map<String, String> params) {
         String name = null;
-        if (!hasRoleAdmin()) {
+
+        // Workaround for giving service accounts a view into all replications
+        // TODO: Add request param for name
+        Node node = nodeRepository.findByUsername(principal.getName());
+        if (node != null) {
             name = principal.getName();
         }
 

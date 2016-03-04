@@ -12,6 +12,8 @@ import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
+import retrofit2.Call;
+import retrofit2.Response;
 
 import static org.chronopolis.replicate.batch.listener.Util.sendFailure;
 
@@ -55,11 +57,14 @@ public class BagRESTStepListener implements StepExecutionListener {
             boolean failure = false;
             String digest = notifier.getCalculatedTagDigest();
             replication.setReceivedTagFixity(digest);
+            Call<Replication> call;
             Replication updated = null;
 
             // If there are any exceptions, fail and stop replication
             try {
-                updated = ingestAPI.updateReplication(replication.getId(), replication);
+                call = ingestAPI.updateReplication(replication.getId(), replication);
+                Response<Replication> response = call.execute();
+                updated = response.body();
             } catch (Exception e) {
                 log.error("Error communicating with the ingest-server", e);
                 stepExecution.getFailureExceptions().add(e);
@@ -69,14 +74,17 @@ public class BagRESTStepListener implements StepExecutionListener {
             if (failure || updated.getStatus() == ReplicationStatus.FAILURE_TAG_MANIFEST) {
                 log.error("Error validating tagmanifest");
                 stepExecution.upgradeStatus(BatchStatus.STOPPED);
-                updated.setBag(replication.getBag());
-                updated.setNodeUser(settings.getNode());
+                if (updated != null) {
+                    updated.setBag(replication.getBag());
+                    updated.setNodeUser(settings.getNode());
+                }
                 sendFailure(mail, settings, updated, stepExecution.getFailureExceptions());
                 return ExitStatus.FAILED;
             }
         } else {
             // general failure
             replication.setStatus(ReplicationStatus.FAILURE);
+            replication.setNodeUser(settings.getNode());
             ingestAPI.updateReplication(replication.getId(), replication);
             sendFailure(mail, settings, replication, stepExecution.getFailureExceptions());
         }

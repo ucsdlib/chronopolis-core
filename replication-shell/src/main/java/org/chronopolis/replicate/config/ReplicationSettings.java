@@ -1,7 +1,7 @@
 package org.chronopolis.replicate.config;
 
-import org.chronopolis.amqp.RoutingKey;
 import org.chronopolis.common.settings.ChronopolisSettings;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -12,48 +12,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class ReplicationSettings extends ChronopolisSettings {
 
-    @Deprecated
-    private final String broadcastQueueBinding = RoutingKey.REPLICATE_BROADCAST.asRoute();
-    @Deprecated
-    private String directQueueBinding;
-    @Deprecated
-    private String broadcastQueueName;
-    @Deprecated
-    private String directQueueName;
+    @Value("${smtp.send-on-success:false}")
+    private Boolean sendOnSuccess;
 
-    @Deprecated
-    public String getBroadcastQueueBinding() {
-        return broadcastQueueBinding;
+    public Boolean sendOnSuccess() {
+        return sendOnSuccess;
     }
 
-    @Deprecated
-    public String getDirectQueueBinding() {
-        if (directQueueBinding == null) {
-            directQueueBinding = "replicate.direct." + getNode();
-        }
-        return directQueueBinding;
-    }
-
-    @Deprecated
-    public String getBroadcastQueueName() {
-        if (broadcastQueueName == null) {
-            broadcastQueueName = "replicate-broadcast-" + getNode();
-        }
-        return broadcastQueueName;
-    }
-
-    @Deprecated
-    public String getDirectQueueName() {
-        if (directQueueName == null) {
-            directQueueName = "replicate-direct-" + getNode();
-        }
-        return directQueueName;
-    }
-
-    @Override
-    @Deprecated
-    public String getInboundKey() {
-        return directQueueBinding;
+    public ReplicationSettings setSendOnSuccess(Boolean sendOnSuccess) {
+        this.sendOnSuccess = sendOnSuccess;
+        return this;
     }
 
 }

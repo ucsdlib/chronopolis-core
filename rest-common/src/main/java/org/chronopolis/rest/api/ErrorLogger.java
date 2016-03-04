@@ -2,19 +2,20 @@ package org.chronopolis.rest.api;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import retrofit.ErrorHandler;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
 
 /**
+ * TODO: Can essentially remake this with an Observable from RxJava
+ *
+ *
  * Retrofit {@link ErrorHandler} to log errors which happen from retrofit,
  * so that the reasons do not get lost in the stack trace
  *
  * Created by shake on 4/23/15.
  */
-public class ErrorLogger implements ErrorHandler {
+public class ErrorLogger { // implements ErrorHandler {
     private final Logger log = LoggerFactory.getLogger(ErrorLogger.class);
 
+    /*
     @Override
     public Throwable handleError(RetrofitError retrofitError) {
         log.debug("Handling error from retrofit");
@@ -37,4 +38,5 @@ public class ErrorLogger implements ErrorHandler {
 
         return cause;
     }
+    */
 }

@@ -1,19 +1,26 @@
 package org.chronopolis.replicate.config;
 
-import org.chronopolis.amqp.ChronProducer;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import okhttp3.HttpUrl;
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Response;
 import org.chronopolis.common.ace.AceService;
-import org.chronopolis.common.ace.CredentialRequestInterceptor;
+import org.chronopolis.common.ace.OkBasicInterceptor;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.settings.AceSettings;
 import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.common.settings.SMTPSettings;
 import org.chronopolis.common.util.URIUtil;
-import org.chronopolis.messaging.base.ChronMessage;
-import org.chronopolis.messaging.factory.MessageFactory;
 import org.chronopolis.replicate.batch.ReplicationJobStarter;
 import org.chronopolis.replicate.batch.ReplicationStepListener;
 import org.chronopolis.rest.api.ErrorLogger;
 import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.support.PageDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -26,16 +33,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
-import retrofit.RestAdapter;
+import org.springframework.data.domain.PageImpl;
+import retrofit2.GsonConverterFactory;
+import retrofit2.Retrofit;
+
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.List;
 
 /**
  * Configuration for the beans used by the replication-shell
  *
  * Created by shake on 4/16/14.
  */
+@SuppressWarnings("ALL")
 @Configuration
 @EnableBatchProcessing
 public class ReplicationConfig {
@@ -70,15 +83,23 @@ public class ReplicationConfig {
                 aceSettings.getAmPort(),
                 aceSettings.getAmPath()).toString();
 
-        CredentialRequestInterceptor interceptor = new CredentialRequestInterceptor(
-                aceSettings.getAmUser(),
-                aceSettings.getAmPassword());
+        // TODO: Test
+        HttpUrl url = new HttpUrl.Builder()
+                .scheme("http")
+                .host(aceSettings.getAmHost())
+                .port(aceSettings.getAmPort())
+                .build();
 
-        RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint(endpoint)
-                .setErrorHandler(logger())
-                .setLogLevel(RestAdapter.LogLevel.valueOf(retrofitLogLevel))
-                .setRequestInterceptor(interceptor)
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(new OkBasicInterceptor(aceSettings.getAmUser(), aceSettings.getAmPassword()))
+                .build();
+
+        Retrofit restAdapter = new Retrofit.Builder()
+                .baseUrl(endpoint)
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create())
+                // .setErrorHandler(logger())
+                // .setLogLevel(Retrofit.LogLevel.valueOf(retrofitLogLevel))
                 .build();
 
         return restAdapter.create(AceService.class);
@@ -94,58 +115,45 @@ public class ReplicationConfig {
     IngestAPI ingestAPI(IngestAPISettings apiSettings) {
         // TODO: Create a list of endpoints
         String endpoint = apiSettings.getIngestEndpoints().get(0);
-        /*                URIUtil.buildAceUri(
-                apiSettings.getIngestAPIHost(),
-                apiSettings.getIngestAPIPort(),
-                apiSettings.getIngestAPIPath()).toString();
-                */
-
-        // TODO: This can timeout on long polls, see SO for potential fix
-        // http://stackoverflow.com/questions/24669309/how-to-increase-timeout-for-retrofit-requests-in-robospice-android
-        RestAdapter adapter = new RestAdapter.Builder()
-                .setEndpoint(endpoint)
-                .setErrorHandler(logger())
-                .setLogLevel(RestAdapter.LogLevel.valueOf(retrofitLogLevel))
-                .setRequestInterceptor(new CredentialRequestInterceptor(
-                        apiSettings.getIngestAPIUsername(),
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(new Interceptor() {
+                    @Override
+                    public Response intercept(Chain chain) throws IOException {
+                        for (String s : chain.request().headers().names()) {
+                            log.info(chain.request().headers().get(s));
+                        }
+                        return chain.proceed(chain.request());
+                    }
+                })
+                .addNetworkInterceptor(new OkBasicInterceptor(apiSettings.getIngestAPIUsername(),
                         apiSettings.getIngestAPIPassword()))
-                // .setLogLevel(RestAdapter.LogLevel.FULL)
+                .build();
+
+        Type bagPage = new TypeToken<PageImpl<Bag>>() {}.getType();
+        Type bagList = new TypeToken<List<Bag>>() {}.getType();
+        Type replPage = new TypeToken<PageImpl<Replication>>() {}.getType();
+        Type replList = new TypeToken<List<Replication>>() {}.getType();
+
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(bagPage, new PageDeserializer(bagList))
+                .registerTypeAdapter(replPage, new PageDeserializer(replList))
+                .create();
+
+        Retrofit adapter = new Retrofit.Builder()
+                .baseUrl(endpoint)
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                // .setErrorHandler(logger())
+                // .setLogLevel(Retrofit.LogLevel.valueOf(retrofitLogLevel))
+                // .setLogLevel(Retrofit.LogLevel.FULL)
                 .build();
 
         return adapter.create(IngestAPI.class);
     }
 
     /**
-     * Null producer for the {@link ReplicationJobStarter}
-     *
-     * @return
-     */
-    @Bean
-    ChronProducer producer() {
-        // Return a null producer
-        return new ChronProducer() {
-            @Override
-            public void send(ChronMessage message, String routingKey) {
-            }
-        };
-    }
-
-    /**
-     * MessageFactory needed for the {@link ReplicationJobStarter}
-     *
-     * @param chronopolisSettings
-     * @return
-     */
-    @Bean
-    MessageFactory messageFactory(ReplicationSettings chronopolisSettings) {
-        return new MessageFactory(chronopolisSettings);
-    }
-
-    /**
      * Class to handle creation of replication jobs through spring-batch
      *
-     * @param producer
-     * @param messageFactory
      * @param settings
      * @param mailUtil
      * @param aceService
@@ -157,9 +165,7 @@ public class ReplicationConfig {
      * @return
      */
     @Bean
-    ReplicationJobStarter jobStarter(ChronProducer producer,
-                                     MessageFactory messageFactory,
-                                     ReplicationSettings settings,
+    ReplicationJobStarter jobStarter(ReplicationSettings settings,
                                      MailUtil mailUtil,
                                      AceService aceService,
                                      IngestAPI ingestAPI,
@@ -167,9 +173,7 @@ public class ReplicationConfig {
                                      JobLauncher jobLauncher,
                                      JobBuilderFactory jobBuilderFactory,
                                      StepBuilderFactory stepBuilderFactory) {
-        return new ReplicationJobStarter(producer,
-                messageFactory,
-                settings,
+        return new ReplicationJobStarter(settings,
                 mailUtil,
                 aceService,
                 ingestAPI,

@@ -109,7 +109,11 @@ public class Replication {
     @JsonGetter("nodeUsername")
     public String getNodeUser() {
         if (nodeUser == null) {
-            nodeUser = node.getUsername();
+            if (node == null) {
+                nodeUser = "";
+            } else {
+                nodeUser = node.getUsername();
+            }
         }
         return nodeUser;
     }

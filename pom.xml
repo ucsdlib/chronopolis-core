@@ -2,26 +2,22 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                               http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.2.2.RELEASE</version>
+        <version>1.3.1.RELEASE</version>
     </parent>
 
     <groupId>org.chronopolis</groupId>
     <artifactId>chronopolis</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>1.3.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Core Chronopolis</name>
 
     <!-- Core Modules -->
     <modules>
-        <module>messaging</module>
-        <module>amqp-core</module>
         <module>common</module>
-        <module>chron-db</module>
         <module>rest-common</module>
     </modules>
 
@@ -84,6 +80,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.1</version>
                     <configuration>
                         <source>1.7</source>
                         <target>1.7</target>
@@ -97,9 +94,8 @@
                 </plugin>
             </plugins>
         </pluginManagement>
-
         <plugins>
-            <plugin>
+           <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>versions-maven-plugin</artifactId>
                 <version>2.1</version>
@@ -152,21 +148,10 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>org.chronopolis</groupId>
-                <artifactId>chron-messaging</artifactId>
-                <version>${project.version}</version>
-            </dependency>
 
             <dependency>
                 <groupId>org.chronopolis</groupId>
                 <artifactId>chron-common</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.chronopolis</groupId>
-                <artifactId>amqp-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -186,6 +171,12 @@
                 <groupId>org.chronopolis</groupId>
                 <artifactId>rest-common</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.chronopolis</groupId>
+                <artifactId>earth-core</artifactId>
+                <version>1.0.0-RELEASE</version>
             </dependency>
 
             <!-- Apache libs -->
@@ -256,14 +247,16 @@
             </dependency>
 
             <!-- Groovy MUST be >= 1.8.6 or else it will throw weird errors -->
+            <!--
             <dependency>
                 <groupId>org.codehaus.groovy</groupId>
                 <artifactId>groovy</artifactId>
                 <version>1.8.6</version>
                 <scope>runtime</scope>
             </dependency>
+            -->
 
-            <!-- DB (May be provided by spring - will find out) -->
+            <!-- DB (May be provided by spring - will find out)
             <dependency>
                 <groupId>org.hibernate.javax.persistence</groupId>
                 <artifactId>hibernate-jpa-2.1-api</artifactId>
@@ -281,7 +274,7 @@
                 <artifactId>hibernate-entitymanager</artifactId>
                 <version>4.3.1.Final</version>
             </dependency>
-
+            -->
             <!-- For tests -->
 
             <dependency>
@@ -302,7 +295,7 @@
             <dependency>
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
-                <version>1.7.1</version>
+                <version>2.5</version>
             </dependency>
 
             <dependency>
@@ -335,9 +328,15 @@
             </dependency>
 
             <dependency>
-                <groupId>com.squareup.retrofit</groupId>
+                <groupId>com.squareup.retrofit2</groupId>
                 <artifactId>retrofit</artifactId>
-                <version>1.5.1</version>
+                <version>2.0.0-beta3</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.squareup.retrofit2</groupId>
+                <artifactId>converter-gson</artifactId>
+                <version>2.0.0-beta3</version>
             </dependency>
 
             <dependency>

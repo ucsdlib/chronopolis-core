@@ -3,6 +3,7 @@ package org.chronopolis.ingest.controller;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.models.UserRequest;
 import org.chronopolis.ingest.repository.NodeRepository;
+import org.chronopolis.ingest.repository.UserService;
 import org.chronopolis.rest.models.Node;
 import org.chronopolis.rest.models.PasswordUpdate;
 import org.slf4j.Logger;
@@ -37,6 +38,9 @@ public class SiteController extends IngestController {
 
     @Autowired
     NodeRepository repository;
+
+    @Autowired
+    UserService userService;
 
     /**
      * Get the index page
@@ -110,26 +114,7 @@ public class SiteController extends IngestController {
     @RequestMapping(value = "/users/add", method = RequestMethod.POST)
     public String createUser(Model model, UserRequest user) {
         log.debug("Request to create user: {} {} {}", new Object[]{user.getUsername(), user.isAdmin(), user.isNode()});
-        Collection<SimpleGrantedAuthority> authorities = new HashSet<>();
-        // Since we only have 2 roles at the moment it's easy to create users like this,
-        // but we really should update this to have all authorities sent in the request
-        if (user.isAdmin()) {
-            authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        } else {
-            authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-        }
-
-        UserDetails userDetails = new User(user.getUsername(), user.getPassword(), authorities);
-        manager.createUser(userDetails);
-
-        // Add node if requested
-        if (user.isNode()) {
-            log.debug("Creating node for {}", user.getUsername());
-            if (repository.findByUsername(user.getUsername()) == null) {
-                repository.save(new Node(user.getUsername(), user.getPassword()));
-            }
-        }
-
+        userService.createUser(user);
         return "redirect:/users";
     }
 
