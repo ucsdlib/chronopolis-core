@@ -16,10 +16,10 @@ import static org.chronopolis.rest.models.BagDistribution.BagDistributionStatus.
 
 /**
  * Update replications based on their received fixity
- *
+ * <p/>
  * Over time if we can, we may want to simply everything idk. This is
  * to get the logic out of the controller.
- *
+ * <p/>
  * Created by shake on 10/19/15.
  */
 public class ReplicationUpdateListener {
@@ -27,12 +27,14 @@ public class ReplicationUpdateListener {
 
     @PreUpdate
     public void updateReplication(Replication r) {
-        String digest;
         boolean successToken = false;
         boolean successTag = false;
 
         Bag bag = r.getBag();
         Node node = r.getNode();
+
+        Long id = bag.getId();
+        String username = node.getUsername();
         String receivedTagFixity = r.getReceivedTagFixity();
         String receivedTokenFixity = r.getReceivedTokenFixity();
 
@@ -40,35 +42,17 @@ public class ReplicationUpdateListener {
 
         // update state based on the token fixity
         if (receivedTokenFixity != null) {
-            digest = bag.getTokenDigest();
-            if (digest == null || !digest.equals(receivedTokenFixity)) {
-                log.info("Received invalid token store fixity for bag {} from {}",
-                        bag.getId(),
-                        node.getUsername());
-                r.setStatus(ReplicationStatus.FAILURE_TOKEN_STORE);
-            } else {
-                log.info("Matching token store fixity");
-                successToken = true;
-            }
+            successToken = checkFixity(r, id, username, bag.getTokenDigest(), receivedTokenFixity, ReplicationStatus.FAILURE_TOKEN_STORE);
         }
 
         // update state based on the tag manifest fixity
         if (receivedTagFixity != null) {
-            digest = bag.getTagManifestDigest();
-            if (digest == null || !digest.equals(receivedTagFixity)) {
-                log.info("Received invalid tag fixity for bag {} from {}",
-                        bag.getId(),
-                        node.getUsername());
-                r.setStatus(ReplicationStatus.FAILURE_TAG_MANIFEST);
-            } else {
-                log.info("Matching tag fixity");
-                successTag = true;
-            }
+            successTag = checkFixity(r, id, username, bag.getTagManifestDigest(), receivedTagFixity, ReplicationStatus.FAILURE_TAG_MANIFEST);
         }
 
         // update state, and BagDistribution if we succeeded
         if (successTag && successToken && !failureStatus(r.getStatus())) {
-            log.info("Replication {} successfully transferred");
+            log.info("Replication {} successfully transferred", r.getId());
             r.setStatus(ReplicationStatus.SUCCESS);
             Set<BagDistribution> distributions = bag.getDistributions();
             for (BagDistribution distribution : distributions) {
@@ -82,17 +66,31 @@ public class ReplicationUpdateListener {
             if (nodes.size() >= bag.getRequiredReplications()) {
                 log.debug("Setting bag {}::{} as replicated",
                         bag.getDepositor(),
-                      bag.getName());
+                        bag.getName());
                 bag.setStatus(BagStatus.REPLICATED);
             }
 
         }
     }
 
+    private boolean checkFixity(Replication r, Long id, String node, String stored, String received, ReplicationStatus failure) {
+        if (stored == null || !stored.equals(received)) {
+            log.info("Received invalid fixity for bag {} from {}",
+                    id,
+                    node);
+            r.setStatus(failure);
+        } else {
+            log.info("Matching fixity");
+            return true;
+        }
+
+        return false;
+    }
+
     private boolean failureStatus(ReplicationStatus status) {
         return status == ReplicationStatus.FAILURE_TOKEN_STORE
-            || status == ReplicationStatus.FAILURE_TAG_MANIFEST
-            || status == ReplicationStatus.FAILURE;
+                || status == ReplicationStatus.FAILURE_TAG_MANIFEST
+                || status == ReplicationStatus.FAILURE;
     }
 
 }
