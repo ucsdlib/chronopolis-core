@@ -3,6 +3,7 @@ package org.chronopolis.replicate.config;
 import org.chronopolis.replicate.batch.ReplicationJobStarter;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
@@ -17,6 +18,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import retrofit2.Call;
+import retrofit2.Callback;
 import retrofit2.Response;
 
 import java.io.IOException;
@@ -25,6 +27,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.chronopolis.rest.models.ReplicationStatus.STARTED;
 
 /**
  * Scheduled task for checking the ingest-server for replication requests
@@ -54,7 +58,7 @@ public class ReplicationQueryTask {
 
         try {
             log.info("Query for active replications");
-            query(ReplicationStatus.STARTED, filter, false);
+            query(STARTED, filter, false);
 
             log.info("Query for new replications");
             query(ReplicationStatus.PENDING, filter, true);
@@ -135,8 +139,24 @@ public class ReplicationQueryTask {
             String filterString = bag.getDepositor() + ":" + bag.getName();
             if (update) {
                 log.info("Updating replication");
-                replication.setStatus(ReplicationStatus.STARTED);
-                ingestAPI.updateReplication(replication.getId(), replication);
+
+                // The anonymous classes are temporary for now, while the calls are updated to the new methods
+                Call<Replication> statusCall = ingestAPI.updateReplicationStatus(replication.getId(), new RStatusUpdate(STARTED));
+                final long id = replication.getId();
+                statusCall.enqueue(new Callback<Replication>() {
+                    @Override
+                    public void onResponse(Response<Replication> response) {
+                        log.debug("Update to replication {}: {} - {}", new Object[]{id,
+                                response.code(),
+                                response.message()});
+                    }
+
+                    @Override
+                    public void onFailure(Throwable throwable) {
+                        log.error("Error communicating to the ingest server", throwable);
+                    }
+                });
+
             }
 
             // Make sure we don't have a replication already in progress

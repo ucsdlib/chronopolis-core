@@ -8,6 +8,7 @@ import org.chronopolis.replicate.batch.listener.BagRESTStepListener;
 import org.chronopolis.replicate.batch.listener.TokenRESTStepListener;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
@@ -23,6 +24,7 @@ import org.springframework.batch.core.repository.JobExecutionAlreadyRunningExcep
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
 import retrofit2.Call;
+import retrofit2.Callback;
 import retrofit2.Response;
 
 import java.io.IOException;
@@ -121,7 +123,19 @@ public class ReplicationJobStarter {
                 replication.setStatus(ReplicationStatus.SUCCESS);
             }
 
-            ingestAPI.updateReplication(replication.getId(), replication);
+            // ingestAPI.updateReplication(replication.getId(), replication);
+            Call<Replication> ingestCall = ingestAPI.updateReplicationStatus(replication.getId(), new RStatusUpdate(replication.getStatus()));
+            ingestCall.enqueue(new Callback<Replication>() {
+                @Override
+                public void onResponse(Response<Replication> response) {
+
+                }
+
+                @Override
+                public void onFailure(Throwable throwable) {
+
+                }
+            });
         }
     }
 

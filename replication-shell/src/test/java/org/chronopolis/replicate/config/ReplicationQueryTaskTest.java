@@ -6,6 +6,7 @@ import org.chronopolis.replicate.test.TestApplication;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.Node;
+import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.junit.Before;
@@ -36,6 +37,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.anyMap;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -100,7 +103,11 @@ public class ReplicationQueryTaskTest {
         ArrayList<Replication> replicationList = new ArrayList<>();
         Node n = new Node("test", "test");
         b = new Bag("test-bag", "test-depositor");
+
         replication = new Replication(n, b);
+        Field id = replication.getClass().getDeclaredField("id");
+        id.setAccessible(true);
+        id.set(replication, 1L);
         for (int i = 0; i < 5; i++) {
             replicationList.add(replication);
         }
@@ -115,11 +122,14 @@ public class ReplicationQueryTaskTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testCheckForReplications() throws Exception {
         when(ingestAPI.getReplications(anyMap())).thenReturn(replications);
 
         // Ok so this is kind of bad behavior, but our bag has a null id so...
-        when(ingestAPI.getBag(null)).thenReturn(bagCall);
+        when(ingestAPI.getBag(b.getId())).thenReturn(bagCall);
+        when(ingestAPI.updateReplicationStatus(anyLong(), any(RStatusUpdate.class)))
+                .thenReturn(new CallWrapper<>(replication));
         task.checkForReplications();
 
         // We should have only executed our job starter once
@@ -127,6 +137,7 @@ public class ReplicationQueryTaskTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testCheckForReplicationsFilter() throws Exception {
         // Create a job that only sleeps in the same way we build our replication
         // jobs to make sure we filter properly when querying the job explorer
@@ -136,7 +147,9 @@ public class ReplicationQueryTaskTest {
             .addDate("date", new Date())
             .toJobParameters());
         when(ingestAPI.getReplications(anyMap())).thenReturn(replications);
-        when(ingestAPI.getBag(null)).thenReturn(bagCall);
+        when(ingestAPI.getBag(b.getId())).thenReturn(bagCall);
+        when(ingestAPI.updateReplicationStatus(anyLong(), any(RStatusUpdate.class)))
+                .thenReturn(new CallWrapper<>(replication));
 
         task.checkForReplications();
         verify(jobStarter, times(0)).addJobFromRestful(replication);
