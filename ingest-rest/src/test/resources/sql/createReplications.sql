@@ -14,12 +14,12 @@ INSERT INTO bag_distribution VALUES(DEFAULT, 2, 3, 'DISTRIBUTE');
 INSERT INTO bag_distribution VALUES(DEFAULT, 2, 4, 'DISTRIBUTE');
 
 -- Then create some replications
-INSERT INTO replication VALUES (1, 'PENDING', 'rsync@node.org:/bag-1', 'rsync@node.org:/bag-1-tokens', 'rsync', '', '', 1, 4);
-INSERT INTO replication VALUES (2, 'PENDING', 'rsync@node.org:/bag-1', 'rsync@node.org:/bag-1-tokens', 'rsync', '', '', 1, 3);
-INSERT INTO replication VALUES (3, 'PENDING', 'rsync@node.org:/bag-1', 'rsync@node.org:/bag-1-tokens', 'rsync', '', '', 1, 2);
-INSERT INTO replication VALUES (4, 'PENDING', 'rsync@node.org:/bag-1', 'rsync@node.org:/bag-1-tokens', 'rsync', '', '', 1, 1);
+INSERT INTO replication VALUES (1, 'PENDING', 'rsync@node.org:/bag-1', 'rsync@node.org:/bag-1-tokens', 'rsync', NULL, NULL, 1, 4);
+INSERT INTO replication VALUES (2, 'PENDING', 'rsync@node.org:/bag-1', 'rsync@node.org:/bag-1-tokens', 'rsync', NULL, NULL, 1, 3);
+INSERT INTO replication VALUES (3, 'PENDING', 'rsync@node.org:/bag-1', 'rsync@node.org:/bag-1-tokens', 'rsync', NULL, NULL, 1, 2);
+INSERT INTO replication VALUES (4, 'PENDING', 'rsync@node.org:/bag-1', 'rsync@node.org:/bag-1-tokens', 'rsync', NULL, NULL, 1, 1);
 
-INSERT INTO replication VALUES (5, 'PENDING', 'rsync@node.org:/bag-2', 'rsync@node.org:/bag-2-tokens', 'rsync', '', '', 2, 4);
-INSERT INTO replication VALUES (6, 'PENDING', 'rsync@node.org:/bag-2', 'rsync@node.org:/bag-2-tokens', 'rsync', '', '', 2, 3);
-INSERT INTO replication VALUES (7, 'PENDING', 'rsync@node.org:/bag-2', 'rsync@node.org:/bag-2-tokens', 'rsync', '', '', 2, 2);
-INSERT INTO replication VALUES (8, 'PENDING', 'rsync@node.org:/bag-2', 'rsync@node.org:/bag-2-tokens', 'rsync', '', '', 2, 1);
+INSERT INTO replication VALUES (5, 'PENDING', 'rsync@node.org:/bag-2', 'rsync@node.org:/bag-2-tokens', 'rsync', NULL, NULL, 2, 4);
+INSERT INTO replication VALUES (6, 'PENDING', 'rsync@node.org:/bag-2', 'rsync@node.org:/bag-2-tokens', 'rsync', NULL, NULL, 2, 3);
+INSERT INTO replication VALUES (7, 'PENDING', 'rsync@node.org:/bag-2', 'rsync@node.org:/bag-2-tokens', 'rsync', NULL, NULL, 2, 2);
+INSERT INTO replication VALUES (8, 'PENDING', 'rsync@node.org:/bag-2', 'rsync@node.org:/bag-2-tokens', 'rsync', NULL, NULL, 2, 1);

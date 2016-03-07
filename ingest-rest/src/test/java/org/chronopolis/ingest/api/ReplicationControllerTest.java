@@ -1,11 +1,13 @@
 package org.chronopolis.ingest.api;
 
-import junit.framework.Assert;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;
 import org.chronopolis.ingest.support.PageImpl;
+import org.chronopolis.rest.models.FixityUpdate;
+import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,23 +58,17 @@ public class ReplicationControllerTest extends IngestTest {
         ResponseEntity entity = getTemplate()
                 .getForEntity("http://localhost:" + port + "/api/replications/4", Object.class);
 
-
         assertEquals(HttpStatus.OK, entity.getStatusCode());
     }
 
     @Test
     public void testCorrectUpdate() throws Exception {
         TestRestTemplate template = getTemplate();
-        ResponseEntity<Replication> entity =
-                template.getForEntity("http://localhost:"
-                        + port
-                        + "/api/replications/4",
-                        Replication.class);
+        ResponseEntity<Replication> entity;
 
-        Replication replication = entity.getBody();
-        replication.setReceivedTagFixity("fixity");
-        replication.setReceivedTokenFixity("fixity");
-        template.put("http://localhost:" + port + "/api/replications/4", replication);
+        // two updates, one for tag and token
+        template.put("http://localhost:" + port + "/api/replications/4/tokenstore", new FixityUpdate("fixity"));
+        template.put("http://localhost:" + port + "/api/replications/4/tagmanifest", new FixityUpdate("fixity"));
         entity = template.getForEntity("http://localhost:" + port + "/api/replications/4", Replication.class);
         Assert.assertEquals(ReplicationStatus.SUCCESS, entity.getBody().getStatus());
     }
@@ -80,17 +76,10 @@ public class ReplicationControllerTest extends IngestTest {
     @Test
     public void testClientUpdates() throws Exception {
         TestRestTemplate template = getTemplate();
-        ResponseEntity<Replication> entity =
-                template.getForEntity("http://localhost:"
-                                + port
-                                + "/api/replications/4",
-                        Replication.class);
+        ResponseEntity<Replication> entity;
 
-        Replication replication = entity.getBody();
-        replication.setReceivedTagFixity(null);
-        replication.setReceivedTokenFixity(null);
-        replication.setStatus(ReplicationStatus.STARTED);
-        template.put("http://localhost:" + port + "/api/replications/4", replication);
+        RStatusUpdate update = new RStatusUpdate(ReplicationStatus.STARTED);
+        template.put("http://localhost:" + port + "/api/replications/4/status", update);
         entity = template.getForEntity("http://localhost:" + port + "/api/replications/4", Replication.class);
         Assert.assertEquals(ReplicationStatus.STARTED, entity.getBody().getStatus());
     }
@@ -98,16 +87,9 @@ public class ReplicationControllerTest extends IngestTest {
     @Test
     public void testInvalidTagFixity() throws Exception {
         TestRestTemplate template = getTemplate();
-        ResponseEntity<Replication> entity =
-                template.getForEntity("http://localhost:"
-                                + port
-                                + "/api/replications/8",
-                        Replication.class);
+        ResponseEntity<Replication> entity;
 
-        Replication replication = entity.getBody();
-        replication.setReceivedTagFixity("fxity");
-        replication.setReceivedTokenFixity(null);
-        template.put("http://localhost:" + port + "/api/replications/8", replication);
+        template.put("http://localhost:" + port + "/api/replications/8/tagmanifest", new FixityUpdate("fxity"));
         entity = template.getForEntity("http://localhost:" + port + "/api/replications/8", Replication.class);
         Assert.assertEquals(ReplicationStatus.FAILURE_TAG_MANIFEST, entity.getBody().getStatus());
     }
@@ -115,16 +97,9 @@ public class ReplicationControllerTest extends IngestTest {
     @Test
     public void testInvalidTokenFixity() throws Exception {
         TestRestTemplate template = getTemplate();
-        ResponseEntity<Replication> entity =
-                template.getForEntity("http://localhost:"
-                                + port
-                                + "/api/replications/8",
-                        Replication.class);
+        ResponseEntity<Replication> entity;
 
-        Replication replication = entity.getBody();
-        replication.setReceivedTagFixity(null);
-        replication.setReceivedTokenFixity("fxity");
-        template.put("http://localhost:" + port + "/api/replications/8", replication);
+        template.put("http://localhost:" + port + "/api/replications/8/tokenstore", new FixityUpdate("fxity"));
         entity = template.getForEntity("http://localhost:" + port + "/api/replications/8", Replication.class);
         Assert.assertEquals(ReplicationStatus.FAILURE_TOKEN_STORE, entity.getBody().getStatus());
     }
