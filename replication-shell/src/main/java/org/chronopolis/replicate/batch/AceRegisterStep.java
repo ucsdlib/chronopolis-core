@@ -6,6 +6,7 @@ import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.config.ReplicationSettings;
+import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.Replication;
 import org.slf4j.Logger;
@@ -34,9 +35,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * Created by shake on 8/22/14.
  */
+@Deprecated
 public class AceRegisterStep implements Tasklet {
     private final Logger log = LoggerFactory.getLogger(AceRegisterStep.class);
 
+    private IngestAPI ingest;
     private AceService aceService;
     private ReplicationSettings settings;
     private ReplicationNotifier notifier;
@@ -46,10 +49,12 @@ public class AceRegisterStep implements Tasklet {
     private String tokenLocation;
     private int auditPeriod;
 
-    public AceRegisterStep(AceService aceService,
+    public AceRegisterStep(IngestAPI ingest,
+                           AceService aceService,
                            ReplicationSettings settings,
                            ReplicationNotifier notifier,
                            Replication replication) {
+        this.ingest = ingest;
         this.aceService = aceService;
         this.settings = settings;
         this.notifier = notifier;
@@ -64,7 +69,10 @@ public class AceRegisterStep implements Tasklet {
 
     /**
      * Add a collection and token store to ACE
-     *
+     * Ok so now we have 3 steps in ACE and 3 status updates for the ingest server
+     * - ACE_REGISTERED
+     * - ACE_LOADED
+     * - ACE_AUDITING
      *
      * @param stepContribution
      * @param chunkContext
@@ -101,7 +109,7 @@ public class AceRegisterStep implements Tasklet {
                 .build();
 
         log.debug("POSTing {}", aceGson.toJsonJackson());
-        Map<String, Integer> idMap = loadCollection(aceGson);
+        Map<String, Long> idMap = loadCollection(aceGson);
 
         long id = idMap.get("id");
         final String[] statusMessage = {"success"};
@@ -159,10 +167,10 @@ public class AceRegisterStep implements Tasklet {
      * @param collection The collection to register
      * @return Response from ACE containing the id of the collection
      */
-    private Map<String, Integer> loadCollection(GsonCollection collection) {
+    private Map<String, Long> loadCollection(GsonCollection collection) {
         try {
-            Call<Map<String, Integer>> addCall = aceService.addCollection(collection);
-            Response<Map<String, Integer>> response = addCall.execute();
+            Call<Map<String, Long>> addCall = aceService.addCollection(collection);
+            Response<Map<String, Long>> response = addCall.execute();
             if (!response.isSuccess()) {
                 log.error("Error registering ACE collection. Response code {} with reason {}",
                         response.code(),
@@ -170,7 +178,7 @@ public class AceRegisterStep implements Tasklet {
                 throw new RuntimeException(response.raw().request().url() + ": " + response.message());
             }
 
-            Map<String, Integer> idMap = response.body();
+            Map<String, Long> idMap = response.body();
             log.info("Successfully registered collection {}", collection);
             return idMap;
         } catch (IOException e) {
