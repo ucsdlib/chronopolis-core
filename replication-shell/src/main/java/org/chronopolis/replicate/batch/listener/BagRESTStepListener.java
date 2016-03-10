@@ -86,9 +86,6 @@ public class BagRESTStepListener implements StepExecutionListener {
             }
         } else {
             // general failure
-            replication.setStatus(ReplicationStatus.FAILURE);
-            replication.setNodeUser(settings.getNode());
-            // ingestAPI.updateReplication(replication.getId(), replication);
             Call<Replication> call = ingestAPI.failReplication(replication.getId());
             call.enqueue(new Callback<Replication>() {
                 @Override
@@ -104,6 +101,7 @@ public class BagRESTStepListener implements StepExecutionListener {
                 }
             });
             sendFailure(mail, settings, replication, stepExecution.getFailureExceptions());
+            return ExitStatus.FAILED;
         }
 
         return ExitStatus.COMPLETED;
