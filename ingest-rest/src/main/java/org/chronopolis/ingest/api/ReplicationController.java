@@ -8,7 +8,6 @@ import org.chronopolis.ingest.repository.BagService;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationSearchCriteria;
 import org.chronopolis.ingest.repository.ReplicationService;
-import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.FixityUpdate;
 import org.chronopolis.rest.models.Node;
 import org.chronopolis.rest.models.RStatusUpdate;
@@ -151,17 +150,14 @@ public class ReplicationController extends IngestController {
             throw new NotFoundException("Replication " + replicationId);
         }
 
-        Node node = update.getNode();
-        Bag bag = update.getBag();
-
         // TODO: Move logic outside of here? (yes)
         log.info("Updating replication {}", replication.getId());
 
         // only allow updates to nominal
-        if (!isFailureStatus(update.getStatus())) {
+        if (!update.getStatus().isFailure()) {
             update.setReceivedTokenFixity(replication.getReceivedTokenFixity());
             update.setReceivedTagFixity(replication.getReceivedTagFixity());
-            if (isClientStatus(replication.getStatus())) {
+            if (replication.getStatus().isClientStatus()) {
                 update.setStatus(replication.getStatus());
             }
         }
@@ -178,32 +174,6 @@ public class ReplicationController extends IngestController {
      */
     private boolean isClientSuccess(ReplicationStatus status) {
         return status == ReplicationStatus.SUCCESS;
-    }
-
-    /**
-     * Return true if this is a status set by the client
-     *
-     * TODO: This can be done in the enumerated type.
-     *
-     * @param status
-     * @return
-     */
-    private boolean isClientStatus(ReplicationStatus status) {
-        return status == ReplicationStatus.STARTED
-            || status == ReplicationStatus.TRANSFERRED
-            || status == ReplicationStatus.FAILURE;
-    }
-
-    /**
-     * Return true if the status is a failure mode set by the server
-     *
-     * @param status
-     * @return
-     */
-    private boolean isFailureStatus(ReplicationStatus status) {
-        return status == ReplicationStatus.FAILURE_TOKEN_STORE
-            || status == ReplicationStatus.FAILURE_TAG_MANIFEST
-            || status == ReplicationStatus.FAILURE;
     }
 
     /**
