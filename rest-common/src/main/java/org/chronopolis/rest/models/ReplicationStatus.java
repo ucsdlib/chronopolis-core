@@ -15,7 +15,7 @@ public enum ReplicationStatus {
     TRANSFERRED,
     SUCCESS,
     ACE_REGISTERED,
-    ACE_LOADED,
+    ACE_TOKEN_LOADED,
     ACE_AUDITING,
 
     // Failure enums
@@ -36,7 +36,7 @@ public enum ReplicationStatus {
                 || this == TRANSFERRED
                 || this == FAILURE
                 || this == ACE_AUDITING
-                || this == ACE_LOADED
+                || this == ACE_TOKEN_LOADED
                 || this == ACE_REGISTERED;
     }
 
@@ -46,7 +46,7 @@ public enum ReplicationStatus {
                 || this == STARTED
                 || this == TRANSFERRED
                 || this == ACE_AUDITING
-                || this == ACE_LOADED
+                || this == ACE_TOKEN_LOADED
                 || this == ACE_REGISTERED;
     }
 

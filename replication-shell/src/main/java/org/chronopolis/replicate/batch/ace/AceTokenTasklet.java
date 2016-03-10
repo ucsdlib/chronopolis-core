@@ -63,7 +63,7 @@ public class AceTokenTasklet implements Runnable {
             public void onResponse(Response<Void> response) {
                 if (response.isSuccess()) {
                     log.info("Successfully loaded token store");
-                    Call<Replication> update = ingest.updateReplicationStatus(replication.getId(), new RStatusUpdate(ReplicationStatus.ACE_LOADED));
+                    Call<Replication> update = ingest.updateReplicationStatus(replication.getId(), new RStatusUpdate(ReplicationStatus.ACE_TOKEN_LOADED));
                     update.enqueue(new UpdateCallback());
                 } else {
                     log.error("Error loading token store for collection: {} - {}", response.code(), response.message());
