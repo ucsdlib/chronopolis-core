@@ -1,4 +1,4 @@
-package org.chronopolis.replicate.config;
+package org.chronopolis.replicate.scheduled;
 
 import org.chronopolis.replicate.batch.ReplicationJobStarter;
 import org.chronopolis.rest.api.IngestAPI;
@@ -51,6 +51,9 @@ public class ReplicationQueryTask {
 
     /**
      * Check the ingest-server for pending and started replications
+     *
+     * TODO: We now have a host of states (ACE_*) which we will want to check
+     *
      */
     @Scheduled(cron = "${replication.cron:0 0 * * * *}")
     public void checkForReplications() {
@@ -62,6 +65,9 @@ public class ReplicationQueryTask {
 
             log.info("Query for new replications");
             query(ReplicationStatus.PENDING, filter, true);
+
+            log.info("Query for auditing replications");
+            query(ReplicationStatus.ACE_AUDITING, filter, true);
         } catch (IOException e) {
             log.error("Error checking for replications", e);
         }

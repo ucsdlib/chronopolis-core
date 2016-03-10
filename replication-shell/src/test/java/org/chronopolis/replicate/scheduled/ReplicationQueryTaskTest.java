@@ -1,4 +1,4 @@
-package org.chronopolis.replicate.config;
+package org.chronopolis.replicate.scheduled;
 
 import com.google.common.collect.ImmutableMap;
 import org.chronopolis.replicate.batch.ReplicationJobStarter;
