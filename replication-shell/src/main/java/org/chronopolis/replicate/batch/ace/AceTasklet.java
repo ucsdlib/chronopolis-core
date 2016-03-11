@@ -1,5 +1,6 @@
 package org.chronopolis.replicate.batch.ace;
 
+import com.google.common.collect.ImmutableList;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.config.ReplicationSettings;
@@ -23,7 +24,6 @@ import org.springframework.batch.repeat.RepeatStatus;
 public class AceTasklet implements Tasklet {
     private final Logger log = LoggerFactory.getLogger(AceTasklet.class);
 
-
     private IngestAPI ingest;
     private AceService aceService;
     private Replication replication;
@@ -40,13 +40,18 @@ public class AceTasklet implements Tasklet {
 
     @Override
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
-
         AceRegisterTasklet register = new AceRegisterTasklet(ingest, aceService, replication, settings, notifier);
         Long id = register.call();
+        // TODO: Ensure we only move on if the previous step succeeded
+        log.debug("ACE Register step succeeded? {}", notifier.isSuccess());
         AceTokenTasklet token = new AceTokenTasklet(ingest, aceService, replication, settings, notifier, id);
         AceAuditTasklet audit = new AceAuditTasklet(ingest, aceService, replication, settings, notifier, id);
-        token.run();
-        audit.run();
+
+        for (Runnable runnable : ImmutableList.of(token, audit)) {
+            if (notifier.isSuccess()) {
+                runnable.run();
+            }
+        }
 
         return RepeatStatus.FINISHED;
     }

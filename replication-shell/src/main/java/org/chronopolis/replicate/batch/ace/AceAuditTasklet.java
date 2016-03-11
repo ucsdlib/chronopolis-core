@@ -20,7 +20,7 @@ import java.io.IOException;
  *
  * Created by shake on 3/8/16.
  */
-public class AceAuditTasklet {
+public class AceAuditTasklet implements Runnable {
     private final Logger log = LoggerFactory.getLogger(AceAuditTasklet.class);
 
     private IngestAPI ingest;
@@ -39,7 +39,8 @@ public class AceAuditTasklet {
         this.id = id;
     }
 
-    public void run() throws Exception {
+    @Override
+    public void run() {
         Call<Void> auditCall = aceService.startAudit(id);
 
         auditCall.enqueue(new Callback<Void>() {

@@ -49,8 +49,13 @@ public class AceTokenTasklet implements Runnable {
 
     @Override
     public void run() {
-        Bag bag = replication.getBag();
+        // Short circuit this mahfk
+        if (replication.getStatus() == ReplicationStatus.ACE_TOKEN_LOADED
+                || replication.getStatus() == ReplicationStatus.ACE_AUDITING) {
+            return;
+        }
 
+        Bag bag = replication.getBag();
         log.info("Loading token store for {}", bag.getName());
         final AtomicBoolean complete = new AtomicBoolean(false);
 
