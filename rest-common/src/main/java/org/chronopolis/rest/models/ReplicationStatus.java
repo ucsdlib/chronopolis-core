@@ -33,7 +33,8 @@ public enum ReplicationStatus {
 
     public boolean isClientStatus() {
         return this == STARTED
-                || this == TRANSFERRED
+                // || this == TRANSFERRED
+                || this == SUCCESS
                 || this == FAILURE
                 || this == ACE_AUDITING
                 || this == ACE_TOKEN_LOADED
@@ -42,12 +43,7 @@ public enum ReplicationStatus {
 
     // TODO: Can use the isClientStatus() to shorten this
     public boolean isOngoing() {
-        return this == PENDING
-                || this == STARTED
-                || this == TRANSFERRED
-                || this == ACE_AUDITING
-                || this == ACE_TOKEN_LOADED
-                || this == ACE_REGISTERED;
+        return !(this.isFailure() || this == SUCCESS);
     }
 
 }
