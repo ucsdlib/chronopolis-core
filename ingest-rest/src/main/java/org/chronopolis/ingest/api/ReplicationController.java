@@ -8,6 +8,7 @@ import org.chronopolis.ingest.repository.BagService;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationSearchCriteria;
 import org.chronopolis.ingest.repository.ReplicationService;
+import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.FixityUpdate;
 import org.chronopolis.rest.models.Node;
 import org.chronopolis.rest.models.RStatusUpdate;
@@ -85,8 +86,17 @@ public class ReplicationController extends IngestController {
                                          @RequestBody FixityUpdate update) {
         log.info("[{}] Updating token store for {}", principal.getName(), replicationId);
         ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
+
+        // Break out our objects
         Replication r = replicationService.getReplication(criteria);
-        r.setReceivedTokenFixity(update.getFixity());
+        Bag bag = r.getBag();
+        Node node = r.getNode();
+        String fixity = update.getFixity();
+
+        // Validate the fixity and update the replication
+        checkFixity(r, bag.getId(), node.getUsername(), bag.getTokenDigest(), fixity, ReplicationStatus.FAILURE_TOKEN_STORE);
+        r.setReceivedTokenFixity(fixity);
+        r.checkTransferred();
         replicationService.save(r);
         return r;
     }
@@ -96,11 +106,35 @@ public class ReplicationController extends IngestController {
                                        @PathVariable("id") Long replicationId,
                                        @RequestBody FixityUpdate update) {
         ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
+
+        // Break out our objects
         Replication r = replicationService.getReplication(criteria);
+        Bag bag = r.getBag();
+        Node node = r.getNode();
+        String fixity = update.getFixity();
+
+        // Validate the fixity and update the replication
+        checkFixity(r, bag.getId(), node.getUsername(), bag.getTokenDigest(), fixity, ReplicationStatus.FAILURE_TOKEN_STORE);
         r.setReceivedTagFixity(update.getFixity());
+        r.checkTransferred();
         replicationService.save(r);
         return r;
     }
+
+    private boolean checkFixity(Replication r, Long id, String node, String stored, String received, ReplicationStatus failure) {
+        if (stored == null || !stored.equals(received)) {
+            log.info("Received invalid fixity for bag {} from {}",
+                    id,
+                    node);
+            r.setStatus(failure);
+        } else {
+            log.info("Matching fixity for {}", r.getId());
+            return true;
+        }
+
+        return false;
+    }
+
 
     @RequestMapping(value = "/{id}/failure", method = RequestMethod.PUT)
     public Replication failReplication(Principal principal,
@@ -117,6 +151,7 @@ public class ReplicationController extends IngestController {
                                     @PathVariable("id") Long replicationId,
                                     @RequestBody RStatusUpdate update) {
         ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
+        log.info("Received update request for replication {}: {}", replicationId, update.getStatus());
         Replication r = replicationService.getReplication(criteria);
         r.setStatus(update.getStatus());
         replicationService.save(r);
@@ -164,16 +199,6 @@ public class ReplicationController extends IngestController {
 
         replicationService.save(update);
         return update;
-    }
-
-    /**
-     * Return true if the status = success
-     *
-     * @param status
-     * @return
-     */
-    private boolean isClientSuccess(ReplicationStatus status) {
-        return status == ReplicationStatus.SUCCESS;
     }
 
     /**
