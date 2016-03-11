@@ -66,8 +66,15 @@ public class ReplicationQueryTask {
             log.info("Query for new replications");
             query(ReplicationStatus.PENDING, filter, true);
 
+            log.info("Query for transferred replications");
+            query(ReplicationStatus.TRANSFERRED, filter, false);
+
+            log.info("Query for ace flow replications");
+            query(ReplicationStatus.ACE_REGISTERED, filter, false);
+            query(ReplicationStatus.ACE_TOKEN_LOADED, filter, false);
+
             log.info("Query for auditing replications");
-            query(ReplicationStatus.ACE_AUDITING, filter, true);
+            query(ReplicationStatus.ACE_AUDITING, filter, false);
         } catch (IOException e) {
             log.error("Error checking for replications", e);
         }
