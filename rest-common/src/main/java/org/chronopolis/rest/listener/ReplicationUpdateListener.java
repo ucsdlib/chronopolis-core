@@ -12,8 +12,6 @@ import org.slf4j.LoggerFactory;
 import javax.persistence.PreUpdate;
 import java.util.Set;
 
-import static org.chronopolis.rest.models.BagDistribution.BagDistributionStatus.REPLICATE;
-
 /**
  * Update replications based on their received fixity
  * <p/>
@@ -27,6 +25,7 @@ public class ReplicationUpdateListener {
 
     @PreUpdate
     public void updateReplication(Replication r) {
+        log.trace("In update listener for replication {}", r.getId());
         boolean successToken = false;
         boolean successTag = false;
 
@@ -39,25 +38,42 @@ public class ReplicationUpdateListener {
         String receivedTokenFixity = r.getReceivedTokenFixity();
 
         // TODO: If we're already in a failed state we could skip doing anything
+        if (r.getStatus().isFailure()) {
+            return;
+        }
+
+        // I'm not sure if this is really the best place to do state updates
+        // Since we now have separate endpoints in the controller for token/tag fixity
+        // it's easy to separate out the logic for them
+        // At the same time, we can use those endpoints to check the state change
+        // i.e. have a helper method in the Replication for checkTransferred
+        // and have that update the state to transferred if we have both matching fixity values
+        // and are still in a non-ace state
+        // We could try to use this to validate state changes, however
+        // so if we are setting SUCCESS but the received fixities are null, reject
+        // I'm not sure if we want to do that, however
 
         // update state based on the token fixity
+            /*
         if (receivedTokenFixity != null) {
+            log.debug("Checking token fixity");
             successToken = checkFixity(r, id, username, bag.getTokenDigest(), receivedTokenFixity, ReplicationStatus.FAILURE_TOKEN_STORE);
         }
 
         // update state based on the tag manifest fixity
         if (receivedTagFixity != null) {
+            log.debug("Checking tag fixity");
             successTag = checkFixity(r, id, username, bag.getTagManifestDigest(), receivedTagFixity, ReplicationStatus.FAILURE_TAG_MANIFEST);
         }
-
+        */
         // update state, and BagDistribution if we succeeded
-        if (successTag && successToken && !failureStatus(r.getStatus())) {
+        // TODO: TRANSFERRED/VALIDATED?
+        if (r.getStatus() == ReplicationStatus.SUCCESS) {
             log.info("Replication {} successfully transferred", r.getId());
-            r.setStatus(ReplicationStatus.SUCCESS);
             Set<BagDistribution> distributions = bag.getDistributions();
             for (BagDistribution distribution : distributions) {
                 if (distribution.getNode().equals(node)) {
-                    distribution.setStatus(REPLICATE);
+                    distribution.setStatus(BagDistribution.BagDistributionStatus.REPLICATE);
                 }
             }
 
@@ -69,10 +85,10 @@ public class ReplicationUpdateListener {
                         bag.getName());
                 bag.setStatus(BagStatus.REPLICATED);
             }
-
         }
     }
 
+    /*
     private boolean checkFixity(Replication r, Long id, String node, String stored, String received, ReplicationStatus failure) {
         if (stored == null || !stored.equals(received)) {
             log.info("Received invalid fixity for bag {} from {}",
@@ -80,17 +96,12 @@ public class ReplicationUpdateListener {
                     node);
             r.setStatus(failure);
         } else {
-            log.info("Matching fixity");
+            log.info("Matching fixity for {}", r.getId());
             return true;
         }
 
         return false;
     }
-
-    private boolean failureStatus(ReplicationStatus status) {
-        return status == ReplicationStatus.FAILURE_TOKEN_STORE
-                || status == ReplicationStatus.FAILURE_TAG_MANIFEST
-                || status == ReplicationStatus.FAILURE;
-    }
+    */
 
 }
