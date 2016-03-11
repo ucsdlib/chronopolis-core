@@ -15,6 +15,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
+import java.util.Objects;
 
 /**
  * Representation of a Replication request
@@ -134,6 +135,17 @@ public class Replication {
 
     public void setStatus(ReplicationStatus status) {
         this.status = status;
+    }
+
+    public void checkTransferred() {
+        String storedTagDigest = bag.getTagManifestDigest();
+        String storedTokenDigest = bag.getTokenDigest();
+
+        if (Objects.equals(storedTagDigest, receivedTagFixity)
+                && Objects.equals(storedTokenDigest, receivedTokenFixity)) {
+            this.status = ReplicationStatus.TRANSFERRED;
+        }
+
     }
 
     public String getBagLink() {
