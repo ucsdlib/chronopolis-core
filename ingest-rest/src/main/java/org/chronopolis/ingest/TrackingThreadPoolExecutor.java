@@ -9,13 +9,16 @@ import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Thread pool which keeps track of a mutable object T throughout its execution lifetime
  * Upon completion it can be resubmitted to the pool with a new task
- *
+ * <p/>
+ * TODO: Expose some of this to admin users, just in case?
+ * <p/>
  * Created by shake on 2/3/16.
  */
 public class TrackingThreadPoolExecutor<T> extends ThreadPoolExecutor {
@@ -30,17 +33,18 @@ public class TrackingThreadPoolExecutor<T> extends ThreadPoolExecutor {
                                       TimeUnit unit,
                                       BlockingQueue<Runnable> workQueue) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
+        setRejectedExecutionHandler(new RejectedHandler());
     }
 
     public Optional<FutureTask<T>> submitIfAvailable(Runnable r, T item) {
         if (items.add(item)) {
-            log.debug("Adding {}", item.toString());
+            log.trace("Adding {}", item.toString());
             FutureTask<T> t = new Task(r, item);
             execute(t);
             return Optional.of(t);
         }
 
-        log.debug("Rejected {}", item);
+        log.trace("Rejected {}", item);
         return Optional.absent();
     }
 
@@ -60,6 +64,20 @@ public class TrackingThreadPoolExecutor<T> extends ThreadPoolExecutor {
     public boolean contains(T item) {
         return items.contains(item);
     }
+
+    public class RejectedHandler implements RejectedExecutionHandler {
+
+        @Override
+        public void rejectedExecution(Runnable runnable, ThreadPoolExecutor threadPoolExecutor) {
+            if (runnable instanceof TrackingThreadPoolExecutor.Task) {
+                TrackingThreadPoolExecutor<T>.Task task = (TrackingThreadPoolExecutor.Task) runnable;
+                T result = task.result;
+                log.warn("Task was rejected: {}", result.toString());
+                items.remove(result);
+            }
+        }
+    }
+
 
     public class Task extends FutureTask<T> {
 
