@@ -42,11 +42,9 @@ public class AceTasklet implements Tasklet {
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
         AceRegisterTasklet register = new AceRegisterTasklet(ingest, aceService, replication, settings, notifier);
         Long id = register.call();
-        // TODO: Ensure we only move on if the previous step succeeded
-        log.debug("ACE Register step succeeded? {}", notifier.isSuccess());
+
         AceTokenTasklet token = new AceTokenTasklet(ingest, aceService, replication, settings, notifier, id);
         AceAuditTasklet audit = new AceAuditTasklet(ingest, aceService, replication, settings, notifier, id);
-
         for (Runnable runnable : ImmutableList.of(token, audit)) {
             if (notifier.isSuccess()) {
                 runnable.run();
