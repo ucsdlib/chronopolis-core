@@ -2,6 +2,7 @@ package org.chronopolis.replicate.scheduled;
 
 import com.google.common.collect.ImmutableMap;
 import org.chronopolis.replicate.batch.ReplicationJobStarter;
+import org.chronopolis.replicate.support.CallWrapper;
 import org.chronopolis.replicate.test.TestApplication;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.Bag;
@@ -28,10 +29,7 @@ import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
@@ -156,40 +154,4 @@ public class ReplicationQueryTaskTest {
 
     }
 
-    public class CallWrapper<E> implements Call<E> {
-
-        E e;
-
-        public CallWrapper(E e) {
-            this.e = e;
-        }
-
-        @Override
-        public Response<E> execute() throws IOException {
-            return Response.success(e);
-        }
-
-        @Override
-        public void enqueue(Callback<E> callback) {
-        }
-
-        @Override
-        public boolean isExecuted() {
-            return false;
-        }
-
-        @Override
-        public void cancel() {
-        }
-
-        @Override
-        public boolean isCanceled() {
-            return false;
-        }
-
-        @Override
-        public Call<E> clone() {
-            return null;
-        }
-    }
 }
