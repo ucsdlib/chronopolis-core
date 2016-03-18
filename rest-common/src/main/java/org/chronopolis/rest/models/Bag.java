@@ -1,12 +1,14 @@
 package org.chronopolis.rest.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.chronopolis.rest.listener.BagUpdateListener;
 import com.google.common.collect.ComparisonChain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
@@ -28,6 +30,7 @@ import static org.chronopolis.rest.models.BagDistribution.BagDistributionStatus;
  * Created by shake on 11/5/14.
  */
 @Entity
+@EntityListeners(BagUpdateListener.class)
 public class Bag implements Comparable<Bag> {
     @Transient
     private final Logger log = LoggerFactory.getLogger(Bag.class);

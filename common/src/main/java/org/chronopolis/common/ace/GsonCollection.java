@@ -38,7 +38,6 @@ public class GsonCollection {
         return digestAlgorithm;
     }
 
-
     public String getDirectory() {
         return directory;
     }

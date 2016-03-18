@@ -134,10 +134,13 @@ public class ReplicationService {
         action.setProtocol("rsync"); // TODO: Magic val...
 
         // iterate through our ongoing replications and search for a non terminal replication
+        // TODO: Partial index this instead:
+        //       create unique index "one_repl" on replications(node_id) where status == ''...
         if (ongoing.getTotalElements() != 0) {
             for (Replication replication : ongoing.getContent()) {
                 ReplicationStatus status = replication.getStatus();
-                if (status == ReplicationStatus.PENDING || status == ReplicationStatus.STARTED
+                if (status == ReplicationStatus.PENDING
+                        || status == ReplicationStatus.STARTED
                         || status == ReplicationStatus.TRANSFERRED) {
                     log.info("Found ongoing replication for {} to {}, ignoring create request",
                             bag.getName(), node.getUsername());

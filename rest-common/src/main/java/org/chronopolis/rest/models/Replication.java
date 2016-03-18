@@ -4,8 +4,10 @@ package org.chronopolis.rest.models;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
+import org.chronopolis.rest.listener.ReplicationUpdateListener;
 
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
@@ -13,6 +15,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
+import java.util.Objects;
 
 /**
  * Representation of a Replication request
@@ -21,6 +24,7 @@ import javax.persistence.Transient;
  * Created by shake on 11/5/14.
  */
 @Entity
+@EntityListeners(ReplicationUpdateListener.class)
 public class Replication {
 
     @Id
@@ -133,6 +137,17 @@ public class Replication {
         this.status = status;
     }
 
+    public void checkTransferred() {
+        String storedTagDigest = bag.getTagManifestDigest();
+        String storedTokenDigest = bag.getTokenDigest();
+
+        if (Objects.equals(storedTagDigest, receivedTagFixity)
+                && Objects.equals(storedTokenDigest, receivedTokenFixity)) {
+            this.status = ReplicationStatus.TRANSFERRED;
+        }
+
+    }
+
     public String getBagLink() {
         return bagLink;
     }
@@ -145,12 +160,26 @@ public class Replication {
         return protocol;
     }
 
-    public void setReceivedTokenFixity(final String receivedTokenFixity) {
-        this.receivedTokenFixity = receivedTokenFixity;
+    /**
+     * Update the receivedTokenFixity of a replication if it has not already been set
+     *
+     * @param fixity the received fixity value
+     */
+    public void setReceivedTokenFixity(final String fixity) {
+        if (receivedTokenFixity == null) {
+            this.receivedTokenFixity = fixity;
+        }
     }
 
-    public void setReceivedTagFixity(final String receivedTagFixity) {
-        this.receivedTagFixity = receivedTagFixity;
+    /**
+     * Update the received tag fixity of a replication if it has not already been set
+     *
+     * @param fixity the received fixity value
+     */
+    public void setReceivedTagFixity(final String fixity) {
+        if (receivedTagFixity == null) {
+            this.receivedTagFixity = fixity;
+        }
     }
 
     public String getReceivedTagFixity() {

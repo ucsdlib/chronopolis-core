@@ -3,10 +3,6 @@ package org.chronopolis.ingest;
 import com.sun.akuma.Daemon;
 import org.chronopolis.ingest.api.StagingController;
 import org.chronopolis.ingest.controller.SiteController;
-import org.chronopolis.ingest.repository.BagRepository;
-import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.ReplicationRepository;
-import org.chronopolis.ingest.repository.RestoreRepository;
 import org.chronopolis.ingest.service.IngestService;
 import org.chronopolis.ingest.task.TokenTask;
 import org.slf4j.Logger;
@@ -15,15 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.boot.orm.jpa.EntityScan;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Arrays;
 
 /**
