@@ -71,7 +71,7 @@ public class AceRegisterStep implements Tasklet {
      * Add a collection and token store to ACE
      * Ok so now we have 3 steps in ACE and 3 status updates for the ingest server
      * - ACE_REGISTERED
-     * - ACE_LOADED
+     * - ACE_TOKEN_LOADED
      * - ACE_AUDITING
      *
      * @param stepContribution

@@ -87,10 +87,9 @@ public class TokenRESTStepListener implements StepExecutionListener {
             }
         } else {
             log.trace("unsuccessful download");
+
             // General failure
-            replication.setStatus(ReplicationStatus.FAILURE);
-            replication.setNodeUser(settings.getNode());
-            // ingestAPI.updateReplication(replication.getId(), replication);
+            // TODO: UpdateCallback
             Call<Replication> call = ingestAPI.failReplication(replication.getId());
             call.enqueue(new Callback<Replication>() {
                 @Override
