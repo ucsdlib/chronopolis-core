@@ -114,7 +114,7 @@ public class ReplicationController extends IngestController {
         String fixity = update.getFixity();
 
         // Validate the fixity and update the replication
-        checkFixity(r, bag.getId(), node.getUsername(), bag.getTokenDigest(), fixity, ReplicationStatus.FAILURE_TOKEN_STORE);
+        checkFixity(r, bag.getId(), node.getUsername(), bag.getTokenDigest(), fixity, ReplicationStatus.FAILURE_TAG_MANIFEST);
         r.setReceivedTagFixity(update.getFixity());
         r.checkTransferred();
         replicationService.save(r);
