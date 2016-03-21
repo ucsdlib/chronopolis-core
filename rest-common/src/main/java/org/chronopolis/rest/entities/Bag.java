@@ -1,8 +1,8 @@
 package org.chronopolis.rest.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.chronopolis.rest.listener.BagUpdateListener;
 import com.google.common.collect.ComparisonChain;
+import org.chronopolis.rest.listener.BagUpdateListener;
 import org.chronopolis.rest.models.BagStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,9 +13,6 @@ import javax.persistence.EntityListeners;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
 import java.util.HashSet;
@@ -32,16 +29,13 @@ import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatu
  */
 @Entity
 @EntityListeners(BagUpdateListener.class)
-public class Bag implements Comparable<Bag> {
+public class Bag extends UpdatableEntity implements Comparable<Bag> {
+
     @Transient
     private final Logger log = LoggerFactory.getLogger(Bag.class);
     
     @Transient
     private final int DEFAULT_REPLICATIONS = 3;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
     private String name;
     private String depositor;
@@ -74,10 +68,6 @@ public class Bag implements Comparable<Bag> {
         this.depositor = depositor;
         this.status = BagStatus.DEPOSITED;
         this.requiredReplications = DEFAULT_REPLICATIONS;
-    }
-
-    public Long getId() {
-        return id;
     }
 
     public String getName() {

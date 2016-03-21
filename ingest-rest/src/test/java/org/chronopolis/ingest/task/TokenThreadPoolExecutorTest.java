@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.lang.reflect.Field;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -76,10 +75,8 @@ public class TokenThreadPoolExecutorTest extends IngestTest {
         MockitoAnnotations.initMocks(this);
 
         // ensure the ids are not null
-        Field id = Bag.class.getDeclaredField("id");
-        id.setAccessible(true);
-        id.set(b1, 1L);
-        id.set(b0, 0L);
+        b0.setId(0L);
+        b1.setId(1L);
     }
 
     //@Test

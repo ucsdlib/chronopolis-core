@@ -11,9 +11,6 @@ import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
 import java.util.Objects;
@@ -21,16 +18,13 @@ import java.util.Objects;
 /**
  * Representation of a Replication request
  *
+ * TODO: Phase out the JsonGetters in favor of a separate class for "displaying" replications
  *
  * Created by shake on 11/5/14.
  */
 @Entity
 @EntityListeners(ReplicationUpdateListener.class)
-public class Replication {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Replication extends UpdatableEntity {
 
     @ManyToOne
     @JsonIgnore
@@ -88,10 +82,6 @@ public class Replication {
         this.bagId = bag.getId();
         this.bagLink = bagLink;
         this.tokenLink = tokenLink;
-    }
-
-    public Long getId() {
-        return id;
     }
 
     public Node getNode() {

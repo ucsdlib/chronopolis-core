@@ -4,7 +4,6 @@ import org.chronopolis.rest.entities.Bag;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.lang.reflect.Field;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -22,13 +21,10 @@ public class TrackingThreadPoolExecutorTest {
             4,
             5,
             TimeUnit.MINUTES,
-            new LinkedBlockingQueue<Runnable>());
+                new LinkedBlockingQueue<>());
 
         Bag testBag = new Bag("test-bag", "test-depositor");
-        Class<Bag> bagClass = Bag.class;
-        Field id = bagClass.getDeclaredField("id");
-        id.setAccessible(true);
-        id.set(testBag, 1L);
+        testBag.setId(1L);
 
         threadPoolExecutor.submitIfAvailable(new ExceptionRunnable(), testBag);
 
@@ -43,19 +39,15 @@ public class TrackingThreadPoolExecutorTest {
             1,
             5,
             TimeUnit.MINUTES,
-            new ArrayBlockingQueue<Runnable>(1));
-
-        Class<Bag> bagClass = Bag.class;
-        Field id = bagClass.getDeclaredField("id");
-        id.setAccessible(true);
+            new ArrayBlockingQueue<>(1));
 
         Bag testBag = new Bag("test-bag", "test-depositor");
         Bag testBag2 = new Bag("test-bag-2", "test-depositor");
         Bag testBag3 = new Bag("test-bag-3", "test-depositor");
 
-        id.set(testBag, 1L);
-        id.set(testBag2, 2L);
-        id.set(testBag3, 3L);
+        testBag.setId(1L);
+        testBag2.setId(1L);
+        testBag3.setId(1L);
 
         threadPoolExecutor.submitIfAvailable(new SleepyRunnable(), testBag);
         threadPoolExecutor.submitIfAvailable(new SleepyRunnable(), testBag2);

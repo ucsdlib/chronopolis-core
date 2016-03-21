@@ -20,6 +20,8 @@ DROP SEQUENCE IF EXISTS bag_id_seq;
 CREATE SEQUENCE bag_id_seq;
 CREATE TABLE bag (
     id bigint PRIMARY KEY DEFAULT nextval('bag_id_seq'),
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
     name varchar(255),
     depositor varchar(255),
     location varchar(255),
@@ -48,6 +50,8 @@ DROP SEQUENCE IF EXISTS replication_replicationid_seq;
 CREATE SEQUENCE replication_replicationid_seq;
 CREATE TABLE replication (
     id bigint PRIMARY KEY DEFAULT nextval('replication_replicationid_seq'),
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
     status varchar(255),
     bag_link varchar(255),
     token_link varchar(255),

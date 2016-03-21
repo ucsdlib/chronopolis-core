@@ -103,9 +103,7 @@ public class ReplicationQueryTaskTest {
         b = new Bag("test-bag", "test-depositor");
 
         replication = new Replication(n, b);
-        Field id = replication.getClass().getDeclaredField("id");
-        id.setAccessible(true);
-        id.set(replication, 1L);
+        replication.setId(1L);
         for (int i = 0; i < 5; i++) {
             replicationList.add(replication);
         }
