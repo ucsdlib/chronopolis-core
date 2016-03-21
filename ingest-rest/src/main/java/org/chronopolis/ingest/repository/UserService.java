@@ -1,7 +1,7 @@
 package org.chronopolis.ingest.repository;
 
 import org.chronopolis.ingest.models.UserRequest;
-import org.chronopolis.rest.models.Node;
+import org.chronopolis.rest.entities.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

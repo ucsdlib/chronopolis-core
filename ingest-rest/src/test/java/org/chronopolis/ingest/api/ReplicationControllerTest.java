@@ -5,7 +5,7 @@ import org.chronopolis.ingest.TestApplication;
 import org.chronopolis.ingest.support.PageImpl;
 import org.chronopolis.rest.models.FixityUpdate;
 import org.chronopolis.rest.models.RStatusUpdate;
-import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.junit.Assert;
 import org.junit.Test;

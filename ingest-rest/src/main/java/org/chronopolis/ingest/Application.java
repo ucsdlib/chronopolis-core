@@ -26,7 +26,7 @@ import java.util.Arrays;
         SiteController.class,
         TokenTask.class
 })
-@EntityScan(basePackages = "org.chronopolis.rest.models")
+@EntityScan(basePackages = "org.chronopolis.rest.entities")
 @EnableAutoConfiguration
 public class Application implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(Application.class);

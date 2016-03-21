@@ -57,7 +57,7 @@
             </thead>
             <tbody>
             <!--@thymesVar id="bags" type="Page<Bag>"-->
-            <!--@thymesVar id="bag" type="org.chronopolis.rest.models.Bag"-->
+            <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
             <tr th:each="bag: ${bags}">
                 <td><a th:text="${bag.id}" th:href="@{/bags/} + ${bag.id}"></a></td>
                 <td th:text="${bag.depositor}"></td>
@@ -93,7 +93,7 @@
             <tbody>
             <!--@thymesVar id="bags" type="List<Bag>"-->
             <!--@thymesVar id="tokens" type="Long"-->
-            <!--@thymesVar id="bag" type="org.chronopolis.rest.models.Bag"-->
+            <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
             <tr th:each="bag: ${bags}">
                 <td th:text="${bag.id}"></td>
                 <td th:text="${bag.depositor}"></td>

@@ -2,7 +2,7 @@ package org.chronopolis.ingest;
 
 import com.google.common.hash.HashingOutputStream;
 import edu.umiacs.ace.token.TokenStoreWriter;
-import org.chronopolis.rest.models.AceToken;
+import org.chronopolis.rest.entities.AceToken;
 
 import javax.annotation.Nullable;
 import java.io.IOException;

@@ -20,7 +20,7 @@
     <div class="content">
     <form enctype="application/json" method="post" name="replication">
         <!--@thymesVar id="bags" type="List<Bag>"-->
-        <!--@thymesVar id="bag" type="org.chronopolis.rest.models.Bag"-->
+        <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
         <select name="bagId" id="bagId">
             <option th:each="bag: ${bags}"
                     th:value="${bag.id}" th:text="${bag.depositor} + '/' + ${bag.name}">
@@ -29,7 +29,7 @@
 
 
         <!--@thymesVar id="nodes" type="List<Node>"-->
-        <!--@thymesVar id="node" type="org.chronopolis.rest.models.Node"-->
+        <!--@thymesVar id="node" type="org.chronopolis.rest.entities.Node"-->
         <select name="nodeId" id="nodeId">
             <option th:each="node: ${nodes}"
                     th:value="${node.id}" th:text="${node.username}">

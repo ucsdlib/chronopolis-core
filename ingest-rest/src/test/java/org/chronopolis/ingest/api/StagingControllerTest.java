@@ -8,7 +8,7 @@ import org.chronopolis.ingest.TestApplication;
 import org.chronopolis.ingest.repository.BagService;
 import org.chronopolis.ingest.support.PageImpl;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.models.IngestRequest;
 import org.junit.Test;
 import org.junit.runner.RunWith;

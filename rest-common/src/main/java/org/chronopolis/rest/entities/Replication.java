@@ -1,10 +1,11 @@
-package org.chronopolis.rest.models;
+package org.chronopolis.rest.entities;
 
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import org.chronopolis.rest.listener.ReplicationUpdateListener;
+import org.chronopolis.rest.models.ReplicationStatus;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;

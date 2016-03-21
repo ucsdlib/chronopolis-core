@@ -5,7 +5,7 @@ import org.chronopolis.common.ace.AceService;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.entities.Replication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;

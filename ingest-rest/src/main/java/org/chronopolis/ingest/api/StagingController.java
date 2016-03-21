@@ -8,10 +8,10 @@ import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.BagSearchCriteria;
 import org.chronopolis.ingest.repository.BagService;
 import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.IngestRequest;
-import org.chronopolis.rest.models.Node;
+import org.chronopolis.rest.entities.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +36,7 @@ import static org.chronopolis.ingest.api.Params.SORT_BY_TOTAL_FILES;
 import static org.chronopolis.ingest.api.Params.SORT_SIZE;
 import static org.chronopolis.ingest.api.Params.SORT_TOTAL_FILES;
 import static org.chronopolis.ingest.api.Params.STATUS;
-import static org.chronopolis.rest.models.BagDistribution.BagDistributionStatus.DISTRIBUTE;
+import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatus.DISTRIBUTE;
 
 /**
  * REST Controller for controlling actions associated with bags

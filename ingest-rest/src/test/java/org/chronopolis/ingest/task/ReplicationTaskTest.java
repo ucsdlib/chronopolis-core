@@ -3,7 +3,7 @@ package org.chronopolis.ingest.task;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;
 import org.chronopolis.ingest.repository.ReplicationRepository;
-import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.entities.Replication;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

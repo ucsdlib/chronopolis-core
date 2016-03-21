@@ -4,13 +4,11 @@ import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.models.UserRequest;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.UserService;
-import org.chronopolis.rest.models.Node;
+import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.models.PasswordUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Controller;
@@ -21,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 
 /**
  * Controller for handling basic site interaction/administration

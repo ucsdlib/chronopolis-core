@@ -7,7 +7,7 @@ import org.chronopolis.ingest.TestApplication;
 import org.chronopolis.ingest.TrackingThreadPoolExecutor;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.entities.Bag;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

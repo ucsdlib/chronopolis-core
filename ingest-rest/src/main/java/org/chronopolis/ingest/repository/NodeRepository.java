@@ -1,6 +1,6 @@
 package org.chronopolis.ingest.repository;
 
-import org.chronopolis.rest.models.Node;
+import org.chronopolis.rest.entities.Node;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**

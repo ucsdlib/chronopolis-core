@@ -1,7 +1,7 @@
 package org.chronopolis.ingest.repository;
 
 import com.mysema.query.types.expr.BooleanExpression;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.entities.Bag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

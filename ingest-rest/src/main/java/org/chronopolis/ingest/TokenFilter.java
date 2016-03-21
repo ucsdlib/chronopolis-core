@@ -3,8 +3,8 @@ package org.chronopolis.ingest;
 import com.mysema.query.types.expr.BooleanExpression;
 import org.chronopolis.common.util.Filter;
 import org.chronopolis.ingest.repository.TokenRepository;
-import org.chronopolis.rest.models.AceToken;
-import org.chronopolis.rest.models.QAceToken;
+import org.chronopolis.rest.entities.AceToken;
+import org.chronopolis.rest.entities.QAceToken;
 
 import java.nio.file.Path;
 import java.util.HashSet;

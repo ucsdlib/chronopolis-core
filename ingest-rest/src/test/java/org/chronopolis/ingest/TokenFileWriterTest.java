@@ -6,7 +6,7 @@ import com.google.common.io.Files;
 import junit.framework.Assert;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.entities.Bag;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

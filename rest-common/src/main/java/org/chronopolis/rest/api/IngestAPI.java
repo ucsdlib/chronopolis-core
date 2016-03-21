@@ -1,12 +1,12 @@
 package org.chronopolis.rest.api;
 
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.models.FixityUpdate;
 import org.chronopolis.rest.models.IngestRequest;
 import org.chronopolis.rest.models.RStatusUpdate;
-import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.models.ReplicationRequest;
-import org.chronopolis.rest.models.Restoration;
+import org.chronopolis.rest.entities.Restoration;
 import org.springframework.data.domain.PageImpl;
 import retrofit2.Call;
 import retrofit2.http.Body;

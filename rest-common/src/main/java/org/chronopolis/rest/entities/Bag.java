@@ -1,8 +1,9 @@
-package org.chronopolis.rest.models;
+package org.chronopolis.rest.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.chronopolis.rest.listener.BagUpdateListener;
 import com.google.common.collect.ComparisonChain;
+import org.chronopolis.rest.models.BagStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +21,7 @@ import javax.persistence.Transient;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.chronopolis.rest.models.BagDistribution.BagDistributionStatus;
+import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatus;
 
 /**
  * Representation of a bag in chronopolis

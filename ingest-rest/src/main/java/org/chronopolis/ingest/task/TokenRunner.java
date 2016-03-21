@@ -7,7 +7,7 @@ import org.chronopolis.ingest.TokenFileWriter;
 import org.chronopolis.ingest.TokenFilter;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.models.BagStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

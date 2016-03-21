@@ -1,6 +1,6 @@
 package org.chronopolis.ingest;
 
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.entities.Bag;
 import org.junit.Assert;
 import org.junit.Test;
 

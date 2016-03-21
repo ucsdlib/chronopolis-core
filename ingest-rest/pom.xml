@@ -32,7 +32,7 @@
                         <configuration>
                             <targetFolder>target/generated-sources/java</targetFolder>
                             <packages>
-                                <package>org.chronopolis.rest.models</package>
+                                <package>org.chronopolis.rest.entities</package>
                             </packages>
                         </configuration>
                     </execution>
@@ -66,6 +66,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.6.1</version>
         </dependency>
 
         <!--jjj

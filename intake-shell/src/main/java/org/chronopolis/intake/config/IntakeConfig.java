@@ -3,13 +3,11 @@ package org.chronopolis.intake.config;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
-import okhttp3.Response;
 import org.chronopolis.common.ace.OkBasicInterceptor;
 import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.support.PageDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +18,6 @@ import org.springframework.data.domain.PageImpl;
 import retrofit2.GsonConverterFactory;
 import retrofit2.Retrofit;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.List;
 

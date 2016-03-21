@@ -13,7 +13,7 @@ import org.springframework.context.annotation.ComponentScan;
         StagingController.class,
         BagInitializer.class
 })
-@EntityScan(basePackages = "org.chronopolis.rest.models")
+@EntityScan(basePackages = "org.chronopolis.rest.entities")
 @EnableAutoConfiguration
 public class TestApplication implements CommandLineRunner {
 

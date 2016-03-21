@@ -1,5 +1,7 @@
 package org.chronopolis.rest.models;
 
+import org.chronopolis.rest.entities.Replication;
+
 /**
  * Different statuses of a {@link Replication}
  *

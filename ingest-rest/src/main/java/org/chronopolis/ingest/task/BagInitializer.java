@@ -6,7 +6,7 @@ import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.TrackingThreadPoolExecutor;
 import org.chronopolis.ingest.repository.BagSearchCriteria;
 import org.chronopolis.ingest.repository.BagService;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.models.BagStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

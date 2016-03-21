@@ -1,4 +1,4 @@
-package org.chronopolis.rest.models;
+package org.chronopolis.rest.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -10,7 +10,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 
 /**
  * Class to keep track of where bags are distributed to
