@@ -17,6 +17,8 @@ import org.springframework.context.annotation.ComponentScan;
 import java.util.Arrays;
 
 /**
+ * Moo moo moo
+ *
  * Created by shake on 11/6/14.
  */
 @ComponentScan(basePackageClasses = {
