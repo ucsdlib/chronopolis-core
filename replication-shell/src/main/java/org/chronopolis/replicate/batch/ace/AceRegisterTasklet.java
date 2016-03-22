@@ -173,7 +173,7 @@ public class AceRegisterTasklet implements Callable<Long> {
         call.enqueue(new Callback<GsonCollection>() {
             @Override
             public void onResponse(Response<GsonCollection> response) {
-                if (response.isSuccess()) {
+                if (response.isSuccess() && response.body() != null) {
                     id = response.body().getId();
                 } else {
                     log.error("Error communicating with ACE: {} - {}", response.code(), response.message());
