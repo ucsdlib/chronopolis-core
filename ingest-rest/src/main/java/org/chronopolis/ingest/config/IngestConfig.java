@@ -1,5 +1,11 @@
 package org.chronopolis.ingest.config;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import org.apache.catalina.connector.Connector;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.TrackingThreadPoolExecutor;
@@ -10,7 +16,12 @@ import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
+import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -60,6 +71,31 @@ public class IngestConfig {
         }
 
         return bean;
+    }
+
+    @Bean
+    public Jackson2ObjectMapperBuilder jacksonBuilder() {
+        Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
+        builder.indentOutput(true);
+        // builder.dateFormat(DateTimeFormatter.ISO_LOCAL_DATE_TIME.);
+        builder.serializerByType(ZonedDateTime.class, new JsonSerializer<ZonedDateTime>() {
+            @Override
+            public void serialize(ZonedDateTime localDateTime,
+                                  JsonGenerator jsonGenerator,
+                                  SerializerProvider serializerProvider) throws IOException {
+                DateTimeFormatter fmt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC);
+                jsonGenerator.writeString(fmt.format(localDateTime));
+            }
+        });
+        builder.deserializerByType(ZonedDateTime.class, new JsonDeserializer<ZonedDateTime>() {
+            @Override
+            public ZonedDateTime deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
+                DateTimeFormatter fmt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC);
+                String text = jsonParser.getText();
+                return ZonedDateTime.from(fmt.parse(text));
+            }
+        });
+        return builder;
     }
 
 }
