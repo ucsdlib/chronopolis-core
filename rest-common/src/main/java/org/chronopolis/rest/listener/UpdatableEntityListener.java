@@ -4,7 +4,7 @@ import org.chronopolis.rest.entities.UpdatableEntity;
 
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 /**
  * EntityListener which updates the created_at on the initial save,
@@ -16,13 +16,13 @@ public class UpdatableEntityListener {
 
     @PrePersist
     public void createTimeStamps(UpdatableEntity ue) {
-        ue.setCreatedAt(LocalDateTime.now());
-        ue.setUpdatedAt(LocalDateTime.now());
+        ue.setCreatedAt(ZonedDateTime.now());
+        ue.setUpdatedAt(ZonedDateTime.now());
     }
 
     @PreUpdate
     public void updateTimeStamps(UpdatableEntity ue) {
-        ue.setUpdatedAt(LocalDateTime.now());
+        ue.setUpdatedAt(ZonedDateTime.now());
     }
 
 }

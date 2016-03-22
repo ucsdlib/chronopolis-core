@@ -1,6 +1,6 @@
 package org.chronopolis.rest.entities;
 
-import org.chronopolis.rest.LocalDateTimeConverter;
+import org.chronopolis.rest.ZonedDateTimeConverter;
 import org.chronopolis.rest.listener.UpdatableEntityListener;
 
 import javax.persistence.Convert;
@@ -9,7 +9,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.ZonedDateTime;
 
 /**
  * Entity which can be updated, and has the latest changes tracked by timestamp
@@ -24,27 +25,27 @@ public class UpdatableEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @Convert(converter = LocalDateTimeConverter.class)
-    LocalDateTime createdAt;
+    @Convert(converter = ZonedDateTimeConverter.class)
+    ZonedDateTime createdAt;
 
-    @Convert(converter = LocalDateTimeConverter.class)
-    LocalDateTime updatedAt;
+    @Convert(converter = ZonedDateTimeConverter.class)
+    ZonedDateTime updatedAt;
 
 
-    public LocalDateTime getCreatedAt() {
+    public ZonedDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public UpdatableEntity setCreatedAt(LocalDateTime createdAt) {
+    public UpdatableEntity setCreatedAt(ZonedDateTime createdAt) {
         this.createdAt = createdAt;
         return this;
     }
 
-    public LocalDateTime getUpdatedAt() {
+    public ZonedDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public UpdatableEntity setUpdatedAt(LocalDateTime updatedAt) {
+    public UpdatableEntity setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
         return this;
     }
