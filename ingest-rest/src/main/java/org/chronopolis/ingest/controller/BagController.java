@@ -177,7 +177,7 @@ public class BagController extends IngestController {
      * @throws IOException
      */
     @RequestMapping(value = "/bags/add", method = RequestMethod.POST)
-    public String addBag(Model model, IngestRequest request) throws IOException {
+    public String addBag(Model model, Principal principal, IngestRequest request) throws IOException {
         log.info("Adding new bag");
         String name = request.getName();
         String depositor = request.getDepositor();
@@ -192,6 +192,7 @@ public class BagController extends IngestController {
         if (bag == null) {
             bag = new Bag(name, depositor);
             bag.setFixityAlgorithm("SHA-256");
+            bag.setCreator(principal.getName());
             bag.setLocation(request.getLocation());
 
             if (request.getRequiredReplications() > 0) {

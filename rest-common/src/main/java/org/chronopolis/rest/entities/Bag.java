@@ -38,6 +38,7 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
     private final int DEFAULT_REPLICATIONS = 3;
 
     private String name;
+    private String creator;
     private String depositor;
 
     // Both locations are relative
@@ -76,6 +77,15 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
 
     public void setName(final String name) {
         this.name = name;
+    }
+
+    public String getCreator() {
+        return creator;
+    }
+
+    public Bag setCreator(String creator) {
+        this.creator = creator;
+        return this;
     }
 
     public String getDepositor() {

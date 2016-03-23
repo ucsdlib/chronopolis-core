@@ -64,13 +64,11 @@ public class StagingController extends IngestController {
     /**
      * Retrieve all the bags we know about
      *
-     * @param principal - authentication information
      * @param params - Query parameters used for searching
      * @return
      */
     @RequestMapping(value = "bags", method = RequestMethod.GET)
-    public Iterable<Bag> getBags(Principal principal,
-                                 @RequestParam Map<String, String> params) {
+    public Iterable<Bag> getBags(@RequestParam Map<String, String> params) {
         BagSearchCriteria criteria = new BagSearchCriteria()
                 .withDepositor(params.containsKey(DEPOSITOR) ? params.get(DEPOSITOR) : null)
                 .withName(params.containsKey(NAME) ? params.get(NAME) : null)
@@ -82,12 +80,11 @@ public class StagingController extends IngestController {
     /**
      * Retrieve information about a single bag
      *
-     * @param principal - authentication information
      * @param bagId - the bag id to retrieve
      * @return
      */
     @RequestMapping(value = "bags/{bag-id}", method = RequestMethod.GET)
-    public Bag getBag(Principal principal, @PathVariable("bag-id") Long bagId) {
+    public Bag getBag(@PathVariable("bag-id") Long bagId) {
         Bag bag = bagRepository.findOne(bagId);
         if (bag == null) {
             throw new NotFoundException("bag/" + bagId);
@@ -121,6 +118,7 @@ public class StagingController extends IngestController {
 
         bag = new Bag(name, depositor);
         bag.setFixityAlgorithm("SHA-256");
+        bag.setCreator(principal.getName());
         bag.setLocation(relPath.toString());
 
         if (request.getRequiredReplications() > 0) {

@@ -19,6 +19,7 @@ CREATE TABLE bag (
   created_at TIMESTAMP,
   updated_at TIMESTAMP,
   name VARCHAR(255),
+  creator VARCHAR(255),
   depositor VARCHAR(255),
   location VARCHAR(255),
   token_location VARCHAR(255),
