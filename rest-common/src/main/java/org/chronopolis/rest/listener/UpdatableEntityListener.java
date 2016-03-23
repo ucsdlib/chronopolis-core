@@ -4,6 +4,7 @@ import org.chronopolis.rest.entities.UpdatableEntity;
 
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
 /**
@@ -16,13 +17,13 @@ public class UpdatableEntityListener {
 
     @PrePersist
     public void createTimeStamps(UpdatableEntity ue) {
-        ue.setCreatedAt(ZonedDateTime.now());
-        ue.setUpdatedAt(ZonedDateTime.now());
+        ue.setCreatedAt(ZonedDateTime.now(ZoneOffset.UTC));
+        ue.setUpdatedAt(ZonedDateTime.now(ZoneOffset.UTC));
     }
 
     @PreUpdate
     public void updateTimeStamps(UpdatableEntity ue) {
-        ue.setUpdatedAt(ZonedDateTime.now());
+        ue.setUpdatedAt(ZonedDateTime.now(ZoneOffset.UTC));
     }
 
 }
