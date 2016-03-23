@@ -76,9 +76,11 @@
 
 <!-- This is typically only for an individual bag, as getting the token count
      can be a long operation over multiple bags -->
-<div th:fragment="extended-table">
+<div th:fragment="info">
+    <h3>Bag Overview</h3>
     <form method="POST">
-        <table class="table table-striped">
+        <table class="table table-bordered">
+            <!--
             <thead>
             <tr>
                 <th>ID</th>
@@ -90,20 +92,39 @@
                 <th>Status</th>
             </tr>
             </thead>
-            <tbody>
+            -->
             <!--@thymesVar id="bags" type="List<Bag>"-->
             <!--@thymesVar id="tokens" type="Long"-->
             <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
-            <tr th:each="bag: ${bags}">
-                <td th:text="${bag.id}"></td>
-                <td th:text="${bag.depositor}"></td>
-                <td th:text="${bag.name}"></td>
-                <td th:text="${bag.size}"></td>
-                <td th:text="${bag.totalFiles}"></td>
-                <td th:text="${tokens}"></td>
-                <td>
-
+            <tbody th:each="bag: ${bags}">
+                <tr>
+                    <td>Id</td>
+                    <td th:text="${bag.id}"></td>
+                </tr>
+                <tr>
+                    <td>Name</td>
+                    <td th:text="${bag.name}"></td>
+                </tr>
+                <tr>
+                    <td>Depositor</td>
+                    <td th:text="${bag.depositor}"></td>
+                </tr>
+               <tr>
+                    <td>Size</td>
+                    <td th:text="${bag.size}"></td>
+                </tr>
+                <tr>
+                    <td>Num Files</td>
+                    <td th:text="${bag.totalFiles}"></td>
+                </tr>
+                <tr>
+                    <td>Num Tokens</td>
+                    <td th:text="${tokens}"></td>
+                </tr>
+                <tr>
+                    <td>Status</td>
                     <!--@thymesVar id="statuses" type="List" -->
+                    <td>
                     <select name="status" id="status">
                         <option th:each="status : ${statuses}"
                                 th:value="${status.value}" th:text="${status.value}"
@@ -111,8 +132,16 @@
                         </option>
                         <!-- <td th:text="${bag.status}"></td> -->
                     </select>
-                </td>
-            </tr>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Created At</td>
+                    <td th:text="${bag.createdAt}"></td>
+                </tr>
+                <tr>
+                    <td>Updated At</td>
+                    <td th:text="${bag.updatedAt}"></td>
+                </tr>
             </tbody>
         </table>
         <input type="submit" value="Update Bag" class="btn btn-small"/>
