@@ -10,7 +10,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 import java.time.ZonedDateTime;
-import java.time.ZonedDateTime;
 
 /**
  * Entity which can be updated, and has the latest changes tracked by timestamp
