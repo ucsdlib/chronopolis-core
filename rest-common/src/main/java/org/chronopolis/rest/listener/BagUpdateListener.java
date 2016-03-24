@@ -24,7 +24,7 @@ public class BagUpdateListener {
             log.debug("Setting bag {}::{} as replicated",
                     bag.getDepositor(),
                     bag.getName());
-            bag.setStatus(BagStatus.REPLICATED);
+            bag.setStatus(BagStatus.PRESERVED);
         }
     }
 
