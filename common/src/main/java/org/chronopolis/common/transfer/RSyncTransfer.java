@@ -14,8 +14,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * TODO: If the rsync cannot connect it will simply hang.
@@ -107,31 +105,28 @@ public class RSyncTransfer implements FileTransfer {
 
     @Override
     public void put(final Path localFile, final String uri) throws FileTransferException {
-        Callable<Boolean> upload = new Callable() {
-            @Override
-            public Boolean call() {
-                // Ensure that we don't include the directory
-                String local = localFile.toString();
-                if (!local.endsWith("/")) {
-                    local += "/";
-                }
-                String[] cmd = new String[]{"rsync", "-az", local, uri};
-                ProcessBuilder pb = new ProcessBuilder(cmd);
-                Process p = null;
-                try {
-                    log.info("Executing {} {} {} {}", cmd);
-                    p = pb.start();
-                    p.waitFor();
-                    log.info("rsync exit value: " + p.exitValue());
-                } catch (IOException e) {
-                    log.error("Error starting rsync", e);
-                    return false;
-                } catch (InterruptedException e) {
-                    log.error("rsync interrupted", e);
-                    return false;
-                }
-                return true;
+        Callable<Boolean> upload = () -> {
+            // Ensure that we don't include the directory
+            String local = localFile.toString();
+            if (!local.endsWith("/")) {
+                local += "/";
             }
+            String[] cmd = new String[]{"rsync", "-az", local, uri};
+            ProcessBuilder pb = new ProcessBuilder(cmd);
+            Process p = null;
+            try {
+                log.info("Executing {} {} {} {}", cmd);
+                p = pb.start();
+                p.waitFor();
+                log.info("rsync exit value: " + p.exitValue());
+            } catch (IOException e) {
+                log.error("Error starting rsync", e);
+                return false;
+            } catch (InterruptedException e) {
+                log.error("rsync interrupted", e);
+                return false;
+            }
+            return true;
         };
 
         FutureTask<Boolean> timedTask = new FutureTask<>(upload);
