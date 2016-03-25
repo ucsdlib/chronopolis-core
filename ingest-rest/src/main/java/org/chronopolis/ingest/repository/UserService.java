@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import javax.transaction.Transactional;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * Service to handle things related to user accounts
@@ -25,6 +26,9 @@ import java.util.HashSet;
 public class UserService {
 
     private final Logger log = LoggerFactory.getLogger(UserService.class);
+
+    @Autowired
+    AuthoritiesRepository authorities;
 
     @Autowired
     UserDetailsManager manager;
@@ -64,7 +68,15 @@ public class UserService {
         }
     }
 
-    public UserDetails getUser(String username) {
+    public Authority getUserAuthority(String user) {
+        return authorities.findOne(user);
+    }
+
+    public List<Authority> listUserAuthorities() {
+        return authorities.findAll();
+    }
+
+    UserDetails getUser(String username) {
         return manager.loadUserByUsername(username);
     }
 

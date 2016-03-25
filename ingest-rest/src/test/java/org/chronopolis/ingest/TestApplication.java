@@ -1,6 +1,7 @@
 package org.chronopolis.ingest;
 
 import org.chronopolis.ingest.api.StagingController;
+import org.chronopolis.ingest.repository.Authority;
 import org.chronopolis.ingest.task.BagInitializer;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -13,7 +14,7 @@ import org.springframework.context.annotation.ComponentScan;
         StagingController.class,
         BagInitializer.class
 })
-@EntityScan(basePackages = "org.chronopolis.rest.entities")
+@EntityScan(basePackages = "org.chronopolis.rest.entities", basePackageClasses = Authority.class)
 @EnableAutoConfiguration
 public class TestApplication implements CommandLineRunner {
 
