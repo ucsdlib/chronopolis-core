@@ -282,6 +282,7 @@ public class BagController extends IngestController {
         append(url, "status", status, start);
 
         model.addAttribute("replications", replications);
+        model.addAttribute("statuses", Arrays.asList(ReplicationStatus.values()));
         model.addAttribute("pages", new PageWrapper<>(replications, url.toString()));
 
         return "replications";
