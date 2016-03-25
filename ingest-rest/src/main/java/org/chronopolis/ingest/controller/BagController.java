@@ -101,6 +101,7 @@ public class BagController extends IngestController {
         PageWrapper<Bag> pages = new PageWrapper<>(bags, url.toString());
         model.addAttribute("bags", bags);
         model.addAttribute("pages", pages);
+        model.addAttribute("statuses", Arrays.asList(BagStatus.values()));
 
         return "bags";
     }
