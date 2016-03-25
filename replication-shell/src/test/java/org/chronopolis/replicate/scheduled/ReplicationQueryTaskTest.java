@@ -113,8 +113,8 @@ public class ReplicationQueryTaskTest {
         replications = new CallWrapper<>(page);
         bagCall = new CallWrapper<>(b);
 
-        started = ImmutableMap.of("status", (Object) ReplicationStatus.STARTED);
-        pending = ImmutableMap.of("status", (Object) ReplicationStatus.PENDING);
+        started = ImmutableMap.of("status", ReplicationStatus.STARTED);
+        pending = ImmutableMap.of("status", ReplicationStatus.PENDING);
     }
 
     @Test

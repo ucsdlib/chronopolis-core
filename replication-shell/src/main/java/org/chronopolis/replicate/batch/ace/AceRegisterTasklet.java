@@ -183,7 +183,7 @@ public class AceRegisterTasklet implements Callable<Long> {
 
             @Override
             public void onFailure(Throwable throwable) {
-                latch.countDown();;
+                latch.countDown();
                 log.error("Error communicating with ACE", throwable);
             }
         });

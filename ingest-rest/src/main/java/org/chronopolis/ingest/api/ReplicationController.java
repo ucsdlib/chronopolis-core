@@ -230,7 +230,7 @@ public class ReplicationController extends IngestController {
                 .withNodeUsername(name)
                 .withStatus(status);
 
-        PageRequest pr = createPageRequest(params, ImmutableMap.<String, String>of());
+        PageRequest pr = createPageRequest(params, ImmutableMap.of());
 
         return replicationService.getReplications(criteria, pr);
     }
@@ -246,11 +246,10 @@ public class ReplicationController extends IngestController {
     public Replication findReplication(Principal principal,
                                        @PathVariable("id") Long actionId) {
         log.info("[{}] Getting replication {}", principal.getName(), actionId);
-        Replication action = replicationService.getReplication(
+
+        return replicationService.getReplication(
                 new ReplicationSearchCriteria().withId(actionId)
         );
-
-        return action;
     }
 
     /*

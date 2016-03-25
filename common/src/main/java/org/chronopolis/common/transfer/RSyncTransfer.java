@@ -73,8 +73,7 @@ public class RSyncTransfer implements FileTransfer {
                     throw new FileTransferException("rsync was interrupted", e);
                 }
 
-                Path dir = local.resolve(pathList[pathList.length - 1]);
-                return dir;
+                return local.resolve(pathList[pathList.length - 1]);
             }
         };
 

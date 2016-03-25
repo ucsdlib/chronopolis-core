@@ -61,7 +61,7 @@ public class PageImpl<T> implements Page<T> {
     }
 
     @Override
-    public List getContent() {
+    public List<T> getContent() {
         return content;
     }
 
@@ -100,12 +100,12 @@ public class PageImpl<T> implements Page<T> {
 
     @Override
     public boolean hasNext() {
-        return last == false;
+        return !last;
     }
 
     @Override
     public boolean hasPrevious() {
-        return first == false;
+        return !first;
     }
 
     @Override
@@ -119,7 +119,7 @@ public class PageImpl<T> implements Page<T> {
     }
 
     @Override
-    public Iterator iterator() {
+    public Iterator<T> iterator() {
         return content.iterator();
     }
 

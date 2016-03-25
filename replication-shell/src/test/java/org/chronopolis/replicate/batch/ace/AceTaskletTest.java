@@ -38,11 +38,11 @@ public class AceTaskletTest {
     @Mock IngestAPI ingest;
     @Mock AceService ace;
 
-    Bag b;
-    Node n;
-    Replication replication;
-    ReplicationNotifier notifier;
-    ReplicationSettings settings;
+    private Bag b;
+    private Node n;
+    private Replication replication;
+    private ReplicationNotifier notifier;
+    private ReplicationSettings settings;
 
     @Before
     public void setup() throws NoSuchFieldException {
@@ -57,29 +57,29 @@ public class AceTaskletTest {
         settings.setPreservation(bags.toString());
     }
 
-    void prepareACERegister() {
+    private void prepareACERegister() {
         when(ace.addCollection(any(GsonCollection.class)))
                 .thenReturn(new CallWrapper<>(ImmutableMap.of("id", 1L)));
     }
 
-    void prepareIngestUpdate(ReplicationStatus status) {
+    private void prepareIngestUpdate(ReplicationStatus status) {
         // TODO: Add equals for this shit
         RStatusUpdate update = new RStatusUpdate(status);
         when(ingest.updateReplicationStatus(anyLong(), any(RStatusUpdate.class)))
                 .thenReturn(new CallWrapper<>(replication));
     }
 
-    void prepareAceTokenLoad() {
+    private void prepareAceTokenLoad() {
         when(ace.loadTokenStore(anyLong(), any(RequestBody.class)))
                 .thenReturn(new CallWrapper<>(null));
     }
 
-    void prepareAceAudit() {
+    private void prepareAceAudit() {
         when(ace.startAudit(anyLong()))
                 .thenReturn(new CallWrapper<>(null));
     }
 
-    void prepareAceGet() {
+    private void prepareAceGet() {
         GsonCollection collection = new GsonCollection.Builder()
                 .name("test-bag")
                 .group("test-depositor")

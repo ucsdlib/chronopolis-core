@@ -1,6 +1,5 @@
 package org.chronopolis.ingest.task;
 
-import junit.framework.Assert;
 import org.chronopolis.common.ace.Tokenizer;
 import org.chronopolis.common.util.Filter;
 import org.chronopolis.ingest.IngestSettings;
@@ -12,6 +11,7 @@ import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.models.BagStatus;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;

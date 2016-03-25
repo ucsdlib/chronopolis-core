@@ -1,10 +1,10 @@
 package org.chronopolis.ingest.repository;
 
-import junit.framework.Assert;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

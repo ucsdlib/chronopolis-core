@@ -175,9 +175,8 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
 
         if (!id.equals(bag.id)) return false;
         if (!depositor.equals(bag.depositor)) return false;
-        if (!name.equals(bag.name)) return false;
+        return name.equals(bag.name);
 
-        return true;
     }
 
     @Override
