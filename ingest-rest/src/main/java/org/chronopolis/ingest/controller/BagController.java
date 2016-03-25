@@ -11,11 +11,11 @@ import org.chronopolis.ingest.repository.ReplicationRepository;
 import org.chronopolis.ingest.repository.ReplicationSearchCriteria;
 import org.chronopolis.ingest.repository.ReplicationService;
 import org.chronopolis.ingest.repository.TokenRepository;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.IngestRequest;
-import org.chronopolis.rest.models.Node;
-import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.models.ReplicationRequest;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.chronopolis.rest.models.BagDistribution.BagDistributionStatus.DISTRIBUTE;
+import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatus.DISTRIBUTE;
 
 /**
  * Controller for handling bag/replication related requests
@@ -101,6 +101,7 @@ public class BagController extends IngestController {
         PageWrapper<Bag> pages = new PageWrapper<>(bags, url.toString());
         model.addAttribute("bags", bags);
         model.addAttribute("pages", pages);
+        model.addAttribute("statuses", Arrays.asList(BagStatus.values()));
 
         return "bags";
     }
@@ -177,7 +178,7 @@ public class BagController extends IngestController {
      * @throws IOException
      */
     @RequestMapping(value = "/bags/add", method = RequestMethod.POST)
-    public String addBag(Model model, IngestRequest request) throws IOException {
+    public String addBag(Model model, Principal principal, IngestRequest request) throws IOException {
         log.info("Adding new bag");
         String name = request.getName();
         String depositor = request.getDepositor();
@@ -192,6 +193,7 @@ public class BagController extends IngestController {
         if (bag == null) {
             bag = new Bag(name, depositor);
             bag.setFixityAlgorithm("SHA-256");
+            bag.setCreator(principal.getName());
             bag.setLocation(request.getLocation());
 
             if (request.getRequiredReplications() > 0) {
@@ -280,6 +282,7 @@ public class BagController extends IngestController {
         append(url, "status", status, start);
 
         model.addAttribute("replications", replications);
+        model.addAttribute("statuses", Arrays.asList(ReplicationStatus.values()));
         model.addAttribute("pages", new PageWrapper<>(replications, url.toString()));
 
         return "replications";
@@ -331,7 +334,7 @@ public class BagController extends IngestController {
      */
     @RequestMapping(value = "/replications/add", method = RequestMethod.GET)
     public String addReplications(Model model, Principal principal) {
-        // model.addAttribute("bags", bagRepository.findAll());
+        model.addAttribute("bags", bagService.findBags(new BagSearchCriteria(), new PageRequest(0, 100)));
         model.addAttribute("nodes", nodeRepository.findAll());
         return "addreplication";
     }

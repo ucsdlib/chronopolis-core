@@ -153,7 +153,7 @@ public class IntakeProducer implements CommandLineRunner {
                 req.setDepositor(depositor);
                 req.setLocation(directory + "/" + f);
                 req.setName(f);
-                Call<org.chronopolis.rest.models.Bag> call = ingestAPI.stageBag(req);
+                Call<org.chronopolis.rest.entities.Bag> call = ingestAPI.stageBag(req);
                 try {
                     call.execute();
                 } catch (IOException e) {

@@ -54,7 +54,7 @@ public class IngestController {
                 : 20;
 
         // properties to sort by
-        Stack<String> properties = new Stack();
+        Stack<String> properties = new Stack<>();
         for (String s : valid.keySet()) {
             if (params.containsKey(s)) {
                 log.info("Pushing {}", valid.get(s));

@@ -4,11 +4,11 @@ import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
-import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.BagDistribution;
+import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.BagDistribution;
 import org.chronopolis.rest.models.BagStatus;
-import org.chronopolis.rest.models.Node;
-import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.entities.Replication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import static org.chronopolis.rest.models.BagDistribution.*;
+import static org.chronopolis.rest.entities.BagDistribution.*;
 
 /**
  * Simple task to create replications for bags which have finished tokenizing

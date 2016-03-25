@@ -3,7 +3,7 @@ package org.chronopolis.ingest.task;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.entities.Bag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

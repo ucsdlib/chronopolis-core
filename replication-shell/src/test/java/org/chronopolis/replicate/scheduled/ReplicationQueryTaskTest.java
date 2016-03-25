@@ -5,10 +5,10 @@ import org.chronopolis.replicate.batch.ReplicationJobStarter;
 import org.chronopolis.replicate.support.CallWrapper;
 import org.chronopolis.replicate.test.TestApplication;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.Node;
+import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.models.RStatusUpdate;
-import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -103,9 +103,7 @@ public class ReplicationQueryTaskTest {
         b = new Bag("test-bag", "test-depositor");
 
         replication = new Replication(n, b);
-        Field id = replication.getClass().getDeclaredField("id");
-        id.setAccessible(true);
-        id.set(replication, 1L);
+        replication.setId(1L);
         for (int i = 0; i < 5; i++) {
             replicationList.add(replication);
         }
@@ -115,8 +113,8 @@ public class ReplicationQueryTaskTest {
         replications = new CallWrapper<>(page);
         bagCall = new CallWrapper<>(b);
 
-        started = ImmutableMap.of("status", (Object) ReplicationStatus.STARTED);
-        pending = ImmutableMap.of("status", (Object) ReplicationStatus.PENDING);
+        started = ImmutableMap.of("status", ReplicationStatus.STARTED);
+        pending = ImmutableMap.of("status", ReplicationStatus.PENDING);
     }
 
     @Test

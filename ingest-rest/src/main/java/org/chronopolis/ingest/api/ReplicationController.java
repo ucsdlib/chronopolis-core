@@ -8,11 +8,11 @@ import org.chronopolis.ingest.repository.BagService;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationSearchCriteria;
 import org.chronopolis.ingest.repository.ReplicationService;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.models.FixityUpdate;
-import org.chronopolis.rest.models.Node;
+import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.models.RStatusUpdate;
-import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.models.ReplicationRequest;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
@@ -230,7 +230,7 @@ public class ReplicationController extends IngestController {
                 .withNodeUsername(name)
                 .withStatus(status);
 
-        PageRequest pr = createPageRequest(params, ImmutableMap.<String, String>of());
+        PageRequest pr = createPageRequest(params, ImmutableMap.of());
 
         return replicationService.getReplications(criteria, pr);
     }
@@ -246,11 +246,10 @@ public class ReplicationController extends IngestController {
     public Replication findReplication(Principal principal,
                                        @PathVariable("id") Long actionId) {
         log.info("[{}] Getting replication {}", principal.getName(), actionId);
-        Replication action = replicationService.getReplication(
+
+        return replicationService.getReplication(
                 new ReplicationSearchCriteria().withId(actionId)
         );
-
-        return action;
     }
 
     /*

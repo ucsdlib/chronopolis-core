@@ -1,6 +1,6 @@
 package org.chronopolis.replicate.batch.callback;
 
-import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.entities.Replication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Callback;

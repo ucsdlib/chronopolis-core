@@ -32,7 +32,7 @@
                         <configuration>
                             <targetFolder>target/generated-sources/java</targetFolder>
                             <packages>
-                                <package>org.chronopolis.rest.models</package>
+                                <package>org.chronopolis.rest.entities</package>
                             </packages>
                         </configuration>
                     </execution>
@@ -69,6 +69,11 @@
         </dependency>
 
         <!--jjj
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.thymeleaf.extras</groupId>
             <artifactId>thymeleaf-extras-springsecurity4</artifactId>

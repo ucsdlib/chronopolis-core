@@ -7,8 +7,8 @@ import edu.umiacs.ace.ims.ws.TokenRequest;
 import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.chronopolis.common.ace.Tokenizer;
 import org.chronopolis.ingest.repository.TokenRepository;
-import org.chronopolis.rest.models.AceToken;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.entities.AceToken;
+import org.chronopolis.rest.entities.Bag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

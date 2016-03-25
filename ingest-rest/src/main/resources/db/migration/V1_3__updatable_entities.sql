@@ -1,0 +1,13 @@
+ALTER TABLE bag ADD COLUMN creator VARCHAR(255);
+ALTER TABLE bag ADD COLUMN created_at TIMESTAMP;
+ALTER TABLE bag ADD COLUMN updated_at TIMESTAMP;
+ALTER TABLE replication ADD COLUMN created_at TIMESTAMP;
+ALTER TABLE replication ADD COLUMN updated_at TIMESTAMP;
+
+UPDATE bag SET status = 'PRESERVED' WHERE status = 'REPLICATED';
+UPDATE bag SET created_at = CURRENT_TIMESTAMP;
+UPDATE bag SET updated_at = CURRENT_TIMESTAMP;
+UPDATE replication SET created_at = CURRENT_TIMESTAMP;
+UPDATE replication SET updated_at = CURRENT_TIMESTAMP;
+
+

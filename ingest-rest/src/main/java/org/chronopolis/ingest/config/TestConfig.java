@@ -8,13 +8,12 @@ import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
 import org.chronopolis.ingest.repository.RestoreRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
-import org.chronopolis.ingest.task.TokenThreadPoolExecutor;
-import org.chronopolis.rest.models.AceToken;
-import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.Node;
-import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.entities.AceToken;
+import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.entities.Restoration;
 import org.chronopolis.rest.models.ReplicationStatus;
-import org.chronopolis.rest.models.Restoration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,8 +22,6 @@ import org.springframework.context.annotation.Profile;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by shake on 1/8/15.
@@ -50,12 +47,6 @@ public class TestConfig {
 
     @Autowired
     IngestSettings ingestSettings;
-
-    @Bean
-    public TokenThreadPoolExecutor TokenThreadPoolExecutor() {
-        return new TokenThreadPoolExecutor(4, 6, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(10));
-    }
-
 
     @Bean
     public boolean createData() {
@@ -88,7 +79,7 @@ public class TestConfig {
             System.out.printf("Creating tokens for bag %d...\n", i);
             for (int j = 0; j < 5; j++) {
                 AceToken token = new AceToken(b, new Date(), "file-"+j,
-                        "proof-"+j, "ims-service", "SHA-256", new Long(j));
+                        "proof-"+j, "ims-service", "SHA-256", (long) j);
                 tokenRepository.save(token);
             }
         }

@@ -1,6 +1,6 @@
 package org.chronopolis.rest.listener;
 
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.models.BagStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +24,7 @@ public class BagUpdateListener {
             log.debug("Setting bag {}::{} as replicated",
                     bag.getDepositor(),
                     bag.getName());
-            bag.setStatus(BagStatus.REPLICATED);
+            bag.setStatus(BagStatus.PRESERVED);
         }
     }
 

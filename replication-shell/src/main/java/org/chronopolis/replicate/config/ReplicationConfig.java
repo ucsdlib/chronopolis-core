@@ -18,9 +18,11 @@ import org.chronopolis.replicate.batch.ReplicationJobStarter;
 import org.chronopolis.replicate.batch.ReplicationStepListener;
 import org.chronopolis.rest.api.ErrorLogger;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.support.PageDeserializer;
+import org.chronopolis.rest.support.ZonedDateTimeDeserializer;
+import org.chronopolis.rest.support.ZonedDateTimeSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -41,6 +43,7 @@ import retrofit2.Retrofit;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 /**
@@ -137,6 +140,8 @@ public class ReplicationConfig {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(bagPage, new PageDeserializer(bagList))
                 .registerTypeAdapter(replPage, new PageDeserializer(replList))
+                .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeSerializer())
+                .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeDeserializer())
                 .create();
 
         Retrofit adapter = new Retrofit.Builder()

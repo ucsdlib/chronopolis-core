@@ -1,14 +1,14 @@
 package org.chronopolis.rest.listener;
 
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.models.BagStatus;
-import org.chronopolis.rest.models.Node;
-import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.junit.Assert;
 import org.junit.Before;
 
-import static org.chronopolis.rest.models.BagDistribution.BagDistributionStatus.DISTRIBUTE;
+import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatus.DISTRIBUTE;
 
 /**
  * 4 Tests for our listener:

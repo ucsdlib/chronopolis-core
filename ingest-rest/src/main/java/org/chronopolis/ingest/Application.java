@@ -3,6 +3,7 @@ package org.chronopolis.ingest;
 import com.sun.akuma.Daemon;
 import org.chronopolis.ingest.api.StagingController;
 import org.chronopolis.ingest.controller.SiteController;
+import org.chronopolis.ingest.repository.Authority;
 import org.chronopolis.ingest.service.IngestService;
 import org.chronopolis.ingest.task.TokenTask;
 import org.slf4j.Logger;
@@ -17,6 +18,8 @@ import org.springframework.context.annotation.ComponentScan;
 import java.util.Arrays;
 
 /**
+ * Moo moo moo
+ *
  * Created by shake on 11/6/14.
  */
 @ComponentScan(basePackageClasses = {
@@ -26,7 +29,7 @@ import java.util.Arrays;
         SiteController.class,
         TokenTask.class
 })
-@EntityScan(basePackages = "org.chronopolis.rest.models")
+@EntityScan(basePackages = "org.chronopolis.rest.entities", basePackageClasses = Authority.class)
 @EnableAutoConfiguration
 public class Application implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(Application.class);

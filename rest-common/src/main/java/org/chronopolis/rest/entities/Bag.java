@@ -1,8 +1,9 @@
-package org.chronopolis.rest.models;
+package org.chronopolis.rest.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.chronopolis.rest.listener.BagUpdateListener;
 import com.google.common.collect.ComparisonChain;
+import org.chronopolis.rest.listener.BagUpdateListener;
+import org.chronopolis.rest.models.BagStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,15 +13,12 @@ import javax.persistence.EntityListeners;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.chronopolis.rest.models.BagDistribution.BagDistributionStatus;
+import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatus;
 
 /**
  * Representation of a bag in chronopolis
@@ -31,18 +29,16 @@ import static org.chronopolis.rest.models.BagDistribution.BagDistributionStatus;
  */
 @Entity
 @EntityListeners(BagUpdateListener.class)
-public class Bag implements Comparable<Bag> {
+public class Bag extends UpdatableEntity implements Comparable<Bag> {
+
     @Transient
     private final Logger log = LoggerFactory.getLogger(Bag.class);
     
     @Transient
     private final int DEFAULT_REPLICATIONS = 3;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     private String name;
+    private String creator;
     private String depositor;
 
     // Both locations are relative
@@ -75,16 +71,21 @@ public class Bag implements Comparable<Bag> {
         this.requiredReplications = DEFAULT_REPLICATIONS;
     }
 
-    public Long getId() {
-        return id;
-    }
-
     public String getName() {
         return name;
     }
 
     public void setName(final String name) {
         this.name = name;
+    }
+
+    public String getCreator() {
+        return creator;
+    }
+
+    public Bag setCreator(String creator) {
+        this.creator = creator;
+        return this;
     }
 
     public String getDepositor() {
@@ -174,9 +175,8 @@ public class Bag implements Comparable<Bag> {
 
         if (!id.equals(bag.id)) return false;
         if (!depositor.equals(bag.depositor)) return false;
-        if (!name.equals(bag.name)) return false;
+        return name.equals(bag.name);
 
-        return true;
     }
 
     @Override
