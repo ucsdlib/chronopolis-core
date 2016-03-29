@@ -72,3 +72,12 @@ div.sidebar {
 .filterable .panel-heading .pull-right {
     margin-top: -20px;
 }
+
+ul.pagination {
+    display: block;
+    text-align: center;
+}
+
+ul.pagination li {
+    display: inline-block;
+}
