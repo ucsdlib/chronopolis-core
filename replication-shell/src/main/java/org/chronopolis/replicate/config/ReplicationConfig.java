@@ -86,6 +86,10 @@ public class ReplicationConfig {
                 aceSettings.getAmPort(),
                 aceSettings.getAmPath()).toString();
 
+        if (!endpoint.endsWith("/")) {
+            endpoint = endpoint + "/";
+        }
+
         // TODO: Test
         HttpUrl url = new HttpUrl.Builder()
                 .scheme("http")
@@ -118,6 +122,11 @@ public class ReplicationConfig {
     IngestAPI ingestAPI(IngestAPISettings apiSettings) {
         // TODO: Create a list of endpoints
         String endpoint = apiSettings.getIngestEndpoints().get(0);
+
+        if (!endpoint.endsWith("/")) {
+            endpoint = endpoint + "/";
+        }
+
         OkHttpClient client = new OkHttpClient.Builder()
                 .addInterceptor(new Interceptor() {
                     @Override
