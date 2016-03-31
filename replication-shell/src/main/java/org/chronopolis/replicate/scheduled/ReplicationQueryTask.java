@@ -1,5 +1,6 @@
 package org.chronopolis.replicate.scheduled;
 
+import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.replicate.batch.ReplicationJobStarter;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.entities.Bag;
@@ -39,6 +40,9 @@ import static org.chronopolis.rest.models.ReplicationStatus.STARTED;
 @EnableScheduling
 public class ReplicationQueryTask {
     private final Logger log = LoggerFactory.getLogger(ReplicationQueryTask.class);
+
+    @Autowired
+    private IngestAPISettings settings;
 
     @Autowired
     private IngestAPI ingestAPI;
@@ -116,9 +120,10 @@ public class ReplicationQueryTask {
 
 
         Map<String, Object> params = new HashMap<>();
+        params.put("page", page);
         params.put("status", status);
         params.put("page_size", pageSize);
-        params.put("page", page);
+        params.put("node", settings.getIngestAPIUsername());
 
         // TODO: As replications get updated, the state can change and alter the
         // amount of pages. We might want to switch this to only work on one page

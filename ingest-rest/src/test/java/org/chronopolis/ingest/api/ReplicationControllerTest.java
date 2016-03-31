@@ -58,7 +58,7 @@ public class ReplicationControllerTest extends IngestTest {
     @Test
     public void testReplications() throws Exception {
         ResponseEntity<PageImpl> entity = getTemplate()
-                .getForEntity("http://localhost:" + port + "/api/replications", PageImpl.class);
+                .getForEntity("http://localhost:" + port + "/api/replications?node=umiacs", PageImpl.class);
 
         assertEquals(2, entity.getBody().getTotalElements());
     }

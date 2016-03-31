@@ -9,10 +9,10 @@ import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationSearchCriteria;
 import org.chronopolis.ingest.repository.ReplicationService;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.models.FixityUpdate;
 import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.models.FixityUpdate;
+import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.ReplicationRequest;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.security.Principal;
 import java.util.Map;
 
+import static org.chronopolis.ingest.api.Params.NODE;
 import static org.chronopolis.ingest.api.Params.STATUS;
 
 /**
@@ -204,21 +205,15 @@ public class ReplicationController extends IngestController {
     /**
      * Retrieve all replications associated with a particular node/user
      *
-     * @param principal - authentication information
      * @param params    - query parameters used for searching
      * @return
      */
     @RequestMapping(method = RequestMethod.GET)
-    public Iterable<Replication> replications(Principal principal,
-                                              @RequestParam Map<String, String> params) {
+    public Iterable<Replication> replications(@RequestParam Map<String, String> params) {
         String name = null;
 
         // Workaround for giving service accounts a view into all replications
-        // TODO: Add request param for name
-        Node node = nodeRepository.findByUsername(principal.getName());
-        if (node != null) {
-            name = principal.getName();
-        }
+        name = params.getOrDefault(NODE, null);
 
         // null is handled fine so we can set that as a default
         ReplicationStatus status = params.containsKey(STATUS)
