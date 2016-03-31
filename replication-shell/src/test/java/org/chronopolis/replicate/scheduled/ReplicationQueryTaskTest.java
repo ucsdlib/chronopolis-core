@@ -1,6 +1,7 @@
 package org.chronopolis.replicate.scheduled;
 
 import com.google.common.collect.ImmutableMap;
+import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.replicate.batch.ReplicationJobStarter;
 import org.chronopolis.replicate.support.CallWrapper;
 import org.chronopolis.replicate.test.TestApplication;
@@ -66,6 +67,9 @@ public class ReplicationQueryTaskTest {
 
     @Mock
     IngestAPI ingestAPI;
+
+    @Mock
+    IngestAPISettings settings;
 
     @Mock
     ReplicationJobStarter jobStarter;
