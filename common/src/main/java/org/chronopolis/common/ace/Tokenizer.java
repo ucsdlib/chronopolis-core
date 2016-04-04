@@ -36,10 +36,10 @@ public class Tokenizer {
      *
      */
     public static class IMSFactory {
-        public TokenRequestBatch createIMSConnection(RequestBatchCallback callback) {
+        public TokenRequestBatch createIMSConnection(String imsHostName, RequestBatchCallback callback) {
             IMSService ims;
             // TODO: Use the AceSettings to get the ims host name
-            ims = IMSService.connect("ims.umiacs.umd.edu", SSL_PORT, true);
+            ims = IMSService.connect(imsHostName, SSL_PORT, true);
             return ims.createImmediateTokenRequestBatch("SHA-256",
                 callback,
                 MAX_QUEUE_LEN,
@@ -53,6 +53,7 @@ public class Tokenizer {
 
     private final Logger log = LoggerFactory.getLogger(Tokenizer.class);
     private final Path bag;
+    private final String imsHostName;
 
     private final Digest fixityAlgorithm;
 
@@ -71,6 +72,7 @@ public class Tokenizer {
 
     public Tokenizer(final Path bag,
                      final String fixityAlgorithm,
+                     final String imsHostName,
                      final RequestBatchCallback callback) {
         this.bag = bag;
         this.fixityAlgorithm = Digest.fromString(fixityAlgorithm);
@@ -78,6 +80,7 @@ public class Tokenizer {
         this.callback = callback;
         this.tagDigest = null;
         this.factory = new Tokenizer.IMSFactory();
+        this.imsHostName = imsHostName;
         addManifests();
     }
 
@@ -133,7 +136,7 @@ public class Tokenizer {
      * @throws InterruptedException
      */
     public void tokenize(Filter<Path> filter) throws IOException, InterruptedException {
-        batch = factory.createIMSConnection(callback);
+        batch = factory.createIMSConnection(imsHostName, callback);
 
         try {
             // Digest the manifest

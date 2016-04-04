@@ -70,7 +70,7 @@ public class TrackingThreadPoolExecutor<T> extends ThreadPoolExecutor {
         @Override
         public void rejectedExecution(Runnable runnable, ThreadPoolExecutor threadPoolExecutor) {
             if (runnable instanceof TrackingThreadPoolExecutor.Task) {
-                TrackingThreadPoolExecutor<T>.Task task = (TrackingThreadPoolExecutor.Task) runnable;
+                TrackingThreadPoolExecutor<T>.Task task = (TrackingThreadPoolExecutor<T>.Task) runnable;
                 T result = task.result;
                 log.warn("Task was rejected: {}", result.toString());
                 items.remove(result);

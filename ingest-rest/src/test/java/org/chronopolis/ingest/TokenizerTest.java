@@ -57,6 +57,7 @@ public class TokenizerTest extends IngestTest {
     private final int PART_BATCH_CALLS = 2;
     private final int FULL_FACTORY_CALLS = 1;
     private final int PART_FACTORY_CALLS = 1;
+    private final String IMS_HOST = "imstest.umiacs.umd.edu";
 
     TokenCallback fullCallback;
     TokenCallback partialCallback;
@@ -80,13 +81,13 @@ public class TokenizerTest extends IngestTest {
         Bag fullBag = bagRepository.findOne(Long.valueOf(1));
         Path fullPath = Paths.get(settings.getBagStage(), fullBag.getLocation());
         fullCallback = new TokenCallback(tokenRepository, fullBag);
-        fullTokenizer = new Tokenizer(fullPath, fullBag.getFixityAlgorithm(), fullCallback);
+        fullTokenizer = new Tokenizer(fullPath, fullBag.getFixityAlgorithm(), IMS_HOST, fullCallback);
 
         // Create the tokenizer for digesting some tokens
         Bag partialBag = bagRepository.findOne(Long.valueOf(2));
         Path partialPath = Paths.get(settings.getBagStage(), partialBag.getLocation());
         partialCallback = new TokenCallback(tokenRepository, partialBag);
-        partialTokenizer = new Tokenizer(partialPath, partialBag.getFixityAlgorithm(), partialCallback);
+        partialTokenizer = new Tokenizer(partialPath, partialBag.getFixityAlgorithm(), IMS_HOST, partialCallback);
 
         MockitoAnnotations.initMocks(this);
     }
@@ -95,7 +96,7 @@ public class TokenizerTest extends IngestTest {
     @Test
     public void testFullTokenize() throws Exception {
         Filter<Path> filter = new TokenFilter(tokenRepository, Long.valueOf(1));
-        when(factory.createIMSConnection(any(RequestBatchCallback.class)))
+        when(factory.createIMSConnection(any(String.class), any(RequestBatchCallback.class)))
                 .thenReturn(batch);
 
         doAnswer(new Answer() {
@@ -116,7 +117,7 @@ public class TokenizerTest extends IngestTest {
     @Test
     public void testPartialTokenize() throws Exception {
         Filter<Path> filter = new TokenFilter(tokenRepository, Long.valueOf(2));
-        when(factory.createIMSConnection(any(RequestBatchCallback.class)))
+        when(factory.createIMSConnection(any(String.class), any(RequestBatchCallback.class)))
                 .thenReturn(batch);
 
         doAnswer(new Answer() {
@@ -137,7 +138,7 @@ public class TokenizerTest extends IngestTest {
     // helpers
 
     void verifyMocks(int factoryTimes, int batchTimes, int bagId) throws InterruptedException {
-        verify(factory, times(factoryTimes)).createIMSConnection(any(RequestBatchCallback.class));
+        verify(factory, times(factoryTimes)).createIMSConnection(any(String.class), any(RequestBatchCallback.class));
         verify(batch, times(batchTimes)).add(any(TokenRequest.class));
 
         List<AceToken> tokens = tokenRepository.findByBagId(Long.valueOf(bagId));

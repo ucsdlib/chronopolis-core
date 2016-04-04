@@ -85,6 +85,7 @@ public class TokenThreadPoolExecutorTest extends IngestTest {
                 any(Bag.class),
                 any(String.class),
                 any(String.class),
+                any(String.class),
                 any(BagRepository.class),
                 any(TokenRepository.class)))
                 .thenReturn(new SleepRunnable());

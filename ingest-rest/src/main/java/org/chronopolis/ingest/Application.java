@@ -1,6 +1,7 @@
 package org.chronopolis.ingest;
 
 import com.sun.akuma.Daemon;
+import org.chronopolis.common.settings.AceSettings;
 import org.chronopolis.ingest.api.StagingController;
 import org.chronopolis.ingest.controller.SiteController;
 import org.chronopolis.ingest.repository.Authority;
@@ -23,6 +24,7 @@ import java.util.Arrays;
  * Created by shake on 11/6/14.
  */
 @ComponentScan(basePackageClasses = {
+        AceSettings.class,
         IngestSettings.class,
         IngestService.class,
         StagingController.class,

@@ -45,6 +45,7 @@ import static org.mockito.Mockito.when;
 public class TokenRunnerTest extends IngestTest {
 
     private final String TAG_MANIFEST_DIGEST = "tag-manifest-digest";
+    private final String IMS_HOST = "imstest.umiacs.umd.edu";
 
     // Beans created on startup
     @Autowired BagRepository br;
@@ -65,11 +66,12 @@ public class TokenRunnerTest extends IngestTest {
         String bs = settings.getBagStage();
         String ts = settings.getTokenStage();
 
-        runner = new TokenRunner(b, bs, ts, br, tr);
+        runner = new TokenRunner(b, IMS_HOST, bs, ts, br, tr);
         MockitoAnnotations.initMocks(this);
 
         when(factory.makeTokenizer(any(Path.class),
                                    any(Bag.class),
+                                   any(String.class),
                                    any(TokenCallback.class)))
                 .thenReturn(tokenizer);
 
@@ -90,7 +92,7 @@ public class TokenRunnerTest extends IngestTest {
         String bs = settings.getBagStage();
         String ts = settings.getTokenStage();
 
-        runner = new TokenRunner(b, bs, ts, br, tr);
+        runner = new TokenRunner(b, IMS_HOST, bs, ts, br, tr);
         MockitoAnnotations.initMocks(this);
 
         when(factory.makeFileWriter(any(String.class), any(TokenRepository.class)))

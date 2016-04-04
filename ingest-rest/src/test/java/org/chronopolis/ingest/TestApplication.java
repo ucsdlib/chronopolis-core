@@ -1,5 +1,6 @@
 package org.chronopolis.ingest;
 
+import org.chronopolis.common.settings.AceSettings;
 import org.chronopolis.ingest.api.StagingController;
 import org.chronopolis.ingest.repository.Authority;
 import org.chronopolis.ingest.task.BagInitializer;
@@ -10,6 +11,7 @@ import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 
 @ComponentScan(basePackageClasses = {
+        AceSettings.class,
         IngestSettings.class,
         StagingController.class,
         BagInitializer.class

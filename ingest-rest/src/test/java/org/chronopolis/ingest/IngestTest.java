@@ -21,6 +21,7 @@ public class IngestTest {
         System.setProperty("spring.jpa.hibernate.ddl-auto", "validate");
         System.setProperty("flyway.enabled", "false");
         System.setProperty("ingest.ajp.enabled", "false");
+        System.setProperty("ace.am.validate", "false");
 
         // Get the test resources root
         URL bags = ClassLoader.getSystemClassLoader().getResource("bags");

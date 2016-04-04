@@ -46,12 +46,12 @@ public class IngestConfig {
 
     @Bean(name = "tokenExecutor", destroyMethod = "destroy")
     public TrackingThreadPoolExecutor<Bag> tokenizingThreadPoolExecutor() {
-        return new TrackingThreadPoolExecutor<Bag>(4, 6, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+        return new TrackingThreadPoolExecutor<>(4, 6, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     }
 
     @Bean(name = "bagExecutor", destroyMethod = "destroy")
     public TrackingThreadPoolExecutor<Bag> bagThreadPoolExecutor() {
-        return new TrackingThreadPoolExecutor<>(4, 6, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+        return new TrackingThreadPoolExecutor<>(4, 6, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     }
 
     @Bean

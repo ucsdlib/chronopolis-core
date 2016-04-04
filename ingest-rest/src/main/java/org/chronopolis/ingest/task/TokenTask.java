@@ -1,5 +1,6 @@
 package org.chronopolis.ingest.task;
 
+import org.chronopolis.common.settings.AceSettings;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.TrackingThreadPoolExecutor;
 import org.chronopolis.ingest.repository.BagRepository;
@@ -38,6 +39,9 @@ public class TokenTask {
     IngestSettings settings;
 
     @Autowired
+    AceSettings ace;
+
+    @Autowired
     TrackingThreadPoolExecutor<Bag> tokenExecutor;
 
     @Scheduled(cron = "${ingest.cron.tokens:0 */30 * * * *}")
@@ -58,6 +62,7 @@ public class TokenTask {
             TokenRunner runner = new TokenRunner(bag,
                     settings.getBagStage(),
                     settings.getTokenStage(),
+                    ace.getImsHost(),
                     repository,
                     tokenRepository);
             tokenExecutor.submitIfAvailable(runner, bag);
