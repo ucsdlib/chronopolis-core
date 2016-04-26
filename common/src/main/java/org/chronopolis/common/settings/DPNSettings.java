@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,12 +38,19 @@ public class DPNSettings {
     }
 
     @Value("${dpn.endpoints:http://localhost}")
-    public void setIngestEndpoints(String ingestEndpoints) {
+    public void setDpnEndpoints(String args) {
         log.debug("Splitting dpn endpoints");
-        String[] endpoints = ingestEndpoints.split(",");
+        String[] endpoints = args.split(",");
         log.debug("Found {} endpoints: {}", endpoints.length, endpoints);
-        if (endpoints.length > 0) {
-            this.dpnEndpoints = Arrays.asList(endpoints);
+        this.dpnEndpoints = new ArrayList<>();
+
+        // TODO: Replace string with HttpUrl?
+        for (String endpoint : endpoints) {
+            if (!endpoint.endsWith("/")) {
+                endpoint += "/";
+            }
+
+            dpnEndpoints.add(endpoint);
         }
     }
 

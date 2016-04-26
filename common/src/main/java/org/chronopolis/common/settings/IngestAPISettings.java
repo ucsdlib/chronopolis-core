@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -81,12 +81,19 @@ public class IngestAPISettings {
     }
 
     @Value("${ingest.api.endpoints:http://localhost}")
-    public void setIngestEndpoints(String ingestEndpoints) {
+    public void setIngestEndpoints(String endpointArgs) {
         log.debug("Splitting endpoints");
-        String[] endpoints = ingestEndpoints.split(",");
-        log.debug("Found {} endpoints: {}", endpoints.length, endpoints);
-        if (endpoints.length > 0) {
-            this.ingestEndpoints = Arrays.asList(endpoints);
+        String[] args = endpointArgs.split(",");
+        log.debug("Found {} endpoints: {}", args.length, args);
+
+        // TODO: Replace string with HttpUrl?
+        ingestEndpoints = new ArrayList<>();
+        for (String endpoint : args) {
+            if (!endpoint.endsWith("/")) {
+                endpoint += "/";
+            }
+
+            ingestEndpoints.add(endpoint);
         }
     }
 }
