@@ -1,7 +1,5 @@
 package org.chronopolis.replicate.support;
 
-import okhttp3.MediaType;
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -50,21 +48,4 @@ public class CallWrapper<E> implements Call<E> {
         return null;
     }
 
-    public class FailCallWrapper extends CallWrapper<E> {
-
-        public FailCallWrapper(E e) {
-            super(e);
-        }
-
-        @Override
-        public Response<E> execute() throws IOException {
-            return Response.error(404, ResponseBody.create(MediaType.parse("text/plain"), "test-sample-error"));
-        }
-
-        @Override
-        public void enqueue(Callback<E> callback) {
-            callback.onFailure(new Throwable("test-throwable"));
-        }
-
-    }
 }

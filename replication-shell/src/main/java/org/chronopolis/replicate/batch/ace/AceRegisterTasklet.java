@@ -53,65 +53,19 @@ public class AceRegisterTasklet implements Callable<Long> {
         ReplicationStatus status = replication.getStatus();
         Bag bag = replication.getBag();
 
-        if (status == ReplicationStatus.TRANSFERRED) {
+        // What we want to do:
+        // get bag.name/bag.collection
+        // -> 200 -> return id
+        // -> 204 -> register
+
+        getId(bag);
+        if (status == ReplicationStatus.TRANSFERRED || id == -1) {
             // register and what not
             register(bag);
-        } else {
+        } /*else {
             // get the collection id from ACE
             getId(bag);
-        }
-        /*
-        Path collectionPath = Paths.get(settings.getPreservation(),
-                bag.getDepositor(),
-                bag.getName());
-
-        GsonCollection aceGson = new GsonCollection.Builder()
-                .name(bag.getName())
-                .digestAlgorithm(bag.getFixityAlgorithm())
-                .directory(collectionPath.toString())
-                .group(bag.getDepositor())
-                .storage("local")
-                .auditPeriod(String.valueOf(90))
-                .auditTokens("true")
-                .proxyData("false")
-                .build();
-
-        log.debug("POSTing {}", aceGson.toJsonJackson());
-
-        // hmmm
-        // we want to wait for this to finish before moving on. just sayin'
-        Call<Map<String, Long>> call = aceService.addCollection(aceGson);
-        call.enqueue(new Callback<Map<String, Long>>() {
-            @Override
-            public void onResponse(Response<Map<String, Long>> response) {
-                if (response.isSuccess()) {
-                    id = response.body().get("id");
-                    Call<Replication> update = ingest.updateReplicationStatus(replication.getId(),
-                            new RStatusUpdate(ReplicationStatus.ACE_REGISTERED));
-                    update.enqueue(new UpdateCallback());
-                } else {
-                    log.error("Error registering collection in ACE: {} - {}", response.code(), response.message());
-                    try {
-                        log.debug("{}", response.errorBody().string());
-                    } catch (IOException ignored) {
-                    }
-
-                    notifier.setSuccess(false);
-                }
-
-                latch.countDown();
-            }
-
-            @Override
-            public void onFailure(Throwable throwable) {
-                log.error("Error communicating with ACE", throwable);
-                notifier.setSuccess(false);
-                latch.countDown();
-                // ...?
-                throw new RuntimeException(throwable);
-            }
-        });
-        */
+        }*/
     }
 
     private void register(Bag bag) {
@@ -175,15 +129,14 @@ public class AceRegisterTasklet implements Callable<Long> {
             public void onResponse(Response<GsonCollection> response) {
                 if (response.isSuccess() && response.body() != null) {
                     id = response.body().getId();
+                    latch.countDown();
                 } else {
-                    log.error("Error communicating with ACE: {} - {}", response.code(), response.message());
+                    log.error("Could not find collection in ACE: {} - {}", response.code(), response.message());
                 }
-                latch.countDown();
             }
 
             @Override
             public void onFailure(Throwable throwable) {
-                latch.countDown();
                 log.error("Error communicating with ACE", throwable);
             }
         });
