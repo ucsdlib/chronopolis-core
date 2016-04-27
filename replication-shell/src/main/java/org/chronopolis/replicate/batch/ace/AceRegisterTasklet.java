@@ -59,7 +59,10 @@ public class AceRegisterTasklet implements Callable<Long> {
         // -> 204 -> register
 
         getId(bag);
-        if (status == ReplicationStatus.TRANSFERRED || id == -1) {
+
+        // might not need to worry about the status, so let's omit it for now
+        // status == ReplicationStatus.TRANSFERRED
+        if (id == -1) {
             // register and what not
             register(bag);
         } /*else {
@@ -94,9 +97,7 @@ public class AceRegisterTasklet implements Callable<Long> {
             public void onResponse(Response<Map<String, Long>> response) {
                 if (response.isSuccess()) {
                     id = response.body().get("id");
-                    Call<Replication> update = ingest.updateReplicationStatus(replication.getId(),
-                            new RStatusUpdate(ReplicationStatus.ACE_REGISTERED));
-                    update.enqueue(new UpdateCallback());
+                    setRegistered();
                 } else {
                     log.error("Error registering collection in ACE: {} - {}", response.code(), response.message());
                     try {
@@ -129,6 +130,14 @@ public class AceRegisterTasklet implements Callable<Long> {
             public void onResponse(Response<GsonCollection> response) {
                 if (response.isSuccess() && response.body() != null) {
                     id = response.body().getId();
+
+                    // we could do this, but I don't really like it so I'm leaving it out for now
+                    /*
+                    if (replication.getStatus().ordinal() < ReplicationStatus.ACE_REGISTERED.ordinal()) {
+                        setRegistered();
+                    }
+                    */
+
                     latch.countDown();
                 } else {
                     log.error("Could not find collection in ACE: {} - {}", response.code(), response.message());
@@ -140,6 +149,13 @@ public class AceRegisterTasklet implements Callable<Long> {
                 log.error("Error communicating with ACE", throwable);
             }
         });
+    }
+
+    private void setRegistered() {
+        log.info("Setting replication as REGISTERED");
+        Call<Replication> update = ingest.updateReplicationStatus(replication.getId(),
+            new RStatusUpdate(ReplicationStatus.ACE_REGISTERED));
+        update.enqueue(new UpdateCallback());
     }
 
     @Override

@@ -66,7 +66,7 @@ public class AceTaskletTest {
     }
 
     private void prepareIngestUpdate(ReplicationStatus status) {
-        // TODO: Add equals for this shit
+        // TODO: Add equals for this
         RStatusUpdate update = new RStatusUpdate(status);
         when(ingest.updateReplicationStatus(anyLong(), any(RStatusUpdate.class)))
                 .thenReturn(new CallWrapper<>(replication));
@@ -114,10 +114,38 @@ public class AceTaskletTest {
         tasklet.execute(null, null);
 
         // Verify our mocks
+        verify(ace, times(1)).getCollectionByName(any(String.class), any(String.class));
         verify(ace, times(1)).addCollection(any(GsonCollection.class));
         verify(ace, times(1)).loadTokenStore(anyLong(), any(RequestBody.class));
         verify(ace, times(1)).startAudit(anyLong());
         verify(ingest, times(3)).updateReplicationStatus(anyLong(), any(RStatusUpdate.class));
+    }
+
+    @Test
+    public void testAllRunWithCollection() throws Exception {
+        replication = new Replication(n, b);
+        replication.setId(1L);
+        replication.setStatus(ReplicationStatus.TRANSFERRED);
+        notifier = new ReplicationNotifier(replication);
+
+        // setup our mocks for our http requests
+        prepareAceGet();
+        prepareIngestUpdate(ReplicationStatus.ACE_REGISTERED);
+        prepareAceTokenLoad();
+        prepareIngestUpdate(ReplicationStatus.ACE_TOKEN_LOADED);
+        prepareAceAudit();
+        prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
+
+        // Luckily we don't use either parameter passed in, so fuck em
+        AceTasklet tasklet = new AceTasklet(ingest, ace, replication, settings, notifier);
+        tasklet.execute(null, null);
+
+        // Verify our mocks
+        verify(ace, times(1)).getCollectionByName(any(String.class), any(String.class));
+        verify(ace, times(0)).addCollection(any(GsonCollection.class));
+        verify(ace, times(1)).loadTokenStore(anyLong(), any(RequestBody.class));
+        verify(ace, times(1)).startAudit(anyLong());
+        verify(ingest, times(2)).updateReplicationStatus(anyLong(), any(RStatusUpdate.class));
     }
 
     @Test
