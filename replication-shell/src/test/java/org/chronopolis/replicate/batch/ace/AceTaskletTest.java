@@ -7,6 +7,7 @@ import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.replicate.support.CallWrapper;
+import org.chronopolis.replicate.support.NotFoundCallWrapper;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
@@ -58,6 +59,8 @@ public class AceTaskletTest {
     }
 
     private void prepareACERegister() {
+        when(ace.getCollectionByName(any(String.class), any(String.class)))
+                .thenReturn(new NotFoundCallWrapper<>());
         when(ace.addCollection(any(GsonCollection.class)))
                 .thenReturn(new CallWrapper<>(ImmutableMap.of("id", 1L)));
     }

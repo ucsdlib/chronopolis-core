@@ -26,7 +26,6 @@ public class AceAuditTasklet implements Runnable {
     private IngestAPI ingest;
     private AceService aceService;
     private Replication replication;
-    private ReplicationSettings settings;
     private ReplicationNotifier notifier;
     private Long id;
 
@@ -34,7 +33,6 @@ public class AceAuditTasklet implements Runnable {
         this.ingest = ingest;
         this.aceService = aceService;
         this.replication = replication;
-        this.settings = settings;
         this.notifier = notifier;
         this.id = id;
     }
