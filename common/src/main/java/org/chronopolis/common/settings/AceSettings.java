@@ -38,7 +38,7 @@ public class AceSettings {
     @Value("${ace.am.password:admin}")
     String amPassword;
 
-    @Value("${ace.am.validate:true}")
+    @Value("${ace.am.validate:false}")
     Boolean amValidate;
 
 
