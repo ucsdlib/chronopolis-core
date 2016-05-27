@@ -60,9 +60,9 @@ public class TokenTask {
         log.debug("Submitting {} bags", bags.size());
         for (Bag bag : bags) {
             TokenRunner runner = new TokenRunner(bag,
+                    ace.getImsHost(),
                     settings.getBagStage(),
                     settings.getTokenStage(),
-                    ace.getImsHost(),
                     repository,
                     tokenRepository);
             tokenExecutor.submitIfAvailable(runner, bag);
