@@ -86,6 +86,7 @@ public class BagRESTStepListener implements StepExecutionListener {
             }
         } else {
             // general failure
+            stepExecution.upgradeStatus(BatchStatus.STOPPED);
             Call<Replication> call = ingestAPI.failReplication(replication.getId());
             call.enqueue(new Callback<Replication>() {
                 @Override
