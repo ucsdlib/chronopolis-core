@@ -1,6 +1,7 @@
-package org.chronopolis.rest.models;
+package org.chronopolis.rest.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.chronopolis.rest.models.ReplicationStatus;
 
 import javax.persistence.Entity;
 import javax.persistence.EnumType;

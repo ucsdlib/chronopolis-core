@@ -1,10 +1,11 @@
 package org.chronopolis.ingest.task;
 
+import org.chronopolis.common.settings.AceSettings;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.TrackingThreadPoolExecutor;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.models.BagStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +39,9 @@ public class TokenTask {
     IngestSettings settings;
 
     @Autowired
+    AceSettings ace;
+
+    @Autowired
     TrackingThreadPoolExecutor<Bag> tokenExecutor;
 
     @Scheduled(cron = "${ingest.cron.tokens:0 */30 * * * *}")
@@ -56,6 +60,7 @@ public class TokenTask {
         log.debug("Submitting {} bags", bags.size());
         for (Bag bag : bags) {
             TokenRunner runner = new TokenRunner(bag,
+                    ace.getImsHost(),
                     settings.getBagStage(),
                     settings.getTokenStage(),
                     repository,

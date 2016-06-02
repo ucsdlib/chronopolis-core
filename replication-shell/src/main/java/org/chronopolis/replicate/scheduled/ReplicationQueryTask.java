@@ -1,9 +1,11 @@
-package org.chronopolis.replicate.config;
+package org.chronopolis.replicate.scheduled;
 
+import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.replicate.batch.ReplicationJobStarter;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.models.RStatusUpdate;
+import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +19,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import retrofit2.Call;
+import retrofit2.Callback;
 import retrofit2.Response;
 
 import java.io.IOException;
@@ -25,6 +28,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.chronopolis.rest.models.ReplicationStatus.STARTED;
 
 /**
  * Scheduled task for checking the ingest-server for replication requests
@@ -37,6 +42,9 @@ public class ReplicationQueryTask {
     private final Logger log = LoggerFactory.getLogger(ReplicationQueryTask.class);
 
     @Autowired
+    private IngestAPISettings settings;
+
+    @Autowired
     private IngestAPI ingestAPI;
 
     @Autowired
@@ -47,6 +55,9 @@ public class ReplicationQueryTask {
 
     /**
      * Check the ingest-server for pending and started replications
+     *
+     * TODO: We now have a host of states (ACE_*) which we will want to check
+     *
      */
     @Scheduled(cron = "${replication.cron:0 0 * * * *}")
     public void checkForReplications() {
@@ -54,10 +65,20 @@ public class ReplicationQueryTask {
 
         try {
             log.info("Query for active replications");
-            query(ReplicationStatus.STARTED, filter, false);
+            query(STARTED, filter, false);
 
             log.info("Query for new replications");
             query(ReplicationStatus.PENDING, filter, true);
+
+            log.info("Query for transferred replications");
+            query(ReplicationStatus.TRANSFERRED, filter, false);
+
+            log.info("Query for ace flow replications");
+            query(ReplicationStatus.ACE_REGISTERED, filter, false);
+            query(ReplicationStatus.ACE_TOKEN_LOADED, filter, false);
+
+            log.info("Query for auditing replications");
+            query(ReplicationStatus.ACE_AUDITING, filter, false);
         } catch (IOException e) {
             log.error("Error checking for replications", e);
         }
@@ -99,9 +120,10 @@ public class ReplicationQueryTask {
 
 
         Map<String, Object> params = new HashMap<>();
+        params.put("page", page);
         params.put("status", status);
         params.put("page_size", pageSize);
-        params.put("page", page);
+        params.put("node", settings.getIngestAPIUsername());
 
         // TODO: As replications get updated, the state can change and alter the
         // amount of pages. We might want to switch this to only work on one page
@@ -135,8 +157,24 @@ public class ReplicationQueryTask {
             String filterString = bag.getDepositor() + ":" + bag.getName();
             if (update) {
                 log.info("Updating replication");
-                replication.setStatus(ReplicationStatus.STARTED);
-                ingestAPI.updateReplication(replication.getId(), replication);
+
+                // The anonymous classes are temporary for now, while the calls are updated to the new methods
+                Call<Replication> statusCall = ingestAPI.updateReplicationStatus(replication.getId(), new RStatusUpdate(STARTED));
+                final long id = replication.getId();
+                statusCall.enqueue(new Callback<Replication>() {
+                    @Override
+                    public void onResponse(Response<Replication> response) {
+                        log.debug("Update to replication {}: {} - {}", new Object[]{id,
+                                response.code(),
+                                response.message()});
+                    }
+
+                    @Override
+                    public void onFailure(Throwable throwable) {
+                        log.error("Error communicating to the ingest server", throwable);
+                    }
+                });
+
             }
 
             // Make sure we don't have a replication already in progress

@@ -21,6 +21,7 @@ public class PageWrapper<T> {
 
     private final String url;
     private final Integer next;
+    private final Integer last;
     private final Integer current;
     private final Integer previous;
 
@@ -31,6 +32,7 @@ public class PageWrapper<T> {
 
         this.previous = (current == 0) ? 0 : current - 1;
         this.next = (current == page.getTotalPages() - 1) ? current : current + 1;
+        this.last = page.getTotalPages() - 1;
 
         createPages(page);
     }
@@ -78,5 +80,13 @@ public class PageWrapper<T> {
 
     public Integer getPrevious() {
         return previous;
+    }
+
+    public Integer getLast() {
+        return last;
+    }
+
+    public Integer getFirst() {
+        return 0;
     }
 }

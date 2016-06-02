@@ -1,4 +1,4 @@
-package org.chronopolis.rest.models;
+package org.chronopolis.rest.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 

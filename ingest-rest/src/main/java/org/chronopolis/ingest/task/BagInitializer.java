@@ -6,7 +6,7 @@ import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.TrackingThreadPoolExecutor;
 import org.chronopolis.ingest.repository.BagSearchCriteria;
 import org.chronopolis.ingest.repository.BagService;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.models.BagStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,7 +90,7 @@ public class BagInitializer {
                 bag.setStatus(BagStatus.ERROR);
             }
 
-            log.debug("Saving bag {}", bag.getName());
+            log.trace("Saving bag {}", bag.getName());
             service.saveBag(bag);
         }
 
@@ -104,7 +104,7 @@ public class BagInitializer {
             Path bagPath = stage.resolve(bag.getLocation());
 
             // check if we should untar the bag
-            log.debug("Probing mime type for {}", bag.getName());
+            log.trace("Probing mime type for {}", bag.getName());
             String mimeType = Files.probeContentType(bagPath);
             if (mimeType != null && mimeType.equals(TAR_TYPE)) {
                 bagPath = untar(bagPath, bag.getDepositor());
@@ -115,7 +115,7 @@ public class BagInitializer {
             }
 
             // TODO: Get these passed in the ingest request
-            log.debug("Counting files for {}", bag.getName());
+            log.trace("Counting files for {}", bag.getName());
             final long[] bagSize = {0};
             final long[] fileCount = {0};
             Files.walkFileTree(bagPath, new SimpleFileVisitor<Path>() {

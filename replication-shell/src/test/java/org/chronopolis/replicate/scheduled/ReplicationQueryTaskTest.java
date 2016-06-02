@@ -1,12 +1,15 @@
-package org.chronopolis.replicate.config;
+package org.chronopolis.replicate.scheduled;
 
 import com.google.common.collect.ImmutableMap;
+import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.replicate.batch.ReplicationJobStarter;
+import org.chronopolis.replicate.support.CallWrapper;
 import org.chronopolis.replicate.test.TestApplication;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.Node;
-import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.models.RStatusUpdate;
+import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -27,15 +30,14 @@ import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.anyMap;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -65,6 +67,9 @@ public class ReplicationQueryTaskTest {
 
     @Mock
     IngestAPI ingestAPI;
+
+    @Mock
+    IngestAPISettings settings;
 
     @Mock
     ReplicationJobStarter jobStarter;
@@ -100,7 +105,9 @@ public class ReplicationQueryTaskTest {
         ArrayList<Replication> replicationList = new ArrayList<>();
         Node n = new Node("test", "test");
         b = new Bag("test-bag", "test-depositor");
+
         replication = new Replication(n, b);
+        replication.setId(1L);
         for (int i = 0; i < 5; i++) {
             replicationList.add(replication);
         }
@@ -110,16 +117,19 @@ public class ReplicationQueryTaskTest {
         replications = new CallWrapper<>(page);
         bagCall = new CallWrapper<>(b);
 
-        started = ImmutableMap.of("status", (Object) ReplicationStatus.STARTED);
-        pending = ImmutableMap.of("status", (Object) ReplicationStatus.PENDING);
+        started = ImmutableMap.of("status", ReplicationStatus.STARTED);
+        pending = ImmutableMap.of("status", ReplicationStatus.PENDING);
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testCheckForReplications() throws Exception {
         when(ingestAPI.getReplications(anyMap())).thenReturn(replications);
 
         // Ok so this is kind of bad behavior, but our bag has a null id so...
-        when(ingestAPI.getBag(null)).thenReturn(bagCall);
+        when(ingestAPI.getBag(b.getId())).thenReturn(bagCall);
+        when(ingestAPI.updateReplicationStatus(anyLong(), any(RStatusUpdate.class)))
+                .thenReturn(new CallWrapper<>(replication));
         task.checkForReplications();
 
         // We should have only executed our job starter once
@@ -127,6 +137,7 @@ public class ReplicationQueryTaskTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testCheckForReplicationsFilter() throws Exception {
         // Create a job that only sleeps in the same way we build our replication
         // jobs to make sure we filter properly when querying the job explorer
@@ -136,47 +147,13 @@ public class ReplicationQueryTaskTest {
             .addDate("date", new Date())
             .toJobParameters());
         when(ingestAPI.getReplications(anyMap())).thenReturn(replications);
-        when(ingestAPI.getBag(null)).thenReturn(bagCall);
+        when(ingestAPI.getBag(b.getId())).thenReturn(bagCall);
+        when(ingestAPI.updateReplicationStatus(anyLong(), any(RStatusUpdate.class)))
+                .thenReturn(new CallWrapper<>(replication));
 
         task.checkForReplications();
         verify(jobStarter, times(0)).addJobFromRestful(replication);
 
     }
 
-    public class CallWrapper<E> implements Call<E> {
-
-        E e;
-
-        public CallWrapper(E e) {
-            this.e = e;
-        }
-
-        @Override
-        public Response<E> execute() throws IOException {
-            return Response.success(e);
-        }
-
-        @Override
-        public void enqueue(Callback<E> callback) {
-        }
-
-        @Override
-        public boolean isExecuted() {
-            return false;
-        }
-
-        @Override
-        public void cancel() {
-        }
-
-        @Override
-        public boolean isCanceled() {
-            return false;
-        }
-
-        @Override
-        public Call<E> clone() {
-            return null;
-        }
-    }
 }

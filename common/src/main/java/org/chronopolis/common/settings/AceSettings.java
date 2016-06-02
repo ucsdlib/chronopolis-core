@@ -13,6 +13,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
+ *
  * Created by shake on 8/14/14.
  */
 @Component
@@ -37,7 +38,7 @@ public class AceSettings {
     @Value("${ace.am.password:admin}")
     String amPassword;
 
-    @Value("${ace.am.validate:true}")
+    @Value("${ace.am.validate:false}")
     Boolean amValidate;
 
 

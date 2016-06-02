@@ -3,10 +3,10 @@ package org.chronopolis.ingest.repository;
 import com.mysema.query.types.expr.BooleanExpression;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.exception.NotFoundException;
-import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.BagDistribution;
-import org.chronopolis.rest.models.Node;
-import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.BagDistribution;
+import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.models.ReplicationRequest;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.chronopolis.ingest.repository.PredicateUtil.setExpression;
-import static org.chronopolis.rest.models.BagDistribution.BagDistributionStatus.DISTRIBUTE;
+import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatus.DISTRIBUTE;
 
 /**
  * Class to help querying for replication objects based on various values.
@@ -134,10 +134,13 @@ public class ReplicationService {
         action.setProtocol("rsync"); // TODO: Magic val...
 
         // iterate through our ongoing replications and search for a non terminal replication
+        // TODO: Partial index this instead:
+        //       create unique index "one_repl" on replications(node_id) where status == ''...
         if (ongoing.getTotalElements() != 0) {
             for (Replication replication : ongoing.getContent()) {
                 ReplicationStatus status = replication.getStatus();
-                if (status == ReplicationStatus.PENDING || status == ReplicationStatus.STARTED
+                if (status == ReplicationStatus.PENDING
+                        || status == ReplicationStatus.STARTED
                         || status == ReplicationStatus.TRANSFERRED) {
                     log.info("Found ongoing replication for {} to {}, ignoring create request",
                             bag.getName(), node.getUsername());

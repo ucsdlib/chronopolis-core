@@ -25,7 +25,7 @@ public interface AceService {
     Call<Void> modifyCollection(@Path("id") long id, @Body GsonCollection collection);
 
     @POST("rest/collection/")
-    Call<Map<String, Integer>> addCollection(@Body GsonCollection collection);
+    Call<Map<String, Long>> addCollection(@Body GsonCollection collection);
 
     @GET("rest/collection/settings/by-id/{id}")
     Call<GsonCollection> getCollectionById(@Path("id") long id);

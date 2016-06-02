@@ -10,11 +10,14 @@ package org.chronopolis.rest.models;
 public enum BagStatus {
     @Deprecated
     STAGED("STAGED"),
+    @Deprecated
+    REPLICATED("REPLICATED"),
+
     DEPOSITED("DEPOSITED"),
     INITIALIZED("INITIALIZED"),
     TOKENIZED("TOKENIZED"),
     REPLICATING("REPLICATING"),
-    REPLICATED("REPLICATED"),
+    PRESERVED("PRESERVED"),
     ERROR("ERROR");
 
     private String value;

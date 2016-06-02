@@ -3,7 +3,8 @@ package org.chronopolis.replicate.service;
 import org.chronopolis.replicate.batch.ReplicationJobStarter;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.models.RStatusUpdate;
+import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Component;
 import retrofit2.Call;
+import retrofit2.Callback;
 import retrofit2.Response;
 
 import java.io.BufferedReader;
@@ -22,6 +24,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.chronopolis.rest.models.ReplicationStatus.STARTED;
 
 /**
  * Service for running the replication-shell in development mode. Give a prompt for interacting
@@ -59,7 +63,7 @@ public class CommandLineService implements ReplicationService {
             OPTION option = inputOption();
             if (option.equals(OPTION.RESTFUL_QUERY)) {
                 log.info("Query for active replications");
-                query(ReplicationStatus.STARTED, false);
+                query(STARTED, false);
 
                 log.info("Query for new replications");
                 query(ReplicationStatus.PENDING, true);
@@ -126,8 +130,25 @@ public class CommandLineService implements ReplicationService {
             log.info("Starting job for replication id {}", replication.getId());
             if (update) {
                 log.info("Updating replication");
-                replication.setStatus(ReplicationStatus.STARTED);
-                ingestAPI.updateReplication(replication.getId(), replication);
+                // replication.setStatus(ReplicationStatus.STARTED);
+                // ingestAPI.updateReplication(replication.getId(), replication);
+                final long id = replication.getId();
+                Call<Replication> statusCall = ingestAPI.updateReplicationStatus(replication.getId(), new RStatusUpdate(STARTED));
+                statusCall.enqueue(new Callback<Replication>() {
+                    @Override
+                    public void onResponse(Response<Replication> response) {
+                        log.debug("Update to replication {}: {} - {}", new Object[]{
+                                id,
+                                response.code(),
+                                response.message()
+                        });
+                    }
+
+                    @Override
+                    public void onFailure(Throwable throwable) {
+                        log.error("Error communicating with the ingest server", throwable);
+                    }
+                });
             }
             jobStarter.addJobFromRestful(replication);
         }

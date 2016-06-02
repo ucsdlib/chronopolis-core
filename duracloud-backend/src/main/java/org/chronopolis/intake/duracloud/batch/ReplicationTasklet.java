@@ -312,9 +312,9 @@ public class ReplicationTasklet implements Runnable {
         chronRequest.setReplicatingNodes(
                 ImmutableList.of(settings.getChronReplicationNodes()));
 
-        Call<org.chronopolis.rest.models.Bag> stageCall = chronAPI.stageBag(chronRequest);
+        Call<org.chronopolis.rest.entities.Bag> stageCall = chronAPI.stageBag(chronRequest);
         try {
-            retrofit2.Response<org.chronopolis.rest.models.Bag> response = stageCall.execute();
+            retrofit2.Response<org.chronopolis.rest.entities.Bag> response = stageCall.execute();
 
         } catch (IOException e) {
             log.error("Unable to stage bag with chronopolis", e);
@@ -355,7 +355,7 @@ public class ReplicationTasklet implements Runnable {
                 .setInterpretive(reader.getInterpretiveIds())
                 .setFixities(ImmutableMap.of("sha256", receipt))         // sha256 digest
                 .setFirstVersionUuid(reader.getFirstVersionUUID())       // uuid
-                .setReplicatingNodes(ImmutableList.<String>of("chron"));      // chron
+                .setReplicatingNodes(ImmutableList.of("chron"));      // chron
 
         Call<Bag> call = dpn.getBagAPI().createBag(bag);/*, new retrofit.Callback<Bag>() {
             @Override

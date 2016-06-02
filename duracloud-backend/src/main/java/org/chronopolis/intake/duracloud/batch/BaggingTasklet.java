@@ -11,6 +11,7 @@ import org.chronopolis.bag.writer.TarPackager;
 import org.chronopolis.bag.writer.UUIDNamingSchema;
 import org.chronopolis.bag.writer.Writer;
 import org.chronopolis.intake.duracloud.batch.support.DpnWriter;
+import org.chronopolis.intake.duracloud.batch.support.DuracloudMD5;
 import org.chronopolis.intake.duracloud.config.IntakeSettings;
 import org.chronopolis.intake.duracloud.model.BaggingHistory;
 import org.chronopolis.intake.duracloud.remote.BridgeAPI;
@@ -82,6 +83,7 @@ public class BaggingTasklet implements Tasklet {
         // TODO: fill out with what...?
         // TODO: EXTERNAL-IDENTIFIER: snapshot.description
         BagInfo info = new BagInfo()
+                .includeMissingTags(true)
                 .withInfo(BagInfo.Tag.INFO_SOURCE_ORGANIZATION, depositor);
 
         Writer writer = new DpnWriter()
@@ -90,12 +92,12 @@ public class BaggingTasklet implements Tasklet {
                 .withBagIt(new BagIt())
                 .withDigest(Digest.SHA_256)
                 .withPayloadManifest(manifest)
-                .withMaxSize(250, Unit.GIGABYTE)
+                .withMaxSize(245, Unit.GIGABYTE)
                 .withPackager(new TarPackager(out))
                 .withNamingSchema(new UUIDNamingSchema())
                 .withTagFile(new OnDiskTagFile(snapshotBase.resolve(SNAPSHOT_COLLECTION_PROPERTIES)))
                 .withTagFile(new OnDiskTagFile(snapshotBase.resolve(SNAPSHOT_CONTENT_PROPERTIES)))
-                .withTagFile(new OnDiskTagFile(snapshotBase.resolve(SNAPSHOT_MD5)));
+                .withTagFile(new DuracloudMD5(snapshotBase.resolve(SNAPSHOT_MD5)));
 
         List<Bag> bags = writer.write();
         boolean valid = true;

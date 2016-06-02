@@ -7,7 +7,7 @@ import org.chronopolis.ingest.TokenFileWriter;
 import org.chronopolis.ingest.TokenFilter;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.models.BagStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,15 +30,16 @@ public class TokenRunner implements Runnable {
      */
     static class Factory {
         Runnable makeTokenRunner(Bag b,
+                                 String ims,
                                  String bagStage,
                                  String tokenStage,
                                  BagRepository bagRepository,
                                  TokenRepository tokenRepository) {
-            return new TokenRunner(b, bagStage, tokenStage, bagRepository, tokenRepository);
+            return new TokenRunner(b, ims, bagStage, tokenStage, bagRepository, tokenRepository);
         }
 
-        Tokenizer makeTokenizer(Path path, Bag bag, TokenCallback callback){
-            return new Tokenizer(path, bag.getFixityAlgorithm(), callback);
+        Tokenizer makeTokenizer(Path path, Bag bag, String ims, TokenCallback callback){
+            return new Tokenizer(path, bag.getFixityAlgorithm(), ims, callback);
         }
 
         TokenFileWriter makeFileWriter(String stage, TokenRepository tr) {
@@ -50,6 +51,7 @@ public class TokenRunner implements Runnable {
     private final Logger log = LoggerFactory.getLogger(TokenRunner.class);
 
     private Bag bag;
+    private String ims;
     private String bagStage;
     private String tokenStage;
     private BagRepository repository;
@@ -57,11 +59,13 @@ public class TokenRunner implements Runnable {
     private TokenRepository tokenRepository;
 
     public TokenRunner(final Bag bag,
+                       final String ims,
                        final String bagStage,
                        final String tokenStage,
                        final BagRepository repository,
                        final TokenRepository tokenRepository) {
         this.bag = bag;
+        this.ims = ims;
         this.bagStage = bagStage;
         this.tokenStage = tokenStage;
         this.repository = repository;
@@ -90,7 +94,7 @@ public class TokenRunner implements Runnable {
             Path toBag = Paths.get(bagStage, bag.getLocation());
             Filter<Path> filter = new TokenFilter(tokenRepository, bagId);
             TokenCallback callback = new TokenCallback(tokenRepository, bag);
-            Tokenizer tokenizer = factory.makeTokenizer(toBag, bag, callback);
+            Tokenizer tokenizer = factory.makeTokenizer(toBag, bag, ims, callback);
 
             try {
                 tokenizer.tokenize(filter);

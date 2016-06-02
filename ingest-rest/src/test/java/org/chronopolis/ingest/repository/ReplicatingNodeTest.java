@@ -1,10 +1,10 @@
 package org.chronopolis.ingest.repository;
 
-import junit.framework.Assert;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;
-import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.Node;
+import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Node;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +13,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static org.chronopolis.rest.models.BagDistribution.BagDistributionStatus.REPLICATE;
+import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatus.REPLICATE;
 
 /**
  * Test for the ManyToMany relationship between bags and nodes. One is a simple

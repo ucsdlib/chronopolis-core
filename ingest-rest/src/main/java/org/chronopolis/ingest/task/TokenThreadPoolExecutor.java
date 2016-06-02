@@ -3,7 +3,7 @@ package org.chronopolis.ingest.task;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.entities.Bag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 @Deprecated
 public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
     private final Logger log = LoggerFactory.getLogger(TokenThreadPoolExecutor.class);
+    private final String imsHost = "ims.umiacs.umd.edu";
 
     // TODO: Check bag compareTo
     private Set<Bag> workingBags = new ConcurrentSkipListSet<>();
@@ -61,6 +62,7 @@ public class TokenThreadPoolExecutor extends ThreadPoolExecutor {
         // Try to add the bag to the set
         if (workingBags.add(b)) {
             Runnable tr = factory.makeTokenRunner(b,
+                    imsHost,
                     settings.getBagStage(),
                     settings.getTokenStage(),
                     bagRepository,

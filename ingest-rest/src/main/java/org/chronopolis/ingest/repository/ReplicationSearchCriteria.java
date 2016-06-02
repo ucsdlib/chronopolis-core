@@ -2,7 +2,7 @@ package org.chronopolis.ingest.repository;
 
 import com.mysema.query.types.expr.BooleanExpression;
 import org.chronopolis.ingest.api.Params;
-import org.chronopolis.rest.models.QReplication;
+import org.chronopolis.rest.entities.QReplication;
 import org.chronopolis.rest.models.ReplicationStatus;
 
 import java.util.HashMap;

@@ -4,7 +4,8 @@ import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.models.FixityUpdate;
+import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,8 @@ import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import java.io.IOException;
 
@@ -63,7 +66,9 @@ public class TokenRESTStepListener implements StepExecutionListener {
 
             // There's a chance this can fail, but we can still rsync the bag? maybe?
             Replication updated;
-            Call<Replication> call = ingestAPI.updateReplication(replication.getId(), replication);
+            // Call<Replication> call = ingestAPI.updateReplication(replication.getId(), replication);
+
+            Call<Replication> call = ingestAPI.updateTokenStore(replication.getId(), new FixityUpdate(digest));
             try {
                 updated = call.execute().body();
             } catch (IOException e) {
@@ -82,10 +87,23 @@ public class TokenRESTStepListener implements StepExecutionListener {
             }
         } else {
             log.trace("unsuccessful download");
+
             // General failure
-            replication.setStatus(ReplicationStatus.FAILURE);
-            replication.setNodeUser(settings.getNode());
-            ingestAPI.updateReplication(replication.getId(), replication);
+            // TODO: UpdateCallback
+            Call<Replication> call = ingestAPI.failReplication(replication.getId());
+            call.enqueue(new Callback<Replication>() {
+                @Override
+                public void onResponse(Response<Replication> response) {
+                    log.debug("Update to replication {}: {} - {}", new Object[]{replication.getId(),
+                            response.code(),
+                            response.message()});
+                }
+
+                @Override
+                public void onFailure(Throwable throwable) {
+                    log.error("Error communicating with ingest server", throwable);
+                }
+            });
             sendFailure(mail, settings, replication, stepExecution.getFailureExceptions());
         }
 

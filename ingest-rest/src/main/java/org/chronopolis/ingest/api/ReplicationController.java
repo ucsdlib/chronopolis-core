@@ -8,11 +8,11 @@ import org.chronopolis.ingest.repository.BagService;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationSearchCriteria;
 import org.chronopolis.ingest.repository.ReplicationService;
-import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.BagDistribution;
-import org.chronopolis.rest.models.BagStatus;
-import org.chronopolis.rest.models.Node;
-import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.models.FixityUpdate;
+import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.ReplicationRequest;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
@@ -28,10 +28,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.util.Map;
-import java.util.Set;
 
+import static org.chronopolis.ingest.api.Params.NODE;
 import static org.chronopolis.ingest.api.Params.STATUS;
-import static org.chronopolis.rest.models.BagDistribution.BagDistributionStatus.REPLICATE;
 
 /**
  * REST controller for replication methods
@@ -63,47 +62,107 @@ public class ReplicationController extends IngestController {
      * <p/>
      * TODO: Return a 201
      *
-     * @param principal - authentication information
      * @param request   - request containing the bag id to replicate
      * @return
      */
     @RequestMapping(method = RequestMethod.POST)
     public Replication createReplication(@RequestBody ReplicationRequest request) {
         return replicationService.create(request, settings);
-
-        // Create a new replication for the Node (user) based on the Bag Id
-        // Return a 404 if the bag is not found
-        // If a replication already exists, return it instead of creating a new one
-        /*
-        Node node = nodeRepository.findByUsername(principal.getName());
-        Bag bag = bagService.findBag(request.getBagId());
-
-        if (bag == null) {
-            throw new NotFoundException("Bag " + request.getBagId());
-        }
-
-        ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
-                .withBagId(bag.getId())
-                .withNodeUsername(node.getUsername());
-
-        // TODO: This can actually return multiple replications, we'll want to filter as well
-        Replication action = replicationService.getReplication(criteria);
-
-        if (action == null) {
-            log.info("Creating new replication for node {} and bag {}",
-                    node.getUsername(),
-                    bag.getId());
-
-            action = new Replication(node, bag);
-            replicationService.save(action);
-        }
-        return action;
-        */
     }
+
+    private ReplicationSearchCriteria createCriteria(Principal principal, Long id) {
+        ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
+                .withId(id);
+
+        if (!hasRoleAdmin()) {
+            criteria.withNodeUsername(principal.getName());
+        }
+
+        return criteria;
+    }
+
+    @RequestMapping(value = "/{id}/tokenstore", method = RequestMethod.PUT)
+    public Replication updateTokenFixity(Principal principal,
+                                         @PathVariable("id") Long replicationId,
+                                         @RequestBody FixityUpdate update) {
+        log.info("[{}] Updating token store for {}", principal.getName(), replicationId);
+        ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
+
+        // Break out our objects
+        Replication r = replicationService.getReplication(criteria);
+        Bag bag = r.getBag();
+        Node node = r.getNode();
+        String fixity = update.getFixity();
+
+        // Validate the fixity and update the replication
+        checkFixity(r, bag.getId(), node.getUsername(), bag.getTokenDigest(), fixity, ReplicationStatus.FAILURE_TOKEN_STORE);
+        r.setReceivedTokenFixity(fixity);
+        r.checkTransferred();
+        replicationService.save(r);
+        return r;
+    }
+
+    @RequestMapping(value = "/{id}/tagmanifest", method = RequestMethod.PUT)
+    public Replication updateTagFixity(Principal principal,
+                                       @PathVariable("id") Long replicationId,
+                                       @RequestBody FixityUpdate update) {
+        ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
+
+        // Break out our objects
+        Replication r = replicationService.getReplication(criteria);
+        Bag bag = r.getBag();
+        Node node = r.getNode();
+        String fixity = update.getFixity();
+
+        // Validate the fixity and update the replication
+        checkFixity(r, bag.getId(), node.getUsername(), bag.getTokenDigest(), fixity, ReplicationStatus.FAILURE_TAG_MANIFEST);
+        r.setReceivedTagFixity(update.getFixity());
+        r.checkTransferred();
+        replicationService.save(r);
+        return r;
+    }
+
+    private boolean checkFixity(Replication r, Long id, String node, String stored, String received, ReplicationStatus failure) {
+        if (stored == null || !stored.equals(received)) {
+            log.info("Received invalid fixity for bag {} from {}",
+                    id,
+                    node);
+            r.setStatus(failure);
+        } else {
+            log.info("Matching fixity for {}", r.getId());
+            return true;
+        }
+
+        return false;
+    }
+
+
+    @RequestMapping(value = "/{id}/failure", method = RequestMethod.PUT)
+    public Replication failReplication(Principal principal,
+                                       @PathVariable("id") Long replicationId) {
+        ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
+        Replication r = replicationService.getReplication(criteria);
+        r.setStatus(ReplicationStatus.FAILURE);
+        replicationService.save(r);
+        return r;
+    }
+
+    @RequestMapping(value = "/{id}/status", method = RequestMethod.PUT)
+    public Replication updateStatus(Principal principal,
+                                    @PathVariable("id") Long replicationId,
+                                    @RequestBody RStatusUpdate update) {
+        ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
+        log.info("Received update request for replication {}: {}", replicationId, update.getStatus());
+        Replication r = replicationService.getReplication(criteria);
+        r.setStatus(update.getStatus());
+        replicationService.save(r);
+        return r;
+    }
+
 
     /**
      * Update a given replication based on the id of the path used
-     * TODO: Update state properly
+     * TODO: either create a new endpoint (../fixity) or move to the bag/repl object
      *
      * @param principal     - authentication information
      * @param replicationId - the id of the replication to update
@@ -127,85 +186,16 @@ public class ReplicationController extends IngestController {
             throw new NotFoundException("Replication " + replicationId);
         }
 
-        Node node = update.getNode();
-        Bag bag = update.getBag();
-
         // TODO: Move logic outside of here? (yes)
         log.info("Updating replication {}", replication.getId());
 
-        String receivedTokenFixity = replication.getReceivedTokenFixity();
-        String receivedTagFixity = replication.getReceivedTagFixity();
-        boolean success = true;
-
-        // Only update status if we were given a fixity value
-        // TODO: separate these (either a new endpoint (../fixity) or move to the bag object)
-        if (receivedTokenFixity != null) {
-            log.debug("Received token fixity of {}", receivedTokenFixity);
-            update.setReceivedTokenFixity(receivedTokenFixity);
-
-            String digest = bag.getTokenDigest();
-            // Check against the stored digest
-            if (digest == null || !digest.equals(receivedTokenFixity)) {
-                log.info("Received invalid token store fixity for bag {} from {}",
-                        bag.getId(),
-                        node.getUsername());
-                update.setStatus(ReplicationStatus.FAILURE_TOKEN_STORE);
-                success = false;
+        // only allow updates to nominal
+        if (!update.getStatus().isFailure()) {
+            update.setReceivedTokenFixity(replication.getReceivedTokenFixity());
+            update.setReceivedTagFixity(replication.getReceivedTagFixity());
+            if (replication.getStatus().isClientStatus()) {
+                update.setStatus(replication.getStatus());
             }
-        } else {
-            success = false;
-        }
-
-        if (receivedTagFixity != null) {
-            log.debug("Received tag fixity of {}", receivedTagFixity);
-            update.setReceivedTagFixity(receivedTagFixity);
-
-            String digest = bag.getTagManifestDigest();
-            // Check against the stored digest
-            if (digest == null || !digest.equals(receivedTagFixity)) {
-                log.info("Received invalid tagmanifest fixity for bag {} from {}",
-                        bag.getId(),
-                        node.getUsername());
-                update.setStatus(ReplicationStatus.FAILURE_TAG_MANIFEST);
-                success = false;
-            }
-        } else {
-            success = false;
-        }
-
-        // Check if the client says it succeeded (likely from a previous replication)
-        if (isClientSuccess(replication.getStatus())) {
-            success = true;
-        }
-
-        // If we were able to validate all the manifests: yay
-        // else check if the replicating node reported any problems
-        // TODO: Hold out on failure until x number of times?
-        if (success) {
-            // First set the new distribution record
-            // TODO: Get this from the DB
-            update.setStatus(ReplicationStatus.SUCCESS);
-            Set<BagDistribution> distributions = bag.getDistributions();
-            for (BagDistribution distribution : distributions) {
-                if (distribution.getNode().equals(node)) {
-                    distribution.setStatus(REPLICATE);
-                }
-            }
-
-
-            // Then check to see if the bag has been fully replicated
-            // TODO: This can be gathered from the above
-            Set<String> nodes = bag.getReplicatingNodes();
-            if (nodes.size() >= bag.getRequiredReplications()) {
-                log.debug("Setting bag {}::{} as replicated",
-                        bag.getDepositor(),
-                        bag.getName());
-                bag.setStatus(BagStatus.REPLICATED);
-            }
-        } else if (isClientStatus(replication.getStatus())   // Check if the client is giving us a status
-                && !isFailureStatus(update.getStatus())) {   // and that we haven't already set a failed state
-            log.info("Updating status from client");
-            update.setStatus(replication.getStatus());
         }
 
         replicationService.save(update);
@@ -213,58 +203,17 @@ public class ReplicationController extends IngestController {
     }
 
     /**
-     * Return true if the status = success
-     *
-     * @param status
-     * @return
-     */
-    private boolean isClientSuccess(ReplicationStatus status) {
-        return status == ReplicationStatus.SUCCESS;
-    }
-
-    /**
-     * Return true if this is a status set by the client
-     *
-     * TODO: This can be done in the enumerated type.
-     *
-     * @param status
-     * @return
-     */
-    private boolean isClientStatus(ReplicationStatus status) {
-        return status == ReplicationStatus.STARTED
-            || status == ReplicationStatus.TRANSFERRED
-            || status == ReplicationStatus.FAILURE;
-    }
-
-    /**
-     * Return true if the status is a failure mode set by the server
-     *
-     * @param status
-     * @return
-     */
-    private boolean isFailureStatus(ReplicationStatus status) {
-        return status == ReplicationStatus.FAILURE_TOKEN_STORE
-            || status == ReplicationStatus.FAILURE_TAG_MANIFEST;
-    }
-
-    /**
      * Retrieve all replications associated with a particular node/user
      *
-     * @param principal - authentication information
      * @param params    - query parameters used for searching
      * @return
      */
     @RequestMapping(method = RequestMethod.GET)
-    public Iterable<Replication> replications(Principal principal,
-                                              @RequestParam Map<String, String> params) {
+    public Iterable<Replication> replications(@RequestParam Map<String, String> params) {
         String name = null;
 
         // Workaround for giving service accounts a view into all replications
-        // TODO: Add request param for name
-        Node node = nodeRepository.findByUsername(principal.getName());
-        if (node != null) {
-            name = principal.getName();
-        }
+        name = params.getOrDefault(NODE, null);
 
         // null is handled fine so we can set that as a default
         ReplicationStatus status = params.containsKey(STATUS)
@@ -276,7 +225,7 @@ public class ReplicationController extends IngestController {
                 .withNodeUsername(name)
                 .withStatus(status);
 
-        PageRequest pr = createPageRequest(params, ImmutableMap.<String, String>of());
+        PageRequest pr = createPageRequest(params, ImmutableMap.of());
 
         return replicationService.getReplications(criteria, pr);
     }
@@ -291,11 +240,11 @@ public class ReplicationController extends IngestController {
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public Replication findReplication(Principal principal,
                                        @PathVariable("id") Long actionId) {
-        Replication action = replicationService.getReplication(
+        log.info("[{}] Getting replication {}", principal.getName(), actionId);
+
+        return replicationService.getReplication(
                 new ReplicationSearchCriteria().withId(actionId)
         );
-
-        return action;
     }
 
     /*

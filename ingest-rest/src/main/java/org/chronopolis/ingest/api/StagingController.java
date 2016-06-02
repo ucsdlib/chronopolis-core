@@ -8,10 +8,10 @@ import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.BagSearchCriteria;
 import org.chronopolis.ingest.repository.BagService;
 import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.IngestRequest;
-import org.chronopolis.rest.models.Node;
+import org.chronopolis.rest.entities.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +36,7 @@ import static org.chronopolis.ingest.api.Params.SORT_BY_TOTAL_FILES;
 import static org.chronopolis.ingest.api.Params.SORT_SIZE;
 import static org.chronopolis.ingest.api.Params.SORT_TOTAL_FILES;
 import static org.chronopolis.ingest.api.Params.STATUS;
-import static org.chronopolis.rest.models.BagDistribution.BagDistributionStatus.DISTRIBUTE;
+import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatus.DISTRIBUTE;
 
 /**
  * REST Controller for controlling actions associated with bags
@@ -64,13 +64,11 @@ public class StagingController extends IngestController {
     /**
      * Retrieve all the bags we know about
      *
-     * @param principal - authentication information
      * @param params - Query parameters used for searching
      * @return
      */
     @RequestMapping(value = "bags", method = RequestMethod.GET)
-    public Iterable<Bag> getBags(Principal principal,
-                                 @RequestParam Map<String, String> params) {
+    public Iterable<Bag> getBags(@RequestParam Map<String, String> params) {
         BagSearchCriteria criteria = new BagSearchCriteria()
                 .withDepositor(params.containsKey(DEPOSITOR) ? params.get(DEPOSITOR) : null)
                 .withName(params.containsKey(NAME) ? params.get(NAME) : null)
@@ -82,12 +80,11 @@ public class StagingController extends IngestController {
     /**
      * Retrieve information about a single bag
      *
-     * @param principal - authentication information
      * @param bagId - the bag id to retrieve
      * @return
      */
     @RequestMapping(value = "bags/{bag-id}", method = RequestMethod.GET)
-    public Bag getBag(Principal principal, @PathVariable("bag-id") Long bagId) {
+    public Bag getBag(@PathVariable("bag-id") Long bagId) {
         Bag bag = bagRepository.findOne(bagId);
         if (bag == null) {
             throw new NotFoundException("bag/" + bagId);
@@ -121,6 +118,7 @@ public class StagingController extends IngestController {
 
         bag = new Bag(name, depositor);
         bag.setFixityAlgorithm("SHA-256");
+        bag.setCreator(principal.getName());
         bag.setLocation(relPath.toString());
 
         if (request.getRequiredReplications() > 0) {

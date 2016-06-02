@@ -40,7 +40,16 @@
                 <br/>
                 <div class="input-group form-group-sm">
                     <span class="input-group-addon" id="sizing-addon-3">Status</span>
-                    <input type="text" class="form-control" id="status-table-filter" name="status" placeholder="Search Status"/>
+
+                    <!--@thymesVar id="statuses" type="List" -->
+                    <!--@thymesVar id="status" type="org.chronopolis.rest.models.ReplicationStatus" -->
+                    <select name="status" id="status-table-filter" class="form-control">
+                        <option th:each="status : ${statuses}"
+                                th:value="${status.name()}" th:text="${status.name()}">
+
+                        </option>
+                    </select>
+
                 </div>
                 <br/>
                 <button th:type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search"
@@ -64,7 +73,7 @@
             </thead>
             <tbody>
             <!--@thymesVar id="replications" type="Set<Bag>"-->
-            <!--@thymesVar id="replication" type="org.chronopolis.rest.models.Replication"-->
+            <!--@thymesVar id="replication" type="org.chronopolis.rest.entities.Replication"-->
             <tr th:each="replication: ${replications}">
                 <td><a th:href="@{'/replications/' + ${replication.id}}" th:text="${replication.id}"></a></td>
                 <td th:text="${replication.bag.id}"></td>

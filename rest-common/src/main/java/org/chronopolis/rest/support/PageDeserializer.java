@@ -32,9 +32,7 @@ public class PageDeserializer implements JsonDeserializer<PageImpl> {
         JsonArray content = obj.getAsJsonArray("content");
         List contentList = context.deserialize(content, contentType);
 
-        PageImpl page = new PageImpl(contentList);
-
-        return page;
+        return new PageImpl(contentList);
     }
 
 }

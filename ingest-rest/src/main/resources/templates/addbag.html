@@ -22,7 +22,7 @@
         <div><label>Location: <input type="text" name="location" placeholder="depositor-name/bag-name"/></label></div>
 
         <!--@thymesVar id="nodes" type="List<Node>"-->
-        <!--@thymesVar id="node" type="org.chronopolis.rest.models.Node"-->
+        <!--@thymesVar id="node" type="org.chronopolis.rest.entities.Node"-->
         <div th:each="node: ${nodes}">
             <div><label th:text="'Replicate to ' + ${node.username}"/><input type="checkbox" name="replicatingNodes" th:value="${node.username}"/></div>
         </div>
