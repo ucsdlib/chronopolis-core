@@ -37,6 +37,8 @@ public class AceRegisterTasklet implements Callable<Long> {
     private ReplicationNotifier notifier;
 
     private Long id = -1L;
+
+    // TODO: This latch is used for too much. Currently the callback in getId won't block the register from running
     private CountDownLatch latch;
 
     public AceRegisterTasklet(IngestAPI ingest, AceService aceService, Replication replication, ReplicationSettings settings, ReplicationNotifier notifier) {
