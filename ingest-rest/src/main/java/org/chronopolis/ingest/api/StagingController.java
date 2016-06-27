@@ -110,6 +110,8 @@ public class StagingController extends IngestController {
             return bag;
         }
 
+        log.debug("Received ingest request {}", request);
+
         String fileName = request.getLocation();
         Path stage = Paths.get(ingestSettings.getBagStage());
         Path bagPath = stage.resolve(fileName);
@@ -148,12 +150,13 @@ public class StagingController extends IngestController {
         for (String nodeName : replicatingNodes) {
             Node node = nodeRepository.findByUsername(nodeName);
             if (node != null) {
-                log.debug("Creating dist record for {}", nodeName);
+                log.debug("Creating requested dist record for {}", nodeName);
                 bag.addDistribution(node, DISTRIBUTE);
                 numDistributions++;
             }
         }
 
+        /*
         if (numDistributions < bag.getRequiredReplications()) {
             for (Node node : nodeRepository.findAll()) {
                 log.debug("Creating dist record for {}", node.getUsername());
@@ -161,6 +164,7 @@ public class StagingController extends IngestController {
                 numDistributions++;
             }
         }
+        */
 
         // if the distributions is still less, set error?
     }
