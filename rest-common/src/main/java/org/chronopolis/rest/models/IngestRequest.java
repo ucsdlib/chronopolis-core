@@ -56,4 +56,14 @@ public class IngestRequest {
         this.replicatingNodes = replicatingNodes;
         return this;
     }
+
+    public String toString() {
+        return "IngestRequest{" +
+                "name=" + name + "," +
+                "location=" + location + "," +
+                "depositor=" + depositor + "," +
+                "requiredReplications=" + requiredReplications + "," +
+                "replicatingNodes=" + replicatingNodes +
+                "}";
+    }
 }

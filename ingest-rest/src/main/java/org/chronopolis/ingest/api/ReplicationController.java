@@ -67,6 +67,7 @@ public class ReplicationController extends IngestController {
      */
     @RequestMapping(method = RequestMethod.POST)
     public Replication createReplication(@RequestBody ReplicationRequest request) {
+        log.debug("Received replication request {}", request);
         return replicationService.create(request, settings);
     }
 
