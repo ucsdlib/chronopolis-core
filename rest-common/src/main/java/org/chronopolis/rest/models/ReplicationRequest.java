@@ -26,4 +26,12 @@ public class ReplicationRequest {
         this.nodeId = nodeId;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "ReplicationRequest{" +
+                "bagId=" + bagId +
+                ", nodeId=" + nodeId +
+                '}';
+    }
 }

@@ -1,7 +1,5 @@
 package org.chronopolis.rest.models;
 
-import com.google.common.base.MoreObjects;
-
 import java.util.List;
 
 /**
@@ -60,12 +58,12 @@ public class IngestRequest {
     }
 
     public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .add("name", name)
-                .add("location", location)
-                .add("depositor", depositor)
-                .add("requiredReplications", requiredReplications)
-                .add("replicatingNodes", replicatingNodes)
-                .toString();
+        return "IngestRequest{" +
+                "name=" + name + "," +
+                "location=" + location + "," +
+                "depositor=" + depositor + "," +
+                "requiredReplications=" + requiredReplications + "," +
+                "replicatingNodes=" + replicatingNodes +
+                "}";
     }
 }
