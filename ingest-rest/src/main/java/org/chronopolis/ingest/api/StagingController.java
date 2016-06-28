@@ -153,6 +153,8 @@ public class StagingController extends IngestController {
                 log.debug("Creating requested dist record for {}", nodeName);
                 bag.addDistribution(node, DISTRIBUTE);
                 numDistributions++;
+            } else {
+                log.debug("Unable to make dist record for node {}: Not found", nodeName);
             }
         }
 
