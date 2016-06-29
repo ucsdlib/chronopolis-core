@@ -80,8 +80,8 @@ public class ReplicationControllerTest extends IngestTest {
         ResponseEntity<Replication> entity;
 
         // two updates, one for tag and token
-        template.put("http://localhost:" + port + "/api/replications/4/tokenstore", new FixityUpdate("fixity"));
-        template.put("http://localhost:" + port + "/api/replications/4/tagmanifest", new FixityUpdate("fixity"));
+        template.put("http://localhost:" + port + "/api/replications/4/tokenstore", new FixityUpdate("token-fixity"));
+        template.put("http://localhost:" + port + "/api/replications/4/tagmanifest", new FixityUpdate("tag-fixity"));
         entity = template.getForEntity("http://localhost:" + port + "/api/replications/4", Replication.class);
         Assert.assertEquals(ReplicationStatus.TRANSFERRED, entity.getBody().getStatus());
     }
