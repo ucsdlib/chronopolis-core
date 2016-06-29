@@ -86,7 +86,7 @@ public class ReplicationController extends IngestController {
     public Replication updateTokenFixity(Principal principal,
                                          @PathVariable("id") Long replicationId,
                                          @RequestBody FixityUpdate update) {
-        log.info("[{}] Updating token store for {}", principal.getName(), replicationId);
+        log.info("[{}] Updating token digest for {}", principal.getName(), replicationId);
         ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
 
         // Break out our objects
@@ -107,6 +107,7 @@ public class ReplicationController extends IngestController {
     public Replication updateTagFixity(Principal principal,
                                        @PathVariable("id") Long replicationId,
                                        @RequestBody FixityUpdate update) {
+        log.info("[{}] Updating tag digest for {}", principal.getName(), replicationId);
         ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
 
         // Break out our objects
@@ -116,7 +117,7 @@ public class ReplicationController extends IngestController {
         String fixity = update.getFixity();
 
         // Validate the fixity and update the replication
-        checkFixity(r, bag.getId(), node.getUsername(), bag.getTokenDigest(), fixity, ReplicationStatus.FAILURE_TAG_MANIFEST);
+        checkFixity(r, bag.getId(), node.getUsername(), bag.getTagManifestDigest(), fixity, ReplicationStatus.FAILURE_TAG_MANIFEST);
         r.setReceivedTagFixity(update.getFixity());
         r.checkTransferred();
         replicationService.save(r);
@@ -125,9 +126,12 @@ public class ReplicationController extends IngestController {
 
     private boolean checkFixity(Replication r, Long id, String node, String stored, String received, ReplicationStatus failure) {
         if (stored == null || !stored.equals(received)) {
-            log.info("Received invalid fixity for bag {} from {}",
+            log.warn("Received invalid fixity (found={},expected={}) for bag {} from {}. Setting {}", new Object[]{
+                    received,
+                    stored,
                     id,
-                    node);
+                    node,
+                    failure});
             r.setStatus(failure);
         } else {
             log.info("Matching fixity for {}", r.getId());
