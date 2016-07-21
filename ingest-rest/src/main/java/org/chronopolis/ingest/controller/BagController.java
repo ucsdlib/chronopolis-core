@@ -265,8 +265,8 @@ public class BagController extends IngestController {
         log.info("Getting replications for user {}", principal.getName());
         Page<Replication> replications;
         ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
-                .withNodeUsername(node)
-                .withBagName(bag)
+                .likeNodeUsername(node)
+                .likeBagName(bag)
                 .withStatus(status);
 
         Sort s = new Sort(Sort.Direction.ASC, "id");
