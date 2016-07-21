@@ -41,6 +41,7 @@
                     <!--@thymesVar id="statuses" type="List" -->
                     <!--@thymesVar id="status" type="org.chronopolis.rest.models.BagStatus" -->
                     <select name="status" id="status-table-filter" class="form-control">
+                        <option value="">select a status</option>
                         <option th:each="status : ${statuses}"
                                 th:value="${status.value}" th:text="${status.value}">
 
