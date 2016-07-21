@@ -84,7 +84,8 @@ public class BagController extends IngestController {
         log.info("Getting bags for user {}", principal.getName());
 
         BagSearchCriteria criteria = new BagSearchCriteria()
-                .withDepositor(depositor)
+                .likeDepositor(depositor)
+                // .likeName()
                 .withStatus(status);
 
         Sort s = new Sort(Sort.Direction.ASC, "id");
