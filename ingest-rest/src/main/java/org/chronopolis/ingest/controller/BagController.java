@@ -80,12 +80,13 @@ public class BagController extends IngestController {
     public String getBags(Model model, Principal principal,
                           @RequestParam(defaultValue = "0", required = false) Integer page,
                           @RequestParam(required = false) String depositor,
+                          @RequestParam(required = false) String name,
                           @RequestParam(required = false) BagStatus status) {
         log.info("Getting bags for user {}", principal.getName());
 
         BagSearchCriteria criteria = new BagSearchCriteria()
+                .likeName(name)
                 .likeDepositor(depositor)
-                // .likeName()
                 .withStatus(status);
 
         Sort s = new Sort(Sort.Direction.ASC, "id");
