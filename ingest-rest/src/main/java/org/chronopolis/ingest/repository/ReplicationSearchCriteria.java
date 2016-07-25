@@ -5,6 +5,7 @@ import org.chronopolis.ingest.api.Params;
 import org.chronopolis.rest.entities.QReplication;
 import org.chronopolis.rest.models.ReplicationStatus;
 
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -72,6 +73,37 @@ public class ReplicationSearchCriteria {
     public ReplicationSearchCriteria withStatus(ReplicationStatus status) {
         if (status != null) {
             criteria.put(Params.STATUS, replication.status.eq(status));
+        }
+        return this;
+    }
+
+    // TODO: We could have an UpdatedEntitySearchCriteria which serves as a base and holds these methods
+    //       for our Bag/ReplicationSearchCriteria
+
+    public ReplicationSearchCriteria updatedAfter(ZonedDateTime datetime) {
+        if (datetime != null) {
+            criteria.put("UPDATED_AFTER", replication.updatedAt.after(datetime));
+        }
+        return this;
+    }
+
+    public ReplicationSearchCriteria updatedBefore(ZonedDateTime datetime) {
+        if (datetime != null) {
+            criteria.put("UPDATED_BEFORE", replication.updatedAt.before(datetime));
+        }
+        return this;
+    }
+
+    public ReplicationSearchCriteria createdAfter(ZonedDateTime datetime) {
+        if (datetime != null) {
+            criteria.put("CREATED_AFTER", replication.createdAt.after(datetime));
+        }
+        return this;
+    }
+
+    public ReplicationSearchCriteria createdBefore(ZonedDateTime datetime) {
+        if (datetime != null) {
+            criteria.put("CREATED_AFTER", replication.createdAt.before(datetime));
         }
         return this;
     }

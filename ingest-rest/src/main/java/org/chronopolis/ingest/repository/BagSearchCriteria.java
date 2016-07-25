@@ -2,9 +2,10 @@ package org.chronopolis.ingest.repository;
 
 import com.mysema.query.types.expr.BooleanExpression;
 import org.chronopolis.ingest.api.Params;
-import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.models.BagStatus;
 
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,6 +56,34 @@ public class BagSearchCriteria {
     public BagSearchCriteria withStatus(BagStatus status) {
         if (status != null) {
             criteria.put(Params.STATUS, bag.status.eq(status));
+        }
+        return this;
+    }
+
+    public BagSearchCriteria updatedAfter(ZonedDateTime datetime) {
+        if (datetime != null) {
+            criteria.put("UPDATED_AFTER", bag.updatedAt.after(datetime));
+        }
+        return this;
+    }
+
+    public BagSearchCriteria updatedBefore(ZonedDateTime datetime) {
+        if (datetime != null) {
+            criteria.put("UPDATED_BEFORE", bag.updatedAt.before(datetime));
+        }
+        return this;
+    }
+
+    public BagSearchCriteria createdAfter(ZonedDateTime datetime) {
+        if (datetime != null) {
+            criteria.put("CREATED_AFTER", bag.createdAt.after(datetime));
+        }
+        return this;
+    }
+
+    public BagSearchCriteria createdBefore(ZonedDateTime datetime) {
+        if (datetime != null) {
+            criteria.put("CREATED_AFTER", bag.createdAt.before(datetime));
         }
         return this;
     }
