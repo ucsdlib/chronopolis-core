@@ -47,7 +47,7 @@ public class ReplicationSearchCriteria {
         return this;
     }
 
-    public ReplicationSearchCriteria likeNodeUsername(String nodeUsername) {
+    public ReplicationSearchCriteria nodeUsernameLike(String nodeUsername) {
         if (nodeUsername != null && !nodeUsername.isEmpty()) {
             criteria.put("NODE_USERNAME_LIKE", replication.node.username.like("%"+nodeUsername+"%"));
         }
@@ -62,7 +62,7 @@ public class ReplicationSearchCriteria {
         return this;
     }
 
-    public ReplicationSearchCriteria likeBagName(String bagName) {
+    public ReplicationSearchCriteria bagNameLike(String bagName) {
         if (bagName != null && !bagName.isEmpty()) {
             criteria.put("NODE_USERNAME_LIKE", replication.bag.name.like("%"+bagName+"%"));
         }
@@ -80,30 +80,31 @@ public class ReplicationSearchCriteria {
     // TODO: We could have an UpdatedEntitySearchCriteria which serves as a base and holds these methods
     //       for our Bag/ReplicationSearchCriteria
 
-    public ReplicationSearchCriteria updatedAfter(ZonedDateTime datetime) {
+    public ReplicationSearchCriteria updatedAfter(String datetime) {
         if (datetime != null) {
-            criteria.put("UPDATED_AFTER", replication.updatedAt.after(datetime));
+            ZonedDateTime.parse(datetime);
+            criteria.put("UPDATED_AFTER", replication.updatedAt.after(ZonedDateTime.parse(datetime)));
         }
         return this;
     }
 
-    public ReplicationSearchCriteria updatedBefore(ZonedDateTime datetime) {
+    public ReplicationSearchCriteria updatedBefore(String datetime) {
         if (datetime != null) {
-            criteria.put("UPDATED_BEFORE", replication.updatedAt.before(datetime));
+            criteria.put("UPDATED_BEFORE", replication.updatedAt.before(ZonedDateTime.parse(datetime)));
         }
         return this;
     }
 
-    public ReplicationSearchCriteria createdAfter(ZonedDateTime datetime) {
+    public ReplicationSearchCriteria createdAfter(String datetime) {
         if (datetime != null) {
-            criteria.put("CREATED_AFTER", replication.createdAt.after(datetime));
+            criteria.put("CREATED_AFTER", replication.createdAt.after(ZonedDateTime.parse(datetime)));
         }
         return this;
     }
 
-    public ReplicationSearchCriteria createdBefore(ZonedDateTime datetime) {
+    public ReplicationSearchCriteria createdBefore(String datetime) {
         if (datetime != null) {
-            criteria.put("CREATED_AFTER", replication.createdAt.before(datetime));
+            criteria.put("CREATED_AFTER", replication.createdAt.before(ZonedDateTime.parse(datetime)));
         }
         return this;
     }

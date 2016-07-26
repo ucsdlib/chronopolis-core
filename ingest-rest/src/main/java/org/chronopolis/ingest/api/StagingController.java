@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.chronopolis.ingest.api.Params.CREATED_AFTER;
+import static org.chronopolis.ingest.api.Params.CREATED_BEFORE;
 import static org.chronopolis.ingest.api.Params.DEPOSITOR;
 import static org.chronopolis.ingest.api.Params.NAME;
 import static org.chronopolis.ingest.api.Params.SORT_BY_SIZE;
@@ -36,6 +38,8 @@ import static org.chronopolis.ingest.api.Params.SORT_BY_TOTAL_FILES;
 import static org.chronopolis.ingest.api.Params.SORT_SIZE;
 import static org.chronopolis.ingest.api.Params.SORT_TOTAL_FILES;
 import static org.chronopolis.ingest.api.Params.STATUS;
+import static org.chronopolis.ingest.api.Params.UPDATED_AFTER;
+import static org.chronopolis.ingest.api.Params.UPDATED_BEFORE;
 import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatus.DISTRIBUTE;
 
 /**
@@ -70,6 +74,10 @@ public class StagingController extends IngestController {
     @RequestMapping(value = "bags", method = RequestMethod.GET)
     public Iterable<Bag> getBags(@RequestParam Map<String, String> params) {
         BagSearchCriteria criteria = new BagSearchCriteria()
+                .createdAfter(params.getOrDefault(CREATED_AFTER, null))
+                .createdBefore(params.getOrDefault(CREATED_BEFORE, null))
+                .updatedAfter(params.getOrDefault(UPDATED_AFTER, null))
+                .updatedBefore(params.getOrDefault(UPDATED_BEFORE, null))
                 .withDepositor(params.containsKey(DEPOSITOR) ? params.get(DEPOSITOR) : null)
                 .withName(params.containsKey(NAME) ? params.get(NAME) : null)
                 .withStatus(params.containsKey(STATUS) ? BagStatus.valueOf(params.get(STATUS)) : null);

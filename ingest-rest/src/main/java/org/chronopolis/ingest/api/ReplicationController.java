@@ -29,8 +29,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.security.Principal;
 import java.util.Map;
 
+import static org.chronopolis.ingest.api.Params.CREATED_AFTER;
+import static org.chronopolis.ingest.api.Params.CREATED_BEFORE;
 import static org.chronopolis.ingest.api.Params.NODE;
 import static org.chronopolis.ingest.api.Params.STATUS;
+import static org.chronopolis.ingest.api.Params.UPDATED_AFTER;
+import static org.chronopolis.ingest.api.Params.UPDATED_BEFORE;
 
 /**
  * REST controller for replication methods
@@ -227,6 +231,10 @@ public class ReplicationController extends IngestController {
 
         // TODO: May want a function to build the criteria from the request params
         ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
+                .createdAfter(params.getOrDefault(CREATED_AFTER, null))
+                .createdBefore(params.getOrDefault(CREATED_BEFORE, null))
+                .updatedAfter(params.getOrDefault(UPDATED_AFTER, null))
+                .updatedBefore(params.getOrDefault(UPDATED_BEFORE, null))
                 .withNodeUsername(name)
                 .withStatus(status);
 

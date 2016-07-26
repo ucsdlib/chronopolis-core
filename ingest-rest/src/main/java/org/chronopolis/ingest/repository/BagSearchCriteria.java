@@ -32,7 +32,7 @@ public class BagSearchCriteria {
         return this;
     }
 
-    public BagSearchCriteria likeName(String name) {
+    public BagSearchCriteria nameLike(String name) {
         if (name != null && !name.isEmpty()) {
             criteria.put(Params.NAME, bag.name.like("%" + name + "%"));
         }
@@ -46,7 +46,7 @@ public class BagSearchCriteria {
         return this;
     }
 
-    public BagSearchCriteria likeDepositor(String depositor) {
+    public BagSearchCriteria depositorLike(String depositor) {
         if (depositor != null && !depositor.isEmpty()) {
             criteria.put(Params.DEPOSITOR, bag.depositor.like("%" + depositor + "%"));
         }
@@ -60,30 +60,30 @@ public class BagSearchCriteria {
         return this;
     }
 
-    public BagSearchCriteria updatedAfter(ZonedDateTime datetime) {
+    public BagSearchCriteria updatedAfter(String datetime) {
         if (datetime != null) {
-            criteria.put("UPDATED_AFTER", bag.updatedAt.after(datetime));
+            criteria.put("UPDATED_AFTER", bag.updatedAt.after(ZonedDateTime.parse(datetime)));
         }
         return this;
     }
 
-    public BagSearchCriteria updatedBefore(ZonedDateTime datetime) {
+    public BagSearchCriteria updatedBefore(String datetime) {
         if (datetime != null) {
-            criteria.put("UPDATED_BEFORE", bag.updatedAt.before(datetime));
+            criteria.put("UPDATED_BEFORE", bag.updatedAt.before(ZonedDateTime.parse(datetime)));
         }
         return this;
     }
 
-    public BagSearchCriteria createdAfter(ZonedDateTime datetime) {
+    public BagSearchCriteria createdAfter(String datetime) {
         if (datetime != null) {
-            criteria.put("CREATED_AFTER", bag.createdAt.after(datetime));
+            criteria.put("CREATED_AFTER", bag.createdAt.after(ZonedDateTime.parse(datetime)));
         }
         return this;
     }
 
-    public BagSearchCriteria createdBefore(ZonedDateTime datetime) {
+    public BagSearchCriteria createdBefore(String datetime) {
         if (datetime != null) {
-            criteria.put("CREATED_AFTER", bag.createdAt.before(datetime));
+            criteria.put("CREATED_AFTER", bag.createdAt.before(ZonedDateTime.parse(datetime)));
         }
         return this;
     }
