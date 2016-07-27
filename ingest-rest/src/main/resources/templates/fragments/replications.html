@@ -67,9 +67,11 @@
             <thead>
             <tr>
                 <th>ID</th>
-                <th>Bag ID</th> <!-- Name instead? -->
+                <th>Bag</th> <!-- Name instead? -->
                 <th>Replicating Node</th>
                 <th>Status</th>
+                <th>Created At</th>
+                <th>Updated At</th>
             </tr>
             </thead>
             <tbody>
@@ -80,6 +82,8 @@
                 <td th:text="${replication.bag.name}"></td>
                 <td th:text="${replication.node.username}"></td>
                 <td th:text="${replication.status}"></td>
+                <td th:text="${replication.createdAt.toLocalDate()}"></td>
+                <td th:text="${replication.updatedAt.toLocalDate()}"></td>
             </tr>
             </tbody>
         </table>
