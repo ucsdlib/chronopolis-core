@@ -24,4 +24,9 @@ public class Params {
     public static final String SORT_SIZE = "size";
     public static final String SORT_TOTAL_FILES = "totalFiles";
 
+    // Temporal stuff
+    public static final String CREATED_AFTER = "created_after";
+    public static final String UPDATED_AFTER = "updated_after";
+    public static final String CREATED_BEFORE = "created_before";
+    public static final String UPDATED_BEFORE = "updated_before";
 }

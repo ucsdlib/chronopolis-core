@@ -80,11 +80,13 @@ public class BagController extends IngestController {
     public String getBags(Model model, Principal principal,
                           @RequestParam(defaultValue = "0", required = false) Integer page,
                           @RequestParam(required = false) String depositor,
+                          @RequestParam(required = false) String name,
                           @RequestParam(required = false) BagStatus status) {
         log.info("Getting bags for user {}", principal.getName());
 
         BagSearchCriteria criteria = new BagSearchCriteria()
-                .withDepositor(depositor)
+                .nameLike(name)
+                .depositorLike(depositor)
                 .withStatus(status);
 
         Sort s = new Sort(Sort.Direction.ASC, "id");
@@ -265,8 +267,8 @@ public class BagController extends IngestController {
         log.info("Getting replications for user {}", principal.getName());
         Page<Replication> replications;
         ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
-                .withNodeUsername(node)
-                .withBagName(bag)
+                .bagNameLike(bag)
+                .nodeUsernameLike(node)
                 .withStatus(status);
 
         Sort s = new Sort(Sort.Direction.ASC, "id");

@@ -7,7 +7,7 @@ import okhttp3.OkHttpClient;
 import org.chronopolis.common.ace.OkBasicInterceptor;
 import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.support.PageDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -44,6 +44,7 @@
                     <!--@thymesVar id="statuses" type="List" -->
                     <!--@thymesVar id="status" type="org.chronopolis.rest.models.ReplicationStatus" -->
                     <select name="status" id="status-table-filter" class="form-control">
+                        <option value="">select a status</option>
                         <option th:each="status : ${statuses}"
                                 th:value="${status.name()}" th:text="${status.name()}">
 
@@ -66,9 +67,11 @@
             <thead>
             <tr>
                 <th>ID</th>
-                <th>Bag ID</th> <!-- Name instead? -->
+                <th>Bag</th> <!-- Name instead? -->
                 <th>Replicating Node</th>
                 <th>Status</th>
+                <th>Created At</th>
+                <th>Updated At</th>
             </tr>
             </thead>
             <tbody>
@@ -76,9 +79,11 @@
             <!--@thymesVar id="replication" type="org.chronopolis.rest.entities.Replication"-->
             <tr th:each="replication: ${replications}">
                 <td><a th:href="@{'/replications/' + ${replication.id}}" th:text="${replication.id}"></a></td>
-                <td th:text="${replication.bag.id}"></td>
+                <td th:text="${replication.bag.name}"></td>
                 <td th:text="${replication.node.username}"></td>
                 <td th:text="${replication.status}"></td>
+                <td th:text="${replication.createdAt.toLocalDate()}"></td>
+                <td th:text="${replication.updatedAt.toLocalDate()}"></td>
             </tr>
             </tbody>
         </table>

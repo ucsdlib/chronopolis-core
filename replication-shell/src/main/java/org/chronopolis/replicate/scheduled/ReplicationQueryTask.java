@@ -3,10 +3,11 @@ package org.chronopolis.replicate.scheduled;
 import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.replicate.batch.ReplicationJobStarter;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.support.BagConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.JobExecution;
@@ -153,7 +154,7 @@ public class ReplicationQueryTask {
             Response<Bag> response = call.execute();
             Bag bag = response.body();
 
-            replication.setBag(bag);
+            replication.setBag(BagConverter.toBagEntity(bag));
             String filterString = bag.getDepositor() + ":" + bag.getName();
             if (update) {
                 log.info("Updating replication");

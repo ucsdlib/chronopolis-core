@@ -28,19 +28,19 @@
                            placeholder="Search Depositor"/>
                 </div>
                 <br/>
-                <!--
                 <div class="input-group form-group-sm">
                     <span class="input-group-addon">Bag Name</span>
-                    <input type="text" class="form-control" id="name-table-filter" name="name" placeholder="Search Name"/>
+                    <input type="text" class="form-control" id="name-table-filter" name="name"
+                           placeholder="Search Name"/>
                 </div>
                 <br/>
-                -->
                 <div class="input-group form-group-sm">
                     <span class="input-group-addon">Status</span>
 
                     <!--@thymesVar id="statuses" type="List" -->
                     <!--@thymesVar id="status" type="org.chronopolis.rest.models.BagStatus" -->
                     <select name="status" id="status-table-filter" class="form-control">
+                        <option value="">select a status</option>
                         <option th:each="status : ${statuses}"
                                 th:value="${status.value}" th:text="${status.value}">
 
@@ -60,6 +60,8 @@
                 <th>Depositor</th>
                 <th>Name</th>
                 <th>Status</th>
+                <th>Created At</th>
+                <th>Updated At</th>
             </tr>
             </thead>
             <tbody>
@@ -70,6 +72,8 @@
                 <td th:text="${bag.depositor}"></td>
                 <td th:text="${bag.name}"></td>
                 <td th:text="${bag.status}"></td>
+                <td th:text="${bag.createdAt.toLocalDate()}"></td>
+                <td th:text="${bag.updatedAt.toLocalDate()}"></td>
             </tr>
             </tbody>
         </table>

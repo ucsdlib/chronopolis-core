@@ -88,8 +88,8 @@ public class StagingControllerTest extends IngestTest {
                 .build();
 
         IngestAPI api = adapter.create(IngestAPI.class);
-        Call<Bag> call = api.getBag((long) 10);
-        Bag bag1 = call.execute().body();
+        Call<org.chronopolis.rest.models.Bag> call = api.getBag((long) 10);
+        org.chronopolis.rest.models.Bag bag1 = call.execute().body();
         System.out.println(bag1.getTokenLocation());
     }
 

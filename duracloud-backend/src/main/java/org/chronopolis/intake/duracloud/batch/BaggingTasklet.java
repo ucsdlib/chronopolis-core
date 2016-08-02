@@ -7,6 +7,9 @@ import org.chronopolis.bag.core.Digest;
 import org.chronopolis.bag.core.OnDiskTagFile;
 import org.chronopolis.bag.core.PayloadManifest;
 import org.chronopolis.bag.core.Unit;
+import org.chronopolis.bag.writer.DirectoryPackager;
+import org.chronopolis.bag.writer.SimpleNamingSchema;
+import org.chronopolis.bag.writer.SimpleWriter;
 import org.chronopolis.bag.writer.TarPackager;
 import org.chronopolis.bag.writer.UUIDNamingSchema;
 import org.chronopolis.bag.writer.Writer;
@@ -86,15 +89,11 @@ public class BaggingTasklet implements Tasklet {
                 .includeMissingTags(true)
                 .withInfo(BagInfo.Tag.INFO_SOURCE_ORGANIZATION, depositor);
 
-        Writer writer = new DpnWriter()
-                .withDepositor(depositor)
-                .withBagInfo(info)
+        Writer writer = settings.pushDPN() ? buildDpnWriter(out) : buildWriter(out);
+        writer.withBagInfo(info)
                 .withBagIt(new BagIt())
                 .withDigest(Digest.SHA_256)
                 .withPayloadManifest(manifest)
-                .withMaxSize(245, Unit.GIGABYTE)
-                .withPackager(new TarPackager(out))
-                .withNamingSchema(new UUIDNamingSchema())
                 .withTagFile(new OnDiskTagFile(snapshotBase.resolve(SNAPSHOT_COLLECTION_PROPERTIES)))
                 .withTagFile(new OnDiskTagFile(snapshotBase.resolve(SNAPSHOT_CONTENT_PROPERTIES)))
                 .withTagFile(new DuracloudMD5(snapshotBase.resolve(SNAPSHOT_MD5)));
@@ -119,51 +118,18 @@ public class BaggingTasklet implements Tasklet {
         return RepeatStatus.FINISHED;
     }
 
+    private Writer buildWriter(Path out) {
+        return new SimpleWriter()
+                .withPackager(new DirectoryPackager(out))
+                .withNamingSchema(new SimpleNamingSchema(snapshotId));
+    }
 
-    private void old() {
-        /*
-        // Set up the builder
-        ManifestBuilder builder = new ManifestBuilder();
-        builder.setRoot(snapshotBase);
-        builder.setWriteBase(Paths.get(settings.getBagStage()));
-        builder.setDepositor(depositor);
-        builder.setCompressed(true);
-        builder.setMaxSize(250, Unit.GIGABYTE); // Max size defined by DPN, todo: externalize
-        builder.setName(collectionName);
-        builder.setIngestionType(IngestionType.DPN);
-
-        // And bag (with a sha256 manifest)
-        builder.loadManifest(Files.newBufferedReader(
-                snapshotBase.resolve(settings.getDuracloudManifest()),
-                Charset.defaultCharset()));
-        builder.newScanPackage();
-
-        // Send a notification for each package
-        for (ChronPackage chronPackage : builder.getPackages()) {
-            // If we compress the bag, add .tar to the save name
-            String saveName = (builder.isCompressed())
-                    ? chronPackage.getSaveName() + ".tar"
-                    : chronPackage.getSaveName();
-
-            Path saveFile = Paths.get(settings.getBagStage(),
-                    depositor,
-                    saveName);
-
-            // And get the relative location
-            Path location = Paths.get(settings.getBagStage())
-                    .relativize(saveFile);
-
-            log.info("Save file {}; Save Name {}", saveFile, chronPackage.getSaveName());
-
-            // String tagDigest = getTagDigest(chronPackage.getBuildListenerWriter());
-            String receipt = com.google.common.io.Files.hash(saveFile.toFile(),
-                    Hashing.sha256())
-                    .toString();
-            log.info("Digest is {}", receipt);
-
-            history.addBaggingData(chronPackage.getSaveName(), receipt);
-        }
-        */
+    private Writer buildDpnWriter(Path out) {
+        return new DpnWriter()
+                .withDepositor(depositor)
+                .withMaxSize(245, Unit.GIGABYTE)
+                .withPackager(new TarPackager(out))
+                .withNamingSchema(new UUIDNamingSchema());
     }
 
 }
