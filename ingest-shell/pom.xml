@@ -5,11 +5,11 @@
     <parent>
         <groupId>org.chronopolis</groupId>
         <artifactId>chronopolis</artifactId>
-        <version>1.3.3-SNAPSHOT</version>
+        <version>1.3.3-RELEASE</version>
     </parent>
     <groupId>org.chronopolis</groupId>
     <artifactId>ingest-shell</artifactId>
-    <version>1.3.3-SNAPSHOT</version>
+    <version>1.3.3-RELEASE</version>
     <packaging>jar</packaging>
     <name>Ingest Shell</name>
     <url>http://maven.apache.org</url>
