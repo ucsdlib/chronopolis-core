@@ -1,6 +1,6 @@
 package org.chronopolis.rest.api;
 
-import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.FixityUpdate;
 import org.chronopolis.rest.models.IngestRequest;
 import org.chronopolis.rest.models.RStatusUpdate;

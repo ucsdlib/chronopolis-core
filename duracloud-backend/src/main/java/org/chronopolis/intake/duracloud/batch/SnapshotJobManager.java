@@ -1,6 +1,9 @@
 package org.chronopolis.intake.duracloud.batch;
 
 import org.chronopolis.intake.duracloud.DataCollector;
+import org.chronopolis.intake.duracloud.batch.check.Checker;
+import org.chronopolis.intake.duracloud.batch.check.ChronopolisCheck;
+import org.chronopolis.intake.duracloud.batch.check.DpnCheck;
 import org.chronopolis.intake.duracloud.batch.support.APIHolder;
 import org.chronopolis.intake.duracloud.config.IntakeSettings;
 import org.chronopolis.intake.duracloud.model.BagData;
@@ -28,7 +31,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Start a {@link SnapshotTasklet} based on the type of request that comes in
+ * Start a Tasklet based on the type of request that comes in
  *
  * Created by shake on 7/29/14.
  */
@@ -36,7 +39,6 @@ public class SnapshotJobManager {
     private final Logger log = LoggerFactory.getLogger(SnapshotJobManager.class);
 
     // Autowired from the configuration
-    private SnapshotTasklet snapshotTasklet;
     private BaggingTasklet baggingTasklet;
 
     private JobBuilderFactory jobBuilderFactory;
@@ -54,12 +56,10 @@ public class SnapshotJobManager {
                               StepBuilderFactory stepBuilderFactory,
                               JobLauncher jobLauncher,
                               APIHolder holder,
-                              SnapshotTasklet snapshotTasklet,
                               BaggingTasklet baggingTasklet,
                               DataCollector collector) {
         this.jobBuilderFactory = jobBuilderFactory;
         this.stepBuilderFactory = stepBuilderFactory;
-        this.snapshotTasklet = snapshotTasklet;
         this.baggingTasklet = baggingTasklet;
         this.jobLauncher = jobLauncher;
         this.collector = collector;
@@ -133,10 +133,29 @@ public class SnapshotJobManager {
      * @param settings
      */
     public void startReplicationTasklet(SnapshotDetails details, List<BagReceipt> receipts, IntakeSettings settings) {
+        // If we're pushing to dpn, let's make the differences here
+        // -> Always push to chronopolis so have a separate tasklet for that (NotifyChron or something)
+        // -> If we're pushing to dpn, do a DPNReplication Tasklet
+        // -> Else have a Tasklet for checking status in chronopolis
         BagData data = collector.collectBagData(details.getSnapshotId());
         data.setMember(details.getMemberId());
-        ReplicationTasklet task = new ReplicationTasklet(data, receipts, holder.bridge, holder.ingest, holder.dpn, settings);
-        task.run();
+
+        Checker check;
+        ChronopolisIngest ingest = new ChronopolisIngest(data, receipts, holder.ingest, settings);
+
+        if (settings.pushDPN()) {
+            DpnReplication replication = new DpnReplication(data, receipts, holder.dpn, settings);
+            replication.run();
+
+            check = new DpnCheck(data, receipts, holder.bridge, holder.dpn);
+        } else {
+            check = new ChronopolisCheck(data, receipts, holder.bridge, holder.ingest);
+        }
+
+        // Might tie these to futures, not sure yet. That way we won't block here.
+        // TODO: If ingest fails, we probably won't want to run the check
+        ingest.run();
+        check.run();
     }
 
 }

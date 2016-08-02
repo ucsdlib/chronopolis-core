@@ -11,6 +11,7 @@ import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.support.BagConverter;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -88,7 +89,7 @@ public class ReplicationQueryTaskTest {
     Map<String, Object> started;
     Map<String, Object> pending;
 
-    Call<Bag> bagCall;
+    Call<org.chronopolis.rest.models.Bag> bagCall;
     Call<PageImpl<Replication>> replications;
 
 
@@ -105,6 +106,8 @@ public class ReplicationQueryTaskTest {
         ArrayList<Replication> replicationList = new ArrayList<>();
         Node n = new Node("test", "test");
         b = new Bag("test-bag", "test-depositor");
+        b.setSize(0);
+        b.setTotalFiles(0);
 
         replication = new Replication(n, b);
         replication.setId(1L);
@@ -115,7 +118,7 @@ public class ReplicationQueryTaskTest {
         PageImpl<Replication> page = new PageImpl<>(replicationList);
 
         replications = new CallWrapper<>(page);
-        bagCall = new CallWrapper<>(b);
+        bagCall = new CallWrapper<>(BagConverter.toBagModel(b));
 
         started = ImmutableMap.of("status", ReplicationStatus.STARTED);
         pending = ImmutableMap.of("status", ReplicationStatus.PENDING);

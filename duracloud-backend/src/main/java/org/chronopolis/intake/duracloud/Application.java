@@ -2,6 +2,7 @@ package org.chronopolis.intake.duracloud;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import okhttp3.OkHttpClient;
 import org.chronopolis.common.ace.OkBasicInterceptor;
 import org.chronopolis.common.mail.MailUtil;
@@ -11,7 +12,6 @@ import org.chronopolis.common.settings.SMTPSettings;
 import org.chronopolis.earth.api.LocalAPI;
 import org.chronopolis.intake.duracloud.batch.BaggingTasklet;
 import org.chronopolis.intake.duracloud.batch.SnapshotJobManager;
-import org.chronopolis.intake.duracloud.batch.SnapshotTasklet;
 import org.chronopolis.intake.duracloud.batch.support.APIHolder;
 import org.chronopolis.intake.duracloud.config.IntakeSettings;
 import org.chronopolis.intake.duracloud.remote.BridgeAPI;
@@ -19,6 +19,8 @@ import org.chronopolis.intake.duracloud.scheduled.Bridge;
 import org.chronopolis.intake.duracloud.service.ChronService;
 import org.chronopolis.rest.api.ErrorLogger;
 import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.support.PageDeserializer;
 import org.chronopolis.rest.support.ZonedDateTimeDeserializer;
 import org.chronopolis.rest.support.ZonedDateTimeSerializer;
 import org.slf4j.Logger;
@@ -35,10 +37,13 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.domain.PageImpl;
 import retrofit2.GsonConverterFactory;
 import retrofit2.Retrofit;
 
+import java.lang.reflect.Type;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 // import org.chronopolis.earth.api.LocalAPI;
@@ -80,7 +85,14 @@ public class Application implements CommandLineRunner {
     IngestAPI ingestAPI(IngestAPISettings settings) {
         String endpoint = settings.getIngestEndpoints().get(0);
 
+        Type bagPage = new TypeToken<PageImpl<Bag>>() {}.getType();
+        Type bagList = new TypeToken<List<Bag>>() {}.getType();
+        // Type replPage = new TypeToken<PageImpl<Replication>>() {}.getType();
+        //Type replList = new TypeToken<List<Replication>>() {}.getType();
+
         Gson gson = new GsonBuilder()
+                .registerTypeAdapter(bagPage, new PageDeserializer(bagList))
+                // .registerTypeAdapter(replPage, new PageDeserializer(replList))
                 .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeSerializer())
                 .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeDeserializer())
                 .create();
@@ -89,6 +101,10 @@ public class Application implements CommandLineRunner {
                 .addInterceptor(new OkBasicInterceptor(
                         settings.getIngestAPIUsername(),
                         settings.getIngestAPIPassword()))
+                .addInterceptor(chain -> {
+                    log.info("{} {}", chain.request().method(), chain.request().url().toString());
+                    return chain.proceed(chain.request());
+                })
                 .readTimeout(5, TimeUnit.HOURS)
                 .build();
 
@@ -112,24 +128,6 @@ public class Application implements CommandLineRunner {
         return mailUtil;
     }
 
-
-
-    @Bean
-    @JobScope
-    SnapshotTasklet snapshotTasklet(@Value("#{jobParameters[snapshotId]}") String snapshotID,
-                                    @Value("#{jobParameters[depositor]}") String depositor,
-                                    @Value("#{jobParameters[collectionName]}") String collectionName,
-                                    IntakeSettings settings,
-                                    IngestAPI ingestAPI,
-                                    LocalAPI localAPI) {
-        return new SnapshotTasklet(snapshotID,
-                collectionName,
-                depositor,
-                settings,
-                ingestAPI,
-                localAPI);
-    }
-
     @Bean
     @JobScope
     BaggingTasklet baggingTasklet(@Value("#{jobParameters[snapshotId]}") String snapshotId,
@@ -150,14 +148,12 @@ public class Application implements CommandLineRunner {
                                           StepBuilderFactory stepBuilderFactory,
                                           JobLauncher jobLauncher,
                                           APIHolder holder,
-                                          SnapshotTasklet snapshotTasklet,
                                           BaggingTasklet baggingTasklet,
                                           IntakeSettings settings) {
         return new SnapshotJobManager(jobBuilderFactory,
                 stepBuilderFactory,
                 jobLauncher,
                 holder,
-                snapshotTasklet,
                 baggingTasklet,
                 new PropertiesDataCollector(settings));
     }
