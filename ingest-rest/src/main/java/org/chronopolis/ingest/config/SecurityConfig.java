@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Configuration for our login/per page authorization
+ *
  * Created by shake on 11/10/14.
  */
 @Configuration
@@ -81,6 +83,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/users/**").hasRole("USER")
                 .antMatchers(HttpMethod.POST,
                         "/bags/add",
+                        "/replications/add",
                         "/users/add").hasRole("ADMIN")
                 .antMatchers("/").permitAll()
                     .anyRequest().permitAll()
