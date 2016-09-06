@@ -82,9 +82,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/replications/**",
                         "/users/**").hasRole("USER")
                 .antMatchers(HttpMethod.POST,
-                        "/bags/add",
-                        "/replications/add",
-                        "/users/add").hasRole("ADMIN")
+                        "/bags/**",
+                        "/replications/**",
+                        "/users/**").hasRole("ADMIN")
                 .antMatchers("/").permitAll()
                     .anyRequest().permitAll()
                 .and()
