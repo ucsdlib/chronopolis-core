@@ -11,6 +11,7 @@ import org.chronopolis.rest.models.BagStatus;
  */
 public class BagUpdate {
 
+    private String location;
     private BagStatus status;
 
     public BagUpdate() {
@@ -22,6 +23,15 @@ public class BagUpdate {
 
     public BagUpdate setStatus(BagStatus status) {
         this.status = status;
+        return this;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public BagUpdate setLocation(String location) {
+        this.location = location;
         return this;
     }
 }
