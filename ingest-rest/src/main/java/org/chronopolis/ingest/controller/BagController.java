@@ -12,10 +12,10 @@ import org.chronopolis.ingest.repository.ReplicationSearchCriteria;
 import org.chronopolis.ingest.repository.ReplicationService;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.models.BagStatus;
-import org.chronopolis.rest.models.IngestRequest;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.models.BagStatus;
+import org.chronopolis.rest.models.IngestRequest;
 import org.chronopolis.rest.models.ReplicationRequest;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
@@ -82,7 +82,9 @@ public class BagController extends IngestController {
                           @RequestParam(defaultValue = "0", required = false) Integer page,
                           @RequestParam(required = false) String depositor,
                           @RequestParam(required = false) String name,
-                          @RequestParam(required = false) BagStatus status) {
+                          @RequestParam(required = false) BagStatus status,
+                          @RequestParam(defaultValue = "id", required = false) String orderBy,
+                          @RequestParam(required = false) String dir) {
         log.info("Getting bags for user {}", principal.getName());
 
         BagSearchCriteria criteria = new BagSearchCriteria()
@@ -90,7 +92,8 @@ public class BagController extends IngestController {
                 .depositorLike(depositor)
                 .withStatus(status);
 
-        Sort s = new Sort(Sort.Direction.ASC, "id");
+        Sort.Direction direction = (dir == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(dir);
+        Sort s = new Sort(direction, orderBy);
         Page<Bag> bags = bagService.findBags(criteria, new PageRequest(page, DEFAULT_PAGE_SIZE, s));
 
         boolean start;
@@ -269,7 +272,9 @@ public class BagController extends IngestController {
                                   @RequestParam(defaultValue = "0", required = false) Integer page,
                                   @RequestParam(required = false) String node,
                                   @RequestParam(required = false) String bag,
-                                  @RequestParam(required = false) ReplicationStatus status) {
+                                  @RequestParam(required = false) ReplicationStatus status,
+                                  @RequestParam(defaultValue = "id", required = false) String orderBy,
+                                  @RequestParam(required = false) String dir) {
         log.info("Getting replications for user {}", principal.getName());
         Page<Replication> replications;
         ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
@@ -277,7 +282,8 @@ public class BagController extends IngestController {
                 .nodeUsernameLike(node)
                 .withStatus(status);
 
-        Sort s = new Sort(Sort.Direction.ASC, "id");
+        Sort.Direction direction = (dir == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(dir);
+        Sort s = new Sort(direction, orderBy);
         replications = replicationService.getReplications(criteria, new PageRequest(page, DEFAULT_PAGE_SIZE, s));
 
         StringBuilder url = new StringBuilder("/replications");

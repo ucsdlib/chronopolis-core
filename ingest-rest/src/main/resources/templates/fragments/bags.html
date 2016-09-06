@@ -48,6 +48,27 @@
                     </select>
                 </div>
                 <br/>
+                <!-- TODO: Fragment? -->
+                <h5>Order By</h5>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="orderBy" id="optionUpdatedAt" value="updatedAt"/>
+                        Updated At
+                    </label>
+                </div>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="orderBy" id="optionCreatedAt" value="createdAt"/>
+                        Created At
+                    </label>
+                </div>
+                <div class="input-group form-group-sm">
+                    <select name="dir" id="direction-filter" class="form-control">
+                        <option value="ASC">Ascending</option>
+                        <option value="DESC">Descending</option>
+                    </select>
+                </div>
+                <br/>
                 <button th:type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search"
                                                                        aria-hidden="true"></span></button>
             </form>
