@@ -48,6 +48,7 @@ import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatu
 public class BagController extends IngestController {
     private final Logger log = LoggerFactory.getLogger(BagController.class);
     private final Integer DEFAULT_PAGE_SIZE = 20;
+    private final Integer DEFAULT_PAGE = 0;
 
     @Autowired
     BagService bagService;
@@ -127,9 +128,14 @@ public class BagController extends IngestController {
     public String getBag(Model model, @PathVariable("id") Long id) {
         log.info("Getting bag {}", id);
 
+        ReplicationSearchCriteria rsc = new ReplicationSearchCriteria().withBagId(id);
+
         // TODO: Could probably use model.addAllAttributes and use that for
         // common pages
-        model.addAttribute("bags", bagService.findBag(id));
+        // TODO: Handle pages for replications I guess
+        model.addAttribute("bag", bagService.findBag(id));
+        model.addAttribute("replications", replicationService.getReplications(rsc,
+                new PageRequest(DEFAULT_PAGE, DEFAULT_PAGE_SIZE)));
         model.addAttribute("statuses", Arrays.asList(BagStatus.values()));
         model.addAttribute("tokens", tokenRepository.countByBagId(id));
 
