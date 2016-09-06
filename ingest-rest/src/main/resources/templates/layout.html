@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
-    xmlns:th="http://www.thymeleaf.org"
-    xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
-    layout:decorator="layout">
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+      layout:decorator="layout">
     <body>
         <header class="navbar navbar-fixed-top navbar-expanded navbar-chron" th:fragment="head">
                 <div class="container">
@@ -16,8 +17,10 @@
         <div class="sidebar" th:fragment="left" >
             <!--<div class="col-sm-3 col-md-2 sidebar">-->
                 <ul class="nav nav-sidebar">
-                    <li><a href="/login"
-                           th:href="@{/login}">Log In</a></li>
+                    <li sec:authorize="isAnonymous()"><a href="/login"
+                        th:href="@{/login}">Log In</a></li>
+                    <li sec:authorize="isAuthenticated()"><a href="/logout"
+                        th:href="@{/logout}">Log Out</a></li>
                     <li><a href="/bags"
                            th:href="@{/bags}">Bags</a></li>
                     <li><a href="/bags/add"
