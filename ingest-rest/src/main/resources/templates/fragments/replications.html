@@ -82,8 +82,8 @@
                 <td th:text="${replication.bag.name}"></td>
                 <td th:text="${replication.node.username}"></td>
                 <td th:text="${replication.status}"></td>
-                <td th:text="${replication.createdAt.toLocalDate()}"></td>
-                <td th:text="${replication.updatedAt.toLocalDate()}"></td>
+                <td th:if="${replication.createdAt} != null" th:text="${replication.createdAt.toLocalDate()}"></td>
+                <td th:if="${replication.updatedAt} != null" th:text="${replication.updatedAt.toLocalDate()}"></td>
             </tr>
             </tbody>
         </table>
