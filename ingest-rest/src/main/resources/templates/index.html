@@ -1,42 +1,15 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
+<head th:replace="layout :: head">
     <title>Chronopolis Ingestion Service</title>
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
-    <!-- <script src="webjars/jquery/2.1.1/jquery.min.js"/> -->
-    <link href="../css/bootstrap.min.css"
-          th:href="@{/css/bootstrap.min.css}"
-          rel="stylesheet" type="text/css"/>
-    <link href="../css/nav.css"
-          th:href="@{/css/nav.css}"
-          rel="stylesheet" type="text/css"/>
 </head>
 <body style="padding-top: 50px">
-<!-- <div class="container-fluid">
-    <div class="row"> -->
-        <header th:replace="layout :: head"></header>
+        <header th:replace="layout :: header"></header>
 
         <div class="page-layout">
             <div th:replace="layout :: left"></div>
             <div class="content"></div>
        </div>
 
-
-            <!--class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">-->
-<!--
-            <div><h2 th:inline="text">Logged in as [[${#httpServletRequest.remoteUser}]]</h2></div>
-            <form th:action="@{/logout}" method="post">
-                <input type="submit" value="Sign Out"/>
-            </form>
-        </div>-->
-        <!--
-        <div class="col-sm-9 col-sm-offset col-md-offset-2 main">
-            <div><h1 th:inline="text">Logged in as [[${#httpServletRequest.remoteUser}]]!</h1></div>
-            <form th:action="@{/logout}" method="post">
-                <input type="submit" value="Sign Out"/>
-            </form>
-        </div>
-</div>
-        -->
 </body>
 </html>
