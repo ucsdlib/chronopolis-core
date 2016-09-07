@@ -50,6 +50,7 @@ public class UserServiceTest extends IngestTest {
         service.createUser(request);
 
         UserDetails details = service.getUser(NEW_USER);
-        Assert.assertEquals(PASSWORD, details.getPassword());
+        Assert.assertNotNull(details);
+        Assert.assertEquals(NEW_USER, details.getUsername());
     }
 }
