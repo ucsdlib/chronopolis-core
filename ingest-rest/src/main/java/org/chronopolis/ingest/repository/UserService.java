@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Component;
 
@@ -36,6 +37,9 @@ public class UserService {
     @Autowired
     NodeRepository repository;
 
+    @Autowired
+    PasswordEncoder encoder;
+
     public void createUser(UserRequest request) {
         if (manager.userExists(request.getUsername())) {
             log.debug("User already exists, avoiding creation");
@@ -44,7 +48,7 @@ public class UserService {
 
         log.info("Creating new user {}", request.getUsername());
         String username = request.getUsername();
-        String password = request.getPassword();
+        String password = encoder.encode(request.getPassword());
 
         Collection<SimpleGrantedAuthority> authorities = new HashSet<>();
 
