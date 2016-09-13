@@ -12,6 +12,7 @@ import org.chronopolis.earth.api.BalustradeBag;
 import org.chronopolis.earth.api.BalustradeTransfers;
 import org.chronopolis.earth.api.LocalAPI;
 import org.chronopolis.earth.models.Bag;
+import org.chronopolis.earth.models.Digest;
 import org.chronopolis.earth.models.Node;
 import org.chronopolis.earth.models.Replication;
 import org.chronopolis.earth.models.Response;
@@ -20,7 +21,6 @@ import org.chronopolis.intake.duracloud.config.IntakeSettings;
 import org.chronopolis.intake.duracloud.model.BagData;
 import org.chronopolis.intake.duracloud.model.BagReceipt;
 import org.chronopolis.intake.duracloud.model.ReplicationHistory;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Call;
@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -96,7 +97,7 @@ public class DpnReplication implements Runnable {
         snapshot = data.snapshotId();
         depositor = data.depositor();
 
-        /**
+        /*
          * Creating/Updating bags and replications
          * Feels a bit weird to have these all in one but that's ok for now
          *
@@ -126,7 +127,7 @@ public class DpnReplication implements Runnable {
         // It seems like this is n^2, we could do a filter, then map, but... well, we'll see
         // Create a bag and replications for each receipt
         receipts.stream()
-                .map(this::getBag) // get our bag (1)
+                .map(this::getBag) // get our bag (1) or create (1b)
                 .filter(Optional::isPresent) // annoying but w.e.
                 .map(Optional::get)
                 .map(b -> createReplication(b, permutations.get(ran.nextInt(pSize)))) // create replications (2 + 2a)
@@ -152,9 +153,9 @@ public class DpnReplication implements Runnable {
         // Short circuit if necessary
         log.info("Checking replications for bag {}", bag.getUuid());
         SimpleCallback<Response<Replication>> rcb = new SimpleCallback<>();
-        Call<Response<Replication>> ongoing = transfers.getReplications(ImmutableMap.of("uuid", bag.getUuid()));
+        Call<Response<Replication>> ongoing = transfers.getReplications(ImmutableMap.of("bag", bag.getUuid()));
         ongoing.enqueue(rcb);
-        com.google.common.base.Optional<Response<Replication>> ongoingResponse = rcb.getResponse();
+        Optional<Response<Replication>> ongoingResponse = rcb.getResponse();
         if (ongoingResponse.isPresent()) {
             count += ongoingResponse.get().getCount();
         }
@@ -174,21 +175,23 @@ public class DpnReplication implements Runnable {
 
             log.debug("Adding replication for {}", node);
             Replication repl = new Replication();
-            repl.setStatus(Replication.Status.REQUESTED);
-            repl.setCreatedAt(DateTime.now());
-            repl.setUpdatedAt(DateTime.now());
+            repl.setCreatedAt(ZonedDateTime.now());
+            repl.setUpdatedAt(ZonedDateTime.now());
             repl.setReplicationId(UUID.randomUUID().toString());
             repl.setFromNode(ourNode);
             repl.setToNode(node);
             repl.setLink(node + "@" + settings.getDpnReplicationServer() + ":" + save.toString());
             repl.setProtocol(PROTOCOL);
-            repl.setUuid(bag.getUuid());
+            repl.setStored(false);
+            repl.setStoreRequested(false);
+            repl.setCancelled(false);
+            repl.setBag(bag.getUuid());
             repl.setFixityAlgorithm(ALGORITHM);
 
             Call<Replication> replCall = transfers.createReplication(repl);
             try {
                 retrofit2.Response<Replication> replResponse = replCall.execute();
-                if (replResponse.isSuccess()) {
+                if (replResponse.isSuccessful()) {
                     ++count;
                     // nodes.remove(index);
                 }
@@ -211,7 +214,7 @@ public class DpnReplication implements Runnable {
             log.error("Error communicating with server", e);
         }
 
-        if (response != null && response.isSuccess()) {
+        if (response != null && response.isSuccessful()) {
             Node myNode = response.body();
             nodes = myNode.getReplicateTo();
         } else {
@@ -243,9 +246,10 @@ public class DpnReplication implements Runnable {
             // TODO: Figure this out
             response = retrofit2.Response.error(500, ResponseBody.create(MediaType.parse("text/plain"), "empty"));
         }
-        return response.isSuccess() ? Optional.of(response.body()) : createBag(receipt);
+        return response.isSuccessful() ? Optional.of(response.body()) : createBag(receipt);
     }
 
+    // TODO: Create the bag and digest separate from one another
     private Optional<Bag> createBag(BagReceipt receipt) {
         log.info("Creating bag for receipt {}", receipt.getName());
 
@@ -266,12 +270,13 @@ public class DpnReplication implements Runnable {
         Bag bag = new Bag();
 
         // TODO: No magic (sha256/admin node/replicating node)
+        // TODO: Create MessageDigest as well
         bag.setAdminNode("chron")
                 .setUuid(name)
                 .setBagType(DATA_BAG)
                 .setMember(data.member())
-                .setCreatedAt(new DateTime())
-                .setUpdatedAt(new DateTime())
+                .setCreatedAt(ZonedDateTime.now())
+                .setUpdatedAt(ZonedDateTime.now())
                 // Size of the tarball, should be good enough
                 .setSize(save.toFile().length())
                 .setLocalId(reader.getLocalId())
@@ -281,14 +286,23 @@ public class DpnReplication implements Runnable {
                 .setInterpretive(reader.getInterpretiveIds())
                 .setFirstVersionUuid(reader.getFirstVersionUUID())
                 // sha256 digest from our receipt
-                .setFixities(ImmutableMap.of("sha256", receipt.getReceipt()))
+                // .setFixities(ImmutableMap.of("sha256", receipt.getReceipt()))
                 .setReplicatingNodes(ImmutableList.of("chron"));
+
+        // MessageDigest
+        Digest bagDigest = new Digest();
+        bagDigest.setAlgorithm("sha256");
+        bagDigest.setValue(receipt.getReceipt());
+        bagDigest.setNode("chron");
+        bagDigest.setCreatedAt(ZonedDateTime.now());
 
         // TODO: Maybe look for a way to clean this up a bit
         Call<Bag> call = dpn.getBagAPI().createBag(bag);
+        Call<Digest> digestCall = dpn.getBagAPI().createDigest(name, bagDigest);
         try {
             retrofit2.Response<Bag> response = call.execute();
-            if (response.isSuccess()) {
+            retrofit2.Response<Digest> digest = digestCall.execute();
+            if (response.isSuccessful() && digest.isSuccessful()) {
                 log.info("Success registering bag {}", bag.getUuid());
                 optional = Optional.of(bag);
             } else {
