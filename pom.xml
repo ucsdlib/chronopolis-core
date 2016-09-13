@@ -50,7 +50,6 @@
                 <module>ingest-shell</module>
                 <module>ingest-rest</module>
                 <module>replication-shell</module>
-                <module>duracloud-intake</module>
                 <module>duracloud-backend</module>
             </modules>
         </profile>
