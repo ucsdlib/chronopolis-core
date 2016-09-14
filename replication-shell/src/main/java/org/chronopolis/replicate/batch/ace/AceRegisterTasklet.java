@@ -7,8 +7,8 @@ import org.chronopolis.replicate.batch.callback.UpdateCallback;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +21,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Phaser;
 
 /**
  *
@@ -39,7 +39,10 @@ public class AceRegisterTasklet implements Callable<Long> {
     private Long id = -1L;
 
     // TODO: This latch is used for too much. Currently the callback in getId won't block the register from running
-    private CountDownLatch latch;
+    private final Phaser phaser;
+    // private final Lock lock;
+    // private final Condition read;
+    // private final Condition registered;
 
     public AceRegisterTasklet(IngestAPI ingest, AceService aceService, Replication replication, ReplicationSettings settings, ReplicationNotifier notifier) {
         this.ingest = ingest;
@@ -47,12 +50,15 @@ public class AceRegisterTasklet implements Callable<Long> {
         this.replication = replication;
         this.settings = settings;
         this.notifier = notifier;
-        this.latch = new CountDownLatch(1);
+        // Main thread + callback
+        phaser = new Phaser();
+        // lock = new ReentrantLock();
+        // read = lock.newCondition();
+        // registered = lock.newCondition();
     }
 
     public void run() throws Exception {
         log.trace("Building ACE json");
-        ReplicationStatus status = replication.getStatus();
         Bag bag = replication.getBag();
 
         // What we want to do:
@@ -60,17 +66,19 @@ public class AceRegisterTasklet implements Callable<Long> {
         // -> 200 -> return id
         // -> 204 -> register
 
+        phaser.register();
         getId(bag);
+        phaser.arriveAndAwaitAdvance();
 
         // might not need to worry about the status, so let's omit it for now
         // status == ReplicationStatus.TRANSFERRED
         if (id == -1) {
             // register and what not
             register(bag);
-        } /*else {
-            // get the collection id from ACE
-            getId(bag);
-        }*/
+
+            // main thread await
+            phaser.arriveAndAwaitAdvance();
+        }
     }
 
     private void register(Bag bag) {
@@ -91,8 +99,9 @@ public class AceRegisterTasklet implements Callable<Long> {
 
         log.debug("POSTing {}", aceGson.toJsonJackson());
 
-        // hmmm
-        // we want to wait for this to finish before moving on. just sayin'
+        // callback register
+        phaser.register();
+
         Call<Map<String, Long>> call = aceService.addCollection(aceGson);
         call.enqueue(new Callback<Map<String, Long>>() {
             @Override
@@ -110,45 +119,42 @@ public class AceRegisterTasklet implements Callable<Long> {
                     notifier.setSuccess(false);
                 }
 
-                latch.countDown();
+                // arrive and dereg?
+                phaser.arrive();
             }
 
             @Override
             public void onFailure(Throwable throwable) {
                 log.error("Error communicating with ACE", throwable);
                 notifier.setSuccess(false);
-                latch.countDown();
-                // ...?
-                throw new RuntimeException(throwable);
+                phaser.arrive();
+                // ..?
+                // throw new RuntimeException(throwable);
             }
         });
-
     }
 
     private void getId(Bag bag) {
+        // Register with the phaser so that we may arrive when the callback completes
+        phaser.register();
+
         Call<GsonCollection> call = aceService.getCollectionByName(bag.getName(), bag.getDepositor());
         call.enqueue(new Callback<GsonCollection>() {
             @Override
             public void onResponse(Response<GsonCollection> response) {
                 if (response.isSuccess() && response.body() != null) {
                     id = response.body().getId();
-
-                    // we could do this, but I don't really like it so I'm leaving it out for now
-                    /*
-                    if (replication.getStatus().ordinal() < ReplicationStatus.ACE_REGISTERED.ordinal()) {
-                        setRegistered();
-                    }
-                    */
-
-                    latch.countDown();
                 } else {
                     log.error("Could not find collection in ACE: {} - {}", response.code(), response.message());
                 }
+
+                phaser.arriveAndDeregister();
             }
 
             @Override
             public void onFailure(Throwable throwable) {
                 log.error("Error communicating with ACE", throwable);
+                phaser.arriveAndDeregister();
             }
         });
     }
@@ -156,7 +162,7 @@ public class AceRegisterTasklet implements Callable<Long> {
     private void setRegistered() {
         log.info("Setting replication as REGISTERED");
         Call<Replication> update = ingest.updateReplicationStatus(replication.getId(),
-            new RStatusUpdate(ReplicationStatus.ACE_REGISTERED));
+                new RStatusUpdate(ReplicationStatus.ACE_REGISTERED));
         update.enqueue(new UpdateCallback());
     }
 
@@ -165,8 +171,6 @@ public class AceRegisterTasklet implements Callable<Long> {
         if (id == -1) {
             run();
         }
-
-        latch.await();
 
         return id;
     }
