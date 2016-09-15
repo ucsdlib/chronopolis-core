@@ -72,7 +72,7 @@ public class TokenFileWriter {
             while (next) {
                 log.debug("Iterating page # {} size {} offset {}",
                         new Object[]{pageable.getPageNumber(), pageable.getPageSize(), pageable.getOffset()});
-                Page<AceToken> tokens = repository.findByBagId(bagId, pageable);
+                Page<AceToken> tokens = repository.findByBagIdOrderByIdAsc(bagId, pageable);
 
                 for (AceToken token : tokens) {
                     log.trace("Writing {}", token.getFilename());

@@ -17,8 +17,10 @@ import java.util.List;
 public interface TokenRepository extends JpaRepository<AceToken, Long> ,
                                          QueryDslPredicateExecutor<AceToken> {
 
-    List<AceToken> findByBagId(Long bagId);
-    Page<AceToken> findByBagId(Long bagId, Pageable pable);
+    // TODO: Let's find a way to use a cursor instead of individual queries
+    //       fetch time is sloooooooow for large page sizes
+    List<AceToken> findByBagIdOrderByIdAsc(Long bagId);
+    Page<AceToken> findByBagIdOrderByIdAsc(Long bagId, Pageable pable);
 
     Long countByBagId(Long bagId);
 

@@ -18,8 +18,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import java.net.URL;
+import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.any;
@@ -91,7 +94,7 @@ public class AceTaskletTest {
         collection.setId(1L);
 
         when(ace.getCollectionByName("test-bag", "test-depositor"))
-                .thenReturn(new CallWrapper<>(collection));
+                .thenReturn(new AsyncWrapper<>(collection));
     }
 
     @Test
@@ -193,6 +196,39 @@ public class AceTaskletTest {
         verify(ace, times(1)).loadTokenStore(anyLong(), any(RequestBody.class));
         verify(ace, times(1)).startAudit(anyLong());
         verify(ingest, times(2)).updateReplicationStatus(anyLong(), any(RStatusUpdate.class));
+    }
+
+    /**
+     * Class to attempt to replicate a longer response from a server
+     * Waits 2 seconds before updating the callback, used to make sure our phaser
+     * is correct
+     *
+     * TODO: We'll want to do this for the NotFoundCW as well
+     *
+     * @param <E>
+     */
+    private class AsyncWrapper<E> extends CallWrapper<E> {
+        E e;
+
+        public AsyncWrapper(E e) {
+            super(e);
+            this.e = e;
+        }
+
+        @Override
+        public void enqueue(Callback<E> callback) {
+            Thread thread = new Thread() {
+                public void run() {
+                    try {
+                        TimeUnit.SECONDS.sleep(2);
+                    } catch (InterruptedException ignored) {
+                    }
+                    callback.onResponse(Response.success(e));
+                }
+            };
+
+            thread.start();
+        }
     }
 
 }

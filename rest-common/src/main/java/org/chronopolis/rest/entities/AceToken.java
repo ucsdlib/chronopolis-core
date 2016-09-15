@@ -3,6 +3,7 @@ package org.chronopolis.rest.entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -22,9 +23,9 @@ public class AceToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
     @JsonIgnore
     @JoinColumn(name = "bag")
+    @ManyToOne(fetch = FetchType.LAZY)
     private Bag bag;
 
     private Date createDate;

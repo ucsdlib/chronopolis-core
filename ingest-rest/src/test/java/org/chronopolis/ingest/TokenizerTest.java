@@ -141,7 +141,7 @@ public class TokenizerTest extends IngestTest {
         verify(factory, times(factoryTimes)).createIMSConnection(any(String.class), any(RequestBatchCallback.class));
         verify(batch, times(batchTimes)).add(any(TokenRequest.class));
 
-        List<AceToken> tokens = tokenRepository.findByBagId(Long.valueOf(bagId));
+        List<AceToken> tokens = tokenRepository.findByBagIdOrderByIdAsc(Long.valueOf(bagId));
         assertEquals(TOTAL_TOKENS, tokens.size());
     }
 
