@@ -8,6 +8,7 @@ import retrofit2.Response;
 import java.io.IOException;
 
 /**
+ * HTTP Call which simulates a 404 response
  *
  * Created by shake on 4/27/16.
  */

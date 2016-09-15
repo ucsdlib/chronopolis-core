@@ -91,10 +91,10 @@ public class TokenRunner implements Runnable {
             log.info("Starting tokenizer for bag {}", bag.getName());
 
             // Setup everything we need
-            Path toBag = Paths.get(bagStage, bag.getLocation());
+            Path bagPath = Paths.get(bagStage, bag.getLocation());
             Filter<Path> filter = new TokenFilter(tokenRepository, bagId);
             TokenCallback callback = new TokenCallback(tokenRepository, bag);
-            Tokenizer tokenizer = factory.makeTokenizer(toBag, bag, ims, callback);
+            Tokenizer tokenizer = factory.makeTokenizer(bagPath, bag, ims, callback);
 
             try {
                 tokenizer.tokenize(filter);
