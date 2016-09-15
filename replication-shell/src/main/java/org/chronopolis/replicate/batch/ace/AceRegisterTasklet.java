@@ -38,11 +38,7 @@ public class AceRegisterTasklet implements Callable<Long> {
 
     private Long id = -1L;
 
-    // TODO: This latch is used for too much. Currently the callback in getId won't block the register from running
     private final Phaser phaser;
-    // private final Lock lock;
-    // private final Condition read;
-    // private final Condition registered;
 
     public AceRegisterTasklet(IngestAPI ingest, AceService aceService, Replication replication, ReplicationSettings settings, ReplicationNotifier notifier) {
         this.ingest = ingest;
@@ -50,11 +46,9 @@ public class AceRegisterTasklet implements Callable<Long> {
         this.replication = replication;
         this.settings = settings;
         this.notifier = notifier;
-        // Main thread + callback
+
+        // Phaser for main thread + callback
         phaser = new Phaser();
-        // lock = new ReentrantLock();
-        // read = lock.newCondition();
-        // registered = lock.newCondition();
     }
 
     public void run() throws Exception {
@@ -70,8 +64,6 @@ public class AceRegisterTasklet implements Callable<Long> {
         getId(bag);
         phaser.arriveAndAwaitAdvance();
 
-        // might not need to worry about the status, so let's omit it for now
-        // status == ReplicationStatus.TRANSFERRED
         if (id == -1) {
             // register and what not
             register(bag);
