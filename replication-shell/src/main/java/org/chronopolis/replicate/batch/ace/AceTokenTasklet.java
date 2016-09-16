@@ -87,6 +87,7 @@ public class AceTokenTasklet implements Runnable {
             public void onFailure(Throwable throwable) {
                 complete.getAndSet(true);
                 notifier.setSuccess(false);
+                log.error("", throwable);
                 throw new RuntimeException(throwable);
             }
         });
