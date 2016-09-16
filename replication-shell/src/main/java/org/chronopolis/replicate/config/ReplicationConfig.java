@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Configuration for the beans used by the replication-shell
@@ -99,6 +100,8 @@ public class ReplicationConfig {
 
         OkHttpClient client = new OkHttpClient.Builder()
                 .addInterceptor(new OkBasicInterceptor(aceSettings.getAmUser(), aceSettings.getAmPassword()))
+                .readTimeout(5, TimeUnit.MINUTES)
+                .writeTimeout(5, TimeUnit.MINUTES)
                 .build();
 
         Retrofit restAdapter = new Retrofit.Builder()
