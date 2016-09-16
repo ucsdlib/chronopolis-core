@@ -1,11 +1,13 @@
 package org.chronopolis.replicate.service;
 
+import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.replicate.batch.ReplicationJobStarter;
-import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.support.BagConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +45,7 @@ public class CommandLineService implements ReplicationService {
     ApplicationContext context;
 
     @Autowired
-    ReplicationSettings settings;
+    IngestAPISettings settings;
 
     @Autowired
     IngestAPI ingestAPI;
@@ -115,6 +117,7 @@ public class CommandLineService implements ReplicationService {
         Map<String, Object> params = new HashMap<>();
         Page<Replication> replications;
         params.put("status", status);
+        params.put("node", settings.getIngestAPIUsername());
         Call<PageImpl<Replication>> call = ingestAPI.getReplications(params);
         try {
             Response<PageImpl<Replication>> execute = call.execute();
@@ -128,6 +131,15 @@ public class CommandLineService implements ReplicationService {
 
         for (Replication replication : replications) {
             log.info("Starting job for replication id {}", replication.getId());
+            try {
+                Call<Bag> bcall = ingestAPI.getBag(replication.getBagId());
+                Response<Bag> execute = bcall.execute();
+                Bag bag = execute.body();
+                replication.setBag(BagConverter.toBagEntity(bag));
+            } catch (IOException e) {
+                log.error("", e);
+                continue;
+            }
             if (update) {
                 log.info("Updating replication");
                 // replication.setStatus(ReplicationStatus.STARTED);
