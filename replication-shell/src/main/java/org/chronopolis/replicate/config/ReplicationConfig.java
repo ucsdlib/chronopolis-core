@@ -64,6 +64,9 @@ public class ReplicationConfig {
     @Value("${debug.retrofit:NONE}")
     String retrofitLogLevel;
 
+    @Value("${ace.timeout:5}")
+    Long timeout;
+
     /**
      * Logger to capture why errors happened in Retrofit
      *
@@ -100,8 +103,8 @@ public class ReplicationConfig {
 
         OkHttpClient client = new OkHttpClient.Builder()
                 .addInterceptor(new OkBasicInterceptor(aceSettings.getAmUser(), aceSettings.getAmPassword()))
-                .readTimeout(5, TimeUnit.MINUTES)
-                .writeTimeout(5, TimeUnit.MINUTES)
+                .readTimeout(timeout, TimeUnit.MINUTES)
+                .writeTimeout(timeout, TimeUnit.MINUTES)
                 .build();
 
         Retrofit restAdapter = new Retrofit.Builder()
