@@ -1,10 +1,10 @@
 package org.chronopolis.ingest;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -45,7 +45,7 @@ public class TrackingThreadPoolExecutor<T> extends ThreadPoolExecutor {
         }
 
         log.trace("Rejected {}", item);
-        return Optional.absent();
+        return Optional.empty();
     }
 
     public void destroy() {
@@ -70,7 +70,7 @@ public class TrackingThreadPoolExecutor<T> extends ThreadPoolExecutor {
         @Override
         public void rejectedExecution(Runnable runnable, ThreadPoolExecutor threadPoolExecutor) {
             if (runnable instanceof TrackingThreadPoolExecutor.Task) {
-                TrackingThreadPoolExecutor<T>.Task task = (TrackingThreadPoolExecutor<T>.Task) runnable;
+                Task task = (Task) runnable;
                 T result = task.result;
                 log.warn("Task was rejected: {}", result.toString());
                 items.remove(result);
