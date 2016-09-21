@@ -84,7 +84,7 @@ public class AceRegisterTasklet implements Callable<Long> {
                 .directory(collectionPath.toString())
                 .group(bag.getDepositor())
                 .storage("local")
-                .auditPeriod(String.valueOf(90))
+                .auditPeriod(String.valueOf(settings.getAuditPeriod()))
                 .auditTokens("true")
                 .proxyData("false")
                 .build();

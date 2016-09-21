@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Configuration for the beans used by the replication-shell
@@ -62,6 +63,9 @@ public class ReplicationConfig {
 
     @Value("${debug.retrofit:NONE}")
     String retrofitLogLevel;
+
+    @Value("${ace.timeout:5}")
+    Long timeout;
 
     /**
      * Logger to capture why errors happened in Retrofit
@@ -99,6 +103,8 @@ public class ReplicationConfig {
 
         OkHttpClient client = new OkHttpClient.Builder()
                 .addInterceptor(new OkBasicInterceptor(aceSettings.getAmUser(), aceSettings.getAmPassword()))
+                .readTimeout(timeout, TimeUnit.MINUTES)
+                .writeTimeout(timeout, TimeUnit.MINUTES)
                 .build();
 
         Retrofit restAdapter = new Retrofit.Builder()
