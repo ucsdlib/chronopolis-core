@@ -43,6 +43,9 @@ public class AceTasklet implements Tasklet {
         AceRegisterTasklet register = new AceRegisterTasklet(ingest, aceService, replication, settings, notifier);
         Long id = register.call();
 
+        // TODO: We will probably want to break this up more - and do some validation along the way
+        //       - load tokens + validate we have the expected amount (maybe pull info from ingest)
+        //       - run audit
         AceTokenTasklet token = new AceTokenTasklet(ingest, aceService, replication, settings, notifier, id);
         AceAuditTasklet audit = new AceAuditTasklet(ingest, aceService, replication, settings, notifier, id);
         for (Runnable runnable : ImmutableList.of(token, audit)) {
