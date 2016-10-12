@@ -22,6 +22,7 @@ import java.io.IOException;
 import static org.chronopolis.replicate.batch.listener.Util.sendFailure;
 
 /**
+ * @deprecated will be removed by 1.4.0-RELEASE
  *
  * Step listener for after the token-download step when triggered from the RESTful
  * interface. If there was an error validating the token store, we want to stop
@@ -29,6 +30,7 @@ import static org.chronopolis.replicate.batch.listener.Util.sendFailure;
  *
  * Created by shake on 12/4/14.
  */
+@Deprecated
 public class TokenRESTStepListener implements StepExecutionListener {
     private final Logger log = LoggerFactory.getLogger(TokenRESTStepListener.class);
 

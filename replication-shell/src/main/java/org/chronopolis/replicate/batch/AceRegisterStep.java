@@ -27,6 +27,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * @deprecated will be removed by 1.4.0-RELEASE
+ *
  * Step for handling interaction with ACE. We do a few things:
  * * Register a collection
  * * Upload the token store

@@ -20,12 +20,14 @@ import retrofit2.Response;
 import static org.chronopolis.replicate.batch.listener.Util.sendFailure;
 
 /**
+ * @deprecated will be removed by 1.4.0-RELEASE
  * Step listener for after the bag-download step when triggered from the RESTful
  * interface. If there was an error validating the tag manifest, we want to stop
  * the job so that we do not attempt to register bad files with ACE.
  * <p/>
  * Created by shake on 12/4/14.
  */
+@Deprecated
 public class BagRESTStepListener implements StepExecutionListener {
     private final Logger log = LoggerFactory.getLogger(BagRESTStepListener.class);
 

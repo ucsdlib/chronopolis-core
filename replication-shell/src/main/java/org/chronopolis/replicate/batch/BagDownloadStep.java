@@ -24,11 +24,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
+ * @deprecated will be removed by 1.4.0-RELEASE
+ *
  * Class to download the actual bag. Handles both the rsync (could change in the future)
  * and the hashing of the tagmanifest on completion.
  *
  * Created by shake on 8/22/14.
  */
+@Deprecated
 public class BagDownloadStep implements Tasklet {
     private final Logger log = LoggerFactory.getLogger(BagDownloadStep.class);
 

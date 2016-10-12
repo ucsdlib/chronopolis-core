@@ -23,11 +23,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
+ * @deprecated will be removed by 1.4.0-RELEASE
  * Step to download and hash the token store for a given collection.
  *
  *
  * Created by shake on 8/22/14.
  */
+@Deprecated
 public class TokenDownloadStep implements Tasklet {
     private final Logger log = LoggerFactory.getLogger(TokenDownloadStep.class);
 
