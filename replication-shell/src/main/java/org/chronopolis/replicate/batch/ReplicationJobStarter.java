@@ -1,7 +1,6 @@
 package org.chronopolis.replicate.batch;
 
 import org.chronopolis.common.ace.AceService;
-import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.batch.ace.AceTasklet;
@@ -24,10 +23,7 @@ import org.springframework.batch.core.repository.JobExecutionAlreadyRunningExcep
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.batch.core.step.tasklet.TaskletStep;
-import retrofit2.Call;
-import retrofit2.Response;
 
-import java.io.IOException;
 import java.util.Date;
 
 /**
@@ -73,57 +69,10 @@ public class ReplicationJobStarter {
     /**
      * Add a replication job which was received from the RESTful interface
      *
-     * @param replication
+     * @param replication the replication to work on
      */
     public void addJobFromRestful(Replication replication) {
-        String depositor = replication.getBag().getDepositor();
-        String collection = replication.getBag().getName();
-
-        GsonCollection gsonCollection = null;
-        Call<GsonCollection> call = aceService.getCollectionByName(collection, depositor);
-        try {
-            Response<GsonCollection> response = call.execute();
-            gsonCollection = response.body();
-        } catch (IOException e) {
-            log.error("Error communicating with server", e);
-        }
-
-        if (gsonCollection == null) {
-            createJob(replication);
-        } else {
-            // A active
-            // N - never completely scanned (default for new collections)
-            // E
-
-            createJob(replication);
-            /*
-            log.debug("Already have collection, state {}", gsonCollection.getState());
-            if (gsonCollection.getState() == 'E') {
-                log.info("Error in collection, replicating again");
-                replication.setStatus(ReplicationStatus.FAILURE);
-            } else if (gsonCollection.getState() == 'N') {
-                log.info("Loading ACE settings for collection");
-                replication.setStatus(ReplicationStatus.TRANSFERRED);
-            } else if (gsonCollection.getState() == 'A') {
-                log.info("Updating replication to note success");
-                replication.setStatus(ReplicationStatus.SUCCESS);
-            }
-
-            // ingestAPI.updateReplication(replication.getId(), replication);
-            Call<Replication> ingestCall = ingestAPI.updateReplicationStatus(replication.getId(), new RStatusUpdate(replication.getStatus()));
-            ingestCall.enqueue(new Callback<Replication>() {
-                @Override
-                public void onResponse(Response<Replication> response) {
-
-                }
-
-                @Override
-                public void onFailure(Throwable throwable) {
-
-                }
-            });
-            */
-        }
+        createJob(replication);
     }
 
     private void createJob(Replication replication) {
@@ -168,7 +117,7 @@ public class ReplicationJobStarter {
         }
     }
 
-    /**
+    /*
      * PENDING,
      * STARTED,
      * TRANSFERRED,
@@ -182,9 +131,9 @@ public class ReplicationJobStarter {
     /**
      * Create a JobBuilder with all steps needed from the PENDING state
      *
-     * @param replication
-     * @param notifier
-     * @return
+     * @param replication the replication to work on
+     * @param notifier the notifier associated with the replication
+     * @return the job builder for the replication
      */
     private SimpleJobBuilder fromPending(Replication replication, ReplicationNotifier notifier) {
         TokenDownloadStep tokenDownloadStep = new TokenDownloadStep(settings, notifier, replication);
@@ -208,10 +157,10 @@ public class ReplicationJobStarter {
     /**
      * Create a JobBuilder with all steps needed after a transfer has completed
      *
-     * @param builder
-     * @param replication
-     * @param notifier
-     * @return
+     * @param builder a builder consisting of other replication steps
+     * @param replication the replication to work on
+     * @param notifier the notifier associated with the replication
+     * @return the job builder for the replication
      */
     private SimpleJobBuilder fromTransferred(SimpleJobBuilder builder, Replication replication, ReplicationNotifier notifier) {
         AceTasklet at = new AceTasklet(ingestAPI, aceService, replication, settings, notifier);
@@ -239,8 +188,8 @@ public class ReplicationJobStarter {
     /**
      * Create a JobBuilder for checking the status of ACE audits
      *
-     * @param replication
-     * @return
+     * @param replication the replication to work on
+     * @return a job builder consisting of the ace-check tasklet
      */
     private SimpleJobBuilder fromAceAuditing(Replication replication) {
         AceCheckTasklet tasklet = new AceCheckTasklet(ingestAPI, aceService, replication);
