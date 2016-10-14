@@ -2,17 +2,14 @@ package org.chronopolis.replicate.scheduled;
 
 import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.replicate.batch.ReplicationJobStarter;
+import org.chronopolis.replicate.batch.Submitter;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.chronopolis.rest.support.BagConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -20,7 +17,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import retrofit2.Call;
-import retrofit2.Callback;
 import retrofit2.Response;
 
 import java.io.IOException;
@@ -42,17 +38,16 @@ import static org.chronopolis.rest.models.ReplicationStatus.STARTED;
 public class ReplicationQueryTask {
     private final Logger log = LoggerFactory.getLogger(ReplicationQueryTask.class);
 
-    @Autowired
-    private IngestAPISettings settings;
+    final IngestAPISettings settings;
+    final IngestAPI ingestAPI;
+    final Submitter submitter;
 
     @Autowired
-    private IngestAPI ingestAPI;
-
-    @Autowired
-    private ReplicationJobStarter jobStarter;
-
-    @Autowired
-    private JobExplorer explorer;
+    public ReplicationQueryTask(IngestAPISettings settings, IngestAPI ingest, Submitter submitter) {
+        this.settings = settings;
+        this.ingestAPI = ingest;
+        this.submitter = submitter;
+    }
 
     /**
      * Check the ingest-server for pending and started replications
@@ -62,7 +57,8 @@ public class ReplicationQueryTask {
      */
     @Scheduled(cron = "${replication.cron:0 0 * * * *}")
     public void checkForReplications() {
-        Set<String> filter = activeReplications();
+        //Set<String> filter = activeReplications();
+        Set<String> filter = new HashSet<>();
 
         try {
             log.info("Query for active replications");
@@ -86,12 +82,11 @@ public class ReplicationQueryTask {
 
     }
 
-    /**
+    /*
      * Create a set of ongoing replications, specified by
      * depositor:collection
      *
      * @return Set of active replications
-     */
     private Set<String> activeReplications() {
         Set<String> filter = new HashSet<>();
         Set<JobExecution> executions = explorer.findRunningJobExecutions("collection-replicate");
@@ -105,6 +100,7 @@ public class ReplicationQueryTask {
 
         return filter;
     }
+     */
 
     /**
      * Query the ingest-server and add requests to the {@link ReplicationJobStarter}
@@ -155,6 +151,11 @@ public class ReplicationQueryTask {
             Bag bag = response.body();
 
             replication.setBag(BagConverter.toBagEntity(bag));
+
+            // log.info("Submitter is null? {}", submitter == null);
+            submitter.submit(replication);
+
+            /*
             String filterString = bag.getDepositor() + ":" + bag.getName();
             if (update) {
                 log.info("Updating replication");
@@ -175,19 +176,20 @@ public class ReplicationQueryTask {
                         log.error("Error communicating to the ingest server", throwable);
                     }
                 });
-
             }
 
             // Make sure we don't have a replication already in progress
             if (!filter.contains(filterString)) {
                 log.info("Starting job for replication id {}", replication.getId());
-                jobStarter.addJobFromRestful(replication);
+                // jobStarter.addJobFromRestful(replication);
+                submitter.submit(replication);
 
                 // Add our current execution to our filter list
                 filter.add(filterString);
             } else {
                 log.info("Skipping replication {}, already in progress", replication.getId());
             }
+            */
         }
     }
 
