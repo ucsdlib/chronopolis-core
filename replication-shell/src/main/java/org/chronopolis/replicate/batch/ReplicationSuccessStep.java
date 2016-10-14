@@ -10,11 +10,13 @@ import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.mail.SimpleMailMessage;
 
 /**
+ * @deprecated will be removed in 1.4.0
  * Final step of the replication job. Determine whether or not the replication
  * was successful and send an email to chron-support regarding its status.
  *
  * Created by shake on 8/26/14.
  */
+@Deprecated
 public class ReplicationSuccessStep implements Tasklet {
 
     private MailUtil mailUtil;

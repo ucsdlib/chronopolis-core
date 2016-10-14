@@ -1,13 +1,12 @@
 package org.chronopolis.replicate.batch;
 
-import com.google.common.base.Optional;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,13 +18,16 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 
 /**
+ * @deprecated will be removed in 1.4.0-RELEASE
  * fish fish fish fish fish
  *
  * Created by shake on 3/10/16.
  */
+@Deprecated
 public class AceCheckTasklet implements Tasklet {
     private final Logger log = LoggerFactory.getLogger(AceCheckTasklet.class);
 

@@ -12,11 +12,14 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 /**
+ * @deprecated will be removed in 1.4.0-RELEASE
+ *
  * Step listener to see if a replication was successful or not, and determine
  * what to send as a notification to chron-support
  *
  * Created by shake on 9/2/14.
  */
+@Deprecated
 public class ReplicationStepListener implements StepExecutionListener {
     private final Logger log = LoggerFactory.getLogger(ReplicationStepListener.class);
     private ReplicationSettings replicationSettings;

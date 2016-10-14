@@ -14,6 +14,7 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 
 /**
+ * @deprecated will be removed by 1.4.0-RELEASE
  * Fuckin' tasklet to manage the 3 ACE steps we do
  * 1 - ACE_REGISTER
  * 2 - ACE_LOAD
@@ -21,6 +22,7 @@ import org.springframework.batch.repeat.RepeatStatus;
  *
  * Created by shake on 3/9/16.
  */
+@Deprecated
 public class AceTasklet implements Tasklet {
     private final Logger log = LoggerFactory.getLogger(AceTasklet.class);
 
