@@ -2,7 +2,7 @@ package org.chronopolis.ingest.task;
 
 import org.chronopolis.common.settings.AceSettings;
 import org.chronopolis.ingest.IngestSettings;
-import org.chronopolis.ingest.TrackingThreadPoolExecutor;
+import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.rest.entities.Bag;

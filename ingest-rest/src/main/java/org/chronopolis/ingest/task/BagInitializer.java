@@ -3,7 +3,7 @@ package org.chronopolis.ingest.task;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.chronopolis.ingest.IngestSettings;
-import org.chronopolis.ingest.TrackingThreadPoolExecutor;
+import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.ingest.repository.BagSearchCriteria;
 import org.chronopolis.ingest.repository.BagService;
 import org.chronopolis.rest.entities.Bag;
