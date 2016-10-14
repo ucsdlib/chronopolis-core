@@ -23,13 +23,21 @@ import org.slf4j.LoggerFactory;
 public class AceRunner implements Runnable {
     private final Logger log = LoggerFactory.getLogger(AceRunner.class);
 
-    AceService ace;
-    IngestAPI ingest;
-    Replication replication;
-    ReplicationSettings settings;
+    final AceService ace;
+    final IngestAPI ingest;
+    final Replication replication;
+    final ReplicationSettings settings;
 
     // TODO: May be able to remove this
-    ReplicationNotifier notifier;
+    final ReplicationNotifier notifier;
+
+    public AceRunner(AceService ace, IngestAPI ingest, Replication replication, ReplicationSettings settings, ReplicationNotifier notifier) {
+        this.ace = ace;
+        this.ingest = ingest;
+        this.replication = replication;
+        this.settings = settings;
+        this.notifier = notifier;
+    }
 
     @Override
     public void run() {
