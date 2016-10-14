@@ -1,7 +1,7 @@
 package org.chronopolis.replicate.service;
 
 import org.chronopolis.common.settings.IngestAPISettings;
-import org.chronopolis.replicate.batch.ReplicationJobStarter;
+import org.chronopolis.replicate.batch.Submitter;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.models.Bag;
@@ -51,7 +51,7 @@ public class CommandLineService implements ReplicationService {
     IngestAPI ingestAPI;
 
     @Autowired
-    ReplicationJobStarter jobStarter;
+    Submitter submitter;
 
     /**
      * Main entry point for the class, display the prompt and when we receive
@@ -162,7 +162,9 @@ public class CommandLineService implements ReplicationService {
                     }
                 });
             }
-            jobStarter.addJobFromRestful(replication);
+
+            submitter.submit(replication);
+            // jobStarter.addJobFromRestful(replication);
         }
     }
 
