@@ -9,13 +9,13 @@ import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.OkBasicInterceptor;
+import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.settings.AceSettings;
 import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.common.settings.SMTPSettings;
 import org.chronopolis.common.util.URIUtil;
-import org.chronopolis.replicate.batch.ReplicationJobStarter;
-import org.chronopolis.replicate.batch.ReplicationStepListener;
+import org.chronopolis.replicate.batch.Submitter;
 import org.chronopolis.rest.api.ErrorLogger;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.entities.Bag;
@@ -26,17 +26,11 @@ import org.chronopolis.rest.support.ZonedDateTimeSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.domain.PageImpl;
 import retrofit2.GsonConverterFactory;
 import retrofit2.Retrofit;
@@ -45,6 +39,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -171,7 +166,22 @@ public class ReplicationConfig {
         return adapter.create(IngestAPI.class);
     }
 
-    /**
+    @Bean
+    Submitter submitter(AceService ace, IngestAPI ingest, ReplicationSettings settings) {
+        return new Submitter(ace, ingest, settings, io(), http());
+    }
+
+    @Bean
+    TrackingThreadPoolExecutor<Replication> http() {
+        return new TrackingThreadPoolExecutor<>(4, 8, 30, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
+    }
+
+    @Bean
+    TrackingThreadPoolExecutor<Replication> io() {
+        return new TrackingThreadPoolExecutor<>(2, 2, 30, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
+    }
+
+    /*
      * Class to handle creation of replication jobs through spring-batch
      *
      * @param settings
@@ -183,7 +193,6 @@ public class ReplicationConfig {
      * @param jobBuilderFactory
      * @param stepBuilderFactory
      * @return
-     */
     @Bean
     ReplicationJobStarter jobStarter(ReplicationSettings settings,
                                      MailUtil mailUtil,
@@ -202,19 +211,20 @@ public class ReplicationConfig {
                 jobBuilderFactory,
                 stepBuilderFactory);
     }
+     */
 
-    /**
+    /*
      * Step listener for the {@link ReplicationJobStarter}
      *
      * @param replicationSettings
      * @param mailUtil
      * @return
-     */
     @Bean
     ReplicationStepListener replicationStepListener(ReplicationSettings replicationSettings,
                                                     MailUtil mailUtil) {
         return new ReplicationStepListener(replicationSettings, mailUtil);
     }
+     */
 
     /**
      * Class to send email notifications regarding replications
@@ -232,27 +242,26 @@ public class ReplicationConfig {
         return mailUtil;
     }
 
-    /**
+    /*
      * Async task executor so we can have multiple threads execute at once
      * for spring-batch
      *
      * @return
-     */
     @Bean
     TaskExecutor simpleAsyncTaskExecutor() {
         SimpleAsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
         taskExecutor.setConcurrencyLimit(2);
         return taskExecutor;
     }
+     */
 
 
-    /**
+    /*
      * SimpleJobLauncher so that we use the {@link TaskExecutor}
      *
      * @param jobRepository
      * @param simpleAsyncTaskExecutor
      * @return
-     */
     @Bean
     JobLauncher jobLauncher(JobRepository jobRepository, TaskExecutor simpleAsyncTaskExecutor) {
         SimpleJobLauncher jobLauncher = new SimpleJobLauncher();
@@ -260,5 +269,6 @@ public class ReplicationConfig {
         jobLauncher.setTaskExecutor(simpleAsyncTaskExecutor);
         return jobLauncher;
     }
+     */
 
 }
