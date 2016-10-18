@@ -112,9 +112,8 @@ public class AceTaskletTest {
         prepareAceAudit();
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
-        // Luckily we don't use either parameter passed in, so fuck em
-        AceTasklet tasklet = new AceTasklet(ingest, ace, replication, settings, notifier);
-        tasklet.execute(null, null);
+        AceRunner runner = new AceRunner(ace, ingest, replication, settings, notifier);
+        runner.run();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName(any(String.class), any(String.class));
@@ -139,9 +138,8 @@ public class AceTaskletTest {
         prepareAceAudit();
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
-        // Luckily we don't use either parameter passed in, so fuck em
-        AceTasklet tasklet = new AceTasklet(ingest, ace, replication, settings, notifier);
-        tasklet.execute(null, null);
+        AceRunner runner = new AceRunner(ace, ingest, replication, settings, notifier);
+        runner.run();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName(any(String.class), any(String.class));
@@ -164,8 +162,8 @@ public class AceTaskletTest {
         prepareAceAudit();
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
-        AceTasklet tasklet = new AceTasklet(ingest, ace, replication, settings, notifier);
-        tasklet.execute(null, null);
+        AceRunner runner = new AceRunner(ace, ingest, replication, settings, notifier);
+        runner.run();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName("test-bag", "test-depositor");
@@ -188,8 +186,8 @@ public class AceTaskletTest {
 
         notifier = new ReplicationNotifier(replication);
 
-        AceTasklet tasklet = new AceTasklet(ingest, ace, replication, settings, notifier);
-        tasklet.execute(null, null);
+        AceRunner runner = new AceRunner(ace, ingest, replication, settings, notifier);
+        runner.run();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName("test-bag", "test-depositor");
