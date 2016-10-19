@@ -25,11 +25,11 @@ import java.util.concurrent.FutureTask;
 public class RSyncTransfer implements FileTransfer {
     private final Logger log = LoggerFactory.getLogger(RSyncTransfer.class);
     private final ExecutorService threadPool = Executors.newSingleThreadExecutor();
-    private final String user;
+    private final String link;
     private String stats;
 
-    public RSyncTransfer(String user) {
-        this.user = user;
+    public RSyncTransfer(String link) {
+        this.link = link;
         this.stats = "";
     }
 
@@ -39,42 +39,42 @@ public class RSyncTransfer implements FileTransfer {
         // Need to test/modify command
         // Currently uses passwordless SSH keys to login
 
-        log.debug(local.toString());
-        Callable<Path> download = new Callable<Path>() {
-            @Override
-            public Path call() throws Exception {
-                String[] cmd = new String[]{"rsync", "-a", "-e ssh -o 'PasswordAuthentication no'", "--stats", user + "@" + uri, local.toString()};
-                String[] parts = uri.split(":", 2);
-                String[] pathList = parts[1].split("/");
-                ProcessBuilder pb = new ProcessBuilder(cmd);
-                Process p = null;
-                try {
-                    log.info("Executing {} {} {} {} {} {}", cmd);
-                    p = pb.start();
-                    int exit = p.waitFor();
+        Callable<Path> download = () -> {
+            String[] cmd = new String[]{"rsync",
+                    "-a",
+                    "-e ssh -o 'PasswordAuthentication no'",
+                    "--stats",
+                    link,
+                    local.toString()};
+            ProcessBuilder pb = new ProcessBuilder(cmd);
+            Process p = null;
+            try {
+                log.info("Rsyncing {}", link);
 
-                    stats = stringFromStream(p.getInputStream());
+                p = pb.start();
+                int exit = p.waitFor();
 
-                    log.info("rsync exit stats:\n {}", stats);
-                    if (exit != 0) {
-                        log.error("rsync did not complete successfully (exit code {}) \n {}",
-                                exit,
-                                stringFromStream(p.getErrorStream()));
-                        throw new FileTransferException("rsync did not complete successfully (exit code " + exit + ")");
-                    }
+                stats = stringFromStream(p.getInputStream());
 
-                } catch (IOException e) {
-                    log.error("IO Exception in rsync ", e);
-                    p.destroy();
-                    throw new FileTransferException("IOException in rsync", e);
-                } catch (InterruptedException e) {
-                    log.error("rsync was interrupted", e);
-                    p.destroy();
-                    throw new FileTransferException("rsync was interrupted", e);
+                log.info("rsync exit stats:\n {}", stats);
+                if (exit != 0) {
+                    log.error("rsync did not complete successfully (exit code {}) \n {}",
+                            exit,
+                            stringFromStream(p.getErrorStream()));
+                    throw new FileTransferException("rsync did not complete successfully (exit code " + exit + ")");
                 }
 
-                return local.resolve(pathList[pathList.length - 1]);
+            } catch (IOException e) {
+                log.error("IO Exception in rsync ", e);
+                p.destroy();
+                throw new FileTransferException("IOException in rsync", e);
+            } catch (InterruptedException e) {
+                log.error("rsync was interrupted", e);
+                p.destroy();
+                throw new FileTransferException("rsync was interrupted", e);
             }
+
+            return local.resolve(last());
         };
 
         FutureTask<Path> timedTask = new FutureTask<>(download);
@@ -146,6 +146,39 @@ public class RSyncTransfer implements FileTransfer {
     @Override
     public String getStats() {
         return stats;
+    }
+
+    /**
+     * retrieve the last directory in a link
+     *
+     * test remote (from :)
+     * test local (from /)
+     *  -> no / return link
+     *  -> else substring lastidxof /
+     *
+     * @return the last directory
+     */
+    private String last() {
+        // first test if we have a remote rsync
+        int idx = link.indexOf(":");
+        if (idx == -1) {
+            return fromSlash(link);
+        }
+
+        return fromSlash(link.substring(idx));
+    }
+
+    private String fromSlash(String link) {
+        if (link == null || link.isEmpty()) {
+            throw new IllegalArgumentException("Cannot retrieve directory of null/empty link");
+        }
+
+        int idx = link.lastIndexOf("/");
+        if (idx == -1) {
+            return link;
+        }
+
+        return link.substring(idx);
     }
 
 }

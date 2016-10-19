@@ -55,24 +55,20 @@ public class BagTransfer implements Runnable {
 
     @Override
     public void run() {
+        // TODO: Get the replication so we can short circuit later?
         // Replicate the collection
         log.info("Downloading bag from {}", location);
         FileTransfer transfer;
         Path bagPath = Paths.get(settings.getPreservation(), depositor);
 
-        String uri;
         if (protocol.equalsIgnoreCase("https")) {
             transfer = new HttpsTransfer();
-            uri = location;
         } else {
-            String[] parts = location.split("@", 2);
-            String user = parts[0];
-            uri = parts[1];
-            transfer = new RSyncTransfer(user);
+            transfer = new RSyncTransfer(location);
         }
 
         try {
-            transfer.getFile(uri, bagPath);
+            transfer.getFile(location, bagPath);
             hash(bagPath);
         } catch (FileTransferException e) {
             log.error("File transfer exception", e);
