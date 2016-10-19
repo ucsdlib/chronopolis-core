@@ -56,7 +56,14 @@ public class Submitter {
         this.replicating = new ConcurrentSkipListSet<>();
     }
 
-    public void submit(Replication replication) {
+    /**
+     * submit a replication for processing, returning the future which it is bound by
+     * todo: option<completableblaglb>
+     *
+     * @param replication
+     * @return
+     */
+    public CompletableFuture<Void> submit(Replication replication) {
         String identifier = replication.getBag().getDepositor() + "/" + replication.getBag().getName();
 
         // idk
@@ -79,14 +86,15 @@ public class Submitter {
                     future = fromAceAuditing(replication);
                     break;
                 default:
-                    return;
-
+                    return null;
             }
 
-            future.whenComplete(new Completer(replication));
+            return future.whenComplete(new Completer(replication));
         } else {
             log.debug("Replication {} is already running", identifier);
         }
+
+        return null;
     }
 
     /**
