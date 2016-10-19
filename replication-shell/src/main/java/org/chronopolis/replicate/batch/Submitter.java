@@ -116,7 +116,7 @@ public class Submitter {
      */
     private CompletableFuture<Void> fromTransferred(@Nullable CompletableFuture<Void> future, Replication replication) {
         ReplicationNotifier notifier = new ReplicationNotifier(replication);
-        AceRunner runner = new AceRunner(ace, ingest, replication, settings, notifier);
+        AceRunner runner = new AceRunner(ace, ingest, replication.getId(), settings, notifier);
         if (future == null) {
             return CompletableFuture.runAsync(runner, http);
         }

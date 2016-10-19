@@ -8,6 +8,10 @@ import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.entities.Replication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import retrofit2.Call;
+import retrofit2.Response;
+
+import java.io.IOException;
 
 /**
  * Manage the 3 ACE steps we do
@@ -25,33 +29,40 @@ public class AceRunner implements Runnable {
 
     final AceService ace;
     final IngestAPI ingest;
-    final Replication replication;
+    final Long replicationId;
     final ReplicationSettings settings;
 
     // TODO: May be able to remove this
     final ReplicationNotifier notifier;
 
-    public AceRunner(AceService ace, IngestAPI ingest, Replication replication, ReplicationSettings settings, ReplicationNotifier notifier) {
+    public AceRunner(AceService ace, IngestAPI ingest, Long replicationId, ReplicationSettings settings, ReplicationNotifier notifier) {
         this.ace = ace;
         this.ingest = ingest;
-        this.replication = replication;
+        this.replicationId = replicationId;
         this.settings = settings;
         this.notifier = notifier;
     }
 
     @Override
     public void run() {
+        Replication replication = getReplication();
+
+        // figure this out later
+        if (replication == null || replication.getStatus().isFailure()) {
+            return;
+        }
+
         AceRegisterTasklet register = new AceRegisterTasklet(ingest, ace, replication, settings, notifier);
         Long id = null;
         try {
             id = register.call();
-            rest(id);
+            rest(id, replication);
         } catch (Exception e) {
             log.error("Error communicating with ACE", e);
         }
     }
 
-    private void rest(Long id) {
+    private void rest(Long id, Replication replication) {
         // TODO: We will probably want to break this up more - and do some validation along the way
         //       - load tokens + validate we have the expected amount (maybe pull info from ingest)
         //       - run audit
@@ -62,5 +73,25 @@ public class AceRunner implements Runnable {
                 runnable.run();
             }
         }
+    }
+
+    /**
+     * Get the replication associated with an id
+     *
+     * @return the associated replication or null
+     */
+    private Replication getReplication() {
+        Call<Replication> replication = ingest.getReplication(replicationId);
+        Replication r = null;
+        try {
+            Response<Replication> execute = replication.execute();
+            if (execute.isSuccess()) {
+                r = execute.body();
+            }
+        } catch (IOException e) {
+            log.error("", e);
+        }
+
+        return r;
     }
 }
