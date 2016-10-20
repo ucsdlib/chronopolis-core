@@ -6,6 +6,7 @@ import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Call;
@@ -47,8 +48,12 @@ public class AceRunner implements Runnable {
     public void run() {
         Replication replication = getReplication();
 
-        // figure this out later
-        if (replication == null || replication.getStatus().isFailure()) {
+
+        // todo: find a cleaner way to do this, possibly by not chaining together all the tasks
+        // check if our replication is already terminated
+        // or if it hasn't reached transferred
+        if (replication == null || replication.getStatus().isFailure()
+                || replication.getStatus().ordinal() < ReplicationStatus.TRANSFERRED.ordinal()) {
             return;
         }
 
