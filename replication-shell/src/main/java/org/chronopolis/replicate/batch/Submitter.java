@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -58,15 +59,14 @@ public class Submitter {
 
     /**
      * submit a replication for processing, returning the future which it is bound by
-     * todo: option<completableblaglb>
+     * todo: {@link Optional<CompletableFuture<Void>>}
      *
-     * @param replication
-     * @return
+     * @param replication the replication to work on
+     * @return a {@link CompletableFuture} of the replication flow
      */
     public CompletableFuture<Void> submit(Replication replication) {
         String identifier = replication.getBag().getDepositor() + "/" + replication.getBag().getName();
 
-        // idk
         if (replicating.add(identifier)) {
             log.info("Submitting replication {}", identifier);
             CompletableFuture<Void> future;
@@ -101,18 +101,16 @@ public class Submitter {
      * Create a CompletableFuture with all steps needed from the PENDING state
      *
      * @param replication the replication to work on
-     * @return a completable future which runs both the token and bag transfers tasks
+     * @return a {@link CompletableFuture} which runs both the token and bag transfers tasks
      */
     private CompletableFuture<Void> fromPending(Replication replication) {
         BagTransfer bxfer = new BagTransfer(replication, ingest, settings);
         TokenTransfer txfer = new TokenTransfer(replication, ingest, settings);
 
+        // todo: maybe we shouldn't chain together fromTransferred?
         return fromTransferred(CompletableFuture.runAsync(txfer, io)
-                .thenRunAsync(bxfer, io)
-                ,replication);
-
-        // hmmm... how to do this properly
-        // return fromTransferred(start, replication, notifier);
+                .thenRunAsync(bxfer, io),
+                replication);
     }
 
     /**
@@ -135,7 +133,7 @@ public class Submitter {
     /**
      * Create a CompletableFuture for checking the status of ACE audits
      *
-     * @return a completable future which runs the AceCheck runnable
+     * @return a {@link CompletableFuture} which runs the AceCheck runnable
      */
     private CompletableFuture<Void> fromAceAuditing(Replication replication) {
         AceCheck check = new AceCheck(ace, ingest, replication);
@@ -161,6 +159,7 @@ public class Submitter {
         public void accept(Void aVoid, Throwable throwable) {
             String s = replication.getBag().getDepositor() + "/" + replication.getBag().getName();
             if (throwable != null) {
+                // TODO: Check here for fatal exceptions, and cancel replication if necessary
                 log.warn("Replication did not complete successfully, returned throwable is", throwable);
             }
 
