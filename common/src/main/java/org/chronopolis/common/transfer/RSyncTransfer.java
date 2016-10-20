@@ -49,7 +49,7 @@ public class RSyncTransfer implements FileTransfer {
             ProcessBuilder pb = new ProcessBuilder(cmd);
             Process p = null;
             try {
-                log.info("Rsyncing {}", link);
+                log.info("Rsyncing {} -> {}", link, local);
 
                 p = pb.start();
                 int exit = p.waitFor();
@@ -165,7 +165,7 @@ public class RSyncTransfer implements FileTransfer {
             return fromSlash(link);
         }
 
-        return fromSlash(link.substring(idx));
+        return fromSlash(link.substring(++idx));
     }
 
     private String fromSlash(String link) {
@@ -178,7 +178,7 @@ public class RSyncTransfer implements FileTransfer {
             return link;
         }
 
-        return link.substring(idx);
+        return link.substring(++idx);
     }
 
 }
