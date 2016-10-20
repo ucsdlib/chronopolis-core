@@ -6,6 +6,7 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import org.chronopolis.common.exception.FileTransferException;
 import org.chronopolis.replicate.ReplicationQueue;
+import org.chronopolis.replicate.batch.NonFatalException;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
@@ -61,6 +62,7 @@ public class TokenTransfer implements Runnable {
         checkDirExists(stage);
 
         try {
+            // todo: move off of this
             tokenStore = ReplicationQueue.getFileImmediate(
                     location,
                     stage,
@@ -68,10 +70,10 @@ public class TokenTransfer implements Runnable {
             hash(tokenStore);
         } catch (IOException e) {
             log.error("Error downloading token store", e);
-            fail();
+            fail(e);
         } catch (FileTransferException e) {
             log.error("File transfer exception", e);
-            fail();
+            fail(e);
         }
     }
 
@@ -97,7 +99,7 @@ public class TokenTransfer implements Runnable {
             update(hash);
         } catch (IOException e) {
             log.error("Error hashing token store", e);
-            fail();
+            fail(e);
         }
     }
 
@@ -109,8 +111,8 @@ public class TokenTransfer implements Runnable {
         call.enqueue(new UpdateCallback());
     }
 
-    void fail() {
-
+    void fail(Exception e) {
+        throw new NonFatalException(e);
     }
 
 }

@@ -72,7 +72,7 @@ public class BagTransfer implements Runnable {
             hash(bagPath);
         } catch (FileTransferException e) {
             log.error("File transfer exception", e);
-            fail();
+            fail(e);
         }
     }
 
@@ -87,7 +87,7 @@ public class BagTransfer implements Runnable {
             sendUpdate(hashCode);
         } catch (IOException e) {
             log.error("Error hashing tagmanifest", e);
-            fail();
+            fail(e);
         }
     }
 
@@ -99,7 +99,7 @@ public class BagTransfer implements Runnable {
         call.enqueue(new UpdateCallback());
     }
 
-    void fail() {
-        // send mail failure
+    void fail(Throwable throwable) {
+        throw new RuntimeException(throwable);
     }
 }
