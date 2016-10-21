@@ -23,4 +23,20 @@ public class FixityUpdate {
         this.fixity = fixity;
         return this;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        FixityUpdate that = (FixityUpdate) o;
+
+        return fixity != null ? fixity.equals(that.fixity) : that.fixity == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        return fixity != null ? fixity.hashCode() : 0;
+    }
 }

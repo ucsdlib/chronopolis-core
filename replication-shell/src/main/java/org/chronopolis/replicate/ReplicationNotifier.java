@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 /**
+ * TODO: IMO this is kind of shitty and it would be nice to get rid of it, or at least change how we use it
  *
  * Created by shake on 10/29/14.
  */

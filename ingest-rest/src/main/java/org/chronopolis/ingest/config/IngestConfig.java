@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import org.apache.catalina.connector.Connector;
 import org.chronopolis.ingest.IngestSettings;
-import org.chronopolis.ingest.TrackingThreadPoolExecutor;
+import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.rest.entities.Bag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

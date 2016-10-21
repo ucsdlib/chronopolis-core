@@ -1,11 +1,10 @@
 package org.chronopolis.replicate.service;
 
 import org.chronopolis.common.settings.IngestAPISettings;
-import org.chronopolis.replicate.batch.ReplicationJobStarter;
+import org.chronopolis.replicate.batch.Submitter;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.chronopolis.rest.support.BagConverter;
 import org.slf4j.Logger;
@@ -18,7 +17,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Component;
 import retrofit2.Call;
-import retrofit2.Callback;
 import retrofit2.Response;
 
 import java.io.BufferedReader;
@@ -51,7 +49,7 @@ public class CommandLineService implements ReplicationService {
     IngestAPI ingestAPI;
 
     @Autowired
-    ReplicationJobStarter jobStarter;
+    Submitter submitter;
 
     /**
      * Main entry point for the class, display the prompt and when we receive
@@ -140,36 +138,15 @@ public class CommandLineService implements ReplicationService {
                 log.error("", e);
                 continue;
             }
-            if (update) {
-                log.info("Updating replication");
-                // replication.setStatus(ReplicationStatus.STARTED);
-                // ingestAPI.updateReplication(replication.getId(), replication);
-                final long id = replication.getId();
-                Call<Replication> statusCall = ingestAPI.updateReplicationStatus(replication.getId(), new RStatusUpdate(STARTED));
-                statusCall.enqueue(new Callback<Replication>() {
-                    @Override
-                    public void onResponse(Response<Replication> response) {
-                        log.debug("Update to replication {}: {} - {}", new Object[]{
-                                id,
-                                response.code(),
-                                response.message()
-                        });
-                    }
 
-                    @Override
-                    public void onFailure(Throwable throwable) {
-                        log.error("Error communicating with the ingest server", throwable);
-                    }
-                });
-            }
-            jobStarter.addJobFromRestful(replication);
+            submitter.submit(replication);
         }
     }
 
     /**
      * Read in from stdin
      *
-     * @return
+     * @return the read input
      */
     private String readLine() {
         try {
