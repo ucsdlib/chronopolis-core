@@ -1,5 +1,6 @@
 package org.chronopolis.common.transfer;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.chronopolis.common.exception.FileTransferException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -158,9 +159,14 @@ public class RSyncTransfer implements FileTransfer {
      *
      * @return the last directory
      */
-    private String last() {
+    @VisibleForTesting
+    protected String last() {
+        if (link == null) {
+            throw new IllegalArgumentException("Cannot retrieve directory of null link");
+        }
+
         // first test if we have a remote rsync
-        int idx = link.indexOf(":");
+        int idx = link.lastIndexOf(":");
         if (idx == -1) {
             return fromSlash(link);
         }
@@ -170,7 +176,7 @@ public class RSyncTransfer implements FileTransfer {
 
     private String fromSlash(String link) {
         if (link == null || link.isEmpty()) {
-            throw new IllegalArgumentException("Cannot retrieve directory of null/empty link");
+            throw new IllegalArgumentException("Cannot retrieve directory of empty link");
         }
 
         int idx = link.lastIndexOf("/");
