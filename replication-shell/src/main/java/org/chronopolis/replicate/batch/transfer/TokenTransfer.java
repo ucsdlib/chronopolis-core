@@ -112,7 +112,7 @@ public class TokenTransfer implements Runnable {
     }
 
     void fail(Exception e) {
-        throw new NonFatalException(e);
+        throw new RuntimeException(e);
     }
 
 }
