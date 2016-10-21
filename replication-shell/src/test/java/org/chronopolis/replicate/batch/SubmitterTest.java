@@ -79,10 +79,12 @@ public class SubmitterTest {
     public void setup() throws URISyntaxException {
         ace = mock(AceService.class);
         ingest = mock(IngestAPI.class);
+        mail = mock(MailUtil.class);
 
         URL resources = ClassLoader.getSystemClassLoader().getResource("");
 
         settings = new ReplicationSettings();
+        settings.setSendOnSuccess(false);
         settings.setPreservation(Paths.get(resources.toURI()).resolve("preservation").toString());
 
         bags = Paths.get(resources.toURI()).resolve("bags");
@@ -93,7 +95,7 @@ public class SubmitterTest {
 
         io = new TrackingThreadPoolExecutor<>(1, 1, 1, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
         http = new TrackingThreadPoolExecutor<>(1, 1, 1, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
-        submitter = new Submitter(ace, ingest, settings, io, http);
+        submitter = new Submitter(mail, ace, ingest, settings, io, http);
 
         node = new Node("node-user", "not-a-real-field");
     }
@@ -119,7 +121,7 @@ public class SubmitterTest {
     }
 
     @Test
-    public void fromPendingServerStop() {
+    public void fromPendingServerStop() throws InterruptedException, ExecutionException {
         Bag bag = createBag(testBag, testToken);
 
         // Because we need to create an updated replication, there's a bit of ugliness we need to
@@ -138,12 +140,11 @@ public class SubmitterTest {
         when(ingest.updateTagManifest(r.getId(), tagUpdate))
                 .thenReturn(new CallWrapper<>(r));
 
-        // todo: make sure this is the updated replication with status > pending/w.e.
         updated.setStatus(ReplicationStatus.FAILURE_TAG_MANIFEST);
         when(ingest.getReplication(r.getId())).thenReturn(new CallWrapper<>(updated));
 
         CompletableFuture<Void> submission = submitter.submit(r);
-        submission.exceptionally(t -> null);
+        submission.get();
 
         verify(ingest, times(1)).updateTokenStore(r.getId(), tokenUpdate);
         verify(ingest, times(1)).updateTagManifest(r.getId(), tagUpdate);
@@ -208,7 +209,7 @@ public class SubmitterTest {
         verify(ace, times(1)).startAudit(eq(1L));
     }
 
-    @Test
+    // @Test
     public void fromTransferred() {
     }
 

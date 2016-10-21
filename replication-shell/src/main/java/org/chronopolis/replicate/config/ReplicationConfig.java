@@ -160,8 +160,8 @@ public class ReplicationConfig {
     }
 
     @Bean
-    Submitter submitter(AceService ace, IngestAPI ingest, ReplicationSettings settings) {
-        return new Submitter(ace, ingest, settings, io(), http());
+    Submitter submitter(MailUtil mail, AceService ace, IngestAPI ingest, ReplicationSettings settings) {
+        return new Submitter(mail, ace, ingest, settings, io(), http());
     }
 
     @Bean

@@ -2,6 +2,7 @@ package org.chronopolis.replicate.batch;
 
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
+import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.batch.ace.AceRunner;
 import org.chronopolis.replicate.batch.transfer.BagTransfer;
@@ -12,6 +13,7 @@ import org.chronopolis.rest.entities.Replication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -35,15 +37,18 @@ import java.util.function.BiConsumer;
 public class Submitter {
     private final Logger log = LoggerFactory.getLogger(Submitter.class);
 
+    MailUtil mail;
     AceService ace;
     IngestAPI ingest;
     ReplicationSettings settings;
-    Set<String> replicating;
     TrackingThreadPoolExecutor<Replication> io;
     TrackingThreadPoolExecutor<Replication> http;
 
+    Set<String> replicating;
+
     @Autowired
-    public Submitter(AceService ace,
+    public Submitter(MailUtil mail,
+                     AceService ace,
                      IngestAPI ingest,
                      ReplicationSettings settings,
                      TrackingThreadPoolExecutor<Replication> io,
@@ -145,6 +150,10 @@ public class Submitter {
      * Consumer which runs at the end of a replication, ensures removal from the
      * replicating set
      *
+     * todo: send mail (eventually switch to a better interface for notifications
+     *                  so we can have multiple outputs. i.e. email, slack, db,
+     *                  etc)
+     *
      */
     private class Completer implements BiConsumer<Void, Throwable> {
         private final Logger log = LoggerFactory.getLogger(Completer.class);
@@ -158,9 +167,21 @@ public class Submitter {
         @Override
         public void accept(Void aVoid, Throwable throwable) {
             String s = replication.getBag().getDepositor() + "/" + replication.getBag().getName();
+            String subject = "Successful replication of " + s;
+            boolean send = settings.sendOnSuccess();
+            String body = "";
+
+            // TODO: Check here for fatal exceptions, and cancel replication if necessary
             if (throwable != null) {
-                // TODO: Check here for fatal exceptions, and cancel replication if necessary
+                subject = "Failed to replicate " + s;
                 log.warn("Replication did not complete successfully, returned throwable is", throwable);
+                body = throwable.getMessage();
+                send = true;
+            }
+
+            if (send) {
+                SimpleMailMessage message =  mail.createMessage(settings.getNode(), subject, body);
+                mail.send(message);
             }
 
             replicating.remove(s);
