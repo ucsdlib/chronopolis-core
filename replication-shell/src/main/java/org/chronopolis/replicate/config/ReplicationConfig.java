@@ -9,7 +9,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.OkBasicInterceptor;
-import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.settings.AceSettings;
 import org.chronopolis.common.settings.IngestAPISettings;
@@ -37,6 +36,7 @@ import java.lang.reflect.Type;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -165,13 +165,13 @@ public class ReplicationConfig {
     }
 
     @Bean
-    TrackingThreadPoolExecutor<Replication> http() {
-        return new TrackingThreadPoolExecutor<>(4, 8, 30, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
+    ThreadPoolExecutor http() {
+        return new ThreadPoolExecutor(4, 8, 30, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
     }
 
     @Bean
-    TrackingThreadPoolExecutor<Replication> io() {
-        return new TrackingThreadPoolExecutor<>(2, 2, 30, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
+    ThreadPoolExecutor io() {
+        return new ThreadPoolExecutor(4, 8, 30, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
     }
 
     /**

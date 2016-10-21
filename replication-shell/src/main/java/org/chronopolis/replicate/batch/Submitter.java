@@ -1,7 +1,6 @@
 package org.chronopolis.replicate.batch;
 
 import org.chronopolis.common.ace.AceService;
-import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.batch.ace.AceRunner;
@@ -20,6 +19,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.BiConsumer;
 
 /**
@@ -41,8 +41,8 @@ public class Submitter {
     AceService ace;
     IngestAPI ingest;
     ReplicationSettings settings;
-    TrackingThreadPoolExecutor<Replication> io;
-    TrackingThreadPoolExecutor<Replication> http;
+    ThreadPoolExecutor io;
+    ThreadPoolExecutor http;
 
     Set<String> replicating;
 
@@ -51,8 +51,8 @@ public class Submitter {
                      AceService ace,
                      IngestAPI ingest,
                      ReplicationSettings settings,
-                     TrackingThreadPoolExecutor<Replication> io,
-                     TrackingThreadPoolExecutor<Replication> http) {
+                     ThreadPoolExecutor io,
+                     ThreadPoolExecutor http) {
         this.ace = ace;
         this.ingest = ingest;
         this.settings = settings;
