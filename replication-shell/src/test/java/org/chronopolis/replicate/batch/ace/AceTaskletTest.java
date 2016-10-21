@@ -54,10 +54,10 @@ public class AceTaskletTest {
         MockitoAnnotations.initMocks(this);
 
         b = new Bag("test-bag", "test-depositor");
-        b.setTokenLocation("tokens/test-store");
+        b.setTokenLocation("tokens/test-token-store");
         n = new Node("test-node", "test-node-pass");
 
-        URL bags = ClassLoader.getSystemClassLoader().getResource("preservation");
+        URL bags = ClassLoader.getSystemClassLoader().getResource("");
         settings = new ReplicationSettings();
         settings.setPreservation(bags.toString());
     }
