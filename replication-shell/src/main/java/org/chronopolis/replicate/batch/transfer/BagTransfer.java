@@ -30,9 +30,9 @@ public class BagTransfer implements Runnable {
     private final Logger log = LoggerFactory.getLogger(BagTransfer.class);
 
     // Fields set by constructor
-    Replication r;
-    IngestAPI ingestAPI;
-    ReplicationSettings settings;
+    final Replication r;
+    final IngestAPI ingestAPI;
+    final ReplicationSettings settings;
 
     // Fields set when running
     final Long id;

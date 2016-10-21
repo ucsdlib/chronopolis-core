@@ -30,9 +30,9 @@ public class TokenTransfer implements Runnable {
     private final Logger log = LoggerFactory.getLogger(TokenTransfer.class);
 
     // Set in our constructor
-    Replication r;
-    IngestAPI ingest;
-    ReplicationSettings settings;
+    final Replication r;
+    final IngestAPI ingest;
+    final ReplicationSettings settings;
 
     // Set when running
     final Long id;
