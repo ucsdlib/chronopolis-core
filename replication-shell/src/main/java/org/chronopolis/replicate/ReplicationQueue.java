@@ -73,11 +73,7 @@ public class ReplicationQueue implements Runnable {
         FileTransfer transfer;
 
         if (protocol.equalsIgnoreCase("rsync")) {
-            // TODO: Send any authentication information here
-            // TODO: Oh god this is so terrible
-            String[] parts = url.split("@", 2);
-            transfer = new RSyncTransfer(parts[0]);
-            url = parts[1];
+            transfer = new RSyncTransfer(url);
         } else if (protocol.equalsIgnoreCase("https")) {
             transfer = new HttpsTransfer();
         } else {

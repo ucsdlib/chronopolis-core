@@ -1,4 +1,4 @@
-package org.chronopolis.ingest;
+package org.chronopolis.common.concurrent;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;

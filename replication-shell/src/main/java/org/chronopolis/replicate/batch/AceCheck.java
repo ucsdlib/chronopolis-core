@@ -1,56 +1,49 @@
 package org.chronopolis.replicate.batch;
 
-import com.google.common.base.Optional;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
 import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.models.RStatusUpdate;
-import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.StepContribution;
-import org.springframework.batch.core.scope.context.ChunkContext;
-import org.springframework.batch.core.step.tasklet.Tasklet;
-import org.springframework.batch.repeat.RepeatStatus;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 
 /**
  * fish fish fish fish fish
+ * eating fish
  *
- * Created by shake on 3/10/16.
+ * Created by shake on 10/13/16.
  */
-public class AceCheckTasklet implements Tasklet {
-    private final Logger log = LoggerFactory.getLogger(AceCheckTasklet.class);
+public class AceCheck implements Runnable {
 
-    private IngestAPI ingest;
-    private AceService aceService;
-    private Replication replication;
+    final AceService ace;
+    final IngestAPI ingest;
+    final Replication replication;
 
-    public AceCheckTasklet(IngestAPI ingest, AceService aceService, Replication replication) {
+    public AceCheck(AceService ace, IngestAPI ingest, Replication replication) {
+        this.ace = ace;
         this.ingest = ingest;
-        this.aceService = aceService;
         this.replication = replication;
     }
 
     @Override
-    public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
+    public void run() {
         Bag bag = replication.getBag();
         GetCallback callback = new GetCallback();
-        Call<GsonCollection> call = aceService.getCollectionByName(bag.getName(), bag.getDepositor());
+        Call<GsonCollection> call = ace.getCollectionByName(bag.getName(), bag.getDepositor());
         call.enqueue(callback);
         Optional<GsonCollection> collection = callback.get();
         if (collection.isPresent()) {
             checkCollection(collection.get());
         }
 
-        return RepeatStatus.FINISHED;
     }
 
     private void checkCollection(GsonCollection gsonCollection) {

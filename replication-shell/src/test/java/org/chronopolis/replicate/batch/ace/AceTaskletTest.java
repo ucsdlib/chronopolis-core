@@ -25,6 +25,7 @@ import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -68,10 +69,13 @@ public class AceTaskletTest {
                 .thenReturn(new CallWrapper<>(ImmutableMap.of("id", 1L)));
     }
 
+    private void prepareIngestGet(Long id, Replication r) {
+        when(ingest.getReplication(id)).thenReturn(new CallWrapper<>(r));
+    }
+
     private void prepareIngestUpdate(ReplicationStatus status) {
-        // TODO: Add equals for this
         RStatusUpdate update = new RStatusUpdate(status);
-        when(ingest.updateReplicationStatus(anyLong(), any(RStatusUpdate.class)))
+        when(ingest.updateReplicationStatus(anyLong(), eq(update)))
                 .thenReturn(new CallWrapper<>(replication));
     }
 
@@ -105,6 +109,7 @@ public class AceTaskletTest {
         notifier = new ReplicationNotifier(replication);
 
         // setup our mocks for our http requests
+        prepareIngestGet(replication.getId(), replication);
         prepareACERegister();
         prepareIngestUpdate(ReplicationStatus.ACE_REGISTERED);
         prepareAceTokenLoad();
@@ -112,9 +117,8 @@ public class AceTaskletTest {
         prepareAceAudit();
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
-        // Luckily we don't use either parameter passed in, so fuck em
-        AceTasklet tasklet = new AceTasklet(ingest, ace, replication, settings, notifier);
-        tasklet.execute(null, null);
+        AceRunner runner = new AceRunner(ace, ingest, replication.getId(), settings, notifier);
+        runner.run();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName(any(String.class), any(String.class));
@@ -132,6 +136,7 @@ public class AceTaskletTest {
         notifier = new ReplicationNotifier(replication);
 
         // setup our mocks for our http requests
+        prepareIngestGet(replication.getId(), replication);
         prepareAceGet();
         prepareIngestUpdate(ReplicationStatus.ACE_REGISTERED);
         prepareAceTokenLoad();
@@ -139,9 +144,8 @@ public class AceTaskletTest {
         prepareAceAudit();
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
-        // Luckily we don't use either parameter passed in, so fuck em
-        AceTasklet tasklet = new AceTasklet(ingest, ace, replication, settings, notifier);
-        tasklet.execute(null, null);
+        AceRunner runner = new AceRunner(ace, ingest, replication.getId(), settings, notifier);
+        runner.run();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName(any(String.class), any(String.class));
@@ -160,12 +164,13 @@ public class AceTaskletTest {
         notifier = new ReplicationNotifier(replication);
 
         // setup our mocks for our http requests
+        prepareIngestGet(replication.getId(), replication);
         prepareAceGet();
         prepareAceAudit();
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
-        AceTasklet tasklet = new AceTasklet(ingest, ace, replication, settings, notifier);
-        tasklet.execute(null, null);
+        AceRunner runner = new AceRunner(ace, ingest, replication.getId(), settings, notifier);
+        runner.run();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName("test-bag", "test-depositor");
@@ -180,6 +185,7 @@ public class AceTaskletTest {
         replication.setStatus(ReplicationStatus.ACE_REGISTERED);
 
         // setup our mocks for our http requests
+        prepareIngestGet(replication.getId(), replication);
         prepareAceGet();
         prepareAceTokenLoad();
         prepareIngestUpdate(ReplicationStatus.ACE_TOKEN_LOADED);
@@ -188,8 +194,8 @@ public class AceTaskletTest {
 
         notifier = new ReplicationNotifier(replication);
 
-        AceTasklet tasklet = new AceTasklet(ingest, ace, replication, settings, notifier);
-        tasklet.execute(null, null);
+        AceRunner runner = new AceRunner(ace, ingest, replication.getId(), settings, notifier);
+        runner.run();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName("test-bag", "test-depositor");
