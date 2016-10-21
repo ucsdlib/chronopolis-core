@@ -47,6 +47,9 @@ import static org.mockito.Mockito.when;
  * when a Job is running, but only after we test when no jobs are running. This
  * is used to ensure the order of execution from JUnit.
  *
+ * Todo: These tests are somewhat out of date now that {@link Submitter} handles
+ * the filtering of replications
+ *
  * Created by shake on 3/30/15.
  */
 @RunWith(SpringJUnit4ClassRunner.class)
