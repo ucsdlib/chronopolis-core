@@ -108,9 +108,6 @@ public class ReplicationQueryTaskTest {
     @Test
     @SuppressWarnings("unchecked")
     public void testCheckForReplications() throws Exception {
-        log.info("++++++++++++++++++++=");
-        log.info("Submitter is null? {}", submitter == null);
-        log.info("++++++++++++++++++++=");
         when(ingestAPI.getReplications(anyMap())).thenReturn(replications);
 
         // Ok so this is kind of bad behavior, but our bag has a null id so...
@@ -134,7 +131,6 @@ public class ReplicationQueryTaskTest {
                 .thenReturn(new CallWrapper<>(replication));
 
         task.checkForReplications();
-
     }
 
 }
