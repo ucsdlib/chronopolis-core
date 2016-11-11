@@ -1,5 +1,6 @@
 package org.chronopolis.rest.entities;
 
+import org.chronopolis.rest.entities.fulfillment.Strategy;
 import org.chronopolis.rest.models.repair.FulfillmentStatus;
 import org.chronopolis.rest.models.repair.FulfillmentType;
 
@@ -26,6 +27,8 @@ public class Fulfillment extends UpdatableEntity {
     @Enumerated(value = EnumType.STRING)
     FulfillmentType type;
 
+    @OneToOne
+    Strategy credentials;
 
     public Fulfillment() {
     }
@@ -63,6 +66,15 @@ public class Fulfillment extends UpdatableEntity {
 
     public Fulfillment setType(FulfillmentType type) {
         this.type = type;
+        return this;
+    }
+
+    public Strategy getCredentials() {
+        return credentials;
+    }
+
+    public Fulfillment setCredentials(Strategy credentials) {
+        this.credentials = credentials;
         return this;
     }
 }
