@@ -55,14 +55,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        /**
+        /*
          * <http pattern="/restful/**" create-session="stateless">
          * <intercept-url pattern='/**' access='ROLE_REMOTE' />
          * <http-basic />
          * </http>
          */
 
-        /**
+        /*
          * Most of the time the client only interacts through GETs and POSTs,
          * whereas the admin user will also PUT in order to create bags or
          * restore requests. However, a client may also PUT on

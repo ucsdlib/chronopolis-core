@@ -53,23 +53,24 @@ public class StagingController extends IngestController {
 
     private final Logger log = LoggerFactory.getLogger(StagingController.class);
 
-    @Autowired
-    BagRepository bagRepository;
+    private final BagRepository bagRepository;
+    private final NodeRepository nodeRepository;
+    private final BagService bagService;
+    private final IngestSettings ingestSettings;
 
     @Autowired
-    NodeRepository nodeRepository;
-
-    @Autowired
-    BagService bagService;
-
-    @Autowired
-    IngestSettings ingestSettings;
+    public StagingController(BagRepository bagRepository, NodeRepository nodeRepository, BagService bagService, IngestSettings ingestSettings) {
+        this.bagRepository = bagRepository;
+        this.nodeRepository = nodeRepository;
+        this.bagService = bagService;
+        this.ingestSettings = ingestSettings;
+    }
 
     /**
      * Retrieve all the bags we know about
      *
      * @param params - Query parameters used for searching
-     * @return
+     * @return all bags matching the query parameters
      */
     @RequestMapping(value = "bags", method = RequestMethod.GET)
     public Iterable<Bag> getBags(@RequestParam Map<String, String> params) {
@@ -89,11 +90,11 @@ public class StagingController extends IngestController {
      * Retrieve information about a single bag
      *
      * @param bagId - the bag id to retrieve
-     * @return
+     * @return the bag specified by the id
      */
     @RequestMapping(value = "bags/{bag-id}", method = RequestMethod.GET)
     public Bag getBag(@PathVariable("bag-id") Long bagId) {
-        Bag bag = bagRepository.findOne(bagId);
+        Bag bag = bagService.findBag(bagId);
         if (bag == null) {
             throw new NotFoundException("bag/" + bagId);
         }
@@ -105,7 +106,7 @@ public class StagingController extends IngestController {
      *
      * @param principal - authentication information
      * @param request - the request containing the bag name, depositor, and location of the bag
-     * @return
+     * @return the bag created from the IngestRequest
      */
     @RequestMapping(value = "bags", method = RequestMethod.POST)
     public Bag stageBag(Principal principal, @RequestBody IngestRequest request)  {
@@ -146,8 +147,8 @@ public class StagingController extends IngestController {
      * TODO: List<String> -> List<Node> for replicating nodes
      * TODO: Find a home for this
      *
-     * @param bag
-     * @param replicatingNodes
+     * @param bag The bag to create distributions for
+     * @param replicatingNodes The nodes which the bag will be distributed to
      */
     private void createBagDistributions(Bag bag, List<String> replicatingNodes) {
         int numDistributions = 0;
@@ -183,7 +184,7 @@ public class StagingController extends IngestController {
     /**
      * Return a map of valid parameters
      *
-     * @return
+     * @return all valid query parameters for sorting
      */
     private Map<String, String> valid() {
         return ImmutableMap.of(

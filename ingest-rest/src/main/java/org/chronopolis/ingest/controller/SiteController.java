@@ -5,7 +5,6 @@ import org.chronopolis.ingest.models.UserRequest;
 import org.chronopolis.ingest.repository.Authority;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.UserService;
-import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.models.PasswordUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,19 +29,21 @@ public class SiteController extends IngestController {
 
     private final Logger log = LoggerFactory.getLogger(SiteController.class);
 
-    @Autowired
-    UserDetailsManager manager;
+    private final UserDetailsManager manager;
+    private final NodeRepository repository;
+    private final UserService userService;
 
     @Autowired
-    NodeRepository repository;
-
-    @Autowired
-    UserService userService;
+    public SiteController(UserDetailsManager manager, NodeRepository repository, UserService userService) {
+        this.manager = manager;
+        this.repository = repository;
+        this.userService = userService;
+    }
 
     /**
      * Get the index page
      *
-     * @return
+     * @return the main index
      */
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public String getIndex() {
@@ -53,7 +54,7 @@ public class SiteController extends IngestController {
     /**
      * Get the login page
      *
-     * @return
+     * @return the login page
      */
     @RequestMapping(value = "/login")
     public String login() {
@@ -65,14 +66,14 @@ public class SiteController extends IngestController {
      * Return a list of all users if called by an admin, otherwise only add the current
      * user
      *
-     * @param model
-     * @param principal
-     * @return
+     * @param model the model to add attributes to
+     * @param principal the security principal of the user
+     * @return the users page
      */
     @RequestMapping(value = "/users", method = RequestMethod.GET)
     public String getUsers(Model model, Principal principal) {
         Collection<Authority> users = new ArrayList<>();
-        Collection<Node> nodes = new ArrayList<>();
+        // Collection<Node> nodes = new ArrayList<>();
         String user = principal.getName();
 
         // Give admins a view into all users
@@ -89,7 +90,7 @@ public class SiteController extends IngestController {
 
         // Add the current user
         // users.add(manager.loadUserByUsername(principal.getName()));
-        nodes.add(repository.findByUsername(principal.getName()));
+        // nodes.add(repository.findByUsername(principal.getName()));
 
         model.addAttribute("users", users);
 
@@ -100,8 +101,8 @@ public class SiteController extends IngestController {
      * Handle creation of a user
      * TODO: Make sure user does not exist before creating
      *
-     * @param user
-     * @return
+     * @param user The user to create
+     * @return redirect to the users page
      */
     @RequestMapping(value = "/users/add", method = RequestMethod.POST)
     public String createUser(UserRequest user) {
@@ -113,8 +114,8 @@ public class SiteController extends IngestController {
     /**
      * Handler for updating the current users password
      *
-     * @param update
-     * @return
+     * @param update The password to update
+     * @return redirect to the users page
      */
     @RequestMapping(value = "/users/update", method = RequestMethod.POST)
     public String updateUser(PasswordUpdate update) {

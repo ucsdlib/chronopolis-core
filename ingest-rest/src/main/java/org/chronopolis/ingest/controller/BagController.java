@@ -7,7 +7,6 @@ import org.chronopolis.ingest.models.BagUpdate;
 import org.chronopolis.ingest.repository.BagSearchCriteria;
 import org.chronopolis.ingest.repository.BagService;
 import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.ReplicationRepository;
 import org.chronopolis.ingest.repository.ReplicationSearchCriteria;
 import org.chronopolis.ingest.repository.ReplicationService;
 import org.chronopolis.ingest.repository.TokenRepository;
@@ -31,7 +30,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,23 +48,24 @@ public class BagController extends IngestController {
     private final Integer DEFAULT_PAGE_SIZE = 20;
     private final Integer DEFAULT_PAGE = 0;
 
-    @Autowired
-    BagService bagService;
+    final BagService bagService;
+    final ReplicationService replicationService;
+    final TokenRepository tokenRepository;
+    final NodeRepository nodeRepository;
+    final IngestSettings settings;
 
     @Autowired
-    ReplicationRepository replicationRepository;
-
-    @Autowired
-    ReplicationService replicationService;
-
-    @Autowired
-    TokenRepository tokenRepository;
-
-    @Autowired
-    NodeRepository nodeRepository;
-
-    @Autowired
-    IngestSettings settings;
+    public BagController(BagService bagService,
+                         ReplicationService replicationService,
+                         TokenRepository tokenRepository,
+                         NodeRepository nodeRepository,
+                         IngestSettings settings) {
+        this.bagService = bagService;
+        this.replicationService = replicationService;
+        this.tokenRepository = tokenRepository;
+        this.nodeRepository = nodeRepository;
+        this.settings = settings;
+    }
 
     // TODO: Param Map
     /**
@@ -75,7 +74,7 @@ public class BagController extends IngestController {
      *
      * @param model - the view model
      * @param principal - authentication information
-     * @return stringstring
+     * @return page listing all bags
      */
     @RequestMapping(value= "/bags", method = RequestMethod.GET)
     public String getBags(Model model, Principal principal,
@@ -125,7 +124,7 @@ public class BagController extends IngestController {
      *
      * @param model - the view model
      * @param id - the id of the bag
-     * @return
+     * @return page showing the individual bag
      */
     @RequestMapping(value = "/bags/{id}", method = RequestMethod.GET)
     public String getBag(Model model, @PathVariable("id") Long id) {
@@ -151,7 +150,7 @@ public class BagController extends IngestController {
      * @param model - the viewmodel
      * @param id - id of the bag to update
      * @param update - the updated information
-     * @return
+     * @return page showing the individual bag
      */
     @RequestMapping(value = "/bags/{id}", method = RequestMethod.POST)
     public String updateBag(Model model, @PathVariable("id") Long id, BagUpdate update) {
@@ -172,7 +171,7 @@ public class BagController extends IngestController {
      * Retrieve the page for adding bags
      *
      * @param model - the view model
-     * @return
+     * @return page to add a bag
      */
     @RequestMapping(value = "/bags/add", method = RequestMethod.GET)
     public String addBag(Model model) {
@@ -185,11 +184,10 @@ public class BagController extends IngestController {
      *
      * @param model - the view model
      * @param request - the request containing the bag name, depositor, and location
-     * @return
-     * @throws IOException
+     * @return redirect to the bags page
      */
     @RequestMapping(value = "/bags/add", method = RequestMethod.POST)
-    public String addBag(Model model, Principal principal, IngestRequest request) throws IOException {
+    public String addBag(Model model, Principal principal, IngestRequest request) {
         log.info("Adding new bag");
         String name = request.getName();
         String depositor = request.getDepositor();
@@ -212,14 +210,6 @@ public class BagController extends IngestController {
             }
 
             createBagDistributions(bag, request.getReplicatingNodes());
-            /*
-            try {
-                initializeBag(bag, request);
-            } catch (IOException e) {
-                log.error("Error creating bag", e);
-                throw e;
-            }
-            */
         }
 
         bagService.saveBag(bag);
@@ -265,7 +255,7 @@ public class BagController extends IngestController {
      *
      * @param model - the viewmodel
      * @param principal - authentication information
-     * @return
+     * @return the page listing all replications
      */
     @RequestMapping(value = "/replications", method = RequestMethod.GET)
     public String getReplications(Model model, Principal principal,
@@ -344,7 +334,7 @@ public class BagController extends IngestController {
      *
      * @param model - the viewmodel
      * @param principal - authentication information
-     * @return
+     * @return the addreplication page
      */
     @RequestMapping(value = "/replications/add", method = RequestMethod.GET)
     public String addReplications(Model model, Principal principal) {
@@ -358,11 +348,10 @@ public class BagController extends IngestController {
      *
      * @param model - the view model
      * @param request - the request containing the bag name, depositor, and location
-     * @return
-     * @throws IOException
+     * @return redirect to all replications
      */
     @RequestMapping(value = "/replications/add", method = RequestMethod.POST)
-    public String addReplication(Model model, ReplicationRequest request) throws IOException {
+    public String addReplication(Model model, ReplicationRequest request) {
         log.info("Adding new replication from web ui");
 
         Replication replication = replicationService.create(request, settings);

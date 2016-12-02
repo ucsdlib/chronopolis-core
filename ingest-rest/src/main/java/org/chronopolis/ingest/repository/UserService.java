@@ -28,17 +28,21 @@ public class UserService {
 
     private final Logger log = LoggerFactory.getLogger(UserService.class);
 
-    @Autowired
-    AuthoritiesRepository authorities;
+    private final AuthoritiesRepository authorities;
+    private final UserDetailsManager manager;
+    private final NodeRepository repository;
+    private final PasswordEncoder encoder;
 
     @Autowired
-    UserDetailsManager manager;
-
-    @Autowired
-    NodeRepository repository;
-
-    @Autowired
-    PasswordEncoder encoder;
+    public UserService(AuthoritiesRepository authorities,
+                       UserDetailsManager manager,
+                       NodeRepository repository,
+                       PasswordEncoder encoder) {
+        this.authorities = authorities;
+        this.manager = manager;
+        this.repository = repository;
+        this.encoder = encoder;
+    }
 
     public void createUser(UserRequest request) {
         if (manager.userExists(request.getUsername())) {
@@ -52,6 +56,8 @@ public class UserService {
 
         Collection<SimpleGrantedAuthority> authorities = new HashSet<>();
 
+        // TODO: We now have a third role (SERVICE), should update how we add the authority
+        //       maybe it can be part of the UserRequest
         // Since we only have 2 roles at the moment it's easy to create users like this,
         // but we really should update this to have the authorities sent in the request
         if (request.isAdmin()) {

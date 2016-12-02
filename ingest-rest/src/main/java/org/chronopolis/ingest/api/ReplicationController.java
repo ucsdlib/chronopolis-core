@@ -4,8 +4,6 @@ import com.google.common.collect.ImmutableMap;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.exception.NotFoundException;
-import org.chronopolis.ingest.repository.BagService;
-import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationSearchCriteria;
 import org.chronopolis.ingest.repository.ReplicationService;
 import org.chronopolis.rest.entities.Bag;
@@ -49,17 +47,14 @@ import static org.chronopolis.ingest.api.Params.UPDATED_BEFORE;
 public class ReplicationController extends IngestController {
     private final Logger log = LoggerFactory.getLogger(ReplicationController.class);
 
-    @Autowired
-    NodeRepository nodeRepository;
+    private final ReplicationService replicationService;
+    private final IngestSettings settings;
 
     @Autowired
-    BagService bagService;
-
-    @Autowired
-    ReplicationService replicationService;
-
-    @Autowired
-    IngestSettings settings;
+    public ReplicationController(ReplicationService replicationService, IngestSettings settings) {
+        this.replicationService = replicationService;
+        this.settings = settings;
+    }
 
     /**
      * Create a replication request for a given node and bag
@@ -176,7 +171,7 @@ public class ReplicationController extends IngestController {
      * @param principal     - authentication information
      * @param replicationId - the id of the replication to update
      * @param replication   - the updated replication sent from the client
-     * @return
+     * @return the updated replication
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
     public Replication updateReplication(Principal principal,
@@ -215,7 +210,7 @@ public class ReplicationController extends IngestController {
      * Retrieve all replications associated with a particular node/user
      *
      * @param params    - query parameters used for searching
-     * @return
+     * @return all replication matching the request parameters
      */
     @RequestMapping(method = RequestMethod.GET)
     public Iterable<Replication> replications(@RequestParam Map<String, String> params) {
@@ -248,7 +243,7 @@ public class ReplicationController extends IngestController {
      *
      * @param principal - authentication information
      * @param actionId  - the Id to search for
-     * @return
+     * @return the replication specified by the id
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public Replication findReplication(Principal principal,

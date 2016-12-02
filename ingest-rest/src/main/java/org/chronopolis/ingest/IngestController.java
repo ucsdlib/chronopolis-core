@@ -27,7 +27,7 @@ public class IngestController {
     /**
      * Determine if the user in our current context has administrative privileges
      *
-     * @return
+     * @return true if the user is an admin; false otherwise
      */
     public static boolean hasRoleAdmin() {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext()
