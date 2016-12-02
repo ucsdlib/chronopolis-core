@@ -1,16 +1,10 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
-<head>
-    <link href="../css/bootstrap.min.css"
-          th:href="@{/css/bootstrap.min.css}"
-          rel="stylesheet" type="text/css"/>
-    <link href="../css/nav.css"
-          th:href="@{/css/nav.css}"
-          rel="stylesheet" type="text/css"/>
+<head th:replace="layout :: head">
 </head>
 <body>
-    <header th:replace="layout :: head"></header>
+    <header th:replace="layout :: header"></header>
     <div th:replace="layout :: left"></div>
         <!-- Taken from https://spring.io/guides/gs/securing-web/ -->
     <div class="content">

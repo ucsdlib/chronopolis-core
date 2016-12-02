@@ -39,11 +39,14 @@ import static org.chronopolis.ingest.api.Params.PAGE_SIZE;
 public class RestoreController extends IngestController {
     private final Logger log = LoggerFactory.getLogger(RestoreController.class);
 
-    @Autowired
-    private RestoreRepository restoreRepository;
+    private final RestoreRepository restoreRepository;
+    private final NodeRepository nodeRepository;
 
     @Autowired
-    private NodeRepository nodeRepository;
+    public RestoreController(RestoreRepository restoreRepository, NodeRepository nodeRepository) {
+        this.restoreRepository = restoreRepository;
+        this.nodeRepository = nodeRepository;
+    }
 
 
     @RequestMapping(method = RequestMethod.GET)

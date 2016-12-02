@@ -13,21 +13,6 @@
 <div th:fragment="element">
     <h3>Replication Overview</h3>
     <table class="table table-bordered">
-        <!--
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Bag ID</th>
-            <th>Replicating Node</th>
-            <th>Bag Link</th>
-            <th>Received TagManifest Fixity</th>
-            <th>Token Link</th>
-            <th>Received Token Fixity</th>
-            <th>Status</th>
-        </tr>
-        </thead>
-        -->
-
         <!--/*@thymesVar id="replication" type="org.chronopolis.rest.entities.Replication"*/-->
         <tbody>
         <tr>
@@ -36,7 +21,7 @@
         </tr>
         <tr>
             <td>Bag</td>
-            <td th:text="${replication.bag.name}"></td>
+            <td><a th:text="${replication.bag.name}" th:href="@{|/bags/${replication.bag.id}|}"></a></td>
         </tr>
         <tr>
             <td>Replicating Node</td>

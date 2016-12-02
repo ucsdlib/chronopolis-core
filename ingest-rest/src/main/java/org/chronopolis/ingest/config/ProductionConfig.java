@@ -1,18 +1,15 @@
 package org.chronopolis.ingest.config;
 
+import org.chronopolis.ingest.models.UserRequest;
+import org.chronopolis.ingest.repository.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementSetter;
-import org.springframework.jdbc.core.RowMapper;
 
 import javax.sql.DataSource;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 
 
@@ -25,6 +22,7 @@ import java.util.List;
  */
 @Configuration
 @Profile("production")
+@SuppressWarnings("unused")
 public class ProductionConfig {
     private final Logger log = LoggerFactory.getLogger(ProductionConfig.class);
 
@@ -42,36 +40,15 @@ public class ProductionConfig {
      *
      */
     @Bean
-    public boolean checkUsers(DataSource dataSource) {
+    public boolean checkUsers(UserService service, DataSource dataSource) {
         JdbcTemplate template = new JdbcTemplate(dataSource);
-        List<String> usernames = template.query(SELECT_USERNAMES, new Object[]{}, new RowMapper<String>() {
-            @Override
-            public String mapRow(ResultSet resultSet, int i) throws SQLException {
-                return resultSet.getString(1);
-            }
-        });
+        List<String> usernames = template.query(SELECT_USERNAMES,
+                new Object[]{},
+                (resultSet, i) -> resultSet.getString(1));
 
         if (usernames.isEmpty()) {
             log.info("No users found, registering default admin user");
-
-            // Insert into our users table
-            template.update(INSERT_ADMIN, new PreparedStatementSetter() {
-                @Override
-                public void setValues(PreparedStatement preparedStatement) throws SQLException {
-                    preparedStatement.setString(1, DEFAULT_ADMIN);
-                    preparedStatement.setString(2, DEFAULT_ADMIN);
-                    preparedStatement.setBoolean(3, true);
-                }
-            });
-
-            // And into our authorities table
-            template.update(INSERT_AUTHORITY, new PreparedStatementSetter() {
-                @Override
-                public void setValues(PreparedStatement preparedStatement) throws SQLException {
-                    preparedStatement.setString(1, DEFAULT_ADMIN);
-                    preparedStatement.setString(2, ROLE_ADMIN);
-                }
-            });
+            service.createUser(new UserRequest(DEFAULT_ADMIN, DEFAULT_ADMIN, true, false));
         }
 
         return true;

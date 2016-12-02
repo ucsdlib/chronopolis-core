@@ -1,8 +1,8 @@
-insert into users (username, password, enabled) values ('admin', 'admin', true);
-insert into users (username, password, enabled) values ('umiacs', 'umiacs', true);
-insert into users (username, password, enabled) values ('ncar', 'ncar', true);
-insert into users (username, password, enabled) values ('sdsc', 'sdsc', true);
-insert into users (username, password, enabled) values ('ucsd', 'ucsd', true);
+insert into users (username, password, enabled) values ('admin', '$2a$04$PLODVoI9PXF4cu9uk.Zng.vFQ8883O5FnF/GvlBGChVZh7Ne/3hem', true);
+insert into users (username, password, enabled) values ('umiacs', '$2a$04$76rT9ZdZ0x4i..B.XDJDXeFrWjXIMBtQYTfTRA2pMhar7yhywJBAW', true);
+insert into users (username, password, enabled) values ('ncar', '$2a$04$TXo2NmbY8WcAOAcIU6NZUuTBysa6/cZS.GU4capVVY/jC2EFjdQBu', true);
+insert into users (username, password, enabled) values ('sdsc', '$2a$04$F19KKkMERGHCarAsNSxrU.RCrRjz9VyeeHth.rwr8.qffsboKwn5K', true);
+insert into users (username, password, enabled) values ('ucsd', '$2a$04$K6i6BBtNX.cSHekw5.rG/.KbFhok8Qen4ExYYduTfKZWsyeDAvvRG', true);
 
 insert into node (id, enabled, password, username) VALUES (DEFAULT, true, 'umiacs', 'umiacs');
 insert into node (id, enabled, password, username) VALUES (DEFAULT, true, 'ncar', 'ncar');

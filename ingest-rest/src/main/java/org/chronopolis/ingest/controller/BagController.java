@@ -7,15 +7,14 @@ import org.chronopolis.ingest.models.BagUpdate;
 import org.chronopolis.ingest.repository.BagSearchCriteria;
 import org.chronopolis.ingest.repository.BagService;
 import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.ReplicationRepository;
 import org.chronopolis.ingest.repository.ReplicationSearchCriteria;
 import org.chronopolis.ingest.repository.ReplicationService;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.models.BagStatus;
-import org.chronopolis.rest.models.IngestRequest;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.models.BagStatus;
+import org.chronopolis.rest.models.IngestRequest;
 import org.chronopolis.rest.models.ReplicationRequest;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
@@ -31,7 +30,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,24 +46,26 @@ import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatu
 public class BagController extends IngestController {
     private final Logger log = LoggerFactory.getLogger(BagController.class);
     private final Integer DEFAULT_PAGE_SIZE = 20;
+    private final Integer DEFAULT_PAGE = 0;
+
+    final BagService bagService;
+    final ReplicationService replicationService;
+    final TokenRepository tokenRepository;
+    final NodeRepository nodeRepository;
+    final IngestSettings settings;
 
     @Autowired
-    BagService bagService;
-
-    @Autowired
-    ReplicationRepository replicationRepository;
-
-    @Autowired
-    ReplicationService replicationService;
-
-    @Autowired
-    TokenRepository tokenRepository;
-
-    @Autowired
-    NodeRepository nodeRepository;
-
-    @Autowired
-    IngestSettings settings;
+    public BagController(BagService bagService,
+                         ReplicationService replicationService,
+                         TokenRepository tokenRepository,
+                         NodeRepository nodeRepository,
+                         IngestSettings settings) {
+        this.bagService = bagService;
+        this.replicationService = replicationService;
+        this.tokenRepository = tokenRepository;
+        this.nodeRepository = nodeRepository;
+        this.settings = settings;
+    }
 
     // TODO: Param Map
     /**
@@ -74,14 +74,16 @@ public class BagController extends IngestController {
      *
      * @param model - the view model
      * @param principal - authentication information
-     * @return stringstring
+     * @return page listing all bags
      */
     @RequestMapping(value= "/bags", method = RequestMethod.GET)
     public String getBags(Model model, Principal principal,
                           @RequestParam(defaultValue = "0", required = false) Integer page,
                           @RequestParam(required = false) String depositor,
                           @RequestParam(required = false) String name,
-                          @RequestParam(required = false) BagStatus status) {
+                          @RequestParam(required = false) BagStatus status,
+                          @RequestParam(defaultValue = "id", required = false) String orderBy,
+                          @RequestParam(required = false) String dir) {
         log.info("Getting bags for user {}", principal.getName());
 
         BagSearchCriteria criteria = new BagSearchCriteria()
@@ -89,7 +91,8 @@ public class BagController extends IngestController {
                 .depositorLike(depositor)
                 .withStatus(status);
 
-        Sort s = new Sort(Sort.Direction.ASC, "id");
+        Sort.Direction direction = (dir == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(dir);
+        Sort s = new Sort(direction, orderBy);
         Page<Bag> bags = bagService.findBags(criteria, new PageRequest(page, DEFAULT_PAGE_SIZE, s));
 
         boolean start;
@@ -121,15 +124,20 @@ public class BagController extends IngestController {
      *
      * @param model - the view model
      * @param id - the id of the bag
-     * @return
+     * @return page showing the individual bag
      */
     @RequestMapping(value = "/bags/{id}", method = RequestMethod.GET)
     public String getBag(Model model, @PathVariable("id") Long id) {
         log.info("Getting bag {}", id);
 
+        ReplicationSearchCriteria rsc = new ReplicationSearchCriteria().withBagId(id);
+
         // TODO: Could probably use model.addAllAttributes and use that for
         // common pages
-        model.addAttribute("bags", bagService.findBag(id));
+        // TODO: Handle pages for replications I guess
+        model.addAttribute("bag", bagService.findBag(id));
+        model.addAttribute("replications", replicationService.getReplications(rsc,
+                new PageRequest(DEFAULT_PAGE, DEFAULT_PAGE_SIZE)));
         model.addAttribute("statuses", Arrays.asList(BagStatus.values()));
         model.addAttribute("tokens", tokenRepository.countByBagId(id));
 
@@ -142,7 +150,7 @@ public class BagController extends IngestController {
      * @param model - the viewmodel
      * @param id - id of the bag to update
      * @param update - the updated information
-     * @return
+     * @return page showing the individual bag
      */
     @RequestMapping(value = "/bags/{id}", method = RequestMethod.POST)
     public String updateBag(Model model, @PathVariable("id") Long id, BagUpdate update) {
@@ -163,7 +171,7 @@ public class BagController extends IngestController {
      * Retrieve the page for adding bags
      *
      * @param model - the view model
-     * @return
+     * @return page to add a bag
      */
     @RequestMapping(value = "/bags/add", method = RequestMethod.GET)
     public String addBag(Model model) {
@@ -176,11 +184,10 @@ public class BagController extends IngestController {
      *
      * @param model - the view model
      * @param request - the request containing the bag name, depositor, and location
-     * @return
-     * @throws IOException
+     * @return redirect to the bags page
      */
     @RequestMapping(value = "/bags/add", method = RequestMethod.POST)
-    public String addBag(Model model, Principal principal, IngestRequest request) throws IOException {
+    public String addBag(Model model, Principal principal, IngestRequest request) {
         log.info("Adding new bag");
         String name = request.getName();
         String depositor = request.getDepositor();
@@ -203,14 +210,6 @@ public class BagController extends IngestController {
             }
 
             createBagDistributions(bag, request.getReplicatingNodes());
-            /*
-            try {
-                initializeBag(bag, request);
-            } catch (IOException e) {
-                log.error("Error creating bag", e);
-                throw e;
-            }
-            */
         }
 
         bagService.saveBag(bag);
@@ -256,14 +255,16 @@ public class BagController extends IngestController {
      *
      * @param model - the viewmodel
      * @param principal - authentication information
-     * @return
+     * @return the page listing all replications
      */
     @RequestMapping(value = "/replications", method = RequestMethod.GET)
     public String getReplications(Model model, Principal principal,
                                   @RequestParam(defaultValue = "0", required = false) Integer page,
                                   @RequestParam(required = false) String node,
                                   @RequestParam(required = false) String bag,
-                                  @RequestParam(required = false) ReplicationStatus status) {
+                                  @RequestParam(required = false) ReplicationStatus status,
+                                  @RequestParam(defaultValue = "id", required = false) String orderBy,
+                                  @RequestParam(required = false) String dir) {
         log.info("Getting replications for user {}", principal.getName());
         Page<Replication> replications;
         ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
@@ -271,7 +272,8 @@ public class BagController extends IngestController {
                 .nodeUsernameLike(node)
                 .withStatus(status);
 
-        Sort s = new Sort(Sort.Direction.ASC, "id");
+        Sort.Direction direction = (dir == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(dir);
+        Sort s = new Sort(direction, orderBy);
         replications = replicationService.getReplications(criteria, new PageRequest(page, DEFAULT_PAGE_SIZE, s));
 
         StringBuilder url = new StringBuilder("/replications");
@@ -332,7 +334,7 @@ public class BagController extends IngestController {
      *
      * @param model - the viewmodel
      * @param principal - authentication information
-     * @return
+     * @return the addreplication page
      */
     @RequestMapping(value = "/replications/add", method = RequestMethod.GET)
     public String addReplications(Model model, Principal principal) {
@@ -346,11 +348,10 @@ public class BagController extends IngestController {
      *
      * @param model - the view model
      * @param request - the request containing the bag name, depositor, and location
-     * @return
-     * @throws IOException
+     * @return redirect to all replications
      */
     @RequestMapping(value = "/replications/add", method = RequestMethod.POST)
-    public String addReplication(Model model, ReplicationRequest request) throws IOException {
+    public String addReplication(Model model, ReplicationRequest request) {
         log.info("Adding new replication from web ui");
 
         Replication replication = replicationService.create(request, settings);

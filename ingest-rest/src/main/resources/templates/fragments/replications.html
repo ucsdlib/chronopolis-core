@@ -40,7 +40,6 @@
                 <br/>
                 <div class="input-group form-group-sm">
                     <span class="input-group-addon" id="sizing-addon-3">Status</span>
-
                     <!--@thymesVar id="statuses" type="List" -->
                     <!--@thymesVar id="status" type="org.chronopolis.rest.models.ReplicationStatus" -->
                     <select name="status" id="status-table-filter" class="form-control">
@@ -51,6 +50,27 @@
                         </option>
                     </select>
 
+                </div>
+                <br/>
+                <!-- TODO: Fragment? -->
+                <h5>Order By</h5>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="orderBy" id="optionUpdatedAt" value="updatedAt"/>
+                        Updated At
+                    </label>
+                </div>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="orderBy" id="optionCreatedAt" value="createdAt"/>
+                        Created At
+                    </label>
+                </div>
+                <div class="input-group form-group-sm">
+                    <select name="dir" id="direction-filter" class="form-control">
+                        <option value="ASC">Ascending</option>
+                        <option value="DESC">Descending</option>
+                    </select>
                 </div>
                 <br/>
                 <button th:type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search"
@@ -82,8 +102,8 @@
                 <td th:text="${replication.bag.name}"></td>
                 <td th:text="${replication.node.username}"></td>
                 <td th:text="${replication.status}"></td>
-                <td th:text="${replication.createdAt.toLocalDate()}"></td>
-                <td th:text="${replication.updatedAt.toLocalDate()}"></td>
+                <td th:if="${replication.createdAt} != null" th:text="${replication.createdAt.toLocalDate()}"></td>
+                <td th:if="${replication.updatedAt} != null" th:text="${replication.updatedAt.toLocalDate()}"></td>
             </tr>
             </tbody>
         </table>
