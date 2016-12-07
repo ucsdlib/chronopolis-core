@@ -59,12 +59,12 @@
         <repository>
             <id>adapt-releases</id>
             <name>ADAPT Internal Releases</name>
-            <url>https://scm.umiacs.umd.edu/adapt/content/repository/maven-releases/</url>
+            <url>https://scm.umiacs.umd.edu/adapt/repository/maven-releases/</url>
         </repository>
         <snapshotRepository>
             <id>adapt-snapshots</id>
             <name>ADAPT Snapshots</name>
-            <url>https://scm.umiacs.umd.edu/adapt/content/repository/maven-snapshots/</url>
+            <url>https://scm.umiacs.umd.edu/adapt/repository/maven-snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 
@@ -120,17 +120,17 @@
 
     <repositories>
         <repository>
-            <url>https://scm.umiacs.umd.edu/maven/adapt/content/repositories/releases/</url>
+            <url>https://scm.umiacs.umd.edu/adapt/repository/maven-releases/</url>
             <id>adapt-sonatype</id>
             <name>ADAPT Project Repository</name>
         </repository>
         <repository>
-            <url>https://scm.umiacs.umd.edu/maven/adapt/content/repositories/public/</url>
+            <url>https://scm.umiacs.umd.edu/adapt/repository/maven-public/</url>
             <id>adapt-sonatype-public</id>
             <name>ADAPT Project Public Repository</name>
         </repository>
         <repository>
-            <url>https://scm.umiacs.umd.edu/maven/adapt/content/repositories/snapshots/</url>
+            <url>https://scm.umiacs.umd.edu/adapt/repository/maven-snapshots/</url>
             <id>adapt-snapshots</id>
             <name>ADAPT Snapshot Repository</name>
         </repository>
