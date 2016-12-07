@@ -59,12 +59,12 @@
         <repository>
             <id>adapt-releases</id>
             <name>ADAPT Internal Releases</name>
-            <url>https://scm.umiacs.umd.edu/maven/adapt/content/repositories/releases/</url>
+            <url>https://scm.umiacs.umd.edu/adapt/content/repository/maven-releases/</url>
         </repository>
         <snapshotRepository>
             <id>adapt-snapshots</id>
             <name>ADAPT Snapshots</name>
-            <url>https://scm.umiacs.umd.edu/maven/adapt/content/repositories/snapshots/</url>
+            <url>https://scm.umiacs.umd.edu/adapt/content/repository/maven-snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 
@@ -364,12 +364,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!--
-        <dependency>
-            <groupId>org.springframework.amqp</groupId>
-            <artifactId>spring-rabbit</artifactId>
-        </dependency>
-        -->
 
         <!-- logging -->
         <dependency>
