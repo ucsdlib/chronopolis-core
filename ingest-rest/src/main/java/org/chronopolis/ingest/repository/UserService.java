@@ -2,6 +2,7 @@ package org.chronopolis.ingest.repository;
 
 import org.chronopolis.ingest.models.UserRequest;
 import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.models.PasswordUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
+import java.security.Principal;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -90,4 +92,19 @@ public class UserService {
         return manager.loadUserByUsername(username);
     }
 
+    /**
+     * Update the password for a user (who is already authenticated)
+     *
+     * TODO: I don't really like using the UserDetailsManager for this, it redirects us
+     *       back to the login page which can cause all sorts of chaos. We should look
+     *       for an alternative so that if a pw update fails we don't enter some weird
+     *       redirect/bad credentials loop.
+     *
+     * @param update the password update
+     * @param principal the security principal of the user
+     */
+    public void updatePassword(PasswordUpdate update, Principal principal) {
+        log.info("Updating password for user {}", principal.getName());
+        manager.changePassword(update.getOldPassword(), encoder.encode(update.getNewPassword()));
+    }
 }

@@ -3,7 +3,6 @@ package org.chronopolis.ingest.controller;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.models.UserRequest;
 import org.chronopolis.ingest.repository.Authority;
-import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.UserService;
 import org.chronopolis.rest.models.PasswordUpdate;
 import org.slf4j.Logger;
@@ -30,13 +29,11 @@ public class SiteController extends IngestController {
     private final Logger log = LoggerFactory.getLogger(SiteController.class);
 
     private final UserDetailsManager manager;
-    private final NodeRepository repository;
     private final UserService userService;
 
     @Autowired
-    public SiteController(UserDetailsManager manager, NodeRepository repository, UserService userService) {
+    public SiteController(UserDetailsManager manager, UserService userService) {
         this.manager = manager;
-        this.repository = repository;
         this.userService = userService;
     }
 
@@ -73,27 +70,17 @@ public class SiteController extends IngestController {
     @RequestMapping(value = "/users", method = RequestMethod.GET)
     public String getUsers(Model model, Principal principal) {
         Collection<Authority> users = new ArrayList<>();
-        // Collection<Node> nodes = new ArrayList<>();
         String user = principal.getName();
 
         // Give admins a view into all users
         if (hasRoleAdmin()) {
            users.addAll(userService.listUserAuthorities());
-
-            // model.addAttribute("admin", true);
         } else {
             // TODO: userService.getAuthority(name)
             users.add(userService.getUserAuthority(user));
         }
 
-        // userService.listUsernames().forEach(System.out::println);
-
-        // Add the current user
-        // users.add(manager.loadUserByUsername(principal.getName()));
-        // nodes.add(repository.findByUsername(principal.getName()));
-
         model.addAttribute("users", users);
-
         return "users";
     }
 
@@ -115,12 +102,13 @@ public class SiteController extends IngestController {
      * Handler for updating the current users password
      *
      * @param update The password to update
+     * @param principal The security principal of the user
      * @return redirect to the users page
      */
     @RequestMapping(value = "/users/update", method = RequestMethod.POST)
-    public String updateUser(PasswordUpdate update) {
-        manager.changePassword(update.getOldPassword(), update.getNewPassword());
-        return "redirect:/users";
+    public String updateUser(PasswordUpdate update, Principal principal) {
+        userService.updatePassword(update, principal);
+        return "users";
     }
 
 }
