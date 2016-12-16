@@ -37,17 +37,18 @@ import static org.chronopolis.rest.entities.BagDistribution.*;
 public class ReplicationTask {
     private final Logger log = LoggerFactory.getLogger(ReplicationTask.class);
 
-    @Autowired
-    IngestSettings settings;
+    private final IngestSettings settings;
+    private final BagRepository bagRepository;
+    private final NodeRepository nodeRepository;
+    private final ReplicationRepository replicationRepository;
 
     @Autowired
-    BagRepository bagRepository;
-
-    @Autowired
-    NodeRepository nodeRepository;
-
-    @Autowired
-    ReplicationRepository replicationRepository;
+    public ReplicationTask(IngestSettings settings, BagRepository bagRepository, NodeRepository nodeRepository, ReplicationRepository replicationRepository) {
+        this.settings = settings;
+        this.bagRepository = bagRepository;
+        this.nodeRepository = nodeRepository;
+        this.replicationRepository = replicationRepository;
+    }
 
     @Scheduled(cron = "${ingest.cron.request:0 */10 * * * *}")
     public void createReplications() {

@@ -3,10 +3,8 @@ package org.chronopolis.replicate.service;
 import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.replicate.batch.Submitter;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.entities.Replication;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
-import org.chronopolis.rest.support.BagConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,17 +37,18 @@ import static org.chronopolis.rest.models.ReplicationStatus.STARTED;
 public class CommandLineService implements ReplicationService {
     private final Logger log = LoggerFactory.getLogger(CommandLineService.class);
 
-    @Autowired
-    ApplicationContext context;
+    private final ApplicationContext context;
+    private final IngestAPISettings settings;
+    private final IngestAPI ingestAPI;
+    private final Submitter submitter;
 
     @Autowired
-    IngestAPISettings settings;
-
-    @Autowired
-    IngestAPI ingestAPI;
-
-    @Autowired
-    Submitter submitter;
+    public CommandLineService(ApplicationContext context, IngestAPISettings settings, IngestAPI ingestAPI, Submitter submitter) {
+        this.context = context;
+        this.settings = settings;
+        this.ingestAPI = ingestAPI;
+        this.submitter = submitter;
+    }
 
     /**
      * Main entry point for the class, display the prompt and when we receive
@@ -129,6 +128,7 @@ public class CommandLineService implements ReplicationService {
 
         for (Replication replication : replications) {
             log.info("Starting job for replication id {}", replication.getId());
+            /*
             try {
                 Call<Bag> bcall = ingestAPI.getBag(replication.getBagId());
                 Response<Bag> execute = bcall.execute();
@@ -138,6 +138,7 @@ public class CommandLineService implements ReplicationService {
                 log.error("", e);
                 continue;
             }
+            */
 
             submitter.submit(replication);
         }

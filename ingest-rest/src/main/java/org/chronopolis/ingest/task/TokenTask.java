@@ -29,20 +29,20 @@ import java.util.Collection;
 public class TokenTask {
     private final Logger log = LoggerFactory.getLogger(TokenTask.class);
 
-    @Autowired
-    TokenRepository tokenRepository;
+    private final TokenRepository tokenRepository;
+    private final BagRepository repository;
+    private final IngestSettings settings;
+    private final AceSettings ace;
+    private final TrackingThreadPoolExecutor<Bag> tokenExecutor;
 
     @Autowired
-    BagRepository repository;
-
-    @Autowired
-    IngestSettings settings;
-
-    @Autowired
-    AceSettings ace;
-
-    @Autowired
-    TrackingThreadPoolExecutor<Bag> tokenExecutor;
+    public TokenTask(TokenRepository tokenRepository, BagRepository repository, IngestSettings settings, AceSettings ace, TrackingThreadPoolExecutor<Bag> tokenExecutor) {
+        this.tokenRepository = tokenRepository;
+        this.repository = repository;
+        this.settings = settings;
+        this.ace = ace;
+        this.tokenExecutor = tokenExecutor;
+    }
 
     @Scheduled(cron = "${ingest.cron.tokens:0 */30 * * * *}")
     public void tokenize() {

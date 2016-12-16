@@ -21,8 +21,12 @@ import java.io.InputStreamReader;
 @Profile("development")
 public class DevelopmentService implements IngestService {
 
+    private final ApplicationContext context;
+
     @Autowired
-    ApplicationContext context;
+    public DevelopmentService(ApplicationContext context) {
+        this.context = context;
+    }
 
     @Override
     public void runServer() {

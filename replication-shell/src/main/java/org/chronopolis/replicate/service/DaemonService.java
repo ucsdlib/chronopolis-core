@@ -18,8 +18,12 @@ import org.springframework.stereotype.Component;
 public class DaemonService implements ReplicationService {
     private final Logger log = LoggerFactory.getLogger(DaemonService.class);
 
+    private final ApplicationContext context;
+
     @Autowired
-    ApplicationContext context;
+    public DaemonService(ApplicationContext context) {
+        this.context = context;
+    }
 
     /**
      * The main entry point for the class. Shutdown the output streams and spin

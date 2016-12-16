@@ -36,8 +36,12 @@ import java.util.Arrays;
 public class Application implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(Application.class);
 
+    private final IngestService service;
+
     @Autowired
-    IngestService service;
+    public Application(IngestService service) {
+        this.service = service;
+    }
 
     public static void main(String[] args) {
         log.debug("Started with args: {}", args);
