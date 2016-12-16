@@ -87,6 +87,7 @@ public class ReplicationQueryTaskTest {
                 .setTotalFiles(0L);
 
         replication = new Replication()
+                .setStatus(ReplicationStatus.PENDING)
                 .setBag(b)
                 .setNode(n.getUsername());
         replication.setId(1L);
