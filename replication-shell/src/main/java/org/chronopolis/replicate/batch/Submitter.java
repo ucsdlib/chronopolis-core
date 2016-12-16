@@ -8,7 +8,7 @@ import org.chronopolis.replicate.batch.transfer.BagTransfer;
 import org.chronopolis.replicate.batch.transfer.TokenTransfer;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.models.Replication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

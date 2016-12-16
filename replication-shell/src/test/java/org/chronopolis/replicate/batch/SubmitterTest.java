@@ -13,9 +13,9 @@ import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.replicate.support.CallWrapper;
 import org.chronopolis.replicate.support.NotFoundCallWrapper;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.FixityUpdate;
 import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.ReplicationStatus;
@@ -234,19 +234,23 @@ public class SubmitterTest {
     }
 
     Replication createReplication(ReplicationStatus status, Bag bag) {
-        Replication r = new Replication(node, bag, bag.getLocation(), bag.getTokenLocation());
+        Replication r = new Replication();
         r.setId(1L);
+        r.setBag(bag);
+        r.setBagLink(bag.getLocation());
+        r.setTokenLink(bag.getTokenLocation());
         r.setCreatedAt(ZonedDateTime.now());
         r.setUpdatedAt(ZonedDateTime.now());
-        r.setBagId(1L);
-        r.setNodeUser(node.username);
+        r.setNode(node.username);
         r.setProtocol("rsync");
         r.setStatus(status);
         return r;
     }
 
     Bag createBag(String location, String tokens) {
-        Bag bag = new Bag("test-bag", "test-depositor")
+        Bag bag = new Bag()
+                .setName("test-bag")
+                .setDepositor("test-depositor")
                 .setCreator("submitter-test");
         bag.setId(1L);
         bag.setTokenLocation(tokens);

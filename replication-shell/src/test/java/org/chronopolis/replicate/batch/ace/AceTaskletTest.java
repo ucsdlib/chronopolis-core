@@ -9,9 +9,9 @@ import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.replicate.support.CallWrapper;
 import org.chronopolis.replicate.support.NotFoundCallWrapper;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.junit.Before;
@@ -53,7 +53,7 @@ public class AceTaskletTest {
     public void setup() throws NoSuchFieldException {
         MockitoAnnotations.initMocks(this);
 
-        b = new Bag("test-bag", "test-depositor");
+        b = new Bag().setName(name).setDepositor(group);
         b.setTokenLocation("tokens/test-token-store");
         n = new Node("test-node", "test-node-pass");
 
@@ -103,8 +103,10 @@ public class AceTaskletTest {
 
     @Test
     public void testAllRun() throws Exception {
-        replication = new Replication(n, b);
+        replication = new Replication();
+        replication.setBag(b);
         replication.setId(1L);
+        replication.setNode(n.getUsername());
         replication.setStatus(ReplicationStatus.TRANSFERRED);
         notifier = new ReplicationNotifier(replication);
 
@@ -130,8 +132,10 @@ public class AceTaskletTest {
 
     @Test
     public void testAllRunWithCollection() throws Exception {
-        replication = new Replication(n, b);
+        replication = new Replication();
+        replication.setBag(b);
         replication.setId(1L);
+        replication.setNode(n.getUsername());
         replication.setStatus(ReplicationStatus.TRANSFERRED);
         notifier = new ReplicationNotifier(replication);
 
@@ -157,8 +161,10 @@ public class AceTaskletTest {
 
     @Test
     public void testFromTokenLoaded() throws Exception {
-        replication = new Replication(n, b);
+        replication = new Replication();
+        replication.setBag(b);
         replication.setId(1L);
+        replication.setNode(n.getUsername());
         replication.setStatus(ReplicationStatus.ACE_TOKEN_LOADED);
 
         notifier = new ReplicationNotifier(replication);
@@ -180,8 +186,10 @@ public class AceTaskletTest {
 
     @Test
     public void testFromRegistered() throws Exception {
-        replication = new Replication(n, b);
+        replication = new Replication();
+        replication.setBag(b);
         replication.setId(1L);
+        replication.setNode(n.getUsername());
         replication.setStatus(ReplicationStatus.ACE_REGISTERED);
 
         // setup our mocks for our http requests

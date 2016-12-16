@@ -3,10 +3,8 @@ package org.chronopolis.replicate.scheduled;
 import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.replicate.batch.Submitter;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.entities.Replication;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
-import org.chronopolis.rest.support.BagConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,12 +112,14 @@ public class ReplicationQueryTask {
 
     private void startReplications(List<Replication> replications) throws IOException {
         for (Replication replication : replications) {
-            log.debug("Replication {} has bag-id {}", replication.getId(), replication.getBagId());
+            log.debug("Replication {} has bag-id {}", replication.getId(), replication.getBag().getId());
+            /*
             // TODO: It would be nice if the bag was part of the replication. Need to update the API.
             Call<Bag> call = ingestAPI.getBag(replication.getBagId());
             Response<Bag> response = call.execute();
             Bag bag = response.body();
             replication.setBag(BagConverter.toBagEntity(bag));
+            */
 
             submitter.submit(replication);
         }

@@ -6,8 +6,8 @@ import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
@@ -130,6 +130,9 @@ public class AceRegisterTasklet implements Callable<Long> {
         // Register with the phaser so that we may arrive when the callback completes
         phaser.register();
 
+        log.info("Let's find out what is null: the bag? {}", bag == null);
+        log.info("Let's find out what is null: the bag.name? {}", bag.getName() == null);
+        log.info("Let's find out what is null: the bag.depositor? {}", bag.getDepositor() == null);
         Call<GsonCollection> call = aceService.getCollectionByName(bag.getName(), bag.getDepositor());
         call.enqueue(new Callback<GsonCollection>() {
             @Override

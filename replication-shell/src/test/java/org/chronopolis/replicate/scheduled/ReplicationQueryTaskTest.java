@@ -6,12 +6,11 @@ import org.chronopolis.replicate.batch.Submitter;
 import org.chronopolis.replicate.support.CallWrapper;
 import org.chronopolis.replicate.test.TestApplication;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.RStatusUpdate;
+import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
-import org.chronopolis.rest.support.BagConverter;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -58,17 +57,11 @@ import static org.mockito.Mockito.when;
 public class ReplicationQueryTaskTest {
     private final Logger log = LoggerFactory.getLogger(ReplicationQueryTaskTest.class);
 
-    @InjectMocks
-    ReplicationQueryTask task;
+    @Mock IngestAPI ingestAPI;
+    @Mock IngestAPISettings settings;
 
-    @Mock
-    IngestAPI ingestAPI;
-
-    @Mock
-    IngestAPISettings settings;
-
-    @Autowired
-    Submitter submitter;
+    @Autowired Submitter submitter;
+    @InjectMocks ReplicationQueryTask task;
 
     Bag b;
     Replication replication;
@@ -87,11 +80,15 @@ public class ReplicationQueryTaskTest {
         // Make sure the autowired JobExplorer gets used
         ArrayList<Replication> replicationList = new ArrayList<>();
         Node n = new Node("test", "test");
-        b = new Bag("test-bag", "test-depositor");
-        b.setSize(0);
-        b.setTotalFiles(0);
+        b = new Bag()
+                .setName("test-name")
+                .setDepositor("test-depositor")
+                .setSize(0L)
+                .setTotalFiles(0L);
 
-        replication = new Replication(n, b);
+        replication = new Replication()
+                .setBag(b)
+                .setNode(n.getUsername());
         replication.setId(1L);
         for (int i = 0; i < 5; i++) {
             replicationList.add(replication);
@@ -100,7 +97,7 @@ public class ReplicationQueryTaskTest {
         PageImpl<Replication> page = new PageImpl<>(replicationList);
 
         replications = new CallWrapper<>(page);
-        bagCall = new CallWrapper<>(BagConverter.toBagModel(b));
+        bagCall = new CallWrapper<>(b);
 
         started = ImmutableMap.of("status", ReplicationStatus.STARTED);
         pending = ImmutableMap.of("status", ReplicationStatus.PENDING);
