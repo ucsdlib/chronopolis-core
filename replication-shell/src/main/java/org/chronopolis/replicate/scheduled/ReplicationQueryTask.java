@@ -112,15 +112,7 @@ public class ReplicationQueryTask {
 
     private void startReplications(List<Replication> replications) throws IOException {
         for (Replication replication : replications) {
-            log.debug("Replication {} has bag-id {}", replication.getId(), replication.getBag().getId());
-            /*
-            // TODO: It would be nice if the bag was part of the replication. Need to update the API.
-            Call<Bag> call = ingestAPI.getBag(replication.getBagId());
-            Response<Bag> response = call.execute();
-            Bag bag = response.body();
-            replication.setBag(BagConverter.toBagEntity(bag));
-            */
-
+            log.trace("Replication {} has bag-id {}", replication.getId(), replication.getBag().getId());
             submitter.submit(replication);
         }
     }

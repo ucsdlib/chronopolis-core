@@ -171,7 +171,7 @@ public class ReplicationConfig {
 
     @Bean
     ThreadPoolExecutor io() {
-        return new ThreadPoolExecutor(4, 8, 30, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
+        return new ThreadPoolExecutor(2, 2, 30, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
     }
 
     /**

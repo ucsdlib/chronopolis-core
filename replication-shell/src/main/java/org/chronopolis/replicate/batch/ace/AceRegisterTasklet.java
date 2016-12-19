@@ -130,9 +130,6 @@ public class AceRegisterTasklet implements Callable<Long> {
         // Register with the phaser so that we may arrive when the callback completes
         phaser.register();
 
-        log.info("Let's find out what is null: the bag? {}", bag == null);
-        log.info("Let's find out what is null: the bag.name? {}", bag.getName() == null);
-        log.info("Let's find out what is null: the bag.depositor? {}", bag.getDepositor() == null);
         Call<GsonCollection> call = aceService.getCollectionByName(bag.getName(), bag.getDepositor());
         call.enqueue(new Callback<GsonCollection>() {
             @Override
