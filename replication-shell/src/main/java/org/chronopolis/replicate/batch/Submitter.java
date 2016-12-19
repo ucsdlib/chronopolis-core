@@ -64,7 +64,7 @@ public class Submitter {
 
     /**
      * submit a replication for processing, returning the future which it is bound by
-     * todo: {@link Optional<CompletableFuture<Void>>}
+     * todo: {@link Optional}
      *
      * @param replication the replication to work on
      * @return a {@link CompletableFuture} of the replication flow
@@ -72,6 +72,7 @@ public class Submitter {
     public CompletableFuture<Void> submit(Replication replication) {
         String identifier = replication.getBag().getDepositor() + "/" + replication.getBag().getName();
 
+        // todo: do we want to run through the entire flow or have it staggered like before?
         if (replicating.add(identifier)) {
             log.info("Submitting replication {}", identifier);
             CompletableFuture<Void> future;
@@ -99,7 +100,8 @@ public class Submitter {
             log.debug("Replication {} is already running", identifier);
         }
 
-        return null;
+        // just so we don't return null
+        return CompletableFuture.runAsync(() -> {});
     }
 
     /**

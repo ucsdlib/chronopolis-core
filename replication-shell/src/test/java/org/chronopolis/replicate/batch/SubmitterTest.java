@@ -220,7 +220,7 @@ public class SubmitterTest {
         GsonCollection c = new GsonCollection.Builder()
                 .name(bag.getName())
                 .group(bag.getDepositor())
-                .state(65)
+                .state("A")
                 .storage("local")
                 .build();
 

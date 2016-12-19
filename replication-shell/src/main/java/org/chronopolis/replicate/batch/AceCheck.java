@@ -8,6 +8,8 @@ import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.ReplicationStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -22,6 +24,7 @@ import java.util.concurrent.CountDownLatch;
  * Created by shake on 10/13/16.
  */
 public class AceCheck implements Runnable {
+    private final Logger log = LoggerFactory.getLogger(AceCheck.class);
 
     final AceService ace;
     final IngestAPI ingest;
@@ -40,15 +43,14 @@ public class AceCheck implements Runnable {
         Call<GsonCollection> call = ace.getCollectionByName(bag.getName(), bag.getDepositor());
         call.enqueue(callback);
         Optional<GsonCollection> collection = callback.get();
-        if (collection.isPresent()) {
-            checkCollection(collection.get());
-        }
-
+        collection.ifPresent(this::checkCollection);
     }
 
     private void checkCollection(GsonCollection gsonCollection) {
+        log.debug("Collection {} status is {}", gsonCollection.getName(), gsonCollection.getState());
+
         // TODO: Check for errors as well
-        if (gsonCollection.getState() == 65) {
+        if (gsonCollection.getState().equals("A")) {
             Call<Replication> call = ingest.updateReplicationStatus(replication.getId(), new RStatusUpdate(ReplicationStatus.SUCCESS));
             call.enqueue(new UpdateCallback());
         }
@@ -81,7 +83,7 @@ public class AceCheck implements Runnable {
             } catch (InterruptedException ignored) {
             }
 
-            return Optional.of(collection);
+            return Optional.ofNullable(collection);
         }
     }
 }

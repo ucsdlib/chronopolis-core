@@ -93,7 +93,7 @@ public class AceTaskletTest {
         GsonCollection collection = new GsonCollection.Builder()
                 .name("test-bag")
                 .group("test-depositor")
-                .state(65)
+                .state("A")
                 .build();
         collection.setId(1L);
 
