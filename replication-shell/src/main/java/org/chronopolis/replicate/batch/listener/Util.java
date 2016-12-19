@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.settings.ChronopolisSettings;
-import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.models.Replication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +14,7 @@ import java.util.Formatter;
 import java.util.List;
 
 /**
+ *
  * Created by shake on 6/1/15.
  */
 public class Util {
