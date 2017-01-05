@@ -32,8 +32,12 @@ import java.util.Arrays;
 public class ReplicationConsumer implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(ReplicationConsumer.class);
 
+    private final ReplicationService service;
+
     @Autowired
-    ReplicationService service;
+    public ReplicationConsumer(ReplicationService service) {
+        this.service = service;
+    }
 
     public static void main(String[] args) {
         log.debug("Started with args: {}", args);

@@ -23,8 +23,8 @@ public class BagDistribution {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
     private Bag bag;
 
     @ManyToOne(fetch = FetchType.EAGER)

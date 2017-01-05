@@ -48,6 +48,27 @@
                     </select>
                 </div>
                 <br/>
+                <!-- TODO: Fragment? -->
+                <h5>Order By</h5>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="orderBy" id="optionUpdatedAt" value="updatedAt"/>
+                        Updated At
+                    </label>
+                </div>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="orderBy" id="optionCreatedAt" value="createdAt"/>
+                        Created At
+                    </label>
+                </div>
+                <div class="input-group form-group-sm">
+                    <select name="dir" id="direction-filter" class="form-control">
+                        <option value="ASC">Ascending</option>
+                        <option value="DESC">Descending</option>
+                    </select>
+                </div>
+                <br/>
                 <button th:type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search"
                                                                        aria-hidden="true"></span></button>
             </form>
@@ -91,23 +112,9 @@
     <h3>Bag Overview</h3>
     <form method="POST">
         <table class="table table-bordered">
-            <!--
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>Depositor</th>
-                <th>Name</th>
-                <th>Size</th>
-                <th>Total Files</th>
-                <th>Total Tokens</th>
-                <th>Status</th>
-            </tr>
-            </thead>
-            -->
-            <!--@thymesVar id="bags" type="List<Bag>"-->
             <!--@thymesVar id="tokens" type="Long"-->
             <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
-            <tbody th:each="bag: ${bags}">
+            <tbody>
                 <tr>
                     <td>Id</td>
                     <td th:text="${bag.id}"></td>
@@ -124,6 +131,10 @@
                     <td>Depositor</td>
                     <td th:text="${bag.depositor}"></td>
                 </tr>
+                <tr>
+                    <td>Location</td>
+                    <td><input type="text" name="location" style="width: 100%" th:value="${bag.location}"/></td>
+                </tr>
                <tr>
                     <td>Size</td>
                     <td th:text="${bag.size}"></td>
@@ -133,6 +144,7 @@
                     <td th:text="${bag.totalFiles}"></td>
                 </tr>
                 <tr>
+                    <!-- ajax instead? -->
                     <td>Num Tokens</td>
                     <td th:text="${tokens}"></td>
                 </tr>
@@ -161,6 +173,25 @@
         </table>
         <input type="submit" value="Update Bag" class="btn btn-small"/>
     </form>
+
+    <h4>Associated Replications</h4>
+    <table class="table table-bordered">
+        <thead>
+            <th>ID</th>
+            <th>Node</th>
+            <th>Status</th>
+        </thead>
+        <!-- lmao wait I did this wrong -->
+        <!--/*@thymesVar id="replications" type="List<Replication>"*/-->
+        <!--/*@thymesVar id="repl" type="org.chronopolis.rest.entities.Replication"*/-->
+        <tbody>
+            <tr th:each="repl : ${replications}">
+                <td><a th:text="${repl.id}" th:href="@{|/replications/${repl.id}|}"></a></td>
+                <td th:text="${repl.node.username}"></td>
+                <td th:text="${repl.status}"></td>
+            </tr>
+        </tbody>
+    </table>
 </div>
 </body>
 </html>

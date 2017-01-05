@@ -21,8 +21,12 @@ import java.util.concurrent.TimeUnit;
 public class ProductionService implements IngestService {
     private final Logger log = LoggerFactory.getLogger(ProductionService.class);
 
+    private final ApplicationContext context;
+
     @Autowired
-    ApplicationContext context;
+    public ProductionService(ApplicationContext context) {
+        this.context = context;
+    }
 
     @Override
     public void runServer() {

@@ -14,6 +14,8 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
@@ -23,6 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Configuration for our login/per page authorization
+ *
  * Created by shake on 11/10/14.
  */
 @Configuration
@@ -32,12 +36,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     DataSource dataSource;
 
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         auth.jdbcAuthentication()
+                .passwordEncoder(passwordEncoder())
                 .dataSource(this.dataSource);
-                // TODO: Get the password encoder working
-                // .passwordEncoder(new ShaPasswordEncoder());
 
         // We're going to keep our user and node domain objects split for now
         // ie: let the spring security stuff worry about authentication
@@ -47,14 +55,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        /**
+        /*
          * <http pattern="/restful/**" create-session="stateless">
          * <intercept-url pattern='/**' access='ROLE_REMOTE' />
          * <http-basic />
          * </http>
          */
 
-        /**
+        /*
          * Most of the time the client only interacts through GETs and POSTs,
          * whereas the admin user will also PUT in order to create bags or
          * restore requests. However, a client may also PUT on
@@ -80,7 +88,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/replications/**",
                         "/users/**").hasRole("USER")
                 .antMatchers(HttpMethod.POST,
-                        "/bags/add",
+                        "/users/update").hasRole("USER")
+                .antMatchers(HttpMethod.POST,
+                        "/bags/**",
+                        "/replications/**",
                         "/users/add").hasRole("ADMIN")
                 .antMatchers("/").permitAll()
                     .anyRequest().permitAll()

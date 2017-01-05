@@ -68,4 +68,8 @@ public class BagService {
         bagRepository.save(bag);
     }
 
+    public BagRepository getBagRepository() {
+        return bagRepository;
+    }
+
 }

@@ -37,14 +37,18 @@ import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatu
 public class ReplicationService {
     private final Logger log = LoggerFactory.getLogger(ReplicationService.class);
 
-    @Autowired
-    ReplicationRepository replicationRepository;
+    private final ReplicationRepository replicationRepository;
+    private final BagRepository bagRepository;
+    private final NodeRepository nodeRepository;
 
     @Autowired
-    BagRepository bagRepository;
-
-    @Autowired
-    NodeRepository nodeRepository;
+    public ReplicationService(ReplicationRepository replicationRepository,
+                              BagRepository bagRepository,
+                              NodeRepository nodeRepository) {
+        this.replicationRepository = replicationRepository;
+        this.bagRepository = bagRepository;
+        this.nodeRepository = nodeRepository;
+    }
 
     public Replication getReplication(ReplicationSearchCriteria criteria) {
         BooleanExpression predicate = null;
@@ -162,6 +166,10 @@ public class ReplicationService {
                     .append("@").append(server)
                     .append(":").append(file.toString())
                     .toString();
+    }
+
+    private ReplicationRepository getReplicationRepository() {
+        return replicationRepository;
     }
 
 }

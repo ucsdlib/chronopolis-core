@@ -26,9 +26,23 @@ div.sidebar {
     background-color: #337ab7;
 }
 
+.nav-sidebar li a:focus {
+    background-color: inherit;
+}
+
 .nav-sidebar li a {
     padding: 5px 10px 5px 10px;
     color: #FFF;
+}
+
+.nav-group-item {
+    position: relative;
+    display: block;
+    background: inherit;
+}
+
+.nav-group-item:last-child {
+    border-bottom: 1px solid #337ab7;
 }
 
 /* Our header stuff */

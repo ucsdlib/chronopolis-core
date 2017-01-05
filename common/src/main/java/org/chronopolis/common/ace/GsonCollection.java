@@ -1,13 +1,14 @@
 package org.chronopolis.common.ace;
 
 
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Encapsulate the needed fields for a JSON post and serialization using gson (or jersey??)
@@ -21,8 +22,8 @@ public class GsonCollection {
     private final String name;
     private final String group;
     private final String storage;
-    private final Setting settings;
-    private final int state;
+    private final Map<String, String> settings;
+    private final String state;
 
     private GsonCollection(final Builder builder) {
         this.digestAlgorithm = builder.digestAlgorithm;
@@ -30,7 +31,7 @@ public class GsonCollection {
         this.name = builder.name;
         this.group = builder.group;
         this.storage = builder.storage;
-        this.settings = builder.settings;
+        this.settings = ImmutableMap.copyOf(builder.settings);
         this.state = builder.state;
     }
 
@@ -58,54 +59,19 @@ public class GsonCollection {
         this.id = id;
     }
 
-    public Setting getSettings() {
+    public Map<String, String> getSettings() {
         return settings;
-    }
-
-    public void addSetting(final String key, final String val) {
-        Entry entry = new Entry(key, val);
-        settings.entry.add(entry);
     }
 
     public String getGroup() {
         return group;
     }
 
-    public int getState() {
+    public String getState() {
         return state;
     }
 
-    public static class Setting {
-        private final List<Entry> entry;
-
-        public Setting() {
-            entry = new ArrayList<>();
-        }
-
-        public List<Entry> getEntry() {
-            return entry;
-        }
-    }
-
-    public static class Entry {
-        private final String key;
-        private final String value;
-
-        public Entry(final String key, final String value) {
-            this.key = key;
-            this.value = value;
-        }
-
-        public String getKey() {
-            return key;
-        }
-
-        public String getValue() {
-            return value;
-        }
-
-    }
-
+    // TODO: What's the purpose of these to json methods?
     public String toJson() {
         Gson gson = new Gson();
         return gson.toJson(this);
@@ -128,11 +94,11 @@ public class GsonCollection {
         private String name;
         private String group;
         private String storage;
-        private Setting settings;
-        public int state;
+        private Map<String, String> settings;
+        public String state;
 
         public Builder() {
-            this.settings = new Setting();
+            this.settings = new HashMap<>();
         }
 
         public Builder name(final String name) {
@@ -160,27 +126,24 @@ public class GsonCollection {
             return this;
         }
 
-        public Builder state(final int state) {
+        public Builder state(final String state) {
             this.state = state;
             return this;
         }
 
         // We'll have a method for each of the entries we can add
         public Builder auditTokens(final String val) {
-            Entry entry = new Entry("audit.tokens", val);
-            settings.entry.add(entry);
+            settings.put("audit.tokens", val);
             return this;
         }
 
         public Builder auditPeriod(final String val) {
-            Entry entry = new Entry("audit.period", val);
-            settings.entry.add(entry);
+            settings.put("audit.period", val);
             return this;
         }
 
         public Builder proxyData(final String val) {
-            Entry entry = new Entry("proxy.data", val);
-            settings.entry.add(entry);
+            settings.put("proxy.data", val);
             return this;
         }
 

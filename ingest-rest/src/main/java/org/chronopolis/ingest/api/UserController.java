@@ -21,8 +21,12 @@ import java.security.Principal;
 @RequestMapping("/api/user")
 public class UserController {
 
+    private final UserDetailsManager manager;
+
     @Autowired
-    UserDetailsManager manager;
+    public UserController(UserDetailsManager manager) {
+        this.manager = manager;
+    }
 
     /**
      * Update a password for a user

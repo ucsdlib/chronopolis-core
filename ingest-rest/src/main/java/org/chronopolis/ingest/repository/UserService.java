@@ -2,16 +2,19 @@ package org.chronopolis.ingest.repository;
 
 import org.chronopolis.ingest.models.UserRequest;
 import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.models.PasswordUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
+import java.security.Principal;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -27,14 +30,21 @@ public class UserService {
 
     private final Logger log = LoggerFactory.getLogger(UserService.class);
 
-    @Autowired
-    AuthoritiesRepository authorities;
+    private final AuthoritiesRepository authorities;
+    private final UserDetailsManager manager;
+    private final NodeRepository repository;
+    private final PasswordEncoder encoder;
 
     @Autowired
-    UserDetailsManager manager;
-
-    @Autowired
-    NodeRepository repository;
+    public UserService(AuthoritiesRepository authorities,
+                       UserDetailsManager manager,
+                       NodeRepository repository,
+                       PasswordEncoder encoder) {
+        this.authorities = authorities;
+        this.manager = manager;
+        this.repository = repository;
+        this.encoder = encoder;
+    }
 
     public void createUser(UserRequest request) {
         if (manager.userExists(request.getUsername())) {
@@ -44,10 +54,12 @@ public class UserService {
 
         log.info("Creating new user {}", request.getUsername());
         String username = request.getUsername();
-        String password = request.getPassword();
+        String password = encoder.encode(request.getPassword());
 
         Collection<SimpleGrantedAuthority> authorities = new HashSet<>();
 
+        // TODO: We now have a third role (SERVICE), should update how we add the authority
+        //       maybe it can be part of the UserRequest
         // Since we only have 2 roles at the moment it's easy to create users like this,
         // but we really should update this to have the authorities sent in the request
         if (request.isAdmin()) {
@@ -80,4 +92,19 @@ public class UserService {
         return manager.loadUserByUsername(username);
     }
 
+    /**
+     * Update the password for a user (who is already authenticated)
+     *
+     * TODO: I don't really like using the UserDetailsManager for this, it redirects us
+     *       back to the login page which can cause all sorts of chaos. We should look
+     *       for an alternative so that if a pw update fails we don't enter some weird
+     *       redirect/bad credentials loop.
+     *
+     * @param update the password update
+     * @param principal the security principal of the user
+     */
+    public void updatePassword(PasswordUpdate update, Principal principal) {
+        log.info("Updating password for user {}", principal.getName());
+        manager.changePassword(update.getOldPassword(), encoder.encode(update.getNewPassword()));
+    }
 }

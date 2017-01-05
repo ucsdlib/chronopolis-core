@@ -9,9 +9,9 @@ import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.replicate.support.CallWrapper;
 import org.chronopolis.replicate.support.NotFoundCallWrapper;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.junit.Before;
@@ -25,6 +25,7 @@ import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -52,11 +53,11 @@ public class AceTaskletTest {
     public void setup() throws NoSuchFieldException {
         MockitoAnnotations.initMocks(this);
 
-        b = new Bag("test-bag", "test-depositor");
-        b.setTokenLocation("tokens/test-store");
+        b = new Bag().setName(name).setDepositor(group);
+        b.setTokenLocation("tokens/test-token-store");
         n = new Node("test-node", "test-node-pass");
 
-        URL bags = ClassLoader.getSystemClassLoader().getResource("preservation");
+        URL bags = ClassLoader.getSystemClassLoader().getResource("");
         settings = new ReplicationSettings();
         settings.setPreservation(bags.toString());
     }
@@ -68,10 +69,13 @@ public class AceTaskletTest {
                 .thenReturn(new CallWrapper<>(ImmutableMap.of("id", 1L)));
     }
 
+    private void prepareIngestGet(Long id, Replication r) {
+        when(ingest.getReplication(id)).thenReturn(new CallWrapper<>(r));
+    }
+
     private void prepareIngestUpdate(ReplicationStatus status) {
-        // TODO: Add equals for this
         RStatusUpdate update = new RStatusUpdate(status);
-        when(ingest.updateReplicationStatus(anyLong(), any(RStatusUpdate.class)))
+        when(ingest.updateReplicationStatus(anyLong(), eq(update)))
                 .thenReturn(new CallWrapper<>(replication));
     }
 
@@ -89,7 +93,7 @@ public class AceTaskletTest {
         GsonCollection collection = new GsonCollection.Builder()
                 .name("test-bag")
                 .group("test-depositor")
-                .state(65)
+                .state("A")
                 .build();
         collection.setId(1L);
 
@@ -99,12 +103,15 @@ public class AceTaskletTest {
 
     @Test
     public void testAllRun() throws Exception {
-        replication = new Replication(n, b);
+        replication = new Replication();
+        replication.setBag(b);
         replication.setId(1L);
+        replication.setNode(n.getUsername());
         replication.setStatus(ReplicationStatus.TRANSFERRED);
         notifier = new ReplicationNotifier(replication);
 
         // setup our mocks for our http requests
+        prepareIngestGet(replication.getId(), replication);
         prepareACERegister();
         prepareIngestUpdate(ReplicationStatus.ACE_REGISTERED);
         prepareAceTokenLoad();
@@ -112,9 +119,8 @@ public class AceTaskletTest {
         prepareAceAudit();
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
-        // Luckily we don't use either parameter passed in, so fuck em
-        AceTasklet tasklet = new AceTasklet(ingest, ace, replication, settings, notifier);
-        tasklet.execute(null, null);
+        AceRunner runner = new AceRunner(ace, ingest, replication.getId(), settings, notifier);
+        runner.run();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName(any(String.class), any(String.class));
@@ -126,12 +132,15 @@ public class AceTaskletTest {
 
     @Test
     public void testAllRunWithCollection() throws Exception {
-        replication = new Replication(n, b);
+        replication = new Replication();
+        replication.setBag(b);
         replication.setId(1L);
+        replication.setNode(n.getUsername());
         replication.setStatus(ReplicationStatus.TRANSFERRED);
         notifier = new ReplicationNotifier(replication);
 
         // setup our mocks for our http requests
+        prepareIngestGet(replication.getId(), replication);
         prepareAceGet();
         prepareIngestUpdate(ReplicationStatus.ACE_REGISTERED);
         prepareAceTokenLoad();
@@ -139,9 +148,8 @@ public class AceTaskletTest {
         prepareAceAudit();
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
-        // Luckily we don't use either parameter passed in, so fuck em
-        AceTasklet tasklet = new AceTasklet(ingest, ace, replication, settings, notifier);
-        tasklet.execute(null, null);
+        AceRunner runner = new AceRunner(ace, ingest, replication.getId(), settings, notifier);
+        runner.run();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName(any(String.class), any(String.class));
@@ -153,19 +161,22 @@ public class AceTaskletTest {
 
     @Test
     public void testFromTokenLoaded() throws Exception {
-        replication = new Replication(n, b);
+        replication = new Replication();
+        replication.setBag(b);
         replication.setId(1L);
+        replication.setNode(n.getUsername());
         replication.setStatus(ReplicationStatus.ACE_TOKEN_LOADED);
 
         notifier = new ReplicationNotifier(replication);
 
         // setup our mocks for our http requests
+        prepareIngestGet(replication.getId(), replication);
         prepareAceGet();
         prepareAceAudit();
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
-        AceTasklet tasklet = new AceTasklet(ingest, ace, replication, settings, notifier);
-        tasklet.execute(null, null);
+        AceRunner runner = new AceRunner(ace, ingest, replication.getId(), settings, notifier);
+        runner.run();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName("test-bag", "test-depositor");
@@ -175,11 +186,14 @@ public class AceTaskletTest {
 
     @Test
     public void testFromRegistered() throws Exception {
-        replication = new Replication(n, b);
+        replication = new Replication();
+        replication.setBag(b);
         replication.setId(1L);
+        replication.setNode(n.getUsername());
         replication.setStatus(ReplicationStatus.ACE_REGISTERED);
 
         // setup our mocks for our http requests
+        prepareIngestGet(replication.getId(), replication);
         prepareAceGet();
         prepareAceTokenLoad();
         prepareIngestUpdate(ReplicationStatus.ACE_TOKEN_LOADED);
@@ -188,8 +202,8 @@ public class AceTaskletTest {
 
         notifier = new ReplicationNotifier(replication);
 
-        AceTasklet tasklet = new AceTasklet(ingest, ace, replication, settings, notifier);
-        tasklet.execute(null, null);
+        AceRunner runner = new AceRunner(ace, ingest, replication.getId(), settings, notifier);
+        runner.run();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName("test-bag", "test-depositor");
