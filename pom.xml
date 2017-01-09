@@ -33,13 +33,6 @@
             </modules>
        </profile>
        <profile>
-           <!-- Duracloud Intake Modules -->
-            <id>duracloud</id>
-            <modules>
-                <module>duracloud-backend</module>
-            </modules>
-       </profile>
-       <profile>
            <!-- All Modules -->
             <id>default</id>
             <activation>
@@ -50,7 +43,6 @@
                 <module>ingest-shell</module>
                 <module>ingest-rest</module>
                 <module>replication-shell</module>
-                <module>duracloud-backend</module>
             </modules>
         </profile>
     </profiles>
