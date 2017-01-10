@@ -130,7 +130,7 @@ CREATE TABLE fulfillment (
     id bigint PRIMARY KEY DEFAULT nextval('fulfillment_id_seq'),
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
-    from_ VARCHAR(255),
+    from_name VARCHAR(255),
     status VARCHAR(255),
     type VARCHAR(255),
     strategy_id BIGINT,
