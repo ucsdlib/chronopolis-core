@@ -105,7 +105,7 @@ DROP TABLE IF EXISTS repair;
 DROP SEQUENCE IF EXISTS repair_id_seq;
 CREATE SEQUENCE repair_id_seq;
 CREATE TABLE repair (
-    id bigint PRIMARY KEY DEFAULT nexval('repair_id_seq'),
+    id bigint PRIMARY KEY DEFAULT nextval('repair_id_seq'),
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     status varchar(255),
@@ -118,7 +118,7 @@ DROP TABLE IF EXISTS repair_file;
 DROP SEQUENCE IF EXISTS repair_file_id_seq;
 CREATE SEQUENCE repair_file_id_seq;
 CREATE TABLE repair_file (
-    id bigint PRIMARY KEY DEFAULT nexval('repair_file_id_seq'),
+    id bigint PRIMARY KEY DEFAULT nextval('repair_file_id_seq'),
     path text,
     repair_id bigint
 );
@@ -127,7 +127,7 @@ DROP TABLE IF EXISTS fulfillment;
 DROP SEQUENCE IF EXISTS fulfillment_id_seq;
 CREATE SEQUENCE fulfillment_id_seq;
 CREATE TABLE fulfillment (
-    id bigint PRIMARY KEY DEFAULT nexval('fulfillment_id_seq'),
+    id bigint PRIMARY KEY DEFAULT nextval('fulfillment_id_seq'),
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     from_ VARCHAR(255),
@@ -141,7 +141,7 @@ DROP TABLE IF EXISTS strategy;
 DROP SEQUENCE IF EXISTS strategy_id_seq;
 CREATE SEQUENCE strategy_id_seq;
 CREATE TABLE strategy (
-    id bigint PRIMARY KEY DEFAULT nexval('strategy_id_seq'),
+    id bigint PRIMARY KEY DEFAULT nextval('strategy_id_seq'),
     api_key VARCHAR(255),
     url VARCHAR(255),
     link VARCHAR(255),
