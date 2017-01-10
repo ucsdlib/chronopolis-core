@@ -1,6 +1,6 @@
 package org.chronopolis.rest.entities.fulfillment;
 
-import org.chronopolis.rest.models.repair.Fulfillment;
+import org.chronopolis.rest.entities.Fulfillment;
 
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
