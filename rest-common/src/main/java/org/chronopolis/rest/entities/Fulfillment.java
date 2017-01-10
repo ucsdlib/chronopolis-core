@@ -4,6 +4,7 @@ import org.chronopolis.rest.entities.fulfillment.Strategy;
 import org.chronopolis.rest.models.repair.FulfillmentStatus;
 import org.chronopolis.rest.models.repair.FulfillmentType;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -19,6 +20,7 @@ public class Fulfillment extends UpdatableEntity {
     @OneToOne
     Repair repair;
 
+    @Column(name = "from_name")
     String from;
 
     @Enumerated(value = EnumType.STRING)
@@ -28,7 +30,7 @@ public class Fulfillment extends UpdatableEntity {
     FulfillmentType type;
 
     @OneToOne
-    Strategy credentials;
+    Strategy strategy;
 
     public Fulfillment() {
     }
@@ -69,12 +71,12 @@ public class Fulfillment extends UpdatableEntity {
         return this;
     }
 
-    public Strategy getCredentials() {
-        return credentials;
+    public Strategy getStrategy() {
+        return strategy;
     }
 
-    public Fulfillment setCredentials(Strategy credentials) {
-        this.credentials = credentials;
+    public Fulfillment setStrategy(Strategy strategy) {
+        this.strategy = strategy;
         return this;
     }
 }
