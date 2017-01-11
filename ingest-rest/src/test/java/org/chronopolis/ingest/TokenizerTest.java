@@ -20,8 +20,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.jdbc.Sql;
@@ -95,18 +93,16 @@ public class TokenizerTest extends IngestTest {
 
     @Test
     public void testFullTokenize() throws Exception {
-        Filter<Path> filter = new TokenFilter(tokenRepository, Long.valueOf(1));
+        Filter<Path> filter = new TokenFilter(tokenRepository, 1L);
         when(factory.createIMSConnection(any(String.class), any(RequestBatchCallback.class)))
                 .thenReturn(batch);
 
-        doAnswer(new Answer() {
-            @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
-                Object[] args = invocation.getArguments();
-                TokenRequest arg = (TokenRequest) args[0];
-                createResponse(arg, fullCallback);
-                return null;
-            }
+        // TODO: Look into whether or not we should return an actual object instead of null
+        doAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
+            TokenRequest arg = (TokenRequest) args[0];
+            createResponse(arg, fullCallback);
+            return null;
         }).when(batch).add(any(TokenRequest.class));
 
         fullTokenizer.tokenize(filter);
@@ -116,18 +112,15 @@ public class TokenizerTest extends IngestTest {
 
     @Test
     public void testPartialTokenize() throws Exception {
-        Filter<Path> filter = new TokenFilter(tokenRepository, Long.valueOf(2));
+        Filter<Path> filter = new TokenFilter(tokenRepository, 2L);
         when(factory.createIMSConnection(any(String.class), any(RequestBatchCallback.class)))
                 .thenReturn(batch);
 
-        doAnswer(new Answer() {
-            @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
-                Object[] args = invocation.getArguments();
-                TokenRequest arg = (TokenRequest) args[0];
-                createResponse(arg, partialCallback);
-                return null;
-            }
+        doAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
+            TokenRequest arg = (TokenRequest) args[0];
+            createResponse(arg, partialCallback);
+            return null;
         }).when(batch).add(any(TokenRequest.class));
 
         partialTokenizer.tokenize(filter);
