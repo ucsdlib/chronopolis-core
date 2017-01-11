@@ -24,6 +24,12 @@ public class IngestSettings extends ChronopolisSettings {
     @Value("${ingest.replication.server:chronopolis-stage.umiacs.umd.edu}")
     private String replicationServer;
 
+    @Value("${ingest.rsync.bags:bags}")
+    private String rsyncBags;
+
+    @Value("${ingest.rsync.tokens:tokens}")
+    private String rsyncTokens;
+
     public String getReplicationUser() {
         return replicationUser;
     }
@@ -55,6 +61,24 @@ public class IngestSettings extends ChronopolisSettings {
 
     public IngestSettings setAjpPort(Integer ajpPort) {
         this.ajpPort = ajpPort;
+        return this;
+    }
+
+    public String getRsyncBags() {
+        return rsyncBags;
+    }
+
+    public IngestSettings setRsyncBags(String rsyncBags) {
+        this.rsyncBags = rsyncBags;
+        return this;
+    }
+
+    public String getRsyncTokens() {
+        return rsyncTokens;
+    }
+
+    public IngestSettings setRsyncTokens(String rsyncTokens) {
+        this.rsyncTokens = rsyncTokens;
         return this;
     }
 }

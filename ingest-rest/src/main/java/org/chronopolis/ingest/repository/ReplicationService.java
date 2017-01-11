@@ -119,8 +119,8 @@ public class ReplicationService {
         // vars to help create replication stuff
         final String user = settings.getReplicationUser();
         final String server = settings.getStorageServer();
-        final String bagStage = settings.getBagStage();
-        final String tokenStage = settings.getTokenStage();
+        final String bagStage = settings.getRsyncBags();
+        final String tokenStage = settings.getRsyncTokens();
 
         Path tokenPath = Paths.get(tokenStage, bag.getTokenLocation());
         String tokenLink =  buildLink(user, server, tokenPath);

@@ -2,13 +2,12 @@ package org.chronopolis.ingest.task;
 
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.repository.BagRepository;
-import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagDistribution;
-import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.models.BagStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +22,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import static org.chronopolis.rest.entities.BagDistribution.*;
+import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatus;
 
 /**
  * Simple task to create replications for bags which have finished tokenizing
@@ -39,14 +38,12 @@ public class ReplicationTask {
 
     private final IngestSettings settings;
     private final BagRepository bagRepository;
-    private final NodeRepository nodeRepository;
     private final ReplicationRepository replicationRepository;
 
     @Autowired
-    public ReplicationTask(IngestSettings settings, BagRepository bagRepository, NodeRepository nodeRepository, ReplicationRepository replicationRepository) {
+    public ReplicationTask(IngestSettings settings, BagRepository bagRepository, ReplicationRepository replicationRepository) {
         this.settings = settings;
         this.bagRepository = bagRepository;
-        this.nodeRepository = nodeRepository;
         this.replicationRepository = replicationRepository;
     }
 
@@ -54,15 +51,15 @@ public class ReplicationTask {
     public void createReplications() {
         String user = settings.getReplicationUser();
         String server = settings.getStorageServer();
-        String bagStage = settings.getBagStage();
-        String tokenStage = settings.getTokenStage();
+        String bagStage = settings.getRsyncBags();
+        String tokenStage = settings.getRsyncTokens();
 
         Collection<Bag> bags = bagRepository.findByStatus(BagStatus.TOKENIZED);
 
         for (Bag bag : bags) {
             // Set up the links for nodes to pull from
             Path tokenPath = Paths.get(tokenStage, bag.getTokenLocation());
-            String tokenLink =  buildLink(user, server, tokenPath);
+            String tokenLink = buildLink(user, server, tokenPath);
 
             Path bagPath = Paths.get(bagStage, bag.getLocation());
             String bagLink = buildLink(user, server, bagPath);
