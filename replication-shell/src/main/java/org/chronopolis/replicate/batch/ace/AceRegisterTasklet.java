@@ -28,7 +28,7 @@ import java.util.concurrent.Phaser;
  * Created by shake on 3/8/16.
  */
 public class AceRegisterTasklet implements Callable<Long> {
-    private final Logger log = LoggerFactory.getLogger(AceRegisterTasklet.class);
+    private final Logger log = LoggerFactory.getLogger("ace-log");
 
     private IngestAPI ingest;
     private AceService aceService;
@@ -52,8 +52,9 @@ public class AceRegisterTasklet implements Callable<Long> {
     }
 
     public void run() throws Exception {
-        log.trace("Building ACE json");
         Bag bag = replication.getBag();
+        String name = bag.getName();
+        log.trace("{} Building ACE json", name);
 
         // What we want to do:
         // get bag.name/bag.collection
@@ -74,12 +75,13 @@ public class AceRegisterTasklet implements Callable<Long> {
     }
 
     private void register(Bag bag) {
+        final String name = bag.getName();
         Path collectionPath = Paths.get(settings.getPreservation(),
                 bag.getDepositor(),
-                bag.getName());
+                name);
 
         GsonCollection aceGson = new GsonCollection.Builder()
-                .name(bag.getName())
+                .name(name)
                 .digestAlgorithm(bag.getFixityAlgorithm())
                 .directory(collectionPath.toString())
                 .group(bag.getDepositor())
@@ -89,7 +91,7 @@ public class AceRegisterTasklet implements Callable<Long> {
                 .proxyData("false")
                 .build();
 
-        log.debug("POSTing {}", aceGson.toJsonJackson());
+        log.debug("{} POSTing {}", name, aceGson.toJsonJackson());
 
         // callback register
         phaser.register();
@@ -102,9 +104,9 @@ public class AceRegisterTasklet implements Callable<Long> {
                     id = response.body().get("id");
                     setRegistered();
                 } else {
-                    log.error("Error registering collection in ACE: {} - {}", response.code(), response.message());
+                    log.error("{} Error registering collection in ACE: {} - {}", new Object[]{name, response.code(), response.message()});
                     try {
-                        log.debug("{}", response.errorBody().string());
+                        log.debug("{} {}", name, response.errorBody().string());
                     } catch (IOException ignored) {
                     }
 
@@ -117,7 +119,7 @@ public class AceRegisterTasklet implements Callable<Long> {
 
             @Override
             public void onFailure(Throwable throwable) {
-                log.error("Error communicating with ACE", throwable);
+                log.error("{} Error communicating with ACE", name, throwable);
                 notifier.setSuccess(false);
                 phaser.arrive();
                 // ..?
@@ -137,7 +139,7 @@ public class AceRegisterTasklet implements Callable<Long> {
                 if (response.isSuccess() && response.body() != null) {
                     id = response.body().getId();
                 } else {
-                    log.error("Could not find collection in ACE: {} - {}", response.code(), response.message());
+                    log.info("{} not found in ACE, attempting to register", bag.getName());
                 }
 
                 phaser.arriveAndDeregister();
@@ -145,14 +147,14 @@ public class AceRegisterTasklet implements Callable<Long> {
 
             @Override
             public void onFailure(Throwable throwable) {
-                log.error("Error communicating with ACE", throwable);
+                log.error("{} Error communicating with ACE", bag.getName(), throwable);
                 phaser.arriveAndDeregister();
             }
         });
     }
 
     private void setRegistered() {
-        log.info("Setting replication as REGISTERED");
+        log.info("{} Setting replication as REGISTERED", replication.getBag().getName());
         Call<Replication> update = ingest.updateReplicationStatus(replication.getId(),
                 new RStatusUpdate(ReplicationStatus.ACE_REGISTERED));
         update.enqueue(new UpdateCallback());

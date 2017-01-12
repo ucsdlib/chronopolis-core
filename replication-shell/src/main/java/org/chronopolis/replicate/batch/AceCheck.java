@@ -24,7 +24,7 @@ import java.util.concurrent.CountDownLatch;
  * Created by shake on 10/13/16.
  */
 public class AceCheck implements Runnable {
-    private final Logger log = LoggerFactory.getLogger(AceCheck.class);
+    private final Logger log = LoggerFactory.getLogger("ace-log");
 
     final AceService ace;
     final IngestAPI ingest;
@@ -47,7 +47,7 @@ public class AceCheck implements Runnable {
     }
 
     private void checkCollection(GsonCollection gsonCollection) {
-        log.debug("Collection {} status is {}", gsonCollection.getName(), gsonCollection.getState());
+        log.debug("{} status is {}", gsonCollection.getName(), gsonCollection.getState());
 
         // TODO: Check for errors as well
         if (gsonCollection.getState().equals("A")) {
