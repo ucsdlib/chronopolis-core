@@ -73,7 +73,7 @@ public class ReplicationQueryTaskTest {
     Call<PageImpl<Replication>> replications;
 
     @BeforeClass
-    public void before() {
+    public static void before() {
         // Make sure we don't try to write in to /var/log by default
         // I'm not sure why that's happening but it's something we'll have to look in to
         System.setProperty("logging.file", "test.log");
