@@ -21,7 +21,7 @@ import java.io.IOException;
  * Created by shake on 3/8/16.
  */
 public class AceAuditTasklet implements Runnable {
-    private final Logger log = LoggerFactory.getLogger(AceAuditTasklet.class);
+    private final Logger log = LoggerFactory.getLogger("ace-log");
 
     private IngestAPI ingest;
     private AceService aceService;
@@ -39,6 +39,7 @@ public class AceAuditTasklet implements Runnable {
 
     @Override
     public void run() {
+        String name = replication.getBag().getName();
         Call<Void> auditCall = aceService.startAudit(id);
 
         auditCall.enqueue(new Callback<Void>() {
@@ -48,11 +49,11 @@ public class AceAuditTasklet implements Runnable {
                     Call<Replication> update = ingest.updateReplicationStatus(replication.getId(), new RStatusUpdate(ReplicationStatus.ACE_AUDITING));
                     update.enqueue(new UpdateCallback());
                 } else {
-                    log.error("Error starting audit for collection: {} - {}", response.code(), response.message());
+                    log.error("{} Error starting audit for collection: {} - {}", new Object[]{name, response.code(), response.message()});
                     String message = "Error starting audit:\n";
                     try {
                         message += response.errorBody().string();
-                        log.debug("{}", message);
+                        log.debug("{} {}", name, message);
                     } catch (IOException ignored) {
                     }
 
@@ -63,7 +64,7 @@ public class AceAuditTasklet implements Runnable {
 
             @Override
             public void onFailure(Throwable throwable) {
-                log.error("Error communicating with ACE Server", throwable);
+                log.error("{} Error communicating with ACE Server", name, throwable);
                 notifier.setSuccess(false);
                 notifier.setAceStep(throwable.getMessage());
             }

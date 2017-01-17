@@ -27,7 +27,7 @@ import java.nio.file.Paths;
  * Created by shake on 10/11/16.
  */
 public class BagTransfer implements Runnable {
-    private final Logger log = LoggerFactory.getLogger(BagTransfer.class);
+    private final Logger log = LoggerFactory.getLogger("rsync-log");
 
     // Fields set by constructor
     final Replication r;
@@ -55,9 +55,10 @@ public class BagTransfer implements Runnable {
 
     @Override
     public void run() {
+        String name = r.getBag().getName();
         // TODO: Get the replication so we can short circuit later?
         // Replicate the collection
-        log.info("Downloading bag from {}", location);
+        log.info("{} Downloading bag from {}", name, location);
         FileTransfer transfer;
         Path bagPath = Paths.get(settings.getPreservation(), depositor);
 
@@ -71,7 +72,7 @@ public class BagTransfer implements Runnable {
             transfer.getFile(location, bagPath);
             hash(bagPath);
         } catch (FileTransferException e) {
-            log.error("File transfer exception", e);
+            log.error("{} File transfer exception", name, e);
             fail(e);
         }
     }
@@ -86,14 +87,14 @@ public class BagTransfer implements Runnable {
             hashCode = Files.hash(tagmanifest.toFile(), hashFunction);
             sendUpdate(hashCode);
         } catch (IOException e) {
-            log.error("Error hashing tagmanifest", e);
+            log.error("{} Error hashing tagmanifest", r.getBag().getName(), e);
             fail(e);
         }
     }
 
     void sendUpdate(HashCode hashCode) {
         String calculatedDigest = hashCode.toString();
-        log.info("Calculated digest {} for tagmanifest", calculatedDigest);
+        log.info("{} Calculated digest {} for tagmanifest", r.getBag().getName(), calculatedDigest);
 
         Call<Replication> call = ingestAPI.updateTagManifest(id, new FixityUpdate(calculatedDigest));
         call.enqueue(new UpdateCallback());

@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Created by shake on 3/8/16.
  */
 public class AceTokenTasklet implements Runnable {
-    private final Logger log = LoggerFactory.getLogger(AceTokenTasklet.class);
+    private final Logger log = LoggerFactory.getLogger("ace-log");
 
     private IngestAPI ingest;
     private AceService aceService;
@@ -56,24 +56,26 @@ public class AceTokenTasklet implements Runnable {
         }
 
         Bag bag = replication.getBag();
-        log.info("Loading token store for {}", bag.getName());
+        String name = bag.getName();
+
+        log.info("{} Loading token store", name);
         final AtomicBoolean complete = new AtomicBoolean(false);
 
         Path manifest = Paths.get(settings.getPreservation(), bag.getTokenLocation());
 
-        log.info("Params for loadTokenStore: {} {}", id, manifest);
+        log.info("{} loadTokenStore params = ({}, {})", new Object[]{name, id, manifest});
         Call<Void> call = aceService.loadTokenStore(id, RequestBody.create(MediaType.parse("ASCII Text"), manifest.toFile()));
         call.enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Response<Void> response) {
                 if (response.isSuccess()) {
-                    log.info("Successfully loaded token store");
+                    log.info("{} loaded token store", name);
                     Call<Replication> update = ingest.updateReplicationStatus(replication.getId(), new RStatusUpdate(ReplicationStatus.ACE_TOKEN_LOADED));
                     update.enqueue(new UpdateCallback());
                 } else {
-                    log.error("Error loading token store for collection: {} - {}", response.code(), response.message());
+                    log.error("{} Error loading token store: {} - {}", response.code(), response.message());
                     try {
-                        log.debug("{}", response.errorBody().string());
+                        log.debug("{} {}", name, response.errorBody().string());
                     } catch (IOException ignored) {
                     }
                     notifier.setSuccess(false);
@@ -87,7 +89,7 @@ public class AceTokenTasklet implements Runnable {
             public void onFailure(Throwable throwable) {
                 complete.getAndSet(true);
                 notifier.setSuccess(false);
-                log.error("", throwable);
+                log.error("{} Failure loading token store", name, throwable);
                 throw new RuntimeException(throwable);
             }
         });
@@ -95,7 +97,7 @@ public class AceTokenTasklet implements Runnable {
         // Since the callback is asynchronous, we need to wait for it to complete before moving on
         // TODO: Should use something like the SimpleCallback to wait for it to complete
         //       or we could wrap it in a try/catch
-        log.trace("Waiting for token register to complete");
+        log.trace("{} waiting for token register to complete", name);
         waitForCallback(complete);
     }
 

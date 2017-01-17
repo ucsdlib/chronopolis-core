@@ -12,6 +12,7 @@ import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,8 +20,6 @@ import org.junit.runners.MethodSorters;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.data.domain.PageImpl;
@@ -55,7 +54,6 @@ import static org.mockito.Mockito.when;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @SpringApplicationConfiguration(classes = TestApplication.class)
 public class ReplicationQueryTaskTest {
-    private final Logger log = LoggerFactory.getLogger(ReplicationQueryTaskTest.class);
 
     @Mock IngestAPI ingestAPI;
     @Mock IngestAPISettings settings;
@@ -71,10 +69,16 @@ public class ReplicationQueryTaskTest {
     Call<org.chronopolis.rest.models.Bag> bagCall;
     Call<PageImpl<Replication>> replications;
 
+    @BeforeClass
+    public static void before() {
+        // Make sure we don't try to write in to /var/log by default
+        // I'm not sure why that's happening but it's something we'll have to look in to
+        System.setProperty("logging.file", "test.log");
+        System.setProperty("spring.profiles.active", "test");
+    }
 
     @Before
     public void init() throws NoSuchFieldException, IllegalAccessException {
-        log.info("Creating mocks");
         MockitoAnnotations.initMocks(this);
 
         // Make sure the autowired JobExplorer gets used

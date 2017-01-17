@@ -26,7 +26,7 @@ import java.io.IOException;
  * Created by shake on 10/13/16.
  */
 public class AceRunner implements Runnable {
-    private final Logger log = LoggerFactory.getLogger(AceRunner.class);
+    private final Logger log = LoggerFactory.getLogger("ace-log");
 
     final AceService ace;
     final IngestAPI ingest;
@@ -63,7 +63,7 @@ public class AceRunner implements Runnable {
             id = register.call();
             rest(id, replication);
         } catch (Exception e) {
-            log.error("Error communicating with ACE", e);
+            log.error("{} Error communicating with ACE", replication.getBag().getName(), e);
         }
     }
 

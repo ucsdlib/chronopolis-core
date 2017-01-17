@@ -10,7 +10,7 @@
 
     <groupId>org.chronopolis</groupId>
     <artifactId>chronopolis</artifactId>
-    <version>1.4.0-RELEASE</version>
+    <version>1.4.1-RELEASE</version>
     <packaging>pom</packaging>
 
     <name>Core Chronopolis</name>
@@ -33,13 +33,6 @@
             </modules>
        </profile>
        <profile>
-           <!-- Duracloud Intake Modules -->
-            <id>duracloud</id>
-            <modules>
-                <module>duracloud-backend</module>
-            </modules>
-       </profile>
-       <profile>
            <!-- All Modules -->
             <id>default</id>
             <activation>
@@ -50,7 +43,6 @@
                 <module>ingest-shell</module>
                 <module>ingest-rest</module>
                 <module>replication-shell</module>
-                <module>duracloud-backend</module>
             </modules>
         </profile>
     </profiles>

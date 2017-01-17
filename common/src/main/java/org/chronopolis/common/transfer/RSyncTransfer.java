@@ -24,7 +24,7 @@ import java.util.concurrent.FutureTask;
  * @author shake
  */
 public class RSyncTransfer implements FileTransfer {
-    private final Logger log = LoggerFactory.getLogger(RSyncTransfer.class);
+    private final Logger log = LoggerFactory.getLogger("rsync-log");
     private final ExecutorService threadPool = Executors.newSingleThreadExecutor();
     private final String link;
     private String stats;

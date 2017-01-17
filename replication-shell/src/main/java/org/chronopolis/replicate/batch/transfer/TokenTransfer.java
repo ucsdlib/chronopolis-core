@@ -9,8 +9,9 @@ import org.chronopolis.replicate.ReplicationQueue;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.FixityUpdate;
+import org.chronopolis.rest.models.Replication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Call;
@@ -26,9 +27,10 @@ import java.nio.file.Paths;
  */
 public class TokenTransfer implements Runnable {
 
-    private final Logger log = LoggerFactory.getLogger(TokenTransfer.class);
+    private final Logger log = LoggerFactory.getLogger("rsync-log");
 
     // Set in our constructor
+    final Bag b;
     final Replication r;
     final IngestAPI ingest;
     final ReplicationSettings settings;
@@ -41,6 +43,7 @@ public class TokenTransfer implements Runnable {
 
     public TokenTransfer(Replication r, IngestAPI ingest, ReplicationSettings settings) {
         this.r = r;
+        this.b = r.getBag();
         this.ingest = ingest;
         this.settings = settings;
 
@@ -52,7 +55,8 @@ public class TokenTransfer implements Runnable {
 
     @Override
     public void run() {
-        log.info("Downloading Token Store from {}", location);
+        String name = b.getName();
+        log.info("{} Downloading Token Store from {}", name, location);
 
         Path tokenStore;
 
@@ -68,10 +72,10 @@ public class TokenTransfer implements Runnable {
                     protocol);
             hash(tokenStore);
         } catch (IOException e) {
-            log.error("Error downloading token store", e);
+            log.error("{} Error downloading token store", name,  e);
             fail(e);
         } catch (FileTransferException e) {
-            log.error("File transfer exception", e);
+            log.error("{} File transfer exception", name, e);
             fail(e);
         }
     }
@@ -97,14 +101,14 @@ public class TokenTransfer implements Runnable {
             hash = Files.hash(token.toFile(), hashFunction);
             update(hash);
         } catch (IOException e) {
-            log.error("Error hashing token store", e);
+            log.error("{} Error hashing token store", b.getName(), e);
             fail(e);
         }
     }
 
     void update(HashCode hash) {
         String calculatedDigest = hash.toString();
-        log.info("Calculated digest {} for token store", calculatedDigest);
+        log.info("{} Calculated digest {} for token store", b.getName(), calculatedDigest);
 
         Call<Replication> call = ingest.updateTokenStore(id, new FixityUpdate(calculatedDigest));
         call.enqueue(new UpdateCallback());

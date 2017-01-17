@@ -91,8 +91,8 @@ public class TestConfig {
             for (Node n : nodeList) {
                 Replication action = new Replication(n,
                         b,
-                        ingestSettings.getBagStage() + "/" + b.getLocation() ,
-                        ingestSettings.getTokenStage() + "/" + b.getTokenLocation());
+                        ingestSettings.getRsyncBags() + "/" + b.getLocation() ,
+                        ingestSettings.getRsyncTokens() + "/" + b.getTokenLocation());
 
                 if (ran.nextInt(100) < 10) {
                     action.setStatus(ReplicationStatus.STARTED);

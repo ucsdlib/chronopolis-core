@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/base.xml" />
+
+    <springProfile name="production">
+        <property name="ACE_LOG_FILENAME" value="/var/log/chronopolis/replication-ace.log" />
+        <property name="RSYNC_LOG_FILENAME" value="/var/log/chronopolis/replication-rsync.log" />
+
+        <appender name="ACE_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <!--See also http://logback.qos.ch/manual/appenders.html#RollingFileAppender-->
+            <File>${ACE_LOG_FILENAME}</File>
+            <encoder>
+                <pattern>%d{yyyy/MM/dd HH:mm:ss} - %m%n</pattern>
+            </encoder>
+            <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+                <maxIndex>5</maxIndex>
+                <FileNamePattern>${ACE_LOG_FILENAME}.%i</FileNamePattern>
+            </rollingPolicy>
+            <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+                <MaxFileSize>20MB</MaxFileSize>
+            </triggeringPolicy>
+        </appender>
+        <logger name="ace-log" level="DEBUG">
+            <appender-ref ref="ACE_LOG"/>
+        </logger>
+
+        <appender name="RSYNC_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <!--See also http://logback.qos.ch/manual/appenders.html#RollingFileAppender-->
+            <File>${RSYNC_LOG_FILENAME}</File>
+            <encoder>
+                <pattern>%d{yyyy/MM/dd HH:mm:ss} - %m%n</pattern>
+            </encoder>
+            <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+                <maxIndex>5</maxIndex>
+                <FileNamePattern>${RSYNC_LOG_FILENAME}.%i</FileNamePattern>
+            </rollingPolicy>
+            <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+                <MaxFileSize>20MB</MaxFileSize>
+            </triggeringPolicy>
+        </appender>
+        <logger name="rsync-log" level="DEBUG">
+            <appender-ref ref="RSYNC_LOG"/>
+        </logger>
+    </springProfile>
+</configuration>
