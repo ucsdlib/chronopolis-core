@@ -1,13 +1,18 @@
 package org.chronopolis.ingest.config;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.apache.catalina.connector.Connector;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.api.serializer.BagSerializer;
+import org.chronopolis.ingest.api.serializer.RepairSerializer;
 import org.chronopolis.ingest.api.serializer.ReplicationSerializer;
 import org.chronopolis.ingest.api.serializer.ZonedDateTimeDeserializer;
 import org.chronopolis.ingest.api.serializer.ZonedDateTimeSerializer;
+import org.chronopolis.ingest.repository.RepairRepository;
+import org.chronopolis.ingest.repository.RepairService;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Repair;
 import org.chronopolis.rest.entities.Replication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +56,11 @@ public class IngestConfig {
     }
 
     @Bean
+    public RepairService<Repair, Long, RepairRepository> repairService(RepairRepository repository) {
+        return new RepairService<>(repository);
+    }
+
+    @Bean
     public EmbeddedServletContainerFactory embeddedServletContainerFactory(IngestSettings settings) {
         TomcatEmbeddedServletContainerFactory bean = new TomcatEmbeddedServletContainerFactory();
 
@@ -74,7 +84,9 @@ public class IngestConfig {
         Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
         builder.indentOutput(true);
         // builder.dateFormat(DateTimeFormatter.ISO_LOCAL_DATE_TIME.);
+        builder.serializationInclusion(JsonInclude.Include.NON_NULL);
         builder.serializerByType(Bag.class, new BagSerializer());
+        builder.serializerByType(Repair.class, new RepairSerializer());
         builder.serializerByType(Replication.class, new ReplicationSerializer());
         builder.serializerByType(ZonedDateTime.class, new ZonedDateTimeSerializer());
         builder.deserializerByType(ZonedDateTime.class, new ZonedDateTimeDeserializer());
