@@ -2,12 +2,15 @@ package org.chronopolis.rest.entities;
 
 import org.chronopolis.rest.models.repair.RepairStatus;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -28,7 +31,7 @@ public class Repair extends UpdatableEntity {
     @OneToOne
     Fulfillment fulfillment;
 
-    @OneToMany(mappedBy = "repair")
+    @OneToMany(mappedBy = "repair", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     Set<RepairFile> files;
 
 
@@ -73,6 +76,16 @@ public class Repair extends UpdatableEntity {
 
     public Set<RepairFile> getFiles() {
         return files;
+    }
+
+    public Repair setFilesFrom(Set<String> files) {
+        if (this.files == null) {
+            this.files = new HashSet<>();
+        }
+
+        files.forEach(f -> this.files.add(new RepairFile().setPath(f).setRepair(this)));
+
+        return this;
     }
 
     public Repair setFiles(Set<RepairFile> files) {
