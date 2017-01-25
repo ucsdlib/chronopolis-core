@@ -1,6 +1,6 @@
 package org.chronopolis.rest.models.repair;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * Request to repair certain files at a chronopolis node
@@ -11,7 +11,7 @@ public class RepairRequest {
 
     String depositor;
     String collection;
-    List<String> files;
+    Set<String> files;
 
     public String getDepositor() {
         return depositor;
@@ -31,11 +31,11 @@ public class RepairRequest {
         return this;
     }
 
-    public List<String> getFiles() {
+    public Set<String> getFiles() {
         return files;
     }
 
-    public RepairRequest setFiles(List<String> files) {
+    public RepairRequest setFiles(Set<String> files) {
         this.files = files;
         return this;
     }
