@@ -22,6 +22,14 @@ public class RepairSearchCriteria implements SearchCriteria {
         criteria = new HashMap<>();
     }
 
+    public RepairSearchCriteria withId(Long id) {
+        if (id != null) {
+            criteria.put("id", repair.id.eq(id));
+        }
+
+        return this;
+    }
+
     public RepairSearchCriteria withStatus(RepairStatus status) {
         if (status != null) {
             criteria.put(Params.STATUS, repair.status.eq(status));

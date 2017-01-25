@@ -23,9 +23,17 @@ public class FulfillmentSearchCriteria implements SearchCriteria {
         criteria = new HashMap<>();
     }
 
+    public FulfillmentSearchCriteria withId(Long id) {
+        if (id != null) {
+            criteria.put(Params.SORT_ID, qFulfillment.id.eq(id));
+        }
+
+        return this;
+    }
+
     public FulfillmentSearchCriteria withFrom(String from) {
         if (from != null && !from.isEmpty()) {
-            criteria.put(Params.NODE, qFulfillment.from.eq(from));
+            criteria.put(Params.FROM, qFulfillment.from.eq(from));
         }
 
         return this;
