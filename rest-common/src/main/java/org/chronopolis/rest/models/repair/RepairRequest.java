@@ -1,5 +1,6 @@
 package org.chronopolis.rest.models.repair;
 
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -9,6 +10,7 @@ import java.util.Set;
  */
 public class RepairRequest {
 
+    String to;
     String depositor;
     String collection;
     Set<String> files;
@@ -37,6 +39,15 @@ public class RepairRequest {
 
     public RepairRequest setFiles(Set<String> files) {
         this.files = files;
+        return this;
+    }
+
+    public Optional<String> getTo() {
+        return Optional.ofNullable(to);
+    }
+
+    public RepairRequest setTo(String to) {
+        this.to = to;
         return this;
     }
 }
