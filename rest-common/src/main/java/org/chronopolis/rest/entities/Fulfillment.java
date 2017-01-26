@@ -4,10 +4,11 @@ import org.chronopolis.rest.entities.fulfillment.Strategy;
 import org.chronopolis.rest.models.repair.FulfillmentStatus;
 import org.chronopolis.rest.models.repair.FulfillmentType;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
 /**
@@ -20,8 +21,9 @@ public class Fulfillment extends UpdatableEntity {
     @OneToOne
     Repair repair;
 
-    @Column(name = "from_name")
-    String from;
+    @ManyToOne
+    @JoinColumn(name = "from_node")
+    Node from;
 
     @Enumerated(value = EnumType.STRING)
     FulfillmentStatus status;
@@ -44,11 +46,11 @@ public class Fulfillment extends UpdatableEntity {
         return this;
     }
 
-    public String getFrom() {
+    public Node getFrom() {
         return from;
     }
 
-    public Fulfillment setFrom(String from) {
+    public Fulfillment setFrom(Node from) {
         this.from = from;
         return this;
     }

@@ -33,7 +33,7 @@ public class FulfillmentSearchCriteria implements SearchCriteria {
 
     public FulfillmentSearchCriteria withFrom(String from) {
         if (from != null && !from.isEmpty()) {
-            criteria.put(Params.FROM, qFulfillment.from.eq(from));
+            criteria.put(Params.FROM, qFulfillment.from.username.eq(from));
         }
 
         return this;

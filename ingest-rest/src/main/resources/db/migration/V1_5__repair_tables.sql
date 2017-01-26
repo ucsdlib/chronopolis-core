@@ -28,7 +28,7 @@ CREATE TABLE fulfillment (
     id bigint PRIMARY KEY DEFAULT nextval('fulfillment_id_seq'),
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
-    from_name VARCHAR(255),
+    from_node BIGINT,
     status VARCHAR(255),
     type VARCHAR(255),
     strategy_id BIGINT,
@@ -61,6 +61,9 @@ ALTER TABLE fulfillment
 
 ALTER TABLE fulfillment
     ADD CONSTRAINT FK_ff_repair FOREIGN KEY (repair_id) REFERENCES repair;
+
+ALTER TABLE fulfillment
+    ADD CONSTRAINT FK_ff_from FOREIGN KEY (from_node) REFERENCES node;
 
 ALTER TABLE strategy
     ADD CONSTRAINT FK_strat_ff FOREIGN KEY (fulfillment_id) REFERENCES fulfillment;
