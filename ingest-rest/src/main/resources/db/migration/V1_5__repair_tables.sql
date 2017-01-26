@@ -1,5 +1,5 @@
 -- repair, fulfillment, and associated tables
-DROP TABLE IF EXISTS repair;
+DROP TABLE IF EXISTS repair CASCADE;
 DROP SEQUENCE IF EXISTS repair_id_seq;
 CREATE SEQUENCE repair_id_seq;
 CREATE TABLE repair (
@@ -8,8 +8,8 @@ CREATE TABLE repair (
     updated_at TIMESTAMP,
     status varchar(255),
     requester VARCHAR(255),
-    to_node BIGINT,
-    bag_id BIGINT,
+    to_node BIGINT NOT NULL,
+    bag_id BIGINT NOT NULL,
     fulfillment_id BIGINT
 );
 
@@ -22,18 +22,18 @@ CREATE TABLE repair_file (
     repair_id bigint
 );
 
-DROP TABLE IF EXISTS fulfillment;
+DROP TABLE IF EXISTS fulfillment CASCADE ;
 DROP SEQUENCE IF EXISTS fulfillment_id_seq;
 CREATE SEQUENCE fulfillment_id_seq;
 CREATE TABLE fulfillment (
     id bigint PRIMARY KEY DEFAULT nextval('fulfillment_id_seq'),
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
-    from_node BIGINT,
+    from_node BIGINT NOT NULL,
     status VARCHAR(255),
     type VARCHAR(255),
     strategy_id BIGINT,
-    repair_id BIGINT
+    repair_id BIGINT NOT NULL
 );
 
 DROP TABLE IF EXISTS strategy;
