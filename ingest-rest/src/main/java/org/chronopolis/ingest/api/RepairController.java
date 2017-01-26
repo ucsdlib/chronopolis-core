@@ -69,7 +69,7 @@ public class RepairController {
                 .setBag(b)
                 .setRequester(principal.getName())
                 .setStatus(RepairStatus.REQUESTED)
-                .setFilesFrom(request.getFiles());
+                .setFilesFromRequest(request.getFiles());
         rService.save(r);
 
         return r;

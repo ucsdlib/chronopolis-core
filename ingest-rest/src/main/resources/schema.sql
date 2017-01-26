@@ -118,6 +118,7 @@ CREATE TABLE repair (
     updated_at TIMESTAMP,
     status varchar(255),
     requester VARCHAR(255), -- maybe should be a bigint for the node_id instead?
+    to_node BIGINT,
     bag_id BIGINT,
     fulfillment_id BIGINT,
     PRIMARY KEY (id)
@@ -160,6 +161,9 @@ ALTER TABLE repair
 
 ALTER TABLE repair
     ADD CONSTRAINT FK_repair_ff FOREIGN KEY (fulfillment_id) REFERENCES fulfillment;
+
+ALTER TABLE repair
+    ADD CONSTRAINT FK_repair_to FOREIGN KEY (to_node) REFERENCES node;
 
 ALTER TABLE repair_file
     ADD CONSTRAINT FK_rf_repair FOREIGN KEY (repair_id) REFERENCES repair;

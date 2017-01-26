@@ -14,6 +14,7 @@ public class Repair {
     private ZonedDateTime createdAt;
     private ZonedDateTime updatedAt;
     private RepairStatus status;
+    private String to;
     private String requester;
     private String depositor;
     private String collection;
@@ -97,6 +98,15 @@ public class Repair {
 
     public Repair setFiles(List<String> files) {
         this.files = files;
+        return this;
+    }
+
+    public String getTo() {
+        return to;
+    }
+
+    public Repair setTo(String to) {
+        this.to = to;
         return this;
     }
 }

@@ -30,6 +30,14 @@ public class RepairSearchCriteria implements SearchCriteria {
         return this;
     }
 
+    public RepairSearchCriteria withTo(String to) {
+        if (to != null && !to.isEmpty()) {
+            criteria.put(Params.TO, repair.to.username.eq(to));
+        }
+
+        return this;
+    }
+
     public RepairSearchCriteria withStatus(RepairStatus status) {
         if (status != null) {
             criteria.put(Params.STATUS, repair.status.eq(status));

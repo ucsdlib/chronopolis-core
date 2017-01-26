@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
@@ -27,6 +28,10 @@ public class Repair extends UpdatableEntity {
 
     @ManyToOne
     Bag bag;
+
+    @ManyToOne
+    @JoinColumn(name = "to_node")
+    Node to;
 
     @OneToOne
     Fulfillment fulfillment;
@@ -78,7 +83,7 @@ public class Repair extends UpdatableEntity {
         return files;
     }
 
-    public Repair setFilesFrom(Set<String> files) {
+    public Repair setFilesFromRequest(Set<String> files) {
         if (this.files == null) {
             this.files = new HashSet<>();
         }
@@ -90,6 +95,15 @@ public class Repair extends UpdatableEntity {
 
     public Repair setFiles(Set<RepairFile> files) {
         this.files = files;
+        return this;
+    }
+
+    public Node getTo() {
+        return to;
+    }
+
+    public Repair setTo(Node to) {
+        this.to = to;
         return this;
     }
 }

@@ -7,6 +7,7 @@ package org.chronopolis.ingest.api;
  */
 public class Params {
     // Query
+    public static final String TO = "to";
     public static final String NAME = "name";
     public static final String NODE = "node";
     public static final String TYPE = "type";
