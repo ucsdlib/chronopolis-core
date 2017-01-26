@@ -20,6 +20,7 @@ public class RepairSerializer extends JsonSerializer<Repair> {
     public void serialize(Repair repair, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
         org.chronopolis.rest.models.repair.Repair model = new org.chronopolis.rest.models.repair.Repair();
         model.setId(repair.getId());
+        model.setTo(repair.getTo().getUsername());
         model.setCollection(repair.getBag().getName());
         model.setDepositor(repair.getBag().getDepositor());
         model.setFiles(repair.getFiles().stream().map(RepairFile::getPath).collect(Collectors.toList()));
