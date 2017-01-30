@@ -74,9 +74,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf().disable().authorizeRequests()
                 .accessDecisionManager(decisionManager)
                 // RESTful paths
+                // TODO: move antPatterns to fields?
                 .antMatchers(HttpMethod.GET, "/api/**").hasRole("SERVICE")
                 .antMatchers(HttpMethod.PUT, "/api/**").hasRole("USER")
-                .antMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
+                .antMatchers(HttpMethod.POST, "/api/repair/**").hasRole("USER")
+                .antMatchers(HttpMethod.POST, "/api/bags/**", "/api/replications/**").hasRole("ADMIN")
                 .antMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
                 // Webapp paths
                 // resources
