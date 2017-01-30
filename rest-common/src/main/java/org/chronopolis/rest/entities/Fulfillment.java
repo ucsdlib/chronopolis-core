@@ -4,9 +4,11 @@ import org.chronopolis.rest.entities.fulfillment.Strategy;
 import org.chronopolis.rest.models.repair.FulfillmentStatus;
 import org.chronopolis.rest.models.repair.FulfillmentType;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
@@ -18,7 +20,7 @@ import javax.persistence.OneToOne;
 @Entity
 public class Fulfillment extends UpdatableEntity {
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
     Repair repair;
 
     @ManyToOne
