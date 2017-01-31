@@ -165,9 +165,8 @@ public class RepairController {
                 .withId(id);
         Fulfillment fulfillment = fService.find(criteria);
 
-        Strategy entity = strategy.createEntity();
+        Strategy entity = strategy.createEntity(fulfillment);
         fulfillment.setStrategy(entity);
-        fulfillment.setType(strategy.getType());
         fulfillment.setStatus(FulfillmentStatus.READY);
         fService.save(fulfillment);
         return fulfillment;

@@ -24,7 +24,7 @@ public class RsyncStrategy extends FulfillmentStrategy {
     }
 
     @Override
-    public Strategy createEntity() {
+    public Strategy createEntity(org.chronopolis.rest.entities.Fulfillment fulfillment) {
         throw new UnsupportedOperationException("No entity for rsync exists yet");
     }
 }

@@ -30,7 +30,7 @@ public abstract class FulfillmentStrategy {
      *
      * @return the StrategyEntity
      */
-    public abstract Strategy createEntity();
+    public abstract Strategy createEntity(org.chronopolis.rest.entities.Fulfillment fulfillment);
 
     /**
      * Get the FulfillmentType associated with the Strategy

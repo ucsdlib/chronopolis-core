@@ -37,8 +37,9 @@ public class ACEStrategy extends FulfillmentStrategy {
     }
 
     @Override
-    public Strategy createEntity() {
+    public Strategy createEntity(org.chronopolis.rest.entities.Fulfillment fulfillment) {
         Ace strategy = new Ace();
+        strategy.setFulfillment(fulfillment);
         strategy.setApiKey(apiKey);
         strategy.setUrl(url);
         return strategy;
