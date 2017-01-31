@@ -5,6 +5,7 @@ import org.apache.catalina.connector.Connector;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.api.serializer.BagSerializer;
+import org.chronopolis.ingest.api.serializer.FulfillmentSerializer;
 import org.chronopolis.ingest.api.serializer.RepairSerializer;
 import org.chronopolis.ingest.api.serializer.ReplicationSerializer;
 import org.chronopolis.ingest.api.serializer.ZonedDateTimeDeserializer;
@@ -95,6 +96,7 @@ public class IngestConfig {
         builder.serializationInclusion(JsonInclude.Include.NON_NULL);
         builder.serializerByType(Bag.class, new BagSerializer());
         builder.serializerByType(Repair.class, new RepairSerializer());
+        builder.serializerByType(Fulfillment.class, new FulfillmentSerializer());
         builder.serializerByType(Replication.class, new ReplicationSerializer());
         builder.serializerByType(ZonedDateTime.class, new ZonedDateTimeSerializer());
         builder.deserializerByType(ZonedDateTime.class, new ZonedDateTimeDeserializer());
