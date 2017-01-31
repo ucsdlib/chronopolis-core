@@ -1,5 +1,8 @@
 package org.chronopolis.rest.entities.fulfillment;
 
+import org.chronopolis.rest.models.repair.ACEStrategy;
+import org.chronopolis.rest.models.repair.FulfillmentStrategy;
+
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
@@ -33,5 +36,12 @@ public class Ace extends Strategy {
     public Ace setUrl(String url) {
         this.url = url;
         return this;
+    }
+
+    @Override
+    public FulfillmentStrategy createModel() {
+        return new ACEStrategy()
+                .setUrl(url)
+                .setApiKey(apiKey);
     }
 }

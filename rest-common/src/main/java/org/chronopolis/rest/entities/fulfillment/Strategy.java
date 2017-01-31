@@ -1,6 +1,7 @@
 package org.chronopolis.rest.entities.fulfillment;
 
 import org.chronopolis.rest.entities.Fulfillment;
+import org.chronopolis.rest.models.repair.FulfillmentStrategy;
 
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
@@ -43,4 +44,7 @@ public abstract class Strategy {
         this.fulfillment = fulfillment;
         return this;
     }
+
+    public abstract FulfillmentStrategy createModel();
+
 }
