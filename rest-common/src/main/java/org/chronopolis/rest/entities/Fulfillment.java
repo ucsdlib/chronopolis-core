@@ -33,7 +33,7 @@ public class Fulfillment extends UpdatableEntity {
     @Enumerated(value = EnumType.STRING)
     FulfillmentType type;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
     Strategy strategy;
 
     public Fulfillment() {
