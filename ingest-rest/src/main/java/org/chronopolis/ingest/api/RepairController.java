@@ -90,7 +90,11 @@ public class RepairController {
     public Repair getRequest(@PathVariable("id") Long id) {
         RepairSearchCriteria criteria = new RepairSearchCriteria()
                 .withId(id);
-        return rService.find(criteria);
+        Repair repair = rService.find(criteria);
+        if (repair == null) {
+            throw new NotFoundException("Repair " + id + " does not exist");
+        }
+        return repair;
     }
 
     /**
@@ -204,7 +208,11 @@ public class RepairController {
     public Fulfillment getFulfillment(@PathVariable("id") Long id) {
         FulfillmentSearchCriteria criteria = new FulfillmentSearchCriteria()
                 .withId(id);
-        return fService.find(criteria);
+        Fulfillment fulfillment = fService.find(criteria);
+        if (fulfillment == null) {
+            throw new NotFoundException("Fulfillment " + id + " does not exist");
+        }
+        return fulfillment;
     }
 
     /**
