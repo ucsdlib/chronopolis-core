@@ -2,6 +2,7 @@ package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableMap;
 import org.chronopolis.ingest.exception.BadRequestException;
+import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.exception.UnauthorizedException;
 import org.chronopolis.ingest.repository.BagSearchCriteria;
 import org.chronopolis.ingest.repository.BagService;
@@ -16,7 +17,6 @@ import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Fulfillment;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Repair;
-import org.chronopolis.rest.entities.RepairFile;
 import org.chronopolis.rest.entities.fulfillment.Strategy;
 import org.chronopolis.rest.models.repair.FulfillmentStatus;
 import org.chronopolis.rest.models.repair.FulfillmentStrategy;
@@ -65,12 +65,27 @@ public class RepairController {
         this.fService = fService;
     }
 
+    /**
+     * Return all Repairs
+     *
+     * @param params a map of query parameters to search on
+     * @return all the Repairs requested
+     */
     @RequestMapping(value = "/requests", method = RequestMethod.GET)
-    public Iterable<Repair> getRequests() {
-        RepairSearchCriteria criteria = new RepairSearchCriteria();
+    public Iterable<Repair> getRequests(@RequestParam Map<String, String> params) {
+        RepairSearchCriteria criteria = new RepairSearchCriteria()
+                .withTo(params.getOrDefault(Params.TO, ""))
+                .withRequester(params.getOrDefault(Params.REQUESTER, ""));
         return rService.findAll(criteria, new PageRequest(0, 20));
     }
 
+    /**
+     * Get a single Repair
+     *
+     * @param id the id of the repair
+     * @return the Repair identified by id
+     * @throws NotFoundException if the Repair does not exist
+     */
     @RequestMapping(value = "/requests/{id}", method = RequestMethod.GET)
     public Repair getRequest(@PathVariable("id") Long id) {
         RepairSearchCriteria criteria = new RepairSearchCriteria()
@@ -78,6 +93,18 @@ public class RepairController {
         return rService.find(criteria);
     }
 
+    /**
+     * Create a repair request for a given thing
+     *
+     * todo: a way to validate that the files exist
+     * todo: Check for active repairs
+     *
+     * @param principal the security principal of the user
+     * @param request the repair request to process
+     * @return the newly created repair
+     * @throws BadRequestException if the requested bag does not exist
+     * @throws UnauthorizedException if the user is not part of the node requesting the repair
+     */
     @SuppressWarnings("ConstantConditions")
     @RequestMapping(value = "/requests", method = RequestMethod.POST)
     public Repair createRequest(Principal principal, @RequestBody RepairRequest request) {
@@ -96,8 +123,7 @@ public class RepairController {
         check(node, "To node must exist");
 
         // Get the bag
-        // TODO: Check for active repairs
-        // TODO: This can really be lazified since all we need is the bag id
+        // This can really be lazified since all we need is the bag id
         BagSearchCriteria criteria = new BagSearchCriteria()
                 .withDepositor(request.getDepositor())
                 .withName(request.getCollection());
@@ -116,24 +142,34 @@ public class RepairController {
         return r;
     }
 
-    private RepairFile toRepairFile(String path, Repair repair) {
-        log.info("Creating new repair file {}", path);
-        RepairFile r = new RepairFile();
-        r.setPath(path);
-        r.setRepair(repair);
-        return r;
-    }
-
+    /**
+     * Offer to fulfill a repair request
+     *
+     * todo: create lock for creation of fulfillment on a repair?
+     *       maybe an atomic reference would be better... guava might have something actually
+     *
+     * @param principal the security principal of the fulfilling user
+     * @param id the id of the repair request
+     * @return the newly general fulfillment
+     * @throws BadRequestException if the request does not exist or if a user tries to fulfill their own request
+     * @throws UnauthorizedException if the principal is not associated with a node
+     */
     @RequestMapping(value = "/requests/{id}/fulfill", method = RequestMethod.POST)
     public Fulfillment fulfillRequest(Principal principal, @PathVariable("id") Long id) {
-        // todo: contraints (node exists, repair exists)
-        // todo: create lock for creation of fulfillment on a repair?
         Node n = nodes.findByUsername(principal.getName());
         RepairSearchCriteria criteria = new RepairSearchCriteria()
                 .withId(id);
         Repair repair = rService.find(criteria);
         repair.setStatus(RepairStatus.FULFILLING);
 
+        // Constraints
+        check(repair, "Repair request must exist");
+        check(n, "Admin users are not supported for fulfilling at this time");
+        if (repair.getTo().getUsername().equals(principal.getName())) {
+            throw new BadRequestException("Cannot fulfill your own repair request");
+        }
+
+        // Create the fulfillment
         Fulfillment f = new Fulfillment();
         f.setRepair(repair)
          .setStatus(FulfillmentStatus.STAGING)
@@ -145,12 +181,25 @@ public class RepairController {
         return f;
     }
 
+    /**
+     * Return all fulfillments
+     *
+     * @param params the query parameters
+     * @return the list of fulfillments
+     */
     @RequestMapping(value = "/fulfillments", method = RequestMethod.GET)
     public Page<Fulfillment> getFulfillments(@RequestParam Map<String, String> params) {
         FulfillmentSearchCriteria criteria = new FulfillmentSearchCriteria();
         return fService.findAll(criteria, createPageRequest(params, ImmutableMap.of()));
     }
 
+    /**
+     * Return a single fulfillment
+     *
+     * @param id the id of the fulfillment to return
+     * @return the fulfillment identified by id
+     * @throws NotFoundException if the fulfillment does not exist
+     */
     @RequestMapping(value = "/fulfillments/{id}", method = RequestMethod.GET)
     public Fulfillment getFulfillment(@PathVariable("id") Long id) {
         FulfillmentSearchCriteria criteria = new FulfillmentSearchCriteria()
@@ -158,12 +207,34 @@ public class RepairController {
         return fService.find(criteria);
     }
 
+    /**
+     * Update a fulfillment with the information necessary to be completed
+     *
+     * @param principal the security principal of the user
+     * @param strategy the fulfillment strategy to be used
+     * @param id the id of the fulfillment to update
+     * @return the updated fulfillment
+     * @throws BadRequestException if the fulfillment does not exist
+     * @throws UnauthorizedException if the user is not authorized to ready the fulfillment
+     */
     @RequestMapping(value = "/fulfillments/{id}/ready", method = RequestMethod.PUT)
     public Fulfillment readyFulfillment(Principal principal, @RequestBody FulfillmentStrategy strategy, @PathVariable("id") Long id) {
-        // todo: constraints
         FulfillmentSearchCriteria criteria = new FulfillmentSearchCriteria()
                 .withId(id);
         Fulfillment fulfillment = fService.find(criteria);
+
+        // Move constraint logic somewhere else?
+        check(fulfillment, "Fulfillment does not exist");
+
+        // Validate access
+        // Do we want to do the below or nest ifs?
+        // boolean authorized = !hasRoleAdmin() && principal.getName().equals(fulfillment.getFrom().getUsername());
+        if (!hasRoleAdmin()) {
+            boolean authorized = principal.getName().equals(fulfillment.getFrom().getUsername());
+            if (!authorized) {
+                throw new UnauthorizedException(principal.getName() + " is not the fulfilling node");
+            }
+        }
 
         Strategy entity = strategy.createEntity(fulfillment);
         fulfillment.setStrategy(entity);
@@ -172,12 +243,30 @@ public class RepairController {
         return fulfillment;
     }
 
+    /**
+     * Mark that a fulfillment has been completed
+     *
+     * @param principal the security principal of the user
+     * @param id the id of the fulfillment
+     * @return the updated fulfillment
+     * @throws BadRequestException if the fulfillment does not exist
+     * @throws UnauthorizedException if the user is not authorized to complete the fulfillment
+     */
     @RequestMapping(value = "/fulfillments/{id}/complete", method = RequestMethod.PUT)
     public Fulfillment completeFulfillment(Principal principal, @PathVariable("id") Long id) {
         FulfillmentSearchCriteria criteria = new FulfillmentSearchCriteria()
                 .withId(id);
         Fulfillment fulfillment = fService.find(criteria);
+        check(fulfillment, "Fulfillment does not exist");
+
         Repair repair = fulfillment.getRepair();
+
+        if (!hasRoleAdmin()) {
+            boolean authorized = principal.getName().equals(repair.getTo().getUsername());
+            if (!authorized) {
+                throw new UnauthorizedException(principal.getName() + " is not the requesting node");
+            }
+        }
 
         fulfillment.setStatus(FulfillmentStatus.COMPLETE);
         repair.setStatus(RepairStatus.REPAIRED);
