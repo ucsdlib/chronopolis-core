@@ -74,9 +74,10 @@ public class RepairController {
     @RequestMapping(value = "/requests", method = RequestMethod.GET)
     public Iterable<Repair> getRequests(@RequestParam Map<String, String> params) {
         RepairSearchCriteria criteria = new RepairSearchCriteria()
-                .withTo(params.getOrDefault(Params.TO, ""))
-                .withRequester(params.getOrDefault(Params.REQUESTER, ""));
-        return rService.findAll(criteria, new PageRequest(0, 20));
+                .withTo(params.getOrDefault(Params.TO, null))
+                .withRequester(params.getOrDefault(Params.REQUESTER, null));
+        Page<Repair> all = rService.findAll(criteria, new PageRequest(0, 20));
+        return all;
     }
 
     /**
