@@ -1,6 +1,5 @@
 package org.chronopolis.replicate.scheduled;
 
-import com.google.common.collect.ImmutableMap;
 import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.replicate.batch.Submitter;
 import org.chronopolis.replicate.support.CallWrapper;
@@ -27,7 +26,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import retrofit2.Call;
 
 import java.util.ArrayList;
-import java.util.Map;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
@@ -61,13 +59,11 @@ public class ReplicationQueryTaskTest {
     @Autowired Submitter submitter;
     @InjectMocks ReplicationQueryTask task;
 
-    Bag b;
-    Replication replication;
-    Map<String, Object> started;
-    Map<String, Object> pending;
+    private Bag b;
+    private Replication replication;
 
-    Call<org.chronopolis.rest.models.Bag> bagCall;
-    Call<PageImpl<Replication>> replications;
+    private Call<org.chronopolis.rest.models.Bag> bagCall;
+    private Call<PageImpl<Replication>> replications;
 
     @BeforeClass
     public static void before() {
@@ -75,6 +71,7 @@ public class ReplicationQueryTaskTest {
         // I'm not sure why that's happening but it's something we'll have to look in to
         System.setProperty("logging.file", "test.log");
         System.setProperty("spring.profiles.active", "test");
+        System.setProperty("smtp.send", "false");
     }
 
     @Before
@@ -103,9 +100,6 @@ public class ReplicationQueryTaskTest {
 
         replications = new CallWrapper<>(page);
         bagCall = new CallWrapper<>(b);
-
-        started = ImmutableMap.of("status", ReplicationStatus.STARTED);
-        pending = ImmutableMap.of("status", ReplicationStatus.PENDING);
 
         task = new ReplicationQueryTask(settings, ingestAPI, submitter);
     }
