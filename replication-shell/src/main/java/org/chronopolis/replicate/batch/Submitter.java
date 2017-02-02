@@ -37,14 +37,14 @@ import java.util.function.BiConsumer;
 public class Submitter {
     private final Logger log = LoggerFactory.getLogger(Submitter.class);
 
-    MailUtil mail;
-    AceService ace;
-    IngestAPI ingest;
-    ReplicationSettings settings;
-    ThreadPoolExecutor io;
-    ThreadPoolExecutor http;
+    private final MailUtil mail;
+    private final AceService ace;
+    private final IngestAPI ingest;
+    private final ReplicationSettings settings;
+    private final ThreadPoolExecutor io;
+    private final ThreadPoolExecutor http;
 
-    Set<String> replicating;
+    private final Set<String> replicating;
 
     @Autowired
     public Submitter(MailUtil mail,
@@ -53,6 +53,7 @@ public class Submitter {
                      ReplicationSettings settings,
                      ThreadPoolExecutor io,
                      ThreadPoolExecutor http) {
+        this.mail = mail;
         this.ace = ace;
         this.ingest = ingest;
         this.settings = settings;
@@ -60,6 +61,10 @@ public class Submitter {
         this.http = http;
 
         this.replicating = new ConcurrentSkipListSet<>();
+    }
+
+    public boolean isRunning(Replication replication) {
+        return replicating.contains(replication.getBag().getDepositor() + "/" + replication.getBag().getName());
     }
 
     /**
@@ -181,12 +186,14 @@ public class Submitter {
                 send = true;
             }
 
-            if (send) {
-                SimpleMailMessage message =  mail.createMessage(settings.getNode(), subject, body);
-                mail.send(message);
+            try {
+                if (send) {
+                    SimpleMailMessage message = mail.createMessage(settings.getNode(), subject, body);
+                    mail.send(message);
+                }
+            } finally {
+                replicating.remove(s);
             }
-
-            replicating.remove(s);
         }
     }
 
