@@ -17,14 +17,16 @@ public class FulfillmentSerializer extends JsonSerializer<Fulfillment> {
     public void serialize(Fulfillment fulfillment, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
         org.chronopolis.rest.models.repair.Fulfillment model = new org.chronopolis.rest.models.repair.Fulfillment();
         model.setId(fulfillment.getId());
-        model.setType(fulfillment.getType()); // push to FulfillmentStrategy?
         model.setStatus(fulfillment.getStatus());
         model.setCreatedAt(fulfillment.getCreatedAt());
         model.setUpdatedAt(fulfillment.getUpdatedAt());
         model.setRepair(fulfillment.getRepair().getId());
         model.setFrom(fulfillment.getFrom().getUsername());
         model.setTo(fulfillment.getRepair().getTo().getUsername());
-        model.setCredentials(fulfillment.getStrategy().createModel());
+        if (fulfillment.getStrategy() != null) {
+            model.setType(fulfillment.getType()); // push to FulfillmentStrategy?
+            model.setCredentials(fulfillment.getStrategy().createModel());
+        }
         jsonGenerator.writeObject(model);
     }
 
