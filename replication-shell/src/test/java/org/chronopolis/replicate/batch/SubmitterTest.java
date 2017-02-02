@@ -113,7 +113,9 @@ public class SubmitterTest {
 
         Mockito.doThrow(new MailSendException("Unable to send msg")).when(mail).send(any(SimpleMailMessage.class));
         CompletableFuture<Void> submission = submitter.submit(r);
-        submission.exceptionally(t -> null);
+        // workaround to block on our submission
+        CompletableFuture<Boolean> handle = submission.handle((ok, ex) -> true);
+        handle.get();
 
         assertFalse(submitter.isRunning(r));
         verify(ingest, times(0)).updateTokenStore(r.getId(), tokenUpdate);
