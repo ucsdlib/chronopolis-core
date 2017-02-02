@@ -13,17 +13,20 @@ import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.replicate.support.CallWrapper;
 import org.chronopolis.replicate.support.NotFoundCallWrapper;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.FixityUpdate;
 import org.chronopolis.rest.models.RStatusUpdate;
+import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.chronopolis.rest.support.ZonedDateTimeDeserializer;
 import org.chronopolis.rest.support.ZonedDateTimeSerializer;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.springframework.mail.MailSendException;
+import org.springframework.mail.SimpleMailMessage;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -37,6 +40,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
@@ -107,9 +111,13 @@ public class SubmitterTest {
         FixityUpdate tokenUpdate = new FixityUpdate(TOKEN_DIGEST);
         FixityUpdate tagUpdate = new FixityUpdate(TM_DIGEST);
 
+        Mockito.doThrow(new MailSendException("Unable to send msg")).when(mail).send(any(SimpleMailMessage.class));
         CompletableFuture<Void> submission = submitter.submit(r);
-        submission.exceptionally(t -> null);
+        // workaround to block on our submission
+        CompletableFuture<Boolean> handle = submission.handle((ok, ex) -> true);
+        handle.get();
 
+        assertFalse(submitter.isRunning(r));
         verify(ingest, times(0)).updateTokenStore(r.getId(), tokenUpdate);
         verify(ingest, times(0)).updateTagManifest(r.getId(), tagUpdate);
         verify(ingest, times(0)).getReplication(r.getId());
