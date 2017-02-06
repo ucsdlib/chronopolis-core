@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -72,12 +71,11 @@ public class RepairController {
      * @return all the Repairs requested
      */
     @RequestMapping(value = "/requests", method = RequestMethod.GET)
-    public Iterable<Repair> getRequests(@RequestParam Map<String, String> params) {
+    public Page<Repair> getRequests(@RequestParam Map<String, String> params) {
         RepairSearchCriteria criteria = new RepairSearchCriteria()
                 .withTo(params.getOrDefault(Params.TO, null))
                 .withRequester(params.getOrDefault(Params.REQUESTER, null));
-        Page<Repair> all = rService.findAll(criteria, new PageRequest(0, 20));
-        return all;
+        return rService.findAll(criteria, createPageRequest(params, ImmutableMap.of()));
     }
 
     /**
@@ -182,7 +180,7 @@ public class RepairController {
         repair.setFulfillment(f);
 
         log.info("Fulfilling request for {}", repair.getTo().getUsername());
-        fService.save(f);
+        rService.save(repair);
         return f;
     }
 
@@ -246,6 +244,7 @@ public class RepairController {
         }
 
         Strategy entity = strategy.createEntity(fulfillment);
+        fulfillment.setType(strategy.getType());
         fulfillment.setStrategy(entity);
         fulfillment.setStatus(FulfillmentStatus.READY);
         fService.save(fulfillment);
@@ -254,6 +253,7 @@ public class RepairController {
 
     /**
      * Mark that a fulfillment has been completed
+     * TODO: Fulfillment must be at least READY
      *
      * @param principal the security principal of the user
      * @param id the id of the fulfillment
