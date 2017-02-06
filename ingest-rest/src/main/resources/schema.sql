@@ -160,7 +160,7 @@ ALTER TABLE repair
     ADD CONSTRAINT FK_repair_bag FOREIGN KEY (bag_id) REFERENCES bag;
 
 ALTER TABLE repair
-    ADD CONSTRAINT FK_repair_ff FOREIGN KEY (fulfillment_id) REFERENCES fulfillment;
+    ADD CONSTRAINT FK_repair_ff FOREIGN KEY (fulfillment_id) REFERENCES fulfillment ON DELETE CASCADE;
 
 ALTER TABLE repair
     ADD CONSTRAINT FK_repair_to FOREIGN KEY (to_node) REFERENCES node;
@@ -172,7 +172,7 @@ ALTER TABLE fulfillment
     ADD CONSTRAINT FK_ff_strat FOREIGN KEY (strategy_id) REFERENCES strategy;
 
 ALTER TABLE fulfillment
-    ADD CONSTRAINT FK_ff_repair FOREIGN KEY (repair_id) REFERENCES repair;
+    ADD CONSTRAINT FK_ff_repair FOREIGN KEY (repair_id) REFERENCES repair ON DELETE CASCADE;
 
 ALTER TABLE fulfillment
     ADD CONSTRAINT FK_ff_from FOREIGN KEY (from_node) REFERENCES node;
