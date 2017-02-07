@@ -146,8 +146,7 @@ CREATE TABLE strategy (
     api_key VARCHAR(255),
     url VARCHAR(255),
     link VARCHAR(255),
-    type VARCHAR(255),
-    fulfillment_id BIGINT
+    type VARCHAR(255)
 );
 
 ALTER TABLE bag_distribution
@@ -181,13 +180,10 @@ ALTER TABLE repair_file
     ADD CONSTRAINT FK_rf_repair FOREIGN KEY (repair_id) REFERENCES repair;
 
 ALTER TABLE fulfillment
-    ADD CONSTRAINT FK_ff_strat FOREIGN KEY (strategy_id) REFERENCES strategy;
+    ADD CONSTRAINT FK_ff_strat FOREIGN KEY (strategy_id) REFERENCES strategy ON DELETE CASCADE;
 
 ALTER TABLE fulfillment
     ADD CONSTRAINT FK_ff_repair FOREIGN KEY (repair_id) REFERENCES repair;
 
 ALTER TABLE fulfillment
     ADD CONSTRAINT FK_ff_from FOREIGN KEY (from_node) REFERENCES node;
-
-ALTER TABLE strategy
-    ADD CONSTRAINT FK_strat_ff FOREIGN KEY (fulfillment_id) REFERENCES fulfillment;

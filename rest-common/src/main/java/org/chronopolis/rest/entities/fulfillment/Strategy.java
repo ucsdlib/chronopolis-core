@@ -27,7 +27,7 @@ public abstract class Strategy {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @OneToOne(mappedBy = "strategy")
     private Fulfillment fulfillment;
 
     public Long getId() {
