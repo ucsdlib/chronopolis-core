@@ -39,8 +39,6 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
-                <module>intake-shell</module>
-                <module>ingest-shell</module>
                 <module>ingest-rest</module>
                 <module>replication-shell</module>
             </modules>
