@@ -253,7 +253,6 @@ public class RepairController {
 
     /**
      * Mark that a fulfillment has been completed
-     * TODO: Fulfillment must be at least READY
      *
      * @param principal the security principal of the user
      * @param id the id of the fulfillment
@@ -267,6 +266,7 @@ public class RepairController {
                 .withId(id);
         Fulfillment fulfillment = fService.find(criteria);
         check(fulfillment, "Fulfillment does not exist");
+        check(fulfillment.getStrategy(), "Fulfillment must have a repair strategy before being completed!");
 
         Repair repair = fulfillment.getRepair();
 

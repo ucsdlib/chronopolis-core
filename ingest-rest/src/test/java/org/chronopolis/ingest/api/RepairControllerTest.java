@@ -169,19 +169,26 @@ public class RepairControllerTest extends IngestTest {
     }
 
     @Test(expected = UnauthorizedException.class)
-    @WithMockUser(username = "umiacs")
+    @WithMockUser(username = "ncar")
     public void readyFulfillmentUnauthorized() throws Exception {
         ACEStrategy strategy = new ACEStrategy()
                 .setApiKey("test-api-key")
                 .setUrl("test-url");
 
-        controller.readyFulfillment(mockPrincipal("umiacs"), strategy, 2L);
+        controller.readyFulfillment(mockPrincipal("ncar"), strategy, 1L);
     }
 
-    @Test
+    @Test(expected = BadRequestException.class)
     @WithMockUser(username = "ucsd")
+    public void completeFulfillmentNoStrategy() throws Exception {
+        controller.completeFulfillment(mockPrincipal("ucsd"), 1L);
+    }
+
+
+    @Test
+    @WithMockUser(username = "umiacs")
     public void completeFulfillment() throws Exception {
-        Fulfillment fulfillment = controller.completeFulfillment(mockPrincipal("ucsd"), 1L);
+        Fulfillment fulfillment = controller.completeFulfillment(mockPrincipal("umiacs"), 2L);
         Repair repair = fulfillment.getRepair();
 
         assertEquals(FulfillmentStatus.COMPLETE, fulfillment.getStatus());
@@ -189,9 +196,9 @@ public class RepairControllerTest extends IngestTest {
     }
 
     @Test(expected = UnauthorizedException.class)
-    @WithMockUser(username = "umiacs")
+    @WithMockUser(username = "ncar")
     public void completeFulfillmentUnauthorized() throws Exception {
-        controller.completeFulfillment(mockPrincipal("umiacs"), 1L);
+        controller.completeFulfillment(mockPrincipal("ncar"), 2L);
     }
 
     private Principal mockPrincipal(String name) {
