@@ -14,8 +14,8 @@ import javax.persistence.Entity;
 @DiscriminatorValue(value = "ACE")
 public class Ace extends Strategy {
 
-    String apiKey;
-    String url;
+    private String apiKey;
+    private String url;
 
     public Ace() {
     }

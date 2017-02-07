@@ -1,5 +1,6 @@
 package org.chronopolis.rest.models.repair;
 
+import org.chronopolis.rest.entities.fulfillment.Rsync;
 import org.chronopolis.rest.entities.fulfillment.Strategy;
 
 /**
@@ -25,6 +26,7 @@ public class RsyncStrategy extends FulfillmentStrategy {
 
     @Override
     public Strategy createEntity(org.chronopolis.rest.entities.Fulfillment fulfillment) {
-        throw new UnsupportedOperationException("No entity for rsync exists yet");
+        return new Rsync()
+                .setLink(link);
     }
 }
