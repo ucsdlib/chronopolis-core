@@ -2,6 +2,7 @@ package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableMap;
 import org.chronopolis.ingest.exception.BadRequestException;
+import org.chronopolis.ingest.exception.ConflictException;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.exception.UnauthorizedException;
 import org.chronopolis.ingest.repository.BagSearchCriteria;
@@ -163,7 +164,6 @@ public class RepairController {
         RepairSearchCriteria criteria = new RepairSearchCriteria()
                 .withId(id);
         Repair repair = rService.find(criteria);
-        repair.setStatus(RepairStatus.FULFILLING);
 
         // Constraints
         check(repair, "Repair request must exist");
@@ -171,8 +171,12 @@ public class RepairController {
         if (repair.getTo().getUsername().equals(principal.getName())) {
             throw new BadRequestException("Cannot fulfill your own repair request");
         }
+        if (repair.getFulfillment() != null) {
+            throw new ConflictException("Request is already being fulfilled");
+        }
 
         // Create the fulfillment
+        repair.setStatus(RepairStatus.FULFILLING);
         Fulfillment f = new Fulfillment();
         f.setRepair(repair)
          .setStatus(FulfillmentStatus.STAGING)
