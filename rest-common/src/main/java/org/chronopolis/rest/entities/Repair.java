@@ -33,7 +33,7 @@ public class Repair extends UpdatableEntity {
     @JoinColumn(name = "to_node")
     Node to;
 
-    @OneToOne(cascade = CascadeType.MERGE)
+    @OneToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
     Fulfillment fulfillment;
 
     @OneToMany(mappedBy = "repair", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
