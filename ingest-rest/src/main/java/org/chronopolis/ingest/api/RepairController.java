@@ -40,6 +40,7 @@ import static org.chronopolis.ingest.IngestController.createPageRequest;
 import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
 
 /**
+ * RestController for our repair/fulfillment api
  *
  * Created by shake on 1/24/17.
  */
@@ -132,6 +133,7 @@ public class RepairController {
                 .withName(request.getCollection());
         Bag b = bService.findBag(criteria);
         check(b, "Bag must exist");
+        log.info("Creating repair request from user {} for bag {}", principal.getName(), b.getName());
 
         // Create the repair object
         Repair r = new Repair()
@@ -175,14 +177,13 @@ public class RepairController {
         }
 
         // Create the fulfillment
+        log.info("{} is fulfilling the repair request {}", n.getUsername(), repair.getId());
         repair.setStatus(RepairStatus.FULFILLING);
         Fulfillment f = new Fulfillment();
         f.setRepair(repair)
          .setStatus(FulfillmentStatus.STAGING)
          .setFrom(n);
         repair.setFulfillment(f);
-
-        log.info("Fulfilling request for {}", repair.getTo().getUsername());
         rService.save(repair);
         return f;
     }
@@ -246,6 +247,7 @@ public class RepairController {
             }
         }
 
+        log.info("Adding strategy of type {} to fulfillment {}", strategy.getType(), fulfillment.getId());
         Strategy entity = strategy.createEntity(fulfillment);
         fulfillment.setType(strategy.getType());
         fulfillment.setStrategy(entity);
@@ -280,6 +282,7 @@ public class RepairController {
             }
         }
 
+        log.info("Completing fulfillment {} for node {}", fulfillment.getId(), principal.getName());
         fulfillment.setStatus(FulfillmentStatus.COMPLETE);
         repair.setStatus(RepairStatus.REPAIRED);
         fService.save(fulfillment);
