@@ -11,7 +11,6 @@ import org.chronopolis.ingest.exception.UnauthorizedException;
 import org.chronopolis.ingest.repository.FulfillmentRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
 import org.chronopolis.ingest.repository.RepairSearchCriteria;
-import org.chronopolis.ingest.repository.RepairService;
 import org.chronopolis.ingest.repository.SearchService;
 import org.chronopolis.rest.entities.Fulfillment;
 import org.chronopolis.rest.entities.Repair;
@@ -62,7 +61,7 @@ public class RepairControllerTest extends IngestTest {
     private final Logger log = LoggerFactory.getLogger(RepairControllerTest.class);
 
     @Autowired private RepairController controller;
-    @Autowired private RepairService<Repair, Long, RepairRepository> repairs;
+    @Autowired private SearchService<Repair, Long, RepairRepository> repairs;
     @Autowired private SearchService<Fulfillment, Long, FulfillmentRepository> fulfillments;
 
     @Test

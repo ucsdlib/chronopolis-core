@@ -12,7 +12,6 @@ import org.chronopolis.ingest.repository.FulfillmentSearchCriteria;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
 import org.chronopolis.ingest.repository.RepairSearchCriteria;
-import org.chronopolis.ingest.repository.RepairService;
 import org.chronopolis.ingest.repository.SearchService;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Fulfillment;
@@ -51,13 +50,13 @@ public class RepairController {
 
     private final BagService bService;
     private final NodeRepository nodes;
-    private final RepairService<Repair, Long, RepairRepository> rService;
+    private final SearchService<Repair, Long, RepairRepository> rService;
     private final SearchService<Fulfillment, Long, FulfillmentRepository> fService;
 
     @Autowired
     public RepairController(BagService bService,
                             NodeRepository nodes,
-                            RepairService<Repair, Long, RepairRepository> rService,
+                            SearchService<Repair, Long, RepairRepository> rService,
                             SearchService<Fulfillment, Long, FulfillmentRepository> fService) {
         this.bService = bService;
         this.nodes = nodes;
