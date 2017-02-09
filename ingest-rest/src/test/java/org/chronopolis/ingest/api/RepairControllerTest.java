@@ -5,6 +5,8 @@ import com.google.common.collect.ImmutableSet;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;
 import org.chronopolis.ingest.exception.BadRequestException;
+import org.chronopolis.ingest.exception.ConflictException;
+import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.exception.UnauthorizedException;
 import org.chronopolis.ingest.repository.FulfillmentRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
@@ -70,6 +72,11 @@ public class RepairControllerTest extends IngestTest {
         assertEquals("ucsd", repair.getRequester());
     }
 
+    @Test(expected = NotFoundException.class)
+    public void getRepairNotFound() {
+        controller.getRequest(100L);
+    }
+
     @Test
     public void getRepairs() throws Exception {
         Page<Repair> repairs = controller.getRequests(ImmutableMap.of());
@@ -81,6 +88,11 @@ public class RepairControllerTest extends IngestTest {
         Fulfillment fulfillment = controller.getFulfillment(1L);
         assertEquals("umiacs", fulfillment.getFrom().getUsername());
         assertEquals(FulfillmentStatus.STAGING, fulfillment.getStatus());
+    }
+
+    @Test(expected = NotFoundException.class)
+    public void getFulfillmentNotFound() {
+        controller.getFulfillment(100L);
     }
 
     @Test
@@ -140,20 +152,17 @@ public class RepairControllerTest extends IngestTest {
         assertEquals("umiacs", repair.getFulfillment().getFrom().getUsername());
     }
 
+    @Test(expected = ConflictException.class)
+    @WithMockUser("ncar")
+    public void fulfillRequestConflict() {
+        controller.fulfillRequest(mockPrincipal("ncar"), 1L);
+    }
+
     @WithMockUser("ncar")
     @Test(expected = BadRequestException.class)
     public void fulfillOwnRequest() throws Exception {
         controller.fulfillRequest(mockPrincipal("ncar"), 2L);
     }
-
-    /*
-    // Not implemented yet
-    @Test
-    public void fulfillAlreadyExists() throws Exception {
-        log.info(entity.toString());
-        assertEquals(HttpStatus.BAD_REQUEST, entity.getStatusCode());
-    }
-    */
 
     @Test
     @WithMockUser(username = "umiacs")
