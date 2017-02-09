@@ -1,7 +1,6 @@
 package org.chronopolis.ingest.api.serializer;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import org.chronopolis.rest.entities.Fulfillment;
@@ -14,7 +13,7 @@ import java.io.IOException;
  */
 public class FulfillmentSerializer extends JsonSerializer<Fulfillment> {
     @Override
-    public void serialize(Fulfillment fulfillment, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
+    public void serialize(Fulfillment fulfillment, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         org.chronopolis.rest.models.repair.Fulfillment model = new org.chronopolis.rest.models.repair.Fulfillment();
         model.setId(fulfillment.getId());
         model.setStatus(fulfillment.getStatus());

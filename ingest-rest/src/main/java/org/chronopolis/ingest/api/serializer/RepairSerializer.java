@@ -1,9 +1,9 @@
 package org.chronopolis.ingest.api.serializer;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import org.chronopolis.rest.entities.Fulfillment;
 import org.chronopolis.rest.entities.Repair;
 import org.chronopolis.rest.entities.RepairFile;
 
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  */
 public class RepairSerializer extends JsonSerializer<Repair> {
     @Override
-    public void serialize(Repair repair, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
+    public void serialize(Repair repair, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         org.chronopolis.rest.models.repair.Repair model = new org.chronopolis.rest.models.repair.Repair();
         model.setId(repair.getId());
         model.setTo(repair.getTo().getUsername());
@@ -28,6 +28,12 @@ public class RepairSerializer extends JsonSerializer<Repair> {
         model.setStatus(repair.getStatus());
         model.setCreatedAt(repair.getCreatedAt());
         model.setUpdatedAt(repair.getUpdatedAt());
+
+        Fulfillment fulfillment = repair.getFulfillment();
+        if (fulfillment != null) {
+            model.setFulfillment(fulfillment.getId());
+        }
+
         jsonGenerator.writeObject(model);
     }
 }
