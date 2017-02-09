@@ -15,3 +15,7 @@ INSERT INTO strategy VALUES(1, 'mock-api-key', 'http://some-ace-url/ace-am', NUL
 --                             id, current,     updated,      from, status, type, strat_id, repair_id
 INSERT INTO fulfillment VALUES(1, CURRENT_DATE, CURRENT_DATE, 1, 'STAGING', NULL, NULL, 1);
 INSERT INTO fulfillment VALUES(2, CURRENT_DATE, CURRENT_DATE, 2, 'READY', 'ACE', 1, 3);
+
+-- finish our relations
+UPDATE repair SET fulfillment_id = 1 WHERE id = 1;
+UPDATE repair SET fulfillment_id = 2 WHERE id = 3;
