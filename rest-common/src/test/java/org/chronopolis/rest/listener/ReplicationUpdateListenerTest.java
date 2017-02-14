@@ -48,7 +48,7 @@ public class ReplicationUpdateListenerTest {
 
     public Replication createReplication(String tagDigest, String tokenDigest) {
         Replication r = new Replication(n, b);
-        r.setNodeUser(n.getUsername());
+        // r.setNodeUser(n.getUsername());
         r.setProtocol("test-protocol");
         r.setReceivedTagFixity(tagDigest);
         r.setReceivedTokenFixity(tokenDigest);

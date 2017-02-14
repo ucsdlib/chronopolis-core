@@ -157,11 +157,11 @@ public class StagingControllerTest extends IngestTest {
         // assertEquals(Long.valueOf(3), Long.valueOf(bag.getBody().getTotalFiles()));
     }
 
-    @Test
     /**
      * Test with specifying replicating nodes to ensure they get saved
      *
      */
+    @Test
     public void testStageBagWithReplications() throws Exception {
         // need admin credentials for creating resources
         TestRestTemplate template = getTemplate("admin", "admin");

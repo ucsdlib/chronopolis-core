@@ -39,8 +39,6 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
-                <module>intake-shell</module>
-                <module>ingest-shell</module>
                 <module>ingest-rest</module>
                 <module>replication-shell</module>
             </modules>
@@ -277,14 +275,7 @@
                 <scope>test</scope>
             </dependency>
 
-            <dependency>
-                <!-- Should we switch to a different json lib? -->
-                <groupId>org.json</groupId>
-                <artifactId>json</artifactId>
-                <version>20130802</version>
-            </dependency>
-
-            <!-- Yes, let's phase out the org.json lib -->
+            <!-- We should try to consolidate these so we only use one json lib -->
             <dependency>
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>

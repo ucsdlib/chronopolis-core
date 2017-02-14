@@ -167,16 +167,6 @@ public class StagingController extends IngestController {
             }
         }
 
-        /*
-        if (numDistributions < bag.getRequiredReplications()) {
-            for (Node node : nodeRepository.findAll()) {
-                log.debug("Creating dist record for {}", node.getUsername());
-                bag.addDistribution(node, DISTRIBUTE);
-                numDistributions++;
-            }
-        }
-        */
-
         // if the distributions is still less, set error?
     }
 
