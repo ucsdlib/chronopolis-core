@@ -44,8 +44,8 @@ public class AceAuditTasklet implements Runnable {
 
         auditCall.enqueue(new Callback<Void>() {
             @Override
-            public void onResponse(Response<Void> response) {
-                if (response.isSuccess()) {
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
                     Call<Replication> update = ingest.updateReplicationStatus(replication.getId(), new RStatusUpdate(ReplicationStatus.ACE_AUDITING));
                     update.enqueue(new UpdateCallback());
                 } else {
@@ -63,7 +63,7 @@ public class AceAuditTasklet implements Runnable {
             }
 
             @Override
-            public void onFailure(Throwable throwable) {
+            public void onFailure(Call<Void> call, Throwable throwable) {
                 log.error("{} Error communicating with ACE Server", name, throwable);
                 notifier.setSuccess(false);
                 notifier.setAceStep(throwable.getMessage());

@@ -99,8 +99,8 @@ public class AceRegisterTasklet implements Callable<Long> {
         Call<Map<String, Long>> call = aceService.addCollection(aceGson);
         call.enqueue(new Callback<Map<String, Long>>() {
             @Override
-            public void onResponse(Response<Map<String, Long>> response) {
-                if (response.isSuccess()) {
+            public void onResponse(Call<Map<String, Long>> call, Response<Map<String, Long>> response) {
+                if (response.isSuccessful()) {
                     id = response.body().get("id");
                     setRegistered();
                 } else {
@@ -118,7 +118,7 @@ public class AceRegisterTasklet implements Callable<Long> {
             }
 
             @Override
-            public void onFailure(Throwable throwable) {
+            public void onFailure(Call<Map<String, Long>> call, Throwable throwable) {
                 log.error("{} Error communicating with ACE", name, throwable);
                 notifier.setSuccess(false);
                 phaser.arrive();
@@ -135,8 +135,8 @@ public class AceRegisterTasklet implements Callable<Long> {
         Call<GsonCollection> call = aceService.getCollectionByName(bag.getName(), bag.getDepositor());
         call.enqueue(new Callback<GsonCollection>() {
             @Override
-            public void onResponse(Response<GsonCollection> response) {
-                if (response.isSuccess() && response.body() != null) {
+            public void onResponse(Call<GsonCollection> call, Response<GsonCollection> response) {
+                if (response.isSuccessful() && response.body() != null) {
                     id = response.body().getId();
                 } else {
                     log.info("{} not found in ACE, attempting to register", bag.getName());
@@ -146,7 +146,7 @@ public class AceRegisterTasklet implements Callable<Long> {
             }
 
             @Override
-            public void onFailure(Throwable throwable) {
+            public void onFailure(Call<GsonCollection> call, Throwable throwable) {
                 log.error("{} Error communicating with ACE", bag.getName(), throwable);
                 phaser.arriveAndDeregister();
             }

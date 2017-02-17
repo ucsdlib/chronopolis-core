@@ -90,7 +90,7 @@ public class AceRunner implements Runnable {
         Replication r = null;
         try {
             Response<Replication> execute = replication.execute();
-            if (execute.isSuccess()) {
+            if (execute.isSuccessful()) {
                 r = execute.body();
             }
         } catch (IOException e) {

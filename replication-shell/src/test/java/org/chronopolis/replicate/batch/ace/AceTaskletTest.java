@@ -237,7 +237,8 @@ public class AceTaskletTest {
                         TimeUnit.SECONDS.sleep(2);
                     } catch (InterruptedException ignored) {
                     }
-                    callback.onResponse(Response.success(e));
+
+                    callback.onResponse(new AsyncWrapper(e), Response.success(e));
                 }
             };
 

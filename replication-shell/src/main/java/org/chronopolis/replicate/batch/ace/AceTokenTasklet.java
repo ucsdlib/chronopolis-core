@@ -67,8 +67,8 @@ public class AceTokenTasklet implements Runnable {
         Call<Void> call = aceService.loadTokenStore(id, RequestBody.create(MediaType.parse("ASCII Text"), manifest.toFile()));
         call.enqueue(new Callback<Void>() {
             @Override
-            public void onResponse(Response<Void> response) {
-                if (response.isSuccess()) {
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
                     log.info("{} loaded token store", name);
                     Call<Replication> update = ingest.updateReplicationStatus(replication.getId(), new RStatusUpdate(ReplicationStatus.ACE_TOKEN_LOADED));
                     update.enqueue(new UpdateCallback());
@@ -86,7 +86,7 @@ public class AceTokenTasklet implements Runnable {
             }
 
             @Override
-            public void onFailure(Throwable throwable) {
+            public void onFailure(Call<Void> call, Throwable throwable) {
                 complete.getAndSet(true);
                 notifier.setSuccess(false);
                 log.error("{} Failure loading token store", name, throwable);

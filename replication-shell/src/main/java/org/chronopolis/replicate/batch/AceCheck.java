@@ -62,8 +62,8 @@ public class AceCheck implements Runnable {
         CountDownLatch latch = new CountDownLatch(1);
 
         @Override
-        public void onResponse(Response<GsonCollection> response) {
-            if (response.isSuccess()) {
+        public void onResponse(Call<GsonCollection> call, Response<GsonCollection> response) {
+            if (response.isSuccessful()) {
                 collection = response.body();
             } else {
                 collection = null;
@@ -72,7 +72,7 @@ public class AceCheck implements Runnable {
         }
 
         @Override
-        public void onFailure(Throwable throwable) {
+        public void onFailure(Call<GsonCollection> call, Throwable t) {
             collection = null;
             latch.countDown();
         }
