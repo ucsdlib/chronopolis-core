@@ -76,8 +76,7 @@ deploy:jdk8:
   # Archive up the built documentation site.
   image: maven:3.3.9-jdk-8
 
-
-rpm:
+.rpm: &rpm
   before_script:
     - apt-get update -y
     - apt-get install -y rsync
@@ -85,9 +84,19 @@ rpm:
   stage: deploy
   only:
     - master
-    - developt
-  script:
-    - 'cd rpm'
-    - './build.sh'
-    - 'for f in `find RPMS -type f`; do curl -X POST -H "Authorization: token $BUILD_TOKEN" --data-binary @$f $SERVER/artifacts/dpn/$CI_BUILD_REF_NAME/$(echo $CI_BUILD_REF | cut -c -7)/$(basename $f); done'
+    - develop
   image: maven:3.3.9-jdk-8
+
+rpm_ingest:
+  <<: *rpm
+  script:
+    - 'cd ingest-rest/rpm'
+    - './build.sh'
+    - 'for f in `find RPMS -type f`; do curl -X POST -H "Authorization: token $BUILD_TOKEN" --data-binary @$f $SERVER/artifacts/chronopolis/$CI_BUILD_REF_NAME/$(echo $CI_BUILD_REF | cut -c -7)/$(basename $f); done'
+
+rpm_replication:
+  <<: *rpm
+  script:
+    - 'cd replication-shell/rpm'
+    - './build.sh'
+    - 'for f in `find RPMS -type f`; do curl -X POST -H "Authorization: token $BUILD_TOKEN" --data-binary @$f $SERVER/artifacts/chronopolis/$CI_BUILD_REF_NAME/$(echo $CI_BUILD_REF | cut -c -7)/$(basename $f); done'
