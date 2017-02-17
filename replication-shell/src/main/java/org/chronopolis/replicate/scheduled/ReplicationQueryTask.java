@@ -33,9 +33,9 @@ import java.util.Map;
 public class ReplicationQueryTask {
     private final Logger log = LoggerFactory.getLogger(ReplicationQueryTask.class);
 
-    final IngestAPISettings settings;
-    final IngestAPI ingestAPI;
-    final Submitter submitter;
+    private final IngestAPISettings settings;
+    private final IngestAPI ingestAPI;
+    private final Submitter submitter;
 
     @Autowired
     public ReplicationQueryTask(IngestAPISettings settings, IngestAPI ingest, Submitter submitter) {
