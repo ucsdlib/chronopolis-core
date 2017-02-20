@@ -8,7 +8,9 @@ import okhttp3.OkHttpClient;
 import org.chronopolis.common.ace.OkBasicInterceptor;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;
-import org.chronopolis.ingest.repository.BagService;
+import org.chronopolis.ingest.repository.BagRepository;
+import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
+import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.ingest.support.PageImpl;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.entities.Bag;
@@ -57,7 +59,7 @@ public class StagingControllerTest extends IngestTest {
     private int port;
 
     @Autowired
-    BagService bagService;
+    SearchService<Bag, Long, BagRepository> bagService;
 
     @Autowired
     Jackson2ObjectMapperBuilder builder;
@@ -67,7 +69,8 @@ public class StagingControllerTest extends IngestTest {
        ResponseEntity<Bag> entity = getTemplate("umiacs", "umiacs")
                .getForEntity("http://localhost:" + port + "/api/bags/10", Bag.class);
 
-        Bag bag = bagService.findBag((long) 10);
+        BagSearchCriteria criteria = new BagSearchCriteria().withId(10L);
+        Bag bag = bagService.find(criteria);
         System.out.println(bag.getReplicatingNodes());
 
         Gson gson = new GsonBuilder()
@@ -179,7 +182,8 @@ public class StagingControllerTest extends IngestTest {
                 Bag.class);
 
         // Pull from the database to check the distribution record
-        Bag fromDb = bagService.findBag(bag.getBody().getId());
+        BagSearchCriteria criteria = new BagSearchCriteria().withId(bag.getBody().getId());
+        Bag fromDb = bagService.find(criteria);
         assertEquals(1, fromDb.getDistributions().size());
     }
 

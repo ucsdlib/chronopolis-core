@@ -2,10 +2,11 @@ package org.chronopolis.ingest.task;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
-import org.chronopolis.ingest.repository.BagSearchCriteria;
-import org.chronopolis.ingest.repository.BagService;
+import org.chronopolis.ingest.IngestSettings;
+import org.chronopolis.ingest.repository.BagRepository;
+import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
+import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.models.BagStatus;
 import org.slf4j.Logger;
@@ -42,14 +43,14 @@ public class BagInitializer {
     private final Integer DEFAULT_SIZE = 10;
     private final String TAR_TYPE = "application/x-tar";
 
-    private BagService service;
+    private SearchService<Bag, Long, BagRepository> service;
     private IngestSettings settings;
     private TrackingThreadPoolExecutor<Bag> executor;
 
     @Autowired
-    public BagInitializer(BagService service, IngestSettings settings, TrackingThreadPoolExecutor<Bag> bagExecutor) {
+    public BagInitializer(SearchService<Bag, Long, BagRepository> bagService, IngestSettings settings, TrackingThreadPoolExecutor<Bag> bagExecutor) {
         this.settings = settings;
-        this.service = service;
+        this.service = bagService;
         this.executor = bagExecutor;
     }
 
@@ -63,7 +64,7 @@ public class BagInitializer {
     public void initializeBags() {
         BagSearchCriteria criteria = new BagSearchCriteria()
                 .withStatus(BagStatus.DEPOSITED);
-        Page<Bag> bags = service.findBags(criteria, new PageRequest(DEFAULT_PAGE, DEFAULT_SIZE));
+        Page<Bag> bags = service.findAll(criteria, new PageRequest(DEFAULT_PAGE, DEFAULT_SIZE));
         log.info("Initializing {} bags", bags.getContent().size());
         for (Bag bag : bags) {
             executor.submitIfAvailable(new Initializer(bag), bag);
@@ -91,7 +92,7 @@ public class BagInitializer {
             }
 
             log.trace("Saving bag {}", bag.getName());
-            service.saveBag(bag);
+            service.save(bag);
         }
 
         /**

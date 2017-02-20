@@ -5,14 +5,14 @@ import org.chronopolis.ingest.exception.BadRequestException;
 import org.chronopolis.ingest.exception.ConflictException;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.exception.UnauthorizedException;
-import org.chronopolis.ingest.repository.BagSearchCriteria;
-import org.chronopolis.ingest.repository.BagService;
+import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.FulfillmentRepository;
-import org.chronopolis.ingest.repository.FulfillmentSearchCriteria;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
-import org.chronopolis.ingest.repository.RepairSearchCriteria;
-import org.chronopolis.ingest.repository.SearchService;
+import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
+import org.chronopolis.ingest.repository.criteria.FulfillmentSearchCriteria;
+import org.chronopolis.ingest.repository.criteria.RepairSearchCriteria;
+import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Fulfillment;
 import org.chronopolis.rest.entities.Node;
@@ -53,17 +53,17 @@ import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
 public class RepairController {
     private final Logger log = LoggerFactory.getLogger(RepairController.class);
 
-    private final BagService bService;
+    private final SearchService<Bag, Long, BagRepository> bService;
     private final NodeRepository nodes;
     private final SearchService<Repair, Long, RepairRepository> rService;
     private final SearchService<Fulfillment, Long, FulfillmentRepository> fService;
 
     @Autowired
-    public RepairController(BagService bService,
+    public RepairController(SearchService<Bag, Long, BagRepository> bagService,
                             NodeRepository nodes,
                             SearchService<Repair, Long, RepairRepository> rService,
                             SearchService<Fulfillment, Long, FulfillmentRepository> fService) {
-        this.bService = bService;
+        this.bService = bagService;
         this.nodes = nodes;
         this.rService = rService;
         this.fService = fService;
@@ -135,7 +135,7 @@ public class RepairController {
         BagSearchCriteria criteria = new BagSearchCriteria()
                 .withDepositor(request.getDepositor())
                 .withName(request.getCollection());
-        Bag b = bService.findBag(criteria);
+        Bag b = bService.find(criteria);
         check(b, "Bag must exist");
         log.info("Creating repair request from user {} for bag {}", principal.getName(), b.getName());
 

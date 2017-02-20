@@ -10,9 +10,10 @@ import org.chronopolis.ingest.api.serializer.RepairSerializer;
 import org.chronopolis.ingest.api.serializer.ReplicationSerializer;
 import org.chronopolis.ingest.api.serializer.ZonedDateTimeDeserializer;
 import org.chronopolis.ingest.api.serializer.ZonedDateTimeSerializer;
+import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.FulfillmentRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
-import org.chronopolis.ingest.repository.SearchService;
+import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Fulfillment;
 import org.chronopolis.rest.entities.Repair;
@@ -65,6 +66,11 @@ public class IngestConfig {
 
     @Bean
     public SearchService<Fulfillment, Long, FulfillmentRepository> fulfillmentService(FulfillmentRepository repository) {
+        return new SearchService<>(repository);
+    }
+
+    @Bean
+    public SearchService<Bag, Long, BagRepository> bagService(BagRepository repository) {
         return new SearchService<>(repository);
     }
 
