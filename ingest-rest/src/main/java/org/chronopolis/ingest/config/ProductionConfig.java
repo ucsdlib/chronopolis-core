@@ -1,7 +1,7 @@
 package org.chronopolis.ingest.config;
 
 import org.chronopolis.ingest.models.UserRequest;
-import org.chronopolis.ingest.repository.UserService;
+import org.chronopolis.ingest.repository.dao.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;

@@ -1,6 +1,8 @@
-package org.chronopolis.ingest.repository;
+package org.chronopolis.ingest.repository.dao;
 
 import com.mysema.query.types.expr.BooleanExpression;
+import org.chronopolis.ingest.repository.PredicateUtil;
+import org.chronopolis.ingest.repository.criteria.SearchCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;

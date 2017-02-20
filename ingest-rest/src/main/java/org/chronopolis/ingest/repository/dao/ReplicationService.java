@@ -1,8 +1,12 @@
-package org.chronopolis.ingest.repository;
+package org.chronopolis.ingest.repository.dao;
 
 import com.mysema.query.types.expr.BooleanExpression;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.exception.NotFoundException;
+import org.chronopolis.ingest.repository.BagRepository;
+import org.chronopolis.ingest.repository.NodeRepository;
+import org.chronopolis.ingest.repository.ReplicationRepository;
+import org.chronopolis.ingest.repository.criteria.ReplicationSearchCriteria;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagDistribution;
 import org.chronopolis.rest.entities.Node;

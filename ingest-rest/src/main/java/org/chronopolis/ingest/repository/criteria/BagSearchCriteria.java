@@ -1,4 +1,4 @@
-package org.chronopolis.ingest.repository;
+package org.chronopolis.ingest.repository.criteria;
 
 import com.mysema.query.types.expr.BooleanExpression;
 import org.chronopolis.ingest.api.Params;
@@ -14,7 +14,7 @@ import java.util.Map;
  *
  * Created by shake on 5/20/15.
  */
-public class BagSearchCriteria {
+public class BagSearchCriteria implements SearchCriteria {
     private final QBag bag;
 
     // TODO: We could do a multimap in order to get OR relations
@@ -23,6 +23,14 @@ public class BagSearchCriteria {
     public BagSearchCriteria() {
         this.bag = QBag.bag;
         this.criteria = new HashMap<>();
+    }
+
+    public BagSearchCriteria withId(Long id) {
+        if (id != null) {
+            criteria.put(Params.SORT_ID, bag.id.eq(id));
+        }
+
+        return this;
     }
 
     public BagSearchCriteria withName(String name) {
