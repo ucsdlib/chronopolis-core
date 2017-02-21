@@ -89,7 +89,7 @@ public class ReplicationController extends IngestController {
         ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
 
         // Break out our objects
-        Replication r = replicationService.getReplication(criteria);
+        Replication r = replicationService.find(criteria);
         Bag bag = r.getBag();
         Node node = r.getNode();
         String fixity = update.getFixity();
@@ -110,7 +110,7 @@ public class ReplicationController extends IngestController {
         ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
 
         // Break out our objects
-        Replication r = replicationService.getReplication(criteria);
+        Replication r = replicationService.find(criteria);
         Bag bag = r.getBag();
         Node node = r.getNode();
         String fixity = update.getFixity();
@@ -145,7 +145,7 @@ public class ReplicationController extends IngestController {
     public Replication failReplication(Principal principal,
                                        @PathVariable("id") Long replicationId) {
         ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
-        Replication r = replicationService.getReplication(criteria);
+        Replication r = replicationService.find(criteria);
         r.setStatus(ReplicationStatus.FAILURE);
         replicationService.save(r);
         return r;
@@ -157,7 +157,7 @@ public class ReplicationController extends IngestController {
                                     @RequestBody RStatusUpdate update) {
         ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
         log.info("Received update request for replication {}: {}", replicationId, update.getStatus());
-        Replication r = replicationService.getReplication(criteria);
+        Replication r = replicationService.find(criteria);
         r.setStatus(update.getStatus());
         replicationService.save(r);
         return r;
@@ -184,7 +184,7 @@ public class ReplicationController extends IngestController {
         if (!hasRoleAdmin()) {
             criteria.withNodeUsername(principal.getName());
         }
-        Replication update = replicationService.getReplication(criteria);
+        Replication update = replicationService.find(criteria);
 
         if (update == null) {
             throw new NotFoundException("Replication " + replicationId);
@@ -235,7 +235,7 @@ public class ReplicationController extends IngestController {
 
         PageRequest pr = createPageRequest(params, ImmutableMap.of());
 
-        return replicationService.getReplications(criteria, pr);
+        return replicationService.findAll(criteria, pr);
     }
 
     /**
@@ -250,7 +250,7 @@ public class ReplicationController extends IngestController {
                                        @PathVariable("id") Long actionId) {
         log.info("[{}] Getting replication {}", principal.getName(), actionId);
 
-        return replicationService.getReplication(
+        return replicationService.find(
                 new ReplicationSearchCriteria().withId(actionId)
         );
     }

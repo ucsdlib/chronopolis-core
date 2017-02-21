@@ -1,10 +1,9 @@
 package org.chronopolis.ingest.repository.dao;
 
+import com.mysema.query.BooleanBuilder;
+import com.mysema.query.types.Predicate;
 import com.mysema.query.types.expr.BooleanExpression;
-import org.chronopolis.ingest.repository.PredicateUtil;
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,12 +14,13 @@ import java.io.Serializable;
 import java.util.Map;
 
 /**
+ * Generalized service for access database objects. Uses SearchCriteria to build queries, as well
+ * as offers a basic save method.
  *
  * Created by shake on 1/24/17.
  */
 @Transactional
 public class SearchService<T, I extends Serializable, E extends JpaRepository<T, I> & QueryDslPredicateExecutor<T>> {
-    private final Logger log = LoggerFactory.getLogger(SearchService.class);
 
     private final E e;
 
@@ -29,23 +29,23 @@ public class SearchService<T, I extends Serializable, E extends JpaRepository<T,
     }
 
     public T find(SearchCriteria sc) {
-        BooleanExpression predicate = buildPredicate(sc);
+        Predicate predicate = buildPredicate(sc);
         return e.findOne(predicate);
     }
 
     public Page<T> findAll(SearchCriteria sc, Pageable pageable) {
-        BooleanExpression predicate = buildPredicate(sc);
+        Predicate predicate = buildPredicate(sc);
         return e.findAll(predicate, pageable);
     }
 
-    public BooleanExpression buildPredicate(SearchCriteria sc) {
-        BooleanExpression predicate = null;
+    public Predicate buildPredicate(SearchCriteria sc) {
         Map<Object, BooleanExpression> criteria = sc.getCriteria();
+        BooleanBuilder builder = new BooleanBuilder();
         for (Object o : criteria.keySet()) {
-            predicate = PredicateUtil.setExpression(predicate, criteria.get(o));
+            builder.and(criteria.get(o));
         }
 
-        return predicate;
+        return builder.getValue();
     }
 
     public void save(T t) {

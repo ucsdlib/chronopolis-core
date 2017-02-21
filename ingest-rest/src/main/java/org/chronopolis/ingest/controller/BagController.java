@@ -69,10 +69,10 @@ public class BagController extends IngestController {
         this.settings = settings;
     }
 
-    // TODO: Param Map
     /**
      * Retrieve information about all bags
      *
+     * TODO: Param Map
      *
      * @param model - the view model
      * @param principal - authentication information
@@ -139,7 +139,7 @@ public class BagController extends IngestController {
         // common pages
         // TODO: Handle pages for replications I guess
         model.addAttribute("bag", bagService.find(bsc));
-        model.addAttribute("replications", replicationService.getReplications(rsc,
+        model.addAttribute("replications", replicationService.findAll(rsc,
                 new PageRequest(DEFAULT_PAGE, DEFAULT_PAGE_SIZE)));
         model.addAttribute("statuses", Arrays.asList(BagStatus.values()));
         model.addAttribute("tokens", tokenRepository.countByBagId(id));
@@ -278,7 +278,7 @@ public class BagController extends IngestController {
 
         Sort.Direction direction = (dir == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(dir);
         Sort s = new Sort(direction, orderBy);
-        replications = replicationService.getReplications(criteria, new PageRequest(page, DEFAULT_PAGE_SIZE, s));
+        replications = replicationService.findAll(criteria, new PageRequest(page, DEFAULT_PAGE_SIZE, s));
 
         StringBuilder url = new StringBuilder("/replications");
 
@@ -324,7 +324,7 @@ public class BagController extends IngestController {
         ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
                 .withId(id);
 
-        Replication replication = replicationService.getReplication(criteria);
+        Replication replication = replicationService.find(criteria);
         log.info("Found replication {}::{}", replication.getId(), replication.getNode().getUsername());
         model.addAttribute("replication", replication);
 
