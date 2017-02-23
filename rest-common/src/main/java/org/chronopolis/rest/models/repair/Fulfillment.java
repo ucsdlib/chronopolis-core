@@ -15,6 +15,7 @@ public class Fulfillment {
     private ZonedDateTime updatedAt;
     private String to;
     private String from;
+    private boolean cleaned;
     private FulfillmentType type;
     private FulfillmentStatus status;
     private FulfillmentStrategy credentials;
@@ -97,6 +98,15 @@ public class Fulfillment {
 
     public Fulfillment setCredentials(FulfillmentStrategy credentials) {
         this.credentials = credentials;
+        return this;
+    }
+
+    public boolean isCleaned() {
+        return cleaned;
+    }
+
+    public Fulfillment setCleaned(boolean cleaned) {
+        this.cleaned = cleaned;
         return this;
     }
 }

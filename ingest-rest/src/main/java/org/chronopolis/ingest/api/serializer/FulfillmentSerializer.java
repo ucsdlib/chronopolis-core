@@ -22,6 +22,7 @@ public class FulfillmentSerializer extends JsonSerializer<Fulfillment> {
         model.setRepair(fulfillment.getRepair().getId());
         model.setFrom(fulfillment.getFrom().getUsername());
         model.setTo(fulfillment.getRepair().getTo().getUsername());
+        model.setCleaned(fulfillment.getCleaned());
         if (fulfillment.getStrategy() != null) {
             model.setType(fulfillment.getType()); // push to FulfillmentStrategy?
             model.setCredentials(fulfillment.getStrategy().createModel());

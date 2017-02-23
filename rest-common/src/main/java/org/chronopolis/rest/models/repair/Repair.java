@@ -4,6 +4,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 /**
+ * REST model for our Repair
  *
  * Created by shake on 11/10/16.
  */
@@ -13,6 +14,9 @@ public class Repair {
     private Long fulfillment;
     private ZonedDateTime createdAt;
     private ZonedDateTime updatedAt;
+    private boolean cleaned;
+    private boolean backup;
+    private AuditStatus audit;
     private RepairStatus status;
     private String to;
     private String requester;
@@ -107,6 +111,33 @@ public class Repair {
 
     public Repair setTo(String to) {
         this.to = to;
+        return this;
+    }
+
+    public boolean isCleaned() {
+        return cleaned;
+    }
+
+    public Repair setCleaned(boolean cleaned) {
+        this.cleaned = cleaned;
+        return this;
+    }
+
+    public boolean isBackup() {
+        return backup;
+    }
+
+    public Repair setBackup(boolean backup) {
+        this.backup = backup;
+        return this;
+    }
+
+    public AuditStatus getAudit() {
+        return audit;
+    }
+
+    public Repair setAudit(AuditStatus audit) {
+        this.audit = audit;
         return this;
     }
 }

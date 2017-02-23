@@ -25,9 +25,12 @@ public class RepairSerializer extends JsonSerializer<Repair> {
         model.setDepositor(repair.getBag().getDepositor());
         model.setFiles(repair.getFiles().stream().map(RepairFile::getPath).collect(Collectors.toList()));
         model.setRequester(repair.getRequester());
+        model.setAudit(repair.getAudit());
         model.setStatus(repair.getStatus());
         model.setCreatedAt(repair.getCreatedAt());
         model.setUpdatedAt(repair.getUpdatedAt());
+        model.setCleaned(repair.getCleaned());
+        model.setBackup(repair.getBackup());
 
         Fulfillment fulfillment = repair.getFulfillment();
         if (fulfillment != null) {

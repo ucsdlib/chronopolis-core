@@ -1,5 +1,6 @@
 package org.chronopolis.rest.entities;
 
+import org.chronopolis.rest.models.repair.AuditStatus;
 import org.chronopolis.rest.models.repair.RepairStatus;
 
 import javax.persistence.CascadeType;
@@ -22,22 +23,27 @@ import java.util.Set;
 public class Repair extends UpdatableEntity {
 
     @Enumerated(value = EnumType.STRING)
-    RepairStatus status;
+    private RepairStatus status;
 
-    String requester;
+    @Enumerated(value = EnumType.STRING)
+    private AuditStatus audit;
+
+    private String requester;
+    private Boolean cleaned;
+    private Boolean backup;
 
     @ManyToOne
-    Bag bag;
+    private Bag bag;
 
     @ManyToOne
     @JoinColumn(name = "to_node")
-    Node to;
+    private Node to;
 
     @OneToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
-    Fulfillment fulfillment;
+    private Fulfillment fulfillment;
 
     @OneToMany(mappedBy = "repair", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    Set<RepairFile> files;
+    private Set<RepairFile> files;
 
 
     public Repair() {
@@ -104,6 +110,33 @@ public class Repair extends UpdatableEntity {
 
     public Repair setTo(Node to) {
         this.to = to;
+        return this;
+    }
+
+    public AuditStatus getAudit() {
+        return audit;
+    }
+
+    public Repair setAudit(AuditStatus audit) {
+        this.audit = audit;
+        return this;
+    }
+
+    public Boolean getCleaned() {
+        return cleaned;
+    }
+
+    public Repair setCleaned(Boolean cleaned) {
+        this.cleaned = cleaned;
+        return this;
+    }
+
+    public Boolean getBackup() {
+        return backup;
+    }
+
+    public Repair setBackup(Boolean backup) {
+        this.backup = backup;
         return this;
     }
 }

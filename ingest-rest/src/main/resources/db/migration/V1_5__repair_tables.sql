@@ -6,11 +6,14 @@ CREATE TABLE repair (
     id bigint PRIMARY KEY DEFAULT nextval('repair_id_seq'),
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
-    status varchar(255),
+    audit VARCHAR(255),
+    status VARCHAR(255),
     requester VARCHAR(255),
     to_node BIGINT NOT NULL,
     bag_id BIGINT NOT NULL,
-    fulfillment_id BIGINT
+    fulfillment_id BIGINT,
+    cleaned BOOLEAN DEFAULT FALSE,
+    backup BOOLEAN DEFAULT FALSE
 );
 
 DROP TABLE IF EXISTS repair_file;
@@ -33,7 +36,8 @@ CREATE TABLE fulfillment (
     status VARCHAR(255),
     type VARCHAR(255),
     strategy_id BIGINT,
-    repair_id BIGINT NOT NULL
+    repair_id BIGINT NOT NULL,
+    cleaned BOOLEAN DEFAULT FALSE
 );
 
 DROP TABLE IF EXISTS strategy;

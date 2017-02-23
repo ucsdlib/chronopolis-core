@@ -22,20 +22,22 @@ public class Fulfillment extends UpdatableEntity {
 
     // Not actually sure about the cascade type here, but testing should flesh it out
     @OneToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
-    Repair repair;
+    private Repair repair;
 
     @ManyToOne
     @JoinColumn(name = "from_node")
-    Node from;
+    private Node from;
 
     @Enumerated(value = EnumType.STRING)
-    FulfillmentStatus status;
+    private FulfillmentStatus status;
 
     @Enumerated(value = EnumType.STRING)
-    FulfillmentType type;
+    private FulfillmentType type;
 
     @OneToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
-    Strategy strategy;
+    private Strategy strategy;
+
+    private Boolean cleaned;
 
     public Fulfillment() {
     }
@@ -82,6 +84,15 @@ public class Fulfillment extends UpdatableEntity {
 
     public Fulfillment setStrategy(Strategy strategy) {
         this.strategy = strategy;
+        return this;
+    }
+
+    public Boolean getCleaned() {
+        return cleaned;
+    }
+
+    public Fulfillment setCleaned(Boolean cleaned) {
+        this.cleaned = cleaned;
         return this;
     }
 }
