@@ -82,19 +82,8 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
         }
 
         // create a dist object if it's missing
-        BagDistribution bagDistribution = null;
-        Set<BagDistribution> distributions = bag.getDistributions();
-        for (BagDistribution distribution : distributions) {
-            if (distribution.getNode().equals(node)) {
-                bagDistribution = distribution;
-            }
-        }
-
-        if (bagDistribution == null) {
-            bag.addDistribution(node, DISTRIBUTE);
-            // not sure if this is the best place for this...
-            bagRepository.save(bag);
-        }
+        // todo: move this out of the replication create
+        createDist(bag, node);
 
         // vars to help create replication stuff
         final String user = settings.getReplicationUser();
@@ -115,7 +104,7 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
 
         Page<Replication> ongoing = findAll(criteria, new PageRequest(0, 10));
         Replication action = new Replication(node, bag, bagLink, tokenLink);
-        action.setProtocol("rsync"); // TODO: Magic val...
+        action.setProtocol("rsync"); // TODO: Magic val... once we update our storage model this can be updated
 
         // iterate through our ongoing replications and search for a non terminal replication
         // TODO: Partial index this instead:
@@ -123,9 +112,7 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
         if (ongoing.getTotalElements() != 0) {
             for (Replication replication : ongoing.getContent()) {
                 ReplicationStatus status = replication.getStatus();
-                if (status == ReplicationStatus.PENDING
-                        || status == ReplicationStatus.STARTED
-                        || status == ReplicationStatus.TRANSFERRED) {
+                if (status.isOngoing()) {
                     log.info("Found ongoing replication for {} to {}, ignoring create request",
                             bag.getName(), node.getUsername());
                     action = replication;
@@ -138,6 +125,29 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
 
         save(action);
         return action;
+    }
+
+    /**
+     * Get or create the BagDistribution for a node
+     *
+     * @param bag the bag being distributed
+     * @param node the node being distributed to
+     */
+    private void createDist(Bag bag, Node node) {
+        BagDistribution bagDistribution = null;
+        // todo: see if there's a way to query this instead of iterate
+        Set<BagDistribution> distributions = bag.getDistributions();
+        for (BagDistribution distribution : distributions) {
+            if (distribution.getNode().equals(node)) {
+                bagDistribution = distribution;
+            }
+        }
+
+        if (bagDistribution == null) {
+            bag.addDistribution(node, DISTRIBUTE);
+            // not sure if this is the best place for this...
+            bagRepository.save(bag);
+        }
     }
 
     // Maybe could be a class of its own where we pass everything in and get back the link
