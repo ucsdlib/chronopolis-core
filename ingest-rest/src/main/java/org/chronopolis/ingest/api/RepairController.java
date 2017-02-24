@@ -18,6 +18,7 @@ import org.chronopolis.rest.entities.Fulfillment;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Repair;
 import org.chronopolis.rest.entities.fulfillment.Strategy;
+import org.chronopolis.rest.models.repair.AuditStatus;
 import org.chronopolis.rest.models.repair.FulfillmentStatus;
 import org.chronopolis.rest.models.repair.FulfillmentStrategy;
 import org.chronopolis.rest.models.repair.RepairRequest;
@@ -289,6 +290,92 @@ public class RepairController {
         rService.save(repair);
         return fulfillment;
     }
+
+    /**
+     * This is a placeholder atm, might need to update the request body
+     *
+     * @param principal the principal of the authenticated user
+     * @param id the id of the repair
+     * @param status the status to update to
+     * @return the updated repair
+     */
+    @RequestMapping(path = "/requests/{id}/audit", method = RequestMethod.POST)
+    public Repair repairAuditing(Principal principal, @PathVariable("id") Long id, @RequestBody AuditStatus status) {
+        RepairSearchCriteria criteria = new RepairSearchCriteria().withId(id);
+        Repair repair = rService.find(criteria);
+
+        if (!hasRoleAdmin() && !principal.getName().equals(repair.getTo().getUsername())) {
+            throw new UnauthorizedException(principal.getName() + " is not the requesting node");
+        }
+
+        repair.setAudit(status);
+        rService.save(repair);
+        return repair;
+    }
+
+    /**
+     * Note that a repair backup has been cleaned
+     *
+     * @param principal the principal of the authenticated user
+     * @param id the id of the repair
+     * @return the updated repair
+     */
+    @RequestMapping(path = "/requests/{id}/cleaned", method = RequestMethod.POST)
+    public Repair repairCleaned(Principal principal, @PathVariable("id") Long id) {
+        RepairSearchCriteria criteria = new RepairSearchCriteria().withId(id);
+        Repair repair = rService.find(criteria);
+
+        if (!hasRoleAdmin() && !principal.getName().equals(repair.getTo().getUsername())) {
+            throw new UnauthorizedException(principal.getName() + " is not the requesting node");
+        }
+
+        repair.setCleaned(true);
+        rService.save(repair);
+        return repair;
+    }
+
+    /**
+     * Note that a repair has been backed up
+     *
+     * @param principal the principal of the authenticated user
+     * @param id the id of the repair
+     * @return the updated repair
+     */
+    @RequestMapping(path = "/requests/{id}/backedup", method = RequestMethod.POST)
+    public Repair repairBackedUp(Principal principal, @PathVariable("id") Long id) {
+        RepairSearchCriteria criteria = new RepairSearchCriteria().withId(id);
+        Repair repair = rService.find(criteria);
+
+        if (!hasRoleAdmin() && !principal.getName().equals(repair.getTo().getUsername())) {
+            throw new UnauthorizedException(principal.getName() + " is not the requesting node");
+        }
+
+        repair.setBackup(true);
+        rService.save(repair);
+        return repair;
+    }
+
+    /**
+     * Note that a fulfillment has been cleaned from its staging area
+     *
+     * @param principal the principal of the authenticated user
+     * @param id the id of the fulfillment
+     * @return the updated fulfillment
+     */
+    @RequestMapping(path = "/fulfillments/{id}/cleaned", method = RequestMethod.POST)
+    public Fulfillment fulfillmentCleaned(Principal principal, @PathVariable("id") Long id) {
+        FulfillmentSearchCriteria criteria = new FulfillmentSearchCriteria().withId(id);
+        Fulfillment fulfillment = fService.find(criteria);
+
+        if (!hasRoleAdmin() && !principal.getName().equals(fulfillment.getFrom().getUsername())) {
+            throw new UnauthorizedException(principal.getName() + " is not the fulfilling node");
+        }
+
+        fulfillment.setCleaned(true);
+        fService.save(fulfillment);
+        return fulfillment;
+    }
+
 
     /**
      * Check a variable t to ensure it is not null, and if so throw a
