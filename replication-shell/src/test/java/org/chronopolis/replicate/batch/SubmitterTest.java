@@ -125,7 +125,7 @@ public class SubmitterTest {
         verify(ace, times(0)).getCollectionByName(bag.getName(), bag.getDepositor());
         verify(ace, times(0)).addCollection(any(GsonCollection.class));
         verify(ace, times(0)).loadTokenStore(eq(1L), any(RequestBody.class));
-        verify(ace, times(0)).startAudit(eq(1L));
+        verify(ace, times(0)).startAudit(eq(1L), eq(false));
     }
 
     @Test
@@ -161,7 +161,7 @@ public class SubmitterTest {
         verify(ace, times(0)).getCollectionByName(bag.getName(), bag.getDepositor());
         verify(ace, times(0)).addCollection(any(GsonCollection.class));
         verify(ace, times(0)).loadTokenStore(eq(1L), any(RequestBody.class));
-        verify(ace, times(0)).startAudit(eq(1L));
+        verify(ace, times(0)).startAudit(eq(1L), eq(false));
     }
 
     @Test
@@ -200,7 +200,7 @@ public class SubmitterTest {
                 .thenReturn(new CallWrapper<>(updated));
 
         // audit + update
-        when(ace.startAudit(eq(1L))).thenReturn(new CallWrapper<>(null));
+        when(ace.startAudit(eq(1L), eq(false))).thenReturn(new CallWrapper<>(null));
         when(ingest.updateReplicationStatus(eq(r.getId()), eq(new RStatusUpdate(ReplicationStatus.ACE_AUDITING))))
                 .thenReturn(new CallWrapper<>(updated));
 
@@ -214,7 +214,7 @@ public class SubmitterTest {
         verify(ace, times(1)).getCollectionByName(bag.getName(), bag.getDepositor());
         verify(ace, times(1)).addCollection(any(GsonCollection.class));
         verify(ace, times(1)).loadTokenStore(eq(1L), any(RequestBody.class));
-        verify(ace, times(1)).startAudit(eq(1L));
+        verify(ace, times(1)).startAudit(eq(1L), eq(false));
     }
 
     // @Test

@@ -40,7 +40,7 @@ public class AceAuditTasklet implements Runnable {
     @Override
     public void run() {
         String name = replication.getBag().getName();
-        Call<Void> auditCall = aceService.startAudit(id);
+        Call<Void> auditCall = aceService.startAudit(id, false);
 
         auditCall.enqueue(new Callback<Void>() {
             @Override
