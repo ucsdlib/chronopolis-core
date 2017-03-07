@@ -43,6 +43,9 @@ import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
 /**
  * RestController for our repair/fulfillment api
  *
+ * todo: might be able to have a method which queries for a fulfillment/repair
+ *       and throws exceptions as needed (NotFound // Unauthorized)
+ *
  * Created by shake on 1/24/17.
  */
 @RestController
@@ -303,6 +306,7 @@ public class RepairController {
     public Repair repairAuditing(Principal principal, @PathVariable("id") Long id, @RequestBody AuditStatus status) {
         RepairSearchCriteria criteria = new RepairSearchCriteria().withId(id);
         Repair repair = rService.find(criteria);
+        check(repair, "Repair does not exist!");
 
         if (!hasRoleAdmin() && !principal.getName().equals(repair.getTo().getUsername())) {
             throw new UnauthorizedException(principal.getName() + " is not the requesting node");
@@ -324,6 +328,7 @@ public class RepairController {
     public Repair repairCleaned(Principal principal, @PathVariable("id") Long id) {
         RepairSearchCriteria criteria = new RepairSearchCriteria().withId(id);
         Repair repair = rService.find(criteria);
+        check(repair, "Repair does not exist");
 
         if (!hasRoleAdmin() && !principal.getName().equals(repair.getTo().getUsername())) {
             throw new UnauthorizedException(principal.getName() + " is not the requesting node");
@@ -345,6 +350,7 @@ public class RepairController {
     public Repair repairBackedUp(Principal principal, @PathVariable("id") Long id) {
         RepairSearchCriteria criteria = new RepairSearchCriteria().withId(id);
         Repair repair = rService.find(criteria);
+        check(repair, "Repair does not exist");
 
         if (!hasRoleAdmin() && !principal.getName().equals(repair.getTo().getUsername())) {
             throw new UnauthorizedException(principal.getName() + " is not the requesting node");
@@ -366,6 +372,7 @@ public class RepairController {
     public Fulfillment fulfillmentCleaned(Principal principal, @PathVariable("id") Long id) {
         FulfillmentSearchCriteria criteria = new FulfillmentSearchCriteria().withId(id);
         Fulfillment fulfillment = fService.find(criteria);
+        check(fulfillment, "Fulfillment does not exist");
 
         if (!hasRoleAdmin() && !principal.getName().equals(fulfillment.getFrom().getUsername())) {
             throw new UnauthorizedException(principal.getName() + " is not the fulfilling node");
@@ -375,6 +382,35 @@ public class RepairController {
         fService.save(fulfillment);
         return fulfillment;
     }
+
+    /**
+     * Note that a fulfillment has been cleaned from its staging area
+     *
+     * @param principal the principal of the authenticated user
+     * @param id the id of the fulfillment
+     * @return the updated fulfillment
+     */
+    @RequestMapping(path = "/fulfillments/{id}/cleaned", method = RequestMethod.POST)
+    public Fulfillment fulfillmentUpdated(Principal principal, @PathVariable("id") Long id, @RequestBody FulfillmentStatus status) {
+        FulfillmentSearchCriteria criteria = new FulfillmentSearchCriteria().withId(id);
+        Fulfillment fulfillment = fService.find(criteria);
+        check(fulfillment, "Fulfillment does not exist");
+
+        if (!hasRoleAdmin()) {
+            Node from = fulfillment.getFrom();
+            Node to = fulfillment.getRepair().getTo();
+            if (status == FulfillmentStatus.TRANSFERRED && !principal.getName().equals(to.getUsername())) {
+                throw new UnauthorizedException(principal.getName() + " is not the repairing node");
+            } else if (!principal.getName().equals(from .getUsername())) {
+                throw new UnauthorizedException(principal.getName() + " is not the fulfilling node");
+            }
+        }
+
+        fulfillment.setStatus(status);
+        fService.save(fulfillment);
+        return fulfillment;
+    }
+
 
 
     /**
