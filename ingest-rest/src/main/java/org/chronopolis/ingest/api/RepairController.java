@@ -390,7 +390,7 @@ public class RepairController {
      * @param id the id of the fulfillment
      * @return the updated fulfillment
      */
-    @RequestMapping(path = "/fulfillments/{id}/cleaned", method = RequestMethod.POST)
+    @RequestMapping(path = "/fulfillments/{id}/status", method = RequestMethod.POST)
     public Fulfillment fulfillmentUpdated(Principal principal, @PathVariable("id") Long id, @RequestBody FulfillmentStatus status) {
         FulfillmentSearchCriteria criteria = new FulfillmentSearchCriteria().withId(id);
         Fulfillment fulfillment = fService.find(criteria);
