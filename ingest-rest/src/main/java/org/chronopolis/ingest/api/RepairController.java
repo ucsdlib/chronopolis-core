@@ -401,7 +401,7 @@ public class RepairController {
             Node to = fulfillment.getRepair().getTo();
             if (status == FulfillmentStatus.TRANSFERRED && !principal.getName().equals(to.getUsername())) {
                 throw new UnauthorizedException(principal.getName() + " is not the repairing node");
-            } else if (!principal.getName().equals(from .getUsername())) {
+            } else if (status != FulfillmentStatus.TRANSFERRED && !principal.getName().equals(from.getUsername())) {
                 throw new UnauthorizedException(principal.getName() + " is not the fulfilling node");
             }
         }
