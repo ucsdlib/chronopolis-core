@@ -306,7 +306,7 @@ public class RepairController {
     public Repair repairAuditing(Principal principal, @PathVariable("id") Long id, @RequestBody AuditStatus status) {
         RepairSearchCriteria criteria = new RepairSearchCriteria().withId(id);
         Repair repair = rService.find(criteria);
-        check(repair, "Repair does not exist!");
+        checkNotFound(repair, "Repair does not exist!");
 
         if (!hasRoleAdmin() && !principal.getName().equals(repair.getTo().getUsername())) {
             throw new UnauthorizedException(principal.getName() + " is not the requesting node");
@@ -328,7 +328,7 @@ public class RepairController {
     public Repair repairCleaned(Principal principal, @PathVariable("id") Long id) {
         RepairSearchCriteria criteria = new RepairSearchCriteria().withId(id);
         Repair repair = rService.find(criteria);
-        check(repair, "Repair does not exist");
+        checkNotFound(repair, "Repair does not exist");
 
         if (!hasRoleAdmin() && !principal.getName().equals(repair.getTo().getUsername())) {
             throw new UnauthorizedException(principal.getName() + " is not the requesting node");
@@ -350,7 +350,7 @@ public class RepairController {
     public Repair repairBackedUp(Principal principal, @PathVariable("id") Long id) {
         RepairSearchCriteria criteria = new RepairSearchCriteria().withId(id);
         Repair repair = rService.find(criteria);
-        check(repair, "Repair does not exist");
+        checkNotFound(repair, "Repair does not exist");
 
         if (!hasRoleAdmin() && !principal.getName().equals(repair.getTo().getUsername())) {
             throw new UnauthorizedException(principal.getName() + " is not the requesting node");
@@ -372,7 +372,7 @@ public class RepairController {
     public Fulfillment fulfillmentCleaned(Principal principal, @PathVariable("id") Long id) {
         FulfillmentSearchCriteria criteria = new FulfillmentSearchCriteria().withId(id);
         Fulfillment fulfillment = fService.find(criteria);
-        check(fulfillment, "Fulfillment does not exist");
+        checkNotFound(fulfillment, "Fulfillment does not exist");
 
         if (!hasRoleAdmin() && !principal.getName().equals(fulfillment.getFrom().getUsername())) {
             throw new UnauthorizedException(principal.getName() + " is not the fulfilling node");
@@ -394,7 +394,7 @@ public class RepairController {
     public Fulfillment fulfillmentUpdated(Principal principal, @PathVariable("id") Long id, @RequestBody FulfillmentStatus status) {
         FulfillmentSearchCriteria criteria = new FulfillmentSearchCriteria().withId(id);
         Fulfillment fulfillment = fService.find(criteria);
-        check(fulfillment, "Fulfillment does not exist");
+        checkNotFound(fulfillment, "Fulfillment does not exist");
 
         if (!hasRoleAdmin()) {
             Node from = fulfillment.getFrom();
@@ -417,13 +417,28 @@ public class RepairController {
      * Check a variable t to ensure it is not null, and if so throw a
      * BadRequestException
      *
-     * @param t the t to listen
+     * @param t the t to check
      * @param message the message to include with the message
      * @param <T> the type
      */
     private <T> void check(T t, String message) {
         if (t == null) {
             throw new BadRequestException(message);
+        }
+    }
+
+
+    /**
+     * Check a variable t to ensure it is not null, and if so throw a
+     * NotFoundException
+     *
+     * @param t the t to check
+     * @param message the message to include
+     * @param <T> the type
+     */
+    private <T> void checkNotFound(T t, String message) {
+        if (t == null) {
+            throw new NotFoundException(message);
         }
     }
 
