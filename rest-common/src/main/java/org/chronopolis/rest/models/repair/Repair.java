@@ -15,7 +15,7 @@ public class Repair {
     private ZonedDateTime createdAt;
     private ZonedDateTime updatedAt;
     private boolean cleaned;
-    private boolean backup;
+    private boolean replaced;
     private AuditStatus audit;
     private RepairStatus status;
     private String to;
@@ -123,12 +123,12 @@ public class Repair {
         return this;
     }
 
-    public boolean isBackup() {
-        return backup;
+    public boolean isReplaced() {
+        return replaced;
     }
 
-    public Repair setBackup(boolean backup) {
-        this.backup = backup;
+    public Repair setReplaced(boolean replaced) {
+        this.replaced = replaced;
         return this;
     }
 

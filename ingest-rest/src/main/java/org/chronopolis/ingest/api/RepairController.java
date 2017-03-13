@@ -346,8 +346,8 @@ public class RepairController {
      * @param id the id of the repair
      * @return the updated repair
      */
-    @RequestMapping(path = "/requests/{id}/backedup", method = RequestMethod.POST)
-    public Repair repairBackedUp(Principal principal, @PathVariable("id") Long id) {
+    @RequestMapping(path = "/requests/{id}/replaced", method = RequestMethod.POST)
+    public Repair repairReplaced(Principal principal, @PathVariable("id") Long id) {
         RepairSearchCriteria criteria = new RepairSearchCriteria().withId(id);
         Repair repair = rService.find(criteria);
         checkNotFound(repair, "Repair does not exist");
@@ -356,7 +356,7 @@ public class RepairController {
             throw new UnauthorizedException(principal.getName() + " is not the requesting node");
         }
 
-        repair.setBackup(true);
+        repair.setReplaced(true);
         rService.save(repair);
         return repair;
     }

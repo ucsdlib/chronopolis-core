@@ -30,7 +30,7 @@ public class Repair extends UpdatableEntity {
 
     private String requester;
     private Boolean cleaned;
-    private Boolean backup;
+    private Boolean replaced;
 
     @ManyToOne
     private Bag bag;
@@ -131,12 +131,12 @@ public class Repair extends UpdatableEntity {
         return this;
     }
 
-    public Boolean getBackup() {
-        return backup;
+    public Boolean getReplaced() {
+        return replaced;
     }
 
-    public Repair setBackup(Boolean backup) {
-        this.backup = backup;
+    public Repair setReplaced(Boolean replaced) {
+        this.replaced = replaced;
         return this;
     }
 }

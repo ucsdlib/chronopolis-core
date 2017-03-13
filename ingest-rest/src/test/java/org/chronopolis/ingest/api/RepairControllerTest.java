@@ -261,21 +261,21 @@ public class RepairControllerTest extends IngestTest {
 
     @Test
     @WithMockUser(UCSD)
-    public void repairBackedUp() {
-        Repair repair = controller.repairBackedUp(ucsdPrincipal, 1L);
-        Assert.assertEquals(true, repair.getBackup());
+    public void repairReplaced() {
+        Repair repair = controller.repairReplaced(ucsdPrincipal, 1L);
+        Assert.assertEquals(true, repair.getReplaced());
     }
 
     @Test(expected = NotFoundException.class)
     @WithMockUser(UCSD)
-    public void repairBackUpNotFound() {
-        controller.repairBackedUp(ucsdPrincipal, 13L);
+    public void repairReplacedNotFound() {
+        controller.repairReplaced(ucsdPrincipal, 13L);
     }
 
     @Test(expected = UnauthorizedException.class)
     @WithMockUser(UMIACS)
-    public void repairBackUpUnauthorized() {
-        controller.repairBackedUp(umiacsPrincipal, 1L);
+    public void repairReplacedUnauthorized() {
+        controller.repairReplaced(umiacsPrincipal, 1L);
     }
 
     @Test

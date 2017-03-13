@@ -2,7 +2,7 @@
 INSERT INTO bag VALUES(1, CURRENT_DATE, CURRENT_DATE, 'bag-0', 'admin', 'test-depositor', 'bags/test-bag-0', 'tokens/test-bag-0', 'token-fixity', 'tag-fixity', 'STAGED', 'SHA-256', 1500, 5, 3);
 
 -- create repair requests
---                        id created_at    updated_at  audit  status requester  to_node bag_id fulfillment_id cleaned backup
+--                        id created_at    updated_at  audit  status requester  to_node bag_id fulfillment_id cleaned replaced
 INSERT INTO repair VALUES(1, CURRENT_DATE, CURRENT_DATE, 'PRE', 'FULFILLING', 'ucsd', 4, 1, NULL, FALSE, FALSE);
 INSERT INTO repair VALUES(2, CURRENT_DATE, CURRENT_DATE, 'PRE','REQUESTED', 'ncar', 2, 1, NULL, FALSE, FALSE);
 INSERT INTO repair VALUES(3, CURRENT_DATE, CURRENT_DATE, 'PRE', 'REQUESTED', 'umiacs', 1, 1, NULL, FALSE, FALSE);

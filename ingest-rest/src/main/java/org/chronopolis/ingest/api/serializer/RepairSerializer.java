@@ -30,7 +30,7 @@ public class RepairSerializer extends JsonSerializer<Repair> {
         model.setCreatedAt(repair.getCreatedAt());
         model.setUpdatedAt(repair.getUpdatedAt());
         model.setCleaned(repair.getCleaned());
-        model.setBackup(repair.getBackup());
+        model.setReplaced(repair.getReplaced());
 
         Fulfillment fulfillment = repair.getFulfillment();
         if (fulfillment != null) {

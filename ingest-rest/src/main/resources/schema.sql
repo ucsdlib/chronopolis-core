@@ -123,7 +123,7 @@ CREATE TABLE repair (
     bag_id BIGINT,
     fulfillment_id BIGINT,
     cleaned BOOLEAN DEFAULT FALSE,
-    backup BOOLEAN DEFAULT FALSE,
+    replaced BOOLEAN DEFAULT FALSE,
     PRIMARY KEY (id)
 );
 
