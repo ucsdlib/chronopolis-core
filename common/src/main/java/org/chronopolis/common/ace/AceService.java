@@ -42,6 +42,9 @@ public interface AceService {
     @POST("rest/tokenstore/{id}")
     Call<Void> loadTokenStore(@Path("id") long id, @Part("file") RequestBody tokenStore);
 
+    @POST("rest/compare/{id}")
+    Call<CompareResponse> compareToCollection(@Path("id") long id, @Body CompareRequest request);
+
     /*
     @Multipart
     @POST("/rest/tokenstore/{id}")
