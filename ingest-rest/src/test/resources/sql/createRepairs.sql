@@ -12,9 +12,9 @@ INSERT INTO repair VALUES(3, CURRENT_DATE, CURRENT_DATE, 'PRE', 'REQUESTED', 'um
 INSERT INTO strategy VALUES(1, 'mock-api-key', 'http://some-ace-url/ace-am', NULL, 'ACE');
 
 -- create a fulfillment request
---                             id, current,     updated,      from, status, type, strat_id, repair_id cleaned
-INSERT INTO fulfillment VALUES(1, CURRENT_DATE, CURRENT_DATE, 1, 'STAGING', NULL, NULL, 1, FALSE);
-INSERT INTO fulfillment VALUES(2, CURRENT_DATE, CURRENT_DATE, 2, 'READY', 'ACE', 1, 3, FALSE);
+--                             id, current,     updated,      from, status, type, strat_id, repair_id cleaned validated
+INSERT INTO fulfillment VALUES(1, CURRENT_DATE, CURRENT_DATE, 1, 'STAGING', NULL, NULL, 1, FALSE, FALSE);
+INSERT INTO fulfillment VALUES(2, CURRENT_DATE, CURRENT_DATE, 2, 'READY', 'ACE', 1, 3, FALSE, FALSE);
 
 -- finish our relations
 UPDATE repair SET fulfillment_id = 1 WHERE id = 1;
