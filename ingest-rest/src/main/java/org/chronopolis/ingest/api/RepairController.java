@@ -302,7 +302,7 @@ public class RepairController {
      * @param status the status to update to
      * @return the updated repair
      */
-    @RequestMapping(path = "/requests/{id}/audit", method = RequestMethod.POST)
+    @RequestMapping(path = "/requests/{id}/audit", method = RequestMethod.PUT)
     public Repair repairAuditing(Principal principal, @PathVariable("id") Long id, @RequestBody AuditStatus status) {
         RepairSearchCriteria criteria = new RepairSearchCriteria().withId(id);
         Repair repair = rService.find(criteria);
@@ -324,7 +324,7 @@ public class RepairController {
      * @param id the id of the repair
      * @return the updated repair
      */
-    @RequestMapping(path = "/requests/{id}/cleaned", method = RequestMethod.POST)
+    @RequestMapping(path = "/requests/{id}/cleaned", method = RequestMethod.PUT)
     public Repair repairCleaned(Principal principal, @PathVariable("id") Long id) {
         RepairSearchCriteria criteria = new RepairSearchCriteria().withId(id);
         Repair repair = rService.find(criteria);
@@ -346,7 +346,7 @@ public class RepairController {
      * @param id the id of the repair
      * @return the updated repair
      */
-    @RequestMapping(path = "/requests/{id}/replaced", method = RequestMethod.POST)
+    @RequestMapping(path = "/requests/{id}/replaced", method = RequestMethod.PUT)
     public Repair repairReplaced(Principal principal, @PathVariable("id") Long id) {
         RepairSearchCriteria criteria = new RepairSearchCriteria().withId(id);
         Repair repair = rService.find(criteria);
@@ -368,7 +368,7 @@ public class RepairController {
      * @param id the id of the fulfillment
      * @return the updated fulfillment
      */
-    @RequestMapping(path = "/fulfillments/{id}/cleaned", method = RequestMethod.POST)
+    @RequestMapping(path = "/fulfillments/{id}/cleaned", method = RequestMethod.PUT)
     public Fulfillment fulfillmentCleaned(Principal principal, @PathVariable("id") Long id) {
         FulfillmentSearchCriteria criteria = new FulfillmentSearchCriteria().withId(id);
         Fulfillment fulfillment = fService.find(criteria);
@@ -390,7 +390,7 @@ public class RepairController {
      * @param id the id of the fulfillment
      * @return the updated fulfillment
      */
-    @RequestMapping(path = "/fulfillments/{id}/status", method = RequestMethod.POST)
+    @RequestMapping(path = "/fulfillments/{id}/status", method = RequestMethod.PUT)
     public Fulfillment fulfillmentUpdated(Principal principal, @PathVariable("id") Long id, @RequestBody FulfillmentStatus status) {
         FulfillmentSearchCriteria criteria = new FulfillmentSearchCriteria().withId(id);
         Fulfillment fulfillment = fService.find(criteria);
@@ -411,6 +411,28 @@ public class RepairController {
         return fulfillment;
     }
 
+    /**
+     * Mark a fulfillment as validated according to the repairing node
+     *
+     * @param principal the security principal of the node validating
+     * @param id the id of the fulfillment
+     * @return the updated fulfillment
+     */
+    @RequestMapping(path = "/fulfillments/{id}/validated", method = RequestMethod.PUT)
+    public Fulfillment fulfillmentValidated(Principal principal, @PathVariable("id") Long id) {
+        FulfillmentSearchCriteria criteria = new FulfillmentSearchCriteria().withId(id);
+        Fulfillment fulfillment = fService.find(criteria);
+        checkNotFound(fulfillment, "Fulfillment does not exist");
+        Node to = fulfillment.getRepair().getTo();
+
+        if (!hasRoleAdmin() && !principal.getName().equals(to.getUsername())) {
+            throw new UnauthorizedException(principal.getName() + " is not the repairing node");
+        }
+
+        fulfillment.setValidated(true);
+        fService.save(fulfillment);
+        return fulfillment;
+    }
 
 
     /**
