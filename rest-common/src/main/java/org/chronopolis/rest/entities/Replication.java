@@ -4,6 +4,7 @@ package org.chronopolis.rest.entities;
 import org.chronopolis.rest.listener.ReplicationUpdateListener;
 import org.chronopolis.rest.models.ReplicationStatus;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.EnumType;
@@ -26,7 +27,7 @@ public class Replication extends UpdatableEntity {
     @Enumerated(EnumType.STRING)
     private ReplicationStatus status;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.MERGE)
     private Bag bag;
 
     private String bagLink;
