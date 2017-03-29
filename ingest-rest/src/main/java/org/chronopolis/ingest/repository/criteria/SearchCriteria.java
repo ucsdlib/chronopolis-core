@@ -1,4 +1,4 @@
-package org.chronopolis.ingest.repository;
+package org.chronopolis.ingest.repository.criteria;
 
 import com.mysema.query.types.expr.BooleanExpression;
 

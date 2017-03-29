@@ -38,6 +38,7 @@ public class Fulfillment extends UpdatableEntity {
     private Strategy strategy;
 
     private Boolean cleaned;
+    private Boolean validated;
 
     public Fulfillment() {
     }
@@ -93,6 +94,15 @@ public class Fulfillment extends UpdatableEntity {
 
     public Fulfillment setCleaned(Boolean cleaned) {
         this.cleaned = cleaned;
+        return this;
+    }
+
+    public Boolean getValidated() {
+        return validated;
+    }
+
+    public Fulfillment setValidated(Boolean validated) {
+        this.validated = validated;
         return this;
     }
 }

@@ -1,4 +1,4 @@
-package org.chronopolis.ingest.repository;
+package org.chronopolis.ingest.repository.dao;
 
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;

@@ -1,4 +1,4 @@
-package org.chronopolis.ingest.repository;
+package org.chronopolis.ingest.repository.criteria;
 
 import com.mysema.query.types.expr.BooleanExpression;
 import org.chronopolis.ingest.api.Params;
@@ -16,7 +16,7 @@ import java.util.Map;
  *
  * Created by shake on 5/21/15.
  */
-public class ReplicationSearchCriteria {
+public class ReplicationSearchCriteria implements SearchCriteria {
     private QReplication replication;
 
     private Map<Object, BooleanExpression> criteria;

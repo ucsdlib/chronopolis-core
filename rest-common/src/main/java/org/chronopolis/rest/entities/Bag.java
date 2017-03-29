@@ -58,6 +58,7 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
 
     private int requiredReplications;
 
+    // Might want to lazy fetch this if possible
     @OneToMany(mappedBy = "bag", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<BagDistribution> distributions = new HashSet<>();
 

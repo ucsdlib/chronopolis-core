@@ -4,12 +4,13 @@ import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.PageWrapper;
 import org.chronopolis.ingest.models.BagUpdate;
-import org.chronopolis.ingest.repository.BagSearchCriteria;
-import org.chronopolis.ingest.repository.BagService;
+import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.ReplicationSearchCriteria;
-import org.chronopolis.ingest.repository.ReplicationService;
 import org.chronopolis.ingest.repository.TokenRepository;
+import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
+import org.chronopolis.ingest.repository.criteria.ReplicationSearchCriteria;
+import org.chronopolis.ingest.repository.dao.ReplicationService;
+import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Replication;
@@ -48,14 +49,15 @@ public class BagController extends IngestController {
     private final Integer DEFAULT_PAGE_SIZE = 20;
     private final Integer DEFAULT_PAGE = 0;
 
-    final BagService bagService;
+    // final BagService bagService;
+    final SearchService<Bag, Long, BagRepository> bagService;
     final ReplicationService replicationService;
     final TokenRepository tokenRepository;
     final NodeRepository nodeRepository;
     final IngestSettings settings;
 
     @Autowired
-    public BagController(BagService bagService,
+    public BagController(SearchService<Bag, Long, BagRepository> bagService,
                          ReplicationService replicationService,
                          TokenRepository tokenRepository,
                          NodeRepository nodeRepository,
@@ -67,10 +69,10 @@ public class BagController extends IngestController {
         this.settings = settings;
     }
 
-    // TODO: Param Map
     /**
      * Retrieve information about all bags
      *
+     * TODO: Param Map
      *
      * @param model - the view model
      * @param principal - authentication information
@@ -93,7 +95,7 @@ public class BagController extends IngestController {
 
         Sort.Direction direction = (dir == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(dir);
         Sort s = new Sort(direction, orderBy);
-        Page<Bag> bags = bagService.findBags(criteria, new PageRequest(page, DEFAULT_PAGE_SIZE, s));
+        Page<Bag> bags = bagService.findAll(criteria, new PageRequest(page, DEFAULT_PAGE_SIZE, s));
 
         boolean start;
         StringBuilder url = new StringBuilder("/bags");
@@ -130,13 +132,14 @@ public class BagController extends IngestController {
     public String getBag(Model model, @PathVariable("id") Long id) {
         log.info("Getting bag {}", id);
 
+        BagSearchCriteria bsc = new BagSearchCriteria().withId(id);
         ReplicationSearchCriteria rsc = new ReplicationSearchCriteria().withBagId(id);
 
         // TODO: Could probably use model.addAllAttributes and use that for
         // common pages
         // TODO: Handle pages for replications I guess
-        model.addAttribute("bag", bagService.findBag(id));
-        model.addAttribute("replications", replicationService.getReplications(rsc,
+        model.addAttribute("bag", bagService.find(bsc));
+        model.addAttribute("replications", replicationService.findAll(rsc,
                 new PageRequest(DEFAULT_PAGE, DEFAULT_PAGE_SIZE)));
         model.addAttribute("statuses", Arrays.asList(BagStatus.values()));
         model.addAttribute("tokens", tokenRepository.countByBagId(id));
@@ -156,9 +159,10 @@ public class BagController extends IngestController {
     public String updateBag(Model model, @PathVariable("id") Long id, BagUpdate update) {
         log.info("Updating bag {}: status = {}", id, update.getStatus());
 
-        Bag bag = bagService.findBag(id);
+        BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
+        Bag bag = bagService.find(criteria);
         bag.setStatus(update.getStatus());
-        bagService.saveBag(bag);
+        bagService.save(bag);
 
         model.addAttribute("bags", bag);
         model.addAttribute("statuses", Arrays.asList(BagStatus.values()));
@@ -194,7 +198,7 @@ public class BagController extends IngestController {
         BagSearchCriteria criteria = new BagSearchCriteria()
                 .withDepositor(depositor)
                 .withName(name);
-        Bag bag = bagService.findBag(criteria);
+        Bag bag = bagService.find(criteria);
 
         request.setRequiredReplications(request.getReplicatingNodes().size());
 
@@ -212,7 +216,7 @@ public class BagController extends IngestController {
             createBagDistributions(bag, request.getReplicatingNodes());
         }
 
-        bagService.saveBag(bag);
+        bagService.save(bag);
 
         // TODO: Redirect to /bags/{id}?
         return "redirect:/bags";
@@ -274,7 +278,7 @@ public class BagController extends IngestController {
 
         Sort.Direction direction = (dir == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(dir);
         Sort s = new Sort(direction, orderBy);
-        replications = replicationService.getReplications(criteria, new PageRequest(page, DEFAULT_PAGE_SIZE, s));
+        replications = replicationService.findAll(criteria, new PageRequest(page, DEFAULT_PAGE_SIZE, s));
 
         StringBuilder url = new StringBuilder("/replications");
 
@@ -320,7 +324,7 @@ public class BagController extends IngestController {
         ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
                 .withId(id);
 
-        Replication replication = replicationService.getReplication(criteria);
+        Replication replication = replicationService.find(criteria);
         log.info("Found replication {}::{}", replication.getId(), replication.getNode().getUsername());
         model.addAttribute("replication", replication);
 
@@ -338,7 +342,7 @@ public class BagController extends IngestController {
      */
     @RequestMapping(value = "/replications/add", method = RequestMethod.GET)
     public String addReplications(Model model, Principal principal) {
-        model.addAttribute("bags", bagService.findBags(new BagSearchCriteria(), new PageRequest(0, 100)));
+        model.addAttribute("bags", bagService.findAll(new BagSearchCriteria(), new PageRequest(0, 100)));
         model.addAttribute("nodes", nodeRepository.findAll());
         return "addreplication";
     }

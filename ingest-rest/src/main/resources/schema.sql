@@ -146,6 +146,7 @@ CREATE TABLE fulfillment (
     strategy_id BIGINT,
     repair_id BIGINT,
     cleaned BOOLEAN DEFAULT FALSE,
+    validated BOOLEAN DEFAULT FALSE,
     PRIMARY KEY (id)
 );
 

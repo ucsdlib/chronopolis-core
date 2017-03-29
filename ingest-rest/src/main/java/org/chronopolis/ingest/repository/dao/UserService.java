@@ -1,6 +1,9 @@
-package org.chronopolis.ingest.repository;
+package org.chronopolis.ingest.repository.dao;
 
 import org.chronopolis.ingest.models.UserRequest;
+import org.chronopolis.ingest.repository.AuthoritiesRepository;
+import org.chronopolis.ingest.repository.Authority;
+import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.models.PasswordUpdate;
 import org.slf4j.Logger;

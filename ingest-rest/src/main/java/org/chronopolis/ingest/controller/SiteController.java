@@ -3,7 +3,7 @@ package org.chronopolis.ingest.controller;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.models.UserRequest;
 import org.chronopolis.ingest.repository.Authority;
-import org.chronopolis.ingest.repository.UserService;
+import org.chronopolis.ingest.repository.dao.UserService;
 import org.chronopolis.rest.models.PasswordUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

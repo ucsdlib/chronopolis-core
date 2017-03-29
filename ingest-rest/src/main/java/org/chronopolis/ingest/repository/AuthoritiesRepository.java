@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
  *
  * Created by shake on 3/24/16.
  */
-interface AuthoritiesRepository extends JpaRepository<Authority, String> {
+public interface AuthoritiesRepository extends JpaRepository<Authority, String> {
 }

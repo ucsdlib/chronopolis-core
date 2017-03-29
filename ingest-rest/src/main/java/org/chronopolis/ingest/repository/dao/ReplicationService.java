@@ -1,8 +1,11 @@
-package org.chronopolis.ingest.repository;
+package org.chronopolis.ingest.repository.dao;
 
-import com.mysema.query.types.expr.BooleanExpression;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.exception.NotFoundException;
+import org.chronopolis.ingest.repository.BagRepository;
+import org.chronopolis.ingest.repository.NodeRepository;
+import org.chronopolis.ingest.repository.ReplicationRepository;
+import org.chronopolis.ingest.repository.criteria.ReplicationSearchCriteria;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagDistribution;
 import org.chronopolis.rest.entities.Node;
@@ -14,16 +17,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 import java.util.Set;
 
-import static org.chronopolis.ingest.repository.PredicateUtil.setExpression;
 import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatus.DISTRIBUTE;
 
 /**
@@ -34,7 +34,7 @@ import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatu
  */
 @Component
 @Transactional
-public class ReplicationService {
+public class ReplicationService extends SearchService<Replication, Long, ReplicationRepository>{
     private final Logger log = LoggerFactory.getLogger(ReplicationService.class);
 
     private final ReplicationRepository replicationRepository;
@@ -45,50 +45,30 @@ public class ReplicationService {
     public ReplicationService(ReplicationRepository replicationRepository,
                               BagRepository bagRepository,
                               NodeRepository nodeRepository) {
+        super(replicationRepository);
         this.replicationRepository = replicationRepository;
         this.bagRepository = bagRepository;
         this.nodeRepository = nodeRepository;
     }
 
-    public Replication getReplication(ReplicationSearchCriteria criteria) {
-        BooleanExpression predicate = null;
-
-        Map<Object, BooleanExpression> criteriaMap = criteria.getCriteria();
-        for (Object o : criteriaMap.keySet()) {
-            predicate = setExpression(predicate, criteriaMap.get(o));
-        }
-
-        return replicationRepository.findOne(predicate);
-    }
-
-    public Page<Replication> getReplications(ReplicationSearchCriteria criteria, Pageable pageable) {
-        BooleanExpression predicate = null;
-
-        Map<Object, BooleanExpression> criteriaMap = criteria.getCriteria();
-        for (Object o : criteriaMap.keySet()) {
-            predicate = setExpression(predicate, criteriaMap.get(o));
-        }
-
-        if (predicate == null) {
-            log.trace("No predicate, returning all replications");
-            return replicationRepository.findAll(pageable);
-        }
-
-        log.trace("Returning replications which satisfy the predicate");
-        return replicationRepository.findAll(predicate, pageable);
-    }
-
+    /*
+     * Save a replication and the correlated bag
+     *
+     * @param replication the replication to save
+    @Override
     public void save(Replication replication) {
+        // todo: this should cascade, not sure if we really need it
         replicationRepository.save(replication);
         bagRepository.save(replication.getBag());
     }
+    */
 
     /**
      * Create a new replication for the Node (user) based on the Bag Id
      * If a replication already exists (and is not terminated), return it instead of creating a new one
      *
-     * @param request
-     * @param settings
+     * @param request The request to create a replication for
+     * @param settings The settings for basic information
      * @throws NotFoundException if the bag does not exist
      */
     public Replication create(ReplicationRequest request, IngestSettings settings) {
@@ -102,19 +82,8 @@ public class ReplicationService {
         }
 
         // create a dist object if it's missing
-        BagDistribution bagDistribution = null;
-        Set<BagDistribution> distributions = bag.getDistributions();
-        for (BagDistribution distribution : distributions) {
-            if (distribution.getNode().equals(node)) {
-                bagDistribution = distribution;
-            }
-        }
-
-        if (bagDistribution == null) {
-            bag.addDistribution(node, DISTRIBUTE);
-            // not sure if this is the best place for this...
-            bagRepository.save(bag);
-        }
+        // todo: move this out of the replication create
+        createDist(bag, node);
 
         // vars to help create replication stuff
         final String user = settings.getReplicationUser();
@@ -133,9 +102,9 @@ public class ReplicationService {
                 .withBagId(bag.getId())
                 .withNodeUsername(node.getUsername());
 
-        Page<Replication> ongoing = getReplications(criteria, new PageRequest(0, 10));
+        Page<Replication> ongoing = findAll(criteria, new PageRequest(0, 10));
         Replication action = new Replication(node, bag, bagLink, tokenLink);
-        action.setProtocol("rsync"); // TODO: Magic val...
+        action.setProtocol("rsync"); // TODO: Magic val... once we update our storage model this can be updated
 
         // iterate through our ongoing replications and search for a non terminal replication
         // TODO: Partial index this instead:
@@ -143,9 +112,7 @@ public class ReplicationService {
         if (ongoing.getTotalElements() != 0) {
             for (Replication replication : ongoing.getContent()) {
                 ReplicationStatus status = replication.getStatus();
-                if (status == ReplicationStatus.PENDING
-                        || status == ReplicationStatus.STARTED
-                        || status == ReplicationStatus.TRANSFERRED) {
+                if (status.isOngoing()) {
                     log.info("Found ongoing replication for {} to {}, ignoring create request",
                             bag.getName(), node.getUsername());
                     action = replication;
@@ -160,16 +127,34 @@ public class ReplicationService {
         return action;
     }
 
-    // Maybe could be a class of its own where we pass everything in and get back the link
-    private String buildLink(String user, String server, Path file) {
-        return new StringBuilder(user)
-                    .append("@").append(server)
-                    .append(":").append(file.toString())
-                    .toString();
+    /**
+     * Get or create the BagDistribution for a node
+     *
+     * @param bag the bag being distributed
+     * @param node the node being distributed to
+     */
+    private void createDist(Bag bag, Node node) {
+        BagDistribution bagDistribution = null;
+        // todo: see if there's a way to query this instead of iterate
+        Set<BagDistribution> distributions = bag.getDistributions();
+        for (BagDistribution distribution : distributions) {
+            if (distribution.getNode().equals(node)) {
+                bagDistribution = distribution;
+            }
+        }
+
+        if (bagDistribution == null) {
+            bag.addDistribution(node, DISTRIBUTE);
+            // not sure if this is the best place for this...
+            bagRepository.save(bag);
+        }
     }
 
-    private ReplicationRepository getReplicationRepository() {
-        return replicationRepository;
+    // Maybe could be a class of its own where we pass everything in and get back the link
+    private String buildLink(String user, String server, Path file) {
+        return user +
+                "@" + server +
+                ":" + file.toString();
     }
 
 }

@@ -16,6 +16,7 @@ public class Fulfillment {
     private String to;
     private String from;
     private boolean cleaned;
+    private boolean validated;
     private FulfillmentType type;
     private FulfillmentStatus status;
     private FulfillmentStrategy credentials;
@@ -107,6 +108,15 @@ public class Fulfillment {
 
     public Fulfillment setCleaned(boolean cleaned) {
         this.cleaned = cleaned;
+        return this;
+    }
+
+    public boolean isValidated() {
+        return validated;
+    }
+
+    public Fulfillment setValidated(boolean validated) {
+        this.validated = validated;
         return this;
     }
 }

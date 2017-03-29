@@ -37,7 +37,8 @@ CREATE TABLE fulfillment (
     type VARCHAR(255),
     strategy_id BIGINT,
     repair_id BIGINT NOT NULL,
-    cleaned BOOLEAN DEFAULT FALSE
+    cleaned BOOLEAN DEFAULT FALSE,
+    validated BOOLEAN DEFAULT FALSE
 );
 
 DROP TABLE IF EXISTS strategy;
