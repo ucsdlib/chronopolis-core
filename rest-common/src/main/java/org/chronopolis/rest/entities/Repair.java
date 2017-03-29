@@ -47,6 +47,9 @@ public class Repair extends UpdatableEntity {
 
 
     public Repair() {
+        cleaned = false;
+        replaced = false;
+        audit = AuditStatus.PRE;
     }
 
     public RepairStatus getStatus() {
