@@ -77,8 +77,14 @@ public class RepairController {
      */
     @RequestMapping(value = "/requests", method = RequestMethod.GET)
     public Page<Repair> getRequests(@RequestParam Map<String, String> params) {
+        FulfillmentStatus fs = params.containsKey("fulfillment-status") ? FulfillmentStatus.valueOf(params.get("fulfillment-status")) : null;
+        RepairStatus status = params.containsKey(Params.STATUS) ? RepairStatus.valueOf(params.get(Params.STATUS)) : null;
+
         RepairSearchCriteria criteria = new RepairSearchCriteria()
+                .withStatus(status)
+                .withFulfillmentStatus(fs)
                 .withTo(params.getOrDefault(Params.TO, null))
+                .withFulfillmentValidated(params.getOrDefault("fulfillment-validated", null))
                 .withRequester(params.getOrDefault(Params.REQUESTER, null));
         return rService.findAll(criteria, createPageRequest(params, ImmutableMap.of()));
     }
