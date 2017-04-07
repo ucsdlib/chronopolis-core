@@ -59,4 +59,12 @@ public class FulfillmentSearchCriteria implements SearchCriteria {
     public Map<Object, BooleanExpression> getCriteria() {
         return criteria;
     }
+
+    public FulfillmentSearchCriteria withCleaned(String cleaned) {
+        if (cleaned != null && !cleaned.isEmpty()) {
+            criteria.put("REPLACED", qFulfillment.cleaned.eq(Boolean.valueOf(cleaned)));
+        }
+
+        return this;
+    }
 }

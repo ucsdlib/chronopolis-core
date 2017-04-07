@@ -83,6 +83,8 @@ public class RepairController {
         RepairSearchCriteria criteria = new RepairSearchCriteria()
                 .withStatus(status)
                 .withFulfillmentStatus(fs)
+                .withCleaned(params.getOrDefault("replaced", null))
+                .withReplaced(params.getOrDefault("replaced", null))
                 .withTo(params.getOrDefault(Params.TO, null))
                 .withFulfillmentValidated(params.getOrDefault("fulfillment-validated", null))
                 .withRequester(params.getOrDefault(Params.REQUESTER, null));
@@ -206,7 +208,12 @@ public class RepairController {
      */
     @RequestMapping(value = "/fulfillments", method = RequestMethod.GET)
     public Page<Fulfillment> getFulfillments(@RequestParam Map<String, String> params) {
-        FulfillmentSearchCriteria criteria = new FulfillmentSearchCriteria();
+        FulfillmentStatus status = params.containsKey(Params.STATUS) ? FulfillmentStatus.valueOf(params.get(Params.STATUS)) : null;
+
+        FulfillmentSearchCriteria criteria = new FulfillmentSearchCriteria()
+                .withStatus(status)
+                .withCleaned(params.getOrDefault("cleaned", null))
+                .withFrom(params.getOrDefault(Params.FROM, null));
         return fService.findAll(criteria, createPageRequest(params, ImmutableMap.of()));
     }
 

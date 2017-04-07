@@ -61,7 +61,7 @@ public class RepairSearchCriteria implements SearchCriteria {
     }
 
     public RepairSearchCriteria withRequester(String requester) {
-        if (requester != null && requester.isEmpty()) {
+        if (requester != null && !requester.isEmpty()) {
             criteria.put(Params.REQUESTER, repair.requester.eq(requester));
         }
 
@@ -72,5 +72,19 @@ public class RepairSearchCriteria implements SearchCriteria {
     @Override
     public Map<Object, BooleanExpression> getCriteria() {
         return criteria;
+    }
+
+    public RepairSearchCriteria withCleaned(String cleaned) {
+        if (cleaned != null && !cleaned.isEmpty()) {
+            criteria.put("REPLACED", repair.cleaned.eq(Boolean.valueOf(cleaned)));
+        }
+        return this;
+    }
+
+    public RepairSearchCriteria withReplaced(String replaced) {
+        if (replaced != null && !replaced.isEmpty()) {
+            criteria.put("REPLACED", repair.replaced.eq(Boolean.valueOf(replaced)));
+        }
+        return this;
     }
 }
