@@ -40,6 +40,7 @@ public class Repair extends UpdatableEntity {
     private Node to;
 
     @OneToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+    @JoinColumn(name = "fulfillment_id")
     private Fulfillment fulfillment;
 
     @OneToMany(mappedBy = "repair", cascade = CascadeType.ALL, fetch = FetchType.EAGER)

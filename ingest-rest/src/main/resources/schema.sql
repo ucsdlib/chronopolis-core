@@ -144,7 +144,7 @@ CREATE TABLE fulfillment (
     status VARCHAR(255),
     type VARCHAR(255),
     strategy_id BIGINT,
-    repair_id BIGINT,
+    -- repair_id BIGINT,
     cleaned BOOLEAN DEFAULT FALSE,
     validated BOOLEAN DEFAULT FALSE,
     PRIMARY KEY (id)
@@ -176,8 +176,8 @@ ALTER TABLE repair_file
 ALTER TABLE fulfillment
     ADD CONSTRAINT FK_ff_strat FOREIGN KEY (strategy_id) REFERENCES strategy ON DELETE CASCADE;
 
-ALTER TABLE fulfillment
-    ADD CONSTRAINT FK_ff_repair FOREIGN KEY (repair_id) REFERENCES repair ON DELETE CASCADE;
+-- ALTER TABLE fulfillment
+--     ADD CONSTRAINT FK_ff_repair FOREIGN KEY (repair_id) REFERENCES repair ON DELETE CASCADE;
 
 ALTER TABLE fulfillment
     ADD CONSTRAINT FK_ff_from FOREIGN KEY (from_node) REFERENCES node;

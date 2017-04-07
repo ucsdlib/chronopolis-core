@@ -21,7 +21,7 @@ import javax.persistence.OneToOne;
 public class Fulfillment extends UpdatableEntity {
 
     // Not actually sure about the cascade type here, but testing should flesh it out
-    @OneToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+    @OneToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER, mappedBy = "fulfillment")
     private Repair repair;
 
     @ManyToOne
