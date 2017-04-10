@@ -39,8 +39,8 @@ if [ ! -e $jarfile ]; then
     echo "Building latest jar..."
     mvn -q clean install # > /dev/null
     if [ $? -ne 0 ]; then
-        echo "Error building replication-shell"
-        exit
+        echo "Error building ingest-server"
+        exit 99
     fi
 else
     echo "Jar already built"

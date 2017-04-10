@@ -41,7 +41,7 @@ if [ ! -e $jarfile ]; then
     mvn -q clean install # > /dev/null
     if [ $? -ne 0 ]; then
         echo "Error building replication-shell"
-        exit
+        exit 99
     fi
 else
     echo "Jar already built"
