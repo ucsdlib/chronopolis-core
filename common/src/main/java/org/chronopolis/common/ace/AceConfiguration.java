@@ -11,7 +11,7 @@ public class AceConfiguration {
 
     private String ims = "ims.umiacs.umd.edu";
     private String am = "http://localhost:8080/ace-am/";
-    private String user = "user";
+    private String username = "user";
     private String password = "change-me";
 
 
@@ -24,12 +24,12 @@ public class AceConfiguration {
         return this;
     }
 
-    public String getUser() {
-        return user;
+    public String getUsername() {
+        return username;
     }
 
-    public AceConfiguration setUser(String user) {
-        this.user = user;
+    public AceConfiguration setUsername(String username) {
+        this.username = username;
         return this;
     }
 
