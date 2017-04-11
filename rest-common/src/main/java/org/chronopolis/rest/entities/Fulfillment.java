@@ -41,6 +41,8 @@ public class Fulfillment extends UpdatableEntity {
     private Boolean validated;
 
     public Fulfillment() {
+        this.cleaned = false;
+        this.validated = false;
     }
 
     public Repair getRepair() {
