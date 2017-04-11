@@ -15,7 +15,7 @@ import org.chronopolis.rest.entities.fulfillment.Strategy;
         @JsonSubTypes.Type(value = ACEStrategy.class, name = "ACE"),
         @JsonSubTypes.Type(value = RsyncStrategy.class, name = "NODE_TO_NODE"),
 })
-public abstract class FulfillmentStrategy {
+public abstract class FulfillmentStrategy implements Comparable<FulfillmentStrategy> {
 
     @JsonIgnore // I'm not sure if this is the best way to do this, but I figure
                 // it's the best way to hold the FulfillmentType for other use

@@ -1,6 +1,7 @@
 package org.chronopolis.rest.models.repair;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.google.common.collect.ComparisonChain;
 import org.chronopolis.rest.entities.fulfillment.Ace;
 import org.chronopolis.rest.entities.fulfillment.Strategy;
 
@@ -43,5 +44,39 @@ public class ACEStrategy extends FulfillmentStrategy {
         strategy.setApiKey(apiKey);
         strategy.setUrl(url);
         return strategy;
+    }
+
+    @Override
+    public int compareTo(FulfillmentStrategy fulfillmentStrategy) {
+        int compare;
+        if (fulfillmentStrategy != null && fulfillmentStrategy.getType() == FulfillmentType.ACE) {
+            ACEStrategy strategy = (ACEStrategy) fulfillmentStrategy;
+            compare = ComparisonChain.start()
+                    .compare(url, strategy.url)
+                    .compare(apiKey, strategy.apiKey)
+                    .result();
+        } else {
+            compare = -1;
+        }
+
+        return compare;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ACEStrategy that = (ACEStrategy) o;
+
+        if (apiKey != null ? !apiKey.equals(that.apiKey) : that.apiKey != null) return false;
+        return url != null ? url.equals(that.url) : that.url == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = apiKey != null ? apiKey.hashCode() : 0;
+        result = 31 * result + (url != null ? url.hashCode() : 0);
+        return result;
     }
 }

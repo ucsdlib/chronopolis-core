@@ -1,5 +1,7 @@
 package org.chronopolis.rest.models.repair;
 
+import com.google.common.collect.ComparisonChain;
+
 import java.time.ZonedDateTime;
 
 /**
@@ -7,7 +9,7 @@ import java.time.ZonedDateTime;
  *
  * Created by shake on 11/10/16.
  */
-public class Fulfillment {
+public class Fulfillment implements Comparable<Fulfillment> {
 
     private Long id;
     private Long repair;
@@ -118,5 +120,37 @@ public class Fulfillment {
     public Fulfillment setValidated(boolean validated) {
         this.validated = validated;
         return this;
+    }
+
+    @Override
+    public int compareTo(Fulfillment fulfillment) {
+        return ComparisonChain.start()
+                .compare(id, fulfillment.id)
+                .compare(to, fulfillment.to)
+                .compare(from, fulfillment.from)
+                .compare(repair, fulfillment.repair)
+                .result();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Fulfillment that = (Fulfillment) o;
+
+        if (id != null ? !id.equals(that.id) : that.id != null) return false;
+        if (repair != null ? !repair.equals(that.repair) : that.repair != null) return false;
+        if (to != null ? !to.equals(that.to) : that.to != null) return false;
+        return from != null ? from.equals(that.from) : that.from == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (repair != null ? repair.hashCode() : 0);
+        result = 31 * result + (to != null ? to.hashCode() : 0);
+        result = 31 * result + (from != null ? from.hashCode() : 0);
+        return result;
     }
 }

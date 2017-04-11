@@ -1,5 +1,8 @@
 package org.chronopolis.rest.models.repair;
 
+import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.Ordering;
+
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -8,7 +11,7 @@ import java.util.List;
  *
  * Created by shake on 11/10/16.
  */
-public class Repair {
+public class Repair implements Comparable<Repair> {
 
     private Long id;
     private Long fulfillment;
@@ -139,5 +142,43 @@ public class Repair {
     public Repair setAudit(AuditStatus audit) {
         this.audit = audit;
         return this;
+    }
+
+    @Override
+    public int compareTo(Repair repair) {
+        return ComparisonChain.start()
+                .compare(id, repair.id)
+                .compare(to, repair.to)
+                .compare(files, repair.files, Ordering.<String>natural().lexicographical())
+                .compare(requester, repair.requester)
+                .compare(depositor, repair.depositor)
+                .compare(collection, repair.collection)
+                .result();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Repair repair = (Repair) o;
+
+        if (id != null ? !id.equals(repair.id) : repair.id != null) return false;
+        if (to != null ? !to.equals(repair.to) : repair.to != null) return false;
+        if (requester != null ? !requester.equals(repair.requester) : repair.requester != null) return false;
+        if (depositor != null ? !depositor.equals(repair.depositor) : repair.depositor != null) return false;
+        if (collection != null ? !collection.equals(repair.collection) : repair.collection != null) return false;
+        return files != null ? files.equals(repair.files) : repair.files == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (to != null ? to.hashCode() : 0);
+        result = 31 * result + (requester != null ? requester.hashCode() : 0);
+        result = 31 * result + (depositor != null ? depositor.hashCode() : 0);
+        result = 31 * result + (collection != null ? collection.hashCode() : 0);
+        result = 31 * result + (files != null ? files.hashCode() : 0);
+        return result;
     }
 }
