@@ -43,7 +43,7 @@ public class RSyncTransfer implements FileTransfer {
 
         Callable<Path> download = () -> {
             String[] cmd = new String[]{"rsync",
-                    "-a",
+                    "-aL",
                     "-e ssh -o 'PasswordAuthentication no'",
                     "--stats",
                     link,
