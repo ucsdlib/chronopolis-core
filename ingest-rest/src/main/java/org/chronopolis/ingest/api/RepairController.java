@@ -80,10 +80,11 @@ public class RepairController {
         FulfillmentStatus fs = params.containsKey("fulfillment-status") ? FulfillmentStatus.valueOf(params.get("fulfillment-status")) : null;
         RepairStatus status = params.containsKey(Params.STATUS) ? RepairStatus.valueOf(params.get(Params.STATUS)) : null;
 
+        // todo: no constants :(((
         RepairSearchCriteria criteria = new RepairSearchCriteria()
                 .withStatus(status)
                 .withFulfillmentStatus(fs)
-                .withCleaned(params.getOrDefault("replaced", null))
+                .withCleaned(params.getOrDefault("cleaned", null))
                 .withReplaced(params.getOrDefault("replaced", null))
                 .withTo(params.getOrDefault(Params.TO, null))
                 .withFulfillmentValidated(params.getOrDefault("fulfillment-validated", null))
@@ -140,6 +141,7 @@ public class RepairController {
 
         // Get the bag
         // This can really be lazified since all we need is the bag id
+        // todo: validate that depositor and collection exist in the request
         BagSearchCriteria criteria = new BagSearchCriteria()
                 .withDepositor(request.getDepositor())
                 .withName(request.getCollection());
@@ -299,6 +301,7 @@ public class RepairController {
             }
         }
 
+        // TODO: Constraint satisfaction: the fulfillment should be validated before being set to complete
         log.info("Completing fulfillment {} for node {}", fulfillment.getId(), principal.getName());
         fulfillment.setStatus(FulfillmentStatus.COMPLETE);
         repair.setStatus(RepairStatus.REPAIRED);
@@ -309,6 +312,8 @@ public class RepairController {
 
     /**
      * This is a placeholder atm, might need to update the request body
+     *
+     * TODO: Should this trigger the completion of a fulfillment + repair if the audit succeeded?
      *
      * @param principal the principal of the authenticated user
      * @param id the id of the repair
