@@ -4,11 +4,11 @@
     <title>Chronopolis Ingestion Service</title>
 </head>
 <body>
-<header th:replace="layout :: header"></header>
-<div th:replace="layout :: left"></div>
+<nav th:replace="layout :: navbar"></nav>
 
-<div class="content">
+<div class="d-flex flex-column align-items-center bg-faded m-3">
     <div th:replace="fragments/replications :: table"></div>
+    <div th:replace="layout :: foot"></div>
 </div>
 </body>
 </html>

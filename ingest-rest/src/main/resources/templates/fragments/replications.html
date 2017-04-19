@@ -15,18 +15,18 @@
 </head>
 <body>
 <div th:fragment="table">
-    <div class="panel panel-info filterable">
-        <div class="panel-heading">
-            <h3 class="panel-title">Replications</h3>
-            <div class="pull-right">
-                <button id="dropdown" class="btn btn-default btn-xs btn-filter" data-toggle="dropdown"><span
+    <div class="card filterable">
+        <div class="card-header">
+            <div class="d-flex justify-content-start">
+                <h3 class="card-title p-2">Replications</h3>
+                <button id="dropdown" class="btn btn-default btn-xs btn-filter p-2 ml-auto"
+                        data-toggle="collapse" data-target="#filter-body" aria-expanded="false" aria-controls="filter-body"><span
                         class="glyphicon glyphicon-filter"></span>
                     Filter
                 </button>
             </div>
         </div>
-
-        <div class="panel-body" id="filter-body" style="display: none">
+        <div class="collapse p-2" id="filter-body">
             <form class="form-horizontal" role="form" method="GET" th:action="@{/replications}">
                 <div class="input-group input-group-sm">
                     <span class="input-group-addon" id="sizing-addon-1">Bag</span>
@@ -52,7 +52,6 @@
 
                 </div>
                 <br/>
-                <!-- TODO: Fragment? -->
                 <h5>Order By</h5>
                 <div class="radio">
                     <label>
@@ -74,7 +73,7 @@
                 </div>
                 <br/>
                 <button th:type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search"
-                                                                       aria-hidden="true"></span></button>
+                                                                       aria-hidden="true"></span>Search</button>
             </form>
         </div>
         <!-- shove it here-->

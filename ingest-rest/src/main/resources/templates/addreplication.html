@@ -4,28 +4,31 @@
     <title>Chronopolis Ingestion Service</title>
 </head>
 <body>
-    <header th:replace="layout :: header"></header>
-    <div th:replace="layout :: left"></div>
-    <div class="content">
-    <form enctype="application/json" method="post" name="replication">
-        <!--@thymesVar id="bags" type="List<Bag>"-->
-        <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
-        <select name="bagId" id="bagId">
-            <option th:each="bag: ${bags}"
-                    th:value="${bag.id}" th:text="${bag.depositor} + '/' + ${bag.name}">
-            </option>
-        </select>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column align-items-center bg-faded m-3">
+    <h4>Add Replication</h4>
+    <div class="card border-0 p-2">
+        <form enctype="application/json" method="post" name="replication">
+            <!--@thymesVar id="bags" type="List<Bag>"-->
+            <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
+            <select name="bagId" id="bagId">
+                <option th:each="bag: ${bags}"
+                        th:value="${bag.id}" th:text="${bag.depositor} + '/' + ${bag.name}">
+                </option>
+            </select>
 
 
-        <!--@thymesVar id="nodes" type="List<Node>"-->
-        <!--@thymesVar id="node" type="org.chronopolis.rest.entities.Node"-->
-        <select name="nodeId" id="nodeId">
-            <option th:each="node: ${nodes}"
-                    th:value="${node.id}" th:text="${node.username}">
-            </option>
-        </select>
-        <input type="submit" value="Create Replication"/> <!-- onclick="submit()"/> -->
-    </form>
-        </div>
+            <!--@thymesVar id="nodes" type="List<Node>"-->
+            <!--@thymesVar id="node" type="org.chronopolis.rest.entities.Node"-->
+            <select name="nodeId" id="nodeId">
+                <option th:each="node: ${nodes}"
+                        th:value="${node.id}" th:text="${node.username}">
+                </option>
+            </select>
+            <input type="submit" value="Create Replication"/> <!-- onclick="submit()"/> -->
+        </form>
+    </div>
+    <div th:replace="layout :: foot"></div>
+</div>
 </body>
 </html>

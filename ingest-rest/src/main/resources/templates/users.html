@@ -5,42 +5,69 @@
 </head>
 <body role="document">
 
-    <header th:replace="layout :: header"></header>
-    <div th:replace="layout :: left"></div>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column align-items-center m-2 bg-faded">
 
-    <div class="content">
-    <div th:include="fragments/users :: table"></div>
+    <div class="card p-2">
+        <div class="card-header p-2">
+            <ul class="nav nav-tabs card-header-tabs">
+                <li class="nav-item">
+                    <a data-toggle="tab" class="nav-link show active mb-2" aria-expanded="true" href="#info">User Information</a>
+                </li>
 
-    <div sec:authorize="hasRole('ROLE_ADMIN')" class="row">
-        <h4>Add New User</h4>
+                <li class="nav-item">
+                    <a data-toggle="tab" class="nav-link mb-2" aria-expanded="true" href="#update">Update Password</a>
+                </li>
 
-        <form enctype="application/json" method="post" name="ingest" action="/users/add"
-              th:action="@{/users/add}">
-            <div class="form-group">
-                <div><label>Username: <input type="text" class="form-control" name="username"
-                                             placeholder="node-name"/></label></div>
-                <div><label>Password: <input type="text" class="form-control" name="password"
-                                             placeholder="temp-password"/></label></div>
-                <div><label>Admin: <input type="checkbox" name="admin"/></label></div>
-                <div><label>Is a Node: <input type="checkbox" name="node"/></label></div>
+                <li class="nav-item">
+                    <a data-toggle="tab" class="nav-link mb-2" href="#add">Add user</a>
+                </li>
+            </ul>
+        </div>
+        <div class="card-block">
+            <div id="tab-content" class="tab-content">
+                <div id="info" class="tab-pane fade active show" th:include="fragments/users :: table"></div>
+                <div id="update" class="tab-pane fade">
+                    <form enctype="application/json" method="post" name="ingest" action="/users/update"
+                          th:action="@{/users/update}">
+
+                        <div class="form-group row">
+                            <label for="current-password" class="col-4 col-form-label">Current Password</label>
+                            <div class="col-8">
+                                <input class="form-control" type="password" id="current-password" name="oldPassword"/>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="new-password" class="col-4 col-form-label">New Password</label>
+                            <div class="col-8">
+                                <input class="form-control" type="password" id="new-password" name="newPassword"/>
+                            </div>
+                        </div>
+
+                        <input type="submit" class="btn btn-primary btn-small" value="Update Password"/>
+                    </form>
+                </div>
+
+                <div id="add" class="tab-pane fade">
+                    <form enctype="application/json" method="post" name="ingest" action="/users/add"
+                          th:action="@{/users/add}">
+                        <div class="form-group">
+                            <div><label>Username <input type="text" class="form-control" name="username"
+                                                        placeholder="node-name"/></label></div>
+                            <div><label>Password <input type="text" class="form-control" name="password"
+                                                        placeholder="temp-password"/></label></div>
+                            <div><label>Admin <input type="checkbox" name="admin"/></label></div>
+                            <div><label>Is a Node <input type="checkbox" name="node"/></label></div>
+                        </div>
+                        <input type="submit" class="btn btn-primary btn-small" value="Create User"/>
+                    </form>
+                </div>
             </div>
-            <input type="submit" class="btn btn-small" value="Create User"/>
-        </form>
+        </div>
     </div>
 
-    <div class="row">
-        <h4>Update Password</h4>
-
-        <form enctype="application/json" method="post" name="ingest" action="/users/update"
-              th:action="@{/users/update}">
-            <div><label>Current Password: <input type="password" name="oldPassword"
-                                                 placeholder="current-password"/></label></div>
-            <div><label>New Password: <input type="password" name="newPassword" placeholder="new-password"/></label>
-            </div>
-            <input type="submit" class="btn btn-small" value="Update Password"/>
-        </form>
-    </div>
-
+    <!--<div id="info" class="d-flex justify-content-center" th:include="fragments/users :: table"></div>-->
+    <div th:replace="layout :: foot"></div>
 </div>
 </body>
 </html>

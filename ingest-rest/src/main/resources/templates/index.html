@@ -3,13 +3,8 @@
 <head th:replace="layout :: head">
     <title>Chronopolis Ingestion Service</title>
 </head>
-<body style="padding-top: 50px">
-        <header th:replace="layout :: header"></header>
-
-        <div class="page-layout">
-            <div th:replace="layout :: left"></div>
-            <div class="content"></div>
-       </div>
-
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<div th:replace="layout :: foot"></div>
 </body>
 </html>
