@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th::include="layout :: head">
+    <meta charset="UTF-8">
+    <title>Chronopolis - Fulfillment</title>
+</head>
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column bg-faded m-3 align-items-center">
+    <h3>Fulfillment Overview</h3>
+    <table class="table table-bordered">
+        <!--@thymesVar id="fulfillment" type="org.chronopolis.rest.entities.Fulfillment"-->
+        <!--@thymesVar id="rsync" type="org.chronopolis.rest.entities.fulfillment.Rsync"-->
+        <!--@thymesVar id="ace" type="org.chronopolis.rest.entities.fulfillment.Ace"-->
+        <tbody>
+        <tr>
+            <td>Id</td>
+            <td th:text="${fulfillment.id}"></td>
+        </tr>
+        <tr>
+            <td>Repair Id</td>
+            <td th:text="${fulfillment.repair.id}"></td>
+        </tr>
+        <tr>
+            <td>Fulfillment Status</td>
+            <td th:text="${fulfillment.status}"></td>
+        </tr>
+        <tr th:if="${fulfillment.type} != null">
+            <td>Audit Status</td>
+            <td th:text="${fulfillment.type}"></td>
+        </tr>
+        <tr>
+            <td>Fulfillment Cleaned</td>
+            <td th:text="${fulfillment.cleaned}"></td>
+        </tr>
+        <tr>
+            <td>Fulfillment Validated</td>
+            <td th:text="${fulfillment.validated}"></td>
+        </tr>
+
+        <tr th:if="${rsync} != null">
+            <td>Rsync Location</td>
+            <td th:text="${rsync.link}"></td>
+        </tr>
+        <tr th:if="${ace} != null">
+            <td>ACE url</td>
+            <td th:text="${ace.url}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <nav th:replace="layout :: foot"></nav>
+</div>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: head">
+    <title>Chronopolis - Repair Request</title>
+</head>
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column bg-faded align-items-center m-3">
+    <div class="card filterable">
+    <div class="card-header">
+        <div class="d-flex justify-content-start">
+            <h3 class="card-title p-2">Repairs</h3>
+            <button data-toggle="collapse" data-target="#filter-body" id="dropdown" class="btn btn-default btn-xs btn-filter ml-auto p-2"
+                    aria-expanded="false" aria-controls="filter-body">
+                <span class="glyphicon glyphicon-filter"></span> Filter
+            </button>
+        </div>
+    </div>
+    <div id="filter-body" class="collapse p-2">
+        <form class="form-horizontal" role="form" th:action="@{/bags}" method="GET">
+            <div class="input-group form-group-sm">
+                <span class="input-group-addon">Node</span>
+                <input type="text" class="form-control" id="depositor-table-filter" name="depositor"
+                       placeholder="Search Depositor"/>
+            </div>
+            <br/>
+            <div class="input-group form-group-sm">
+                <span class="input-group-addon">Status</span>
+
+                <!--@thymesVar id="statuses" type="List" -->
+                <!--@thymesVar id="status" type="org.chronopolis.rest.models.RepairStatus" -->
+                <!--
+                <select name="status" id="status-table-filter" class="form-control">
+                    <option value="">select a status</option>
+                    <option th:each="status : ${statuses}"
+                            th:value="${status.value}" th:text="${status.value}">
+
+                    </option>
+                </select>
+                -->
+            </div>
+            <br/>
+            <h5>Order By</h5>
+            <div class="radio">
+                <label>
+                    <input type="radio" name="orderBy" id="optionUpdatedAt" value="updatedAt"/>
+                    Updated At
+                </label>
+            </div>
+            <div class="radio">
+                <label>
+                    <input type="radio" name="orderBy" id="optionCreatedAt" value="createdAt"/>
+                    Created At
+                </label>
+            </div>
+            <div class="input-group form-group-sm">
+                <select name="dir" id="direction-filter" class="form-control">
+                    <option value="ASC">Ascending</option>
+                    <option value="DESC">Descending</option>
+                </select>
+            </div>
+            <br/>
+            <button th:type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search"
+                                                                   aria-hidden="true"></span>Search</button>
+        </form>
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Created At</th>
+            <th>ID</th>
+            <th>Node</th>
+            <th>Status</th>
+            <th>Audit Status</th>
+            <th>Num Files</th>
+            <th>Fulfillment ID</th>
+            <th>Updated At</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!--@thymesVar id="repairs" type="Page<Repair>"-->
+        <!--@thymesVar id="repair" type="org.chronopolis.rest.entities.Repair"-->
+        <tr th:each="repair: ${repairs}">
+            <td th:text="${repair.createdAt.toLocalDate()}"></td>
+            <td><a th:text="${repair.id}" th:href="@{/repairs/} + ${repair.id}"></a></td>
+            <td th:text="${repair.to.username}"></td>
+            <td th:text="${repair.status}"></td>
+            <td th:text="${repair.audit}"></td>
+            <td th:text="${repair.files.size()}"></td>
+            <td th:text="${repair.fulfillment}"></td>
+            <td th:text="${repair.updatedAt.toLocalDate()}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div th:replace="fragments/page :: page"></div>
+</div>
+
+</div>
+</body>
+</html>
