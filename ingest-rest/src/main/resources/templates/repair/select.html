@@ -3,15 +3,25 @@
 <head th:include="layout :: head">
     <title>Chronopolis - Repair Request</title>
 </head>
-<body>
+<body style="background-color: #f7f7f7 !important">
 <nav th:replace="layout :: navbar"></nav>
-<div class="d-flex flex-column bg-faded m-3 align-items-center">
+<div class="d-flex flex-column m-3 align-items-center">
     <h4>Repair Request - Errors In Collection</h4>
     <div id="accordian" role="tablist" aria-multiselectable="true" class="w-50">
         <div class="card">
             <form id="collection" enctype="application/json" method="post" name="collection" th:action="@{/repairs}">
                 <input th:type="hidden" name="collection" th:value="${collection}"/>
                 <input th:type="hidden" name="depositor" th:value="${depositor}"/>
+
+                <div class="form-group p-2">
+                    <label for="node-select">Repair To</label>
+                    <select class="form-control" id="node-select" name="to">
+                        <!--/*@thymesVar id="nodes" type="org.chronopolis.rest.entities.Node"*/-->
+                        <option th:each="node : ${nodes}"
+                                th:value="${node.username}"
+                                th:text="${node.username}"></option>
+                    </select>
+                </div>
 
                 <!-- Missing Items -->
                 <!--/*@thymesVar id="missing" type="org.chronopolis.common.ace.MonitoredItem"*/-->

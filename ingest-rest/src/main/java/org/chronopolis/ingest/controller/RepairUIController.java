@@ -15,12 +15,15 @@ import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.FulfillmentRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
+import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.RepairSearchCriteria;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Fulfillment;
+import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Repair;
 import org.chronopolis.rest.models.repair.RepairRequest;
+import org.chronopolis.rest.models.repair.RepairStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,12 +41,17 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
+ * Handle routing and querying for the Repair WebUI stuff
+ *
+ * todo: check that bags exist before adding
+ * todo: move logic out of controller
  *
  * Created by shake on 4/14/17.
  */
@@ -52,8 +60,8 @@ public class RepairUIController extends IngestController {
 
     private final Logger log = LoggerFactory.getLogger(RepairUIController.class);
 
-    private final SearchService<Bag, Long, BagRepository> bags;
     private final NodeRepository nodes;
+    private final SearchService<Bag, Long, BagRepository> bags;
     private final SearchService<Repair, Long, RepairRepository> repairs;
     private final SearchService<Fulfillment, Long, FulfillmentRepository> fulfillments;
 
@@ -105,11 +113,19 @@ public class RepairUIController extends IngestController {
     }
 
     @RequestMapping(path = "/repairs/collection", method = RequestMethod.POST)
-    public String getErrors(Model model, HttpSession session, CollectionInfo infoRequest) {
+    public String getErrors(Model model, Principal principal, HttpSession session, CollectionInfo infoRequest) {
         AceCollections collections;
         Object o = session.getAttribute("ace");
         if (o == null || !(o instanceof AceCollections)) {
             return "repair/add";
+        }
+
+        List<Node> repairingNodes;
+        if (hasRoleAdmin()) {
+            repairingNodes = nodes.findAll();
+        } else {
+            repairingNodes = new ArrayList<>();
+            repairingNodes.add(nodes.findByUsername(principal.getName()));
         }
 
         collections = (AceCollections) o;
@@ -134,16 +150,27 @@ public class RepairUIController extends IngestController {
 
         model.addAttribute("collection", infoRequest.getCollection());
         model.addAttribute("depositor", infoRequest.getDepositor());
+        model.addAttribute("nodes", repairingNodes);
 
         return "repair/select";
     }
 
     @RequestMapping(path = "/repairs", method = RequestMethod.POST)
     public String requestRepair(Model model, Principal principal, RepairRequest request) {
-        log.info("sup bitch {}", principal.getName());
         log.info("{} items requested", request.getFiles().size());
+        Bag bag = bags.find(new BagSearchCriteria()
+                .withDepositor(request.getDepositor())
+                .withName(request.getCollection()));
+        Node to = nodes.findByUsername(request.getTo().orElse(principal.getName()));
+        Repair repair = new Repair();
+        repair.setRequester(principal.getName());
+        repair.setTo(to);
+        repair.setFilesFromRequest(request.getFiles());
+        repair.setBag(bag);
+        repair.setStatus(RepairStatus.REQUESTED);
+        repairs.save(repair);
 
-        return "redirect:/repairs";
+        return "redirect:/repairs/" + repair.getId();
     }
 
     @RequestMapping(path = "/repairs", method = RequestMethod.GET)
@@ -158,9 +185,11 @@ public class RepairUIController extends IngestController {
     }
 
     @RequestMapping(path = "/repairs/{id}")
-    public void repair(Model model, @PathVariable("id") Long id) {
+    public String repair(Model model, @PathVariable("id") Long id) {
         Repair repair = repairs.find(new RepairSearchCriteria().withId(id));
         model.addAttribute("repair", repair);
+
+        return "repair/repair";
     }
 
     /*
