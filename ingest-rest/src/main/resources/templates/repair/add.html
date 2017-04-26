@@ -3,9 +3,9 @@
 <head th:include="layout :: head">
     <title>Chronopolis - Repair Request</title>
 </head>
-<body>
+<body style="background-color: #f7f7f7 !important">
 <nav th:replace="layout :: navbar"></nav>
-<div class="d-flex flex-column bg-faded align-items-center m-3">
+<div class="d-flex flex-column align-items-center m-3">
     <div th:if="${collections == null}" class="w-50">
         <h4>Repair Request</h4>
         <form id="request" enctype="application/json" method="post" name="replication" th:action="@{/repairs/ace}">
