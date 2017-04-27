@@ -3,22 +3,22 @@
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
 <head th:replace="layout :: head">
 </head>
-<body>
-    <header th:replace="layout :: header"></header>
-    <div th:replace="layout :: left"></div>
-        <!-- Taken from https://spring.io/guides/gs/securing-web/ -->
-    <div class="content">
-        <div th:if="${param.error}">
-            Invalid username and password.
-        </div>
-        <div th:if="${param.logout}">
-            You have been logged out.
-        </div>
-        <form th:action="@{/login}" method="post">
-            <div><label> User Name : <input type="text" name="username"/> </label></div>
-            <div><label> Password: <input type="password" name="password"/> </label></div>
-            <div><input type="submit" value="Sign In"/></div>
-        </form>
+<body style="background-color: #f7f7f7 !important">
+<nav th:replace="layout :: navbar"></nav>
+<!-- Taken from https://spring.io/guides/gs/securing-web/ -->
+<div class="d-flex flex-column m-3">
+    <div th:if="${param.error}">
+        Invalid username and password.
     </div>
+    <div th:if="${param.logout}">
+        You have been logged out.
+    </div>
+    <form th:action="@{/login}" method="post">
+        <div><label> User Name <input type="text" name="username"/> </label></div>
+        <div><label> Password <input type="password" name="password"/> </label></div>
+        <div><input type="submit" value="Sign In"/></div>
+    </form>
+</div>
+<div th:replace="layout :: foot"></div>
 </body>
 </html>

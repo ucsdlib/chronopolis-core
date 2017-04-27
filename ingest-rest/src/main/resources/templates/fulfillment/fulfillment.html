@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: head">
+    <meta charset="UTF-8"/>
+    <title>Chronopolis - Fulfillment</title>
+</head>
+<body style="background-color: #f7f7f7 !important">
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column m-3 align-items-center">
+    <div class="card">
+        <div class="card-header">
+            <h3>Fulfillment Overview</h3>
+        </div>
+        <div class="card-block">
+            <table class="table table-bordered">
+                <!--@thymesVar id="fulfillment" type="org.chronopolis.rest.entities.Fulfillment"-->
+                <!--@thymesVar id="rsync" type="org.chronopolis.rest.entities.fulfillment.Rsync"-->
+                <!--@thymesVar id="ace" type="org.chronopolis.rest.entities.fulfillment.Ace"-->
+                <tbody>
+                <tr>
+                    <td>Id</td>
+                    <td th:text="${fulfillment.id}"></td>
+                </tr>
+                <tr>
+                    <td>Repair</td>
+                    <td><a th:href="@{|/repairs/${fulfillment.repair.id}|}" th:text="${fulfillment.repair.id}"></a></td>
+                </tr>
+                <tr>
+                    <td>Fulfilling Node</td>
+                    <td th:text="${fulfillment.from.username}"></td>
+                </tr>
+                <tr>
+                    <td>Fulfillment Status</td>
+                    <td th:text="${fulfillment.status}"></td>
+                </tr>
+                <tr th:if="${fulfillment.type} != null">
+                    <td>Audit Status</td>
+                    <td th:text="${fulfillment.type}"></td>
+                </tr>
+                <tr>
+                    <td>Fulfillment Cleaned</td>
+                    <td th:text="${fulfillment.cleaned}"></td>
+                </tr>
+                <tr>
+                    <td>Fulfillment Validated</td>
+                    <td th:text="${fulfillment.validated}"></td>
+                </tr>
+
+                <tr th:if="${rsync} != null">
+                    <td>Rsync Location</td>
+                    <td th:text="${rsync.link}"></td>
+                </tr>
+                <tr th:if="${ace} != null">
+                    <td>ACE url</td>
+                    <td th:text="${ace.url}"></td>
+                </tr>
+                <tr>
+                    <td>Updated At</td>
+                    <td th:text="${fulfillment.updatedAt.toLocalDate()}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div th:replace="layout :: foot"></div>
+</body>
+</html>

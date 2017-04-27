@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: head">
+    <meta charset="UTF-8"/>
+    <title>Chronopolis - Fulfillment</title>
+</head>
+<body style="background-color: #f7f7f7 !important">
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column align-items-center m-3">
+    <form method="post" th:action="@{/fulfillments}">
+        <div class="card">
+            <div class="form-group p-2">
+                <label for="node-select">Fulfill As</label>
+                <select class="form-control" id="node-select" name="from">
+                    <!--/*@thymesVar id="from" type="org.chronopolis.rest.entities.Node"*/-->
+                    <option th:each="node : ${from}"
+                            th:value="${node.username}"
+                            th:text="${node.username}"></option>
+                </select>
+            </div>
+
+            <div class="card-header">
+                <div class="d-flex justify-content-start">
+                    <h3 class="card-title p-2">Available Repairs</h3>
+                </div>
+            </div>
+            <fieldset class="form-group">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Select</th>
+                        <th>Created At</th>
+                        <th>ID</th>
+                        <th>Node</th>
+                        <th>Bag</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!--@thymesVar id="repairs" type="Page<Repair>"-->
+                    <!--@thymesVar id="repair" type="org.chronopolis.rest.entities.Repair"-->
+                    <tr th:each="repair: ${repairs}">
+                        <td><input type="radio" name="repair" th:value="${repair.id}"/></td>
+                        <td th:text="${repair.createdAt.toLocalDate()}"></td>
+                        <td><a th:text="${repair.id}" th:href="@{/repairs/} + ${repair.id}"></a></td>
+                        <td th:text="${repair.to.username}"></td>
+                        <td th:text="${repair.status}"></td>
+                        <td th:text="|${repair.bag.depositor} :: ${repair.bag.name}|"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </fieldset>
+            <input type="submit" value="Create Fulfillment" class="btn btn-primary"/>
+        </div>
+    </form>
+</div>
+<div th:replace="layout :: foot"></div>
+</body>
+</html>

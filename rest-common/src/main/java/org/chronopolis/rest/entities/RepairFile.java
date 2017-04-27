@@ -52,4 +52,8 @@ public class RepairFile {
         this.path = path;
         return this;
     }
+
+    public String toString() {
+        return path;
+    }
 }
