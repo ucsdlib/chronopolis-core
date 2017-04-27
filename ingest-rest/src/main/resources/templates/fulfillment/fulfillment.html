@@ -23,7 +23,11 @@
                 </tr>
                 <tr>
                     <td>Repair</td>
-                    <td th:text="${fulfillment.repair.id}"></td>
+                    <td><a th:href="@{|/repairs/${fulfillment.repair.id}|}" th:text="${fulfillment.repair.id}"></a></td>
+                </tr>
+                <tr>
+                    <td>Fulfilling Node</td>
+                    <td th:text="${fulfillment.from.username}"></td>
                 </tr>
                 <tr>
                     <td>Fulfillment Status</td>
@@ -49,6 +53,10 @@
                 <tr th:if="${ace} != null">
                     <td>ACE url</td>
                     <td th:text="${ace.url}"></td>
+                </tr>
+                <tr>
+                    <td>Updated At</td>
+                    <td th:text="${fulfillment.updatedAt.toLocalDate()}"></td>
                 </tr>
                 </tbody>
             </table>
