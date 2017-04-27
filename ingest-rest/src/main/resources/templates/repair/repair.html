@@ -6,52 +6,57 @@
 <body style="background-color: #f7f7f7 !important">
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column m-3 align-items-center">
-    <h3>Repair Overview</h3>
-    <table class="table table-bordered">
-        <!--@thymesVar id="repair" type="org.chronopolis.rest.entities.Repair"-->
-        <tbody>
-        <tr>
-            <td>Id</td>
-            <td th:text="${repair.id}"></td>
-        </tr>
-        <tr>
-            <td>Fulfillment Id</td>
-            <td th:text="${repair.fulfillment}"></td>
-        </tr>
-        <tr>
-            <td>Repair Status</td>
-            <td th:text="${repair.status}"></td>
-        </tr>
-        <tr>
-            <td>Audit Status</td>
-            <td th:text="${repair.audit}"></td>
-        </tr>
+    <div class="card">
+        <div class="card-header">
+            <h3>Repair Overview</h3>
+        </div>
+        <div class="card-block">
+            <table class="table table-bordered w-50">
+                <!--@thymesVar id="repair" type="org.chronopolis.rest.entities.Repair"-->
+                <tbody>
+                <tr>
+                    <td>Id</td>
+                    <td th:text="${repair.id}"></td>
+                </tr>
+                <tr>
+                    <td>Fulfillment Id</td>
+                    <td th:text="${repair.fulfillment}"></td>
+                </tr>
+                <tr>
+                    <td>Repair Status</td>
+                    <td th:text="${repair.status}"></td>
+                </tr>
+                <tr>
+                    <td>Audit Status</td>
+                    <td th:text="${repair.audit}"></td>
+                </tr>
 
-        <tr>
-            <td>Requested By</td>
-            <td th:text="${repair.requester}"></td>
-        </tr>
-        <tr>
-            <td>Node</td>
-            <td th:text="${repair.to.username}"></td>
-        </tr>
+                <tr>
+                    <td>Requested By</td>
+                    <td th:text="${repair.requester}"></td>
+                </tr>
+                <tr>
+                    <td>Node</td>
+                    <td th:text="${repair.to.username}"></td>
+                </tr>
 
-        <tr>
-            <td>Replaced</td>
-            <td th:text="${repair.replaced}"></td>
-        </tr>
-        <tr>
-            <td>Cleaned</td>
-            <td th:text="${repair.cleaned}"></td>
-        </tr>
-        <tr>
-            <td>Files</td>
-            <td th:text="${repair.files}"></td>
-        </tr>
-        </tbody>
-    </table>
-
-    <nav th:replace="layout :: foot"></nav>
+                <tr>
+                    <td>Replaced</td>
+                    <td th:text="${repair.replaced}"></td>
+                </tr>
+                <tr>
+                    <td>Cleaned</td>
+                    <td th:text="${repair.cleaned}"></td>
+                </tr>
+                <tr>
+                    <td>Files</td>
+                    <td th:text="${repair.files}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
+<div th:replace="layout :: foot"></div>
 </body>
 </html>
