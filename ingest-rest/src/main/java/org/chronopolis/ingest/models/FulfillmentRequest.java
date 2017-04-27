@@ -7,7 +7,7 @@ package org.chronopolis.ingest.models;
 public class FulfillmentRequest {
 
     private Long repair;
-    private String node;
+    private String from;
 
     public Long getRepair() {
         return repair;
@@ -18,12 +18,12 @@ public class FulfillmentRequest {
         return this;
     }
 
-    public String getNode() {
-        return node;
+    public String getFrom() {
+        return from;
     }
 
-    public FulfillmentRequest setNode(String node) {
-        this.node = node;
+    public FulfillmentRequest setFrom(String from) {
+        this.from = from;
         return this;
     }
 }

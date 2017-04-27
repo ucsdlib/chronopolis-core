@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head th:include="layout :: head">
-    <meta charset="UTF-8">
+    <meta charset="UTF-8"/>
     <title>Title</title>
 </head>
 <body style="background-color: #f7f7f7 !important">
@@ -81,7 +81,7 @@
             <!--/*@thymesVar id="fulfillment" type="org.chronopolis.rest.entities.Fulfillment"*/-->
             <tr th:each="fulfillment: ${fulfillments}">
                 <td th:if="${fulfillment.createdAt} != null" th:text="${fulfillment.createdAt.toLocalDate()}"></td>
-                <td><a th:text="${fulfillment.id}" th:href="@{/repairs/} + ${repair.id}"></a></td>
+                <td><a th:text="${fulfillment.id}" th:href="@{/fulfillments/} + ${fulfillment.id}"></a></td>
                 <td th:text="${fulfillment.from.username}"></td>
                 <td th:text="${fulfillment.status}"></td>
                 <td th:text="${fulfillment.updatedAt.toLocalDate()}"></td>
@@ -91,5 +91,7 @@
 
         <div th:replace="fragments/page :: page"></div>
     </div>
+</div>
+<div th:replace="layout :: foot"></div>
 </body>
 </html>
