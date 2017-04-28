@@ -8,19 +8,19 @@
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column align-items-center m-2">
 
-    <div class="card p-2">
-        <div class="card-header p-2">
+    <div class="card">
+        <div class="card-header">
             <ul class="nav nav-tabs card-header-tabs">
                 <li class="nav-item">
-                    <a data-toggle="tab" class="nav-link show active mb-2" aria-expanded="true" href="#info">User Information</a>
+                    <a data-toggle="tab" class="nav-link show active" aria-expanded="true" href="#info">User Information</a>
                 </li>
 
                 <li class="nav-item">
-                    <a data-toggle="tab" class="nav-link mb-2" aria-expanded="true" href="#update">Update Password</a>
+                    <a data-toggle="tab" class="nav-link" aria-expanded="true" href="#update">Update Password</a>
                 </li>
 
-                <li class="nav-item">
-                    <a data-toggle="tab" class="nav-link mb-2" href="#add">Add user</a>
+                <li class="nav-item" sec:authorize="hasRole('ROLE_ADMIN')">
+                    <a data-toggle="tab" class="nav-link" href="#add">Add user</a>
                 </li>
             </ul>
         </div>
@@ -48,7 +48,7 @@
                     </form>
                 </div>
 
-                <div id="add" class="tab-pane fade">
+                <div id="add" class="tab-pane fade" sec:authorize="hasRole('ROLE_ADMIN')">
                     <form enctype="application/json" method="post" name="ingest" action="/users/add"
                           th:action="@{/users/add}">
                         <div class="form-group">
