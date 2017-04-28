@@ -28,6 +28,7 @@
                 <div th:if="${missing != null}"> <!-- class="card mb-2"> -->
                     <div class="card-header" role="tab" id="missing-heading">
                         <h5 class="mb-0">
+                            <input type="checkbox" id="select-missing"/>
                             <a data-toggle="collapse" data-parent="#accordion"
                                href="#collapse-missing" aria-expanded="false"
                                aria-controls="collapse-missing" th:text="|Missing Files (${missing.size()})|">
@@ -41,7 +42,7 @@
                                 <div class="col-sm-10">
                                     <div class="form-check" th:each="item : ${missing}">
                                         <label class="form-check-label">
-                                            <input class="form-check-input" type="checkbox" name="files" th:value="${item.path}"/>
+                                            <input class="form-check-input missing" type="checkbox" name="files" th:value="${item.path}"/>
                                             <span th:text="${item.path}"></span>
                                         </label>
                                     </div>
@@ -56,6 +57,7 @@
                 <div th:if="${corrupt != null}"> <!-- class="card mb-2"> -->
                     <div class="card-header" role="tab" id="corrupt-heading">
                         <h5 class="mb-0">
+                            <input type="checkbox" id="select-corrupt"/>
                             <a data-toggle="collapse" data-parent="#accordion"
                                href="#collapse-corrupt" aria-expanded="false"
                                aria-controls="collapse-corrupt" th:text="|Corrupt Files (${corrupt.size()})|">
@@ -85,6 +87,7 @@
                 <div th:if="${invalid != null}"> <!-- class="card mb-2"> -->
                     <div class="card-header" role="tab" id="invalid-heading">
                         <h5 class="mb-0">
+                            <input type="checkbox" id="select-invalid"/>
                             <a data-toggle="collapse" data-parent="#accordion"
                                href="#collapse-invalid" aria-expanded="false"
                                aria-controls="collapse-invalid" th:text="|Invalid Files (${invalid.size()})|">
@@ -116,5 +119,16 @@
     </div>
 </div>
 <div th:replace="layout :: foot"></div>
+<script type="text/javascript">
+    $("#select-missing").click(function() {
+        $('#collapse-missing input[type=checkbox]').prop('checked', this.checked);
+    });
+    $("#select-invalid").click(function() {
+        $('#collapse-invalid input[type=checkbox]').prop('checked', this.checked);
+    });
+    $("#select-corrupt").click(function() {
+        $('#collapse-corrupt input[type=checkbox]').prop('checked', this.checked);
+    });
+</script>
 </body>
 </html>
