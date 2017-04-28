@@ -24,14 +24,14 @@
 </head>
 <body>
 
-<nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse" th:fragment="navbar">
+<nav style="background-color: #584B4F !important;" class="navbar navbar-toggleable-md navbar-inverse" th:fragment="navbar">
     <a class="navbar-brand" href="#">Chronopolis</a>
         <ul class="navbar-nav flex-row">
             <li class="nav-item" sec:authorize="isAnonymous()"><a class="nav-link spaced" href="/login"
                                                                              th:href="@{/login}">Log In</a></li>
             <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
                 <a class="nav-link spaced dropdown-toggle text-white" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Bags</a>
-                <div class="dropdown-menu bg-faded">
+                <div class="dropdown-menu bg-faded mt-2">
                     <a class="dropdown-item text-black" th:href="@{/bags/add}" href="#">Add Bag</a>
                     <a class="dropdown-item text-black" th:href="@{/bags}" href="#">List Bags</a>
                 </div>
@@ -39,7 +39,7 @@
 
             <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
                 <a class="nav-link spaced dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Replications</a>
-                <div class="dropdown-menu bg-faded">
+                <div class="dropdown-menu bg-faded mt-2">
                     <a class="dropdown-item text-black" th:href="@{/replications/add}" href="#">Add Replication</a>
                     <a class="dropdown-item text-black" th:href="@{/replications}" href="#">List Replications</a>
                 </div>
@@ -47,7 +47,7 @@
 
             <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
                 <a class="nav-link spaced dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Repairs</a>
-                <div class="dropdown-menu bg-faded">
+                <div class="dropdown-menu bg-faded mt-2">
                     <a class="dropdown-item text-black" th:href="@{/repairs/add}" href="#">Request Repair</a>
                     <a class="dropdown-item text-black" th:href="@{/repairs}" href="#">List Repairs</a>
                     <div class="dropdown-divider"></div>

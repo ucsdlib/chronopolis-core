@@ -28,12 +28,14 @@
                 <div th:if="${missing != null}"> <!-- class="card mb-2"> -->
                     <div class="card-header" role="tab" id="missing-heading">
                         <h5 class="mb-0">
-                            <a data-toggle="collapse" data-parent="#accordion" href="#collapse-missing" aria-expanded="false" aria-controls="collapse-missing">
+                            <a data-toggle="collapse" data-parent="#accordion"
+                               href="#collapse-missing" aria-expanded="false"
+                               aria-controls="collapse-missing" th:text="|Missing Files (${missing.size()})|">
                                 Missing Files
                             </a>
                         </h5>
                     </div>
-                    <div id="collapse-missing" class="collapse show" role="tabpanel" aria-labelledby="missing-heading">
+                    <div id="collapse-missing" class="collapse" role="tabpanel" aria-labelledby="missing-heading" aria-expanded="false">
                         <div class="card-block">
                             <fieldset class="form-group row">
                                 <div class="col-sm-10">
@@ -54,12 +56,14 @@
                 <div th:if="${corrupt != null}"> <!-- class="card mb-2"> -->
                     <div class="card-header" role="tab" id="corrupt-heading">
                         <h5 class="mb-0">
-                            <a data-toggle="collapse" data-parent="#accordion" href="#collapse-corrupt" aria-expanded="false" aria-controls="collapse-corrupt">
+                            <a data-toggle="collapse" data-parent="#accordion"
+                               href="#collapse-corrupt" aria-expanded="false"
+                               aria-controls="collapse-corrupt" th:text="|Corrupt Files (${corrupt.size()})|">
                                 Corrupt Files
                             </a>
                         </h5>
                     </div>
-                    <div id="collapse-corrupt" class="collapse show" role="tabpanel" aria-labelledby="corrupt-heading">
+                    <div id="collapse-corrupt" class="collapse" role="tabpanel" aria-labelledby="corrupt-heading" aria-expanded="false">
                         <div class="card-block">
                             <fieldset class="form-group row">
                                 <div class="col-sm-10">
@@ -81,12 +85,14 @@
                 <div th:if="${invalid != null}"> <!-- class="card mb-2"> -->
                     <div class="card-header" role="tab" id="invalid-heading">
                         <h5 class="mb-0">
-                            <a data-toggle="collapse" data-parent="#accordion" href="#collapse-invalid" aria-expanded="false" aria-controls="collapse-invalid">
+                            <a data-toggle="collapse" data-parent="#accordion"
+                               href="#collapse-invalid" aria-expanded="false"
+                               aria-controls="collapse-invalid" th:text="|Invalid Files (${invalid.size()})|">
                                 Invalid Files
                             </a>
                         </h5>
                     </div>
-                    <div id="collapse-invalid" class="collapse show" role="tabpanel" aria-labelledby="invalid-heading">
+                    <div id="collapse-invalid" class="collapse" role="tabpanel" aria-labelledby="invalid-heading" aria-expanded="false">
                         <div class="card-block">
                             <fieldset class="form-group row">
                                 <div class="col-sm-10">
