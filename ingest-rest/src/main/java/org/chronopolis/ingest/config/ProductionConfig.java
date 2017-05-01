@@ -1,6 +1,7 @@
 package org.chronopolis.ingest.config;
 
 import org.chronopolis.ingest.models.UserRequest;
+import org.chronopolis.ingest.models.UserRole;
 import org.chronopolis.ingest.repository.dao.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +49,7 @@ public class ProductionConfig {
 
         if (usernames.isEmpty()) {
             log.info("No users found, registering default admin user");
-            service.createUser(new UserRequest(DEFAULT_ADMIN, DEFAULT_ADMIN, true, false));
+            service.createUser(new UserRequest(DEFAULT_ADMIN, DEFAULT_ADMIN, UserRole.ROLE_ADMIN, false));
         }
 
         return true;

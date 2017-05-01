@@ -61,16 +61,7 @@ public class UserService {
 
         Collection<SimpleGrantedAuthority> authorities = new HashSet<>();
 
-        // TODO: We now have a third role (SERVICE), should update how we add the authority
-        //       maybe it can be part of the UserRequest
-        // Since we only have 2 roles at the moment it's easy to create users like this,
-        // but we really should update this to have the authorities sent in the request
-        if (request.isAdmin()) {
-            authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        } else {
-            authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-        }
-
+        authorities.add(new SimpleGrantedAuthority(request.getRole().name()));
         UserDetails userDetails = new User(username, password, authorities);
         manager.createUser(userDetails);
 

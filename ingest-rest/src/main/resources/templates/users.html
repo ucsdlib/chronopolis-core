@@ -56,7 +56,12 @@
                                                         placeholder="node-name"/></label></div>
                             <div><label>Password <input type="text" class="form-control" name="password"
                                                         placeholder="temp-password"/></label></div>
-                            <div><label>Admin <input type="checkbox" name="admin"/></label></div>
+                            <div><label>Role <select name="role">
+                               <option th:each="role : ${T(org.chronopolis.ingest.models.UserRole).values()}"
+                                    th:value="${role}"
+                                    th:text="${role}">
+                               </option>
+                            </select></label></div>
                             <div><label>Is a Node <input type="checkbox" name="node"/></label></div>
                         </div>
                         <input type="submit" class="btn btn-primary btn-small" value="Create User"/>

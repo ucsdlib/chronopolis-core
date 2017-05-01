@@ -9,13 +9,13 @@ public class UserRequest {
 
     private String username;
     private String password;
-    private boolean admin;
+    private UserRole role;
     private boolean node;
 
-    public UserRequest(String username, String password, boolean admin, boolean node) {
+    public UserRequest(String username, String password, UserRole role, boolean node) {
         this.username = username;
         this.password = password;
-        this.admin = admin;
+        this.role = role;
         this.node = node;
     }
 
@@ -40,21 +40,21 @@ public class UserRequest {
         return this;
     }
 
-    public boolean isAdmin() {
-        return admin;
-    }
-
-    public UserRequest setAdmin(boolean admin) {
-        this.admin = admin;
-        return this;
-    }
-
     public boolean isNode() {
         return node;
     }
 
     public UserRequest setNode(boolean node) {
         this.node = node;
+        return this;
+    }
+
+    public UserRole getRole() {
+        return role;
+    }
+
+    public UserRequest setRole(UserRole role) {
+        this.role = role;
         return this;
     }
 }

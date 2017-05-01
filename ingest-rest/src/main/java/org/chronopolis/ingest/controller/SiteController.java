@@ -93,7 +93,7 @@ public class SiteController extends IngestController {
      */
     @RequestMapping(value = "/users/add", method = RequestMethod.POST)
     public String createUser(UserRequest user) {
-        log.debug("Request to create user: {} {} {}", new Object[]{user.getUsername(), user.isAdmin(), user.isNode()});
+        log.debug("Request to create user: {} {} {}", new Object[]{user.getUsername(), user.getRole(), user.isNode()});
         userService.createUser(user);
         return "redirect:/users";
     }
