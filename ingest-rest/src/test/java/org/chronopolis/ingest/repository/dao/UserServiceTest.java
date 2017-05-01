@@ -3,6 +3,7 @@ package org.chronopolis.ingest.repository.dao;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;
 import org.chronopolis.ingest.models.UserRequest;
+import org.chronopolis.ingest.models.UserRole;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,7 +31,7 @@ public class UserServiceTest extends IngestTest {
     @Test
     public void testCreateExistingUser() throws Exception {
         UserRequest request = new UserRequest();
-        request.setAdmin(false);
+        request.setRole(UserRole.ROLE_USER);
         request.setNode(false);
         request.setUsername(EXISTING);
         request.setPassword(PASSWORD);
@@ -43,7 +44,7 @@ public class UserServiceTest extends IngestTest {
     @Test
     public void testCreateNewUser() throws Exception {
         UserRequest request = new UserRequest();
-        request.setAdmin(false);
+        request.setRole(UserRole.ROLE_USER);
         request.setNode(false);
         request.setUsername(NEW_USER);
         request.setPassword(PASSWORD);
