@@ -1,6 +1,8 @@
 package org.chronopolis.rest.entities;
 
+import org.chronopolis.rest.entities.fulfillment.Strategy;
 import org.chronopolis.rest.models.repair.AuditStatus;
+import org.chronopolis.rest.models.repair.FulfillmentType;
 import org.chronopolis.rest.models.repair.RepairStatus;
 
 import javax.persistence.CascadeType;
@@ -16,6 +18,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * todo: lazy fetch where we can
  *
  * Created by shake on 11/10/16.
  */
@@ -31,6 +34,7 @@ public class Repair extends UpdatableEntity {
     private String requester;
     private Boolean cleaned;
     private Boolean replaced;
+    private Boolean validated;
 
     @ManyToOne
     private Bag bag;
@@ -39,9 +43,19 @@ public class Repair extends UpdatableEntity {
     @JoinColumn(name = "to_node")
     private Node to;
 
+    @ManyToOne
+    @JoinColumn(name = "from_node")
+    private Node from;
+
+    // @OneToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+    // @JoinColumn(name = "fulfillment_id")
+    // private Fulfillment fulfillment;
+
+    @Enumerated(value = EnumType.STRING)
+    private FulfillmentType type;
+
     @OneToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
-    @JoinColumn(name = "fulfillment_id")
-    private Fulfillment fulfillment;
+    private Strategy strategy;
 
     @OneToMany(mappedBy = "repair", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<RepairFile> files;
@@ -80,6 +94,7 @@ public class Repair extends UpdatableEntity {
         return this;
     }
 
+    /*
     public Fulfillment getFulfillment() {
         return fulfillment;
     }
@@ -88,6 +103,7 @@ public class Repair extends UpdatableEntity {
         this.fulfillment = fulfillment;
         return this;
     }
+    */
 
     public Set<RepairFile> getFiles() {
         return files;
@@ -141,6 +157,42 @@ public class Repair extends UpdatableEntity {
 
     public Repair setReplaced(Boolean replaced) {
         this.replaced = replaced;
+        return this;
+    }
+
+    public Boolean getValidated() {
+        return validated;
+    }
+
+    public Repair setValidated(Boolean validated) {
+        this.validated = validated;
+        return this;
+    }
+
+    public Node getFrom() {
+        return from;
+    }
+
+    public Repair setFrom(Node from) {
+        this.from = from;
+        return this;
+    }
+
+    public FulfillmentType getType() {
+        return type;
+    }
+
+    public Repair setType(FulfillmentType type) {
+        this.type = type;
+        return this;
+    }
+
+    public Strategy getStrategy() {
+        return strategy;
+    }
+
+    public Repair setStrategy(Strategy strategy) {
+        this.strategy = strategy;
         return this;
     }
 }

@@ -5,7 +5,6 @@ import org.chronopolis.rest.models.repair.FulfillmentStatus;
 import org.chronopolis.rest.models.repair.FulfillmentType;
 
 import javax.persistence.CascadeType;
-import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
@@ -17,7 +16,8 @@ import javax.persistence.OneToOne;
  *
  * Created by shake on 11/10/16.
  */
-@Entity
+//@Entity
+@Deprecated
 public class Fulfillment extends UpdatableEntity {
 
     // Not actually sure about the cascade type here, but testing should flesh it out

@@ -30,7 +30,7 @@ public abstract class FulfillmentStrategy implements Comparable<FulfillmentStrat
      *
      * @return the StrategyEntity
      */
-    public abstract Strategy createEntity(org.chronopolis.rest.entities.Fulfillment fulfillment);
+    public abstract Strategy createEntity(org.chronopolis.rest.entities.Repair repair);
 
     /**
      * Get the FulfillmentType associated with the Strategy

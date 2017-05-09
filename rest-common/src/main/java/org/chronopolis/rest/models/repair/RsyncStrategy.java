@@ -27,7 +27,7 @@ public class RsyncStrategy extends FulfillmentStrategy {
     }
 
     @Override
-    public Strategy createEntity(org.chronopolis.rest.entities.Fulfillment fulfillment) {
+    public Strategy createEntity(org.chronopolis.rest.entities.Repair repair) {
         return new Rsync()
                 .setLink(link);
     }

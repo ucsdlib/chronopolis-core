@@ -5,6 +5,7 @@ package org.chronopolis.rest.models.repair;
  *
  * Created by shake on 11/10/16.
  */
+@Deprecated
 public enum FulfillmentStatus {
     STAGING, READY, TRANSFERRED, COMPLETE, FAILED
 }

@@ -9,6 +9,7 @@ import java.time.ZonedDateTime;
  *
  * Created by shake on 11/10/16.
  */
+@Deprecated
 public class Fulfillment implements Comparable<Fulfillment> {
 
     private Long id;
