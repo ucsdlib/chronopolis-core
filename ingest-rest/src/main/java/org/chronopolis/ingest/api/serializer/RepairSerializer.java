@@ -3,7 +3,6 @@ package org.chronopolis.ingest.api.serializer;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import org.chronopolis.rest.entities.Fulfillment;
 import org.chronopolis.rest.entities.Repair;
 import org.chronopolis.rest.entities.RepairFile;
 
@@ -32,9 +31,13 @@ public class RepairSerializer extends JsonSerializer<Repair> {
         model.setCleaned(repair.getCleaned());
         model.setReplaced(repair.getReplaced());
 
-        Fulfillment fulfillment = repair.getFulfillment();
-        if (fulfillment != null) {
-            model.setFulfillment(fulfillment.getId());
+        model.setValidated(repair.getValidated());
+        if (repair.getFrom() != null) {
+            model.setFrom(repair.getFrom().getUsername());
+        }
+        if (repair.getStrategy() != null) {
+            model.setType(repair.getType()); // push to FulfillmentStrategy?
+            model.setCredentials(repair.getStrategy().createModel());
         }
 
         jsonGenerator.writeObject(model);

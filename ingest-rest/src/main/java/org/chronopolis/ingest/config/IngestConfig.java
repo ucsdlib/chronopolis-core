@@ -5,17 +5,14 @@ import org.apache.catalina.connector.Connector;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.api.serializer.BagSerializer;
-import org.chronopolis.ingest.api.serializer.FulfillmentSerializer;
 import org.chronopolis.ingest.api.serializer.RepairSerializer;
 import org.chronopolis.ingest.api.serializer.ReplicationSerializer;
 import org.chronopolis.ingest.api.serializer.ZonedDateTimeDeserializer;
 import org.chronopolis.ingest.api.serializer.ZonedDateTimeSerializer;
 import org.chronopolis.ingest.repository.BagRepository;
-import org.chronopolis.ingest.repository.FulfillmentRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Fulfillment;
 import org.chronopolis.rest.entities.Repair;
 import org.chronopolis.rest.entities.Replication;
 import org.slf4j.Logger;
@@ -65,11 +62,6 @@ public class IngestConfig {
     }
 
     @Bean
-    public SearchService<Fulfillment, Long, FulfillmentRepository> fulfillmentService(FulfillmentRepository repository) {
-        return new SearchService<>(repository);
-    }
-
-    @Bean
     public SearchService<Bag, Long, BagRepository> bagService(BagRepository repository) {
         return new SearchService<>(repository);
     }
@@ -101,7 +93,6 @@ public class IngestConfig {
         builder.serializationInclusion(JsonInclude.Include.NON_NULL);
         builder.serializerByType(Bag.class, new BagSerializer());
         builder.serializerByType(Repair.class, new RepairSerializer());
-        builder.serializerByType(Fulfillment.class, new FulfillmentSerializer());
         builder.serializerByType(Replication.class, new ReplicationSerializer());
         builder.serializerByType(ZonedDateTime.class, new ZonedDateTimeSerializer());
         builder.deserializerByType(ZonedDateTime.class, new ZonedDateTimeDeserializer());

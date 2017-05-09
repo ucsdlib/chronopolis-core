@@ -8,15 +8,12 @@ import org.chronopolis.ingest.exception.BadRequestException;
 import org.chronopolis.ingest.exception.ConflictException;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.exception.UnauthorizedException;
-import org.chronopolis.ingest.repository.FulfillmentRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
 import org.chronopolis.ingest.repository.criteria.RepairSearchCriteria;
 import org.chronopolis.ingest.repository.dao.SearchService;
-import org.chronopolis.rest.entities.Fulfillment;
 import org.chronopolis.rest.entities.Repair;
 import org.chronopolis.rest.models.repair.ACEStrategy;
 import org.chronopolis.rest.models.repair.AuditStatus;
-import org.chronopolis.rest.models.repair.FulfillmentStatus;
 import org.chronopolis.rest.models.repair.FulfillmentType;
 import org.chronopolis.rest.models.repair.RepairRequest;
 import org.chronopolis.rest.models.repair.RepairStatus;
@@ -73,12 +70,11 @@ public class RepairControllerTest extends IngestTest {
 
     @Autowired private RepairController controller;
     @Autowired private SearchService<Repair, Long, RepairRepository> repairs;
-    @Autowired private SearchService<Fulfillment, Long, FulfillmentRepository> fulfillments;
 
     @Test
     public void getRepair() throws Exception {
         Repair repair = controller.getRequest(1L);
-        assertEquals(RepairStatus.FULFILLING, repair.getStatus());
+        assertEquals(RepairStatus.STAGING, repair.getStatus());
         assertEquals(UCSD, repair.getRequester());
     }
 
@@ -92,25 +88,6 @@ public class RepairControllerTest extends IngestTest {
         Page<Repair> repairs = controller.getRequests(ImmutableMap.of());
         assertEquals(3, repairs.getTotalElements());
     }
-
-    @Test
-    public void getFulfillment() {
-        Fulfillment fulfillment = controller.getFulfillment(1L);
-        assertEquals(UMIACS, fulfillment.getFrom().getUsername());
-        assertEquals(FulfillmentStatus.STAGING, fulfillment.getStatus());
-    }
-
-    @Test(expected = NotFoundException.class)
-    public void getFulfillmentNotFound() {
-        controller.getFulfillment(100L);
-    }
-
-    @Test
-    public void getFulfillments() {
-        Page<Fulfillment> fulfillments = controller.getFulfillments(ImmutableMap.of());
-        assertEquals(2, fulfillments.getTotalElements());
-    }
-
 
     @Test
     @WithMockUser(UMIACS)
@@ -158,8 +135,8 @@ public class RepairControllerTest extends IngestTest {
     public void fulfillRequest() throws Exception {
         controller.fulfillRequest(umiacsPrincipal, 2L);
         Repair repair = repairs.find(new RepairSearchCriteria().withId(2L));
-        assertNotNull(repair.getFulfillment());
-        assertEquals(UMIACS, repair.getFulfillment().getFrom().getUsername());
+        assertNotNull(repair.getFrom());
+        assertEquals(UMIACS, repair.getFrom().getUsername());
     }
 
     @Test(expected = ConflictException.class)
@@ -181,7 +158,7 @@ public class RepairControllerTest extends IngestTest {
                 .setApiKey("test-api-key")
                 .setUrl("test-url");
 
-        Fulfillment entity = controller.readyFulfillment(umiacsPrincipal, strategy, 1L);
+        Repair entity = controller.readyFulfillment(umiacsPrincipal, strategy, 1L);
 
         log.info(entity.toString());
         assertEquals(FulfillmentType.ACE, entity.getType());
@@ -207,17 +184,14 @@ public class RepairControllerTest extends IngestTest {
     @Test
     @WithMockUser(UMIACS)
     public void completeFulfillment() throws Exception {
-        Fulfillment fulfillment = controller.completeFulfillment(umiacsPrincipal, 2L);
-        Repair repair = fulfillment.getRepair();
-
-        assertEquals(FulfillmentStatus.COMPLETE, fulfillment.getStatus());
+        Repair repair = controller.completeFulfillment(umiacsPrincipal, 3L);
         assertEquals(RepairStatus.REPAIRED, repair.getStatus());
     }
 
     @Test(expected = UnauthorizedException.class)
     @WithMockUser(NCAR)
     public void completeFulfillmentUnauthorized() throws Exception {
-        controller.completeFulfillment(ncarPrincipal, 2L);
+        controller.completeFulfillment(ncarPrincipal, 3L);
     }
 
     @Test
@@ -278,6 +252,7 @@ public class RepairControllerTest extends IngestTest {
         controller.repairReplaced(umiacsPrincipal, 1L);
     }
 
+    /*
     @Test
     @WithMockUser(UMIACS)
     public void fulfillmentCleaned() {
@@ -296,40 +271,41 @@ public class RepairControllerTest extends IngestTest {
     public void fulfillmentCleanUnauthorized() {
         controller.fulfillmentCleaned(ncarPrincipal, 1L);
     }
+    */
 
     @Test
     @WithMockUser(UMIACS)
     public void fulfillmentUpdated() {
         // The likelihood of this test happen is very low, but we're doing it just for completeness
-        FulfillmentStatus ready = FulfillmentStatus.READY;
-        Fulfillment fulfillment = controller.fulfillmentUpdated(umiacsPrincipal, 1L, ready);
-        Assert.assertEquals(ready, fulfillment.getStatus());
+        RepairStatus ready = RepairStatus.READY;
+        Repair repair = controller.fulfillmentUpdated(umiacsPrincipal, 1L, ready);
+        Assert.assertEquals(ready, repair.getStatus());
     }
 
     @Test
     @WithMockUser(UCSD)
     public void fulfillmentUpdatedXfer() {
-        FulfillmentStatus transferred = FulfillmentStatus.TRANSFERRED;
-        Fulfillment fulfillment = controller.fulfillmentUpdated(ucsdPrincipal, 1L, transferred);
-        Assert.assertEquals(transferred, fulfillment.getStatus());
+        RepairStatus transferred = RepairStatus.TRANSFERRED;
+        Repair repair = controller.fulfillmentUpdated(ucsdPrincipal, 1L, transferred);
+        Assert.assertEquals(transferred, repair.getStatus());
     }
 
     @Test(expected = NotFoundException.class)
     @WithMockUser(UMIACS)
     public void fulfillmentUpdateNotFound() {
-        controller.fulfillmentUpdated(umiacsPrincipal, 12L, FulfillmentStatus.FAILED);
+        controller.fulfillmentUpdated(umiacsPrincipal, 12L, RepairStatus.FAILED);
     }
 
     @Test(expected = UnauthorizedException.class)
     @WithMockUser(NCAR)
     public void fulfillmentUpdateUnauthorizedXfer() {
-        controller.fulfillmentUpdated(ncarPrincipal, 1L, FulfillmentStatus.TRANSFERRED);
+        controller.fulfillmentUpdated(ncarPrincipal, 1L, RepairStatus.TRANSFERRED);
     }
 
     @Test(expected = UnauthorizedException.class)
     @WithMockUser(NCAR)
     public void fulfillmentUpdateUnauthorized() {
-        controller.fulfillmentUpdated(ncarPrincipal, 1L, FulfillmentStatus.FAILED);
+        controller.fulfillmentUpdated(ncarPrincipal, 1L, RepairStatus.FAILED);
     }
 
 }

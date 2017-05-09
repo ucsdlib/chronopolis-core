@@ -17,6 +17,9 @@ public class Params {
     public static final String PAGE  = "page";
     public static final String PAGE_SIZE = "page_size";
     public static final String STATUS = "status";
+    public static final String CLEANED = "cleaned";
+    public static final String REPLACED = "replaced";
+    public static final String VALIDATED = "validated";
 
     // Sorting
     public static final String SORT_DIRECTION = "direction";

@@ -1,33 +1,14 @@
 package org.chronopolis.ingest.controller;
 
 import org.chronopolis.ingest.IngestController;
-import org.chronopolis.ingest.PageWrapper;
-import org.chronopolis.ingest.models.FulfillmentRequest;
-import org.chronopolis.ingest.repository.FulfillmentRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
-import org.chronopolis.ingest.repository.criteria.FulfillmentSearchCriteria;
-import org.chronopolis.ingest.repository.criteria.RepairSearchCriteria;
 import org.chronopolis.ingest.repository.dao.SearchService;
-import org.chronopolis.rest.entities.Fulfillment;
-import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Repair;
-import org.chronopolis.rest.models.repair.FulfillmentStatus;
-import org.chronopolis.rest.models.repair.RepairStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 /**
  * Handle Fulfillment UI ops
@@ -40,17 +21,15 @@ public class FulfillmentUIController extends IngestController {
 
     private final NodeRepository nodes;
     private final SearchService<Repair, Long, RepairRepository> repairs;
-    private final SearchService<Fulfillment, Long, FulfillmentRepository> fulfillments;
 
     @Autowired
     public FulfillmentUIController(NodeRepository nodes,
-                                   SearchService<Repair, Long, RepairRepository> repairs,
-                                   SearchService<Fulfillment, Long, FulfillmentRepository> fulfillments) {
+                                   SearchService<Repair, Long, RepairRepository> repairs) {
         this.repairs = repairs;
         this.nodes = nodes;
-        this.fulfillments = fulfillments;
     }
 
+    /*
     @RequestMapping(path = "/fulfillments", method = RequestMethod.POST)
     public String createFulfillment(Model model, Principal principal, FulfillmentRequest request) {
         log.info("{} offering to fulfill {}", request.getFrom(), request.getRepair());
@@ -107,4 +86,5 @@ public class FulfillmentUIController extends IngestController {
         model.addAttribute("from", from);
         return "fulfillment/add";
     }
+    */
 }
