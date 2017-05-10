@@ -47,10 +47,6 @@ public class Repair extends UpdatableEntity {
     @JoinColumn(name = "from_node")
     private Node from;
 
-    // @OneToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
-    // @JoinColumn(name = "fulfillment_id")
-    // private Fulfillment fulfillment;
-
     @Enumerated(value = EnumType.STRING)
     private FulfillmentType type;
 
@@ -64,6 +60,7 @@ public class Repair extends UpdatableEntity {
     public Repair() {
         cleaned = false;
         replaced = false;
+        validated = false;
         audit = AuditStatus.PRE;
     }
 
@@ -93,17 +90,6 @@ public class Repair extends UpdatableEntity {
         this.bag = bag;
         return this;
     }
-
-    /*
-    public Fulfillment getFulfillment() {
-        return fulfillment;
-    }
-
-    public Repair setFulfillment(Fulfillment fulfillment) {
-        this.fulfillment = fulfillment;
-        return this;
-    }
-    */
 
     public Set<RepairFile> getFiles() {
         return files;
