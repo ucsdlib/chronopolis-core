@@ -11,6 +11,7 @@ import org.chronopolis.common.ace.OkBasicInterceptor;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.PageWrapper;
 import org.chronopolis.ingest.models.CollectionInfo;
+import org.chronopolis.ingest.models.FulfillmentRequest;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
@@ -183,15 +184,47 @@ public class RepairUIController extends IngestController {
     public String repair(Model model, @PathVariable("id") Long id) {
         Repair repair = repairs.find(new RepairSearchCriteria().withId(id));
         model.addAttribute("repair", repair);
+        if (repair.getStrategy() != null) {
+            model.addAttribute(repair.getType().name(), repair.getStrategy());
+        }
 
         return "repair/repair";
     }
 
-    /*
-    @RequestMapping("/repairs/new")
-    public void corruptCollections() {
+    @RequestMapping(path = "/repairs/fulfill", method = RequestMethod.GET)
+    public String fulfillRepair(Model model, Principal principal) {
+        // todo: either to withFromNot principal.getName
+        //       or disable all radios w/ the selected from in the page
+        Page<Repair> availableRepairs = repairs.findAll(new RepairSearchCriteria()
+                        .withStatus(RepairStatus.REQUESTED),
+                createPageRequest(new HashMap<>(), new HashMap<>()));
+        List<Node> from;
+        if (hasRoleAdmin()) {
+            from = nodes.findAll();
+        } else {
+            from = new ArrayList<>();
+            from.add(nodes.findByUsername(principal.getName()));
+        }
+
+        model.addAttribute("repairs", availableRepairs);
+        model.addAttribute("from", from);
+        return "repair/fulfill";
     }
-    */
+
+    @RequestMapping(path = "/repairs/fulfill", method = RequestMethod.POST)
+    public String createFulfillment(Model model, Principal principal, FulfillmentRequest request) {
+        log.info("{} offering to fulfill {}", request.getFrom(), request.getRepair());
+        Repair repair = repairs.find(new RepairSearchCriteria().withId(request.getRepair()));
+
+        if (repair.getFrom() == null) {
+            repair.setFrom(nodes.findByUsername(request.getFrom()));
+            repair.setStatus(RepairStatus.STAGING);
+            repairs.save(repair);
+        }
+
+        return "redirect:/repairs/" + repair.getId();
+    }
+
 
 
 }
