@@ -13,9 +13,6 @@ import java.util.List;
  */
 public class Repair implements Comparable<Repair> {
 
-    @Deprecated
-    private Long fulfillment;
-
     private Long id;
     private ZonedDateTime createdAt;
     private ZonedDateTime updatedAt;
@@ -42,15 +39,6 @@ public class Repair implements Comparable<Repair> {
 
     public Repair setId(Long id) {
         this.id = id;
-        return this;
-    }
-
-    public Long getFulfillment() {
-        return fulfillment;
-    }
-
-    public Repair setFulfillment(Long fulfillment) {
-        this.fulfillment = fulfillment;
         return this;
     }
 
