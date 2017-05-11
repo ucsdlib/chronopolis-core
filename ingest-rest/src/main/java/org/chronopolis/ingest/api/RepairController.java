@@ -45,7 +45,7 @@ import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
  * Created by shake on 1/24/17.
  */
 @RestController
-@RequestMapping("/api/repair")
+@RequestMapping("/api/repairs")
 public class RepairController {
     private final Logger log = LoggerFactory.getLogger(RepairController.class);
 
@@ -334,9 +334,9 @@ public class RepairController {
         return repair;
     }
 
-    /**
+    /*
      * Note that a fulfillment has been cleaned from its staging area
-     * TODO: Merge this in with the repair
+     * TODO: Find a way to denote cleaning of the staged content
      *
      * @param principal the principal of the authenticated user
      * @param id the id of the fulfillment
