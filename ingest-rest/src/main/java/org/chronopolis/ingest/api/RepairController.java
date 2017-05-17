@@ -65,17 +65,13 @@ public class RepairController {
     /**
      * Return all Repairs
      *
-     * todo: fulfillment-status -> status
-     * todo: fulfillment-validated -> validated
-     *
      * @param params a map of query parameters to search on
      * @return all the Repairs requested
      */
-    @RequestMapping(value = "/", method = RequestMethod.GET)
+    @RequestMapping(method = RequestMethod.GET)
     public Page<Repair> getRequests(@RequestParam Map<String, String> params) {
         RepairStatus status = params.containsKey(Params.STATUS) ? RepairStatus.valueOf(params.get(Params.STATUS)) : null;
 
-        // todo: no constants :(((
         RepairSearchCriteria criteria = new RepairSearchCriteria()
                 .withStatus(status)
                 .withTo(params.getOrDefault(Params.TO, null))
