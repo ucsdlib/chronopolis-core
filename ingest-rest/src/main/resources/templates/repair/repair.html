@@ -59,7 +59,7 @@
         </div>
         <div class="card-block" th:if="${repair.from} != null">
             <table class="table table-bordered w-50">
-                <!--@thymesVar id="rsync" type="org.chronopolis.rest.entities.fulfillment.Rsync"-->
+                <!--@thymesVar id="node_to_node" type="org.chronopolis.rest.entities.fulfillment.Rsync"-->
                 <!--@thymesVar id="ace" type="org.chronopolis.rest.entities.fulfillment.Ace"-->
                 <tbody>
                     <tr>
@@ -70,9 +70,9 @@
                         <td>Fulfillment Type</td>
                         <td th:text="${repair.type}"></td>
                     </tr>
-                    <tr th:if="${rsync} != null">
+                    <tr th:if="${node_to_node} != null">
                         <td>Rsync Location</td>
-                        <td th:text="${rsync.link}"></td>
+                        <td th:text="${node_to_node.link}"></td>
                     </tr>
                     <tr th:if="${ace} != null">
                         <td>ACE url</td>

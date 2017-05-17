@@ -185,7 +185,7 @@ public class RepairUIController extends IngestController {
         Repair repair = repairs.find(new RepairSearchCriteria().withId(id));
         model.addAttribute("repair", repair);
         if (repair.getStrategy() != null) {
-            model.addAttribute(repair.getType().name(), repair.getStrategy());
+            model.addAttribute(repair.getType().name().toLowerCase(), repair.getStrategy());
         }
 
         return "repair/repair";
