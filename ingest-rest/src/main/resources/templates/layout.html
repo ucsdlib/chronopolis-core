@@ -30,7 +30,7 @@
             <li class="nav-item" sec:authorize="isAnonymous()"><a class="nav-link spaced" href="/login"
                                                                              th:href="@{/login}">Log In</a></li>
             <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
-                <a class="nav-link spaced dropdown-toggle text-white" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Bags</a>
+                <a class="nav-link spaced dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Bags</a>
                 <div class="dropdown-menu bg-faded mt-2">
                     <a class="dropdown-item text-black" th:href="@{/bags/add}" href="#">Add Bag</a>
                     <a class="dropdown-item text-black" th:href="@{/bags}" href="#">List Bags</a>
@@ -49,10 +49,8 @@
                 <a class="nav-link spaced dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Repairs</a>
                 <div class="dropdown-menu bg-faded mt-2">
                     <a class="dropdown-item text-black" th:href="@{/repairs/add}" href="#">Request Repair</a>
+                    <a class="dropdown-item text-black" th:href="@{/repairs/fulfill}" href="#">Fulfill A Repair</a>
                     <a class="dropdown-item text-black" th:href="@{/repairs}" href="#">List Repairs</a>
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item text-black" th:href="@{/fulfillments/add}" href="#">Fulfill A Repair</a>
-                    <a class="dropdown-item text-black" th:href="@{/fulfillments}" href="#">List Fulfillments</a>
                 </div>
             </li>
 

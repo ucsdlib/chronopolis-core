@@ -1,6 +1,6 @@
 package org.chronopolis.rest.entities.fulfillment;
 
-import org.chronopolis.rest.entities.Fulfillment;
+import org.chronopolis.rest.entities.Repair;
 import org.chronopolis.rest.models.repair.FulfillmentStrategy;
 
 import javax.persistence.DiscriminatorColumn;
@@ -28,7 +28,7 @@ public abstract class Strategy {
     private Long id;
 
     @OneToOne(mappedBy = "strategy")
-    private Fulfillment fulfillment;
+    private Repair repair;
 
     public Long getId() {
         return id;
@@ -39,12 +39,12 @@ public abstract class Strategy {
         return this;
     }
 
-    public Fulfillment getFulfillment() {
-        return fulfillment;
+    public Repair getRepair() {
+        return repair;
     }
 
-    public Strategy setFulfillment(Fulfillment fulfillment) {
-        this.fulfillment = fulfillment;
+    public Strategy setRepair(Repair repair) {
+        this.repair = repair;
         return this;
     }
 

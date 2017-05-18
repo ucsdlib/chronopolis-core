@@ -14,11 +14,11 @@ import java.util.List;
 public class Repair implements Comparable<Repair> {
 
     private Long id;
-    private Long fulfillment;
     private ZonedDateTime createdAt;
     private ZonedDateTime updatedAt;
     private boolean cleaned;
     private boolean replaced;
+    private boolean validated;
     private AuditStatus audit;
     private RepairStatus status;
     private String to;
@@ -27,21 +27,18 @@ public class Repair implements Comparable<Repair> {
     private String collection;
     private List<String> files;
 
+    // Should we have any extra information in the credentials?
+    // like if the fulfilling node has cleaned it yet?
+    private String from;
+    private FulfillmentType type;
+    private FulfillmentStrategy credentials;
+
     public Long getId() {
         return id;
     }
 
     public Repair setId(Long id) {
         this.id = id;
-        return this;
-    }
-
-    public Long getFulfillment() {
-        return fulfillment;
-    }
-
-    public Repair setFulfillment(Long fulfillment) {
-        this.fulfillment = fulfillment;
         return this;
     }
 
@@ -141,6 +138,42 @@ public class Repair implements Comparable<Repair> {
 
     public Repair setAudit(AuditStatus audit) {
         this.audit = audit;
+        return this;
+    }
+
+    public boolean isValidated() {
+        return validated;
+    }
+
+    public Repair setValidated(boolean validated) {
+        this.validated = validated;
+        return this;
+    }
+
+    public String getFrom() {
+        return from;
+    }
+
+    public Repair setFrom(String from) {
+        this.from = from;
+        return this;
+    }
+
+    public FulfillmentType getType() {
+        return type;
+    }
+
+    public Repair setType(FulfillmentType type) {
+        this.type = type;
+        return this;
+    }
+
+    public FulfillmentStrategy getCredentials() {
+        return credentials;
+    }
+
+    public Repair setCredentials(FulfillmentStrategy credentials) {
+        this.credentials = credentials;
         return this;
     }
 

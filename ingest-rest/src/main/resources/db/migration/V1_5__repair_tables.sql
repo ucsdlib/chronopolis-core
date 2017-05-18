@@ -8,12 +8,16 @@ CREATE TABLE repair (
     updated_at TIMESTAMP,
     audit VARCHAR(255),
     status VARCHAR(255),
-    requester VARCHAR(255),
-    to_node BIGINT NOT NULL,
+    requester VARCHAR(255), -- maybe should be a bigint for the user_id instead? (when we update the user table)
     bag_id BIGINT NOT NULL,
+    to_node BIGINT NOT NULL,
+    from_node BIGINT,
     fulfillment_id BIGINT,
     cleaned BOOLEAN DEFAULT FALSE,
-    replaced BOOLEAN DEFAULT FALSE
+    replaced BOOLEAN DEFAULT FALSE,
+    validated BOOLEAN DEFAULT FALSE,
+    type VARCHAR(255),
+    strategy_id BIGINT
 );
 
 DROP TABLE IF EXISTS repair_file;
@@ -23,22 +27,6 @@ CREATE TABLE repair_file (
     id bigint PRIMARY KEY DEFAULT nextval('repair_file_id_seq'),
     path text,
     repair_id bigint
-);
-
-DROP TABLE IF EXISTS fulfillment CASCADE ;
-DROP SEQUENCE IF EXISTS fulfillment_id_seq;
-CREATE SEQUENCE fulfillment_id_seq;
-CREATE TABLE fulfillment (
-    id bigint PRIMARY KEY DEFAULT nextval('fulfillment_id_seq'),
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP,
-    from_node BIGINT NOT NULL,
-    status VARCHAR(255),
-    type VARCHAR(255),
-    strategy_id BIGINT,
-    -- repair_id BIGINT NOT NULL,
-    cleaned BOOLEAN DEFAULT FALSE,
-    validated BOOLEAN DEFAULT FALSE
 );
 
 DROP TABLE IF EXISTS strategy;
@@ -56,19 +44,13 @@ ALTER TABLE repair
     ADD CONSTRAINT FK_repair_bag FOREIGN KEY (bag_id) REFERENCES bag;
 
 ALTER TABLE repair
-    ADD CONSTRAINT FK_repair_ff FOREIGN KEY (fulfillment_id) REFERENCES fulfillment;
-
-ALTER TABLE repair
     ADD CONSTRAINT FK_repair_to FOREIGN KEY (to_node) REFERENCES node;
 
 ALTER TABLE repair_file
     ADD CONSTRAINT FK_rf_repair FOREIGN KEY (repair_id) REFERENCES repair;
 
-ALTER TABLE fulfillment
-    ADD CONSTRAINT FK_ff_strat FOREIGN KEY (strategy_id) REFERENCES strategy ON DELETE CASCADE;
+ALTER TABLE repair
+    ADD CONSTRAINT FK_repair_from FOREIGN KEY (from_node) REFERENCES node;
 
--- ALTER TABLE fulfillment
---     ADD CONSTRAINT FK_ff_repair FOREIGN KEY (repair_id) REFERENCES repair;
-
-ALTER TABLE fulfillment
-    ADD CONSTRAINT FK_ff_from FOREIGN KEY (from_node) REFERENCES node;
+ALTER TABLE repair
+    ADD CONSTRAINT FK_repair_strat FOREIGN KEY (strategy_id) REFERENCES strategy ON DELETE CASCADE;

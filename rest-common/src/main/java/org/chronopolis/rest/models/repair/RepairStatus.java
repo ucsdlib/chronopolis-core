@@ -6,5 +6,5 @@ package org.chronopolis.rest.models.repair;
  * Created by shake on 11/10/16.
  */
 public enum RepairStatus {
-    REQUESTED, FULFILLING, REPAIRED, FAILED
+    REQUESTED, STAGING, READY, TRANSFERRED, REPAIRED, FAILED
 }

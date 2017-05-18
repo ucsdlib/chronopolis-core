@@ -13,7 +13,7 @@ import org.chronopolis.rest.entities.fulfillment.Strategy;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = ACEStrategy.class, name = "ACE"),
-        @JsonSubTypes.Type(value = RsyncStrategy.class, name = "NODE_TO_NODE"),
+        @JsonSubTypes.Type(value = RsyncStrategy.class, name = "NODE_TO_NODE"), // TODO: PEER?
 })
 public abstract class FulfillmentStrategy implements Comparable<FulfillmentStrategy> {
 
@@ -30,7 +30,7 @@ public abstract class FulfillmentStrategy implements Comparable<FulfillmentStrat
      *
      * @return the StrategyEntity
      */
-    public abstract Strategy createEntity(org.chronopolis.rest.entities.Fulfillment fulfillment);
+    public abstract Strategy createEntity(org.chronopolis.rest.entities.Repair repair);
 
     /**
      * Get the FulfillmentType associated with the Strategy

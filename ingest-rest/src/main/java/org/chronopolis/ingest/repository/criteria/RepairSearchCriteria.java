@@ -3,7 +3,6 @@ package org.chronopolis.ingest.repository.criteria;
 import com.mysema.query.types.expr.BooleanExpression;
 import org.chronopolis.ingest.api.Params;
 import org.chronopolis.rest.entities.QRepair;
-import org.chronopolis.rest.models.repair.FulfillmentStatus;
 import org.chronopolis.rest.models.repair.RepairStatus;
 
 import java.util.HashMap;
@@ -46,16 +45,9 @@ public class RepairSearchCriteria implements SearchCriteria {
         return this;
     }
 
-    public RepairSearchCriteria withFulfillmentStatus(FulfillmentStatus status) {
-        if (status != null) {
-            criteria.put("FULFILLMENT_STATUS", repair.fulfillment.status.eq(status));
-        }
-        return this;
-    }
-
-    public RepairSearchCriteria withFulfillmentValidated(String validated) {
+    public RepairSearchCriteria withValidated(String validated) {
         if (validated != null && !validated.isEmpty()) {
-            criteria.put("FULFILLMENT_VALIDATED", repair.fulfillment.validated.eq(Boolean.valueOf(validated)));
+            criteria.put("VALIDATED", repair.validated.eq(Boolean.valueOf(validated)));
         }
         return this;
     }

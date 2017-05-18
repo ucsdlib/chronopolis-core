@@ -5,17 +5,8 @@ INSERT INTO bag VALUES(1, CURRENT_DATE, CURRENT_DATE, 'bag-0', 'admin', 'test-de
 --                          id, api-key,        url,                        link, type
 INSERT INTO strategy VALUES(1, 'mock-api-key', 'http://some-ace-url/ace-am', NULL, 'ACE');
 
--- create a fulfillment request
---                             id, current,     updated,      from, status, type, strat_id, cleaned, validated
-INSERT INTO fulfillment VALUES(1, CURRENT_DATE, CURRENT_DATE, 1, 'STAGING', NULL, NULL, FALSE, FALSE);
-INSERT INTO fulfillment VALUES(2, CURRENT_DATE, CURRENT_DATE, 2, 'READY', 'ACE', 1, FALSE, FALSE);
-
 -- create repair requests
---                        id created_at    updated_at  audit  status requester  to_node bag_id fulfillment_id cleaned replaced
-INSERT INTO repair VALUES(1, CURRENT_DATE, CURRENT_DATE, 'PRE', 'FULFILLING', 'ucsd', 4, 1, NULL, FALSE, FALSE);
-INSERT INTO repair VALUES(2, CURRENT_DATE, CURRENT_DATE, 'PRE','REQUESTED', 'ncar', 2, 1, NULL, FALSE, FALSE);
-INSERT INTO repair VALUES(3, CURRENT_DATE, CURRENT_DATE, 'PRE', 'REQUESTED', 'umiacs', 1, 1, NULL, FALSE, FALSE);
-
--- finish our relations
-UPDATE repair SET fulfillment_id = 1 WHERE id = 1;
-UPDATE repair SET fulfillment_id = 2 WHERE id = 3;
+--                        id created_at    updated_at  audit     status       requester  to_node from_node bag_id cleaned replaced validated type strategy_id
+INSERT INTO repair VALUES(1, CURRENT_DATE, CURRENT_DATE, 'PRE', 'STAGING',    'ucsd',    4,      1,        1,     FALSE,  FALSE,   FALSE,    NULL, NULL);
+INSERT INTO repair VALUES(2, CURRENT_DATE, CURRENT_DATE, 'PRE', 'REQUESTED',  'ncar',    2,      NULL,     1,     FALSE,  FALSE,   FALSE,    NULL, NULL);
+INSERT INTO repair VALUES(3, CURRENT_DATE, CURRENT_DATE, 'PRE', 'READY',      'umiacs',  1,      2,        1,     FALSE,  FALSE,   FALSE,    'ACE', 1);
