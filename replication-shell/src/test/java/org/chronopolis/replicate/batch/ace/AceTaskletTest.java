@@ -120,7 +120,7 @@ public class AceTaskletTest {
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
         AceRunner runner = new AceRunner(ace, ingest, replication.getId(), settings, notifier);
-        runner.run();
+        runner.get();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName(any(String.class), any(String.class));
@@ -149,7 +149,7 @@ public class AceTaskletTest {
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
         AceRunner runner = new AceRunner(ace, ingest, replication.getId(), settings, notifier);
-        runner.run();
+        runner.get();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName(any(String.class), any(String.class));
@@ -176,7 +176,7 @@ public class AceTaskletTest {
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
         AceRunner runner = new AceRunner(ace, ingest, replication.getId(), settings, notifier);
-        runner.run();
+        runner.get();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName("test-bag", "test-depositor");
@@ -203,7 +203,7 @@ public class AceTaskletTest {
         notifier = new ReplicationNotifier(replication);
 
         AceRunner runner = new AceRunner(ace, ingest, replication.getId(), settings, notifier);
-        runner.run();
+        runner.get();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName("test-bag", "test-depositor");

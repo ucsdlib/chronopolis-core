@@ -52,6 +52,7 @@ import static org.mockito.Mockito.when;
 /**
  * tests for our submitter for various flows and their outcomes
  * should these be split into multiple classes? (for ease of readability)
+ * also we can now test the result of our replication... which could be nice
  *
  * Created by shake on 10/18/16.
  */
@@ -88,7 +89,7 @@ public class SubmitterTest {
         URL resources = ClassLoader.getSystemClassLoader().getResource("");
 
         settings = new ReplicationSettings();
-        settings.setSendOnSuccess(false);
+        settings.setSendOnSuccess(true);
         settings.setPreservation(Paths.get(resources.toURI()).resolve("preservation").toString());
 
         bags = Paths.get(resources.toURI()).resolve("bags");
@@ -112,7 +113,7 @@ public class SubmitterTest {
         FixityUpdate tagUpdate = new FixityUpdate(TM_DIGEST);
 
         Mockito.doThrow(new MailSendException("Unable to send msg")).when(mail).send(any(SimpleMailMessage.class));
-        CompletableFuture<Void> submission = submitter.submit(r);
+        CompletableFuture<ReplicationStatus> submission = submitter.submit(r);
         // workaround to block on our submission
         CompletableFuture<Boolean> handle = submission.handle((ok, ex) -> true);
         handle.get();
@@ -151,7 +152,7 @@ public class SubmitterTest {
         updated.setStatus(ReplicationStatus.FAILURE_TAG_MANIFEST);
         when(ingest.getReplication(r.getId())).thenReturn(new CallWrapper<>(updated));
 
-        CompletableFuture<Void> submission = submitter.submit(r);
+        CompletableFuture<ReplicationStatus> submission = submitter.submit(r);
         submission.get();
 
         verify(ingest, times(1)).updateTokenStore(r.getId(), tokenUpdate);
@@ -204,7 +205,7 @@ public class SubmitterTest {
         when(ingest.updateReplicationStatus(eq(r.getId()), eq(new RStatusUpdate(ReplicationStatus.ACE_AUDITING))))
                 .thenReturn(new CallWrapper<>(updated));
 
-        CompletableFuture<Void> submission = submitter.submit(r);
+        CompletableFuture<ReplicationStatus> submission = submitter.submit(r);
         submission.get();
 
         verify(ingest, times(1)).updateTokenStore(r.getId(), tokenUpdate);
@@ -215,6 +216,7 @@ public class SubmitterTest {
         verify(ace, times(1)).addCollection(any(GsonCollection.class));
         verify(ace, times(1)).loadTokenStore(eq(1L), any(RequestBody.class));
         verify(ace, times(1)).startAudit(eq(1L), eq(false));
+        verify(mail, times(0)).send(any(SimpleMailMessage.class));
     }
 
     // @Test
@@ -234,11 +236,12 @@ public class SubmitterTest {
 
         when(ace.getCollectionByName(bag.getName(), bag.getDepositor())).thenReturn(new CallWrapper<>(c));
         when(ingest.updateReplicationStatus(anyLong(), any(RStatusUpdate.class))).thenReturn(new CallWrapper<>(r));
-        CompletableFuture<Void> submission = submitter.submit(r);
+        CompletableFuture<ReplicationStatus> submission = submitter.submit(r);
         submission.get();
 
         verify(ace, times(1)).getCollectionByName(bag.getName(), bag.getDepositor());
         verify(ingest, times(1)).updateReplicationStatus(1L, new RStatusUpdate(ReplicationStatus.SUCCESS));
+        verify(mail, times(1)).send(any(SimpleMailMessage.class));
     }
 
     Replication createReplication(ReplicationStatus status, Bag bag) {

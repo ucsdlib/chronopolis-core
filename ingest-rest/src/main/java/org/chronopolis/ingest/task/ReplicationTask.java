@@ -56,6 +56,7 @@ public class ReplicationTask {
 
         Collection<Bag> bags = bagRepository.findByStatus(BagStatus.TOKENIZED);
 
+        // todo: use the replicationservice (dao) for this
         for (Bag bag : bags) {
             // Set up the links for nodes to pull from
             Path tokenPath = Paths.get(tokenStage, bag.getTokenLocation());

@@ -4,9 +4,9 @@ import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.RStatusUpdate;
+import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +16,7 @@ import retrofit2.Response;
 
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.Supplier;
 
 /**
  * fish fish fish fish fish
@@ -23,7 +24,7 @@ import java.util.concurrent.CountDownLatch;
  *
  * Created by shake on 10/13/16.
  */
-public class AceCheck implements Runnable {
+public class AceCheck implements Supplier<ReplicationStatus> {
     private final Logger log = LoggerFactory.getLogger("ace-log");
 
     final AceService ace;
@@ -37,23 +38,34 @@ public class AceCheck implements Runnable {
     }
 
     @Override
-    public void run() {
+    public ReplicationStatus get() {
         Bag bag = replication.getBag();
         GetCallback callback = new GetCallback();
         Call<GsonCollection> call = ace.getCollectionByName(bag.getName(), bag.getDepositor());
         call.enqueue(callback);
         Optional<GsonCollection> collection = callback.get();
-        collection.ifPresent(this::checkCollection);
+        return collection.map(this::checkCollection)
+                .orElse(ReplicationStatus.ACE_AUDITING);
     }
 
-    private void checkCollection(GsonCollection gsonCollection) {
+    private ReplicationStatus checkCollection(GsonCollection gsonCollection) {
+        ReplicationStatus current = ReplicationStatus.ACE_AUDITING;
         log.debug("{} status is {}", gsonCollection.getName(), gsonCollection.getState());
 
         // TODO: Check for errors as well
         if (gsonCollection.getState().equals("A")) {
-            Call<Replication> call = ingest.updateReplicationStatus(replication.getId(), new RStatusUpdate(ReplicationStatus.SUCCESS));
+            current = ReplicationStatus.SUCCESS;
+            Call<Replication> call = ingest.updateReplicationStatus(replication.getId(), new RStatusUpdate(current));
             call.enqueue(new UpdateCallback());
         }
+
+        return current;
+    }
+
+    private void sendSuccess(Replication replication) {
+        String subject = "Successful replication of" + replication.getBag().getName();
+        // SimpleMailMessage message = mail.createMessage(settings.getNode(), subject, body);
+        // mail.send(message);
     }
 
     class GetCallback implements Callback<GsonCollection> {

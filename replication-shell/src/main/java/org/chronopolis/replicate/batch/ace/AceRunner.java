@@ -13,6 +13,8 @@ import retrofit2.Call;
 import retrofit2.Response;
 
 import java.io.IOException;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Manage the 3 ACE steps we do
@@ -25,7 +27,7 @@ import java.io.IOException;
  *
  * Created by shake on 10/13/16.
  */
-public class AceRunner implements Runnable {
+public class AceRunner implements Supplier<ReplicationStatus>, Function<Void, ReplicationStatus> {
     private final Logger log = LoggerFactory.getLogger("ace-log");
 
     final AceService ace;
@@ -45,16 +47,16 @@ public class AceRunner implements Runnable {
     }
 
     @Override
-    public void run() {
+    public ReplicationStatus get() {
         Replication replication = getReplication();
-
+        ReplicationStatus status = ReplicationStatus.ACE_AUDITING;
 
         // todo: find a cleaner way to do this, possibly by not chaining together all the tasks
         // check if our replication is already terminated
         // or if it hasn't reached transferred
         if (replication == null || replication.getStatus().isFailure()
                 || replication.getStatus().ordinal() < ReplicationStatus.TRANSFERRED.ordinal()) {
-            return;
+            return ReplicationStatus.FAILURE;
         }
 
         AceRegisterTasklet register = new AceRegisterTasklet(ingest, ace, replication, settings, notifier);
@@ -64,7 +66,11 @@ public class AceRunner implements Runnable {
             rest(id, replication);
         } catch (Exception e) {
             log.error("{} Error communicating with ACE", replication.getBag().getName(), e);
+            status = replication.getStatus();
         }
+
+        // This doesn't actually matter at the moment, but this should at least be somewhat sane...
+        return status;
     }
 
     private void rest(Long id, Replication replication) {
@@ -98,5 +104,11 @@ public class AceRunner implements Runnable {
         }
 
         return r;
+    }
+
+    // ///???!?!??!?!
+    @Override
+    public ReplicationStatus apply(Void aVoid) {
+        return get();
     }
 }
