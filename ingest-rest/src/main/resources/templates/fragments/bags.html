@@ -5,7 +5,7 @@
     <title></title>
 </head>
 <body>
-<div class="card filterable" th:fragment="simple-table">
+<div class="card w-75 filterable" th:fragment="simple-table">
     <div class="card-header">
         <div class="d-flex justify-content-start">
             <h3 class="card-title p-2">Bags</h3>
@@ -105,101 +105,99 @@
 
      Might put the Associated repls in a tab or smth
      -->
-<div th:fragment="info">
-    <div class="card">
-        <div class="card-header">
-            <h3>Bag Overview</h3>
-        </div>
-        <div class="card-block">
-            <form class="m-3" method="POST">
-                <table class="table table-bordered">
-                    <!--@thymesVar id="tokens" type="Long"-->
-                    <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
-                    <tbody>
-                    <tr>
-                        <td>Id</td>
-                        <td th:text="${bag.id}"></td>
-                    </tr>
-                    <tr>
-                        <td>Created By</td>
-                        <td th:text="${bag.creator}"></td>
-                    </tr>
-                    <tr>
-                        <td>Name</td>
-                        <td th:text="${bag.name}"></td>
-                    </tr>
-                    <tr>
-                        <td>Depositor</td>
-                        <td th:text="${bag.depositor}"></td>
-                    </tr>
-                    <tr>
-                        <td>Location</td>
-                        <td><input type="text" name="location" style="width: 100%" th:value="${bag.location}"/></td>
-                    </tr>
-                    <tr>
-                        <td>Size</td>
-                        <td th:text="${bag.size}"></td>
-                    </tr>
-                    <tr>
-                        <td>Num Files</td>
-                        <td th:text="${bag.totalFiles}"></td>
-                    </tr>
-                    <tr>
-                        <!-- ajax instead? -->
-                        <td>Num Tokens</td>
-                        <td th:text="${tokens}"></td>
-                    </tr>
-                    <tr>
-                        <td>Status</td>
-                        <!--@thymesVar id="statuses" type="List" -->
-                        <td>
-                            <select name="status" id="status">
-                                <option th:each="status : ${statuses}"
-                                        th:value="${status.value}" th:text="${status.value}"
-                                        th:selected="${status == bag.status}">
-                                </option>
-                                <!-- <td th:text="${bag.status}"></td> -->
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Created At</td>
-                        <td th:text="${bag.createdAt}"></td>
-                    </tr>
-                    <tr>
-                        <td>Updated At</td>
-                        <td th:text="${bag.updatedAt}"></td>
-                    </tr>
-                    </tbody>
-                </table>
-                <input type="submit" value="Update Bag" class="btn btn-primary btn-small"/>
-            </form>
-        </div>
-
-        <div class="card-header">
-            <h4>Associated Replications</h4>
-        </div>
-        <div class="card-block">
+<div class="card w-75" th:fragment="info">
+    <div class="card-header">
+        <h3>Bag Overview</h3>
+    </div>
+    <div class="card-block">
+        <form class="m-3" method="POST">
             <table class="table table-bordered">
-                <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Node</th>
-                    <th>Status</th>
-                </tr>
-                </thead>
-                <!-- lmao wait I did this wrong -->
-                <!--/*@thymesVar id="replications" type="List<Replication>"*/-->
-                <!--/*@thymesVar id="repl" type="org.chronopolis.rest.entities.Replication"*/-->
+                <!--@thymesVar id="tokens" type="Long"-->
+                <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
                 <tbody>
-                <tr th:each="repl : ${replications}">
-                    <td><a th:text="${repl.id}" th:href="@{|/replications/${repl.id}|}"></a></td>
-                    <td th:text="${repl.node.username}"></td>
-                    <td th:text="${repl.status}"></td>
+                <tr>
+                    <td>Id</td>
+                    <td th:text="${bag.id}"></td>
+                </tr>
+                <tr>
+                    <td>Created By</td>
+                    <td th:text="${bag.creator}"></td>
+                </tr>
+                <tr>
+                    <td>Name</td>
+                    <td th:text="${bag.name}"></td>
+                </tr>
+                <tr>
+                    <td>Depositor</td>
+                    <td th:text="${bag.depositor}"></td>
+                </tr>
+                <tr>
+                    <td>Location</td>
+                    <td><input type="text" name="location" style="width: 100%" th:value="${bag.location}"/></td>
+                </tr>
+                <tr>
+                    <td>Size</td>
+                    <td th:text="${bag.size}"></td>
+                </tr>
+                <tr>
+                    <td>Num Files</td>
+                    <td th:text="${bag.totalFiles}"></td>
+                </tr>
+                <tr>
+                    <!-- ajax instead? -->
+                    <td>Num Tokens</td>
+                    <td th:text="${tokens}"></td>
+                </tr>
+                <tr>
+                    <td>Status</td>
+                    <!--@thymesVar id="statuses" type="List" -->
+                    <td>
+                        <select name="status" id="status">
+                            <option th:each="status : ${statuses}"
+                                    th:value="${status.value}" th:text="${status.value}"
+                                    th:selected="${status == bag.status}">
+                            </option>
+                            <!-- <td th:text="${bag.status}"></td> -->
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Created At</td>
+                    <td th:text="${bag.createdAt}"></td>
+                </tr>
+                <tr>
+                    <td>Updated At</td>
+                    <td th:text="${bag.updatedAt}"></td>
                 </tr>
                 </tbody>
             </table>
-        </div>
+            <input type="submit" value="Update Bag" class="btn btn-primary btn-small"/>
+        </form>
+    </div>
+
+    <div class="card-header">
+        <h4>Associated Replications</h4>
+    </div>
+    <div class="card-block">
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Node</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <!-- lmao wait I did this wrong -->
+            <!--/*@thymesVar id="replications" type="List<Replication>"*/-->
+            <!--/*@thymesVar id="repl" type="org.chronopolis.rest.entities.Replication"*/-->
+            <tbody>
+            <tr th:each="repl : ${replications}">
+                <td><a th:text="${repl.id}" th:href="@{|/replications/${repl.id}|}"></a></td>
+                <td th:text="${repl.node.username}"></td>
+                <td th:text="${repl.status}"></td>
+            </tr>
+            </tbody>
+        </table>
     </div>
 </div>
 </body>

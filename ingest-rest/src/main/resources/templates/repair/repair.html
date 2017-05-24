@@ -3,11 +3,11 @@
 <head th:include="layout :: head">
     <title>Chronopolis - Repair Request</title>
 </head>
-<body style="background-color: #f7f7f7 !important">
+<body>
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column m-3 align-items-center">
     <!--@thymesVar id="repair" type="org.chronopolis.rest.entities.Repair"-->
-    <div class="card">
+    <div class="card w-75 ">
         <div class="card-header">
             <h3>Repair Overview</h3>
         </div>
@@ -36,16 +36,16 @@
                     <td th:text="${repair.to.username}"></td>
                 </tr>
                 <tr>
+                    <td>Validated</td>
+                    <td th:text="${repair.validated}"></td>
+                </tr>
+                <tr>
                     <td>Replaced</td>
                     <td th:text="${repair.replaced}"></td>
                 </tr>
                 <tr>
                     <td>Cleaned</td>
                     <td th:text="${repair.cleaned}"></td>
-                </tr>
-                <tr>
-                    <td>Validated</td>
-                    <td th:text="${repair.validated}"></td>
                 </tr>
                 <tr>
                     <td>Files</td>
