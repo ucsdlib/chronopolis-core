@@ -26,6 +26,9 @@ public class AceCredentials {
     }
 
     public AceCredentials setEndpoint(String endpoint) {
+        if (endpoint != null && !endpoint.endsWith("/")) {
+            endpoint += "/";
+        }
         this.endpoint = endpoint;
         return this;
     }
