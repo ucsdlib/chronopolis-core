@@ -3,10 +3,12 @@
 <head th:include="layout :: head">
     <title>Chronopolis - Repair Request</title>
 </head>
-<body style="background-color: #f7f7f7 !important">
+<body>
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column align-items-center m-3">
-    <div th:if="${collections == null}" class="w-50">
+    <!--/*@thymesVar id="collections" type="List<org.chronopolis.common.ace.GsonCollection>"*/-->
+    <!--/*@thymesVar id="error" type="org.chronopolis.ingest.models.HttpError"*/-->
+    <div th:if="${collections == null || error != null}" class="w-50">
         <h4>Repair Request</h4>
         <form id="request" enctype="application/json" method="post" name="replication" th:action="@{/repairs/ace}">
             <div class="form-group row">
@@ -30,9 +32,9 @@
                 </div>
             </div>
             <input type="submit" value="Next" class="btn btn-primary"/>
+            <h5 th:if="${error != null}"><span class="badge badge-danger" th:text="|Unable to connect to ACE: ${error.code} ${error.message}|"></span></h5>
         </form>
     </div>
-    <!--/*@thymesVar id="collections" type="List<org.chronopolis.common.ace.GsonCollection>"*/-->
     <div th:if="${collections != null}" class="w-75">
         <h4>Repair Request - Collections with Errors</h4>
         <div class="card mb-2 w-25" th:each="collection: ${collections}">

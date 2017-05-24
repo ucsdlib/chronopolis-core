@@ -12,6 +12,7 @@ import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.PageWrapper;
 import org.chronopolis.ingest.models.CollectionInfo;
 import org.chronopolis.ingest.models.FulfillmentRequest;
+import org.chronopolis.ingest.models.HttpError;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
@@ -101,8 +102,12 @@ public class RepairUIController extends IngestController {
             Response<List<GsonCollection>> response = call.execute();
             if (response.isSuccessful()) {
                 model.addAttribute("collections", response.body());
+            } else {
+                HttpError error = new HttpError(response.code(), response.message());
+                model.addAttribute("error", error);
             }
-        } catch (IOException ignored) {
+        } catch (IOException exception) {
+            model.addAttribute("error", new HttpError(-1, exception.getMessage()));
         }
 
         return "repair/add";
