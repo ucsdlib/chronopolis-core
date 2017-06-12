@@ -6,7 +6,7 @@
 <body>
 <nav th:replace="layout :: navbar"></nav>
 <!-- Taken from https://spring.io/guides/gs/securing-web/ -->
-<div class="d-flex flex-column m-3">
+<div class="d-flex flex-column align-items-center m-3">
     <div th:if="${param.error}">
         Invalid username and password.
     </div>
