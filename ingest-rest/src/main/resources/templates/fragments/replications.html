@@ -14,14 +14,14 @@
 
 </head>
 <body>
-<div class="card w-75 filterable" th:fragment="table">
+<div class="card w-50 filterable" th:fragment="table">
     <div class="card-header">
         <div class="d-flex justify-content-start">
             <h3 class="card-title p-2">Replications</h3>
             <button id="dropdown" class="btn btn-default btn-xs btn-filter p-2 ml-auto"
-                    data-toggle="collapse" data-target="#filter-body" aria-expanded="false" aria-controls="filter-body"><span
-                    class="glyphicon glyphicon-filter"></span>
-                Filter
+                    data-toggle="collapse" data-target="#filter-body" aria-expanded="false" aria-controls="filter-body"><i
+                    class="fa fa-search"></i>
+                Search
             </button>
         </div>
     </div>
@@ -83,8 +83,8 @@
             <th>Bag</th> <!-- Name instead? -->
             <th>Replicating Node</th>
             <th>Status</th>
-            <th>Created At</th>
-            <th>Updated At</th>
+            <th>Created At<i class="fa fa-sort fa-fw" aria-hidden="true"></i></th>
+            <th>Updated At<i class="fa fa-sort fa-fw" aria-hidden="true"></i></th>
         </tr>
         </thead>
         <tbody>
