@@ -15,6 +15,11 @@ div.sidebar {
     color: #FFF;
 }
 
+.dropdown-item:hover {
+    background-color: #D2D2D2;
+    background-image: none;
+}
+
 .nav-sidebar {
 }
 
