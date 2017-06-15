@@ -1,6 +1,8 @@
 package org.chronopolis.ingest.models;
 
 import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 
 /**
  * Hold common paging attributes
@@ -30,8 +32,8 @@ public class Paged {
     }
 
     public Paged setPage(Integer page) {
+        // We don't add the page parameter to our multimap bc it is appended in the page fragment
         this.page = page;
-        parameters.put("page", page.toString());
         return this;
     }
 
@@ -45,7 +47,7 @@ public class Paged {
         return this;
     }
 
-    public LinkedListMultimap<String, String> getParameters() {
-        return parameters;
+    public Multimap<String, String> getParameters() {
+        return Multimaps.filterValues(parameters, (value) -> (value != null && !value.isEmpty()));
     }
 }

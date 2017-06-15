@@ -1,6 +1,8 @@
 package org.chronopolis.ingest.models.filter;
 
 import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import org.chronopolis.ingest.models.Paged;
 import org.chronopolis.rest.models.BagStatus;
 
@@ -49,8 +51,9 @@ public class BagFilter extends Paged {
         return this;
     }
 
-    public LinkedListMultimap<String, String> getParameters() {
+    @Override
+    public Multimap<String, String> getParameters() {
         parameters.putAll(super.getParameters());
-        return parameters;
+        return Multimaps.filterValues(parameters, (value) -> (value != null && !value.isEmpty()));
     }
 }

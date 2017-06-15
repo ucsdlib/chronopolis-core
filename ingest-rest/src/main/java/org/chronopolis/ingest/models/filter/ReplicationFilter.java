@@ -1,10 +1,11 @@
 package org.chronopolis.ingest.models.filter;
 
 import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import org.chronopolis.ingest.models.Paged;
 import org.chronopolis.rest.models.ReplicationStatus;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -16,7 +17,7 @@ public class ReplicationFilter extends Paged {
 
     private String node;
     private String bag;
-    private List<ReplicationStatus> status = new ArrayList<>();
+    private List<ReplicationStatus> status;
 
     private LinkedListMultimap<String, String> parameters = LinkedListMultimap.create();
 
@@ -46,12 +47,12 @@ public class ReplicationFilter extends Paged {
 
     public ReplicationFilter setStatus(List<ReplicationStatus> status) {
         this.status = status;
-        status.forEach(replicationStatus -> parameters.put("stauts", replicationStatus.name()));
+        status.forEach(replicationStatus -> parameters.put("status", replicationStatus.name()));
         return this;
     }
 
-    public LinkedListMultimap<String, String> getParameters() {
+    public Multimap<String, String> getParameters() {
         parameters.putAll(super.getParameters());
-        return parameters;
+        return Multimaps.filterValues(parameters, (value) -> (value != null && !value.isEmpty()));
     }
 }
