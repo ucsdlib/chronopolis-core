@@ -7,6 +7,7 @@ import org.chronopolis.rest.models.BagStatus;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -65,6 +66,14 @@ public class BagSearchCriteria implements SearchCriteria {
         if (status != null) {
             criteria.put(Params.STATUS, bag.status.eq(status));
         }
+        return this;
+    }
+
+    public BagSearchCriteria withStatuses(List<BagStatus> statuses) {
+        if (statuses != null) {
+            criteria.put(Params.STATUS, bag.status.in(statuses));
+        }
+
         return this;
     }
 

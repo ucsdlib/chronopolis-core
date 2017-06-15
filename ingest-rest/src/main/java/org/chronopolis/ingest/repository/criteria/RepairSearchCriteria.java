@@ -6,6 +6,7 @@ import org.chronopolis.rest.entities.QRepair;
 import org.chronopolis.rest.models.repair.RepairStatus;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,6 +42,13 @@ public class RepairSearchCriteria implements SearchCriteria {
     public RepairSearchCriteria withStatus(RepairStatus status) {
         if (status != null) {
             criteria.put(Params.STATUS, repair.status.eq(status));
+        }
+        return this;
+    }
+
+    public RepairSearchCriteria withStatuses(List<RepairStatus> statuses) {
+        if (statuses != null) {
+            criteria.put(Params.STATUS, repair.status.in(statuses));
         }
         return this;
     }
