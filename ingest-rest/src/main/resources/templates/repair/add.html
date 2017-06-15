@@ -35,7 +35,7 @@
             <h5 th:if="${error != null}"><span class="badge badge-danger" th:text="|Unable to connect to ACE: ${error.code} ${error.message}|"></span></h5>
         </form>
     </div>
-    <div th:if="${collections != null}" class="w-75">
+    <div th:if="${collections != null}" class="w-50">
         <h4>Repair Request - Collections with Errors</h4>
         <div class="card mb-2 w-25" th:each="collection: ${collections}">
             <div class="card-block">

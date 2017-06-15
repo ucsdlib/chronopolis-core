@@ -38,25 +38,24 @@
             </div>
             <div class="form-group row">
             <label class="col-form-label col-2" for="direction-filter">Order By</label>
-                <div class="form-check col-1">
+                <div class="form-check col-2">
                     <label class="form-check-label">
                         <input class="form-check-input" type="radio" name="orderBy" id="optionUpdatedAt" value="updatedAt"/> UpdatedAt
                     </label>
                 </div>
-                <div class="form-check col-1">
+                <div class="form-check col-2">
                     <label class="form-check-label">
                         <input class="form-check-input" type="radio" name="orderBy" id="optionCreatedAt" value="createdAt"/> CreatedAt
                     </label>
                 </div>
-            <div class="col-2">
+            <div class="col-3">
                 <select name="dir" id="direction-filter" class="form-control">
                     <option value="ASC">Ascending</option>
                     <option value="DESC">Descending</option>
                 </select>
             </div>
             </div>
-            <button th:type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search"
-                                                                   aria-hidden="true"></span>Search</button>
+            <button th:type="submit" class="btn btn-primary">Search</button>
         </form>
     </div>
 
