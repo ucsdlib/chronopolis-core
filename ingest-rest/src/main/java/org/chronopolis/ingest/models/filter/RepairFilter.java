@@ -59,7 +59,7 @@ public class RepairFilter extends Paged {
 
     public RepairFilter setAuditStatus(List<AuditStatus> auditStatus) {
         this.auditStatus = auditStatus;
-        auditStatus.forEach(status -> parameters.put("status", status.name()));
+        auditStatus.forEach(status -> parameters.put("auditStatus", status.name()));
         return this;
     }
 
