@@ -7,6 +7,7 @@ import org.chronopolis.rest.models.ReplicationStatus;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -73,6 +74,13 @@ public class ReplicationSearchCriteria implements SearchCriteria {
     public ReplicationSearchCriteria withStatus(ReplicationStatus status) {
         if (status != null) {
             criteria.put(Params.STATUS, replication.status.eq(status));
+        }
+        return this;
+    }
+
+    public ReplicationSearchCriteria withStatuses(List<ReplicationStatus> statuses) {
+        if (statuses != null) {
+            criteria.put(Params.STATUS, replication.status.in(statuses));
         }
         return this;
     }

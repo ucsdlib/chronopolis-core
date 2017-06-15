@@ -13,6 +13,7 @@ import org.chronopolis.ingest.PageWrapper;
 import org.chronopolis.ingest.models.CollectionInfo;
 import org.chronopolis.ingest.models.FulfillmentRequest;
 import org.chronopolis.ingest.models.HttpError;
+import org.chronopolis.ingest.models.filter.RepairFilter;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
@@ -22,14 +23,18 @@ import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Repair;
+import org.chronopolis.rest.models.repair.AuditStatus;
 import org.chronopolis.rest.models.repair.RepairRequest;
 import org.chronopolis.rest.models.repair.RepairStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -45,7 +50,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Handle routing and querying for the Repair WebUI stuff
@@ -57,6 +61,7 @@ import java.util.Map;
  */
 @Controller
 public class RepairUIController extends IngestController {
+    private final Integer DEFAULT_PAGE_SIZE = 20;
 
     private final Logger log = LoggerFactory.getLogger(RepairUIController.class);
 
@@ -163,6 +168,7 @@ public class RepairUIController extends IngestController {
                 .withDepositor(request.getDepositor())
                 .withName(request.getCollection()));
         Node to = nodes.findByUsername(request.getTo().orElse(principal.getName()));
+
         Repair repair = new Repair();
         repair.setRequester(principal.getName());
         repair.setTo(to);
@@ -175,13 +181,24 @@ public class RepairUIController extends IngestController {
     }
 
     @RequestMapping(path = "/repairs", method = RequestMethod.GET)
-    public String repairs(Model model) {
-        Map<String, String> map = new HashMap<>();
-        Page<Repair> repairs = this.repairs.findAll(new RepairSearchCriteria(), createPageRequest(map, map));
-        PageWrapper<Repair> pages = new PageWrapper<>(repairs, "/repairs");
+    public String repairs(Model model, @ModelAttribute(value = "filter") RepairFilter filter) {
+        RepairSearchCriteria criteria = new RepairSearchCriteria()
+                .withTo(filter.getNode())
+                .withFulfillingNode(filter.getFulfillingNode())
+                .withStatuses(filter.getStatus())
+                .withAuditStatuses(filter.getAuditStatus());
 
-        model.addAttribute("repairs", repairs);
+        // might be able to put Sort.Direction in the Paged class
+        Sort.Direction direction = (filter.getDir() == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(filter.getDir());
+        Sort s = new Sort(direction, filter.getOrderBy());
+        Page<Repair> results = repairs.findAll(criteria, new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, s));
+
+        PageWrapper<Repair> pages = new PageWrapper<>(results, "/repairs", filter.getParameters());
+
+        model.addAttribute("repairs", results);
         model.addAttribute("pages", pages);
+        model.addAttribute("repairStatus", RepairStatus.statusByGroup());
+        model.addAttribute("auditStatus", AuditStatus.statusByGroup());
         return "repair/repairs";
     }
 

@@ -16,53 +16,45 @@
         </div>
     </div>
     <div id="filter-body" class="collapse p-2">
-        <form class="form-horizontal" role="form" th:action="@{/bags}" method="GET">
-            <div class="input-group form-group-sm">
-                <span class="input-group-addon">Depositor</span>
-                <input type="text" class="form-control" id="depositor-table-filter" name="depositor"
+        <form role="form" th:action="@{/bags}" method="GET">
+            <div class="form-group row">
+                <label for="depositor-table-filter" class="col-form-label col-2">Depositor</label>
+                <input type="text" class="form-control col-9" id="depositor-table-filter" name="depositor"
                        placeholder="Search Depositor"/>
             </div>
-            <br/>
-            <div class="input-group form-group-sm">
-                <span class="input-group-addon">Bag Name</span>
-                <input type="text" class="form-control" id="name-table-filter" name="name"
+            <div class="form-group row">
+                <label for="name-table-filter" class="col-form-label col-2">Bag Name</label>
+                <input type="text" class="form-control col-9" id="name-table-filter" name="name"
                        placeholder="Search Name"/>
             </div>
-            <br/>
-            <div class="input-group form-group-sm">
-                <span class="input-group-addon">Status</span>
-
-                <!--@thymesVar id="statuses" type="List" -->
-                <!--@thymesVar id="status" type="org.chronopolis.rest.models.BagStatus" -->
-                <select name="status" id="status-table-filter" class="form-control">
-                    <option value="">select a status</option>
-                    <option th:each="status : ${statuses}"
-                            th:value="${status.value}" th:text="${status.value}">
-
-                    </option>
+            <div class="form-group row">
+                <label for="status-table-filter" class="col-form-label col-2">Status</label>
+                <select multiple="multiple" name="status" id="status-table-filter" class="form-control col-9">
+                    <!--/*@thymesVar id="statuses" type="com.google.common.collect.ImmutableListMultimap<String, BagStatus>"*/-->
+                    <optgroup th:each="group : ${statuses.keySet()}" th:label="${group}">
+                        <option th:each="status : ${statuses.get(group)}" th:value="${status}" th:text="${status}"></option>
+                    </optgroup>
                 </select>
             </div>
-            <br/>
-            <h5>Order By</h5>
-            <div class="radio">
-                <label>
-                    <input type="radio" name="orderBy" id="optionUpdatedAt" value="updatedAt"/>
-                    Updated At
-                </label>
-            </div>
-            <div class="radio">
-                <label>
-                    <input type="radio" name="orderBy" id="optionCreatedAt" value="createdAt"/>
-                    Created At
-                </label>
-            </div>
-            <div class="input-group form-group-sm">
+            <div class="form-group row">
+            <label class="col-form-label col-2" for="direction-filter">Order By</label>
+                <div class="form-check col-1">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="radio" name="orderBy" id="optionUpdatedAt" value="updatedAt"/> UpdatedAt
+                    </label>
+                </div>
+                <div class="form-check col-1">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="radio" name="orderBy" id="optionCreatedAt" value="createdAt"/> CreatedAt
+                    </label>
+                </div>
+            <div class="col-2">
                 <select name="dir" id="direction-filter" class="form-control">
                     <option value="ASC">Ascending</option>
                     <option value="DESC">Descending</option>
                 </select>
             </div>
-            <br/>
+            </div>
             <button th:type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search"
                                                                    aria-hidden="true"></span>Search</button>
         </form>
@@ -87,7 +79,7 @@
         <!--@thymesVar id="bags" type="Page<Bag>"-->
         <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
         <tr th:each="bag: ${bags}">
-            <td><a th:text="${bag.id}" th:href="@{/bags/} + ${bag.id}"></a></td>
+            <td><a th:text="${bag.id}" th:href="@{|/bags/${bag.id}|}"></a></td>
             <td th:text="${bag.depositor}"></td>
             <td th:text="${bag.name}"></td>
             <td th:text="${bag.status}"></td>

@@ -3,9 +3,11 @@ package org.chronopolis.ingest.repository.criteria;
 import com.mysema.query.types.expr.BooleanExpression;
 import org.chronopolis.ingest.api.Params;
 import org.chronopolis.rest.entities.QRepair;
+import org.chronopolis.rest.models.repair.AuditStatus;
 import org.chronopolis.rest.models.repair.RepairStatus;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -45,6 +47,13 @@ public class RepairSearchCriteria implements SearchCriteria {
         return this;
     }
 
+    public RepairSearchCriteria withStatuses(List<RepairStatus> statuses) {
+        if (statuses != null) {
+            criteria.put(Params.STATUS, repair.status.in(statuses));
+        }
+        return this;
+    }
+
     public RepairSearchCriteria withValidated(String validated) {
         if (validated != null && !validated.isEmpty()) {
             criteria.put("VALIDATED", repair.validated.eq(Boolean.valueOf(validated)));
@@ -76,6 +85,21 @@ public class RepairSearchCriteria implements SearchCriteria {
     public RepairSearchCriteria withReplaced(String replaced) {
         if (replaced != null && !replaced.isEmpty()) {
             criteria.put("REPLACED", repair.replaced.eq(Boolean.valueOf(replaced)));
+        }
+        return this;
+    }
+
+    public RepairSearchCriteria withFulfillingNode(String fulfillingNode) {
+        if (fulfillingNode != null && !fulfillingNode.isEmpty()) {
+            criteria.put("FULFILLING_NODE", repair.from.username.eq(fulfillingNode));
+        }
+
+        return this;
+    }
+
+    public RepairSearchCriteria withAuditStatuses(List<AuditStatus> auditStatus) {
+        if (auditStatus != null && !auditStatus.isEmpty()) {
+            criteria.put("AUDIT_STATUS", repair.audit.in(auditStatus));
         }
         return this;
     }
