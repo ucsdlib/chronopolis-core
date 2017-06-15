@@ -4,6 +4,8 @@ import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.PageWrapper;
 import org.chronopolis.ingest.models.BagUpdate;
+import org.chronopolis.ingest.models.filter.BagFilter;
+import org.chronopolis.ingest.models.filter.ReplicationFilter;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
@@ -26,10 +28,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.security.Principal;
 import java.util.ArrayList;
@@ -72,53 +74,30 @@ public class BagController extends IngestController {
     /**
      * Retrieve information about all bags
      *
-     * TODO: Param Map
-     *
      * @param model - the view model
      * @param principal - authentication information
      * @return page listing all bags
      */
     @RequestMapping(value= "/bags", method = RequestMethod.GET)
     public String getBags(Model model, Principal principal,
-                          @RequestParam(defaultValue = "0", required = false) Integer page,
-                          @RequestParam(required = false) String depositor,
-                          @RequestParam(required = false) String name,
-                          @RequestParam(required = false) BagStatus status,
-                          @RequestParam(defaultValue = "id", required = false) String orderBy,
-                          @RequestParam(required = false) String dir) {
+                          @ModelAttribute(value = "filter") BagFilter filter) {
         log.info("Getting bags for user {}", principal.getName());
 
         BagSearchCriteria criteria = new BagSearchCriteria()
-                .nameLike(name)
-                .depositorLike(depositor)
-                .withStatus(status);
+                .nameLike(filter.getName())
+                .depositorLike(filter.getDepositor())
+                .withStatuses(filter.getStatus());
 
-        Sort.Direction direction = (dir == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(dir);
-        Sort s = new Sort(direction, orderBy);
-        Page<Bag> bags = bagService.findAll(criteria, new PageRequest(page, DEFAULT_PAGE_SIZE, s));
+        Sort.Direction direction = (filter.getDir() == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(filter.getDir());
+        Sort s = new Sort(direction, filter.getOrderBy());
+        Page<Bag> bags = bagService.findAll(criteria, new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, s));
 
-        boolean start;
-        StringBuilder url = new StringBuilder("/bags");
-        // if we don't append anything, let start continue being true
-        start = !append(url, "depositor", depositor, true);
-        // we only want start to remain true if (start == true && append failed)
-        append(url, "status", status, start);
-
-
-        PageWrapper<Bag> pages = new PageWrapper<>(bags, url.toString());
+        PageWrapper<Bag> pages = new PageWrapper<>(bags, "/bags", filter.getParameters());
         model.addAttribute("bags", bags);
         model.addAttribute("pages", pages);
-        model.addAttribute("statuses", Arrays.asList(BagStatus.values()));
+        model.addAttribute("statuses", BagStatus.statusByGroup());
 
         return "bags";
-    }
-
-    private boolean append(StringBuilder url, String name, BagStatus status, boolean start) {
-        if (status != null) {
-            return append(url, name, status.name(), start);
-        }
-
-        return false;
     }
 
     /**
@@ -135,9 +114,6 @@ public class BagController extends IngestController {
         BagSearchCriteria bsc = new BagSearchCriteria().withId(id);
         ReplicationSearchCriteria rsc = new ReplicationSearchCriteria().withBagId(id);
 
-        // TODO: Could probably use model.addAllAttributes and use that for
-        // common pages
-        // TODO: Handle pages for replications I guess
         model.addAttribute("bag", bagService.find(bsc));
         model.addAttribute("replications", replicationService.findAll(rsc,
                 new PageRequest(DEFAULT_PAGE, DEFAULT_PAGE_SIZE)));
@@ -218,7 +194,7 @@ public class BagController extends IngestController {
 
         bagService.save(bag);
 
-        // TODO: Redirect to /bags/{id}?
+        // TODO: Redirect to /bags/{id}
         return "redirect:/bags";
     }
 
@@ -263,60 +239,24 @@ public class BagController extends IngestController {
      */
     @RequestMapping(value = "/replications", method = RequestMethod.GET)
     public String getReplications(Model model, Principal principal,
-                                  @RequestParam(defaultValue = "0", required = false) Integer page,
-                                  @RequestParam(required = false) String node,
-                                  @RequestParam(required = false) String bag,
-                                  @RequestParam(required = false) ReplicationStatus status,
-                                  @RequestParam(defaultValue = "id", required = false) String orderBy,
-                                  @RequestParam(required = false) String dir) {
+                                  @ModelAttribute(value = "filter") ReplicationFilter filter) {
         log.info("Getting replications for user {}", principal.getName());
+
         Page<Replication> replications;
         ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
-                .bagNameLike(bag)
-                .nodeUsernameLike(node)
-                .withStatus(status);
+                .bagNameLike(filter.getBag())
+                .nodeUsernameLike(filter.getNode())
+                .withStatuses(filter.getStatus());
 
-        Sort.Direction direction = (dir == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(dir);
-        Sort s = new Sort(direction, orderBy);
-        replications = replicationService.findAll(criteria, new PageRequest(page, DEFAULT_PAGE_SIZE, s));
-
-        StringBuilder url = new StringBuilder("/replications");
-
-        boolean start;
-        // if we don't append anything, let start continue being true
-        start = !append(url, "bag", bag, true);
-        // we only want start to remain true if (start == true && append failed)
-        start = (start && !append(url, "node", node, start));
-        append(url, "status", status, start);
+        Sort.Direction direction = (filter.getDir() == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(filter.getDir());
+        Sort s = new Sort(direction, filter.getOrderBy());
+        replications = replicationService.findAll(criteria, new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, s));
 
         model.addAttribute("replications", replications);
-        model.addAttribute("statuses", Arrays.asList(ReplicationStatus.values()));
-        model.addAttribute("pages", new PageWrapper<>(replications, url.toString()));
+        model.addAttribute("statuses", ReplicationStatus.statusByGroup());
+        model.addAttribute("pages", new PageWrapper<>(replications, "/replications", filter.getParameters()));
 
         return "replications";
-    }
-
-    private boolean append(StringBuilder builder, String name, ReplicationStatus value, boolean start) {
-        if (value != null) {
-            return append(builder, name, value.name(), start);
-        }
-
-        return false;
-    }
-
-    private boolean append(StringBuilder builder, String name, String value, boolean start) {
-        if (value != null && !value.isEmpty()) {
-            if (start) {
-                builder.append("?");
-            } else {
-                builder.append("&");
-            }
-            builder.append(name).append("=").append(value);
-
-            return true;
-        }
-
-        return false;
     }
 
     @RequestMapping(value = "/replications/{id}", method = RequestMethod.GET)
