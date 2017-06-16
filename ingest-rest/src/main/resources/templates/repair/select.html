@@ -6,9 +6,10 @@
 <body>
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column m-3 align-items-center">
-    <h4>Repair Request - Errors In Collection</h4>
     <div id="accordian" role="tablist" aria-multiselectable="true" class="w-50">
-        <div class="card">
+        <h4>Repair Request</h4>
+        <h6 class="text-muted">Select files to repair</h6>
+        <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem;">
             <form id="collection" enctype="application/json" method="post" name="collection" th:action="@{/repairs}">
                 <input th:type="hidden" name="collection" th:value="${collection}"/>
                 <input th:type="hidden" name="depositor" th:value="${depositor}"/>
@@ -25,7 +26,7 @@
 
                 <!-- Missing Items -->
                 <!--/*@thymesVar id="missing" type="org.chronopolis.common.ace.MonitoredItem"*/-->
-                <div th:if="${missing != null}"> <!-- class="card mb-2"> -->
+                <div th:if="${missing != null}" style="border: 1px solid #f7f7f9;">
                     <div class="card-header" role="tab" id="missing-heading">
                         <h5 class="mb-0">
                             <input type="checkbox" id="select-missing"/>
@@ -54,7 +55,7 @@
 
                 <!-- Corrupt Items -->
                 <!--/*@thymesVar id="corrupt" type="org.chronopolis.common.ace.MonitoredItem"*/-->
-                <div th:if="${corrupt != null}"> <!-- class="card mb-2"> -->
+                <div th:if="${corrupt != null}" style="border: 1px solid #f7f7f9;"> <!-- class="card mb-2"> -->
                     <div class="card-header" role="tab" id="corrupt-heading">
                         <h5 class="mb-0">
                             <input type="checkbox" id="select-corrupt"/>
@@ -84,7 +85,7 @@
 
                 <!-- Invalid Items -->
                 <!--/*@thymesVar id="corrupt" type="org.chronopolis.common.ace.MonitoredItem"*/-->
-                <div th:if="${invalid != null}"> <!-- class="card mb-2"> -->
+                <div th:if="${invalid != null}" style="border: 1px solid #f7f7f9;"> <!-- class="card mb-2"> -->
                     <div class="card-header" role="tab" id="invalid-heading">
                         <h5 class="mb-0">
                             <input type="checkbox" id="select-invalid"/>

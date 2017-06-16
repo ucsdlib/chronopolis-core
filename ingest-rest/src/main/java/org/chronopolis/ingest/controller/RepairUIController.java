@@ -102,7 +102,7 @@ public class RepairUIController extends IngestController {
         AceCollections service = retrofit.create(AceCollections.class);
         session.setAttribute("ace", service);
         Call<List<GsonCollection>> call = service.getCollections(null, true, null);
-        log.info("{}", call.request().url());
+        log.trace("{}", call.request().url());
         try {
             Response<List<GsonCollection>> response = call.execute();
             if (response.isSuccessful()) {
