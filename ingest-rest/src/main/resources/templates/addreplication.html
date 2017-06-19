@@ -6,8 +6,10 @@
 <body>
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column align-items-center m-3">
+    <div class="w-50">
     <h4>Add Replication</h4>
-    <div class="card border-0 p-2">
+    <h6 class="text-muted">Create a new replication for a node</h6>
+    <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem;">
         <form enctype="application/json" method="post" name="replication">
             <!--@thymesVar id="bags" type="List<Bag>"-->
             <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
@@ -27,6 +29,7 @@
             </select>
             <input type="submit" value="Create Replication"/> <!-- onclick="submit()"/> -->
         </form>
+    </div>
     </div>
     <div th:replace="layout :: foot"></div>
 </div>

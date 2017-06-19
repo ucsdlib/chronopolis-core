@@ -8,7 +8,7 @@
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column align-items-center m-2">
 
-    <div class="card">
+    <div class="card w-50">
         <div class="card-header">
             <ul class="nav nav-tabs card-header-tabs">
                 <li class="nav-item">
@@ -51,19 +51,34 @@
                 <div id="add" class="tab-pane fade" sec:authorize="hasRole('ROLE_ADMIN')">
                     <form enctype="application/json" method="post" name="ingest" action="/users/add"
                           th:action="@{/users/add}">
-                        <div class="form-group">
-                            <div><label>Username <input type="text" class="form-control" name="username"
-                                                        placeholder="node-name"/></label></div>
-                            <div><label>Password <input type="text" class="form-control" name="password"
-                                                        placeholder="temp-password"/></label></div>
-                            <div><label>Role <select name="role">
-                               <option th:each="role : ${T(org.chronopolis.ingest.models.UserRole).values()}"
-                                    th:value="${role}"
-                                    th:text="${role}">
-                               </option>
-                            </select></label></div>
-                            <div><label>Is a Node <input type="checkbox" name="node"/></label></div>
-                        </div>
+                            <div class="form-group row">
+                                <label for="create-username" class="col-4 col-form-label">Username</label>
+                                <div class="col-8">
+                                    <input type="text" class="form-control" name="username" id="create-username" placeholder="node-name"/>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="create-password" class="col-4 col-form-label">Password</label>
+                                <div class="col-8">
+                                    <input type="text" class="form-control" name="password" id="create-password" placeholder="temp-password"/>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="create-role" class="col-4 col-form-label">Role</label>
+                                <div class="col-8">
+                                   <select class="form-control" id="create-role" name="role">
+                                       <option th:each="role : ${T(org.chronopolis.ingest.models.UserRole).values()}"
+                                            th:value="${role}"
+                                            th:text="${role}">
+                                       </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input class="form-check-input" type="checkbox" name="node"/>
+                                    Is a node
+                                </label></div>
                         <input type="submit" class="btn btn-primary btn-small" value="Create User"/>
                     </form>
                 </div>

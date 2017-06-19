@@ -6,9 +6,10 @@
 <body>
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column align-items-center m-3">
+    <div class="w-50">
     <h4>Add Bag</h4>
-
-    <div class="card p-2">
+    <h6 class="text-muted">Ingest a bag for a depositor</h6>
+    <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem">
         <form enctype="application/json" method="post" name="ingest">
             <div class="form-group row">
                 <label for="bag-name" class="col-4 col-form-label">Bag Name</label>
@@ -43,6 +44,7 @@
 
             <input class="btn btn-primary" type="submit" value="Create Bag"/> <!-- onclick="submit()"/> -->
         </form>
+    </div>
     </div>
 </div>
 <div th:replace="layout :: foot"></div>
