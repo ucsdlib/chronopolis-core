@@ -182,46 +182,43 @@ public class Tokenizer {
             InterruptedException {
         String line;
         boolean corrupt = false;
-        String alg = fixityAlgorithm.getName();
-        BufferedReader br = Files.newBufferedReader(manifest, Charset.defaultCharset());
 
-        while ((line = br.readLine()) != null) {
-            String[] split = line.split("\\s+", 2);
-            if (split.length != 2) {
-                log.error("Error found in manifest: {}", split);
-                continue;
-            }
+        try (BufferedReader br = Files.newBufferedReader(manifest, Charset.defaultCharset())) {
+            while ((line = br.readLine()) != null) {
+                String[] split = line.split("\\s+", 2);
+                if (split.length != 2) {
+                    log.error("Error found in manifest: {}", split);
+                    continue;
+                }
 
-            String digest = split[0];
-            String filePath = split[1];
-            Path ace = Paths.get("/");
-            Path rel = Paths.get(filePath);
+                String digest = split[0];
+                String filePath = split[1];
+                Path ace = Paths.get("/");
+                Path rel = Paths.get(filePath);
 
-            // Skip the current item if we already have it
-            // use a leading slash as our ace_tokens have it as well
-            if (filter.contains(ace.resolve(rel))) {
-                continue;
-            }
+                // Skip the current item if we already have it
+                // use a leading slash as our ace_tokens have it as well
+                if (filter.contains(ace.resolve(rel))) {
+                    continue;
+                }
 
-            Path path = Paths.get(bag.toString(), filePath);
-            String calculatedDigest = calculateDigest(path);
+                Path path = Paths.get(bag.toString(), filePath);
+                String calculatedDigest = calculateDigest(path);
 
-            if (digest.equals(calculatedDigest)) {
-                addTokenRequest(path, digest);
-                filter.add(ace.resolve(rel));
-            } else {
-                log.error("Error in file {}: digest found {} (expected {})",
-                        new Object[]{
-                                filePath,
-                                calculatedDigest,
-                                digest});
-                corrupt = true;
+                if (digest.equals(calculatedDigest)) {
+                    addTokenRequest(path, digest);
+                    filter.add(ace.resolve(rel));
+                } else {
+                    log.error("Error in file {}: digest found {} (expected {})",
+                            new Object[]{
+                                    filePath,
+                                    calculatedDigest,
+                                    digest});
+                    corrupt = true;
+                }
             }
         }
 
-        br.close();
-
-        // TODO: Move this into the public method instead
         // No corruptions (all manifests good)
         // Skip the manifest
         // Skip if we've already digested the tag manifest (tokenizer gets called multiple times)
