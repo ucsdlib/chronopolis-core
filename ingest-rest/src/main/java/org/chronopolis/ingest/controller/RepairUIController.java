@@ -50,12 +50,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Handle routing and querying for the Repair WebUI stuff
- *
- * todo: check that bags exist before adding
- * todo: move logic out of controller
  *
  * Created by shake on 4/14/17.
  */
@@ -78,11 +77,24 @@ public class RepairUIController extends IngestController {
         this.repairs = rService;
     }
 
+    /**
+     * Start a new repair request
+     *
+     * @return the add page
+     */
     @RequestMapping(path = "/repairs/add", method = RequestMethod.GET)
     public String newRepairRequest() {
         return "repair/add";
     }
 
+    /**
+     * Accept ACE credentials in order to query for corrupt collections
+     *
+     * @param model The model
+     * @param session The http session of the user
+     * @param credentials The credentials for ACE
+     * @return the corrupted collections to choose from
+     */
     @RequestMapping(path = "/repairs/ace", method = RequestMethod.POST)
     public String getCollections(Model model, HttpSession session, AceCredentials credentials) {
         Gson gson = new GsonBuilder()
@@ -105,8 +117,15 @@ public class RepairUIController extends IngestController {
         log.trace("{}", call.request().url());
         try {
             Response<List<GsonCollection>> response = call.execute();
+            // ????? this would be pretty bad performance wise because of the db reads, but w/e
+            List<GsonCollection> filtered = response.body().stream()
+                    .filter(collection ->
+                        bags.find(new BagSearchCriteria()
+                            .withName(collection.getName())
+                            .withDepositor(collection.getGroup())) != null)
+                    .collect(Collectors.toList());
             if (response.isSuccessful()) {
-                model.addAttribute("collections", response.body());
+                model.addAttribute("collections", filtered);
             } else {
                 HttpError error = new HttpError(response.code(), response.message());
                 model.addAttribute("error", error);
@@ -118,6 +137,15 @@ public class RepairUIController extends IngestController {
         return "repair/add";
     }
 
+    /**
+     * Retrieve invalid files defined by a collection
+     *
+     * @param model The model
+     * @param principal The user's principal
+     * @param session The user's http session
+     * @param infoRequest Information about the ACE collection
+     * @return page to select which files to choose
+     */
     @RequestMapping(path = "/repairs/collection", method = RequestMethod.POST)
     public String getErrors(Model model, Principal principal, HttpSession session, CollectionInfo infoRequest) {
         AceCollections collections;
@@ -161,6 +189,16 @@ public class RepairUIController extends IngestController {
         return "repair/select";
     }
 
+    /**
+     * Create a new repair request
+     *
+     * todo: still want to verify that the bag is nonnull (should be added to sql too)
+     *
+     * @param model The model
+     * @param principal The user's principal
+     * @param request The repair request to process
+     * @return The newly created repair
+     */
     @RequestMapping(path = "/repairs", method = RequestMethod.POST)
     public String requestRepair(Model model, Principal principal, RepairRequest request) {
         log.info("{} items requested", request.getFiles().size());
@@ -180,6 +218,13 @@ public class RepairUIController extends IngestController {
         return "redirect:/repairs/" + repair.getId();
     }
 
+    /**
+     * A listing of all repairs
+     *
+     * @param model the model
+     * @param filter Parameters to filter on
+     * @return The list of repairs
+     */
     @RequestMapping(path = "/repairs", method = RequestMethod.GET)
     public String repairs(Model model, @ModelAttribute(value = "filter") RepairFilter filter) {
         RepairSearchCriteria criteria = new RepairSearchCriteria()
@@ -202,6 +247,13 @@ public class RepairUIController extends IngestController {
         return "repair/repairs";
     }
 
+    /**
+     * Information about a single repair
+     *
+     * @param model The model
+     * @param id The id of the repair
+     * @return the repair specified by id
+     */
     @RequestMapping(path = "/repairs/{id}")
     public String repair(Model model, @PathVariable("id") Long id) {
         Repair repair = repairs.find(new RepairSearchCriteria().withId(id));
@@ -213,6 +265,13 @@ public class RepairUIController extends IngestController {
         return "repair/repair";
     }
 
+    /**
+     * Return repairs which can be fulfilled
+     *
+     * @param model The model
+     * @param principal The user's principal
+     * @return Repairs to fulfill
+     */
     @RequestMapping(path = "/repairs/fulfill", method = RequestMethod.GET)
     public String fulfillRepair(Model model, Principal principal) {
         // todo: either to withFromNot principal.getName
@@ -233,13 +292,23 @@ public class RepairUIController extends IngestController {
         return "repair/fulfill";
     }
 
+    /**
+     * Fulfill a repair
+     *
+     * @param model the model
+     * @param principal the user's principal
+     * @param request fulfillment information
+     * @return the repair being fulfilled
+     */
     @RequestMapping(path = "/repairs/fulfill", method = RequestMethod.POST)
     public String createFulfillment(Model model, Principal principal, FulfillmentRequest request) {
         log.info("{} offering to fulfill {}", request.getFrom(), request.getRepair());
         Repair repair = repairs.find(new RepairSearchCriteria().withId(request.getRepair()));
+        String toNode = repair.getTo().getUsername();
+        String fromNode = request.getFrom();
 
-        if (repair.getFrom() == null) {
-            repair.setFrom(nodes.findByUsername(request.getFrom()));
+        if (repair.getFrom() == null && !Objects.equals(toNode, fromNode)) {
+            repair.setFrom(nodes.findByUsername(fromNode));
             repair.setStatus(RepairStatus.STAGING);
             repairs.save(repair);
         }
