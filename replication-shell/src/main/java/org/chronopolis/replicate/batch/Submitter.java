@@ -102,6 +102,7 @@ public class Submitter {
                     return null;
             }
 
+            // handle instead of whenComplete?
             return future.whenComplete(new Completer(replication));
         } else {
             log.debug("Replication {} is already running", identifier);
@@ -195,7 +196,10 @@ public class Submitter {
                     body = "";
                     send(subject, body);
                 }
+            } catch (Exception e) {
+                log.error("Exception caught sending mail", e);
             } finally {
+                log.debug("{} removing from threadpool", s);
                 replicating.remove(s);
             }
         }

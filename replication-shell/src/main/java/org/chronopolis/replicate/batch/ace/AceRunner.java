@@ -78,7 +78,7 @@ public class AceRunner implements Supplier<ReplicationStatus>, Function<Void, Re
         //       - load tokens + validate we have the expected amount (maybe pull info from ingest)
         //       - run audit
         AceTokenTasklet token = new AceTokenTasklet(ingest, ace, replication, settings, notifier, id);
-        AceAuditTasklet audit = new AceAuditTasklet(ingest, ace, replication, settings, notifier, id);
+        AceAuditTasklet audit = new AceAuditTasklet(ingest, ace, replication, notifier, id);
         for (Runnable runnable : ImmutableList.of(token, audit)) {
             if (notifier.isSuccess()) {
                 runnable.run();

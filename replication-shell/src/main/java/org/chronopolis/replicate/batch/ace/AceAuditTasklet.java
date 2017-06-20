@@ -3,7 +3,6 @@ package org.chronopolis.replicate.batch.ace;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
-import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.Replication;
@@ -29,7 +28,7 @@ public class AceAuditTasklet implements Runnable {
     private ReplicationNotifier notifier;
     private Long id;
 
-    public AceAuditTasklet(IngestAPI ingest, AceService aceService, Replication replication, ReplicationSettings settings, ReplicationNotifier notifier, Long id) {
+    public AceAuditTasklet(IngestAPI ingest, AceService aceService, Replication replication, ReplicationNotifier notifier, Long id) {
         this.ingest = ingest;
         this.aceService = aceService;
         this.replication = replication;
