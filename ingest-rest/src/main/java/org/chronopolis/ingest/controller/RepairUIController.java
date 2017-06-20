@@ -100,7 +100,7 @@ public class RepairUIController extends IngestController {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Date.class,
                         (JsonDeserializer<Date>)
-                        (jsonElement, type, jsonDeserializationContext) -> new Date(jsonElement.getAsLong())
+                                (jsonElement, type, jsonDeserializationContext) -> new Date(jsonElement.getAsLong())
                 ).create();
 
         Retrofit retrofit = new Retrofit.Builder()
@@ -117,14 +117,14 @@ public class RepairUIController extends IngestController {
         log.trace("{}", call.request().url());
         try {
             Response<List<GsonCollection>> response = call.execute();
-            // ????? this would be pretty bad performance wise because of the db reads, but w/e
-            List<GsonCollection> filtered = response.body().stream()
-                    .filter(collection ->
-                        bags.find(new BagSearchCriteria()
-                            .withName(collection.getName())
-                            .withDepositor(collection.getGroup())) != null)
-                    .collect(Collectors.toList());
             if (response.isSuccessful()) {
+                // ????? this would be pretty bad performance wise because of the db reads, but w/e
+                List<GsonCollection> filtered = response.body().stream()
+                        .filter(collection ->
+                                bags.find(new BagSearchCriteria()
+                                        .withName(collection.getName())
+                                        .withDepositor(collection.getGroup())) != null)
+                        .collect(Collectors.toList());
                 model.addAttribute("collections", filtered);
             } else {
                 HttpError error = new HttpError(response.code(), response.message());
