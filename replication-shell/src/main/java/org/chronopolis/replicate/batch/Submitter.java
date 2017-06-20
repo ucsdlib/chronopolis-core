@@ -66,7 +66,7 @@ public class Submitter {
     }
 
     public boolean isRunning(Replication replication) {
-        return replicating.contains(replication.getBag().getDepositor() + "/" + replication.getBag().getName());
+        return replicating.contains(replicationIdentifier(replication));
     }
 
     /**
@@ -77,7 +77,7 @@ public class Submitter {
      * @return a {@link CompletableFuture} of the replication flow
      */
     public CompletableFuture<ReplicationStatus> submit(Replication replication) {
-        String identifier = replication.getBag().getDepositor() + "/" + replication.getBag().getName();
+        String identifier = replicationIdentifier(replication);
 
         // todo: do we want to run through the entire flow or have it staggered like before?
         if (replicating.add(identifier)) {
@@ -161,9 +161,8 @@ public class Submitter {
      * Consumer which runs at the end of a replication, ensures removal from the
      * replicating set
      *
-     * todo: send mail (eventually switch to a better interface for notifications
-     *                  so we can have multiple outputs. i.e. email, slack, db,
-     *                  etc)
+     * eventually switch to a better interface for notifications
+     * so we can have multiple outputs. i.e. email, slack, db, etc
      *
      */
     private class Completer implements BiConsumer<ReplicationStatus, Throwable> {
@@ -177,7 +176,7 @@ public class Submitter {
 
         @Override
         public void accept(ReplicationStatus status, Throwable throwable) {
-            String s = replication.getBag().getDepositor() + "/" + replication.getBag().getName();
+            String s = replicationIdentifier(replication);
             String body;
             String subject;
 
@@ -205,6 +204,10 @@ public class Submitter {
             SimpleMailMessage message = mail.createMessage(settings.getNode(), subject, body);
             mail.send(message);
         }
+    }
+
+    private String replicationIdentifier(Replication replication) {
+        return replication.getBag().getDepositor() + "/" + replication.getBag().getName();
     }
 
 }
