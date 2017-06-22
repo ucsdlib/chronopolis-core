@@ -51,17 +51,30 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
         this.nodeRepository = nodeRepository;
     }
 
-    /*
-     * Save a replication and the correlated bag
+
+    /**
+     * Public method to create a replication based on a bag id and node id
      *
-     * @param replication the replication to save
-    @Override
-    public void save(Replication replication) {
-        // todo: this should cascade, not sure if we really need it
-        replicationRepository.save(replication);
-        bagRepository.save(replication.getBag());
+     * @param bagId the id of the bag to replicate
+     * @param nodeId the id of the node to replicate to
+     * @throws NotFoundException if the bag or node do not exist
+     * @return the newly created replication
+     */
+    public Replication create(Long bagId, Long nodeId, IngestSettings settings) {
+        log.debug("Processing request for Bag {}", bagId);
+
+        // Get our db resources
+        Node node = nodeRepository.findOne(nodeId);
+        Bag bag = bagRepository.findOne(bagId);
+
+        if (bag == null) {
+            throw new NotFoundException("Bag " + bagId);
+        } else if (node == null) {
+            throw new NotFoundException("Node " + nodeId);
+        }
+
+        return create(bag, node, settings);
     }
-    */
 
     /**
      * Create a new replication for the Node (user) based on the Bag Id
@@ -69,17 +82,22 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
      *
      * @param request The request to create a replication for
      * @param settings The settings for basic information
-     * @throws NotFoundException if the bag does not exist
+     * @throws NotFoundException if the bag or node do not exist
+     * @return the newly created replication
      */
     public Replication create(ReplicationRequest request, IngestSettings settings) {
-        // Get our db resources
-        log.debug("Processing request for Bag {}", request.getBagId());
-        Node node = nodeRepository.findOne(request.getNodeId());
-        Bag bag = bagRepository.findOne(request.getBagId());
+       return create(request.getBagId(), request.getNodeId(), settings);
+    }
 
-        if (bag == null) {
-            throw new NotFoundException("Bag " + request.getBagId());
-        }
+    /**
+     * Our private method to encapsulate the work involved for creating a replication
+     *
+     * @param bag The bag to create a replication for
+     * @param node The node to send the replication to
+     * @param settings The settings for basic information
+     * @return the newly created replication
+     */
+    private Replication create(Bag bag, Node node, IngestSettings settings) {
 
         // create a dist object if it's missing
         // todo: move this out of the replication create
