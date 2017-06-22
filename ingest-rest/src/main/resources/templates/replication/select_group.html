@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout :: head">
+    <title>Chronopolis Ingestion Service</title>
+</head>
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column align-items-center m-3">
+    <div class="w-50">
+    <h4>Add Replication</h4>
+    <h6 class="text-muted">Select the depositor</h6>
+    <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem;">
+        <form enctype="application/json" method="post" name="replication">
+            <!--@thymesVar id="depositors" type="List<String>"-->
+            <select name="depositor" id="depositor">
+                <option th:each="depositor: ${depositors}"
+                        th:value="${depositor}" th:text="${depositor}">
+                </option>
+            </select>
+
+            <input class="btn btn-primary" type="submit" value="Next"/> <!-- onclick="submit()"/> -->
+        </form>
+    </div>
+    </div>
+    <div th:replace="layout :: foot"></div>
+</div>
+</body>
+</html>
