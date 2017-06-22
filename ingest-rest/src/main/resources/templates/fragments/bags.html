@@ -181,7 +181,6 @@
                 <th>Status</th>
             </tr>
             </thead>
-            <!-- lmao wait I did this wrong -->
             <!--/*@thymesVar id="replications" type="List<Replication>"*/-->
             <!--/*@thymesVar id="repl" type="org.chronopolis.rest.entities.Replication"*/-->
             <tbody>
@@ -192,6 +191,7 @@
             </tr>
             </tbody>
         </table>
+        <a class="btn btn-primary" th:href="@{/replications/create(bag=${bag.id})}">Create Replication</a>
     </div>
 </div>
 </body>

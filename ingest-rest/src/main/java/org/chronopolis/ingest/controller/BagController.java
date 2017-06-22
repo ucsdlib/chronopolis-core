@@ -4,6 +4,7 @@ import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.PageWrapper;
 import org.chronopolis.ingest.models.BagUpdate;
+import org.chronopolis.ingest.models.ReplicationCreate;
 import org.chronopolis.ingest.models.filter.BagFilter;
 import org.chronopolis.ingest.models.filter.ReplicationFilter;
 import org.chronopolis.ingest.repository.BagRepository;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.security.Principal;
 import java.util.ArrayList;
@@ -288,20 +290,47 @@ public class BagController extends IngestController {
     }
 
     /**
+     * Handle a request to create a replication from the Bag.id page
+     *
+     * @param model the model of the response
+     * @param bag the bag id to create replications for
+     * @return the create replication form
+     */
+    @RequestMapping(value = "/replications/create", method = RequestMethod.GET)
+    public String createReplicationForm(Model model, Principal principal, @RequestParam("bag") Long bag) {
+        model.addAttribute("bag", bag);
+        if (hasRoleAdmin()) {
+            model.addAttribute("nodes", nodeRepository.findAll());
+        } else {
+            List<Node> nodes = new ArrayList<>();
+            Node node = nodeRepository.findByUsername(principal.getName());
+            if (node != null) {
+                nodes.add(node);
+            }
+            model.addAttribute("nodes", nodes);
+        }
+        return "replications/create";
+    }
+
+    @RequestMapping(value = "/replications/create", method = RequestMethod.POST)
+    public String createReplications(@ModelAttribute("form") ReplicationCreate form) {
+        log.info("Creating new replication from form");
+        final Long bag = form.getBag();
+        form.getNodes().forEach(nodeId -> replicationService.create(bag, nodeId, settings));
+        return "redirect:/replications/";
+    }
+
+    /**
      * Handler for adding bags
      *
-     * @param model - the view model
      * @param request - the request containing the bag name, depositor, and location
      * @return redirect to all replications
      */
     @RequestMapping(value = "/replications/add", method = RequestMethod.POST)
-    public String addReplication(Model model, ReplicationRequest request) {
-        log.info("Adding new replication from web ui");
-
+    public String addReplication(ReplicationRequest request) {
+        log.info("Creating new replication from add");
         Replication replication = replicationService.create(request, settings);
-
-        // TODO: replicatons/id
-        return "redirect:/replications";
+        return "redirect:/replications/" + replication.getId();
     }
 
 }
