@@ -1,6 +1,7 @@
 package org.chronopolis.ingest.repository;
 
-import com.mysema.query.types.expr.BooleanExpression;
+
+import com.querydsl.core.types.dsl.BooleanExpression;
 
 /**
  * Class with helper functions common to our needs for querydsl

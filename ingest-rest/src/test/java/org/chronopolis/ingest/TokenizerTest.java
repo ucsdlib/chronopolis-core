@@ -17,14 +17,15 @@ import org.chronopolis.rest.entities.Bag;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,13 +44,15 @@ import static org.mockito.Mockito.when;
  *
  * Created by shake on 8/25/15.
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = TestApplication.class)
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = TestApplication.class)
 @SqlGroup({
         @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:sql/createBagsWithTokens.sql"),
         @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = "classpath:sql/deleteBagsWithTokens.sql")
 })
 public class TokenizerTest extends IngestTest {
+    private final Logger log = LoggerFactory.getLogger(TokenizerTest.class);
+
     private final int TOTAL_TOKENS = 3;
     private final int FULL_BATCH_CALLS = 3;
     private final int PART_BATCH_CALLS = 2;
@@ -66,8 +69,8 @@ public class TokenizerTest extends IngestTest {
     @Autowired TokenRepository tokenRepository;
 
     // Two tokenizers for each bag we do
-    @InjectMocks Tokenizer fullTokenizer;
-    @InjectMocks Tokenizer partialTokenizer;
+    Tokenizer fullTokenizer;
+    Tokenizer partialTokenizer;
 
     // Our mocks which get injected
     @Mock Tokenizer.IMSFactory factory;
@@ -77,12 +80,18 @@ public class TokenizerTest extends IngestTest {
     public void setup() {
         // Create the tokenizer for digesting all tokens
         Bag fullBag = bagRepository.findOne(Long.valueOf(1));
+        log.info("------------");
+        log.info("{} algorithm=", fullBag.getName(), fullBag.getFixityAlgorithm());
+        log.info("------------");
         Path fullPath = Paths.get(settings.getBagStage(), fullBag.getLocation());
         fullCallback = new TokenCallback(tokenRepository, fullBag);
         fullTokenizer = new Tokenizer(fullPath, fullBag.getFixityAlgorithm(), IMS_HOST, fullCallback);
 
         // Create the tokenizer for digesting some tokens
         Bag partialBag = bagRepository.findOne(Long.valueOf(2));
+        log.info("------------");
+        log.info("{} algorithm=", partialBag.getName(), partialBag.getFixityAlgorithm());
+        log.info("------------");
         Path partialPath = Paths.get(settings.getBagStage(), partialBag.getLocation());
         partialCallback = new TokenCallback(tokenRepository, partialBag);
         partialTokenizer = new Tokenizer(partialPath, partialBag.getFixityAlgorithm(), IMS_HOST, partialCallback);

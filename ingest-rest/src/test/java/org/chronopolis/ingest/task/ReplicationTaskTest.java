@@ -7,7 +7,7 @@ import org.chronopolis.rest.entities.Replication;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -22,7 +22,7 @@ import static junit.framework.Assert.assertEquals;
  * Created by shake on 8/6/15.
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = TestApplication.class)
+@SpringBootTest(classes = TestApplication.class)
 @SqlGroup({
         // We only want bags to be inserted for these tests
         // but when tearing down remove the replications as well

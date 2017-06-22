@@ -1,6 +1,6 @@
 package org.chronopolis.ingest.repository.criteria;
 
-import com.mysema.query.types.expr.BooleanExpression;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import org.chronopolis.ingest.api.Params;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.models.BagStatus;

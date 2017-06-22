@@ -12,6 +12,8 @@ import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Optional;
@@ -25,7 +27,7 @@ import java.util.concurrent.TimeUnit;
  * Created by shake on 5/22/15.
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = TestApplication.class)
+@SpringBootTest(classes = TestApplication.class)
 public class TokenThreadPoolExecutorTest extends IngestTest {
     private final Logger log = LoggerFactory.getLogger(TokenThreadPoolExecutorTest.class);
 

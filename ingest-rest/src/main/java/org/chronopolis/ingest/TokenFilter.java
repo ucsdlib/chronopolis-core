@@ -1,6 +1,6 @@
 package org.chronopolis.ingest;
 
-import com.mysema.query.types.expr.BooleanExpression;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import org.chronopolis.common.util.Filter;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.rest.entities.AceToken;

@@ -3,6 +3,7 @@ package org.chronopolis.ingest.repository.dao;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.rest.entities.Bag;
 
+import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 
 /**
@@ -13,8 +14,11 @@ import javax.transaction.Transactional;
 @Transactional
 public class BagService extends SearchService<Bag, Long, BagRepository> {
 
-    public BagService(BagRepository bagRepository) {
+    private final EntityManager entityManager;
+
+    public BagService(BagRepository bagRepository, EntityManager entityManager) {
         super(bagRepository);
+        this.entityManager = entityManager;
     }
 
 }
