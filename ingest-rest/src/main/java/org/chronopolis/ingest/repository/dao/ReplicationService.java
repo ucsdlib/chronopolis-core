@@ -90,14 +90,15 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
     }
 
     /**
-     * Our private method to encapsulate the work involved for creating a replication
+     * Create a replication with a Bag and Node which have already been
+     * pulled from the DB
      *
      * @param bag The bag to create a replication for
      * @param node The node to send the replication to
      * @param settings The settings for basic information
      * @return the newly created replication
      */
-    private Replication create(Bag bag, Node node, IngestSettings settings) {
+    public Replication create(final Bag bag, final Node node, IngestSettings settings) {
 
         // create a dist object if it's missing
         // todo: move this out of the replication create
@@ -168,7 +169,6 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
         }
     }
 
-    // Maybe could be a class of its own where we pass everything in and get back the link
     private String buildLink(String user, String server, Path file) {
         return user +
                 "@" + server +
