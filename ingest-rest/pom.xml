@@ -19,13 +19,15 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+
+            <!--
             <plugin>
-                <groupId>com.mysema.querydsl</groupId>
+                <groupId>com.querydsl</groupId>
                 <artifactId>querydsl-maven-plugin</artifactId>
-                <version>3.6.3</version>
+                <version>4.1.4</version>
                 <executions>
                     <execution>
-                        <phase>generate-sources</phase>
+                        <phase>process-classes</phase>
                         <goals>
                             <goal>jpa-export</goal>
                         </goals>
@@ -38,6 +40,7 @@
                     </execution>
                 </executions>
             </plugin>
+            -->
         </plugins>
     </build>
 
@@ -102,9 +105,8 @@
         </dependency>
 
         <dependency>
-            <groupId>postgresql</groupId>
+            <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>9.1-901-1.jdbc4</version>
         </dependency>
 
         <dependency>
@@ -133,18 +135,6 @@
             <groupId>org.webjars</groupId>
             <artifactId>jquery</artifactId>
             <version>2.2.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.mysema.querydsl</groupId>
-            <artifactId>querydsl-apt</artifactId>
-            <version>3.6.3</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.mysema.querydsl</groupId>
-            <artifactId>querydsl-jpa</artifactId>
-            <version>3.6.3</version>
         </dependency>
 
         <dependency>
