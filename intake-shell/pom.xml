@@ -5,11 +5,11 @@
     <parent>
         <groupId>org.chronopolis</groupId>
         <artifactId>chronopolis</artifactId>
-        <version>1.5.0-SNAPSHOT</version>
+        <version>1.5.0-RELEASE</version>
     </parent>
     <groupId>org.chronopolis</groupId>
     <artifactId>intake-shell</artifactId>
-    <version>1.5.0-SNAPSHOT</version>
+    <version>1.5.0-RELEASE</version>
     <packaging>jar</packaging>
     <name>Intake Shell</name>
     <url>https://chron-git.umiacs.umd.edu/chron-core/</url>
