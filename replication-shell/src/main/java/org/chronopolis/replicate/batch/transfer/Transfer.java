@@ -46,7 +46,7 @@ public interface Transfer {
                         + " does does not exist");
             }
 
-            hash = Files.hash(path.toFile(), hashFunction);
+            hash = Files.asByteSource(path.toFile()).hash(hashFunction);
             update(hash);
         } catch (IOException e) {
             log.error("{} Error hashing file", bag.getName(), e);
