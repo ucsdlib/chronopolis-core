@@ -3,118 +3,112 @@
 <head lang="en">
     <meta charset="UTF-8"/>
     <title></title>
-    <link href="../static/css/bootstrap.min.css"
-          th:href="@{/css/bootstrap.min.css}"
-          rel="stylesheet">
-    </link>
-
 </head>
 <body>
-<div th:fragment="simple-table">
-    <div class="panel panel-info filterable">
-        <div class="panel-heading">
-            <h3 class="panel-title">Bags</h3>
-            <div class="pull-right">
-                <button id="dropdown" class="btn btn-default btn-xs btn-filter"><span
-                        class="glyphicon glyphicon-filter"></span> Filter
-                </button>
-            </div>
+<div class="card w-50 filterable" th:fragment="simple-table">
+    <div class="card-header">
+        <div class="d-flex justify-content-start">
+            <h3 class="card-title p-2">Bags</h3>
+            <button data-toggle="collapse" data-target="#filter-body" id="dropdown" class="btn btn-default btn-xs btn-filter ml-auto p-2"
+                    aria-expanded="false" aria-controls="filter-body">
+                <i class="fa fa-search"></i> Search
+            </button>
         </div>
-        <div id="filter-body" class="panel-body" style="display: none">
-            <form class="form-horizontal" role="form" th:action="@{/bags}" method="GET">
-                <div class="input-group form-group-sm">
-                    <span class="input-group-addon">Depositor</span>
-                    <input type="text" class="form-control" id="depositor-table-filter" name="depositor"
-                           placeholder="Search Depositor"/>
-                </div>
-                <br/>
-                <div class="input-group form-group-sm">
-                    <span class="input-group-addon">Bag Name</span>
-                    <input type="text" class="form-control" id="name-table-filter" name="name"
-                           placeholder="Search Name"/>
-                </div>
-                <br/>
-                <div class="input-group form-group-sm">
-                    <span class="input-group-addon">Status</span>
-
-                    <!--@thymesVar id="statuses" type="List" -->
-                    <!--@thymesVar id="status" type="org.chronopolis.rest.models.BagStatus" -->
-                    <select name="status" id="status-table-filter" class="form-control">
-                        <option value="">select a status</option>
-                        <option th:each="status : ${statuses}"
-                                th:value="${status.value}" th:text="${status.value}">
-
-                        </option>
-                    </select>
-                </div>
-                <br/>
-                <!-- TODO: Fragment? -->
-                <h5>Order By</h5>
-                <div class="radio">
-                    <label>
-                        <input type="radio" name="orderBy" id="optionUpdatedAt" value="updatedAt"/>
-                        Updated At
-                    </label>
-                </div>
-                <div class="radio">
-                    <label>
-                        <input type="radio" name="orderBy" id="optionCreatedAt" value="createdAt"/>
-                        Created At
-                    </label>
-                </div>
-                <div class="input-group form-group-sm">
-                    <select name="dir" id="direction-filter" class="form-control">
-                        <option value="ASC">Ascending</option>
-                        <option value="DESC">Descending</option>
-                    </select>
-                </div>
-                <br/>
-                <button th:type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search"
-                                                                       aria-hidden="true"></span></button>
-            </form>
-        </div>
-
-        <table class="table table-striped">
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>Depositor</th>
-                <th>Name</th>
-                <th>Status</th>
-                <th>Created At</th>
-                <th>Updated At</th>
-            </tr>
-            </thead>
-            <tbody>
-            <!--@thymesVar id="bags" type="Page<Bag>"-->
-            <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
-            <tr th:each="bag: ${bags}">
-                <td><a th:text="${bag.id}" th:href="@{/bags/} + ${bag.id}"></a></td>
-                <td th:text="${bag.depositor}"></td>
-                <td th:text="${bag.name}"></td>
-                <td th:text="${bag.status}"></td>
-                <td th:text="${bag.createdAt.toLocalDate()}"></td>
-                <td th:text="${bag.updatedAt.toLocalDate()}"></td>
-            </tr>
-            </tbody>
-        </table>
-
-        <!--@thymesVar id="bags" type="Page<Bag>"-->
-        <!--<input type="button" value="next" class="btn btn-small" th:href="@{/bags/(page=${bags.number})}" />-->
-
-        <div th:replace="fragments/page :: page"></div>
     </div>
+    <div id="filter-body" class="collapse p-2">
+        <form role="form" th:action="@{/bags}" method="GET">
+            <div class="form-group row">
+                <label for="depositor-table-filter" class="col-form-label col-2">Depositor</label>
+                <input type="text" class="form-control col-9" id="depositor-table-filter" name="depositor"
+                       placeholder="Search Depositor"/>
+            </div>
+            <div class="form-group row">
+                <label for="name-table-filter" class="col-form-label col-2">Bag Name</label>
+                <input type="text" class="form-control col-9" id="name-table-filter" name="name"
+                       placeholder="Search Name"/>
+            </div>
+            <div class="form-group row">
+                <label for="status-table-filter" class="col-form-label col-2">Status</label>
+                <select multiple="multiple" name="status" id="status-table-filter" class="form-control col-9">
+                    <!--/*@thymesVar id="statuses" type="com.google.common.collect.ImmutableListMultimap<String, BagStatus>"*/-->
+                    <optgroup th:each="group : ${statuses.keySet()}" th:label="${group}">
+                        <option th:each="status : ${statuses.get(group)}" th:value="${status}" th:text="${status}"></option>
+                    </optgroup>
+                </select>
+            </div>
+            <div class="form-group row">
+            <label class="col-form-label col-2" for="direction-filter">Order By</label>
+                <div class="form-check col-2">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="radio" name="orderBy" id="optionUpdatedAt" value="updatedAt"/> UpdatedAt
+                    </label>
+                </div>
+                <div class="form-check col-2">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="radio" name="orderBy" id="optionCreatedAt" value="createdAt"/> CreatedAt
+                    </label>
+                </div>
+            <div class="col-3">
+                <select name="dir" id="direction-filter" class="form-control">
+                    <option value="ASC">Ascending</option>
+                    <option value="DESC">Descending</option>
+                </select>
+            </div>
+            </div>
+            <button th:type="submit" class="btn btn-primary">Search</button>
+        </form>
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Depositor</th>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Created At</th>
+            <th>Updated At</th>
+            <!--
+            <th>Created At<a th:href="@{/bags(sort='created_at')}" th:method="POST"><i class="fa fa-sort fa-fw" aria-hidden="true"></i></a></th>
+            <th>Updated At<a th:href="@{/bags(sort='updated_at')}" th:method="POST"><i class="fa fa-sort fa-fw" aria-hidden="true"></i></a></th>
+            -->
+        </tr>
+        </thead>
+        <tbody>
+        <!--@thymesVar id="bags" type="Page<Bag>"-->
+        <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
+        <tr th:each="bag: ${bags}">
+            <td><a th:text="${bag.id}" th:href="@{|/bags/${bag.id}|}"></a></td>
+            <td th:text="${bag.depositor}"></td>
+            <td th:text="${bag.name}"></td>
+            <td th:text="${bag.status}"></td>
+            <td th:text="${bag.createdAt.toLocalDate()}"></td>
+            <td th:text="${bag.updatedAt.toLocalDate()}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!--@thymesVar id="bags" type="Page<Bag>"-->
+    <!--<input type="button" value="next" class="btn btn-small" th:href="@{/bags/(page=${bags.number})}" />-->
+
+    <div th:replace="fragments/page :: page"></div>
 </div>
 
 <!-- This is typically only for an individual bag, as getting the token count
-     can be a long operation over multiple bags -->
-<div th:fragment="info">
-    <h3>Bag Overview</h3>
-    <form method="POST">
-        <table class="table table-bordered">
-            <!--@thymesVar id="tokens" type="Long"-->
-            <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
-            <tbody>
+     can be a long operation over multiple bags
+
+     Might put the Associated repls in a tab or smth
+     -->
+<div class="card w-50" th:fragment="info">
+    <div class="card-header">
+        <h3>Bag Overview</h3>
+    </div>
+    <div class="card-block">
+        <form class="m-3" method="POST">
+            <table class="table table-bordered">
+                <!--@thymesVar id="tokens" type="Long"-->
+                <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
+                <tbody>
                 <tr>
                     <td>Id</td>
                     <td th:text="${bag.id}"></td>
@@ -135,7 +129,7 @@
                     <td>Location</td>
                     <td><input type="text" name="location" style="width: 100%" th:value="${bag.location}"/></td>
                 </tr>
-               <tr>
+                <tr>
                     <td>Size</td>
                     <td th:text="${bag.size}"></td>
                 </tr>
@@ -152,13 +146,13 @@
                     <td>Status</td>
                     <!--@thymesVar id="statuses" type="List" -->
                     <td>
-                    <select name="status" id="status">
-                        <option th:each="status : ${statuses}"
-                                th:value="${status.value}" th:text="${status.value}"
-                                th:selected="${status == bag.status}">
-                        </option>
-                        <!-- <td th:text="${bag.status}"></td> -->
-                    </select>
+                        <select name="status" id="status">
+                            <option th:each="status : ${statuses}"
+                                    th:value="${status.value}" th:text="${status.value}"
+                                    th:selected="${status == bag.status}">
+                            </option>
+                            <!-- <td th:text="${bag.status}"></td> -->
+                        </select>
                     </td>
                 </tr>
                 <tr>
@@ -169,29 +163,36 @@
                     <td>Updated At</td>
                     <td th:text="${bag.updatedAt}"></td>
                 </tr>
-            </tbody>
-        </table>
-        <input type="submit" value="Update Bag" class="btn btn-small"/>
-    </form>
+                </tbody>
+            </table>
+            <input type="submit" value="Update Bag" class="btn btn-primary btn-small"/>
+        </form>
+    </div>
 
-    <h4>Associated Replications</h4>
-    <table class="table table-bordered">
-        <thead>
-            <th>ID</th>
-            <th>Node</th>
-            <th>Status</th>
-        </thead>
-        <!-- lmao wait I did this wrong -->
-        <!--/*@thymesVar id="replications" type="List<Replication>"*/-->
-        <!--/*@thymesVar id="repl" type="org.chronopolis.rest.entities.Replication"*/-->
-        <tbody>
+    <div class="card-header">
+        <h4>Associated Replications</h4>
+    </div>
+    <div class="card-block">
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Node</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <!--/*@thymesVar id="replications" type="List<Replication>"*/-->
+            <!--/*@thymesVar id="repl" type="org.chronopolis.rest.entities.Replication"*/-->
+            <tbody>
             <tr th:each="repl : ${replications}">
                 <td><a th:text="${repl.id}" th:href="@{|/replications/${repl.id}|}"></a></td>
                 <td th:text="${repl.node.username}"></td>
                 <td th:text="${repl.status}"></td>
             </tr>
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+        <a class="btn btn-primary" th:href="@{/replications/create(bag=${bag.id})}">Create Replication</a>
+    </div>
 </div>
 </body>
 </html>

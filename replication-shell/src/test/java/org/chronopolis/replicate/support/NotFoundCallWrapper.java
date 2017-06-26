@@ -25,7 +25,7 @@ public class NotFoundCallWrapper<E> extends CallWrapper<E> {
 
     @Override
     public void enqueue(Callback<E> callback) {
-        callback.onResponse(Response.error(404, ResponseBody.create(MediaType.parse("text/plain"), "test-sample-error")));
+        callback.onResponse(this, Response.error(404, ResponseBody.create(MediaType.parse("text/plain"), "test-sample-error")));
     }
 
 }

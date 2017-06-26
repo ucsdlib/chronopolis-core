@@ -41,10 +41,9 @@ public class ReplicationTaskTest extends IngestTest {
     public void testCreateReplications() throws Exception {
         task.createReplications();
 
-        // Based on the sql we should only have 3 replications
-        // (only 3 bag_distribution records created)
+        // Based on the sql we should have 4 replications
         List<Replication> all = repository.findAll();
-        assertEquals(3, all.size());
+        assertEquals(4, all.size());
     }
 
 }

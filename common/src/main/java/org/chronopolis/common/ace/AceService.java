@@ -8,6 +8,7 @@ import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 import java.util.Map;
 
@@ -19,7 +20,7 @@ import java.util.Map;
 public interface AceService {
 
     @POST("rest/collection/audit/{id}")
-    Call<Void> startAudit(@Path("id") long id);
+    Call<Void> startAudit(@Path("id") long id, @Query("corrupt") Boolean corrupt);
 
     @POST("rest/collection/modify/{id}")
     Call<Void> modifyCollection(@Path("id") long id, @Body GsonCollection collection);
@@ -40,6 +41,9 @@ public interface AceService {
     @Multipart
     @POST("rest/tokenstore/{id}")
     Call<Void> loadTokenStore(@Path("id") long id, @Part("file") RequestBody tokenStore);
+
+    @POST("rest/compare/{id}")
+    Call<CompareResponse> compareToCollection(@Path("id") long id, @Body CompareRequest request);
 
     /*
     @Multipart

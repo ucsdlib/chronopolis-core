@@ -1,5 +1,6 @@
 package org.chronopolis.ingest;
 
+import com.google.common.collect.Multimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -18,14 +19,15 @@ public class PageWrapper<T> {
     private static final int MAX_SIZE = 5;
 
     private List<Integer> pages;
+    private boolean firstParam = true;
 
-    private final String url;
+    private String url;
     private final Integer next;
     private final Integer last;
     private final Integer current;
     private final Integer previous;
 
-    public PageWrapper(Page<T> page, String url) {
+    public PageWrapper(Page<T> page, String url, Multimap<String, String> params) {
         this.url = url;
         this.pages = new ArrayList<>();
         this.current = page.getNumber();
@@ -35,6 +37,19 @@ public class PageWrapper<T> {
         this.last = page.getTotalPages() - 1;
 
         createPages(page);
+        params.forEach(this::append);
+    }
+
+    private void append(String key, String val) {
+        if (key != null) {
+            String appender = "&";
+            if (firstParam) {
+                firstParam = false;
+                appender = "?";
+            }
+
+            url += String.format("%s%s=%s", appender, key, val);
+        }
     }
 
     private void createPages(Page<T> page) {

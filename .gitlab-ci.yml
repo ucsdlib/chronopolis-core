@@ -15,6 +15,10 @@
 # * Uses site:stage to collect the documentation for multi-module projects.
 # * Publishes the documentation for `master` branch.
 
+before_script:
+  - apt-get update -y
+  - apt-get install -y rsync
+
 variables:
   # This will supress any download for dependencies and plugins or upload messages which would clutter the console log.
   # `showDateTime` will show the passed time in milliseconds. You need to specify `--batch-mode` to make this work.
@@ -70,24 +74,29 @@ deploy:jdk8:
   only:
     - master
   # Archive up the built documentation site.
-  artifacts:
-    paths:
-    - target/staging
   image: maven:3.3.9-jdk-8
 
-
-pages:
-  image: busybox:latest
+.rpm: &rpm
+  before_script:
+    - apt-get update -y
+    - apt-get install -y rsync
+    - apt-get install -y rpm
   stage: deploy
-  script:
-    # Because Maven appends the artifactId automatically to the staging path if you did define a parent pom,
-    # you might need to use `mv target/staging/YOUR_ARTIFACT_ID public` instead.
-    - mv target/staging public
-  dependencies:
-    - deploy:jdk8
-  artifacts:
-    paths:
-    - public
   only:
     - master
+    - develop
+  image: maven:3.3.9-jdk-8
 
+rpm_ingest:
+  <<: *rpm
+  script:
+    - 'cd ingest-rest/rpm'
+    - './build.sh'
+    - 'for f in `find RPMS -type f`; do curl -X POST -H "Authorization: token $BUILD_TOKEN" --data-binary @$f $SERVER/artifacts/chronopolis/$CI_BUILD_REF_NAME/$(echo $CI_BUILD_REF | cut -c -7)/$(basename $f); done'
+
+rpm_replication:
+  <<: *rpm
+  script:
+    - 'cd replication-shell/rpm'
+    - './build.sh'
+    - 'for f in `find RPMS -type f`; do curl -X POST -H "Authorization: token $BUILD_TOKEN" --data-binary @$f $SERVER/artifacts/chronopolis/$CI_BUILD_REF_NAME/$(echo $CI_BUILD_REF | cut -c -7)/$(basename $f); done'

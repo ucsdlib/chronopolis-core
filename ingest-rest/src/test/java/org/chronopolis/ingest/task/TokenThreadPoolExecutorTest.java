@@ -1,22 +1,16 @@
 package org.chronopolis.ingest.task;
 
-import org.chronopolis.ingest.IngestSettings;
+import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;
-import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
-import org.chronopolis.ingest.repository.BagRepository;
-import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.rest.entities.Bag;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -24,9 +18,6 @@ import java.util.Optional;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
 
 /**
  * Test for the thread pool executor
@@ -38,68 +29,24 @@ import static org.mockito.Mockito.when;
 public class TokenThreadPoolExecutorTest extends IngestTest {
     private final Logger log = LoggerFactory.getLogger(TokenThreadPoolExecutorTest.class);
 
-    @Autowired
-    BagRepository bags;
-
-    @Autowired
-    TokenRepository tokens;
-
-    @Autowired
-    IngestSettings settings;
-
-    @InjectMocks
-    TokenThreadPoolExecutor executor;
-
     TrackingThreadPoolExecutor<Bag> trackingExecutor;
-
-    @Mock
-    private TokenRunner.Factory factory;
 
     Bag b0 = new Bag("test-name-0", "test-depositor");
     Bag b1 = new Bag("test-name-1", "test-depositor");
 
     @Before
     public void setup() throws NoSuchFieldException, IllegalAccessException {
-        executor = new TokenThreadPoolExecutor(4,
-                4,
-                4,
-                TimeUnit.SECONDS,
-                new LinkedBlockingQueue<Runnable>());
-
         trackingExecutor = new TrackingThreadPoolExecutor<>(4,
                 4,
                 4,
                 TimeUnit.SECONDS,
-                new LinkedBlockingQueue<Runnable>());
+                new LinkedBlockingQueue<>());
 
         MockitoAnnotations.initMocks(this);
 
         // ensure the ids are not null
         b0.setId(0L);
         b1.setId(1L);
-    }
-
-    //@Test
-    public void testSubmitBagIfAvailable() throws Exception {
-        when(factory.makeTokenRunner(
-                any(Bag.class),
-                any(String.class),
-                any(String.class),
-                any(String.class),
-                any(BagRepository.class),
-                any(TokenRepository.class)))
-                .thenReturn(new SleepRunnable());
-
-        boolean submitted;
-        log.info("Submitting initial bag");
-        submitted = executor.submitBagIfAvailable(b0, settings, bags, tokens);
-        Assert.assertEquals(submitted, true);
-
-        for (int i = 0; i < 10; i++) {
-            log.info("Submitting duplicate bag");
-            submitted = executor.submitBagIfAvailable(b0, settings, bags, tokens);
-            Assert.assertEquals(submitted, false);
-        }
     }
 
     @Test

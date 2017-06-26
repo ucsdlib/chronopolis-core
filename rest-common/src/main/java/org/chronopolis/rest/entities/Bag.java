@@ -58,6 +58,7 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
 
     private int requiredReplications;
 
+    // Might want to lazy fetch this if possible
     @OneToMany(mappedBy = "bag", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<BagDistribution> distributions = new HashSet<>();
 
@@ -190,19 +191,6 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
 
     @Override
     public int compareTo(final Bag bag) {
-        /*
-        if (this.equals(bag)) {
-            return 0;
-        } else {
-            return (depositor + name).compareTo(bag.depositor + bag.name);
-        }
-
-        else if (size > bag.size) {
-            return 1;
-        } else {
-            return -1;
-        }*/
-
         return ComparisonChain.start()
                 .compare(id, bag.id)
                 .compare(depositor, bag.depositor)

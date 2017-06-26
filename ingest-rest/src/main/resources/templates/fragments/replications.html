@@ -14,102 +14,87 @@
 
 </head>
 <body>
-<div th:fragment="table">
-    <div class="panel panel-info filterable">
-        <div class="panel-heading">
-            <h3 class="panel-title">Replications</h3>
-            <div class="pull-right">
-                <button id="dropdown" class="btn btn-default btn-xs btn-filter" data-toggle="dropdown"><span
-                        class="glyphicon glyphicon-filter"></span>
-                    Filter
-                </button>
-            </div>
+<div class="card w-50 filterable" th:fragment="table">
+    <div class="card-header">
+        <div class="d-flex justify-content-start">
+            <h3 class="card-title p-2">Replications</h3>
+            <button id="dropdown" class="btn btn-default btn-xs btn-filter p-2 ml-auto"
+                    data-toggle="collapse" data-target="#filter-body" aria-expanded="false" aria-controls="filter-body"><i
+                    class="fa fa-search"></i>
+                Search
+            </button>
         </div>
-
-        <div class="panel-body" id="filter-body" style="display: none">
-            <form class="form-horizontal" role="form" method="GET" th:action="@{/replications}">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-addon" id="sizing-addon-1">Bag</span>
-                    <input type="text" class="form-control" id="bag-table-filter" name="bag" placeholder="Search Bag"/>
-                </div>
-                <br/>
-                <div class="input-group form-group-sm">
-                    <span class="input-group-addon" id="sizing-addon-2">Node</span>
-                    <input type="text" class="form-control" id="node-table-filter" name="node" placeholder="Search Node"/>
-                </div>
-                <br/>
-                <div class="input-group form-group-sm">
-                    <span class="input-group-addon" id="sizing-addon-3">Status</span>
-                    <!--@thymesVar id="statuses" type="List" -->
-                    <!--@thymesVar id="status" type="org.chronopolis.rest.models.ReplicationStatus" -->
-                    <select name="status" id="status-table-filter" class="form-control">
-                        <option value="">select a status</option>
-                        <option th:each="status : ${statuses}"
-                                th:value="${status.name()}" th:text="${status.name()}">
-
-                        </option>
-                    </select>
-
-                </div>
-                <br/>
-                <!-- TODO: Fragment? -->
-                <h5>Order By</h5>
-                <div class="radio">
-                    <label>
-                        <input type="radio" name="orderBy" id="optionUpdatedAt" value="updatedAt"/>
-                        Updated At
-                    </label>
-                </div>
-                <div class="radio">
-                    <label>
-                        <input type="radio" name="orderBy" id="optionCreatedAt" value="createdAt"/>
-                        Created At
-                    </label>
-                </div>
-                <div class="input-group form-group-sm">
-                    <select name="dir" id="direction-filter" class="form-control">
-                        <option value="ASC">Ascending</option>
-                        <option value="DESC">Descending</option>
-                    </select>
-                </div>
-                <br/>
-                <button th:type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search"
-                                                                       aria-hidden="true"></span></button>
-            </form>
-        </div>
-        <!-- shove it here-->
-
-
-
-
-
-        <table class="table table-striped">
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>Bag</th> <!-- Name instead? -->
-                <th>Replicating Node</th>
-                <th>Status</th>
-                <th>Created At</th>
-                <th>Updated At</th>
-            </tr>
-            </thead>
-            <tbody>
-            <!--@thymesVar id="replications" type="Set<Bag>"-->
-            <!--@thymesVar id="replication" type="org.chronopolis.rest.entities.Replication"-->
-            <tr th:each="replication: ${replications}">
-                <td><a th:href="@{'/replications/' + ${replication.id}}" th:text="${replication.id}"></a></td>
-                <td th:text="${replication.bag.name}"></td>
-                <td th:text="${replication.node.username}"></td>
-                <td th:text="${replication.status}"></td>
-                <td th:if="${replication.createdAt} != null" th:text="${replication.createdAt.toLocalDate()}"></td>
-                <td th:if="${replication.updatedAt} != null" th:text="${replication.updatedAt.toLocalDate()}"></td>
-            </tr>
-            </tbody>
-        </table>
-
-        <div th:replace="fragments/page :: page"></div>
     </div>
+    <div class="collapse p-2" id="filter-body">
+        <form class="form-horizontal" role="form" method="GET" th:action="@{/replications}">
+            <div class="form-group row">
+                <label for="bag-table-filter" class="col-form-label col-2">Bag</label>
+                <input type="text" class="form-control col-9" id="bag-table-filter" name="bag"
+                       placeholder="Search Bag"/>
+            </div>
+            <div class="form-group row">
+                <label for="node-table-filter" class="col-form-label col-2">Node</label>
+                <input type="text" class="form-control col-9" id="node-table-filter" name="node"
+                       placeholder="Search Node"/>
+            </div>
+            <div class="form-group row">
+                <label for="status-table-filter" class="col-form-label col-2">Status</label>
+                <select multiple="multiple" name="status" id="status-table-filter" class="form-control col-9">
+                    <!--/*@thymesVar id="statuses" type="com.google.common.collect.ImmutableListMultimap<String, ReplicationStatus>"*/-->
+                    <optgroup th:each="group : ${statuses.keySet()}" th:label="${group}">
+                        <option th:each="status : ${statuses.get(group)}" th:value="${status}" th:text="${status}"></option>
+                    </optgroup>
+                </select>
+            </div>
+            <div class="form-group row">
+            <label class="col-form-label col-2" for="direction-filter">Order By</label>
+                <div class="form-check col-2">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="radio" name="orderBy" id="optionUpdatedAt" value="updatedAt"/> UpdatedAt
+                    </label>
+                </div>
+                <div class="form-check col-2">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="radio" name="orderBy" id="optionCreatedAt" value="createdAt"/> CreatedAt
+                    </label>
+                </div>
+            <div class="col-3">
+                <select name="dir" id="direction-filter" class="form-control">
+                    <option value="ASC">Ascending</option>
+                    <option value="DESC">Descending</option>
+                </select>
+            </div>
+            </div>
+            <button th:type="submit" class="btn btn-primary">Search</button>
+        </form>
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Bag</th> <!-- Name instead? -->
+            <th>Replicating Node</th>
+            <th>Status</th>
+            <th>Created At</th>
+            <th>Updated At</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!--@thymesVar id="replications" type="Set<Bag>"-->
+        <!--@thymesVar id="replication" type="org.chronopolis.rest.entities.Replication"-->
+        <tr th:each="replication: ${replications}">
+            <td><a th:href="@{'/replications/' + ${replication.id}}" th:text="${replication.id}"></a></td>
+            <td th:text="${replication.bag.name}"></td>
+            <td th:text="${replication.node.username}"></td>
+            <td th:text="${replication.status}"></td>
+            <td th:if="${replication.createdAt} != null" th:text="${replication.createdAt.toLocalDate()}"></td>
+            <td th:if="${replication.updatedAt} != null" th:text="${replication.updatedAt.toLocalDate()}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div th:replace="fragments/page :: page"></div>
 </div>
 </body>
 </html>

@@ -3,6 +3,7 @@ package org.chronopolis.replicate.batch.callback;
 import org.chronopolis.rest.models.Replication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
@@ -16,8 +17,8 @@ public class UpdateCallback implements Callback<Replication> {
     private final Logger log = LoggerFactory.getLogger(UpdateCallback.class);
 
     @Override
-    public void onResponse(Response<Replication> response) {
-        if (response.isSuccess()) {
+    public void onResponse(Call<Replication> call, Response<Replication> response) {
+        if (response.isSuccessful()) {
             log.info("Successfully updated replication {}", response.body().getId());
         } else {
             log.warn("Error updating replication: {} - {}", response.code(), response.message());
@@ -29,7 +30,7 @@ public class UpdateCallback implements Callback<Replication> {
     }
 
     @Override
-    public void onFailure(Throwable throwable) {
+    public void onFailure(Call<Replication> call, Throwable throwable) {
         log.error("Error communicating with Ingest Server", throwable);
     }
 }

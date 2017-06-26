@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: head">
+    <title>Chronopolis - Repair Request</title>
+</head>
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column m-3 align-items-center">
+    <!--@thymesVar id="repair" type="org.chronopolis.rest.entities.Repair"-->
+    <div class="card w-50 ">
+        <div class="card-header">
+            <h3>Repair Overview</h3>
+        </div>
+        <div class="card-block">
+            <table class="table table-bordered w-50">
+                <tbody>
+                <tr>
+                    <td>Id</td>
+                    <td th:text="${repair.id}"></td>
+                </tr>
+                <tr>
+                    <td>Repair Status</td>
+                    <td th:text="${repair.status}"></td>
+                </tr>
+                <tr>
+                    <td>Audit Status</td>
+                    <td th:text="${repair.audit}"></td>
+                </tr>
+
+                <tr>
+                    <td>Requested By</td>
+                    <td th:text="${repair.requester}"></td>
+                </tr>
+                <tr>
+                    <td>Node</td>
+                    <td th:text="${repair.to.username}"></td>
+                </tr>
+                <tr>
+                    <td>Validated</td>
+                    <td th:text="${repair.validated}"></td>
+                </tr>
+                <tr>
+                    <td>Replaced</td>
+                    <td th:text="${repair.replaced}"></td>
+                </tr>
+                <tr>
+                    <td>Cleaned</td>
+                    <td th:text="${repair.cleaned}"></td>
+                </tr>
+                <tr>
+                    <td>Files</td>
+                    <td th:text="${repair.files}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="card-header" th:if="${repair.from} != null">
+            <h4>Fulfilling Information</h4>
+        </div>
+        <div class="card-block" th:if="${repair.from} != null">
+            <table class="table table-bordered w-50">
+                <!--@thymesVar id="node_to_node" type="org.chronopolis.rest.entities.fulfillment.Rsync"-->
+                <!--@thymesVar id="ace" type="org.chronopolis.rest.entities.fulfillment.Ace"-->
+                <tbody>
+                    <tr>
+                        <td>Fulfilling Node</td>
+                        <td th:text="${repair.from.username}"></td>
+                    </tr>
+                    <tr th:if="${repair.type} != null">
+                        <td>Fulfillment Type</td>
+                        <td th:text="${repair.type}"></td>
+                    </tr>
+                    <tr th:if="${node_to_node} != null">
+                        <td>Rsync Location</td>
+                        <td th:text="${node_to_node.link}"></td>
+                    </tr>
+                    <tr th:if="${ace} != null">
+                        <td>ACE url</td>
+                        <td th:text="${ace.url}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div th:replace="layout :: foot"></div>
+</body>
+</html>

@@ -1,5 +1,6 @@
 package org.chronopolis.replicate.support;
 
+import okhttp3.Request;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -26,7 +27,7 @@ public class CallWrapper<E> implements Call<E> {
 
     @Override
     public void enqueue(Callback<E> callback) {
-        callback.onResponse(Response.success(e));
+        callback.onResponse(this, Response.success(e));
     }
 
     @Override
@@ -46,6 +47,11 @@ public class CallWrapper<E> implements Call<E> {
     @Override
     public Call<E> clone() {
         return null;
+    }
+
+    @Override
+    public Request request() {
+        return new Request.Builder().build();
     }
 
 }

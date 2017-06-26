@@ -1,3 +1,4 @@
+/integration/
 /common/target/
 /messaging/target/
 /amqp-core/target/
@@ -5,6 +6,7 @@
 /intake-shell/target/
 /intake-shell/intake.properties
 /ingest-rest/target/
+/ingest-rest/integration/
 /ingest-shell/target/
 /ingest-shell/ingest.properties
 /logger/target/

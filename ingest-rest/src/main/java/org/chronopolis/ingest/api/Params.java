@@ -7,12 +7,19 @@ package org.chronopolis.ingest.api;
  */
 public class Params {
     // Query
+    public static final String TO = "to";
     public static final String NAME = "name";
     public static final String NODE = "node";
+    public static final String TYPE = "type";
+    public static final String FROM = "from";
     public static final String DEPOSITOR = "depositor";
+    public static final String REQUESTER = "requester";
     public static final String PAGE  = "page";
     public static final String PAGE_SIZE = "page_size";
     public static final String STATUS = "status";
+    public static final String CLEANED = "cleaned";
+    public static final String REPLACED = "replaced";
+    public static final String VALIDATED = "validated";
 
     // Sorting
     public static final String SORT_DIRECTION = "direction";

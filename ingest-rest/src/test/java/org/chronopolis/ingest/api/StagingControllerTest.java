@@ -8,7 +8,9 @@ import okhttp3.OkHttpClient;
 import org.chronopolis.common.ace.OkBasicInterceptor;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.TestApplication;
-import org.chronopolis.ingest.repository.BagService;
+import org.chronopolis.ingest.repository.BagRepository;
+import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
+import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.ingest.support.PageImpl;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.entities.Bag;
@@ -31,8 +33,8 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import retrofit2.Call;
-import retrofit2.GsonConverterFactory;
 import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -57,7 +59,7 @@ public class StagingControllerTest extends IngestTest {
     private int port;
 
     @Autowired
-    BagService bagService;
+    SearchService<Bag, Long, BagRepository> bagService;
 
     @Autowired
     Jackson2ObjectMapperBuilder builder;
@@ -67,7 +69,8 @@ public class StagingControllerTest extends IngestTest {
        ResponseEntity<Bag> entity = getTemplate("umiacs", "umiacs")
                .getForEntity("http://localhost:" + port + "/api/bags/10", Bag.class);
 
-        Bag bag = bagService.findBag((long) 10);
+        BagSearchCriteria criteria = new BagSearchCriteria().withId(10L);
+        Bag bag = bagService.find(criteria);
         System.out.println(bag.getReplicatingNodes());
 
         Gson gson = new GsonBuilder()
@@ -157,11 +160,11 @@ public class StagingControllerTest extends IngestTest {
         // assertEquals(Long.valueOf(3), Long.valueOf(bag.getBody().getTotalFiles()));
     }
 
-    @Test
     /**
      * Test with specifying replicating nodes to ensure they get saved
      *
      */
+    @Test
     public void testStageBagWithReplications() throws Exception {
         // need admin credentials for creating resources
         TestRestTemplate template = getTemplate("admin", "admin");
@@ -179,7 +182,8 @@ public class StagingControllerTest extends IngestTest {
                 Bag.class);
 
         // Pull from the database to check the distribution record
-        Bag fromDb = bagService.findBag(bag.getBody().getId());
+        BagSearchCriteria criteria = new BagSearchCriteria().withId(bag.getBody().getId());
+        Bag fromDb = bagService.find(criteria);
         assertEquals(1, fromDb.getDistributions().size());
     }
 

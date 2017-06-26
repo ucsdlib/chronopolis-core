@@ -2,10 +2,8 @@ package org.chronopolis.ingest.task;
 
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.repository.BagRepository;
-import org.chronopolis.ingest.repository.ReplicationRepository;
+import org.chronopolis.ingest.repository.dao.ReplicationService;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.BagDistribution;
-import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.models.BagStatus;
 import org.slf4j.Logger;
@@ -15,19 +13,12 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-
-import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatus;
+import java.util.stream.Collectors;
 
 /**
  * Simple task to create replications for bags which have finished tokenizing
- * TODO: Rename ReplicationCreateTask
- *
  *
  * Created by shake on 2/13/15.
  */
@@ -38,62 +29,31 @@ public class ReplicationTask {
 
     private final IngestSettings settings;
     private final BagRepository bagRepository;
-    private final ReplicationRepository replicationRepository;
+    private final ReplicationService service;
 
     @Autowired
-    public ReplicationTask(IngestSettings settings, BagRepository bagRepository, ReplicationRepository replicationRepository) {
+    public ReplicationTask(IngestSettings settings, BagRepository bagRepository, ReplicationService service) {
         this.settings = settings;
         this.bagRepository = bagRepository;
-        this.replicationRepository = replicationRepository;
+        this.service = service;
     }
 
     @Scheduled(cron = "${ingest.cron.request:0 */10 * * * *}")
     public void createReplications() {
-        String user = settings.getReplicationUser();
-        String server = settings.getStorageServer();
-        String bagStage = settings.getRsyncBags();
-        String tokenStage = settings.getRsyncTokens();
-
         Collection<Bag> bags = bagRepository.findByStatus(BagStatus.TOKENIZED);
 
         for (Bag bag : bags) {
-            // Set up the links for nodes to pull from
-            Path tokenPath = Paths.get(tokenStage, bag.getTokenLocation());
-            String tokenLink = buildLink(user, server, tokenPath);
+            List<Replication> replications = bag.getDistributions().stream()
+                    .map(dist -> service.create(dist.getBag(), dist.getNode(), settings))
+                    .collect(Collectors.toList());
 
-            Path bagPath = Paths.get(bagStage, bag.getLocation());
-            String bagLink = buildLink(user, server, bagPath);
-
-            // And create the transfer requests
-            Set<BagDistribution> distributions = bag.getDistributions();
-            List<Replication> repls = new ArrayList<>();
-            for (BagDistribution dist : distributions) {
-                // Ignore replications which already occurred
-                if (dist.getStatus() == BagDistributionStatus.REPLICATE) {
-                    continue;
-                }
-
-                Node node = dist.getNode();
-                log.debug("Creating replication object for node {} for bag {}",
-                        node.getUsername(), bag.getId());
-                Replication replication = new Replication(node, bag, bagLink, tokenLink);
-                replication.setProtocol("rsync");
-                repls.add(replication);
+            if (replications.size() == bag.getDistributions().size() && replications.size() != 0) {
+                log.debug("{} updating status to replicating", bag.getName());
+                bag.setStatus(BagStatus.REPLICATING);
+                bagRepository.save(bag);
             }
-            replicationRepository.save(repls);
-
-            // And update the status of our bag
-            bag.setStatus(BagStatus.REPLICATING);
-            bagRepository.save(bag);
         }
 
-    }
-
-    private String buildLink(String user, String server, Path file) {
-        return new StringBuilder(user)
-                    .append("@").append(server)
-                    .append(":").append(file.toString())
-                    .toString();
     }
 
 }

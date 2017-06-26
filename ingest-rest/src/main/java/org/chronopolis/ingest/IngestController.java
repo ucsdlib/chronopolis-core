@@ -44,6 +44,13 @@ public class IngestController {
         return false;
     }
 
+    /**
+     * Create a page request for a given set of parameters
+     *
+     * @param params
+     * @param valid
+     * @return
+     */
     public static PageRequest createPageRequest(Map<String, String> params, Map<String, String> valid) {
         // page size stuff
         Integer pageNum = params.containsKey(PAGE)

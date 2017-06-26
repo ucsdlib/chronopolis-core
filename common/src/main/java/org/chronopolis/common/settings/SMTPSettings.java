@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
+ *
  * Created by shake on 8/13/14.
  */
 @Component
@@ -12,7 +13,7 @@ public class SMTPSettings {
     @Value("${smtp.from:localhost}")
     private String from;
 
-    @Value("${smtp.to:chron-support@sdsc.edu}")
+    @Value("${smtp.to:chron-support-l@mailman.ucsd.edu}")
     private String to;
 
     @Value("${smtp.host:localhost.localdomain}")

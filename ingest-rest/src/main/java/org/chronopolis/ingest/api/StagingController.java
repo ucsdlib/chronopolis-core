@@ -5,13 +5,13 @@ import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.BagRepository;
-import org.chronopolis.ingest.repository.BagSearchCriteria;
-import org.chronopolis.ingest.repository.BagService;
 import org.chronopolis.ingest.repository.NodeRepository;
+import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
+import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.IngestRequest;
-import org.chronopolis.rest.entities.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,14 +53,13 @@ public class StagingController extends IngestController {
 
     private final Logger log = LoggerFactory.getLogger(StagingController.class);
 
-    private final BagRepository bagRepository;
     private final NodeRepository nodeRepository;
-    private final BagService bagService;
+    // private final BagService bagService;
+    private final SearchService<Bag, Long, BagRepository> bagService;
     private final IngestSettings ingestSettings;
 
     @Autowired
-    public StagingController(BagRepository bagRepository, NodeRepository nodeRepository, BagService bagService, IngestSettings ingestSettings) {
-        this.bagRepository = bagRepository;
+    public StagingController(NodeRepository nodeRepository, SearchService<Bag, Long, BagRepository> bagService, IngestSettings ingestSettings) {
         this.nodeRepository = nodeRepository;
         this.bagService = bagService;
         this.ingestSettings = ingestSettings;
@@ -83,7 +82,7 @@ public class StagingController extends IngestController {
                 .withName(params.containsKey(NAME) ? params.get(NAME) : null)
                 .withStatus(params.containsKey(STATUS) ? BagStatus.valueOf(params.get(STATUS)) : null);
 
-        return bagService.findBags(criteria, createPageRequest(params, valid()));
+        return bagService.findAll(criteria, createPageRequest(params, valid()));
     }
 
     /**
@@ -94,7 +93,10 @@ public class StagingController extends IngestController {
      */
     @RequestMapping(value = "bags/{bag-id}", method = RequestMethod.GET)
     public Bag getBag(@PathVariable("bag-id") Long bagId) {
-        Bag bag = bagService.findBag(bagId);
+        BagSearchCriteria criteria = new BagSearchCriteria()
+                .withId(bagId);
+
+        Bag bag = bagService.find(criteria);
         if (bag == null) {
             throw new NotFoundException("bag/" + bagId);
         }
@@ -113,7 +115,11 @@ public class StagingController extends IngestController {
         String name = request.getName();
         String depositor = request.getDepositor();
 
-        Bag bag = bagRepository.findByNameAndDepositor(name, depositor);
+        BagSearchCriteria criteria = new BagSearchCriteria()
+                .withName(name)
+                .withDepositor(depositor);
+
+        Bag bag = bagService.find(criteria);
         if (bag != null) {
             log.debug("Bag {} exists from depositor {}, skipping creation", name, depositor);
             return bag;
@@ -137,7 +143,7 @@ public class StagingController extends IngestController {
         }
 
         createBagDistributions(bag, request.getReplicatingNodes());
-        bagRepository.save(bag);
+        bagService.save(bag);
 
         return bag;
     }
@@ -166,16 +172,6 @@ public class StagingController extends IngestController {
                 log.debug("Unable to make dist record for node {}: Not found", nodeName);
             }
         }
-
-        /*
-        if (numDistributions < bag.getRequiredReplications()) {
-            for (Node node : nodeRepository.findAll()) {
-                log.debug("Creating dist record for {}", node.getUsername());
-                bag.addDistribution(node, DISTRIBUTE);
-                numDistributions++;
-            }
-        }
-        */
 
         // if the distributions is still less, set error?
     }

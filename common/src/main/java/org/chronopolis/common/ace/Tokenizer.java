@@ -1,11 +1,11 @@
 package org.chronopolis.common.ace;
 
+import com.google.common.hash.HashCode;
 import edu.umiacs.ace.ims.api.IMSService;
 import edu.umiacs.ace.ims.api.RequestBatchCallback;
 import edu.umiacs.ace.ims.api.TokenRequestBatch;
 import edu.umiacs.ace.ims.ws.TokenRequest;
 import org.chronopolis.common.digest.Digest;
-import org.chronopolis.common.digest.DigestUtil;
 import org.chronopolis.common.util.Filter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,9 +41,9 @@ public class Tokenizer {
             // TODO: Use the AceSettings to get the ims host name
             ims = IMSService.connect(imsHostName, SSL_PORT, true);
             return ims.createImmediateTokenRequestBatch("SHA-256",
-                callback,
-                MAX_QUEUE_LEN,
-                TIMEOUT);
+                    callback,
+                    MAX_QUEUE_LEN,
+                    TIMEOUT);
         }
     }
 
@@ -154,9 +154,8 @@ public class Tokenizer {
             for (Path tag: extraTagmanifests) {
                 Path rel = tag.subpath(bag.getNameCount(), tag.getNameCount());
                 Path filterPath = Paths.get("/").resolve(rel);
-                String alg = fixityAlgorithm.getName();
                 if (!filter.contains(filterPath)) {
-                    String digest = DigestUtil.digest(tag, alg);
+                    String digest = calculateDigest(tag);
                     addTokenRequest(tag, digest);
                     filter.add(filterPath);
                 }
@@ -183,52 +182,49 @@ public class Tokenizer {
             InterruptedException {
         String line;
         boolean corrupt = false;
-        String alg = fixityAlgorithm.getName();
-        BufferedReader br = Files.newBufferedReader(manifest, Charset.defaultCharset());
 
-        while ((line = br.readLine()) != null) {
-            String[] split = line.split("\\s+", 2);
-            if (split.length != 2) {
-                log.error("Error found in manifest: {}", split);
-                continue;
-            }
+        try (BufferedReader br = Files.newBufferedReader(manifest, Charset.defaultCharset())) {
+            while ((line = br.readLine()) != null) {
+                String[] split = line.split("\\s+", 2);
+                if (split.length != 2) {
+                    log.error("Error found in manifest: {}", split);
+                    continue;
+                }
 
-            String digest = split[0];
-            String filePath = split[1];
-            Path ace = Paths.get("/");
-            Path rel = Paths.get(filePath);
+                String digest = split[0];
+                String filePath = split[1];
+                Path ace = Paths.get("/");
+                Path rel = Paths.get(filePath);
 
-            // Skip the current item if we already have it
-            // use a leading slash as our ace_tokens have it as well
-            if (filter.contains(ace.resolve(rel))) {
-                continue;
-            }
+                // Skip the current item if we already have it
+                // use a leading slash as our ace_tokens have it as well
+                if (filter.contains(ace.resolve(rel))) {
+                    continue;
+                }
 
-            Path path = Paths.get(bag.toString(), filePath);
-            String calculatedDigest = DigestUtil.digest(path, alg);
+                Path path = Paths.get(bag.toString(), filePath);
+                String calculatedDigest = calculateDigest(path);
 
-            if (digest.equals(calculatedDigest)) {
-                addTokenRequest(path, digest);
-                filter.add(ace.resolve(rel));
-            } else {
-                log.error("Error in file {}: digest found {} (expected {})",
-                        new Object[]{
-                                filePath,
-                                calculatedDigest,
-                                digest});
-                corrupt = true;
+                if (digest.equals(calculatedDigest)) {
+                    addTokenRequest(path, digest);
+                    filter.add(ace.resolve(rel));
+                } else {
+                    log.error("Error in file {}: digest found {} (expected {})",
+                            new Object[]{
+                                    filePath,
+                                    calculatedDigest,
+                                    digest});
+                    corrupt = true;
+                }
             }
         }
 
-        br.close();
-
-        // TODO: Move this into the public method instead
         // No corruptions (all manifests good)
         // Skip the manifest
         // Skip if we've already digested the tag manifest (tokenizer gets called multiple times)
         if (!filter.contains(aceTag)) {
             if (!corrupt && manifest.getFileName().endsWith(tagIdentifier)) {
-                tagDigest = DigestUtil.digest(manifest, alg);
+                tagDigest = calculateDigest(manifest);
                 addTokenRequest(manifest, tagDigest);
             }
         }
@@ -238,6 +234,19 @@ public class Tokenizer {
 
     public String getTagManifestDigest() {
         return tagDigest;
+    }
+
+    /**
+     * Calculate the digest for a given file
+     *
+     * @param path the path of the file
+     * @return the digest of the file
+     * @throws IOException exception hashing the file
+     */
+    private String calculateDigest(Path path) throws IOException {
+        HashCode hash = com.google.common.io.Files.asByteSource(path.toFile())
+                .hash(fixityAlgorithm.getFunction());
+        return hash.toString();
     }
 
     /**

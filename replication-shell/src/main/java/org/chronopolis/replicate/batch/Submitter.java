@@ -9,12 +9,14 @@ import org.chronopolis.replicate.batch.transfer.TokenTransfer;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -64,7 +66,7 @@ public class Submitter {
     }
 
     public boolean isRunning(Replication replication) {
-        return replicating.contains(replication.getBag().getDepositor() + "/" + replication.getBag().getName());
+        return replicating.contains(replicationIdentifier(replication));
     }
 
     /**
@@ -74,13 +76,13 @@ public class Submitter {
      * @param replication the replication to work on
      * @return a {@link CompletableFuture} of the replication flow
      */
-    public CompletableFuture<Void> submit(Replication replication) {
-        String identifier = replication.getBag().getDepositor() + "/" + replication.getBag().getName();
+    public CompletableFuture<ReplicationStatus> submit(Replication replication) {
+        String identifier = replicationIdentifier(replication);
 
         // todo: do we want to run through the entire flow or have it staggered like before?
         if (replicating.add(identifier)) {
             log.info("Submitting replication {}", identifier);
-            CompletableFuture<Void> future;
+            CompletableFuture<ReplicationStatus> future;
             switch (replication.getStatus()) {
                 // Run through the full flow
                 case PENDING:
@@ -100,13 +102,14 @@ public class Submitter {
                     return null;
             }
 
+            // handle instead of whenComplete?
             return future.whenComplete(new Completer(replication));
         } else {
             log.debug("Replication {} is already running", identifier);
         }
 
         // just so we don't return null
-        return CompletableFuture.runAsync(() -> {});
+        return CompletableFuture.supplyAsync(replication::getStatus);
     }
 
     /**
@@ -115,13 +118,15 @@ public class Submitter {
      * @param replication the replication to work on
      * @return a {@link CompletableFuture} which runs both the token and bag transfers tasks
      */
-    private CompletableFuture<Void> fromPending(Replication replication) {
+    private CompletableFuture<ReplicationStatus> fromPending(Replication replication) {
         BagTransfer bxfer = new BagTransfer(replication, ingest, settings);
         TokenTransfer txfer = new TokenTransfer(replication, ingest, settings);
 
         // todo: maybe we shouldn't chain together fromTransferred?
-        return fromTransferred(CompletableFuture.runAsync(txfer, io)
-                .thenRunAsync(bxfer, io),
+        return fromTransferred(
+                CompletableFuture
+                        .runAsync(txfer, io)
+                        .thenRunAsync(bxfer, io),
                 replication);
     }
 
@@ -132,14 +137,14 @@ public class Submitter {
      * @param replication the replication to work on
      * @return a completable future which runs ace registration tasks
      */
-    private CompletableFuture<Void> fromTransferred(@Nullable CompletableFuture<Void> future, Replication replication) {
+    private CompletableFuture<ReplicationStatus> fromTransferred(@Nullable CompletableFuture<Void> future, Replication replication) {
         ReplicationNotifier notifier = new ReplicationNotifier(replication);
         AceRunner runner = new AceRunner(ace, ingest, replication.getId(), settings, notifier);
         if (future == null) {
-            return CompletableFuture.runAsync(runner, http);
+            return CompletableFuture.supplyAsync(runner, http);
         }
 
-        return future.thenRunAsync(runner, http);
+        return future.thenApplyAsync(runner, http);
     }
 
     /**
@@ -147,9 +152,9 @@ public class Submitter {
      *
      * @return a {@link CompletableFuture} which runs the AceCheck runnable
      */
-    private CompletableFuture<Void> fromAceAuditing(Replication replication) {
+    private CompletableFuture<ReplicationStatus> fromAceAuditing(Replication replication) {
         AceCheck check = new AceCheck(ace, ingest, replication);
-        return CompletableFuture.runAsync(check, http);
+        return CompletableFuture.supplyAsync(check, http);
     }
 
 
@@ -157,12 +162,11 @@ public class Submitter {
      * Consumer which runs at the end of a replication, ensures removal from the
      * replicating set
      *
-     * todo: send mail (eventually switch to a better interface for notifications
-     *                  so we can have multiple outputs. i.e. email, slack, db,
-     *                  etc)
+     * eventually switch to a better interface for notifications
+     * so we can have multiple outputs. i.e. email, slack, db, etc
      *
      */
-    private class Completer implements BiConsumer<Void, Throwable> {
+    private class Completer implements BiConsumer<ReplicationStatus, Throwable> {
         private final Logger log = LoggerFactory.getLogger(Completer.class);
 
         final Replication replication;
@@ -172,29 +176,42 @@ public class Submitter {
         }
 
         @Override
-        public void accept(Void aVoid, Throwable throwable) {
-            String s = replication.getBag().getDepositor() + "/" + replication.getBag().getName();
-            String subject = "Successful replication of " + s;
-            boolean send = settings.sendOnSuccess();
-            String body = "";
-
-            // TODO: Check here for fatal exceptions, and cancel replication if necessary
-            if (throwable != null) {
-                subject = "Failed to replicate " + s;
-                log.warn("Replication did not complete successfully, returned throwable is", throwable);
-                body = throwable.getMessage();
-                send = true;
-            }
+        public void accept(ReplicationStatus status, Throwable throwable) {
+            String s = replicationIdentifier(replication);
+            String body;
+            String subject;
 
             try {
-                if (send) {
-                    SimpleMailMessage message = mail.createMessage(settings.getNode(), subject, body);
-                    mail.send(message);
+                // Send mail if there's an exception
+                if (throwable != null) {
+                    log.warn("Replication did not complete successfully, returned throwable is", throwable);
+                    subject = "Failed to replicate " + s;
+                    body = throwable.getMessage()
+                            + "\n"
+                            + Arrays.toString(throwable.getStackTrace());
+                    send(subject, body);
+                // Send mail if we are set to and the replication is complete
+                } else if (settings.sendOnSuccess() && status == ReplicationStatus.SUCCESS) {
+                    subject = "Successful replication of " + s;
+                    body = "";
+                    send(subject, body);
                 }
+            } catch (Exception e) {
+                log.error("Exception caught sending mail", e);
             } finally {
+                log.debug("{} removing from threadpool", s);
                 replicating.remove(s);
             }
         }
+
+        private void send(String subject, String body) {
+            SimpleMailMessage message = mail.createMessage(settings.getNode(), subject, body);
+            mail.send(message);
+        }
+    }
+
+    private String replicationIdentifier(Replication replication) {
+        return replication.getBag().getDepositor() + "/" + replication.getBag().getName();
     }
 
 }

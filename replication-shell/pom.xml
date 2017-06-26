@@ -5,10 +5,10 @@
     <parent>
         <groupId>org.chronopolis</groupId>
         <artifactId>chronopolis</artifactId>
-        <version>1.4.2-RELEASE</version>
+        <version>1.5.0-RELEASE</version>
     </parent>
     <artifactId>replication-shell</artifactId>
-    <version>1.4.2-RELEASE</version>
+    <version>1.5.0-RELEASE</version>
     <name>Replication Shell</name>
     <url>http://maven.apache.org</url>
     <properties>
@@ -20,19 +20,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <!--
-                <version>1.0.2.RELEASE</version>
-                <configuration>
-                    <mainClass>org.chronopolis.replicate.ReplicationConsumer</mainClass>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                -->
             </plugin>
         </plugins>
     </build>
@@ -83,7 +70,6 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>20.0-rc1</version>
         </dependency>
 
         <dependency>

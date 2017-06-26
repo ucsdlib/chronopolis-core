@@ -3,7 +3,7 @@ package org.chronopolis.ingest.controller;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.models.UserRequest;
 import org.chronopolis.ingest.repository.Authority;
-import org.chronopolis.ingest.repository.UserService;
+import org.chronopolis.ingest.repository.dao.UserService;
 import org.chronopolis.rest.models.PasswordUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,7 +93,7 @@ public class SiteController extends IngestController {
      */
     @RequestMapping(value = "/users/add", method = RequestMethod.POST)
     public String createUser(UserRequest user) {
-        log.debug("Request to create user: {} {} {}", new Object[]{user.getUsername(), user.isAdmin(), user.isNode()});
+        log.debug("Request to create user: {} {} {}", new Object[]{user.getUsername(), user.getRole(), user.isNode()});
         userService.createUser(user);
         return "redirect:/users";
     }

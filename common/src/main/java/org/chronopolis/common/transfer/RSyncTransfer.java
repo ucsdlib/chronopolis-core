@@ -5,10 +5,8 @@ import org.chronopolis.common.exception.FileTransferException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -19,6 +17,7 @@ import java.util.concurrent.FutureTask;
 /**
  * TODO: If the rsync cannot connect it will simply hang.
  * We need some sort of prevention against that.
+ * Could use the ConnectionTimeout option for ssh
  * Note: Can make a ScheduledFuture w/ a timeout
  *
  * @author shake
@@ -27,11 +26,13 @@ public class RSyncTransfer implements FileTransfer {
     private final Logger log = LoggerFactory.getLogger("rsync-log");
     private final ExecutorService threadPool = Executors.newSingleThreadExecutor();
     private final String link;
-    private String stats;
+
+    // Set during the execution of our process
+    private InputStream stream;
+    private InputStream errors;
 
     public RSyncTransfer(String link) {
         this.link = link;
-        this.stats = "";
     }
 
     @Override
@@ -42,7 +43,7 @@ public class RSyncTransfer implements FileTransfer {
 
         Callable<Path> download = () -> {
             String[] cmd = new String[]{"rsync",
-                    "-a",
+                    "-aL",
                     "-e ssh -o 'PasswordAuthentication no'",
                     "--stats",
                     link,
@@ -55,13 +56,10 @@ public class RSyncTransfer implements FileTransfer {
                 p = pb.start();
                 int exit = p.waitFor();
 
-                stats = stringFromStream(p.getInputStream());
+                stream = p.getInputStream();
 
-                log.info("rsync exit stats:\n {}", stats);
                 if (exit != 0) {
-                    log.error("rsync did not complete successfully (exit code {}) \n {}",
-                            exit,
-                            stringFromStream(p.getErrorStream()));
+                    errors = p.getErrorStream();
                     throw new FileTransferException("rsync did not complete successfully (exit code " + exit + ")");
                 }
 
@@ -91,16 +89,6 @@ public class RSyncTransfer implements FileTransfer {
         } finally {
             threadPool.shutdownNow();
         }
-    }
-
-    private String stringFromStream(InputStream is) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        StringBuilder out = new StringBuilder();
-        String line = null;
-        while ((line = reader.readLine()) != null) {
-            out.append(line).append("\n");
-        }
-        return out.toString();
     }
 
     @Override
@@ -146,7 +134,27 @@ public class RSyncTransfer implements FileTransfer {
 
     @Override
     public String getStats() {
-        return stats;
+        return "";
+    }
+
+    /**
+     * Return the input stream from the output of the rsync
+     *
+     * // TODO: 2/17/17 optional?
+     *
+     * @return InputStream
+     */
+    public InputStream getOutput() {
+        return stream;
+    }
+
+    /**
+     * Return the input stream from the stderr of the rsync
+     *
+     * @return InputStream
+     */
+    public InputStream getErrors() {
+        return errors;
     }
 
     /**

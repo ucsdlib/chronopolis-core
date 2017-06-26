@@ -12,13 +12,13 @@
     <div th:fragment="page">
         <ul class="pagination" style="text-align: center">
             <!--/*@thymesVar id="pages" type="org.chronopolis.ingest.PageWrapper"*/-->
-            <li><a th:href="@{${pages.url}(page=${pages.first})}" aria-label="First">&laquo;</a></li>
-            <li><a th:href="@{${pages.url}(page=${pages.previous})}" aria-label="Previous">&lsaquo;</a></li>
-            <li th:each="page: ${pages.pages}" th:class="(${page} == ${pages.current} ? 'active' : '')">
-                <a th:text="${page}" th:href="@{${pages.url}(page=${page})}"></a>
+            <li class="page-item"><a th:class="page-link" th:href="@{${pages.url}(page=${pages.first})}" aria-label="First">&laquo;</a></li>
+            <li class="page-item"><a th:class="page-link" th:href="@{${pages.url}(page=${pages.previous})}" aria-label="Previous">&lsaquo;</a></li>
+            <li th:each="page: ${pages.pages}" th:class="(${page} == ${pages.current} ? 'active page-item' : 'page-item')">
+                <a th:text="${page}" th:href="@{${pages.url}(page=${page})}" th:class="page-link"></a>
             </li>
-            <li><a th:href="@{${pages.url}(page=${pages.next})}" aria-label="Next">&rsaquo;</a></li>
-            <li><a th:href="@{${pages.url}(page=${pages.last})}" aria-label="Last">&raquo;</a></li>
+            <li class="page-item"><a th:class="page-link" th:href="@{${pages.url}(page=${pages.next})}" aria-label="Next">&rsaquo;</a></li>
+            <li class="page-item"><a th:class="page-link" th:href="@{${pages.url}(page=${pages.last})}" aria-label="Last">&raquo;</a></li>
         </ul>
     </div>
 </body>

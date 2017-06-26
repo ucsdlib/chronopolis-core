@@ -1,24 +1,33 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="layout :: head">
 </head>
 <body>
-    <header th:replace="layout :: header"></header>
-    <div th:replace="layout :: left"></div>
-        <!-- Taken from https://spring.io/guides/gs/securing-web/ -->
-    <div class="content">
-        <div th:if="${param.error}">
-            Invalid username and password.
-        </div>
-        <div th:if="${param.logout}">
-            You have been logged out.
-        </div>
-        <form th:action="@{/login}" method="post">
-            <div><label> User Name : <input type="text" name="username"/> </label></div>
-            <div><label> Password: <input type="password" name="password"/> </label></div>
-            <div><input type="submit" value="Sign In"/></div>
-        </form>
+<nav th:replace="layout :: navbar"></nav>
+<!-- Taken from https://spring.io/guides/gs/securing-web/ -->
+<div class="d-flex flex-column align-items-center m-3">
+    <div th:if="${param.error}">
+        Invalid username and password.
     </div>
+    <div th:if="${param.logout}">
+        You have been logged out.
+    </div>
+    <form style="border: 0.2rem solid #f7f7f9; padding: 1.5rem" th:action="@{/login}" method="post">
+        <div class="form-group row">
+            <label for="username" class="col-4 col-form-label">User Name</label>
+            <div class="col-8">
+                <input class="form-control" type="text" name="username" id="username"/>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="password" class="col-4 col-form-label">Password</label>
+            <div class="col-8">
+                <input class="form-control" type="password" name="password" id="password"/>
+            </div>
+        </div>
+        <input class="btn btn-primary" type="submit" value="Sign In"/>
+    </form>
+</div>
+<div th:replace="layout :: foot"></div>
 </body>
 </html>

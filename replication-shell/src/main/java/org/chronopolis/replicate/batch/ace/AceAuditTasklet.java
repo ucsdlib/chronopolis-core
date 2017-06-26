@@ -3,7 +3,6 @@ package org.chronopolis.replicate.batch.ace;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
-import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.Replication;
@@ -29,7 +28,7 @@ public class AceAuditTasklet implements Runnable {
     private ReplicationNotifier notifier;
     private Long id;
 
-    public AceAuditTasklet(IngestAPI ingest, AceService aceService, Replication replication, ReplicationSettings settings, ReplicationNotifier notifier, Long id) {
+    public AceAuditTasklet(IngestAPI ingest, AceService aceService, Replication replication, ReplicationNotifier notifier, Long id) {
         this.ingest = ingest;
         this.aceService = aceService;
         this.replication = replication;
@@ -40,12 +39,12 @@ public class AceAuditTasklet implements Runnable {
     @Override
     public void run() {
         String name = replication.getBag().getName();
-        Call<Void> auditCall = aceService.startAudit(id);
+        Call<Void> auditCall = aceService.startAudit(id, false);
 
         auditCall.enqueue(new Callback<Void>() {
             @Override
-            public void onResponse(Response<Void> response) {
-                if (response.isSuccess()) {
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
                     Call<Replication> update = ingest.updateReplicationStatus(replication.getId(), new RStatusUpdate(ReplicationStatus.ACE_AUDITING));
                     update.enqueue(new UpdateCallback());
                 } else {
@@ -63,7 +62,7 @@ public class AceAuditTasklet implements Runnable {
             }
 
             @Override
-            public void onFailure(Throwable throwable) {
+            public void onFailure(Call<Void> call, Throwable throwable) {
                 log.error("{} Error communicating with ACE Server", name, throwable);
                 notifier.setSuccess(false);
                 notifier.setAceStep(throwable.getMessage());

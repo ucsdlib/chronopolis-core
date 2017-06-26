@@ -4,21 +4,49 @@
     <title>Chronopolis Ingestion Service</title>
 </head>
 <body>
-    <header th:replace="layout :: header"></header>
-    <div th:replace="layout :: left"></div>
-    <div class="content">
-    <form enctype="application/json" method="post" name="ingest">
-        <div><label>Bag Name: <input type="text" name="name" placeholder="bag-name"/></label></div>
-        <div><label>Depositor: <input type="text" name="depositor" placeholder="depositor-name"/></label></div>
-        <div><label>Location: <input type="text" name="location" placeholder="depositor-name/bag-name"/></label></div>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column align-items-center m-3">
+    <div class="w-50">
+    <h4>Add Bag</h4>
+    <h6 class="text-muted">Ingest a bag for a depositor</h6>
+    <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem">
+        <form enctype="application/json" method="post" name="ingest">
+            <div class="form-group row">
+                <label for="bag-name" class="col-4 col-form-label">Bag Name</label>
+                <div class="col-8">
+                    <input class="form-control" type="text" name="name" placeholder="bag-name" id="bag-name"/>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="depositor-name" class="col-4 col-form-label">Depositor</label>
+                <div class="col-8">
+                    <input class="form-control" type="text" name="depositor" placeholder="depositor" id="depositor-name"/>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="location" class="col-4 col-form-label">Location</label>
+                <div class="col-8">
+                    <input class="form-control" type="text" name="location" placeholder="depositor-name/bag-name" id="location"/>
+                </div>
+            </div>
 
-        <!--@thymesVar id="nodes" type="List<Node>"-->
-        <!--@thymesVar id="node" type="org.chronopolis.rest.entities.Node"-->
-        <div th:each="node: ${nodes}">
-            <div><label th:text="'Replicate to ' + ${node.username}"/><input type="checkbox" name="replicatingNodes" th:value="${node.username}"/></div>
-        </div>
-        <input type="submit" value="Create Bag"/> <!-- onclick="submit()"/> -->
-    </form>
-        </div>
+            <!--@thymesVar id="nodes" type="List<Node>"-->
+            <!--@thymesVar id="node" type="org.chronopolis.rest.entities.Node"-->
+            <fieldset class="form-group row">
+                <legend class="col-form-legend col-sm-4">Replicate To</legend>
+                <div class="col-sm-10" th:each="node: ${nodes}">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="checkbox" name="replicatingNodes" th:value="${node.username}"/>
+                        <p th:text="${node.username}"></p>
+                    </label>
+                </div>
+            </fieldset>
+
+            <input class="btn btn-primary" type="submit" value="Create Bag"/> <!-- onclick="submit()"/> -->
+        </form>
+    </div>
+    </div>
+</div>
+<div th:replace="layout :: foot"></div>
 </body>
 </html>

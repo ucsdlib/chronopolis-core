@@ -1,23 +1,18 @@
 package org.chronopolis.replicate.batch.transfer;
 
 import com.google.common.hash.HashCode;
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
-import com.google.common.io.Files;
 import org.chronopolis.common.exception.FileTransferException;
-import org.chronopolis.common.transfer.FileTransfer;
-import org.chronopolis.common.transfer.HttpsTransfer;
 import org.chronopolis.common.transfer.RSyncTransfer;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
 import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.FixityUpdate;
 import org.chronopolis.rest.models.Replication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Call;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -26,81 +21,55 @@ import java.nio.file.Paths;
  *
  * Created by shake on 10/11/16.
  */
-public class BagTransfer implements Runnable {
+public class BagTransfer implements Transfer, Runnable {
     private final Logger log = LoggerFactory.getLogger("rsync-log");
 
     // Fields set by constructor
-    final Replication r;
-    final IngestAPI ingestAPI;
-    final ReplicationSettings settings;
+    private final Bag bag;
+    private final IngestAPI ingestAPI;
+    private final ReplicationSettings settings;
 
-    // Fields set when running
-    final Long id;
-    final String location;
-    final String protocol;
-    final String depositor;
-    final String collection;
+    // These could all be local
+    private final Long id;
+    private final String location;
+    private final String depositor;
 
     public BagTransfer(Replication r, IngestAPI ingestAPI, ReplicationSettings settings) {
-        this.r = r;
+        this.bag = r.getBag();
         this.ingestAPI = ingestAPI;
         this.settings = settings;
 
         this.id = r.getId();
         this.location = r.getBagLink();
-        this.protocol = r.getProtocol();
         this.depositor = r.getBag().getDepositor();
-        this.collection = r.getBag().getName();
     }
 
     @Override
     public void run() {
-        String name = r.getBag().getName();
-        // TODO: Get the replication so we can short circuit later?
+        String name = bag.getName();
+
         // Replicate the collection
         log.info("{} Downloading bag from {}", name, location);
-        FileTransfer transfer;
-        Path bagPath = Paths.get(settings.getPreservation(), depositor);
-
-        if (protocol.equalsIgnoreCase("https")) {
-            transfer = new HttpsTransfer();
-        } else {
-            transfer = new RSyncTransfer(location);
-        }
+        Path depositorPath = Paths.get(settings.getPreservation(), depositor);
+        RSyncTransfer transfer = new RSyncTransfer(location);
 
         try {
-            transfer.getFile(location, bagPath);
-            hash(bagPath);
+            Path bagPath = transfer.getFile(location, depositorPath);
+            log(bag, transfer.getOutput());
+            hash(bag, bagPath.resolve("tagmanifest-sha256.txt"));
         } catch (FileTransferException e) {
+            log(bag, transfer.getErrors()); // ???
             log.error("{} File transfer exception", name, e);
             fail(e);
         }
     }
 
-    void hash(Path bagPath) {
-        // TODO: Verify all files?
-        // Validate the tag manifest
-        Path tagmanifest = bagPath.resolve(collection + "/tagmanifest-sha256.txt");
-        HashFunction hashFunction = Hashing.sha256();
-        HashCode hashCode;
-        try {
-            hashCode = Files.hash(tagmanifest.toFile(), hashFunction);
-            sendUpdate(hashCode);
-        } catch (IOException e) {
-            log.error("{} Error hashing tagmanifest", r.getBag().getName(), e);
-            fail(e);
-        }
-    }
-
-    void sendUpdate(HashCode hashCode) {
-        String calculatedDigest = hashCode.toString();
-        log.info("{} Calculated digest {} for tagmanifest", r.getBag().getName(), calculatedDigest);
+    @Override
+    public void update(HashCode hash) {
+        String calculatedDigest = hash.toString();
+        log.info("{} Calculated digest {} for tagmanifest", bag.getName(), calculatedDigest);
 
         Call<Replication> call = ingestAPI.updateTagManifest(id, new FixityUpdate(calculatedDigest));
         call.enqueue(new UpdateCallback());
-    }
-
-    void fail(Throwable throwable) {
-        throw new RuntimeException(throwable);
     }
 }

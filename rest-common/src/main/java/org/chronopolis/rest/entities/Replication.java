@@ -1,24 +1,19 @@
 package org.chronopolis.rest.entities;
 
 
-import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonSetter;
 import org.chronopolis.rest.listener.ReplicationUpdateListener;
 import org.chronopolis.rest.models.ReplicationStatus;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
-import javax.persistence.Transient;
 import java.util.Objects;
 
 /**
  * Representation of a Replication request
- *
- * TODO: Phase out the JsonGetters in favor of a separate class for "displaying" replications
  *
  * Created by shake on 11/5/14.
  */
@@ -27,14 +22,12 @@ import java.util.Objects;
 public class Replication extends UpdatableEntity {
 
     @ManyToOne
-    @JsonIgnore
     private Node node;
 
     @Enumerated(EnumType.STRING)
     private ReplicationStatus status;
 
-    @ManyToOne
-    @JsonIgnore
+    @ManyToOne(cascade = CascadeType.MERGE)
     private Bag bag;
 
     private String bagLink;
@@ -46,6 +39,7 @@ public class Replication extends UpdatableEntity {
     private String receivedTokenFixity;
 
     // For JSON (ignored because we use the JsonGetter/Setter below)
+    /*
     @Transient
     @JsonIgnore
     private String nodeUser;
@@ -53,6 +47,7 @@ public class Replication extends UpdatableEntity {
     @Transient
     @JsonIgnore
     private Long bagId;
+    */
 
     // JPA...
     protected Replication() {
@@ -63,8 +58,8 @@ public class Replication extends UpdatableEntity {
         this.status = ReplicationStatus.PENDING;
         this.node = node;
         this.bag = bag;
-        this.nodeUser = node.getUsername();
-        this.bagId = bag.getId();
+        // this.nodeUser = node.getUsername();
+        // this.bagId = bag.getId();
         // this.bagID = bagID;
         this.bagLink = "";
         this.tokenLink = "";
@@ -78,8 +73,8 @@ public class Replication extends UpdatableEntity {
         this.status = ReplicationStatus.PENDING;
         this.node = node;
         this.bag = bag;
-        this.nodeUser = node.getUsername();
-        this.bagId = bag.getId();
+        // this.nodeUser = node.getUsername();
+        // this.bagId = bag.getId();
         this.bagLink = bagLink;
         this.tokenLink = tokenLink;
     }
@@ -88,6 +83,7 @@ public class Replication extends UpdatableEntity {
         return node;
     }
 
+    /*
     @JsonGetter("bagId")
     public Long getBagId() {
         // Because JPA/Hibernate sets fields through reflection,
@@ -119,6 +115,7 @@ public class Replication extends UpdatableEntity {
     public void setNodeUser(String username) {
         this.nodeUser = username;
     }
+    */
 
     public ReplicationStatus getStatus() {
         return status;

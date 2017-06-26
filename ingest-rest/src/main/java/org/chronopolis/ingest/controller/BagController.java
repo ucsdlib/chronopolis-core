@@ -4,12 +4,16 @@ import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.PageWrapper;
 import org.chronopolis.ingest.models.BagUpdate;
-import org.chronopolis.ingest.repository.BagSearchCriteria;
-import org.chronopolis.ingest.repository.BagService;
+import org.chronopolis.ingest.models.ReplicationCreate;
+import org.chronopolis.ingest.models.filter.BagFilter;
+import org.chronopolis.ingest.models.filter.ReplicationFilter;
+import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.ReplicationSearchCriteria;
-import org.chronopolis.ingest.repository.ReplicationService;
 import org.chronopolis.ingest.repository.TokenRepository;
+import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
+import org.chronopolis.ingest.repository.criteria.ReplicationSearchCriteria;
+import org.chronopolis.ingest.repository.dao.ReplicationService;
+import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Replication;
@@ -25,6 +29,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -48,14 +53,15 @@ public class BagController extends IngestController {
     private final Integer DEFAULT_PAGE_SIZE = 20;
     private final Integer DEFAULT_PAGE = 0;
 
-    final BagService bagService;
+    // final BagService bagService;
+    final SearchService<Bag, Long, BagRepository> bagService;
     final ReplicationService replicationService;
     final TokenRepository tokenRepository;
     final NodeRepository nodeRepository;
     final IngestSettings settings;
 
     @Autowired
-    public BagController(BagService bagService,
+    public BagController(SearchService<Bag, Long, BagRepository> bagService,
                          ReplicationService replicationService,
                          TokenRepository tokenRepository,
                          NodeRepository nodeRepository,
@@ -67,10 +73,8 @@ public class BagController extends IngestController {
         this.settings = settings;
     }
 
-    // TODO: Param Map
     /**
      * Retrieve information about all bags
-     *
      *
      * @param model - the view model
      * @param principal - authentication information
@@ -78,45 +82,24 @@ public class BagController extends IngestController {
      */
     @RequestMapping(value= "/bags", method = RequestMethod.GET)
     public String getBags(Model model, Principal principal,
-                          @RequestParam(defaultValue = "0", required = false) Integer page,
-                          @RequestParam(required = false) String depositor,
-                          @RequestParam(required = false) String name,
-                          @RequestParam(required = false) BagStatus status,
-                          @RequestParam(defaultValue = "id", required = false) String orderBy,
-                          @RequestParam(required = false) String dir) {
+                          @ModelAttribute(value = "filter") BagFilter filter) {
         log.info("Getting bags for user {}", principal.getName());
 
         BagSearchCriteria criteria = new BagSearchCriteria()
-                .nameLike(name)
-                .depositorLike(depositor)
-                .withStatus(status);
+                .nameLike(filter.getName())
+                .depositorLike(filter.getDepositor())
+                .withStatuses(filter.getStatus());
 
-        Sort.Direction direction = (dir == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(dir);
-        Sort s = new Sort(direction, orderBy);
-        Page<Bag> bags = bagService.findBags(criteria, new PageRequest(page, DEFAULT_PAGE_SIZE, s));
+        Sort.Direction direction = (filter.getDir() == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(filter.getDir());
+        Sort s = new Sort(direction, filter.getOrderBy());
+        Page<Bag> bags = bagService.findAll(criteria, new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, s));
 
-        boolean start;
-        StringBuilder url = new StringBuilder("/bags");
-        // if we don't append anything, let start continue being true
-        start = !append(url, "depositor", depositor, true);
-        // we only want start to remain true if (start == true && append failed)
-        append(url, "status", status, start);
-
-
-        PageWrapper<Bag> pages = new PageWrapper<>(bags, url.toString());
+        PageWrapper<Bag> pages = new PageWrapper<>(bags, "/bags", filter.getParameters());
         model.addAttribute("bags", bags);
         model.addAttribute("pages", pages);
-        model.addAttribute("statuses", Arrays.asList(BagStatus.values()));
+        model.addAttribute("statuses", BagStatus.statusByGroup());
 
         return "bags";
-    }
-
-    private boolean append(StringBuilder url, String name, BagStatus status, boolean start) {
-        if (status != null) {
-            return append(url, name, status.name(), start);
-        }
-
-        return false;
     }
 
     /**
@@ -130,13 +113,11 @@ public class BagController extends IngestController {
     public String getBag(Model model, @PathVariable("id") Long id) {
         log.info("Getting bag {}", id);
 
+        BagSearchCriteria bsc = new BagSearchCriteria().withId(id);
         ReplicationSearchCriteria rsc = new ReplicationSearchCriteria().withBagId(id);
 
-        // TODO: Could probably use model.addAllAttributes and use that for
-        // common pages
-        // TODO: Handle pages for replications I guess
-        model.addAttribute("bag", bagService.findBag(id));
-        model.addAttribute("replications", replicationService.getReplications(rsc,
+        model.addAttribute("bag", bagService.find(bsc));
+        model.addAttribute("replications", replicationService.findAll(rsc,
                 new PageRequest(DEFAULT_PAGE, DEFAULT_PAGE_SIZE)));
         model.addAttribute("statuses", Arrays.asList(BagStatus.values()));
         model.addAttribute("tokens", tokenRepository.countByBagId(id));
@@ -156,9 +137,10 @@ public class BagController extends IngestController {
     public String updateBag(Model model, @PathVariable("id") Long id, BagUpdate update) {
         log.info("Updating bag {}: status = {}", id, update.getStatus());
 
-        Bag bag = bagService.findBag(id);
+        BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
+        Bag bag = bagService.find(criteria);
         bag.setStatus(update.getStatus());
-        bagService.saveBag(bag);
+        bagService.save(bag);
 
         model.addAttribute("bags", bag);
         model.addAttribute("statuses", Arrays.asList(BagStatus.values()));
@@ -194,7 +176,7 @@ public class BagController extends IngestController {
         BagSearchCriteria criteria = new BagSearchCriteria()
                 .withDepositor(depositor)
                 .withName(name);
-        Bag bag = bagService.findBag(criteria);
+        Bag bag = bagService.find(criteria);
 
         request.setRequiredReplications(request.getReplicatingNodes().size());
 
@@ -212,9 +194,9 @@ public class BagController extends IngestController {
             createBagDistributions(bag, request.getReplicatingNodes());
         }
 
-        bagService.saveBag(bag);
+        bagService.save(bag);
 
-        // TODO: Redirect to /bags/{id}?
+        // TODO: Redirect to /bags/{id}
         return "redirect:/bags";
     }
 
@@ -259,60 +241,24 @@ public class BagController extends IngestController {
      */
     @RequestMapping(value = "/replications", method = RequestMethod.GET)
     public String getReplications(Model model, Principal principal,
-                                  @RequestParam(defaultValue = "0", required = false) Integer page,
-                                  @RequestParam(required = false) String node,
-                                  @RequestParam(required = false) String bag,
-                                  @RequestParam(required = false) ReplicationStatus status,
-                                  @RequestParam(defaultValue = "id", required = false) String orderBy,
-                                  @RequestParam(required = false) String dir) {
+                                  @ModelAttribute(value = "filter") ReplicationFilter filter) {
         log.info("Getting replications for user {}", principal.getName());
+
         Page<Replication> replications;
         ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
-                .bagNameLike(bag)
-                .nodeUsernameLike(node)
-                .withStatus(status);
+                .bagNameLike(filter.getBag())
+                .nodeUsernameLike(filter.getNode())
+                .withStatuses(filter.getStatus());
 
-        Sort.Direction direction = (dir == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(dir);
-        Sort s = new Sort(direction, orderBy);
-        replications = replicationService.getReplications(criteria, new PageRequest(page, DEFAULT_PAGE_SIZE, s));
-
-        StringBuilder url = new StringBuilder("/replications");
-
-        boolean start;
-        // if we don't append anything, let start continue being true
-        start = !append(url, "bag", bag, true);
-        // we only want start to remain true if (start == true && append failed)
-        start = (start && !append(url, "node", node, start));
-        append(url, "status", status, start);
+        Sort.Direction direction = (filter.getDir() == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(filter.getDir());
+        Sort s = new Sort(direction, filter.getOrderBy());
+        replications = replicationService.findAll(criteria, new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, s));
 
         model.addAttribute("replications", replications);
-        model.addAttribute("statuses", Arrays.asList(ReplicationStatus.values()));
-        model.addAttribute("pages", new PageWrapper<>(replications, url.toString()));
+        model.addAttribute("statuses", ReplicationStatus.statusByGroup());
+        model.addAttribute("pages", new PageWrapper<>(replications, "/replications", filter.getParameters()));
 
         return "replications";
-    }
-
-    private boolean append(StringBuilder builder, String name, ReplicationStatus value, boolean start) {
-        if (value != null) {
-            return append(builder, name, value.name(), start);
-        }
-
-        return false;
-    }
-
-    private boolean append(StringBuilder builder, String name, String value, boolean start) {
-        if (value != null && !value.isEmpty()) {
-            if (start) {
-                builder.append("?");
-            } else {
-                builder.append("&");
-            }
-            builder.append(name).append("=").append(value);
-
-            return true;
-        }
-
-        return false;
     }
 
     @RequestMapping(value = "/replications/{id}", method = RequestMethod.GET)
@@ -320,7 +266,7 @@ public class BagController extends IngestController {
         ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
                 .withId(id);
 
-        Replication replication = replicationService.getReplication(criteria);
+        Replication replication = replicationService.find(criteria);
         log.info("Found replication {}::{}", replication.getId(), replication.getNode().getUsername());
         model.addAttribute("replication", replication);
 
@@ -338,26 +284,53 @@ public class BagController extends IngestController {
      */
     @RequestMapping(value = "/replications/add", method = RequestMethod.GET)
     public String addReplications(Model model, Principal principal) {
-        model.addAttribute("bags", bagService.findBags(new BagSearchCriteria(), new PageRequest(0, 100)));
+        model.addAttribute("bags", bagService.findAll(new BagSearchCriteria(), new PageRequest(0, 100)));
         model.addAttribute("nodes", nodeRepository.findAll());
         return "addreplication";
     }
 
     /**
+     * Handle a request to create a replication from the Bag.id page
+     *
+     * @param model the model of the response
+     * @param bag the bag id to create replications for
+     * @return the create replication form
+     */
+    @RequestMapping(value = "/replications/create", method = RequestMethod.GET)
+    public String createReplicationForm(Model model, Principal principal, @RequestParam("bag") Long bag) {
+        model.addAttribute("bag", bag);
+        if (hasRoleAdmin()) {
+            model.addAttribute("nodes", nodeRepository.findAll());
+        } else {
+            List<Node> nodes = new ArrayList<>();
+            Node node = nodeRepository.findByUsername(principal.getName());
+            if (node != null) {
+                nodes.add(node);
+            }
+            model.addAttribute("nodes", nodes);
+        }
+        return "replications/create";
+    }
+
+    @RequestMapping(value = "/replications/create", method = RequestMethod.POST)
+    public String createReplications(@ModelAttribute("form") ReplicationCreate form) {
+        log.info("Creating new replication from form");
+        final Long bag = form.getBag();
+        form.getNodes().forEach(nodeId -> replicationService.create(bag, nodeId, settings));
+        return "redirect:/replications/";
+    }
+
+    /**
      * Handler for adding bags
      *
-     * @param model - the view model
      * @param request - the request containing the bag name, depositor, and location
      * @return redirect to all replications
      */
     @RequestMapping(value = "/replications/add", method = RequestMethod.POST)
-    public String addReplication(Model model, ReplicationRequest request) {
-        log.info("Adding new replication from web ui");
-
+    public String addReplication(ReplicationRequest request) {
+        log.info("Creating new replication from add");
         Replication replication = replicationService.create(request, settings);
-
-        // TODO: replicatons/id
-        return "redirect:/replications";
+        return "redirect:/replications/" + replication.getId();
     }
 
 }

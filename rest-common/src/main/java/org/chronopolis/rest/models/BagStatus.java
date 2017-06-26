@@ -1,9 +1,13 @@
 package org.chronopolis.rest.models;
 
+import com.google.common.collect.ImmutableListMultimap;
+
 /**
  * Status types for our bags. Subject to change.
  *
- * TODO: Replicating -> Preserved?
+ * TODO: As these grow it might be a good time to look
+ *       for ways to trim them down and see what is no
+ *       longer necessary.
  *
  * Created by shake on 11/20/14.
  */
@@ -18,6 +22,8 @@ public enum BagStatus {
     TOKENIZED("TOKENIZED"),
     REPLICATING("REPLICATING"),
     PRESERVED("PRESERVED"),
+    DEPRECATED("DEPRECATED"),
+    DELETED("DELETED"),
     ERROR("ERROR");
 
     private String value;
@@ -28,5 +34,18 @@ public enum BagStatus {
 
     public String getValue() {
         return value;
+    }
+
+    public static ImmutableListMultimap<String, BagStatus> statusByGroup() {
+        return new ImmutableListMultimap.Builder<String, BagStatus>()
+                .put("Processing", BagStatus.DEPOSITED)
+                .put("Processing", BagStatus.INITIALIZED)
+                .put("Processing", BagStatus.TOKENIZED)
+                .put("Processing", BagStatus.REPLICATING)
+                .put("Preserved", BagStatus.PRESERVED)
+                .put("Inactive", BagStatus.DEPRECATED)
+                .put("Inactive", BagStatus.DELETED)
+                .put("Inactive", BagStatus.ERROR)
+                .build();
     }
 }

@@ -85,7 +85,7 @@ public class AceTaskletTest {
     }
 
     private void prepareAceAudit() {
-        when(ace.startAudit(anyLong()))
+        when(ace.startAudit(anyLong(), eq(false)))
                 .thenReturn(new CallWrapper<>(null));
     }
 
@@ -120,13 +120,13 @@ public class AceTaskletTest {
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
         AceRunner runner = new AceRunner(ace, ingest, replication.getId(), settings, notifier);
-        runner.run();
+        runner.get();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName(any(String.class), any(String.class));
         verify(ace, times(1)).addCollection(any(GsonCollection.class));
         verify(ace, times(1)).loadTokenStore(anyLong(), any(RequestBody.class));
-        verify(ace, times(1)).startAudit(anyLong());
+        verify(ace, times(1)).startAudit(anyLong(), eq(false));
         verify(ingest, times(3)).updateReplicationStatus(anyLong(), any(RStatusUpdate.class));
     }
 
@@ -149,13 +149,13 @@ public class AceTaskletTest {
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
         AceRunner runner = new AceRunner(ace, ingest, replication.getId(), settings, notifier);
-        runner.run();
+        runner.get();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName(any(String.class), any(String.class));
         verify(ace, times(0)).addCollection(any(GsonCollection.class));
         verify(ace, times(1)).loadTokenStore(anyLong(), any(RequestBody.class));
-        verify(ace, times(1)).startAudit(anyLong());
+        verify(ace, times(1)).startAudit(anyLong(), eq(false));
         verify(ingest, times(2)).updateReplicationStatus(anyLong(), any(RStatusUpdate.class));
     }
 
@@ -176,11 +176,11 @@ public class AceTaskletTest {
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
         AceRunner runner = new AceRunner(ace, ingest, replication.getId(), settings, notifier);
-        runner.run();
+        runner.get();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName("test-bag", "test-depositor");
-        verify(ace, times(1)).startAudit(anyLong());
+        verify(ace, times(1)).startAudit(anyLong(), eq(false));
         verify(ingest, times(1)).updateReplicationStatus(anyLong(), any(RStatusUpdate.class));
     }
 
@@ -203,12 +203,12 @@ public class AceTaskletTest {
         notifier = new ReplicationNotifier(replication);
 
         AceRunner runner = new AceRunner(ace, ingest, replication.getId(), settings, notifier);
-        runner.run();
+        runner.get();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName("test-bag", "test-depositor");
         verify(ace, times(1)).loadTokenStore(anyLong(), any(RequestBody.class));
-        verify(ace, times(1)).startAudit(anyLong());
+        verify(ace, times(1)).startAudit(anyLong(), eq(false));
         verify(ingest, times(2)).updateReplicationStatus(anyLong(), any(RStatusUpdate.class));
     }
 
@@ -237,7 +237,8 @@ public class AceTaskletTest {
                         TimeUnit.SECONDS.sleep(2);
                     } catch (InterruptedException ignored) {
                     }
-                    callback.onResponse(Response.success(e));
+
+                    callback.onResponse(new AsyncWrapper(e), Response.success(e));
                 }
             };
 

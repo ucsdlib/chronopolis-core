@@ -9,11 +9,11 @@ import java.util.List;
  */
 public class IngestRequest {
 
-    String name;
-    String location;
-    String depositor;
-    int requiredReplications;
-    List<String> replicatingNodes;
+    private String name;
+    private String location;
+    private String depositor;
+    private int requiredReplications;
+    private List<String> replicatingNodes;
 
     public String getName() {
         return name;
@@ -65,5 +65,29 @@ public class IngestRequest {
                 "requiredReplications=" + requiredReplications + "," +
                 "replicatingNodes=" + replicatingNodes +
                 "}";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        IngestRequest that = (IngestRequest) o;
+
+        if (requiredReplications != that.requiredReplications) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (location != null ? !location.equals(that.location) : that.location != null) return false;
+        if (depositor != null ? !depositor.equals(that.depositor) : that.depositor != null) return false;
+        return replicatingNodes != null ? replicatingNodes.equals(that.replicatingNodes) : that.replicatingNodes == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (location != null ? location.hashCode() : 0);
+        result = 31 * result + (depositor != null ? depositor.hashCode() : 0);
+        result = 31 * result + requiredReplications;
+        result = 31 * result + (replicatingNodes != null ? replicatingNodes.hashCode() : 0);
+        return result;
     }
 }

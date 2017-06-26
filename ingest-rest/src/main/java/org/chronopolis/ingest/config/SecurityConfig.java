@@ -33,6 +33,19 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
+    // Paths
+    private static final String UI_BAG = "/bags/**";
+    private static final String UI_REPAIR = "/repairs/**";
+    private static final String UI_REPLICATION = "/replications/**";
+    private static final String UI_USER = "/users/**";
+    private static final String UI_USER_ADD = "/users/add";
+    private static final String UI_USER_UPDATE = "/users/update";
+
+    private static final String API_ROOT = "/api/**";
+    private static final String API_BAG_ROOT = "/api/bags/**";
+    private static final String API_REPLICATION_ROOT = "/api/replications/**";
+    private static final String API_REPAIR_ROOT = "/api/repairs/**";
+
     @Autowired
     DataSource dataSource;
 
@@ -74,25 +87,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf().disable().authorizeRequests()
                 .accessDecisionManager(decisionManager)
                 // RESTful paths
-                .antMatchers(HttpMethod.GET, "/api/**").hasRole("SERVICE")
-                .antMatchers(HttpMethod.PUT, "/api/**").hasRole("USER")
-                .antMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
-                .antMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
+                .antMatchers(HttpMethod.GET, API_ROOT).hasRole("SERVICE")
+                .antMatchers(HttpMethod.PUT, API_ROOT).hasRole("USER")
+                .antMatchers(HttpMethod.POST, API_REPAIR_ROOT).hasRole("USER")
+                .antMatchers(HttpMethod.POST, API_BAG_ROOT, API_REPLICATION_ROOT).hasRole("ADMIN")
+                .antMatchers(HttpMethod.DELETE, API_ROOT).hasRole("ADMIN")
                 // Webapp paths
                 // resources
                 .antMatchers("/css/**").permitAll()
                 .antMatchers("/js/**").permitAll()
                 // controllers
-                .antMatchers(HttpMethod.GET,
-                        "/bags/**",
-                        "/replications/**",
-                        "/users/**").hasRole("USER")
-                .antMatchers(HttpMethod.POST,
-                        "/users/update").hasRole("USER")
-                .antMatchers(HttpMethod.POST,
-                        "/bags/**",
-                        "/replications/**",
-                        "/users/add").hasRole("ADMIN")
+                .antMatchers(HttpMethod.GET, UI_BAG, UI_REPLICATION, UI_USER, UI_REPAIR).hasRole("USER")
+                .antMatchers(HttpMethod.POST, UI_REPAIR, UI_USER_UPDATE).hasRole("USER")
+                .antMatchers(HttpMethod.POST, UI_BAG, UI_REPLICATION, UI_USER_ADD).hasRole("ADMIN")
                 .antMatchers("/").permitAll()
                     .anyRequest().permitAll()
                 .and()

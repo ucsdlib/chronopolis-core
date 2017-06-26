@@ -57,7 +57,7 @@ public class TokenFileWriterTest extends IngestTest {
         Assert.assertEquals(true, java.nio.file.Files.exists(tokens));
 
         // the hash value is correct
-        HashCode hash = Files.hash(tokens.toFile(), Hashing.sha256());
+        HashCode hash = Files.asByteSource(tokens.toFile()).hash(Hashing.sha256());
         Assert.assertEquals(b.getTokenDigest(), hash.toString());
     }
 }
