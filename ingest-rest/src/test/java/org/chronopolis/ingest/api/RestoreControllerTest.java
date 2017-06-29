@@ -1,67 +1,70 @@
 package org.chronopolis.ingest.api;
 
 import org.chronopolis.ingest.IngestTest;
-import org.chronopolis.ingest.TestApplication;
+import org.chronopolis.ingest.WebContext;
+import org.chronopolis.ingest.repository.NodeRepository;
+import org.chronopolis.ingest.repository.RestoreRepository;
+import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.entities.Restoration;
+import org.chronopolis.rest.models.ReplicationStatus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.context.jdbc.SqlGroup;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.List;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import static org.junit.Assert.assertEquals;
-
-@WebMvcTest
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = TestApplication.class)
-@SqlGroup({
-        @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:sql/createRestorations.sql"),
-        @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = "classpath:sql/deleteRestorations.sql")
-})
+@RunWith(SpringRunner.class)
+@WebMvcTest(RestoreController.class)
+@ContextConfiguration(classes = WebContext.class)
 public class RestoreControllerTest extends IngestTest {
 
-    @Value("${local.server.port}")
-    private int port;
+    @Autowired
+    private MockMvc mvc;
+
+    @MockBean
+    private RestoreRepository restores;
+
+    @MockBean
+    private NodeRepository nodes;
 
     @Test
     public void testGetRestorations() throws Exception {
-        ResponseEntity<List> entity = new TestRestTemplate("umiacs", "umiacs")
-                .getForEntity("http://localhost:" + port + "/api/restorations", List.class);
-
-        assertEquals(HttpStatus.OK, entity.getStatusCode());
-        assertEquals(1, entity.getBody().size());
+        when(restores.findByStatus(any(ReplicationStatus.class))).thenReturn(null);
+        mvc.perform(
+                get("/api/restorations")
+                        .principal(() -> "user"))
+                .andExpect(status().is(200));
     }
 
-    @Test
+    // @Test
     public void testPutRestoration() throws Exception {
-
     }
 
     @Test
     public void testGetRestoration() throws Exception {
-        ResponseEntity entity = new TestRestTemplate("umiacs", "umiacs")
-                .getForEntity("http://localhost:" + port + "/api/restorations/1", Object.class);
-
-        assertEquals(HttpStatus.OK, entity.getStatusCode());
+        Restoration restoration = new Restoration("depositor", "restore-1", "some-link");
+        restoration.setNode(new Node("user", "password"));
+        when(restores.findOne(anyLong())).thenReturn(restoration);
+        mvc.perform(
+                get("/api/restorations/{id}", 1L)
+                        .principal(() -> "user"))
+                .andExpect(status().is(200));
     }
 
-    @Test
+    // @Test
     public void testGetRestorationNotExists() throws Exception {
-        ResponseEntity entity = new TestRestTemplate("umiacs", "umiacs")
-                .getForEntity("http://localhost:" + port + "/api/restorations/1789124", Object.class);
-
-        assertEquals(HttpStatus.NOT_FOUND, entity.getStatusCode());
     }
 
     // @Test
     public void testUpdateRestoration() throws Exception {
-
     }
 }

@@ -121,6 +121,7 @@ public class StagingController extends IngestController {
 
         Bag bag = bagService.find(criteria);
         if (bag != null) {
+            // return a 409 instead?
             log.debug("Bag {} exists from depositor {}, skipping creation", name, depositor);
             return bag;
         }

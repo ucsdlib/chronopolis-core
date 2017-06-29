@@ -113,7 +113,7 @@ public class RepairController {
      * @throws UnauthorizedException if the user is not part of the node requesting the repair
      */
     @SuppressWarnings("ConstantConditions")
-    @RequestMapping(value = "/", method = RequestMethod.POST)
+    @RequestMapping(method = RequestMethod.POST)
     public Repair createRequest(Principal principal, @RequestBody RepairRequest request) {
         boolean ignore = true;
         boolean admin = hasRoleAdmin();

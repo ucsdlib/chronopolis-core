@@ -1,201 +1,174 @@
 package org.chronopolis.ingest.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import okhttp3.OkHttpClient;
-import org.chronopolis.common.ace.OkBasicInterceptor;
+import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.IngestTest;
-import org.chronopolis.ingest.TestApplication;
+import org.chronopolis.ingest.WebContext;
 import org.chronopolis.ingest.repository.BagRepository;
-import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
+import org.chronopolis.ingest.repository.NodeRepository;
+import org.chronopolis.ingest.repository.criteria.SearchCriteria;
 import org.chronopolis.ingest.repository.dao.SearchService;
-import org.chronopolis.ingest.support.PageImpl;
-import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.models.IngestRequest;
-import org.chronopolis.rest.support.ZonedDateTimeDeserializer;
-import org.chronopolis.rest.support.ZonedDateTimeSerializer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.context.jdbc.SqlGroup;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import retrofit2.Call;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.ZonedDateTime;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 /**
  * Tests for the staging API
  *
  */
-@WebMvcTest
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = TestApplication.class)
-@SqlGroup({
-        @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:sql/createBags.sql"),
-        @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = "classpath:sql/deleteBags.sql")
-})
+@RunWith(SpringRunner.class)
+@WebMvcTest(StagingController.class)
+@ContextConfiguration(classes = WebContext.class)
 public class StagingControllerTest extends IngestTest {
 
-    @Value("${local.server.port}")
-    private int port;
+    private final String DEPOSITOR = "test-depositor";
+    private final String BAG = "test-bag";
+    private final String LOCATION = "bags/test-bag-0";
+    private final String NODE = "test-node";
 
     @Autowired
-    SearchService<Bag, Long, BagRepository> bagService;
+    private MockMvc mvc;
 
-    @Autowired
-    Jackson2ObjectMapperBuilder builder;
+    // Mocks for the StagingController
+    @MockBean
+    private SearchService<Bag, Long, BagRepository> bagService;
 
-    // @Test
-    public void testSerial() throws Exception {
-       ResponseEntity<Bag> entity = getTemplate("umiacs", "umiacs")
-               .getForEntity("http://localhost:" + port + "/api/bags/10", Bag.class);
+    @MockBean
+    private NodeRepository nodes;
 
-        BagSearchCriteria criteria = new BagSearchCriteria().withId(10L);
-        Bag bag = bagService.find(criteria);
-        System.out.println(bag.getReplicatingNodes());
-
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeSerializer())
-                .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeDeserializer())
-                .create();
-
-        OkHttpClient client = new OkHttpClient.Builder()
-                .addInterceptor(new OkBasicInterceptor("umiacs", "umiacs"))
-                .build();
-
-        Retrofit adapter = new Retrofit.Builder()
-                .client(client)
-                .baseUrl("http://localhost:" + port)
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                // .setRequestInterceptor(new CredentialRequestInterceptor("umiacs", "umiacs"))
-                // .setLogLevel(RestAdapter.LogLevel.FULL)
-                .build();
-
-        IngestAPI api = adapter.create(IngestAPI.class);
-        Call<org.chronopolis.rest.models.Bag> call = api.getBag((long) 10);
-        org.chronopolis.rest.models.Bag bag1 = call.execute().body();
-        System.out.println(bag1.getTokenLocation());
-    }
+    @MockBean
+    private IngestSettings settings;
 
     @Test
     public void testGetBags() throws Exception {
-        ResponseEntity<PageImpl> entity = getTemplate("umiacs", "umiacs")
-                .getForEntity("http://localhost:" + port + "/api/bags", PageImpl.class);
+        // todo actual return value
+        // todo correct search criteria
+        when(bagService.findAll(any(SearchCriteria.class), any(Pageable.class))).thenReturn(null);
 
-        assertEquals(HttpStatus.OK, entity.getStatusCode());
-        assertEquals(10, entity.getBody().getTotalElements());
+        mvc.perform(
+                get("/api/bags/")
+                        .principal(() -> "user"))
+                .andDo(print())
+                .andExpect(status().is(200));
     }
 
     @Test
     public void testGetBag() throws Exception {
-        ResponseEntity<Bag> entity = getTemplate("umiacs", "umiacs")
-                .getForEntity("http://localhost:" + port + "/api/bags/1", Bag.class);
+        // todo actual return value
+        // todo correct search criteria
+        when(bagService.find(any(SearchCriteria.class))).thenReturn(bag());
 
-        assertEquals(HttpStatus.OK, entity.getStatusCode());
-        assertEquals("bag-0", entity.getBody().getName());
+        mvc.perform(
+                get("/api/bags/{id}", 1L)
+                        .principal(() -> "user"))
+                .andDo(print())
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.depositor").value("test-depositor"))
+                .andExpect(jsonPath("$.name").value("test-bag"));
     }
 
     @Test
-    public void testNonExistentBag() throws Exception {
-        ResponseEntity entity = getTemplate("umiacs", "umiacs")
-                .getForEntity("http://localhost:" + port + "/api/bags/12015851", Object.class);
-
-        assertEquals(HttpStatus.NOT_FOUND, entity.getStatusCode());
+    public void testGetDoesNotExist() throws Exception {
+        when(bagService.find(any(SearchCriteria.class))).thenReturn(null);
+        mvc.perform(
+                get("/api/bags/{id}", 100L)
+                        .principal(() -> "user"))
+                .andDo(print())
+                .andExpect(status().is(404));
     }
 
     @Test
-    public void testStageExistingBag() throws Exception {
-        // need admin credentials for creating resources
-        TestRestTemplate template = getTemplate("admin", "admin");
+    public void testStageBag() throws Exception {
         IngestRequest request = new IngestRequest();
-        // All defined the createBags.sql
-        request.setName("bag-0");
-        request.setDepositor("test-depositor");
-        request.setLocation("bags/test-bag-0");
+        request.setDepositor(DEPOSITOR);
+        request.setName(BAG);
+        request.setLocation(LOCATION);
+        request.setReplicatingNodes(ImmutableList.of(NODE));
 
-        ResponseEntity<Bag> bag = template.postForEntity(
-                "http://localhost:" + port + "/api/bags",
-                request,
-                Bag.class);
+        when(bagService.find(any(SearchCriteria.class))).thenReturn(null);
+        when(settings.getBagStage()).thenReturn("/");
+        when(nodes.findByUsername(eq(NODE))).thenReturn(new Node(NODE, "password"));
 
-        assertEquals(Long.valueOf(1), bag.getBody().getId());
+        mvc.perform(
+                post("/api/bags")
+                    .principal(() -> "user")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(asJson(request)))
+                .andDo(print())
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.depositor").value(DEPOSITOR))
+                .andExpect(jsonPath("$.name").value(BAG))
+                .andExpect(jsonPath("$.location").value(LOCATION))
+                .andExpect(jsonPath("$.fixityAlgorithm").value("SHA-256"));
+
+        verify(bagService, times(1)).find(any(SearchCriteria.class));
+        verify(nodes, times(1)).findByUsername(eq(NODE));
     }
 
     @Test
-    public void testStageBagWithoutReplications() throws Exception {
-        // need admin credentials for creating resources
-        TestRestTemplate template = getTemplate("admin", "admin");
+    public void testStageExists() throws Exception {
         IngestRequest request = new IngestRequest();
+        request.setDepositor(DEPOSITOR);
+        request.setName(BAG);
+        request.setLocation(LOCATION);
+        request.setReplicatingNodes(ImmutableList.of(NODE));
 
-        request.setName("new-bag-1");
-        request.setDepositor("test-depositor");
-        request.setLocation("test-depositor/new-bag-1");
+        when(bagService.find(any(SearchCriteria.class))).thenReturn(bag());
+        when(settings.getBagStage()).thenReturn("/");
 
-        ResponseEntity<Bag> bag = template.postForEntity(
-                "http://localhost:" + port + "/api/bags",
-                request,
-                Bag.class);
+        mvc.perform(
+                post("/api/bags")
+                    .principal(() -> "user")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(asJson(request)))
+                .andDo(print())
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.depositor").value(DEPOSITOR))
+                .andExpect(jsonPath("$.name").value(BAG));
 
-        assertEquals(Long.valueOf(11), bag.getBody().getId());
-        // This now happens after the initial commit of information to the repository
-        // assertEquals(Long.valueOf(3), Long.valueOf(bag.getBody().getTotalFiles()));
+        verify(bagService, times(1)).find(any(SearchCriteria.class));
+        verify(nodes, times(0)).findByUsername(eq(NODE));
     }
 
-    /**
-     * Test with specifying replicating nodes to ensure they get saved
-     *
-     */
-    @Test
-    public void testStageBagWithReplications() throws Exception {
-        // need admin credentials for creating resources
-        TestRestTemplate template = getTemplate("admin", "admin");
-        IngestRequest request = new IngestRequest();
-
-        request.setName("new-bag-1-1");
-        request.setDepositor("test-depositor");
-        request.setLocation("test-depositor/new-bag-1");
-        request.setReplicatingNodes(ImmutableList.of("umiacs"));
-        request.setRequiredReplications(1);
-
-        ResponseEntity<Bag> bag = template.postForEntity(
-                "http://localhost:" + port + "/api/bags",
-                request,
-                Bag.class);
-
-        // Pull from the database to check the distribution record
-        BagSearchCriteria criteria = new BagSearchCriteria().withId(bag.getBody().getId());
-        Bag fromDb = bagService.find(criteria);
-        assertEquals(1, fromDb.getDistributions().size());
+    private Bag bag() {
+        Bag b = new Bag(BAG, DEPOSITOR);
+        b.setId(1L);
+        return b;
     }
 
-    // Basically the same as in the ReplicationController test, should move to IngestTest
-    public TestRestTemplate getTemplate(String user, String pass) {
+    private <T> String asJson(T request) {
         ObjectMapper mapper = new ObjectMapper();
-        builder.configure(mapper);
-        List<HttpMessageConverter<?>> converters =
-                ImmutableList.of(new MappingJackson2HttpMessageConverter(mapper));
-        TestRestTemplate template = new TestRestTemplate(user, pass);
-        // template.setMessageConverters(converters);
-        return template;
+        try {
+            return mapper.writeValueAsString(request);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
+
 
 }
