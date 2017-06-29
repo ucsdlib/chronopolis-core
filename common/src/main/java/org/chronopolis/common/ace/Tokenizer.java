@@ -84,6 +84,21 @@ public class Tokenizer {
         addManifests();
     }
 
+    public Tokenizer(final Path bag,
+                     final String fixityAlgorithm,
+                     final String imsHostName,
+                     final RequestBatchCallback callback,
+                     IMSFactory imsFactory) {
+        this.bag = bag;
+        this.fixityAlgorithm = Digest.fromString(fixityAlgorithm);
+        this.extraTagmanifests = new HashSet<>();
+        this.callback = callback;
+        this.tagDigest = null;
+        this.factory = imsFactory;
+        this.imsHostName = imsHostName;
+        addManifests();
+    }
+
     private void addManifests() {
         tagIdentifier = "tagmanifest-"
                 + fixityAlgorithm.getBagitIdentifier()

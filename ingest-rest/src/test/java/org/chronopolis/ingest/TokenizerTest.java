@@ -18,7 +18,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +34,7 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -60,43 +60,35 @@ public class TokenizerTest extends IngestTest {
     private final int PART_FACTORY_CALLS = 1;
     private final String IMS_HOST = "imstest.umiacs.umd.edu";
 
-    TokenCallback fullCallback;
-    TokenCallback partialCallback;
+    private TokenCallback fullCallback;
+    private TokenCallback partialCallback;
 
     // Autowired Beans
-    @Autowired IngestSettings settings;
-    @Autowired BagRepository bagRepository;
-    @Autowired TokenRepository tokenRepository;
+    @Autowired private IngestSettings settings;
+    @Autowired private BagRepository bagRepository;
+    @Autowired private TokenRepository tokenRepository;
 
     // Two tokenizers for each bag we do
-    Tokenizer fullTokenizer;
-    Tokenizer partialTokenizer;
+    private Tokenizer fullTokenizer;
+    private Tokenizer partialTokenizer;
 
     // Our mocks which get injected
-    @Mock Tokenizer.IMSFactory factory;
-    @Mock TokenRequestBatch batch;
+    @Mock private Tokenizer.IMSFactory factory = mock(Tokenizer.IMSFactory.class);
+    @Mock private TokenRequestBatch batch = mock(TokenRequestBatch.class);
 
     @Before
     public void setup() {
         // Create the tokenizer for digesting all tokens
         Bag fullBag = bagRepository.findOne(Long.valueOf(1));
-        log.info("------------");
-        log.info("{} algorithm=", fullBag.getName(), fullBag.getFixityAlgorithm());
-        log.info("------------");
         Path fullPath = Paths.get(settings.getBagStage(), fullBag.getLocation());
         fullCallback = new TokenCallback(tokenRepository, fullBag);
-        fullTokenizer = new Tokenizer(fullPath, fullBag.getFixityAlgorithm(), IMS_HOST, fullCallback);
+        fullTokenizer = new Tokenizer(fullPath, fullBag.getFixityAlgorithm(), IMS_HOST, fullCallback, factory);
 
         // Create the tokenizer for digesting some tokens
         Bag partialBag = bagRepository.findOne(Long.valueOf(2));
-        log.info("------------");
-        log.info("{} algorithm=", partialBag.getName(), partialBag.getFixityAlgorithm());
-        log.info("------------");
         Path partialPath = Paths.get(settings.getBagStage(), partialBag.getLocation());
         partialCallback = new TokenCallback(tokenRepository, partialBag);
-        partialTokenizer = new Tokenizer(partialPath, partialBag.getFixityAlgorithm(), IMS_HOST, partialCallback);
-
-        MockitoAnnotations.initMocks(this);
+        partialTokenizer = new Tokenizer(partialPath, partialBag.getFixityAlgorithm(), IMS_HOST, partialCallback, factory);
     }
 
 
