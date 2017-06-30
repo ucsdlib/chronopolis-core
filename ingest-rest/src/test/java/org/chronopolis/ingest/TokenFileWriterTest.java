@@ -7,13 +7,15 @@ import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.rest.entities.Bag;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -29,8 +31,9 @@ import java.nio.file.Paths;
  *
  * Created by shake on 8/27/15.
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = TestApplication.class)
+@RunWith(SpringRunner.class)
+@DataJpaTest
+@ContextConfiguration(classes = JpaContext.class)
 @SqlGroup({
         @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:sql/createBagsWithTokens.sql"),
         @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = "classpath:sql/deleteBagsWithTokens.sql")
@@ -39,7 +42,13 @@ public class TokenFileWriterTest extends IngestTest {
 
     @Autowired BagRepository br;
     @Autowired TokenRepository tr;
-    @Autowired IngestSettings settings;
+    IngestSettings settings;
+
+    @Before
+    public void setup() {
+        settings = new IngestSettings();
+        settings.setTokenStage(System.getProperty("chron.stage.tokens"));
+    }
 
     @Test
     public void testWriteTokens() throws Exception {

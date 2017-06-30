@@ -2,9 +2,8 @@ package org.chronopolis.ingest.task;
 
 import org.chronopolis.common.ace.Tokenizer;
 import org.chronopolis.common.util.Filter;
-import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.IngestTest;
-import org.chronopolis.ingest.TestApplication;
+import org.chronopolis.ingest.JpaContext;
 import org.chronopolis.ingest.TokenCallback;
 import org.chronopolis.ingest.TokenFileWriter;
 import org.chronopolis.ingest.repository.BagRepository;
@@ -18,10 +17,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.nio.file.Path;
 
@@ -36,8 +36,9 @@ import static org.mockito.Mockito.when;
  *
  * Created by shake on 8/26/15.
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = TestApplication.class)
+@RunWith(SpringRunner.class)
+@DataJpaTest
+@ContextConfiguration(classes = JpaContext.class)
 @SqlGroup({
         @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:sql/createBagsWithTokens.sql"),
         @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = "classpath:sql/deleteBagsWithTokens.sql")
@@ -50,7 +51,6 @@ public class TokenRunnerTest extends IngestTest {
     // Beans created on startup
     @Autowired BagRepository br;
     @Autowired TokenRepository tr;
-    @Autowired IngestSettings settings;
 
     // Our mocks for the various classes we aren't testing
     @Mock TokenFileWriter writer;
@@ -63,8 +63,8 @@ public class TokenRunnerTest extends IngestTest {
     @Test
     public void testRunWithTokenizer() throws Exception {
         Bag b = br.findOne(Long.valueOf(2));
-        String bs = settings.getBagStage();
-        String ts = settings.getTokenStage();
+        String bs = System.getProperty("chron.stage.bags");
+        String ts = System.getProperty("chron.stage.tokens");
 
         runner = new TokenRunner(b, IMS_HOST, bs, ts, br, tr);
         MockitoAnnotations.initMocks(this);
@@ -89,8 +89,8 @@ public class TokenRunnerTest extends IngestTest {
     @Test
     public void testRunWithWriter() throws Exception {
         Bag b = br.findOne(Long.valueOf(3));
-        String bs = settings.getBagStage();
-        String ts = settings.getTokenStage();
+        String bs = System.getProperty("chron.stage.bags");
+        String ts = System.getProperty("chron.stage.tokens");
 
         runner = new TokenRunner(b, IMS_HOST, bs, ts, br, tr);
         MockitoAnnotations.initMocks(this);
@@ -107,4 +107,10 @@ public class TokenRunnerTest extends IngestTest {
 
         Assert.assertEquals(BagStatus.TOKENIZED, b.getStatus());
     }
+
+    // test run with exceptions
+    //  -> when tokenizer run then throw IOException
+    //  -> when tokenizer run then throw InterruptedException
+    //  -> verify times(0) getTagManifestDigest
+
 }

@@ -1,13 +1,19 @@
 package org.chronopolis.ingest.task;
 
+import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.IngestTest;
-import org.chronopolis.ingest.TestApplication;
+import org.chronopolis.ingest.JpaContext;
+import org.chronopolis.ingest.repository.BagRepository;
+import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
+import org.chronopolis.ingest.repository.dao.ReplicationService;
 import org.chronopolis.rest.entities.Replication;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -22,7 +28,8 @@ import static junit.framework.Assert.assertEquals;
  * Created by shake on 8/6/15.
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = TestApplication.class)
+@DataJpaTest
+@ContextConfiguration(classes = JpaContext.class)
 @SqlGroup({
         // We only want bags to be inserted for these tests
         // but when tearing down remove the replications as well
@@ -31,11 +38,24 @@ import static junit.framework.Assert.assertEquals;
 })
 public class ReplicationTaskTest extends IngestTest {
 
-    @Autowired
-    ReplicationTask task;
+    private ReplicationTask task;
 
-    @Autowired
-    ReplicationRepository repository;
+    @Autowired ReplicationRepository repository;
+    @Autowired BagRepository bags;
+    @Autowired NodeRepository nodes;
+
+    @Before
+    public void setup() {
+        IngestSettings settings = new IngestSettings();
+        settings.setRsyncBags("bags/");
+        settings.setRsyncTokens("tokens/");
+        settings.setReplicationUser("test-user");
+        settings.setReplicationServer("test-server");
+
+        ReplicationService service = new ReplicationService(repository, bags, nodes);
+
+        task = new ReplicationTask(settings, bags, service);
+    }
 
     @Test
     public void testCreateReplications() throws Exception {

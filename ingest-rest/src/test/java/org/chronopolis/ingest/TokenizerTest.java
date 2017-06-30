@@ -21,7 +21,8 @@ import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -45,7 +46,8 @@ import static org.mockito.Mockito.when;
  * Created by shake on 8/25/15.
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = TestApplication.class)
+@DataJpaTest
+@ContextConfiguration(classes = JpaContext.class)
 @SqlGroup({
         @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:sql/createBagsWithTokens.sql"),
         @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = "classpath:sql/deleteBagsWithTokens.sql")
@@ -64,13 +66,13 @@ public class TokenizerTest extends IngestTest {
     private TokenCallback partialCallback;
 
     // Autowired Beans
-    @Autowired private IngestSettings settings;
     @Autowired private BagRepository bagRepository;
     @Autowired private TokenRepository tokenRepository;
 
     // Two tokenizers for each bag we do
     private Tokenizer fullTokenizer;
     private Tokenizer partialTokenizer;
+    private IngestSettings settings;
 
     // Our mocks which get injected
     @Mock private Tokenizer.IMSFactory factory = mock(Tokenizer.IMSFactory.class);
@@ -78,6 +80,10 @@ public class TokenizerTest extends IngestTest {
 
     @Before
     public void setup() {
+        settings = new IngestSettings();
+        settings.setBagStage(System.getProperty("chron.stage.bags"));
+        settings.setTokenStage(System.getProperty("chron.stage.tokens"));
+
         // Create the tokenizer for digesting all tokens
         Bag fullBag = bagRepository.findOne(Long.valueOf(1));
         Path fullPath = Paths.get(settings.getBagStage(), fullBag.getLocation());
