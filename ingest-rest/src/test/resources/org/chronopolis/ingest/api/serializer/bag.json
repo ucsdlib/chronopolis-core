@@ -1,0 +1,18 @@
+{
+  "id": 1,
+  "createdAt": "2017-06-30T19:49:12.37Z",
+  "updatedAt": "2017-06-30T19:49:12.37Z",
+  "name": "bag",
+  "creator": "creator",
+  "depositor": "depositor",
+  "location": "location",
+  "tokenLocation": "location",
+  "status": "REPLICATING",
+  "fixityAlgorithm": "sha-256",
+  "size": 1,
+  "totalFiles": 1,
+  "requiredReplications": 0,
+  "replicatingNodes": [
+    "node"
+  ]
+}
