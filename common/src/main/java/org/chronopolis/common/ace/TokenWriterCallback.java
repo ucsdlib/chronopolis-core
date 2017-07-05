@@ -10,6 +10,9 @@ import edu.umiacs.ace.token.AceTokenBuilder;
 import edu.umiacs.ace.token.AceTokenWriter;
 import edu.umiacs.ace.util.HashValue;
 import edu.umiacs.util.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -18,13 +21,11 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static java.nio.file.StandardOpenOption.CREATE;
 import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static java.nio.file.StandardOpenOption.CREATE;
 
 /**
  * TODO: I noticed when testing that not all of the manifest files were correct,
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author shake
  */
+@Deprecated
 public class TokenWriterCallback implements RequestBatchCallback, Callable<Path> {
     private final Logger log = LoggerFactory.getLogger(TokenWriterCallback.class);
     // I don't think this needs to be volatile anymore since we use a future

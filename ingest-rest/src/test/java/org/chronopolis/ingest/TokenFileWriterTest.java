@@ -10,6 +10,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ContextConfiguration;
@@ -39,6 +41,7 @@ import java.nio.file.Paths;
         @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = "classpath:sql/deleteBagsWithTokens.sql")
 })
 public class TokenFileWriterTest extends IngestTest {
+    private final Logger log = LoggerFactory.getLogger(TokenFileWriterTest.class);
 
     @Autowired BagRepository br;
     @Autowired TokenRepository tr;
@@ -63,6 +66,7 @@ public class TokenFileWriterTest extends IngestTest {
 
         // assert that the file exists
         Path tokens = Paths.get(stage, b.getTokenLocation());
+        log.info("{}", tokens);
         Assert.assertEquals(true, java.nio.file.Files.exists(tokens));
 
         // the hash value is correct

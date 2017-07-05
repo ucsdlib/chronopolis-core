@@ -19,28 +19,6 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
-
-            <!--
-            <plugin>
-                <groupId>com.querydsl</groupId>
-                <artifactId>querydsl-maven-plugin</artifactId>
-                <version>4.1.4</version>
-                <executions>
-                    <execution>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>jpa-export</goal>
-                        </goals>
-                        <configuration>
-                            <targetFolder>target/generated-sources/java</targetFolder>
-                            <packages>
-                                <package>org.chronopolis.rest.entities</package>
-                            </packages>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            -->
         </plugins>
     </build>
 
@@ -125,6 +103,7 @@
             <version>1.9</version>
         </dependency>
 
+        <!-- I don't think these are actually used, can probably remove them -->
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>bootstrap</artifactId>
@@ -140,7 +119,6 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>4.0</version>
         </dependency>
 
     </dependencies>

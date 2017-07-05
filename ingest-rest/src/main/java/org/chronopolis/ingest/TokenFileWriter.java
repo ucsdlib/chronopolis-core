@@ -5,9 +5,6 @@ import com.google.common.hash.HashingOutputStream;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -19,6 +16,9 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 import static java.nio.file.StandardOpenOption.CREATE;
 
@@ -56,12 +56,15 @@ public class TokenFileWriter {
             dir.toFile().mkdirs();
         }
 
-        Pageable pageable = new PageRequest(0, 1000);
-        DateTimeFormatter formatter = ISODateTimeFormat.date().withZoneUTC();
+        int page = 0;
+        int size = 1000;
+        Pageable pageable = new PageRequest(page, size);
+        // use the offset to be consistent with the date time we write to the db
+        DateTimeFormatter format = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneOffset.UTC);
 
         // TODO: Configurable names for tokens
         // TODO: Slashes in a filename will break the writer, should do mkdirs on the last parent dir
-        String filename = name + "_" + formatter.print(new DateTime());
+        String filename = name + "_" + format.format(ZonedDateTime.now());
         Path store = dir.resolve(filename);
         try (OutputStream os = Files.newOutputStream(store, CREATE)) {
             String ims = "ims.umiacs.umd.edu";
