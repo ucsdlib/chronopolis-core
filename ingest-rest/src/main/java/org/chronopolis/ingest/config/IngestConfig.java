@@ -36,24 +36,18 @@ import java.util.concurrent.TimeUnit;
 public class IngestConfig {
     private final Logger log = LoggerFactory.getLogger(IngestConfig.class);
 
-    final String AJP_PROTOCOL = "AJP/1.3";
-    final String AJP_SCHEME = "http";
-
-    /*
-    @Bean
-    public TokenThreadPoolExecutor tokenThreadPoolExecutor() {
-        return new TokenThreadPoolExecutor(4, 6, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
-    }
-    */
+    private final int MAX_SIZE = 6;
+    private final int CORE_SIZE = 4;
+    private final int KEEP_ALIVE = 30;
 
     @Bean(name = "tokenExecutor", destroyMethod = "destroy")
     public TrackingThreadPoolExecutor<Bag> tokenizingThreadPoolExecutor() {
-        return new TrackingThreadPoolExecutor<>(4, 6, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+        return new TrackingThreadPoolExecutor<>(CORE_SIZE, MAX_SIZE, KEEP_ALIVE, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     }
 
     @Bean(name = "bagExecutor", destroyMethod = "destroy")
     public TrackingThreadPoolExecutor<Bag> bagThreadPoolExecutor() {
-        return new TrackingThreadPoolExecutor<>(4, 6, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+        return new TrackingThreadPoolExecutor<>(CORE_SIZE, MAX_SIZE, KEEP_ALIVE, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     }
 
     @Bean
@@ -68,18 +62,18 @@ public class IngestConfig {
 
     @Bean
     public EmbeddedServletContainerFactory embeddedServletContainerFactory(IngestSettings settings) {
+        String AJP_SCHEME = "http";
+        String AJP_PROTOCOL = "AJP/1.3";
         TomcatEmbeddedServletContainerFactory bean = new TomcatEmbeddedServletContainerFactory();
 
         if (settings.isAjpEnabled()) {
             log.info("Setting up ajp connector");
             Connector ajp = new Connector(AJP_PROTOCOL);
-            ajp.setProtocol(AJP_PROTOCOL);
             ajp.setPort(settings.getAjpPort());
             ajp.setSecure(false);
             ajp.setAllowTrace(false);
             ajp.setScheme(AJP_SCHEME);
             bean.addAdditionalTomcatConnectors(ajp);
-            // bean.
         }
 
         return bean;
@@ -89,7 +83,6 @@ public class IngestConfig {
     public Jackson2ObjectMapperBuilder jacksonBuilder() {
         Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
         builder.indentOutput(true);
-        // builder.dateFormat(DateTimeFormatter.ISO_LOCAL_DATE_TIME.);
         builder.serializationInclusion(JsonInclude.Include.NON_NULL);
         builder.serializerByType(Bag.class, new BagSerializer());
         builder.serializerByType(Repair.class, new RepairSerializer());
