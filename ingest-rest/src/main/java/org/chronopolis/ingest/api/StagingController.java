@@ -78,8 +78,8 @@ public class StagingController extends IngestController {
                 .createdBefore(params.getOrDefault(CREATED_BEFORE, null))
                 .updatedAfter(params.getOrDefault(UPDATED_AFTER, null))
                 .updatedBefore(params.getOrDefault(UPDATED_BEFORE, null))
-                .withDepositor(params.containsKey(DEPOSITOR) ? params.get(DEPOSITOR) : null)
-                .withName(params.containsKey(NAME) ? params.get(NAME) : null)
+                .withDepositor(params.getOrDefault(DEPOSITOR, null))
+                .withName(params.getOrDefault(NAME, null))
                 .withStatus(params.containsKey(STATUS) ? BagStatus.valueOf(params.get(STATUS)) : null);
 
         return bagService.findAll(criteria, createPageRequest(params, valid()));
