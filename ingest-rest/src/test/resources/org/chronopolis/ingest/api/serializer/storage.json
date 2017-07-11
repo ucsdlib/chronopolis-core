@@ -1,0 +1,8 @@
+{
+  "active": true,
+  "size": 100,
+  "region": 2,
+  "totalFiles": 10,
+  "path": "test-path",
+  "checksum": "test-checksum"
+}
