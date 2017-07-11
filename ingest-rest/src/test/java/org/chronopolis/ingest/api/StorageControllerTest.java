@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Created by shake on 7/11/17.
  */
 @RunWith(SpringRunner.class)
-@WebMvcTest(StagingController.class)
+@WebMvcTest(StorageController.class)
 @ContextConfiguration(classes = WebContext.class)
 public class StorageControllerTest {
 
