@@ -18,8 +18,11 @@ public class Params {
     public static final String PAGE_SIZE = "page_size";
     public static final String STATUS = "status";
     public static final String CLEANED = "cleaned";
+    public static final String CHECKSUM = "checksum";
     public static final String REPLACED = "replaced";
     public static final String VALIDATED = "validated";
+    public static final String CAPACITY_LT = "capacity_lt";
+    public static final String CAPACITY_GT = "capacity_gt";
 
     // Sorting
     public static final String SORT_DIRECTION = "direction";
