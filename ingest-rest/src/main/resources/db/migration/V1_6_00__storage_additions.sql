@@ -7,7 +7,7 @@ CREATE SEQUENCE storage_region_id_seq;
 CREATE TABLE storage_region (
     id BIGINT PRIMARY KEY DEFAULT nextval('storage_region_id_seq'),
     node_id BIGINT NOT NULL,
-    type VARCHAR(255) NOT NULL,
+    storage_type VARCHAR(255) NOT NULL,
     capacity BIGINT,
     created_at TIMESTAMP,
     updated_at TIMESTAMP

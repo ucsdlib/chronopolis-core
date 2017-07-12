@@ -25,7 +25,7 @@ public class StorageRegion extends UpdatableEntity {
     private Node node;
 
     @Enumerated(value = EnumType.STRING)
-    private StorageType type;
+    private StorageType storageType;
 
     @OneToMany(mappedBy = "region", fetch = FetchType.LAZY)
     private Set<Storage> storage;
@@ -58,12 +58,12 @@ public class StorageRegion extends UpdatableEntity {
         return this;
     }
 
-    public StorageType getType() {
-        return type;
+    public StorageType getStorageType() {
+        return storageType;
     }
 
-    public StorageRegion setType(StorageType type) {
-        this.type = type;
+    public StorageRegion setStorageType(StorageType storageType) {
+        this.storageType = storageType;
         return this;
     }
 

@@ -103,7 +103,7 @@ public class StorageController extends IngestController {
             StorageRegion region = new StorageRegion();
             region.setCapacity(create.getCapacity())
                     .setNode(node)
-                    .setType(create.getType())
+                    .setStorageType(create.getType())
                     .setReplicationConfig(new ReplicationConfig()
                             .setPath(create.getReplicationPath())
                             .setServer(create.getReplicationServer())

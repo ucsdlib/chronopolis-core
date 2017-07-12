@@ -11,7 +11,7 @@ public class StorageRegion {
     private Long id;
     private String node;
     private Long capacity;
-    private StorageType type;
+    private StorageType storageType;
     private ReplicationConfig replicationConfig;
 
     public String getNode() {
@@ -32,12 +32,12 @@ public class StorageRegion {
         return this;
     }
 
-    public StorageType getType() {
-        return type;
+    public StorageType getStorageType() {
+        return storageType;
     }
 
-    public StorageRegion setType(StorageType type) {
-        this.type = type;
+    public StorageRegion setStorageType(StorageType storageType) {
+        this.storageType = storageType;
         return this;
     }
 

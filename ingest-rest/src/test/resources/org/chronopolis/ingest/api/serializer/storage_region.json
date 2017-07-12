@@ -2,7 +2,7 @@
   "id": 2,
   "node": "test-node",
   "capacity": 250,
-  "type": "LOCAL",
+  "storageType": "LOCAL",
   "replicationConfig": {
     "region": 2,
     "path": "test-path",

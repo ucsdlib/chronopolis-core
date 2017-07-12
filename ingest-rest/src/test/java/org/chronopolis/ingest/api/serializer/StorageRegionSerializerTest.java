@@ -55,7 +55,7 @@ public class StorageRegionSerializerTest {
         region.setCapacity(250L);
         region.setCreatedAt(ZonedDateTime.from(fmt.parse(datetime)));
         region.setUpdatedAt(ZonedDateTime.from(fmt.parse(datetime)));
-        region.setType(StorageType.LOCAL);
+        region.setStorageType(StorageType.LOCAL);
 
         ReplicationConfig config = new ReplicationConfig();
         config.setId(1L);
