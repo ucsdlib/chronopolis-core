@@ -9,8 +9,10 @@ import org.chronopolis.rest.models.storage.StorageType;
  */
 public class RegionCreate {
 
+    private String node;
     private Long capacity;
     private StorageType type;
+    // Subtype this?
     private String replicationUser;
     private String replicationPath;
     private String replicationServer;
@@ -57,6 +59,15 @@ public class RegionCreate {
 
     public RegionCreate setReplicationServer(String replicationServer) {
         this.replicationServer = replicationServer;
+        return this;
+    }
+
+    public String getNode() {
+        return node;
+    }
+
+    public RegionCreate setNode(String node) {
+        this.node = node;
         return this;
     }
 }
