@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(RestoreController.class)
+@WebMvcTest(secure = false, controllers = RestoreController.class)
 @ContextConfiguration(classes = WebContext.class)
 public class RestoreControllerTest extends IngestTest {
 

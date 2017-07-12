@@ -41,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  */
 @RunWith(SpringRunner.class)
-@WebMvcTest(StagingController.class)
+@WebMvcTest(secure = false, controllers = StagingController.class)
 @ContextConfiguration(classes = WebContext.class)
 public class StagingControllerTest extends IngestTest {
 

@@ -52,7 +52,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  */
 @RunWith(SpringRunner.class)
-@WebMvcTest(ReplicationController.class)
+@WebMvcTest(secure = false, controllers = ReplicationController.class)
 @ContextConfiguration(classes = WebContext.class)
 public class ReplicationControllerTest extends IngestTest {
 

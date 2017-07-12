@@ -61,11 +61,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Tests for our repair controller
  *
- * Also it would be nice if we could programmatically generate test cases instead of
- * using a static set from the sql. It would help in that we could have less hard coded
- * values (node/principal names, ids) which probably don't make sense when first reading
- * the tests.
- *
  * Created by shake on 1/26/17.
  */
 @RunWith(SpringRunner.class)
