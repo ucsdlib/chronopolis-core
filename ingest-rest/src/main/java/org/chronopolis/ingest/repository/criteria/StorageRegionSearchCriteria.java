@@ -1,10 +1,9 @@
 package org.chronopolis.ingest.repository.criteria;
 
-import com.google.common.collect.ImmutableMap;
-import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import org.chronopolis.ingest.api.Params;
 import org.chronopolis.rest.entities.storage.QStorageRegion;
+import org.chronopolis.rest.models.storage.DataType;
 import org.chronopolis.rest.models.storage.StorageType;
 
 import java.util.HashMap;
@@ -33,10 +32,18 @@ public class StorageRegionSearchCriteria implements SearchCriteria {
         return this;
     }
 
-    public StorageRegionSearchCriteria withType(StorageType type) {
+    public StorageRegionSearchCriteria withStorageType(StorageType type) {
         if (type != null) {
-            criteria.put(Params.TYPE, region.type.eq(type));
+            criteria.put(Params.STORAGE_TYPE, region.storageType.eq(type));
         }
+        return this;
+    }
+
+    public StorageRegionSearchCriteria withDataType(DataType type) {
+        if (type != null) {
+            criteria.put(Params.DATA_TYPE, region.dataType.eq(type));
+        }
+
         return this;
     }
 

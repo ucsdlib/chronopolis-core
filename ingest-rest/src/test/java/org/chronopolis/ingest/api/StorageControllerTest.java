@@ -58,9 +58,10 @@ public class StorageControllerTest {
 
     @Test
     public void getRegion() throws Exception {
+        // todo: return actual StorageRegion and check json
         when(service.find(any(SearchCriteria.class))).thenReturn(null);
 
-        mvc.perform(get("/api/storage")
+        mvc.perform(get("/api/storage/{id}", 1L)
                 .principal(() -> "user"))
                 .andDo(print())
                 .andExpect(status().is(200));
@@ -82,7 +83,7 @@ public class StorageControllerTest {
         RegionCreate request = new RegionCreate();
         request.setCapacity(1000L)
                 .setNode(node)
-                .setType(StorageType.LOCAL)
+                .setStorageType(StorageType.LOCAL)
                 .setReplicationPath("/test-path")
                 .setReplicationServer("test-server")
                 .setReplicationUser("test-user");

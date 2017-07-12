@@ -1,5 +1,6 @@
 package org.chronopolis.ingest.models;
 
+import org.chronopolis.rest.models.storage.DataType;
 import org.chronopolis.rest.models.storage.StorageType;
 
 /**
@@ -11,7 +12,8 @@ public class RegionCreate {
 
     private String node;
     private Long capacity;
-    private StorageType type;
+    private DataType dataType;
+    private StorageType storageType;
     // Subtype this?
     private String replicationUser;
     private String replicationPath;
@@ -26,12 +28,12 @@ public class RegionCreate {
         return this;
     }
 
-    public StorageType getType() {
-        return type;
+    public StorageType getStorageType() {
+        return storageType;
     }
 
-    public RegionCreate setType(StorageType type) {
-        this.type = type;
+    public RegionCreate setStorageType(StorageType storageType) {
+        this.storageType = storageType;
         return this;
     }
 
@@ -68,6 +70,15 @@ public class RegionCreate {
 
     public RegionCreate setNode(String node) {
         this.node = node;
+        return this;
+    }
+
+    public DataType getDataType() {
+        return dataType;
+    }
+
+    public RegionCreate setDataType(DataType dataType) {
+        this.dataType = dataType;
         return this;
     }
 }

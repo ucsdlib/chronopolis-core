@@ -26,6 +26,7 @@ public class StorageRegionSerializer extends JsonSerializer<StorageRegion> {
         model.setId(entity.getId());
         model.setCapacity(entity.getCapacity());
         model.setNode(entity.getNode().getUsername());
+        model.setDataType(entity.getDataType());
         model.setStorageType(entity.getStorageType());
         model.setReplicationConfig(config);
 

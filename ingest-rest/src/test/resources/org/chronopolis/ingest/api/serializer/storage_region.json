@@ -2,6 +2,7 @@
   "id": 2,
   "node": "test-node",
   "capacity": 250,
+  "dataType": "BAG",
   "storageType": "LOCAL",
   "replicationConfig": {
     "region": 2,

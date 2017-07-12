@@ -18,9 +18,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -67,9 +67,9 @@ public class StorageController extends IngestController {
      * @return all StorageRegions
      */
     @GetMapping
-    public Page<StorageRegion> getRegions(@RequestAttribute StorageRegionFilter filter) {
+    public Page<StorageRegion> getRegions(@ModelAttribute StorageRegionFilter filter) {
         StorageRegionSearchCriteria criteria = new StorageRegionSearchCriteria()
-                .withType(filter.getType())
+                .withStorageType(filter.getType())
                 .withNodeName(filter.getName())
                 .withCapacityLessThan(filter.getCapacityLess())
                 .withCapacityGreaterThan(filter.getCapacityGreater());
@@ -103,7 +103,8 @@ public class StorageController extends IngestController {
             StorageRegion region = new StorageRegion();
             region.setCapacity(create.getCapacity())
                     .setNode(node)
-                    .setStorageType(create.getType())
+                    .setDataType(create.getDataType())
+                    .setStorageType(create.getStorageType())
                     .setReplicationConfig(new ReplicationConfig()
                             .setPath(create.getReplicationPath())
                             .setServer(create.getReplicationServer())

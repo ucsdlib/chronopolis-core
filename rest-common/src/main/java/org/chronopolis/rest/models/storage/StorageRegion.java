@@ -11,6 +11,7 @@ public class StorageRegion {
     private Long id;
     private String node;
     private Long capacity;
+    private DataType dataType;
     private StorageType storageType;
     private ReplicationConfig replicationConfig;
 
@@ -56,6 +57,15 @@ public class StorageRegion {
 
     public StorageRegion setId(Long id) {
         this.id = id;
+        return this;
+    }
+
+    public DataType getDataType() {
+        return dataType;
+    }
+
+    public StorageRegion setDataType(DataType dataType) {
+        this.dataType = dataType;
         return this;
     }
 }

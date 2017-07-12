@@ -23,6 +23,8 @@ public class Params {
     public static final String VALIDATED = "validated";
     public static final String CAPACITY_LT = "capacity_lt";
     public static final String CAPACITY_GT = "capacity_gt";
+    public static final String DATA_TYPE = "dataType";
+    public static final String STORAGE_TYPE = "storageType";
 
     // Sorting
     public static final String SORT_DIRECTION = "direction";

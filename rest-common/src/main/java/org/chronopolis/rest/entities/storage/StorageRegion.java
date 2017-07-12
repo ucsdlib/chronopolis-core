@@ -2,6 +2,7 @@ package org.chronopolis.rest.entities.storage;
 
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.UpdatableEntity;
+import org.chronopolis.rest.models.storage.DataType;
 import org.chronopolis.rest.models.storage.StorageType;
 
 import javax.persistence.Entity;
@@ -23,6 +24,9 @@ public class StorageRegion extends UpdatableEntity {
 
     @ManyToOne
     private Node node;
+
+    @Enumerated(value = EnumType.STRING)
+    private DataType dataType;
 
     @Enumerated(value = EnumType.STRING)
     private StorageType storageType;
@@ -82,6 +86,15 @@ public class StorageRegion extends UpdatableEntity {
 
     public StorageRegion setStorage(Set<Storage> storage) {
         this.storage = storage;
+        return this;
+    }
+
+    public DataType getDataType() {
+        return dataType;
+    }
+
+    public StorageRegion setDataType(DataType dataType) {
+        this.dataType = dataType;
         return this;
     }
 }

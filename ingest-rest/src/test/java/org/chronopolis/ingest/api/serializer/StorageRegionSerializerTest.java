@@ -6,6 +6,7 @@ import org.chronopolis.ingest.WebContext;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.storage.ReplicationConfig;
 import org.chronopolis.rest.entities.storage.StorageRegion;
+import org.chronopolis.rest.models.storage.DataType;
 import org.chronopolis.rest.models.storage.StorageType;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,9 +54,10 @@ public class StorageRegionSerializerTest {
         region.setNode(new Node("test-node", "test-node"));
         region.setStorage(ImmutableSet.of());
         region.setCapacity(250L);
+        region.setDataType(DataType.BAG);
+        region.setStorageType(StorageType.LOCAL);
         region.setCreatedAt(ZonedDateTime.from(fmt.parse(datetime)));
         region.setUpdatedAt(ZonedDateTime.from(fmt.parse(datetime)));
-        region.setStorageType(StorageType.LOCAL);
 
         ReplicationConfig config = new ReplicationConfig();
         config.setId(1L);
