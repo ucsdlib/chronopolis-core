@@ -2,11 +2,14 @@ package org.chronopolis.ingest.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import org.chronopolis.ingest.WebContext;
 import org.chronopolis.ingest.models.RegionCreate;
+import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;
 import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.storage.StorageType;
 import org.junit.Test;
@@ -15,11 +18,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -27,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
+ * todo: tests for non-successful responses
  *
  * Created by shake on 7/11/17.
  */
@@ -36,10 +46,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class StorageControllerTest {
 
     @Autowired
-    MockMvc mvc;
+    private MockMvc mvc;
 
-    @MockBean
-    private SearchService<StorageRegion, Long, StorageRegionRepository> service;
+    // Constructor params
+    @MockBean private NodeRepository nodes;
+    @MockBean private SearchService<StorageRegion, Long, StorageRegionRepository> service;
+
+    // Auth handling
+    @MockBean private SecurityContext context;
+    @MockBean private Authentication authentication;
 
     @Test
     public void getRegion() throws Exception {
@@ -61,19 +76,30 @@ public class StorageControllerTest {
 
     @Test
     public void createRegion() throws Exception {
+        String node = "test-node";
+        setupAuth(new User(node, node, ImmutableList.of(() -> "ROLE_USER")));
+
         RegionCreate request = new RegionCreate();
         request.setCapacity(1000L)
+                .setNode(node)
                 .setType(StorageType.LOCAL)
                 .setReplicationPath("/test-path")
                 .setReplicationServer("test-server")
                 .setReplicationUser("test-user");
 
+        when(nodes.findByUsername(eq(node))).thenReturn(new Node(node, node));
         mvc.perform(post("/api/storage")
-                .principal(() -> "user")
+                .principal(() -> node)
         .contentType(MediaType.APPLICATION_JSON)
         .content(asJson(request)))
                 .andDo(print())
-                .andExpect(status().is(200));
+                .andExpect(status().isCreated());
+    }
+
+    private void setupAuth(UserDetails details) {
+        SecurityContextHolder.setContext(context);
+        when(context.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(details);
     }
 
     private <T> String asJson(T request) {
