@@ -42,9 +42,9 @@ public class StorageController extends IngestController {
     private SearchService<StorageRegion, Long, StorageRegionRepository> service;
 
     @Autowired
-    public StorageController(NodeRepository nodes, SearchService<StorageRegion, Long, StorageRegionRepository> service) {
+    public StorageController(NodeRepository nodes, SearchService<StorageRegion, Long, StorageRegionRepository> storageRegionService) {
         this.nodes = nodes;
-        this.service = service;
+        this.service = storageRegionService;
     }
 
     /**

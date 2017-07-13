@@ -11,10 +11,12 @@ import org.chronopolis.ingest.api.serializer.ZonedDateTimeDeserializer;
 import org.chronopolis.ingest.api.serializer.ZonedDateTimeSerializer;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
+import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Repair;
 import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
@@ -52,6 +54,11 @@ public class IngestConfig {
 
     @Bean
     public SearchService<Repair, Long, RepairRepository> repairService(RepairRepository repository) {
+        return new SearchService<>(repository);
+    }
+
+    @Bean
+    public SearchService<StorageRegion, Long, StorageRegionRepository> storageRegionService(StorageRegionRepository repository) {
         return new SearchService<>(repository);
     }
 
