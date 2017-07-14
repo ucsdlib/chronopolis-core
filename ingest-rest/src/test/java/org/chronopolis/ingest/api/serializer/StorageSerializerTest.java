@@ -2,6 +2,7 @@ package org.chronopolis.ingest.api.serializer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.chronopolis.ingest.WebContext;
+import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.Storage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.junit.Before;
@@ -45,12 +46,13 @@ public class StorageSerializerTest {
 
     @Test
     public void serializer() throws IOException {
+        ZonedDateTime zdt = ZonedDateTime.from(fmt.parse(datetime));
         Storage storage = new Storage();
         storage.setId(1L);
-        storage.setUpdatedAt(ZonedDateTime.from(fmt.parse(datetime)));
-        storage.setCreatedAt(ZonedDateTime.from(fmt.parse(datetime)));
+        storage.setUpdatedAt(zdt);
+        storage.setCreatedAt(zdt);
         storage.setActive(true);
-        storage.setChecksum("test-checksum");
+        // storage.setChecksum("test-checksum");
         storage.setPath("test-path");
         storage.setSize(100L);
         storage.setTotalFiles(10L);
@@ -59,6 +61,14 @@ public class StorageSerializerTest {
         StorageRegion region = new StorageRegion();
         region.setId(2L);
         storage.setRegion(region);
+
+        // And a single Fixity entry
+        Fixity fixity = new Fixity();
+        fixity.setId(1L);
+        fixity.setAlgorithm("test-algorithm");
+        fixity.setValue("test-value");
+        fixity.setCreatedAt(zdt);
+        storage.addFixity(fixity);
 
         assertThat(json.write(storage)).isEqualToJson("storage.json");
     }
