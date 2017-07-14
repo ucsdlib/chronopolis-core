@@ -26,9 +26,21 @@ CREATE TABLE storage (
     path VARCHAR(255),
     size BIGINT,
     total_files BIGINT,
-    checksum VARCHAR(255),
+    -- checksum VARCHAR(255),
     created_at TIMESTAMP,
     updated_at TIMESTAMP
+);
+
+-- OneToMany makes more sense but... yea.
+DROP TABLE IF EXISTS fixity;
+DROP SEQUENCE IF EXISTS fixity_id_seq;
+CREATE SEQUENCE fixity_id_seq;
+CREATE TABLE fixity (
+    id BIGINT PRIMARY KEY DEFAULT nextval('fixity_id_seq'),
+    storage_id BIGINT NOT NULL,
+    algorithm VARCHAR(255) NOT NULL,
+    value VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP
 );
 
 -- replication_config
@@ -45,10 +57,13 @@ CREATE TABLE replication_config(
 
 -- FKs
 ALTER TABLE storage_region
-    ADD CONSTRAINT FK_sr_noded FOREIGN KEY (node_id) REFERENCES node;
+    ADD CONSTRAINT FK_sr_node FOREIGN KEY (node_id) REFERENCES node;
 
 ALTER TABLE storage
     ADD CONSTRAINT FK_storage_sr FOREIGN KEY (region_id) REFERENCES storage_region;
+
+ALTER TABLE fixity
+    ADD CONSTRAINT FK_fixity_storage FOREIGN KEY (storage_id) REFERENCES storage;
 
 ALTER TABLE replication_config
     ADD CONSTRAINT FK_rc_sr FOREIGN KEY (region_id) REFERENCES storage_region;
