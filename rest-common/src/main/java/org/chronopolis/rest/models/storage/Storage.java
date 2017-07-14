@@ -1,5 +1,8 @@
 package org.chronopolis.rest.models.storage;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Model for our Storage entity
  *
@@ -19,7 +22,8 @@ public class Storage {
     private long region;
     private long totalFiles;
     private String path;
-    private String checksum;
+
+    private Set<Fixity> fixities = new HashSet<>();
 
     public boolean isActive() {
         return active;
@@ -66,12 +70,17 @@ public class Storage {
         return this;
     }
 
-    public String getChecksum() {
-        return checksum;
+    public Set<Fixity> getFixities() {
+        return fixities;
     }
 
-    public Storage setChecksum(String checksum) {
-        this.checksum = checksum;
+    public Storage addFixity(Fixity fixity) {
+        fixities.add(fixity);
+        return this;
+    }
+
+    public Storage setFixities(Set<Fixity> fixities) {
+        this.fixities = fixities;
         return this;
     }
 }

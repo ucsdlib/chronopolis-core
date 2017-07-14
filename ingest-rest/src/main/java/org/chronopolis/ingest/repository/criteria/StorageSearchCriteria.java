@@ -35,13 +35,6 @@ public class StorageSearchCriteria implements SearchCriteria {
         return this;
     }
 
-    public StorageSearchCriteria withChecksum(String checksum) {
-        if (checksum != null) {
-            criteria.put(Params.CHECKSUM, storage.checksum.eq(checksum));
-        }
-        return this;
-    }
-
     @Override
     public Map<Object, BooleanExpression> getCriteria() {
         return criteria;
