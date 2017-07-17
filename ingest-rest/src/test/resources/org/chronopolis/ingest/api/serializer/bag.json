@@ -1,16 +1,25 @@
 {
   "id": 1,
+  "bagStorage": {
+    "active": true,
+    "size": 1,
+    "region": 1,
+    "totalFiles": 1,
+    "path": "location",
+    "fixities": [
+      {
+        "value": "test-value",
+        "algorithm": "test-algorithm",
+        "createdAt": "2017-06-30T19:49:12.37Z"
+      }
+    ]
+  },
   "createdAt": "2017-06-30T19:49:12.37Z",
   "updatedAt": "2017-06-30T19:49:12.37Z",
   "name": "bag",
   "creator": "creator",
   "depositor": "depositor",
-  "location": "location",
-  "tokenLocation": "location",
   "status": "REPLICATING",
-  "fixityAlgorithm": "sha-256",
-  "size": 1,
-  "totalFiles": 1,
   "requiredReplications": 0,
   "replicatingNodes": [
     "node"
