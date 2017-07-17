@@ -20,19 +20,14 @@ DROP SEQUENCE IF EXISTS bag_id_seq;
 CREATE SEQUENCE bag_id_seq;
 CREATE TABLE bag (
     id bigint PRIMARY KEY DEFAULT nextval('bag_id_seq'),
+    bag_storage_id BIGINT,
+    token_storage_id BIGINT,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     name varchar(255),
     creator VARCHAR(255),
     depositor varchar(255),
-    location varchar(255),
-    token_location varchar(255),
-    token_digest varchar(255),
-    tag_manifest_digest varchar(255),
     status varchar(255),
-    fixity_algorithm varchar(255),
-    size bigint NOT NULL,
-    total_files bigint NOT NULL,
     required_replications int
 );
 
@@ -242,3 +237,9 @@ ALTER TABLE fixity
 
 ALTER TABLE replication_config
     ADD CONSTRAINT FK_rc_sr FOREIGN KEY (region_id) REFERENCES storage_region;
+
+ALTER TABLE bag
+    ADD CONSTRAINT FK_bag_storage FOREIGN KEY (bag_storage_id) REFERENCES storage;
+
+ALTER TABLE bag
+    ADD CONSTRAINT FK_bag_tokens FOREIGN KEY (bag_storage_id) REFERENCES storage;
