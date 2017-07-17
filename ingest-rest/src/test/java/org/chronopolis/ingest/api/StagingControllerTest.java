@@ -122,9 +122,10 @@ public class StagingControllerTest extends IngestTest {
                 .andDo(print())
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.depositor").value(DEPOSITOR))
-                .andExpect(jsonPath("$.name").value(BAG))
-                .andExpect(jsonPath("$.location").value(LOCATION))
-                .andExpect(jsonPath("$.fixityAlgorithm").value("SHA-256"));
+                .andExpect(jsonPath("$.name").value(BAG));
+                // todo: expect storage values
+                // .andExpect(jsonPath("$.location").value(LOCATION))
+                // .andExpect(jsonPath("$.fixityAlgorithm").value("SHA-256"));
 
         verify(bagService, times(1)).find(any(SearchCriteria.class));
         verify(nodes, times(1)).findByUsername(eq(NODE));

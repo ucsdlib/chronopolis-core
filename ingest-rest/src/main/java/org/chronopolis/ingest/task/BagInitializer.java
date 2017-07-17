@@ -23,12 +23,8 @@ import java.io.RandomAccessFile;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 
 /**
  * Class to initialize bags
@@ -98,13 +94,17 @@ public class BagInitializer {
         /**
          * Set the location, fixity value, size, and total number of files for the bag
          *
+         * @deprecated no longer handled by ingest; intake will need to pass in values upon creation
          * @param bag
          */
+        @Deprecated
         public void initializeBag(Bag bag) throws IOException {
             Path stage = Paths.get(settings.getBagStage());
-            Path bagPath = stage.resolve(bag.getLocation());
+            // Path bagPath = stage.resolve(bag.getLocation());
 
+            // todo: untarring no longer handled by the ingest-server
             // check if we should untar the bag
+            /*
             log.trace("Probing mime type for {}", bag.getName());
             String mimeType = Files.probeContentType(bagPath);
             if (mimeType != null && mimeType.equals(TAR_TYPE)) {
@@ -114,8 +114,10 @@ public class BagInitializer {
                 Path relBag = stage.relativize(bagPath);
                 bag.setLocation(relBag.toString());
             }
+            */
 
             // TODO: Get these passed in the ingest request
+            /*
             log.trace("Counting files for {}", bag.getName());
             final long[] bagSize = {0};
             final long[] fileCount = {0};
@@ -130,15 +132,18 @@ public class BagInitializer {
 
             bag.setSize(bagSize[0]);
             bag.setTotalFiles(fileCount[0]);
+            */
         }
 
         /**
          * Explode a tarball for a given transfer
          * TODO: Determine whether or not to overwrite files
          *
+         * @deprecated no longer handled by ingest
          * @param tarball
          * @param depositor
          */
+        @Deprecated
         private Path untar(Path tarball, String depositor) throws IOException {
             log.debug("Untarring {}", bag.getName());
             String stage = settings.getBagStage();

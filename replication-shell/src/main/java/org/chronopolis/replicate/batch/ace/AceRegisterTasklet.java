@@ -82,7 +82,7 @@ public class AceRegisterTasklet implements Callable<Long> {
 
         GsonCollection aceGson = new GsonCollection.Builder()
                 .name(name)
-                .digestAlgorithm(bag.getFixityAlgorithm())
+                .digestAlgorithm("SHA-256")
                 .directory(collectionPath.toString())
                 .group(bag.getDepositor())
                 .storage("local")

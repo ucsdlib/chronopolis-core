@@ -10,6 +10,7 @@ import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.entities.storage.Storage;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.IngestRequest;
 import org.slf4j.Logger;
@@ -135,9 +136,17 @@ public class StagingController extends IngestController {
         Path relPath = stage.relativize(bagPath);
 
         bag = new Bag(name, depositor);
-        bag.setFixityAlgorithm("SHA-256");
         bag.setCreator(principal.getName());
-        bag.setLocation(relPath.toString());
+
+        // todo: More Storage information should be passed in upon creation
+        //       * size
+        //       * totalFiles
+        //       * fixity information
+        //       * region id (or local identifier (local_id + node == unique key?))
+        Storage storage = new Storage();
+        storage.setActive(true);
+        storage.setPath(relPath.toString());
+        bag.setBagStorage(storage);
 
         if (request.getRequiredReplications() > 0) {
             bag.setRequiredReplications(request.getRequiredReplications());

@@ -43,9 +43,10 @@ import java.nio.file.Paths;
 public class TokenFileWriterTest extends IngestTest {
     private final Logger log = LoggerFactory.getLogger(TokenFileWriterTest.class);
 
-    @Autowired BagRepository br;
-    @Autowired TokenRepository tr;
-    IngestSettings settings;
+    @Autowired private BagRepository br;
+    @Autowired private TokenRepository tr;
+
+    private IngestSettings settings;
 
     @Before
     public void setup() {
@@ -65,12 +66,14 @@ public class TokenFileWriterTest extends IngestTest {
         Assert.assertEquals(true, written);
 
         // assert that the file exists
-        Path tokens = Paths.get(stage, b.getTokenLocation());
+        Path tokens = Paths.get(stage, b.getTokenStorage().getPath());
         log.info("{}", tokens);
         Assert.assertEquals(true, java.nio.file.Files.exists(tokens));
 
         // the hash value is correct
         HashCode hash = Files.asByteSource(tokens.toFile()).hash(Hashing.sha256());
-        Assert.assertEquals(b.getTokenDigest(), hash.toString());
+        boolean fixityMatch = b.getTokenStorage().getFixities().stream()
+                .anyMatch(fixity -> fixity.getValue().equalsIgnoreCase(hash.toString()));
+        Assert.assertTrue(fixityMatch);
     }
 }

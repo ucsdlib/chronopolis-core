@@ -83,18 +83,19 @@ public class TokenizerTest extends IngestTest {
         settings = new IngestSettings();
         settings.setBagStage(System.getProperty("chron.stage.bags"));
         settings.setTokenStage(System.getProperty("chron.stage.tokens"));
+        String fixityAlgorithm = "SHA-256";
 
         // Create the tokenizer for digesting all tokens
         Bag fullBag = bagRepository.findOne(Long.valueOf(1));
-        Path fullPath = Paths.get(settings.getBagStage(), fullBag.getLocation());
+        Path fullPath = Paths.get(settings.getBagStage(), fullBag.getBagStorage().getPath());
         fullCallback = new TokenCallback(tokenRepository, fullBag);
-        fullTokenizer = new Tokenizer(fullPath, fullBag.getFixityAlgorithm(), IMS_HOST, fullCallback, factory);
+        fullTokenizer = new Tokenizer(fullPath, fixityAlgorithm, IMS_HOST, fullCallback, factory);
 
         // Create the tokenizer for digesting some tokens
         Bag partialBag = bagRepository.findOne(Long.valueOf(2));
-        Path partialPath = Paths.get(settings.getBagStage(), partialBag.getLocation());
+        Path partialPath = Paths.get(settings.getBagStage(), partialBag.getBagStorage().getPath());
         partialCallback = new TokenCallback(tokenRepository, partialBag);
-        partialTokenizer = new Tokenizer(partialPath, partialBag.getFixityAlgorithm(), IMS_HOST, partialCallback, factory);
+        partialTokenizer = new Tokenizer(partialPath, fixityAlgorithm, IMS_HOST, partialCallback, factory);
     }
 
 

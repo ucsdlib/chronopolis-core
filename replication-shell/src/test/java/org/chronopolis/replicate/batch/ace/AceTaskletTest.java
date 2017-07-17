@@ -14,6 +14,7 @@ import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.models.storage.Storage;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -54,7 +55,7 @@ public class AceTaskletTest {
         MockitoAnnotations.initMocks(this);
 
         b = new Bag().setName(name).setDepositor(group);
-        b.setTokenLocation("tokens/test-token-store");
+        b.setTokenStorage(new Storage().setPath("tokens/test-token-store"));
         n = new Node("test-node", "test-node-pass");
 
         URL bags = ClassLoader.getSystemClassLoader().getResource("");

@@ -105,15 +105,16 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
         createDist(bag, node);
 
         // vars to help create replication stuff
+        // todo: from replication_config
         final String user = settings.getReplicationUser();
         final String server = settings.getStorageServer();
         final String bagStage = settings.getRsyncBags();
         final String tokenStage = settings.getRsyncTokens();
 
-        Path tokenPath = Paths.get(tokenStage, bag.getTokenLocation());
+        Path tokenPath = Paths.get(tokenStage, bag.getTokenStorage().getPath());
         String tokenLink =  buildLink(user, server, tokenPath);
 
-        Path bagPath = Paths.get(bagStage, bag.getLocation());
+        Path bagPath = Paths.get(bagStage, bag.getBagStorage().getPath());
         String bagLink = buildLink(user, server, bagPath);
 
         // TODO: Allow searching for multiple status

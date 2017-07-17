@@ -33,14 +33,7 @@ public class ReplicationUpdateListenerTest {
         n = new Node("test-node", "test-password");
 
         b = new Bag("test-bag", "test-depositor");
-        b.setLocation("test-location");
-        b.setTokenLocation("test-location");
-        b.setFixityAlgorithm("test-algorithm");
-        b.setTokenDigest(TEST_DIGEST);
-        b.setTagManifestDigest(TEST_DIGEST);
         b.setStatus(BagStatus.REPLICATING);
-        b.setSize(0);
-        b.setTotalFiles(0);
         b.addDistribution(n, DISTRIBUTE);
 
         listener = new ReplicationUpdateListener();
@@ -48,7 +41,6 @@ public class ReplicationUpdateListenerTest {
 
     public Replication createReplication(String tagDigest, String tokenDigest) {
         Replication r = new Replication(n, b);
-        // r.setNodeUser(n.getUsername());
         r.setProtocol("test-protocol");
         r.setReceivedTagFixity(tagDigest);
         r.setReceivedTokenFixity(tokenDigest);

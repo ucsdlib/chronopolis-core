@@ -19,6 +19,7 @@ import org.chronopolis.rest.models.FixityUpdate;
 import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.models.storage.Storage;
 import org.chronopolis.rest.support.ZonedDateTimeDeserializer;
 import org.chronopolis.rest.support.ZonedDateTimeSerializer;
 import org.junit.Before;
@@ -62,23 +63,23 @@ public class SubmitterTest {
     private static final String TM_DIGEST = "699caf4dc3dd8bd084f18174035a627b71f31cf5d07d5adbd722c45b874e7a78";
     private static final String TOKEN_DIGEST = "d20b847cbe138983b1235efb607ce9d9a0ba7d5d1d2e95767b3393857ea2cb82";
 
-    Submitter submitter;
-    ReplicationSettings settings;
+    private Submitter submitter;
+    private ReplicationSettings settings;
 
     // Mock these? No... that wouldn't be good...
-    TrackingThreadPoolExecutor<Replication> io;
-    TrackingThreadPoolExecutor<Replication> http;
+    private TrackingThreadPoolExecutor<Replication> io;
+    private TrackingThreadPoolExecutor<Replication> http;
 
     @Mock AceService ace;
     @Mock IngestAPI ingest;
     @Mock MailUtil mail;
 
-    Path bags;
-    Path tokens;
-    String testBag;
-    String testToken;
+    private Path bags;
+    private Path tokens;
+    private String testBag;
+    private String testToken;
 
-    Node node;
+    private Node node;
 
     @Before
     public void setup() throws URISyntaxException {
@@ -248,8 +249,8 @@ public class SubmitterTest {
         Replication r = new Replication();
         r.setId(1L);
         r.setBag(bag);
-        r.setBagLink(bag.getLocation());
-        r.setTokenLink(bag.getTokenLocation());
+        r.setBagLink(bag.getBagStorage().getPath());
+        r.setTokenLink(bag.getTokenStorage().getPath());
         r.setCreatedAt(ZonedDateTime.now());
         r.setUpdatedAt(ZonedDateTime.now());
         r.setNode(node.username);
@@ -264,8 +265,8 @@ public class SubmitterTest {
                 .setDepositor("test-depositor")
                 .setCreator("submitter-test");
         bag.setId(1L);
-        bag.setTokenLocation(tokens);
-        bag.setLocation(location);
+        bag.setTokenStorage(new Storage().setPath(tokens));
+        bag.setBagStorage(new Storage().setPath(location));
         bag.setCreatedAt(ZonedDateTime.now());
         bag.setUpdatedAt(ZonedDateTime.now());
         return bag;

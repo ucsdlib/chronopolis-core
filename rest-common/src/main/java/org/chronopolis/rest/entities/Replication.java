@@ -1,6 +1,7 @@
 package org.chronopolis.rest.entities;
 
 
+import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.listener.ReplicationUpdateListener;
 import org.chronopolis.rest.models.ReplicationStatus;
 
@@ -10,7 +11,7 @@ import javax.persistence.EntityListeners;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
-import java.util.Objects;
+import java.util.Set;
 
 /**
  * Representation of a Replication request
@@ -83,40 +84,6 @@ public class Replication extends UpdatableEntity {
         return node;
     }
 
-    /*
-    @JsonGetter("bagId")
-    public Long getBagId() {
-        // Because JPA/Hibernate sets fields through reflection,
-        // this may need to be set here
-        if (bagId == null) {
-            bagId = bag.getId();
-        }
-        return bagId;
-    }
-
-    @JsonGetter("nodeUsername")
-    public String getNodeUser() {
-        if (nodeUser == null) {
-            if (node == null) {
-                nodeUser = "";
-            } else {
-                nodeUser = node.getUsername();
-            }
-        }
-        return nodeUser;
-    }
-
-    @JsonSetter("bagId")
-    public void setBagId(Long id) {
-        this.bagId = id;
-    }
-
-    @JsonSetter("nodeUsername")
-    public void setNodeUser(String username) {
-        this.nodeUser = username;
-    }
-    */
-
     public ReplicationStatus getStatus() {
         return status;
     }
@@ -126,13 +93,20 @@ public class Replication extends UpdatableEntity {
     }
 
     public void checkTransferred() {
-        String storedTagDigest = bag.getTagManifestDigest();
-        String storedTokenDigest = bag.getTokenDigest();
+        Set<Fixity> bagFixities = bag.getBagStorage().getFixities();
+        Set<Fixity> tokenFixities = bag.getTokenStorage().getFixities();
 
-        if (Objects.equals(storedTagDigest, receivedTagFixity)
-                && Objects.equals(storedTokenDigest, receivedTokenFixity)) {
+        // Contains in fixities set
+        if (status.isOngoing() &&
+                fixityEquals(bagFixities, receivedTagFixity) &&
+                fixityEquals(tokenFixities, receivedTokenFixity)) {
             this.status = ReplicationStatus.TRANSFERRED;
         }
+    }
+
+    private boolean fixityEquals(Set<Fixity> fixities, String received) {
+        return fixities.stream()
+                .anyMatch(fixity -> fixity.getValue().equalsIgnoreCase(received));
 
     }
 

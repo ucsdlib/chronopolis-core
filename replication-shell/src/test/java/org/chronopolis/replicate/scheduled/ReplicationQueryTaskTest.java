@@ -63,9 +63,9 @@ public class ReplicationQueryTaskTest {
         Node n = new Node("test", "test");
         Bag b = new Bag()
                 .setName("test-name")
-                .setDepositor("test-depositor")
-                .setSize(0L)
-                .setTotalFiles(0L);
+                .setDepositor("test-depositor");
+                // .setSize(0L)
+                // .setTotalFiles(0L);
 
         Replication replication = new Replication()
                 .setStatus(ReplicationStatus.PENDING)

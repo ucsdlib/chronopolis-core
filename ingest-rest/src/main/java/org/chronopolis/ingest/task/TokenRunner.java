@@ -39,7 +39,8 @@ public class TokenRunner implements Runnable {
         }
 
         Tokenizer makeTokenizer(Path path, Bag bag, String ims, TokenCallback callback){
-            return new Tokenizer(path, bag.getFixityAlgorithm(), ims, callback);
+            // todo: find a way to handle the fixity algorithm... maybe a default and preferred
+            return new Tokenizer(path, "SHA-256", ims, callback);
         }
 
         TokenFileWriter makeFileWriter(String stage, TokenRepository tr) {
@@ -77,6 +78,8 @@ public class TokenRunner implements Runnable {
     @Override
     public void run() {
         Long bagId = bag.getId();
+
+        // probably want to rename this
         Long size = tokenRepository.countByBagId(bagId);
 
         // We have 3 states we check for:
@@ -84,33 +87,38 @@ public class TokenRunner implements Runnable {
         //   * there's a chance no tokens have been made, in which case
         //     the filter returns an empty set
         // * if tokenization is complete, update the status of the bag
+
         // TODO: Send email on failures
         // TODO: If filter contains tagmanifest, check for orphans
-        // log.debug("{}: Token size: {} Total Files: {}", new Object[]{bag.getName(), tokens.size(), bag.getTotalFiles()});
-        if (size < bag.getTotalFiles()) {
+        // TODO: Move out of ingest
+        if (size < bag.getBagStorage().getTotalFiles()) {
             log.info("Starting tokenizer for bag {}", bag.getName());
 
             // Setup everything we need
-            Path bagPath = Paths.get(bagStage, bag.getLocation());
+            Path bagPath = Paths.get(bagStage, bag.getBagStorage().getPath());
             Filter<Path> filter = new TokenFilter(tokenRepository, bagId);
             TokenCallback callback = new TokenCallback(tokenRepository, bag);
             Tokenizer tokenizer = factory.makeTokenizer(bagPath, bag, ims, callback);
 
             try {
                 tokenizer.tokenize(filter);
-                if (bag.getTagManifestDigest() == null) {
+                // bag.getStorage.getFixity
+                // .match(fixity.alg == alg)
+                /*
+                if (bag.getBagStorage().getFixities().is == null) {
                     String tagDigest = tokenizer.getTagManifestDigest();
                     log.info("Captured {} as the tagmanifest digest for {}",
                             tagDigest,
                             bag.getName());
                     bag.setTagManifestDigest(tagDigest);
                 }
+                */
             } catch (IOException e) {
                 log.error("Error tokenizing: ", e);
             } catch (InterruptedException e) {
                 log.error("Interrupted", e);
             }
-        } else if (size == bag.getTotalFiles()) {
+        } else if (size == bag.getBagStorage().getTotalFiles()) {
             // TODO: May want to decouple this
             log.info("Writing tokens for bag {}", bag.getName());
             TokenFileWriter writer = factory.makeFileWriter(tokenStage, tokenRepository);

@@ -81,9 +81,10 @@ public class TokenRunnerTest extends IngestTest {
         runner.run();
 
         verify(tokenizer, times(1)).tokenize(any(Filter.class));
-        verify(tokenizer, times(1)).getTagManifestDigest();
+        // verify(tokenizer, times(1)).getTagManifestDigest();
 
-        Assert.assertEquals(TAG_MANIFEST_DIGEST, b.getTagManifestDigest());
+        // todo: This probaby won't be in ingest anymore... all these changes will make merging a pain
+        // Assert.assertEquals(TAG_MANIFEST_DIGEST, b.getTagManifestDigest());
     }
 
     @Test

@@ -11,6 +11,8 @@ import org.chronopolis.ingest.repository.dao.ReplicationService;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.entities.storage.Fixity;
+import org.chronopolis.rest.entities.storage.Storage;
 import org.chronopolis.rest.models.FixityUpdate;
 import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.ReplicationStatus;
@@ -31,6 +33,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+
+import java.time.ZonedDateTime;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
@@ -56,6 +60,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = WebContext.class)
 public class ReplicationControllerTest extends IngestTest {
 
+    private final String CORRECT_TAG_FIXITY = "tag-fixity";
+    private final String CORRECT_TOKEN_FIXITY = "token-fixity";
+    private final String INVALID_FIXITY = "fxity";
+
     @Autowired
     private MockMvc mvc;
 
@@ -73,12 +81,6 @@ public class ReplicationControllerTest extends IngestTest {
 
     @MockBean
     private Authentication authentication;
-
-    // @Test
-    // This should be done in the test for the ReplicationService
-    public void testCreateReplication() throws Exception {
-
-    }
 
     @Before
     public void setup() {
@@ -107,10 +109,10 @@ public class ReplicationControllerTest extends IngestTest {
 
     @Test
     public void testCorrectUpdate() throws Exception {
-        setupPut("/api/replications/{id}/tokenstore", 4L, new FixityUpdate("token-fixity"))
+        setupPut("/api/replications/{id}/tokenstore", 4L, new FixityUpdate(CORRECT_TOKEN_FIXITY))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.status").value("PENDING"))
-                .andExpect(jsonPath("$.receivedTokenFixity").value("token-fixity"));
+                .andExpect(jsonPath("$.receivedTokenFixity").value(CORRECT_TOKEN_FIXITY));
     }
 
    @Test
@@ -122,18 +124,18 @@ public class ReplicationControllerTest extends IngestTest {
 
     @Test
     public void testInvalidFixity() throws Exception {
-        setupPut("/api/replications/{id}/tokenstore", 4L, new FixityUpdate("fxity"))
+        setupPut("/api/replications/{id}/tokenstore", 4L, new FixityUpdate(INVALID_FIXITY))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.status").value("FAILURE_TOKEN_STORE"))
-                .andExpect(jsonPath("$.receivedTokenFixity").value("fxity"));
+                .andExpect(jsonPath("$.receivedTokenFixity").value(INVALID_FIXITY));
     }
 
     @Test
     public void testInvalidTokenFixity() throws Exception {
-        setupPut("/api/replications/{id}/tagmanifest", 4L, new FixityUpdate("fxity"))
+        setupPut("/api/replications/{id}/tagmanifest", 4L, new FixityUpdate(INVALID_FIXITY))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.status").value("FAILURE_TAG_MANIFEST"))
-                .andExpect(jsonPath("$.receivedTagFixity").value("fxity"));
+                .andExpect(jsonPath("$.receivedTagFixity").value(INVALID_FIXITY));
     }
 
     public <T> ResultActions setupPut(String uri, Long id, T obj) throws Exception {
@@ -153,8 +155,14 @@ public class ReplicationControllerTest extends IngestTest {
     private Bag bag() {
         Bag bag = new Bag("test-bag", "test-depositor");
         bag.setId(1L);
-        bag.setTokenDigest("token-fixity");
-        bag.setTagManifestDigest("tag-fixity");
+        bag.setBagStorage(new Storage().addFixity(
+                new Fixity().setAlgorithm("test-algorithm")
+                        .setValue(CORRECT_TAG_FIXITY)
+                        .setCreatedAt(ZonedDateTime.now())));
+        bag.setTokenStorage(new Storage().addFixity(
+                new Fixity().setAlgorithm("test-algorithm")
+                        .setValue(CORRECT_TOKEN_FIXITY)
+                        .setCreatedAt(ZonedDateTime.now())));
         return bag;
     }
 
@@ -171,25 +179,5 @@ public class ReplicationControllerTest extends IngestTest {
             throw new RuntimeException(e);
         }
     }
-
-    /*
-
-    public void testNonExistentReplication() throws Exception {
-        ResponseEntity entity = getTemplate()
-                .getForEntity("http://localhost:" + port + "/api/replications/12727", Object.class);
-
-        assertEquals(HttpStatus.NOT_FOUND, entity.getStatusCode());
-    }
-
-    public TestRestTemplate getTemplate() {
-        ObjectMapper mapper = new ObjectMapper();
-        builder.configure(mapper);
-        List<HttpMessageConverter<?>> converters =
-                ImmutableList.of(new MappingJackson2HttpMessageConverter(mapper));
-        TestRestTemplate template = new TestRestTemplate("umiacs", "umiacs");
-        // template.setMessageConverters(converters);
-        return template;
-    }
-    */
 
 }

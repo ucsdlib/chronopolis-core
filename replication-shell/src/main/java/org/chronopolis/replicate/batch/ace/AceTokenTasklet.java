@@ -61,7 +61,7 @@ public class AceTokenTasklet implements Runnable {
         log.info("{} Loading token store", name);
         final AtomicBoolean complete = new AtomicBoolean(false);
 
-        Path manifest = Paths.get(settings.getPreservation(), bag.getTokenLocation());
+        Path manifest = Paths.get(settings.getPreservation(), bag.getTokenStorage().getPath());
 
         log.info("{} loadTokenStore params = ({}, {})", new Object[]{name, id, manifest});
         Call<Void> call = aceService.loadTokenStore(id, RequestBody.create(MediaType.parse("ASCII Text"), manifest.toFile()));

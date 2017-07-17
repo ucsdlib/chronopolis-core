@@ -183,9 +183,10 @@ public class BagController extends IngestController {
         // only add new bags
         if (bag == null) {
             bag = new Bag(name, depositor);
-            bag.setFixityAlgorithm("SHA-256");
+            // should be a Storage entity
+            // bag.setFixityAlgorithm("SHA-256");
+            // bag.setLocation(request.getLocation());
             bag.setCreator(principal.getName());
-            bag.setLocation(request.getLocation());
 
             if (request.getRequiredReplications() > 0) {
                 bag.setRequiredReplications(request.getRequiredReplications());
