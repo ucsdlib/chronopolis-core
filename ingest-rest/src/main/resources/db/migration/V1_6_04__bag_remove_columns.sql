@@ -4,3 +4,4 @@ ALTER TABLE bag DROP COLUMN token_location;
 ALTER TABLE bag DROP COLUMN token_digest;
 ALTER TABLE bag DROP COLUMN size;
 ALTER TABLE bag DROP COLUMN total_files;
+ALTER TABLE bag DROP COLUMN fixity_algorithm;
