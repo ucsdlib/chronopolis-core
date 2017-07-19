@@ -139,12 +139,12 @@ public class StagingController extends IngestController {
         bag.setCreator(principal.getName());
 
         // todo: More Storage information should be passed in upon creation
-        //       * size
-        //       * totalFiles
-        //       * fixity information
-        //       * region id (or local identifier (local_id + node == unique key?))
+        //       * fixity information (done later?)
+        //       * get region by id
         Storage storage = new Storage();
         storage.setActive(true);
+        storage.setSize(request.getSize());
+        storage.setTotalFiles(request.getTotalFiles());
         storage.setPath(relPath.toString());
         bag.setBagStorage(storage);
 
@@ -167,7 +167,6 @@ public class StagingController extends IngestController {
      * @param replicatingNodes The nodes which the bag will be distributed to
      */
     private void createBagDistributions(Bag bag, List<String> replicatingNodes) {
-        int numDistributions = 0;
         if (replicatingNodes == null) {
             replicatingNodes = new ArrayList<>();
         }
@@ -177,13 +176,10 @@ public class StagingController extends IngestController {
             if (node != null) {
                 log.debug("Creating requested dist record for {}", nodeName);
                 bag.addDistribution(node, DISTRIBUTE);
-                numDistributions++;
             } else {
                 log.debug("Unable to make dist record for node {}: Not found", nodeName);
             }
         }
-
-        // if the distributions is still less, set error?
     }
 
 

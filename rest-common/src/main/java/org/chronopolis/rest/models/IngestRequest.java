@@ -1,5 +1,7 @@
 package org.chronopolis.rest.models;
 
+import com.google.common.base.MoreObjects;
+
 import java.util.List;
 
 /**
@@ -10,6 +12,9 @@ import java.util.List;
 public class IngestRequest {
 
     private String name;
+    private Long size;
+    private Long totalFiles;
+    private Long storageRegion;
     private String location;
     private String depositor;
     private int requiredReplications;
@@ -57,14 +62,44 @@ public class IngestRequest {
         return this;
     }
 
+    public Long getStorageRegion() {
+        return storageRegion;
+    }
+
+    public IngestRequest setStorageRegion(Long storageRegion) {
+        this.storageRegion = storageRegion;
+        return this;
+    }
+
+    public Long getSize() {
+        return size;
+    }
+
+    public IngestRequest setSize(Long size) {
+        this.size = size;
+        return this;
+    }
+
+    public Long getTotalFiles() {
+        return totalFiles;
+    }
+
+    public IngestRequest setTotalFiles(Long totalFiles) {
+        this.totalFiles = totalFiles;
+        return this;
+    }
+
     public String toString() {
-        return "IngestRequest{" +
-                "name=" + name + "," +
-                "location=" + location + "," +
-                "depositor=" + depositor + "," +
-                "requiredReplications=" + requiredReplications + "," +
-                "replicatingNodes=" + replicatingNodes +
-                "}";
+        return MoreObjects.toStringHelper(this)
+                .add("name", name)
+                .add("depositor", depositor)
+                .add("location", location)
+                .add("size", size)
+                .add("totalFiles", totalFiles)
+                .add("storageRegion", storageRegion)
+                .add("requiredReplications", requiredReplications)
+                .add("replicatingNodes", replicatingNodes)
+                .toString();
     }
 
     @Override
