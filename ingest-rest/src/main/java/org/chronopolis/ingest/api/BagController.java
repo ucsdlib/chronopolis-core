@@ -50,9 +50,9 @@ import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatu
  */
 @RestController
 @RequestMapping("/api")
-public class StagingController extends IngestController {
+public class BagController extends IngestController {
 
-    private final Logger log = LoggerFactory.getLogger(StagingController.class);
+    private final Logger log = LoggerFactory.getLogger(BagController.class);
 
     private final NodeRepository nodeRepository;
     // private final BagService bagService;
@@ -60,7 +60,7 @@ public class StagingController extends IngestController {
     private final IngestSettings ingestSettings;
 
     @Autowired
-    public StagingController(NodeRepository nodeRepository, SearchService<Bag, Long, BagRepository> bagService, IngestSettings ingestSettings) {
+    public BagController(NodeRepository nodeRepository, SearchService<Bag, Long, BagRepository> bagService, IngestSettings ingestSettings) {
         this.nodeRepository = nodeRepository;
         this.bagService = bagService;
         this.ingestSettings = ingestSettings;

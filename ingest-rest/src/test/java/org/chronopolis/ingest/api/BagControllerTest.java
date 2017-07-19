@@ -41,9 +41,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  */
 @RunWith(SpringRunner.class)
-@WebMvcTest(secure = false, controllers = StagingController.class)
+@WebMvcTest(secure = false, controllers = BagController.class)
 @ContextConfiguration(classes = WebContext.class)
-public class StagingControllerTest extends IngestTest {
+public class BagControllerTest extends IngestTest {
 
     private final String DEPOSITOR = "test-depositor";
     private final String BAG = "test-bag";
