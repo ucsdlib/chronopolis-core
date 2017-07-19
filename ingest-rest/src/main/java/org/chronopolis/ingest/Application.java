@@ -2,7 +2,7 @@ package org.chronopolis.ingest;
 
 import com.sun.akuma.Daemon;
 import org.chronopolis.common.settings.AceSettings;
-import org.chronopolis.ingest.api.StagingController;
+import org.chronopolis.ingest.api.BagController;
 import org.chronopolis.ingest.controller.SiteController;
 import org.chronopolis.ingest.repository.Authority;
 import org.chronopolis.ingest.service.IngestService;
@@ -27,7 +27,7 @@ import java.util.Arrays;
         AceSettings.class,
         IngestSettings.class,
         IngestService.class,
-        StagingController.class,
+        BagController.class,
         SiteController.class,
         TokenTask.class
 })

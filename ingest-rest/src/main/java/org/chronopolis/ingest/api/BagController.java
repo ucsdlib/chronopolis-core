@@ -16,10 +16,11 @@ import org.chronopolis.rest.models.IngestRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -49,13 +50,12 @@ import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatu
  * Created by shake on 11/5/14.
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/bags")
 public class BagController extends IngestController {
 
     private final Logger log = LoggerFactory.getLogger(BagController.class);
 
     private final NodeRepository nodeRepository;
-    // private final BagService bagService;
     private final SearchService<Bag, Long, BagRepository> bagService;
     private final IngestSettings ingestSettings;
 
@@ -72,7 +72,7 @@ public class BagController extends IngestController {
      * @param params - Query parameters used for searching
      * @return all bags matching the query parameters
      */
-    @RequestMapping(value = "bags", method = RequestMethod.GET)
+    @GetMapping
     public Iterable<Bag> getBags(@RequestParam Map<String, String> params) {
         BagSearchCriteria criteria = new BagSearchCriteria()
                 .createdAfter(params.getOrDefault(CREATED_AFTER, null))
@@ -89,17 +89,17 @@ public class BagController extends IngestController {
     /**
      * Retrieve information about a single bag
      *
-     * @param bagId - the bag id to retrieve
+     * @param id - the bag id to retrieve
      * @return the bag specified by the id
      */
-    @RequestMapping(value = "bags/{bag-id}", method = RequestMethod.GET)
-    public Bag getBag(@PathVariable("bag-id") Long bagId) {
+    @GetMapping("/{id}")
+    public Bag getBag(@PathVariable("id") Long id) {
         BagSearchCriteria criteria = new BagSearchCriteria()
-                .withId(bagId);
+                .withId(id);
 
         Bag bag = bagService.find(criteria);
         if (bag == null) {
-            throw new NotFoundException("bag/" + bagId);
+            throw new NotFoundException("bag/" + id);
         }
         return bag;
     }
@@ -111,7 +111,7 @@ public class BagController extends IngestController {
      * @param request - the request containing the bag name, depositor, and location of the bag
      * @return the bag created from the IngestRequest
      */
-    @RequestMapping(value = "bags", method = RequestMethod.POST)
+    @PostMapping
     public Bag stageBag(Principal principal, @RequestBody IngestRequest request)  {
         String name = request.getName();
         String depositor = request.getDepositor();
