@@ -106,6 +106,9 @@ public class StagingControllerTest extends IngestTest {
     public void testStageBag() throws Exception {
         IngestRequest request = new IngestRequest();
         request.setDepositor(DEPOSITOR);
+        request.setSize(1L);
+        request.setTotalFiles(1L);
+        request.setStorageRegion(1L);
         request.setName(BAG);
         request.setLocation(LOCATION);
         request.setReplicatingNodes(ImmutableList.of(NODE));
