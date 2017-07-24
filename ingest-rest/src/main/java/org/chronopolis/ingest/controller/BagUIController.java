@@ -48,8 +48,8 @@ import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatu
  * Created by shake on 4/17/15.
  */
 @Controller
-public class BagController extends IngestController {
-    private final Logger log = LoggerFactory.getLogger(BagController.class);
+public class BagUIController extends IngestController {
+    private final Logger log = LoggerFactory.getLogger(BagUIController.class);
     private final Integer DEFAULT_PAGE_SIZE = 20;
     private final Integer DEFAULT_PAGE = 0;
 
@@ -61,11 +61,11 @@ public class BagController extends IngestController {
     final IngestSettings settings;
 
     @Autowired
-    public BagController(SearchService<Bag, Long, BagRepository> bagService,
-                         ReplicationService replicationService,
-                         TokenRepository tokenRepository,
-                         NodeRepository nodeRepository,
-                         IngestSettings settings) {
+    public BagUIController(SearchService<Bag, Long, BagRepository> bagService,
+                           ReplicationService replicationService,
+                           TokenRepository tokenRepository,
+                           NodeRepository nodeRepository,
+                           IngestSettings settings) {
         this.bagService = bagService;
         this.replicationService = replicationService;
         this.tokenRepository = tokenRepository;
