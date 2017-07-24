@@ -22,11 +22,13 @@ import java.util.stream.Stream;
  * Class to gather metadata about a bag and supply an IngestRequest for creating
  * the bag in the Ingest Server
  *
+ * todo: passing in the path of the bag feels a bit clunky. maybe we could have it so we
+ *       only need the stage, depositor, and name
  *
  * Created by shake on 7/18/17.
  */
-public class Initializer implements Supplier<Optional<IngestRequest>> {
-    private final Logger log = LoggerFactory.getLogger(Initializer.class);
+public class IngestRequestSupplier implements Supplier<Optional<IngestRequest>> {
+    private final Logger log = LoggerFactory.getLogger(IngestRequestSupplier.class);
     private final String TAR_TYPE = "application/x-tar";
 
     private Path bag;
@@ -34,11 +36,11 @@ public class Initializer implements Supplier<Optional<IngestRequest>> {
     private final String name;
     private final String depositor;
 
-    public Initializer(Path bag, Path stage, String name, String depositor) {
+    public IngestRequestSupplier(Path bag, Path stage, String depositor, String name) {
         this.bag = bag;
         this.stage = stage;
-        this.name = name;
         this.depositor = depositor;
+        this.name = name;
     }
 
     /**
@@ -87,6 +89,10 @@ public class Initializer implements Supplier<Optional<IngestRequest>> {
 
     /**
      * Explode a tarball for a given transfer
+     *
+     * TODO: Do we want a separate process for this?
+     *       i.e. keep this class for creating requests; move untarring to a class for... untarring
+     *       could have a check that says if (!bag.exists) { untar } else { init }
      *
      * @param tarball the tarball'd bag to extract
      */
@@ -163,7 +169,7 @@ public class Initializer implements Supplier<Optional<IngestRequest>> {
         Count count = new Count();
         count.size = left.size + right.size;
         count.files = left.files + right.files;
-        return left;
+        return count;
     }
 
     /**
