@@ -10,6 +10,8 @@ import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagDistribution;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.entities.storage.ReplicationConfig;
+import org.chronopolis.rest.entities.storage.Storage;
 import org.chronopolis.rest.models.ReplicationRequest;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
@@ -35,6 +37,7 @@ import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatu
 @Component
 @Transactional
 public class ReplicationService extends SearchService<Replication, Long, ReplicationRepository>{
+    private static final String DEFAULT_USER = "chronopolis";
     private final Logger log = LoggerFactory.getLogger(ReplicationService.class);
 
     private final ReplicationRepository replicationRepository;
@@ -104,18 +107,8 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
         // todo: move this out of the replication create
         createDist(bag, node);
 
-        // vars to help create replication stuff
-        // todo: from replication_config
-        final String user = settings.getReplicationUser();
-        final String server = settings.getStorageServer();
-        final String bagStage = settings.getRsyncBags();
-        final String tokenStage = settings.getRsyncTokens();
-
-        Path tokenPath = Paths.get(tokenStage, bag.getTokenStorage().getPath());
-        String tokenLink =  buildLink(user, server, tokenPath);
-
-        Path bagPath = Paths.get(bagStage, bag.getBagStorage().getPath());
-        String bagLink = buildLink(user, server, bagPath);
+        String tokenLink = createReplicationString(bag.getTokenStorage());
+        String bagLink = createReplicationString(bag.getBagStorage());
 
         // TODO: Allow searching for multiple status
         ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
@@ -124,10 +117,12 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
 
         Page<Replication> ongoing = findAll(criteria, new PageRequest(0, 10));
         Replication action = new Replication(node, bag, bagLink, tokenLink);
-        action.setProtocol("rsync"); // TODO: Magic val... once we update our storage model this can be updated
+
+        // TODO: Magic val... we should be able to get this from the replication config soon
+        action.setProtocol("rsync");
 
         // iterate through our ongoing replications and search for a non terminal replication
-        // TODO: Partial index this instead:
+        // TODO: Partial index this instead?
         //       create unique index "one_repl" on replications(node_id) where status == ''...
         if (ongoing.getTotalElements() != 0) {
             for (Replication replication : ongoing.getContent()) {
@@ -145,6 +140,32 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
 
         save(action);
         return action;
+    }
+
+    /**
+     * Build a string for replication based off the storage for the object
+     *
+     * @param storage The storage to replication from
+     * @return The string for the replication
+     */
+    private String createReplicationString(Storage storage) {
+        ReplicationConfig config = null;
+
+        if (storage.getRegion() != null && storage.getRegion().getReplicationConfig() != null) {
+            config = storage.getRegion()
+                    .getReplicationConfig();
+        } else {
+            // Probably want something different from a RuntimeException, but for now this should suffice
+            throw new RuntimeException("Unable to create replication for storage object " + storage.getId());
+        }
+
+        final String user = config.getUsername() != null ? config.getUsername() : DEFAULT_USER;
+        final String server = config.getServer();
+        final String root = config.getPath();
+
+        Path path = Paths.get(root, storage.getPath());
+        // inline this?
+        return buildLink(user, server, path);
     }
 
     /**
