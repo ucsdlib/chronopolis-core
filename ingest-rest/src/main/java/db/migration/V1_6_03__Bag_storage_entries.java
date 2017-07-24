@@ -97,7 +97,7 @@ public class V1_6_03__Bag_storage_entries implements JdbcMigration {
                 " VALUES(DEFAULT, ?, ?, ?, CURRENT_TIMESTAMP)";
         if (checksum != null && !checksum.isEmpty()) {
             try (PreparedStatement statement = connection.prepareStatement(sqlInsertFixity)) {
-                log.info("Pushing fixity with stuff: {} {}", algorithm, checksum);
+                log.trace("Pushing fixity: {} {}", algorithm, checksum);
                 statement.setLong(1, storage);
                 statement.setString(2, algorithm);
                 statement.setString(3, checksum);
