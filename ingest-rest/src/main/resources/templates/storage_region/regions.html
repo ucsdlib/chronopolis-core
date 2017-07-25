@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: head">
+    <meta charset="UTF-8"/>
+    <title>Storage Regions</title>
+</head>
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column align-items-center m-3">
+    <div class="card w-50 filterable">
+        <div class="card-header">
+            <div class="d-flex justify-content-start">
+                <h3 class="card-title p-2">Storage Regions</h3>
+                <button data-toggle="collapse" data-target="#filter-body" id="dropdown" class="btn btn-default btn-xs btn-filter ml-auto p-2"
+                        aria-expanded="false" aria-controls="filter-body">
+                    <i class="fa fa-search"></i> Search
+                </button>
+            </div>
+        </div>
+        <div id="filter-body" class="collapse p-2"></div>
+
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Created At</th>
+                    <th>Id</th>
+                    <th>Owner</th>
+                    <th>Storage Type</th>
+                    <th>Data Type</th>
+                    <th>Total Capacity</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!--/*@thymesVar id="regions" type="Page<org.chronopolis.rest.entities.storage.StorageRegion>"*/-->
+                <!--/*@thymesVar id="region" type="org.chronopolis.rest.entities.storage.StorageRegion"*/-->
+                <tr th:each="region: ${regions}" th:attr="data-href=@{|/regions/${region.id}|}" class="table-clickable">
+                    <td th:text="${region.createdAt.toLocalDate()}"></td>
+                    <td th:text="${region.id}"></td>
+                    <td th:text="${region.node.username}"></td>
+                    <td th:text="${region.storageType}"></td>
+                    <td th:text="${region.dataType}"></td>
+                    <td th:text="${region.capacity}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div th:replace="fragments/page :: page"></div>
+    </div>
+</div>
+<div th:replace="layout :: foot"></div>
+</body>
+</html>
