@@ -3,6 +3,9 @@ package org.chronopolis.ingest.models;
 import org.chronopolis.rest.models.storage.DataType;
 import org.chronopolis.rest.models.storage.StorageType;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+
 /**
  * Data required when creating a storage region
  *
@@ -10,13 +13,27 @@ import org.chronopolis.rest.models.storage.StorageType;
  */
 public class RegionCreate {
 
+    @NotNull
     private String node;
+
+    @NotNull
+    @Min(0)
     private Long capacity;
+
+    @NotNull
     private DataType dataType;
+
+    @NotNull
     private StorageType storageType;
+
     // Subtype this?
+    @NotNull
     private String replicationUser;
+
+    @NotNull
     private String replicationPath;
+
+    @NotNull
     private String replicationServer;
 
     public Long getCapacity() {
