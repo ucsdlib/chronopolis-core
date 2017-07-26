@@ -73,6 +73,7 @@ public class StorageRegionUIController extends IngestController {
 
         model.addAttribute("regions", regions);
         model.addAttribute("pages", pages);
+        model.addAttribute("storageTypes", StorageType.values());
         // enum types as well
 
         return "storage_region/regions";

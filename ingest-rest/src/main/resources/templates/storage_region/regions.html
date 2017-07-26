@@ -17,30 +17,76 @@
                 </button>
             </div>
         </div>
-        <div id="filter-body" class="collapse p-2"></div>
+        <div id="filter-body" class="collapse p-2">
+            <form class="form-horizontal card-block" th:action="@{/regions}" method="GET">
+                <!-- should be a select -->
+                <div class="form-group row">
+                    <label for="node-table-filter" class="col-form-label col-3">Node</label>
+                    <input class="form-control col" id="node-table-filter" name="name"
+                           placeholder="Search Node"/>
+                </div>
+                <div class="form-group row">
+                    <label for="status-table-filter" class="col-form-label col-3">Storage Type</label>
+                    <select name="status" id="status-table-filter" class="form-control col-3">
+                        <!--/*@thymesVar id="storageTypes" type="List<org.chronopolis.rest.models.storage.StorageType>"*/-->
+                        <option th:each="type : ${storageTypes}" th:value="${type}" th:text="${type}"></option>
+                    </select>
+                </div>
+                <div class="form-group row">
+                    <label for="capacityLessThan" class="col-form-label col-3">Capacity Less Than</label>
+                    <input class="form-control col" id="capacityLessThan" name="capacityLess"
+                           placeholder="Capacity Less Than"/>
+                </div>
+                <div class="form-group row">
+                    <label for="capacityGreaterThan" class="col-form-label col-3">Capacity Greater Than</label>
+                    <input class="form-control col" id="capacityGreaterThan" name="capacityGreater"
+                           placeholder="Capacity Greater Than"/>
+                </div>
+                <div class="form-group row">
+                    <label class="col-form-label col-2" for="direction-filter">Order By</label>
+                    <div class="form-check col-2">
+                        <label class="form-check-label">
+                            <input class="form-check-input" type="radio" name="orderBy" id="optionUpdatedAt" value="updatedAt"/> UpdatedAt
+                        </label>
+                    </div>
+                    <div class="form-check col-2">
+                        <label class="form-check-label">
+                            <input class="form-check-input" type="radio" name="orderBy" id="optionCreatedAt" value="createdAt"/> CreatedAt
+                        </label>
+                    </div>
+                    <div class="col-3">
+                        <select name="dir" id="direction-filter" class="form-control">
+                            <option value="ASC">Ascending</option>
+                            <option value="DESC">Descending</option>
+                        </select>
+                    </div>
+                </div>
+                <button th:type="submit" class="btn btn-primary">Search</button>
+            </form>
+        </div>
 
         <table class="table table-striped table-hover">
             <thead>
-                <tr>
-                    <th>Created At</th>
-                    <th>Id</th>
-                    <th>Owner</th>
-                    <th>Storage Type</th>
-                    <th>Data Type</th>
-                    <th>Total Capacity</th>
-                </tr>
+            <tr>
+                <th>Created At</th>
+                <th>Id</th>
+                <th>Owner</th>
+                <th>Storage Type</th>
+                <th>Data Type</th>
+                <th>Total Capacity</th>
+            </tr>
             </thead>
             <tbody>
-                <!--/*@thymesVar id="regions" type="Page<org.chronopolis.rest.entities.storage.StorageRegion>"*/-->
-                <!--/*@thymesVar id="region" type="org.chronopolis.rest.entities.storage.StorageRegion"*/-->
-                <tr th:each="region: ${regions}" th:attr="data-href=@{|/regions/${region.id}|}" class="table-clickable">
-                    <td th:text="${region.createdAt.toLocalDate()}"></td>
-                    <td th:text="${region.id}"></td>
-                    <td th:text="${region.node.username}"></td>
-                    <td th:text="${region.storageType}"></td>
-                    <td th:text="${region.dataType}"></td>
-                    <td th:text="${region.capacity}"></td>
-                </tr>
+            <!--/*@thymesVar id="regions" type="Page<org.chronopolis.rest.entities.storage.StorageRegion>"*/-->
+            <!--/*@thymesVar id="region" type="org.chronopolis.rest.entities.storage.StorageRegion"*/-->
+            <tr th:each="region: ${regions}" th:attr="data-href=@{|/regions/${region.id}|}" class="table-clickable">
+                <td th:text="${region.createdAt.toLocalDate()}"></td>
+                <td th:text="${region.id}"></td>
+                <td th:text="${region.node.username}"></td>
+                <td th:text="${region.storageType}"></td>
+                <td th:text="${region.dataType}"></td>
+                <td th:text="${region.capacity}"></td>
+            </tr>
             </tbody>
         </table>
         <div th:replace="fragments/page :: page"></div>
