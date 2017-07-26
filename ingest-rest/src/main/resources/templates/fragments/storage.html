@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="card-display (storage,storageName)">
+    <!--/*@thymesVar id="storage" type="org.chronopolis.rest.entities.storage.Storage"*/-->
+    <div class="card-header">
+        <h4 th:text="|Storage Information:  ${storageName}|">Storage Information</h4>
+    </div>
+    <div class="card-block">
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>Relative Path</th>
+                <th>Size on Disk</th>
+                <th>Total Files</th>
+                <th>Active</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td th:text="${storage.path}"></td>
+                <td th:text="${storage.size}"></td>
+                <td th:text="${storage.totalFiles}"></td>
+                <td th:text="${storage.active}"></td>
+            </tr>
+            </tbody>
+        </table>
+        <form method="GET" th:action="@{|/bags/${bag.id}/storage/activate|}">
+            <input type="hidden" name="type" th:value="${storageName}"/>
+            <!--/*@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"*/-->
+            <button class="btn btn-primary"
+                    th:href="@{|/bags/${bag.id}/${storageName}/activate|}"
+                    th:text="${storage.isActive()} ? 'Set Inactive' : 'Set Active'"/>
+        </form>
+    </div>
+</div>
+
+</html>
