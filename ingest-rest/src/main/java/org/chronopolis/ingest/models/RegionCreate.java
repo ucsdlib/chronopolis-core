@@ -2,6 +2,7 @@ package org.chronopolis.ingest.models;
 
 import org.chronopolis.rest.models.storage.DataType;
 import org.chronopolis.rest.models.storage.StorageType;
+import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -17,7 +18,7 @@ public class RegionCreate {
     private String node;
 
     @NotNull
-    @Min(0)
+    @Min(1L)
     private Long capacity;
 
     @NotNull
@@ -26,14 +27,15 @@ public class RegionCreate {
     @NotNull
     private StorageType storageType;
 
-    // Subtype this?
-    @NotNull
+    // Subtype using the ReplicationCreate? (explore after)
     private String replicationUser;
 
     @NotNull
+    @NotEmpty
     private String replicationPath;
 
     @NotNull
+    @NotEmpty
     private String replicationServer;
 
     public Long getCapacity() {
