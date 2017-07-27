@@ -5,6 +5,7 @@ import org.chronopolis.rest.entities.UpdatableEntity;
 import org.chronopolis.rest.models.storage.DataType;
 import org.chronopolis.rest.models.storage.StorageType;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -25,6 +26,9 @@ public class StorageRegion extends UpdatableEntity {
     @ManyToOne
     private Node node;
 
+    // We probably don't need this field;
+    // there's nothing wrong with having bags and tokens in the same SR,
+    // just needs to be configured properly in the client
     @Enumerated(value = EnumType.STRING)
     private DataType dataType;
 
@@ -34,7 +38,8 @@ public class StorageRegion extends UpdatableEntity {
     @OneToMany(mappedBy = "region", fetch = FetchType.LAZY)
     private Set<Storage> storage;
 
-    @OneToOne(mappedBy = "region")
+    // might be able to change the cascade type
+    @OneToOne(mappedBy = "region", cascade = CascadeType.ALL)
     private ReplicationConfig replicationConfig;
 
     private Long capacity;
