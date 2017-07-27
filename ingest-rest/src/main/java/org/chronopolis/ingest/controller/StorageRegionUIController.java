@@ -87,56 +87,67 @@ public class StorageRegionUIController extends IngestController {
      * @return the template to create a StorageRegion
      */
     @GetMapping("/regions/create")
-    public String createRegionForm(Model model, Principal principal, RegionCreate createForm) {
+    public String createRegionForm(Model model, Principal principal, RegionCreate regionCreate) {
         log.info("[GET /regions/create] - {}", principal.getName());
-
-        model.addAttribute("nodes", nodes.findAll());
-        model.addAttribute("storageTypes", StorageType.values());
-        model.addAttribute("dataTypes", DataType.values());
-
+        appendFormAttributes(model, regionCreate);
         return "storage_region/create";
     }
 
     /**
      * Process a request to create a StorageRegion
      *
-     * todo: bad requests/conflict?/forbidden
-     *
      * @param model the model of the controller
      * @param principal the principal of the user
-     * @param create the RegionCreate form
+     * @param regionCreate the RegionCreate form
      * @param bindingResult the form validation result
      * @return the newly created StorageRegion
      */
     @PostMapping("/regions")
-    public String createRegion(Model model, Principal principal, @Valid RegionCreate create, BindingResult bindingResult) throws ForbiddenException {
+    public String createRegion(Model model,
+                               Principal principal,
+                               @Valid RegionCreate regionCreate,
+                               BindingResult bindingResult) throws ForbiddenException {
         if (bindingResult.hasErrors()) {
-            return "redirect:/regions/create";
+            appendFormAttributes(model, regionCreate);
+            return "storage_region/create";
         }
 
         Node owner;
-        if (hasRoleAdmin() || principal.getName().equalsIgnoreCase(create.getNode())) {
-            owner = nodes.findByUsername(create.getNode());
+        if (hasRoleAdmin() || principal.getName().equalsIgnoreCase(regionCreate.getNode())) {
+            owner = nodes.findByUsername(regionCreate.getNode());
         } else {
             throw new ForbiddenException("User does not have permissions to create this resource");
         }
 
         StorageRegion region = new StorageRegion();
-        region.setDataType(create.getDataType());
-        region.setStorageType(create.getStorageType());
-        region.setCapacity(create.getCapacity());
+        region.setDataType(regionCreate.getDataType());
+        region.setStorageType(regionCreate.getStorageType());
+        region.setCapacity(regionCreate.getCapacity());
         region.setNode(owner);
 
         ReplicationConfig config = new ReplicationConfig();
-        config.setServer(create.getReplicationServer());
-        config.setPath(create.getReplicationPath());
-        config.setUsername(create.getReplicationUser());
+        config.setServer(regionCreate.getReplicationServer());
+        config.setPath(regionCreate.getReplicationPath());
+        config.setUsername(regionCreate.getReplicationUser());
         config.setRegion(region);
 
         region.setReplicationConfig(config);
         service.save(region);
 
         return "redirect:/regions/" + region.getId();
+    }
+
+    /**
+     * Append basic attributes to a model for use as form data
+     *
+     * @param model the model of the controller
+     * @param regionCreate the previous form data
+     */
+    private void appendFormAttributes(Model model, RegionCreate regionCreate) {
+        model.addAttribute("nodes", nodes.findAll());
+        model.addAttribute("dataTypes", DataType.values());
+        model.addAttribute("storageTypes", StorageType.values());
+        model.addAttribute("regionCreate", regionCreate);
     }
 
     /**
