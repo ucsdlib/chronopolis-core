@@ -13,9 +13,10 @@ public class AceTokenModel {
     private Long bagId;
     private Long round;
     private String proof;
+    private String filename;
     private String algorithm;
     private String imsService;
-    private Date createdDate;
+    private Date createDate;
 
     public Long getId() {
         return id;
@@ -71,13 +72,23 @@ public class AceTokenModel {
         return this;
     }
 
-    public Date getCreatedDate() {
-        return createdDate;
+    public Date getCreateDate() {
+        return createDate;
     }
 
-    public AceTokenModel setCreatedDate(Date createdDate) {
-        this.createdDate = createdDate;
+    public AceTokenModel setCreateDate(Date createDate) {
+        this.createDate = createDate;
         return this;
     }
+
+    public AceTokenModel setFilename(String filename) {
+        this.filename = filename;
+        return this;
+    }
+
+    public String getFilename() {
+        return filename;
+    }
+
 }
 
