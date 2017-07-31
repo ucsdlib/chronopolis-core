@@ -10,9 +10,9 @@ import okhttp3.Response;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.OkBasicInterceptor;
 import org.chronopolis.common.mail.MailUtil;
+import org.chronopolis.common.mail.SmtpProperties;
 import org.chronopolis.common.settings.AceSettings;
 import org.chronopolis.common.settings.IngestAPISettings;
-import org.chronopolis.common.settings.SMTPSettings;
 import org.chronopolis.common.util.URIUtil;
 import org.chronopolis.replicate.batch.Submitter;
 import org.chronopolis.rest.api.ErrorLogger;
@@ -181,12 +181,12 @@ public class ReplicationConfig {
      * @return
      */
     @Bean
-    MailUtil mailUtil(SMTPSettings smtpSettings) {
+    MailUtil mailUtil(SmtpProperties properties) {
         MailUtil mailUtil = new MailUtil();
-        mailUtil.setSmtpFrom(smtpSettings.getFrom());
-        mailUtil.setSmtpTo(smtpSettings.getTo());
-        mailUtil.setSmtpHost(smtpSettings.getHost());
-        mailUtil.setSmtpSend(smtpSettings.getSend());
+        mailUtil.setSmtpFrom(properties.getFrom());
+        mailUtil.setSmtpTo(properties.getTo());
+        mailUtil.setSmtpHost(properties.getHost());
+        mailUtil.setSmtpSend(properties.getSend());
         return mailUtil;
     }
 
