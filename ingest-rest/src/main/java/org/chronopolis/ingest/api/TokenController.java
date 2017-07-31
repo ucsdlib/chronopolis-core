@@ -1,5 +1,6 @@
 package org.chronopolis.ingest.api;
 
+import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.models.filter.AceTokenFilter;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.criteria.AceTokenSearchCriteria;
@@ -49,7 +50,11 @@ public class TokenController {
     public AceToken getToken(Principal principal, @PathVariable("id") Long id) {
         log.info("[GET /api/tokens/{}] - ", id, principal.getName());
         AceTokenSearchCriteria criteria = new AceTokenSearchCriteria().withId(id);
-        return tokens.find(criteria);
+        AceToken token = tokens.find(criteria);
+        if (token == null) {
+            throw new NotFoundException("AceToken with id " + id + " could not be located");
+        }
+        return token;
     }
 
 }
