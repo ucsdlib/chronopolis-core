@@ -1,6 +1,6 @@
 package org.chronopolis.rest.models;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 
 /**
  * RESTful model for AceTokens
@@ -16,7 +16,7 @@ public class AceTokenModel {
     private String filename;
     private String algorithm;
     private String imsService;
-    private Date createDate;
+    private ZonedDateTime createDate;
 
     public Long getId() {
         return id;
@@ -72,11 +72,11 @@ public class AceTokenModel {
         return this;
     }
 
-    public Date getCreateDate() {
+    public ZonedDateTime getCreateDate() {
         return createDate;
     }
 
-    public AceTokenModel setCreateDate(Date createDate) {
+    public AceTokenModel setCreateDate(ZonedDateTime createDate) {
         this.createDate = createDate;
         return this;
     }
