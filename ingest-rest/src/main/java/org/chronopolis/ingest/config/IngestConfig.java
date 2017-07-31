@@ -12,8 +12,10 @@ import org.chronopolis.ingest.api.serializer.ZonedDateTimeDeserializer;
 import org.chronopolis.ingest.api.serializer.ZonedDateTimeSerializer;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
+import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Repair;
 import org.chronopolis.rest.entities.Replication;
@@ -67,6 +69,11 @@ public class IngestConfig {
 
     @Bean
     public SearchService<Bag, Long, BagRepository> bagService(BagRepository repository) {
+        return new SearchService<>(repository);
+    }
+
+    @Bean
+    public SearchService<AceToken, Long, TokenRepository> tokenService(TokenRepository repository) {
         return new SearchService<>(repository);
     }
 
