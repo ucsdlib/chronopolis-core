@@ -1,6 +1,6 @@
 package org.chronopolis.ingest.api;
 
-import org.chronopolis.ingest.models.Paged;
+import org.chronopolis.ingest.models.filter.AceTokenFilter;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.criteria.AceTokenSearchCriteria;
 import org.chronopolis.ingest.repository.dao.SearchService;
@@ -35,10 +35,14 @@ public class TokenController {
     }
 
     @GetMapping
-    public Page<AceToken> getTokens(Principal principal, @ModelAttribute Paged paged) {
+    public Page<AceToken> getTokens(Principal principal, @ModelAttribute AceTokenFilter filter) {
         log.info("[GET /api/tokens] - {}", principal.getName());
-        AceTokenSearchCriteria criteria = new AceTokenSearchCriteria();
-        return tokens.findAll(criteria, paged.createPageRequest());
+        AceTokenSearchCriteria criteria = new AceTokenSearchCriteria()
+                .withBagId(filter.getBagId())
+                .withFilenames(filter.getFilename())
+                .withAlgorithm(filter.getAlgorithm());
+
+        return tokens.findAll(criteria, filter.createPageRequest());
     }
 
     @GetMapping("/{id}")
