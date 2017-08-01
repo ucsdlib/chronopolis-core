@@ -11,11 +11,11 @@ import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.OkBasicInterceptor;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.mail.SmtpProperties;
-import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.Submitter;
 import org.chronopolis.rest.api.ErrorLogger;
 import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.api.IngestAPIProperties;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.support.PageDeserializer;
@@ -100,10 +100,8 @@ public class ReplicationConfig {
      * @return
      */
     @Bean
-    IngestAPI ingestAPI(IngestAPISettings apiSettings) {
-        // TODO: Create a list of endpoints
-        String endpoint = apiSettings.getIngestEndpoints().get(0);
-
+    IngestAPI ingestAPI(IngestAPIProperties properties) {
+        String endpoint = properties.getEndpoint();
         if (!endpoint.endsWith("/")) {
             endpoint = endpoint + "/";
         }
@@ -118,8 +116,8 @@ public class ReplicationConfig {
                         return chain.proceed(chain.request());
                     }
                 })
-                .addNetworkInterceptor(new OkBasicInterceptor(apiSettings.getIngestAPIUsername(),
-                        apiSettings.getIngestAPIPassword()))
+                .addNetworkInterceptor(new OkBasicInterceptor(properties.getUsername(),
+                        properties.getPassword()))
                 .build();
 
         Type bagPage = new TypeToken<PageImpl<Bag>>() {}.getType();

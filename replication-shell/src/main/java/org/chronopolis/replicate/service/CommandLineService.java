@@ -1,8 +1,8 @@
 package org.chronopolis.replicate.service;
 
-import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.replicate.batch.Submitter;
 import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.api.IngestAPIProperties;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
@@ -38,14 +38,14 @@ public class CommandLineService implements ReplicationService {
     private final Logger log = LoggerFactory.getLogger(CommandLineService.class);
 
     private final ApplicationContext context;
-    private final IngestAPISettings settings;
+    private final IngestAPIProperties properties;
     private final IngestAPI ingestAPI;
     private final Submitter submitter;
 
     @Autowired
-    public CommandLineService(ApplicationContext context, IngestAPISettings settings, IngestAPI ingestAPI, Submitter submitter) {
+    public CommandLineService(ApplicationContext context, IngestAPIProperties properties, IngestAPI ingestAPI, Submitter submitter) {
         this.context = context;
-        this.settings = settings;
+        this.properties = properties;
         this.ingestAPI = ingestAPI;
         this.submitter = submitter;
     }
@@ -114,7 +114,7 @@ public class CommandLineService implements ReplicationService {
         Map<String, Object> params = new HashMap<>();
         Page<Replication> replications;
         params.put("status", status);
-        params.put("node", settings.getIngestAPIUsername());
+        params.put("node", properties.getUsername());
         Call<PageImpl<Replication>> call = ingestAPI.getReplications(params);
         try {
             Response<PageImpl<Replication>> execute = call.execute();
