@@ -19,7 +19,7 @@ public class IngestProperties {
         return this;
     }
 
-    public class Ajp {
+    public static class Ajp {
         private Boolean enabled = false;
         private Integer port = 8009;
 

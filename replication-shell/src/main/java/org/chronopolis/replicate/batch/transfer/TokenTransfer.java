@@ -3,8 +3,8 @@ package org.chronopolis.replicate.batch.transfer;
 import com.google.common.hash.HashCode;
 import org.chronopolis.common.exception.FileTransferException;
 import org.chronopolis.common.transfer.RSyncTransfer;
+import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
-import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.FixityUpdate;
@@ -28,17 +28,17 @@ public class TokenTransfer implements Transfer, Runnable {
     // Set in our constructor
     private final Bag bag;
     private final IngestAPI ingest;
-    private final ReplicationSettings settings;
+    private final ReplicationProperties properties;
 
     // These could all be local
     private final Long id;
     private final String location;
     private final String depositor;
 
-    public TokenTransfer(Replication r, IngestAPI ingest, ReplicationSettings settings) {
+    public TokenTransfer(Replication r, IngestAPI ingest, ReplicationProperties properties) {
         this.bag = r.getBag();
         this.ingest = ingest;
-        this.settings = settings;
+        this.properties = properties;
 
         this.id = r.getId();
         this.location = r.getTokenLink();
@@ -47,13 +47,14 @@ public class TokenTransfer implements Transfer, Runnable {
 
     @Override
     public void run() {
+        ReplicationProperties.Storage storage = properties.getStorage();
         String name = bag.getName();
         log.info("{} Downloading Token Store from {}", name, location);
 
         Path tokenStore;
 
         // Make sure the directory for the depositor exists before pulling
-        Path stage = Paths.get(settings.getPreservation(), depositor);
+        Path stage = Paths.get(storage.getPreservation(), depositor);
         checkDirExists(stage);
 
         RSyncTransfer transfer = new RSyncTransfer(location);

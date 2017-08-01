@@ -1,7 +1,6 @@
 package org.chronopolis.replicate;
 
 import com.sun.akuma.Daemon;
-import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.replicate.scheduled.ReplicationQueryTask;
 import org.chronopolis.replicate.service.ReplicationService;
 import org.slf4j.Logger;
@@ -22,11 +21,8 @@ import java.util.Arrays;
  */
 @Component
 @ComponentScan(basePackageClasses = {
-        ReplicationSettings.class,   // scan the o.c.r.config package
         ReplicationService.class,     // scan the o.c.r.service package
         ReplicationQueryTask.class
-}, basePackages = {
-        "org.chronopolis.common.settings" // make sure we can load other settings (like AceSettings)
 })
 @EnableAutoConfiguration
 public class ReplicationConsumer implements CommandLineRunner {

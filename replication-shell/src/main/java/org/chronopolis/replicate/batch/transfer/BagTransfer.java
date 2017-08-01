@@ -3,8 +3,8 @@ package org.chronopolis.replicate.batch.transfer;
 import com.google.common.hash.HashCode;
 import org.chronopolis.common.exception.FileTransferException;
 import org.chronopolis.common.transfer.RSyncTransfer;
+import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
-import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.FixityUpdate;
@@ -27,17 +27,17 @@ public class BagTransfer implements Transfer, Runnable {
     // Fields set by constructor
     private final Bag bag;
     private final IngestAPI ingestAPI;
-    private final ReplicationSettings settings;
+    private final ReplicationProperties properties;
 
     // These could all be local
     private final Long id;
     private final String location;
     private final String depositor;
 
-    public BagTransfer(Replication r, IngestAPI ingestAPI, ReplicationSettings settings) {
+    public BagTransfer(Replication r, IngestAPI ingestAPI, ReplicationProperties properties) {
         this.bag = r.getBag();
         this.ingestAPI = ingestAPI;
-        this.settings = settings;
+        this.properties = properties;
 
         this.id = r.getId();
         this.location = r.getBagLink();
@@ -46,11 +46,12 @@ public class BagTransfer implements Transfer, Runnable {
 
     @Override
     public void run() {
+        ReplicationProperties.Storage storage = properties.getStorage();
         String name = bag.getName();
 
         // Replicate the collection
         log.info("{} Downloading bag from {}", name, location);
-        Path depositorPath = Paths.get(settings.getPreservation(), depositor);
+        Path depositorPath = Paths.get(storage.getPreservation(), depositor);
         RSyncTransfer transfer = new RSyncTransfer(location);
 
         try {

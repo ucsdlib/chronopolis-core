@@ -3,17 +3,16 @@ package org.chronopolis.replicate.config;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
+import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.OkBasicInterceptor;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.mail.SmtpProperties;
-import org.chronopolis.common.settings.AceSettings;
 import org.chronopolis.common.settings.IngestAPISettings;
-import org.chronopolis.common.util.URIUtil;
+import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.Submitter;
 import org.chronopolis.rest.api.ErrorLogger;
 import org.chronopolis.rest.api.IngestAPI;
@@ -25,6 +24,7 @@ import org.chronopolis.rest.support.ZonedDateTimeSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.PageImpl;
@@ -44,8 +44,11 @@ import java.util.concurrent.TimeUnit;
  *
  * Created by shake on 4/16/14.
  */
-@SuppressWarnings("ALL")
 @Configuration
+@SuppressWarnings("ALL")
+@EnableConfigurationProperties({SmtpProperties.class,
+        ReplicationProperties.class,
+        AceConfiguration.class})
 public class ReplicationConfig {
     public final Logger log = LoggerFactory.getLogger(ReplicationConfig.class);
 
@@ -72,31 +75,15 @@ public class ReplicationConfig {
      * @return
      */
     @Bean
-    AceService aceService(AceSettings aceSettings) {
-        // Next build the retrofit adapter
-        String endpoint = URIUtil.buildAceUri(aceSettings.getAmHost(),
-                aceSettings.getAmPort(),
-                aceSettings.getAmPath()).toString();
-
-        if (!endpoint.endsWith("/")) {
-            endpoint = endpoint + "/";
-        }
-
-        // TODO: Test
-        HttpUrl url = new HttpUrl.Builder()
-                .scheme("http")
-                .host(aceSettings.getAmHost())
-                .port(aceSettings.getAmPort())
-                .build();
-
+    AceService aceService(AceConfiguration configuration) {
         OkHttpClient client = new OkHttpClient.Builder()
-                .addInterceptor(new OkBasicInterceptor(aceSettings.getAmUser(), aceSettings.getAmPassword()))
+                .addInterceptor(new OkBasicInterceptor(configuration.getUsername(), configuration.getPassword()))
                 .readTimeout(timeout, TimeUnit.MINUTES)
                 .writeTimeout(timeout, TimeUnit.MINUTES)
                 .build();
 
         Retrofit restAdapter = new Retrofit.Builder()
-                .baseUrl(endpoint)
+                .baseUrl(configuration.getAm())
                 .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
                 // .setErrorHandler(logger())
@@ -160,8 +147,8 @@ public class ReplicationConfig {
     }
 
     @Bean
-    Submitter submitter(MailUtil mail, AceService ace, IngestAPI ingest, ReplicationSettings settings) {
-        return new Submitter(mail, ace, ingest, settings, io(), http());
+    Submitter submitter(MailUtil mail, AceService ace, IngestAPI ingest, AceConfiguration configuration, ReplicationProperties properties) {
+        return new Submitter(mail, ace, ingest, configuration, properties, io(), http());
     }
 
     @Bean

@@ -2,17 +2,18 @@ package org.chronopolis.replicate.batch.ace;
 
 import com.google.common.collect.ImmutableMap;
 import okhttp3.RequestBody;
+import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.replicate.ReplicationNotifier;
-import org.chronopolis.replicate.config.ReplicationSettings;
+import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.support.CallWrapper;
 import org.chronopolis.replicate.support.NotFoundCallWrapper;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.RStatusUpdate;
+import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.chronopolis.rest.models.storage.Storage;
 import org.junit.Before;
@@ -38,17 +39,18 @@ import static org.mockito.Mockito.when;
  */
 public class AceTaskletTest {
 
-    final String name = "test-bag";
-    final String group = "test-depositor";
+    private final String name = "test-bag";
+    private final String group = "test-depositor";
 
-    @Mock IngestAPI ingest;
-    @Mock AceService ace;
+    @Mock private IngestAPI ingest;
+    @Mock private AceService ace;
 
     private Bag b;
     private Node n;
     private Replication replication;
     private ReplicationNotifier notifier;
-    private ReplicationSettings settings;
+    private ReplicationProperties properties;
+    private AceConfiguration aceConfiguration;
 
     @Before
     public void setup() throws NoSuchFieldException {
@@ -59,8 +61,9 @@ public class AceTaskletTest {
         n = new Node("test-node", "test-node-pass");
 
         URL bags = ClassLoader.getSystemClassLoader().getResource("");
-        settings = new ReplicationSettings();
-        settings.setPreservation(bags.toString());
+        properties = new ReplicationProperties();
+        properties.setStorage(new ReplicationProperties.Storage().setPreservation(bags.toString()));
+        aceConfiguration = new AceConfiguration();
     }
 
     private void prepareACERegister() {
@@ -120,7 +123,7 @@ public class AceTaskletTest {
         prepareAceAudit();
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
-        AceRunner runner = new AceRunner(ace, ingest, replication.getId(), settings, notifier);
+        AceRunner runner = new AceRunner(ace, ingest, replication.getId(), aceConfiguration, properties, notifier);
         runner.get();
 
         // Verify our mocks
@@ -149,7 +152,7 @@ public class AceTaskletTest {
         prepareAceAudit();
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
-        AceRunner runner = new AceRunner(ace, ingest, replication.getId(), settings, notifier);
+        AceRunner runner = new AceRunner(ace, ingest, replication.getId(), aceConfiguration, properties, notifier);
         runner.get();
 
         // Verify our mocks
@@ -176,7 +179,7 @@ public class AceTaskletTest {
         prepareAceAudit();
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
-        AceRunner runner = new AceRunner(ace, ingest, replication.getId(), settings, notifier);
+        AceRunner runner = new AceRunner(ace, ingest, replication.getId(), aceConfiguration, properties, notifier);
         runner.get();
 
         // Verify our mocks
@@ -203,7 +206,7 @@ public class AceTaskletTest {
 
         notifier = new ReplicationNotifier(replication);
 
-        AceRunner runner = new AceRunner(ace, ingest, replication.getId(), settings, notifier);
+        AceRunner runner = new AceRunner(ace, ingest, replication.getId(), aceConfiguration, properties, notifier);
         runner.get();
 
         // Verify our mocks

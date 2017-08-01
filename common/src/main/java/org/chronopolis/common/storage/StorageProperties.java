@@ -24,7 +24,7 @@ public class StorageProperties {
         return this;
     }
 
-    private class Posix {
+    private static class Posix {
         private Long id = -1L;
         private String path;
 

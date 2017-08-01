@@ -13,6 +13,7 @@ public class AceConfiguration {
     private String am = "http://localhost:8080/ace-am/";
     private String username = "user";
     private String password = "change-me";
+    private Integer auditPeriod = 45;
 
 
     public String getIms() {
@@ -48,6 +49,15 @@ public class AceConfiguration {
 
     public AceConfiguration setAm(String am) {
         this.am = am;
+        return this;
+    }
+
+    public Integer getAuditPeriod() {
+        return auditPeriod;
+    }
+
+    public AceConfiguration setAuditPeriod(Integer auditPeriod) {
+        this.auditPeriod = auditPeriod;
         return this;
     }
 }

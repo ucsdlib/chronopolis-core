@@ -5,11 +5,12 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import okhttp3.RequestBody;
+import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.mail.MailUtil;
-import org.chronopolis.replicate.config.ReplicationSettings;
+import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.support.CallWrapper;
 import org.chronopolis.replicate.support.NotFoundCallWrapper;
 import org.chronopolis.rest.api.IngestAPI;
@@ -64,7 +65,7 @@ public class SubmitterTest {
     private static final String TOKEN_DIGEST = "d20b847cbe138983b1235efb607ce9d9a0ba7d5d1d2e95767b3393857ea2cb82";
 
     private Submitter submitter;
-    private ReplicationSettings settings;
+    private ReplicationProperties properties;
 
     // Mock these? No... that wouldn't be good...
     private TrackingThreadPoolExecutor<Replication> io;
@@ -89,9 +90,12 @@ public class SubmitterTest {
 
         URL resources = ClassLoader.getSystemClassLoader().getResource("");
 
-        settings = new ReplicationSettings();
-        settings.setSendOnSuccess(true);
-        settings.setPreservation(Paths.get(resources.toURI()).resolve("preservation").toString());
+
+        AceConfiguration aceConfiguration = new AceConfiguration();
+        properties = new ReplicationProperties();
+        properties.setSmtp(new ReplicationProperties.Smtp().setSendOnSuccess(true));
+        properties.setStorage(new ReplicationProperties.Storage()
+                .setPreservation(Paths.get(resources.toURI()).resolve("preservation").toString()));
 
         bags = Paths.get(resources.toURI()).resolve("bags");
         tokens = Paths.get(resources.toURI()).resolve("tokens");
@@ -101,7 +105,7 @@ public class SubmitterTest {
 
         io = new TrackingThreadPoolExecutor<>(1, 1, 1, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
         http = new TrackingThreadPoolExecutor<>(1, 1, 1, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
-        submitter = new Submitter(mail, ace, ingest, settings, io, http);
+        submitter = new Submitter(mail, ace, ingest, aceConfiguration, properties, io, http);
 
         node = new Node("node-user", "not-a-real-field");
     }

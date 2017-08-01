@@ -4,8 +4,8 @@ import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.replicate.ReplicationNotifier;
+import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
-import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.RStatusUpdate;
@@ -34,15 +34,15 @@ public class AceTokenTasklet implements Runnable {
     private IngestAPI ingest;
     private AceService aceService;
     private Replication replication;
-    private ReplicationSettings settings;
+    private final ReplicationProperties properties;
     private ReplicationNotifier notifier;
     private Long id;
 
-    public AceTokenTasklet(IngestAPI ingest, AceService aceService, Replication replication, ReplicationSettings settings, ReplicationNotifier notifier, Long id) {
+    public AceTokenTasklet(IngestAPI ingest, AceService aceService, Replication replication, ReplicationProperties properties, ReplicationNotifier notifier, Long id) {
         this.ingest = ingest;
         this.aceService = aceService;
         this.replication = replication;
-        this.settings = settings;
+        this.properties = properties;
         this.notifier = notifier;
         this.id = id;
     }
@@ -61,7 +61,8 @@ public class AceTokenTasklet implements Runnable {
         log.info("{} Loading token store", name);
         final AtomicBoolean complete = new AtomicBoolean(false);
 
-        Path manifest = Paths.get(settings.getPreservation(), bag.getTokenStorage().getPath());
+        ReplicationProperties.Storage storage = properties.getStorage();
+        Path manifest = Paths.get(storage.getPreservation(), bag.getTokenStorage().getPath());
 
         log.info("{} loadTokenStore params = ({}, {})", new Object[]{name, id, manifest});
         Call<Void> call = aceService.loadTokenStore(id, RequestBody.create(MediaType.parse("ASCII Text"), manifest.toFile()));

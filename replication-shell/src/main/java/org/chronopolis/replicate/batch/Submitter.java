@@ -1,12 +1,13 @@
 package org.chronopolis.replicate.batch;
 
+import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.replicate.ReplicationNotifier;
+import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.ace.AceRunner;
 import org.chronopolis.replicate.batch.transfer.BagTransfer;
 import org.chronopolis.replicate.batch.transfer.TokenTransfer;
-import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
@@ -42,23 +43,26 @@ public class Submitter {
     private final MailUtil mail;
     private final AceService ace;
     private final IngestAPI ingest;
-    private final ReplicationSettings settings;
+    private final ReplicationProperties properties;
     private final ThreadPoolExecutor io;
     private final ThreadPoolExecutor http;
 
     private final Set<String> replicating;
+    private final AceConfiguration aceConfiguration;
 
     @Autowired
     public Submitter(MailUtil mail,
                      AceService ace,
                      IngestAPI ingest,
-                     ReplicationSettings settings,
+                     AceConfiguration aceConfiguration,
+                     ReplicationProperties properties,
                      ThreadPoolExecutor io,
                      ThreadPoolExecutor http) {
         this.mail = mail;
         this.ace = ace;
         this.ingest = ingest;
-        this.settings = settings;
+        this.aceConfiguration = aceConfiguration;
+        this.properties = properties;
         this.io = io;
         this.http = http;
 
@@ -119,8 +123,8 @@ public class Submitter {
      * @return a {@link CompletableFuture} which runs both the token and bag transfers tasks
      */
     private CompletableFuture<ReplicationStatus> fromPending(Replication replication) {
-        BagTransfer bxfer = new BagTransfer(replication, ingest, settings);
-        TokenTransfer txfer = new TokenTransfer(replication, ingest, settings);
+        BagTransfer bxfer = new BagTransfer(replication, ingest, properties);
+        TokenTransfer txfer = new TokenTransfer(replication, ingest, properties);
 
         // todo: maybe we shouldn't chain together fromTransferred?
         return fromTransferred(
@@ -139,7 +143,7 @@ public class Submitter {
      */
     private CompletableFuture<ReplicationStatus> fromTransferred(@Nullable CompletableFuture<Void> future, Replication replication) {
         ReplicationNotifier notifier = new ReplicationNotifier(replication);
-        AceRunner runner = new AceRunner(ace, ingest, replication.getId(), settings, notifier);
+        AceRunner runner = new AceRunner(ace, ingest, replication.getId(), aceConfiguration, properties, notifier);
         if (future == null) {
             return CompletableFuture.supplyAsync(runner, http);
         }
@@ -191,7 +195,8 @@ public class Submitter {
                             + Arrays.toString(throwable.getStackTrace());
                     send(subject, body);
                 // Send mail if we are set to and the replication is complete
-                } else if (settings.sendOnSuccess() && status == ReplicationStatus.SUCCESS) {
+                // S
+                } else if (properties.getSmtp().getSendOnSuccess() && status == ReplicationStatus.SUCCESS) {
                     subject = "Successful replication of " + s;
                     body = "";
                     send(subject, body);
@@ -205,7 +210,8 @@ public class Submitter {
         }
 
         private void send(String subject, String body) {
-            SimpleMailMessage message = mail.createMessage(settings.getNode(), subject, body);
+            // todo: should be the same user that connects to the ingest api
+            SimpleMailMessage message = mail.createMessage(properties.getNode(), subject, body);
             mail.send(message);
         }
     }
