@@ -1,6 +1,5 @@
 package org.chronopolis.ingest.task;
 
-import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
 import org.chronopolis.ingest.repository.BagRepository;
@@ -46,15 +45,8 @@ public class ReplicationTaskTest extends IngestTest {
 
     @Before
     public void setup() {
-        IngestSettings settings = new IngestSettings();
-        settings.setRsyncBags("bags/");
-        settings.setRsyncTokens("tokens/");
-        settings.setReplicationUser("test-user");
-        settings.setReplicationServer("test-server");
-
         ReplicationService service = new ReplicationService(repository, bags, nodes);
-
-        task = new ReplicationTask(settings, bags, service);
+        task = new ReplicationTask(bags, service);
     }
 
     @Test

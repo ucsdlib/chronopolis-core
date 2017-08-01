@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
  * Created by shake on 8/1/14.
  */
 @Component
+@Deprecated
 public class ChronopolisSettings {
 
     @Value("${chron.node:umiacs}")

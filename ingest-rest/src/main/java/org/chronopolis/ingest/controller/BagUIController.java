@@ -1,7 +1,6 @@
 package org.chronopolis.ingest.controller;
 
 import org.chronopolis.ingest.IngestController;
-import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.PageWrapper;
 import org.chronopolis.ingest.exception.ForbiddenException;
 import org.chronopolis.ingest.models.BagUpdate;
@@ -58,23 +57,20 @@ public class BagUIController extends IngestController {
     private final Integer DEFAULT_PAGE = 0;
 
     // final BagService bagService;
-    final SearchService<Bag, Long, BagRepository> bagService;
-    final ReplicationService replicationService;
-    final TokenRepository tokenRepository;
-    final NodeRepository nodeRepository;
-    final IngestSettings settings;
+    private final SearchService<Bag, Long, BagRepository> bagService;
+    private final ReplicationService replicationService;
+    private final TokenRepository tokenRepository;
+    private final NodeRepository nodeRepository;
 
     @Autowired
     public BagUIController(SearchService<Bag, Long, BagRepository> bagService,
                            ReplicationService replicationService,
                            TokenRepository tokenRepository,
-                           NodeRepository nodeRepository,
-                           IngestSettings settings) {
+                           NodeRepository nodeRepository) {
         this.bagService = bagService;
         this.replicationService = replicationService;
         this.tokenRepository = tokenRepository;
         this.nodeRepository = nodeRepository;
-        this.settings = settings;
     }
 
     /**
@@ -364,7 +360,7 @@ public class BagUIController extends IngestController {
     public String createReplications(Principal principal, @ModelAttribute("form") ReplicationCreate form) {
         log.info("[POST /replications/create] - {}", principal.getName());
         final Long bag = form.getBag();
-        form.getNodes().forEach(nodeId -> replicationService.create(bag, nodeId, settings));
+        form.getNodes().forEach(nodeId -> replicationService.create(bag, nodeId));
         return "redirect:/replications/";
     }
 
@@ -377,7 +373,7 @@ public class BagUIController extends IngestController {
     @RequestMapping(value = "/replications/add", method = RequestMethod.POST)
     public String addReplication(Principal principal, ReplicationRequest request) {
         log.info("[POST /replications/add] - {}", principal.getName());
-        Replication replication = replicationService.create(request, settings);
+        Replication replication = replicationService.create(request);
         return "redirect:/replications/" + replication.getId();
     }
 

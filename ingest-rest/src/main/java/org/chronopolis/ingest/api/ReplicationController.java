@@ -2,7 +2,6 @@ package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableMap;
 import org.chronopolis.ingest.IngestController;
-import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.criteria.ReplicationSearchCriteria;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
@@ -49,12 +48,10 @@ public class ReplicationController extends IngestController {
     private final Logger log = LoggerFactory.getLogger(ReplicationController.class);
 
     private final ReplicationService replicationService;
-    private final IngestSettings settings;
 
     @Autowired
-    public ReplicationController(ReplicationService replicationService, IngestSettings settings) {
+    public ReplicationController(ReplicationService replicationService) {
         this.replicationService = replicationService;
-        this.settings = settings;
     }
 
     /**
@@ -68,7 +65,7 @@ public class ReplicationController extends IngestController {
     @RequestMapping(method = RequestMethod.POST)
     public Replication createReplication(@RequestBody ReplicationRequest request) {
         log.debug("Received replication request {}", request);
-        return replicationService.create(request, settings);
+        return replicationService.create(request);
     }
 
     private ReplicationSearchCriteria createCriteria(Principal principal, Long id) {

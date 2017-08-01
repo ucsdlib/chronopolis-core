@@ -3,7 +3,6 @@ package org.chronopolis.ingest.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.WebContext;
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;
@@ -69,12 +68,6 @@ public class ReplicationControllerTest extends IngestTest {
 
     @MockBean
     private ReplicationService service;
-
-    /**
-     * Used/Needed by the ReplicationController
-     */
-    @MockBean
-    private IngestSettings settings;
 
     @MockBean
     private SecurityContext context;

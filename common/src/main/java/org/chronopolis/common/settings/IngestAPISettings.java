@@ -15,6 +15,7 @@ import java.util.List;
  * Created by shake on 12/1/14.
  */
 @Component
+@Deprecated
 public class IngestAPISettings {
     private final Logger log = LoggerFactory.getLogger(IngestAPISettings.class);
 

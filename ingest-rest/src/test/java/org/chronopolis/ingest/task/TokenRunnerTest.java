@@ -49,16 +49,16 @@ public class TokenRunnerTest extends IngestTest {
     private final String IMS_HOST = "imstest.umiacs.umd.edu";
 
     // Beans created on startup
-    @Autowired BagRepository br;
-    @Autowired TokenRepository tr;
+    @Autowired private BagRepository br;
+    @Autowired private TokenRepository tr;
 
     // Our mocks for the various classes we aren't testing
-    @Mock TokenFileWriter writer;
-    @Mock Tokenizer tokenizer;
-    @Mock TokenRunner.Factory factory;
+    @Mock private TokenFileWriter writer;
+    @Mock private Tokenizer tokenizer;
+    @Mock private TokenRunner.Factory factory;
 
     // Our TokenRunner which gets injected
-    @InjectMocks TokenRunner runner;
+    @InjectMocks private TokenRunner runner;
 
     @Test
     public void testRunWithTokenizer() throws Exception {

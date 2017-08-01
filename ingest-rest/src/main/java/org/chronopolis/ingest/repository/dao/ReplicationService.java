@@ -1,6 +1,5 @@
 package org.chronopolis.ingest.repository.dao;
 
-import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
@@ -63,7 +62,7 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
      * @throws NotFoundException if the bag or node do not exist
      * @return the newly created replication
      */
-    public Replication create(Long bagId, Long nodeId, IngestSettings settings) {
+    public Replication create(Long bagId, Long nodeId) {
         log.debug("Processing request for Bag {}", bagId);
 
         // Get our db resources
@@ -76,7 +75,7 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
             throw new NotFoundException("Node " + nodeId);
         }
 
-        return create(bag, node, settings);
+        return create(bag, node);
     }
 
     /**
@@ -84,12 +83,11 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
      * If a replication already exists (and is not terminated), return it instead of creating a new one
      *
      * @param request The request to create a replication for
-     * @param settings The settings for basic information
      * @throws NotFoundException if the bag or node do not exist
      * @return the newly created replication
      */
-    public Replication create(ReplicationRequest request, IngestSettings settings) {
-       return create(request.getBagId(), request.getNodeId(), settings);
+    public Replication create(ReplicationRequest request) {
+       return create(request.getBagId(), request.getNodeId());
     }
 
     /**
@@ -98,11 +96,9 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
      *
      * @param bag The bag to create a replication for
      * @param node The node to send the replication to
-     * @param settings The settings for basic information
      * @return the newly created replication
      */
-    public Replication create(final Bag bag, final Node node, IngestSettings settings) {
-
+    public Replication create(final Bag bag, final Node node) {
         // create a dist object if it's missing
         // todo: move this out of the replication create
         createDist(bag, node);
@@ -110,7 +106,7 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
         String tokenLink = createReplicationString(bag.getTokenStorage());
         String bagLink = createReplicationString(bag.getBagStorage());
 
-        // TODO: Allow searching for multiple status
+        // todo: query for ongoing replications
         ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
                 .withBagId(bag.getId())
                 .withNodeUsername(node.getUsername());
@@ -122,7 +118,7 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
         action.setProtocol("rsync");
 
         // iterate through our ongoing replications and search for a non terminal replication
-        // TODO: Partial index this instead?
+        // Partial index this instead?
         //       create unique index "one_repl" on replications(node_id) where status == ''...
         if (ongoing.getTotalElements() != 0) {
             for (Replication replication : ongoing.getContent()) {
@@ -145,11 +141,13 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
     /**
      * Build a string for replication based off the storage for the object
      *
+     * todo: determine who the default user should be
+     *
      * @param storage The storage to replication from
      * @return The string for the replication
      */
     private String createReplicationString(Storage storage) {
-        ReplicationConfig config = null;
+        ReplicationConfig config;
 
         if (storage.getRegion() != null && storage.getRegion().getReplicationConfig() != null) {
             config = storage.getRegion()

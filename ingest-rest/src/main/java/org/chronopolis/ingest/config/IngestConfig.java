@@ -3,7 +3,7 @@ package org.chronopolis.ingest.config;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.apache.catalina.connector.Connector;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
-import org.chronopolis.ingest.IngestSettings;
+import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.ingest.api.serializer.BagSerializer;
 import org.chronopolis.ingest.api.serializer.RepairSerializer;
 import org.chronopolis.ingest.api.serializer.ReplicationSerializer;
@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
@@ -35,6 +36,7 @@ import java.util.concurrent.TimeUnit;
  * Created by shake on 3/3/15.
  */
 @Configuration
+@EnableConfigurationProperties(IngestProperties.class)
 public class IngestConfig {
     private final Logger log = LoggerFactory.getLogger(IngestConfig.class);
 
@@ -68,19 +70,20 @@ public class IngestConfig {
     }
 
     @Bean
-    public EmbeddedServletContainerFactory embeddedServletContainerFactory(IngestSettings settings) {
+    public EmbeddedServletContainerFactory embeddedServletContainerFactory(IngestProperties properties) {
+        IngestProperties.Ajp ajp = properties.getAjp();
         String AJP_SCHEME = "http";
         String AJP_PROTOCOL = "AJP/1.3";
         TomcatEmbeddedServletContainerFactory bean = new TomcatEmbeddedServletContainerFactory();
 
-        if (settings.isAjpEnabled()) {
+        if (ajp.isEnabled()) {
             log.info("Setting up ajp connector");
-            Connector ajp = new Connector(AJP_PROTOCOL);
-            ajp.setPort(settings.getAjpPort());
-            ajp.setSecure(false);
-            ajp.setAllowTrace(false);
-            ajp.setScheme(AJP_SCHEME);
-            bean.addAdditionalTomcatConnectors(ajp);
+            Connector connector = new Connector(AJP_PROTOCOL);
+            connector.setPort(ajp.getPort());
+            connector.setSecure(false);
+            connector.setAllowTrace(false);
+            connector.setScheme(AJP_SCHEME);
+            bean.addAdditionalTomcatConnectors(connector);
         }
 
         return bean;

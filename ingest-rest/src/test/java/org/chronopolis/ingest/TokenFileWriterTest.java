@@ -7,7 +7,6 @@ import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.rest.entities.Bag;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -46,18 +45,10 @@ public class TokenFileWriterTest extends IngestTest {
     @Autowired private BagRepository br;
     @Autowired private TokenRepository tr;
 
-    private IngestSettings settings;
-
-    @Before
-    public void setup() {
-        settings = new IngestSettings();
-        settings.setTokenStage(System.getProperty("chron.stage.tokens"));
-    }
-
     @Test
     public void testWriteTokens() throws Exception {
         Bag b = br.findOne(Long.valueOf(3));
-        String stage = settings.getTokenStage();
+        String stage = System.getProperty("chron.stage.tokens");
         TokenFileWriter writer = new TokenFileWriter(stage, tr);
 
         boolean written = writer.writeTokens(b);

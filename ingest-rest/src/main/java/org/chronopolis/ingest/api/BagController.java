@@ -2,7 +2,6 @@ package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableMap;
 import org.chronopolis.ingest.IngestController;
-import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
@@ -24,8 +23,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,13 +54,11 @@ public class BagController extends IngestController {
 
     private final NodeRepository nodeRepository;
     private final SearchService<Bag, Long, BagRepository> bagService;
-    private final IngestSettings ingestSettings;
 
     @Autowired
-    public BagController(NodeRepository nodeRepository, SearchService<Bag, Long, BagRepository> bagService, IngestSettings ingestSettings) {
+    public BagController(NodeRepository nodeRepository, SearchService<Bag, Long, BagRepository> bagService) {
         this.nodeRepository = nodeRepository;
         this.bagService = bagService;
-        this.ingestSettings = ingestSettings;
     }
 
     /**
@@ -129,12 +124,6 @@ public class BagController extends IngestController {
 
         log.debug("Received ingest request {}", request);
 
-        String fileName = request.getLocation();
-        Path stage = Paths.get(ingestSettings.getBagStage());
-        Path bagPath = stage.resolve(fileName);
-        // Not sure what the point of this is, since the file name should be relative
-        Path relPath = stage.relativize(bagPath);
-
         bag = new Bag(name, depositor);
         bag.setCreator(principal.getName());
 
@@ -145,7 +134,7 @@ public class BagController extends IngestController {
         storage.setActive(true);
         storage.setSize(request.getSize());
         storage.setTotalFiles(request.getTotalFiles());
-        storage.setPath(relPath.toString());
+        storage.setPath(request.getLocation());
         bag.setBagStorage(storage);
 
         if (request.getRequiredReplications() > 0) {

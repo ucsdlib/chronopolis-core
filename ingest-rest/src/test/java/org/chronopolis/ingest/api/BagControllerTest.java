@@ -3,7 +3,6 @@ package org.chronopolis.ingest.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.WebContext;
 import org.chronopolis.ingest.repository.BagRepository;
@@ -60,9 +59,6 @@ public class BagControllerTest extends IngestTest {
     @MockBean
     private NodeRepository nodes;
 
-    @MockBean
-    private IngestSettings settings;
-
     @Test
     public void testGetBags() throws Exception {
         // todo actual return value
@@ -114,7 +110,6 @@ public class BagControllerTest extends IngestTest {
         request.setReplicatingNodes(ImmutableList.of(NODE));
 
         when(bagService.find(any(SearchCriteria.class))).thenReturn(null);
-        when(settings.getBagStage()).thenReturn("/");
         when(nodes.findByUsername(eq(NODE))).thenReturn(new Node(NODE, "password"));
 
         mvc.perform(
@@ -143,7 +138,6 @@ public class BagControllerTest extends IngestTest {
         request.setReplicatingNodes(ImmutableList.of(NODE));
 
         when(bagService.find(any(SearchCriteria.class))).thenReturn(bag());
-        when(settings.getBagStage()).thenReturn("/");
 
         mvc.perform(
                 post("/api/bags")

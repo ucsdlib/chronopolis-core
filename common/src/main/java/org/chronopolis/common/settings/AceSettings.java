@@ -17,6 +17,7 @@ import java.net.URL;
  * Created by shake on 8/14/14.
  */
 @Component
+@Deprecated
 public class AceSettings {
     private final Logger log = LoggerFactory.getLogger(AceSettings.class);
 
