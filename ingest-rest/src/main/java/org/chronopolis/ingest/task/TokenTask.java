@@ -9,6 +9,7 @@ import org.chronopolis.rest.models.BagStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,7 @@ import java.util.Collection;
  */
 @Component
 @EnableScheduling
+@EnableConfigurationProperties(AceConfiguration.class)
 public class TokenTask {
     private final Logger log = LoggerFactory.getLogger(TokenTask.class);
 

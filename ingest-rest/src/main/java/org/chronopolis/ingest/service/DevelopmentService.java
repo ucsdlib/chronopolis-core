@@ -2,7 +2,6 @@ package org.chronopolis.ingest.service;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -37,8 +36,6 @@ public class DevelopmentService implements IngestService {
                 done = true;
             }
         }
-
-        SpringApplication.exit(context);
     }
 
     private String readLine() {
