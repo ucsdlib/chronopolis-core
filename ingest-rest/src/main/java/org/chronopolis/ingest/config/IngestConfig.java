@@ -3,6 +3,7 @@ package org.chronopolis.ingest.config;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.apache.catalina.connector.Connector;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
+import org.chronopolis.common.storage.TokenStagingProperties;
 import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.ingest.api.serializer.BagSerializer;
 import org.chronopolis.ingest.api.serializer.RepairSerializer;
@@ -36,7 +37,7 @@ import java.util.concurrent.TimeUnit;
  * Created by shake on 3/3/15.
  */
 @Configuration
-@EnableConfigurationProperties(IngestProperties.class)
+@EnableConfigurationProperties({IngestProperties.class, TokenStagingProperties.class})
 public class IngestConfig {
     private final Logger log = LoggerFactory.getLogger(IngestConfig.class);
 
