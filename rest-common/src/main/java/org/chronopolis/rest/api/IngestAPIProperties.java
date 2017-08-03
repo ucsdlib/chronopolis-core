@@ -10,8 +10,19 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "ingest.api")
 public class IngestAPIProperties {
 
+    /**
+     * The endpoint of the Ingest Server
+     */
     private String endpoint = "http://localhost:8080/ingest/";
+
+    /**
+     * The username to connect to the Ingest Server as
+     */
     private String username = "ingest-user";
+
+    /**
+     * The password to use
+     */
     private String password = "change-me";
 
     public String getEndpoint() {

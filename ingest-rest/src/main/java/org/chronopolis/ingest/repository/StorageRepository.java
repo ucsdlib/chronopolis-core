@@ -1,6 +1,6 @@
 package org.chronopolis.ingest.repository;
 
-import org.chronopolis.rest.entities.storage.Storage;
+import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 
@@ -9,6 +9,6 @@ import org.springframework.data.querydsl.QueryDslPredicateExecutor;
  *
  * Created by shake on 7/11/17.
  */
-public interface StorageRepository extends JpaRepository<Storage, Long>,
-                                           QueryDslPredicateExecutor<Storage> {
+public interface StorageRepository extends JpaRepository<StagingStorage, Long>,
+                                           QueryDslPredicateExecutor<StagingStorage> {
 }

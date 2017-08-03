@@ -1,8 +1,9 @@
 package org.chronopolis.rest.support;
 
+import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.storage.Fixity;
-import org.chronopolis.rest.models.storage.Storage;
+import org.chronopolis.rest.models.storage.StagingStorageModel;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -36,12 +37,12 @@ public class BagConverter {
         return be;
     }
 
-    private static Storage toStorageModel(org.chronopolis.rest.entities.storage.Storage storage) {
+    private static StagingStorageModel toStorageModel(StagingStorage storage) {
         if (storage == null) {
             return null;
         }
 
-        return new Storage().setTotalFiles(storage.getTotalFiles())
+        return new StagingStorageModel().setTotalFiles(storage.getTotalFiles())
                 .setSize(storage.getSize())
                 .setRegion(storage.getRegion().getId())
                 .setPath(storage.getPath())

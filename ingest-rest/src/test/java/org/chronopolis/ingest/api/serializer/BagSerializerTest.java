@@ -7,7 +7,7 @@ import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagDistribution;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.storage.Fixity;
-import org.chronopolis.rest.entities.storage.Storage;
+import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.BagStatus;
 import org.junit.Before;
@@ -70,7 +70,7 @@ public class BagSerializerTest {
         assertThat(json.write(b)).isEqualToJson("bag.json");
     }
 
-    private Storage createStorage() {
+    private StagingStorage createStorage() {
         StorageRegion region = new StorageRegion();
         region.setId(1L);
 
@@ -79,7 +79,7 @@ public class BagSerializerTest {
                 .setValue("test-value")
                 .setCreatedAt(ZonedDateTime.from(fmt.parse(dateTimeString)));
 
-        return new Storage()
+        return new StagingStorage()
                 .setRegion(region)
                 .addFixity(fixity)
                 .setPath("location")

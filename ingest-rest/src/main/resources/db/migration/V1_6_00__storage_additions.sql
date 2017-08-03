@@ -16,11 +16,11 @@ CREATE TABLE storage_region (
 
 -- storage
 -- note the size/total_files might still live in the bag, but are here for now as their usage emerges
-DROP TABLE IF EXISTS storage;
-DROP SEQUENCE IF EXISTS storage_id_seq;
-CREATE SEQUENCE storage_id_seq;
-CREATE TABLE storage (
-    id BIGINT PRIMARY KEY DEFAULT nextval('storage_id_seq'),
+DROP TABLE IF EXISTS staging_storage;
+DROP SEQUENCE IF EXISTS staging_storage_id_seq;
+CREATE SEQUENCE staging_storage_id_seq;
+CREATE TABLE staging_storage (
+    id BIGINT PRIMARY KEY DEFAULT nextval('staging_storage_id_seq'),
     region_id BIGINT NOT NULL,
     active BOOLEAN,
     path VARCHAR(255),
@@ -59,11 +59,11 @@ CREATE TABLE replication_config(
 ALTER TABLE storage_region
     ADD CONSTRAINT FK_sr_node FOREIGN KEY (node_id) REFERENCES node;
 
-ALTER TABLE storage
+ALTER TABLE staging_storage
     ADD CONSTRAINT FK_storage_sr FOREIGN KEY (region_id) REFERENCES storage_region;
 
 ALTER TABLE fixity
-    ADD CONSTRAINT FK_fixity_storage FOREIGN KEY (storage_id) REFERENCES storage;
+    ADD CONSTRAINT FK_fixity_storage FOREIGN KEY (storage_id) REFERENCES staging_storage;
 
 ALTER TABLE replication_config
     ADD CONSTRAINT FK_rc_sr FOREIGN KEY (region_id) REFERENCES storage_region;

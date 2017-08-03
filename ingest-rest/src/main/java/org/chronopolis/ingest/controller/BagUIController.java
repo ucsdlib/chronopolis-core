@@ -17,7 +17,7 @@ import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Replication;
-import org.chronopolis.rest.entities.storage.Storage;
+import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.IngestRequest;
@@ -170,7 +170,7 @@ public class BagUIController extends IngestController {
         BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
         Bag bag = bagService.find(criteria);
 
-        Storage storage;
+        StagingStorage storage;
         if ("BAG".equalsIgnoreCase(type)) {
             storage = bag.getBagStorage();
         } else if ("TOKEN".equalsIgnoreCase(type)) {

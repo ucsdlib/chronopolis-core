@@ -1,6 +1,6 @@
 package org.chronopolis.rest.models;
 
-import org.chronopolis.rest.models.storage.Storage;
+import org.chronopolis.rest.models.storage.StagingStorageModel;
 
 import java.time.ZonedDateTime;
 import java.util.Set;
@@ -12,8 +12,8 @@ import java.util.Set;
  */
 public class Bag {
     private Long id;
-    private Storage bagStorage;
-    private Storage tokenStorage;
+    private StagingStorageModel bagStorage;
+    private StagingStorageModel tokenStorage;
     private ZonedDateTime createdAt;
     private ZonedDateTime updatedAt;
     private String name;
@@ -107,20 +107,20 @@ public class Bag {
         return this;
     }
 
-    public Storage getBagStorage() {
+    public StagingStorageModel getBagStorage() {
         return bagStorage;
     }
 
-    public Bag setBagStorage(Storage bagStorage) {
+    public Bag setBagStorage(StagingStorageModel bagStorage) {
         this.bagStorage = bagStorage;
         return this;
     }
 
-    public Storage getTokenStorage() {
+    public StagingStorageModel getTokenStorage() {
         return tokenStorage;
     }
 
-    public Bag setTokenStorage(Storage tokenStorage) {
+    public Bag setTokenStorage(StagingStorageModel tokenStorage) {
         this.tokenStorage = tokenStorage;
         return this;
     }

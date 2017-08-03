@@ -2,7 +2,7 @@ package org.chronopolis.rest.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ComparisonChain;
-import org.chronopolis.rest.entities.storage.Storage;
+import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.listener.BagUpdateListener;
 import org.chronopolis.rest.models.BagStatus;
 import org.slf4j.Logger;
@@ -56,11 +56,11 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
     // We'll see how this works out
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "bag_storage_id")
-    private Storage bagStorage;
+    private StagingStorage bagStorage;
 
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "token_storage_id")
-    private Storage tokenStorage;
+    private StagingStorage tokenStorage;
 
     protected Bag() { // JPA
     }
@@ -188,20 +188,20 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
         return this;
     }
 
-    public Storage getBagStorage() {
+    public StagingStorage getBagStorage() {
         return bagStorage;
     }
 
-    public Bag setBagStorage(Storage bagStorage) {
+    public Bag setBagStorage(StagingStorage bagStorage) {
         this.bagStorage = bagStorage;
         return this;
     }
 
-    public Storage getTokenStorage() {
+    public StagingStorage getTokenStorage() {
         return tokenStorage;
     }
 
-    public Bag setTokenStorage(Storage tokenStorage) {
+    public Bag setTokenStorage(StagingStorage tokenStorage) {
         this.tokenStorage = tokenStorage;
         return this;
     }

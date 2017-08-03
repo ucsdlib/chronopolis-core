@@ -3,8 +3,9 @@ package org.chronopolis.ingest.api.serializer;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import org.chronopolis.rest.entities.storage.Storage;
+import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.models.storage.Fixity;
+import org.chronopolis.rest.models.storage.StagingStorageModel;
 
 import java.io.IOException;
 
@@ -13,10 +14,10 @@ import java.io.IOException;
  *
  * Created by shake on 7/11/17.
  */
-public class StorageSerializer extends JsonSerializer<Storage> {
+public class StagingStorageSerializer extends JsonSerializer<StagingStorage> {
     @Override
-    public void serialize(Storage entity, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-        org.chronopolis.rest.models.storage.Storage model = new org.chronopolis.rest.models.storage.Storage();
+    public void serialize(StagingStorage entity, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+        StagingStorageModel model = new StagingStorageModel();
         model.setActive(entity.isActive());
         model.setPath(entity.getPath());
         model.setRegion(entity.getRegion().getId());

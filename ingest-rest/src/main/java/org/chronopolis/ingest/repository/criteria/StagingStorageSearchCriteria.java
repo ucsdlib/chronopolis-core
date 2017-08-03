@@ -2,7 +2,7 @@ package org.chronopolis.ingest.repository.criteria;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import org.chronopolis.ingest.api.Params;
-import org.chronopolis.rest.entities.storage.QStorage;
+import org.chronopolis.rest.entities.storage.QStagingStorage;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,23 +12,23 @@ import java.util.Map;
  *
  * Created by shake on 7/11/17.
  */
-public class StorageSearchCriteria implements SearchCriteria {
-    private final QStorage storage;
+public class StagingStorageSearchCriteria implements SearchCriteria {
+    private final QStagingStorage storage;
     private Map<Object, BooleanExpression> criteria;
 
-    public StorageSearchCriteria() {
-        storage = QStorage.storage;
+    public StagingStorageSearchCriteria() {
+        storage = QStagingStorage.stagingStorage;
         criteria = new HashMap<>();
     }
 
-    public StorageSearchCriteria withNodeName(String name) {
+    public StagingStorageSearchCriteria withNodeName(String name) {
         if (name != null) {
             criteria.put(Params.NODE, storage.region.node.username.eq(name));
         }
         return this;
     }
 
-    public StorageSearchCriteria withRegion(Long id) {
+    public StagingStorageSearchCriteria withRegion(Long id) {
         if (id != null) {
             criteria.put(Params.SORT_ID, storage.region.id.eq(id));
         }

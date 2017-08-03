@@ -108,7 +108,7 @@ public class V1_6_03__Bag_storage_entries implements JdbcMigration {
 
     private Long insertStorage(Long region, String path, Long size, Long files, Connection connection) throws SQLException {
         Long key = -1L;
-        String sqlInsertStorage = "INSERT INTO storage(id, region_id, active, path, size, total_files, updated_at, created_at)" +
+        String sqlInsertStorage = "INSERT INTO staging_storage(id, region_id, active, path, size, total_files, updated_at, created_at)" +
                 " VALUES(DEFAULT, ?, 'true', ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
 
         if (path != null && !path.isEmpty()) {

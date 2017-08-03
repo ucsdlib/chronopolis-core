@@ -36,7 +36,7 @@ public class StorageRegion extends UpdatableEntity {
     private StorageType storageType;
 
     @OneToMany(mappedBy = "region", fetch = FetchType.LAZY)
-    private Set<Storage> storage;
+    private Set<StagingStorage> storage;
 
     // might be able to change the cascade type
     @OneToOne(mappedBy = "region", cascade = CascadeType.ALL)
@@ -85,11 +85,11 @@ public class StorageRegion extends UpdatableEntity {
         return this;
     }
 
-    public Set<Storage> getStorage() {
+    public Set<StagingStorage> getStorage() {
         return storage;
     }
 
-    public StorageRegion setStorage(Set<Storage> storage) {
+    public StorageRegion setStorage(Set<StagingStorage> storage) {
         this.storage = storage;
         return this;
     }

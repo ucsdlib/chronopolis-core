@@ -6,7 +6,7 @@ import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.storage.Fixity;
-import org.chronopolis.rest.entities.storage.Storage;
+import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.models.storage.ActiveToggle;
 import org.chronopolis.rest.models.storage.FixityCreate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,8 +54,8 @@ public class BagStorageController {
      * @return The bag's storage information
      */
     @GetMapping("/storage/{type}")
-    private Storage getBagStorage(@PathVariable("id") Long id, @PathVariable("type") String type) {
-        Storage storage = null;
+    private StagingStorage getBagStorage(@PathVariable("id") Long id, @PathVariable("type") String type) {
+        StagingStorage storage = null;
         BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
         Bag bag = bagService.find(criteria);
         if (TOKEN_TYPE.equalsIgnoreCase(type)) {
@@ -75,7 +75,7 @@ public class BagStorageController {
      * @return The updated Storage information
      */
     @PutMapping("/storage/{type}")
-    private Storage updateStorage(@PathVariable("id") Long id, @PathVariable("type") String type, @RequestBody ActiveToggle toggle) {
+    private StagingStorage updateStorage(@PathVariable("id") Long id, @PathVariable("type") String type, @RequestBody ActiveToggle toggle) {
         BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
         Bag bag = bagService.find(criteria);
         if (TOKEN_TYPE.equalsIgnoreCase(type)) {

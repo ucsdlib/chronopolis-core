@@ -22,7 +22,7 @@ import org.chronopolis.rest.models.FixityUpdate;
 import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
-import org.chronopolis.rest.models.storage.Storage;
+import org.chronopolis.rest.models.storage.StagingStorageModel;
 import org.chronopolis.rest.support.ZonedDateTimeDeserializer;
 import org.chronopolis.rest.support.ZonedDateTimeSerializer;
 import org.junit.Before;
@@ -276,8 +276,8 @@ public class SubmitterTest {
                 .setDepositor("test-depositor")
                 .setCreator("submitter-test");
         bag.setId(1L);
-        bag.setTokenStorage(new Storage().setPath(tokens));
-        bag.setBagStorage(new Storage().setPath(location));
+        bag.setTokenStorage(new StagingStorageModel().setPath(tokens));
+        bag.setBagStorage(new StagingStorageModel().setPath(location));
         bag.setCreatedAt(ZonedDateTime.now());
         bag.setUpdatedAt(ZonedDateTime.now());
         return bag;

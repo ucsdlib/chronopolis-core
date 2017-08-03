@@ -11,7 +11,7 @@ import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.entities.storage.Fixity;
-import org.chronopolis.rest.entities.storage.Storage;
+import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.models.FixityUpdate;
 import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.ReplicationStatus;
@@ -148,11 +148,11 @@ public class ReplicationControllerTest extends IngestTest {
     private Bag bag() {
         Bag bag = new Bag("test-bag", "test-depositor");
         bag.setId(1L);
-        bag.setBagStorage(new Storage().addFixity(
+        bag.setBagStorage(new StagingStorage().addFixity(
                 new Fixity().setAlgorithm("test-algorithm")
                         .setValue(CORRECT_TAG_FIXITY)
                         .setCreatedAt(ZonedDateTime.now())));
-        bag.setTokenStorage(new Storage().addFixity(
+        bag.setTokenStorage(new StagingStorage().addFixity(
                 new Fixity().setAlgorithm("test-algorithm")
                         .setValue(CORRECT_TOKEN_FIXITY)
                         .setCreatedAt(ZonedDateTime.now())));

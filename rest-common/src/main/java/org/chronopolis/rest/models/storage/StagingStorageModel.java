@@ -8,7 +8,7 @@ import java.util.Set;
  *
  * Created by shake on 7/11/17.
  */
-public class Storage {
+public class StagingStorageModel {
 
     // private boolean cleaning:
     //   : active == true  && cleaning == false -> staged
@@ -29,7 +29,7 @@ public class Storage {
         return active;
     }
 
-    public Storage setActive(boolean active) {
+    public StagingStorageModel setActive(boolean active) {
         this.active = active;
         return this;
     }
@@ -38,7 +38,7 @@ public class Storage {
         return size;
     }
 
-    public Storage setSize(long size) {
+    public StagingStorageModel setSize(long size) {
         this.size = size;
         return this;
     }
@@ -47,7 +47,7 @@ public class Storage {
         return region;
     }
 
-    public Storage setRegion(long region) {
+    public StagingStorageModel setRegion(long region) {
         this.region = region;
         return this;
     }
@@ -56,7 +56,7 @@ public class Storage {
         return totalFiles;
     }
 
-    public Storage setTotalFiles(long totalFiles) {
+    public StagingStorageModel setTotalFiles(long totalFiles) {
         this.totalFiles = totalFiles;
         return this;
     }
@@ -65,7 +65,7 @@ public class Storage {
         return path;
     }
 
-    public Storage setPath(String path) {
+    public StagingStorageModel setPath(String path) {
         this.path = path;
         return this;
     }
@@ -74,12 +74,12 @@ public class Storage {
         return fixities;
     }
 
-    public Storage addFixity(Fixity fixity) {
+    public StagingStorageModel addFixity(Fixity fixity) {
         fixities.add(fixity);
         return this;
     }
 
-    public Storage setFixities(Set<Fixity> fixities) {
+    public StagingStorageModel setFixities(Set<Fixity> fixities) {
         this.fixities = fixities;
         return this;
     }

@@ -13,8 +13,8 @@ INSERT INTO storage_region VALUES(1, 1, 'BAG', 'LOCAL', 1000000, CURRENT_DATE, C
 INSERT INTO storage_region VALUES(2, 1, 'TOKEN', 'LOCAL', 1000000, CURRENT_DATE, CURRENT_DATE);
 INSERT INTO replication_config VALUES(1, 1, 'test-server', 'test-replication-user', 'test-replication-path');
 INSERT INTO replication_config VALUES(2, 2, 'test-server', 'test-replication-user', 'test-replication-path');
-INSERT INTO storage VALUES(1, 1, 1, 'bags/test-location', 1500, 3, CURRENT_DATE, CURRENT_DATE);
-INSERT INTO storage VALUES(2, 2, 1, 'tokens/test-location', 1500, 3, CURRENT_DATE, CURRENT_DATE);
+INSERT INTO staging_storage VALUES(1, 1, 1, 'bags/test-location', 1500, 3, CURRENT_DATE, CURRENT_DATE);
+INSERT INTO staging_storage VALUES(2, 2, 1, 'tokens/test-location', 1500, 3, CURRENT_DATE, CURRENT_DATE);
 UPDATE bag SET bag_storage_id = 1, token_storage_id = 2;
 
 -- Create some distribution records too

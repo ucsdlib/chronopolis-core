@@ -10,7 +10,7 @@ import org.chronopolis.rest.entities.BagDistribution;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.entities.storage.ReplicationConfig;
-import org.chronopolis.rest.entities.storage.Storage;
+import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.models.ReplicationRequest;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
@@ -146,7 +146,7 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
      * @param storage The storage to replication from
      * @return The string for the replication
      */
-    private String createReplicationString(Storage storage) {
+    private String createReplicationString(StagingStorage storage) {
         ReplicationConfig config;
 
         if (storage.getRegion() != null && storage.getRegion().getReplicationConfig() != null) {

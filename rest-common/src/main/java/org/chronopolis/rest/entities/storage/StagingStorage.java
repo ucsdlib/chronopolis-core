@@ -16,7 +16,7 @@ import java.util.Set;
  * Created by shake on 7/10/17.
  */
 @Entity
-public class Storage extends UpdatableEntity {
+public class StagingStorage extends UpdatableEntity {
 
     @ManyToOne
     private StorageRegion region;
@@ -31,7 +31,7 @@ public class Storage extends UpdatableEntity {
     private String path;
     private boolean active;
 
-    public Storage() {
+    public StagingStorage() {
         // jpa yay
         this.fixities = new HashSet<>();
     }
@@ -40,7 +40,7 @@ public class Storage extends UpdatableEntity {
         return size;
     }
 
-    public Storage setSize(long size) {
+    public StagingStorage setSize(long size) {
         this.size = size;
         return this;
     }
@@ -49,7 +49,7 @@ public class Storage extends UpdatableEntity {
         return totalFiles;
     }
 
-    public Storage setTotalFiles(long totalFiles) {
+    public StagingStorage setTotalFiles(long totalFiles) {
         this.totalFiles = totalFiles;
         return this;
     }
@@ -58,7 +58,7 @@ public class Storage extends UpdatableEntity {
         return path;
     }
 
-    public Storage setPath(String path) {
+    public StagingStorage setPath(String path) {
         this.path = path;
         return this;
     }
@@ -67,7 +67,7 @@ public class Storage extends UpdatableEntity {
         return active;
     }
 
-    public Storage setActive(boolean active) {
+    public StagingStorage setActive(boolean active) {
         this.active = active;
         return this;
     }
@@ -76,7 +76,7 @@ public class Storage extends UpdatableEntity {
         return region;
     }
 
-    public Storage setRegion(StorageRegion region) {
+    public StagingStorage setRegion(StorageRegion region) {
         this.region = region;
         return this;
     }
@@ -85,7 +85,7 @@ public class Storage extends UpdatableEntity {
         return fixities;
     }
 
-    public Storage addFixity(Fixity fixity) {
+    public StagingStorage addFixity(Fixity fixity) {
         if (fixities == null) {
             fixities = new HashSet<>();
         }
@@ -94,7 +94,7 @@ public class Storage extends UpdatableEntity {
         return this;
     }
 
-    public Storage setFixities(Set<Fixity> fixities) {
+    public StagingStorage setFixities(Set<Fixity> fixities) {
         this.fixities = fixities;
         return this;
     }

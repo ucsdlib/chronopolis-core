@@ -6,7 +6,7 @@ import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.storage.Fixity;
-import org.chronopolis.rest.entities.storage.Storage;
+import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -55,7 +55,7 @@ public class TokenFileWriter {
 
         // todo: get the storage id somehow
         //       unless we want to allocate storage from bag init and update it here
-        Storage storage = new Storage();
+        StagingStorage storage = new StagingStorage();
 
         Path dir = stage.resolve(depositor);
         if (!dir.toFile().exists()) {

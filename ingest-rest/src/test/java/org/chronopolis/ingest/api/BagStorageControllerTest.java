@@ -7,7 +7,7 @@ import org.chronopolis.ingest.repository.criteria.SearchCriteria;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.storage.Fixity;
-import org.chronopolis.rest.entities.storage.Storage;
+import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.junit.Before;
 import org.junit.Test;
@@ -67,7 +67,7 @@ public class BagStorageControllerTest {
               .setCreatedAt(ZonedDateTime.now())
               .setValue("test-value");
 
-        Storage storage = new Storage();
+        StagingStorage storage = new StagingStorage();
         storage.setId(ID);
         storage.setActive(true);
         storage.setPath("test-path");

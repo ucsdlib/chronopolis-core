@@ -37,7 +37,7 @@ public class Fixity {
      */
     @ManyToOne
     @JoinColumn(name = "storage_id", nullable = false)
-    private Storage storage;
+    private StagingStorage storage;
 
     @Convert(converter = ZonedDateTimeConverter.class)
     private ZonedDateTime createdAt;
@@ -58,11 +58,11 @@ public class Fixity {
         return this;
     }
 
-    public Storage getStorage() {
+    public StagingStorage getStorage() {
         return storage;
     }
 
-    public Fixity setStorage(Storage storage) {
+    public Fixity setStorage(StagingStorage storage) {
         this.storage = storage;
         return this;
     }
