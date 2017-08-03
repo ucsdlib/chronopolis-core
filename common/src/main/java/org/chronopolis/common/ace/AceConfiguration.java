@@ -9,10 +9,29 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "ace")
 public class AceConfiguration {
 
+    /**
+     * The fqdn of the IMS to connect to
+     */
     private String ims = "ims.umiacs.umd.edu";
+
+    /**
+     * The endpoint of the Audit Manager to connect to
+     */
     private String am = "http://localhost:8080/ace-am/";
+
+    /**
+     * The username to connect to the Audit Manager with
+     */
     private String username = "user";
+
+    /**
+     * The password to connect to the Audit Manager with
+     */
     private String password = "change-me";
+
+    /**
+     * The audit period to use when creating collections in the Audit Manager
+     */
     private Integer auditPeriod = 45;
 
 

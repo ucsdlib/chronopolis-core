@@ -8,9 +8,24 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "smtp")
 public class SmtpProperties {
 
+    /**
+     * Flag to support sending of mail notifications
+     */
     private Boolean send = true;
+
+    /**
+     * The address to send mail to
+     */
     private String to = "chron-support-l@mailman.ucsd.edu";
+
+    /**
+     * The address to show where mail was sent from
+     */
     private String from = "localhost";
+
+    /**
+     * The smtp hostname
+     */
     private String host = "localhost.localdomain";
 
     public Boolean getSend() {

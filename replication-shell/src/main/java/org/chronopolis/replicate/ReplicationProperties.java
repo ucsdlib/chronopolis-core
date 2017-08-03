@@ -13,6 +13,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "chron")
 public class ReplicationProperties {
 
+    /**
+     * Node name to use for sending mail
+     */
     private String node = "chron";
     private Storage storage = new Storage();
     private Smtp smtp = new Smtp();
@@ -44,6 +47,9 @@ public class ReplicationProperties {
         return this;
     }
 
+    /**
+     * @deprecated This is no longer being used
+     */
     public static class Storage {
         private String preservation;
 
@@ -57,7 +63,13 @@ public class ReplicationProperties {
         }
     }
 
+    /**
+     * Additional smtp configuration unique to the replication shell
+     */
     public static class Smtp {
+        /**
+         * Flag to enable sending notification on successful replications
+         */
         private Boolean sendOnSuccess = false;
 
         public Boolean getSendOnSuccess() {

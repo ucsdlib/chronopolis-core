@@ -7,7 +7,14 @@ package org.chronopolis.common.storage;
  */
 public class Posix {
 
+    /**
+     * The id held by the ingest server for this staging area
+     */
     private Long id = -1L;
+
+    /**
+     * The local path on disk
+     */
     private String path = "/dev/null";
 
     public Long getId() {

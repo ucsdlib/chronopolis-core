@@ -19,8 +19,18 @@ public class IngestProperties {
         return this;
     }
 
+    /**
+     * AJP Connector configuration
+     */
     public static class Ajp {
+        /**
+         * Flag to enable an ajp connector
+         */
         private Boolean enabled = false;
+
+        /**
+         * Port to use for the connector
+         */
         private Integer port = 8009;
 
         public Boolean isEnabled() {
