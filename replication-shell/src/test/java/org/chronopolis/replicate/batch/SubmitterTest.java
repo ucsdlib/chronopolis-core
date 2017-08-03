@@ -10,6 +10,8 @@ import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.mail.MailUtil;
+import org.chronopolis.common.storage.Posix;
+import org.chronopolis.common.storage.PreservationProperties;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.support.CallWrapper;
 import org.chronopolis.replicate.support.NotFoundCallWrapper;
@@ -100,12 +102,16 @@ public class SubmitterTest {
         bags = Paths.get(resources.toURI()).resolve("bags");
         tokens = Paths.get(resources.toURI()).resolve("tokens");
 
+
         testBag = bags.resolve("test-bag").toString();
         testToken = tokens.resolve("test-token-store").toString();
 
+        PreservationProperties preservation = new PreservationProperties();
+        preservation.getPosix().add(new Posix().setPath(bags.toString()));
+
         io = new TrackingThreadPoolExecutor<>(1, 1, 1, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
         http = new TrackingThreadPoolExecutor<>(1, 1, 1, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
-        submitter = new Submitter(mail, ace, ingest, aceConfiguration, properties, io, http);
+        submitter = new Submitter(mail, ace, ingest, preservation, aceConfiguration, properties, io, http);
 
         node = new Node("node-user", "not-a-real-field");
     }
@@ -174,6 +180,7 @@ public class SubmitterTest {
     public void fromPendingSuccess() throws InterruptedException, ExecutionException, IOException, ClassNotFoundException {
         Bag bag = createBag(testBag, testToken);
 
+        // todo: check to see if mockito can capture the old values
         // Because we need to create an updated replication, there's a bit of ugliness we need to
         // deal with until we have a replication model class as well
         Replication r = createReplication(ReplicationStatus.PENDING, bag);
@@ -249,7 +256,7 @@ public class SubmitterTest {
         verify(mail, times(1)).send(any(SimpleMailMessage.class));
     }
 
-    Replication createReplication(ReplicationStatus status, Bag bag) {
+    private Replication createReplication(ReplicationStatus status, Bag bag) {
         Replication r = new Replication();
         r.setId(1L);
         r.setBag(bag);
@@ -263,7 +270,7 @@ public class SubmitterTest {
         return r;
     }
 
-    Bag createBag(String location, String tokens) {
+    private Bag createBag(String location, String tokens) {
         Bag bag = new Bag()
                 .setName("test-bag")
                 .setDepositor("test-depositor")
@@ -283,7 +290,7 @@ public class SubmitterTest {
      *
      * via: http://javatechniques.com/blog/faster-deep-copies-of-java-objects/
      */
-    <T> T copy(T orig, Type type) {
+    private <T> T copy(T orig, Type type) {
         // log.info("{}", type.getTypeName());
         Gson g = new GsonBuilder()
                 .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeSerializer())

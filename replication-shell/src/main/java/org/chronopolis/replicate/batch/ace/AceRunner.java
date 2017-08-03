@@ -3,8 +3,8 @@ package org.chronopolis.replicate.batch.ace;
 import com.google.common.collect.ImmutableList;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.ace.AceService;
+import org.chronopolis.common.storage.PreservationProperties;
 import org.chronopolis.replicate.ReplicationNotifier;
-import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
@@ -35,12 +35,12 @@ public class AceRunner implements Supplier<ReplicationStatus>, Function<Void, Re
     private final IngestAPI ingest;
     private final Long replicationId;
     private final AceConfiguration aceConfiguration;
-    private final ReplicationProperties properties;
+    private final PreservationProperties properties;
 
     // TODO: May be able to remove this
     private final ReplicationNotifier notifier;
 
-    public AceRunner(AceService ace, IngestAPI ingest, Long replicationId, AceConfiguration aceConfiguration, ReplicationProperties properties, ReplicationNotifier notifier) {
+    public AceRunner(AceService ace, IngestAPI ingest, Long replicationId, AceConfiguration aceConfiguration, PreservationProperties properties, ReplicationNotifier notifier) {
         this.ace = ace;
         this.ingest = ingest;
         this.replicationId = replicationId;

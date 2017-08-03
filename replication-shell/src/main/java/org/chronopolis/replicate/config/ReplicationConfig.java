@@ -147,8 +147,13 @@ public class ReplicationConfig {
     }
 
     @Bean
-    Submitter submitter(MailUtil mail, AceService ace, IngestAPI ingest, AceConfiguration configuration, ReplicationProperties properties) {
-        return new Submitter(mail, ace, ingest, configuration, properties, io(), http());
+    Submitter submitter(MailUtil mail,
+                        AceService ace,
+                        IngestAPI ingest,
+                        AceConfiguration configuration,
+                        PreservationProperties preservationProperties,
+                        ReplicationProperties properties) {
+        return new Submitter(mail, ace, ingest, preservationProperties, configuration, properties, io(), http());
     }
 
     @Bean

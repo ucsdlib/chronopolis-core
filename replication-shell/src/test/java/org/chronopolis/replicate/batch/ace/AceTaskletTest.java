@@ -5,8 +5,9 @@ import okhttp3.RequestBody;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
+import org.chronopolis.common.storage.Posix;
+import org.chronopolis.common.storage.PreservationProperties;
 import org.chronopolis.replicate.ReplicationNotifier;
-import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.support.CallWrapper;
 import org.chronopolis.replicate.support.NotFoundCallWrapper;
 import org.chronopolis.rest.api.IngestAPI;
@@ -49,7 +50,7 @@ public class AceTaskletTest {
     private Node n;
     private Replication replication;
     private ReplicationNotifier notifier;
-    private ReplicationProperties properties;
+    private PreservationProperties properties;
     private AceConfiguration aceConfiguration;
 
     @Before
@@ -61,8 +62,8 @@ public class AceTaskletTest {
         n = new Node("test-node", "test-node-pass");
 
         URL bags = ClassLoader.getSystemClassLoader().getResource("");
-        properties = new ReplicationProperties();
-        properties.setStorage(new ReplicationProperties.Storage().setPreservation(bags.toString()));
+        properties = new PreservationProperties();
+        properties.getPosix().add(new Posix().setPath(bags.toString()));
         aceConfiguration = new AceConfiguration();
     }
 

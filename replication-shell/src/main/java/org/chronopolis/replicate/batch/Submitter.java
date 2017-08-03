@@ -3,6 +3,7 @@ package org.chronopolis.replicate.batch;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.mail.MailUtil;
+import org.chronopolis.common.storage.PreservationProperties;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.ace.AceRunner;
@@ -44,6 +45,7 @@ public class Submitter {
     private final AceService ace;
     private final IngestAPI ingest;
     private final ReplicationProperties properties;
+    private final PreservationProperties preservationProperties;
     private final ThreadPoolExecutor io;
     private final ThreadPoolExecutor http;
 
@@ -54,13 +56,14 @@ public class Submitter {
     public Submitter(MailUtil mail,
                      AceService ace,
                      IngestAPI ingest,
-                     AceConfiguration aceConfiguration,
+                     PreservationProperties preservationProperties, AceConfiguration aceConfiguration,
                      ReplicationProperties properties,
                      ThreadPoolExecutor io,
                      ThreadPoolExecutor http) {
         this.mail = mail;
         this.ace = ace;
         this.ingest = ingest;
+        this.preservationProperties = preservationProperties;
         this.aceConfiguration = aceConfiguration;
         this.properties = properties;
         this.io = io;
@@ -123,8 +126,8 @@ public class Submitter {
      * @return a {@link CompletableFuture} which runs both the token and bag transfers tasks
      */
     private CompletableFuture<ReplicationStatus> fromPending(Replication replication) {
-        BagTransfer bxfer = new BagTransfer(replication, ingest, properties);
-        TokenTransfer txfer = new TokenTransfer(replication, ingest, properties);
+        BagTransfer bxfer = new BagTransfer(replication, ingest, preservationProperties);
+        TokenTransfer txfer = new TokenTransfer(replication, ingest, preservationProperties);
 
         // todo: maybe we shouldn't chain together fromTransferred?
         return fromTransferred(
@@ -143,7 +146,7 @@ public class Submitter {
      */
     private CompletableFuture<ReplicationStatus> fromTransferred(@Nullable CompletableFuture<Void> future, Replication replication) {
         ReplicationNotifier notifier = new ReplicationNotifier(replication);
-        AceRunner runner = new AceRunner(ace, ingest, replication.getId(), aceConfiguration, properties, notifier);
+        AceRunner runner = new AceRunner(ace, ingest, replication.getId(), aceConfiguration, preservationProperties, notifier);
         if (future == null) {
             return CompletableFuture.supplyAsync(runner, http);
         }
