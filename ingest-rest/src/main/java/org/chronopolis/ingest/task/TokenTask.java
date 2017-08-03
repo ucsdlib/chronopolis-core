@@ -2,6 +2,7 @@ package org.chronopolis.ingest.task;
 
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
+import org.chronopolis.common.storage.TokenStagingProperties;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.rest.entities.Bag;
@@ -22,6 +23,9 @@ import java.util.Collection;
  * Works on bags which have finished being INITIALIZED
  * so that they may be replicated
  *
+ * todo: when the TokenRunner is updated to no longer create tokens, we may be able to skip
+ *       that work and simply spawn token writers here
+ *
  * Created by shake on 2/6/2015.
  */
 @Component
@@ -33,13 +37,19 @@ public class TokenTask {
     private final TokenRepository tokenRepository;
     private final BagRepository repository;
     private final AceConfiguration ace;
+    private final TokenStagingProperties properties;
     private final TrackingThreadPoolExecutor<Bag> tokenExecutor;
 
     @Autowired
-    public TokenTask(TokenRepository tokenRepository, BagRepository repository, AceConfiguration ace, TrackingThreadPoolExecutor<Bag> tokenExecutor) {
+    public TokenTask(TokenRepository tokenRepository,
+                     BagRepository repository,
+                     AceConfiguration ace,
+                     TokenStagingProperties properties,
+                     TrackingThreadPoolExecutor<Bag> tokenExecutor) {
         this.tokenRepository = tokenRepository;
         this.repository = repository;
         this.ace = ace;
+        this.properties = properties;
         this.tokenExecutor = tokenExecutor;
     }
 
@@ -47,16 +57,13 @@ public class TokenTask {
     public void tokenize() {
         log.info("Searching for bags to tokenize");
 
-        // todo: the bag stage will no longer be used as ingest won't be doing tokenization;
-        //       the token stage should be updated from the StorageProperties... tbd
-        //       these will be handled by #49 and #55 in gitlab
         Collection<Bag> bags = repository.findByStatus(BagStatus.INITIALIZED);
         log.debug("Submitting {} bags", bags.size());
         for (Bag bag : bags) {
             TokenRunner runner = new TokenRunner(bag,
                     ace.getIms(),
                     "/dev/null",
-                    "/dev/null",
+                    properties.getPosix().getPath(),
                     repository,
                     tokenRepository);
             tokenExecutor.submitIfAvailable(runner, bag);
