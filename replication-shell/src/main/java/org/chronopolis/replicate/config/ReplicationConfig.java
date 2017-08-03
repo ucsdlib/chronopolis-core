@@ -11,6 +11,7 @@ import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.OkBasicInterceptor;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.mail.SmtpProperties;
+import org.chronopolis.common.storage.PreservationProperties;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.Submitter;
 import org.chronopolis.rest.api.ErrorLogger;
@@ -47,6 +48,7 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 @SuppressWarnings("ALL")
 @EnableConfigurationProperties({SmtpProperties.class,
+        PreservationProperties.class,
         ReplicationProperties.class,
         AceConfiguration.class})
 public class ReplicationConfig {

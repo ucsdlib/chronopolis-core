@@ -3,8 +3,9 @@ package org.chronopolis.replicate.batch.ace;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
+import org.chronopolis.common.storage.Posix;
+import org.chronopolis.common.storage.PreservationProperties;
 import org.chronopolis.replicate.ReplicationNotifier;
-import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.Bag;
@@ -35,7 +36,7 @@ public class AceRegisterTasklet implements Callable<Long> {
     private AceService aceService;
     private Replication replication;
     private final AceConfiguration aceConfiguration;
-    private ReplicationProperties properties;
+    private PreservationProperties properties;
     private ReplicationNotifier notifier;
 
     private Long id = -1L;
@@ -46,7 +47,7 @@ public class AceRegisterTasklet implements Callable<Long> {
                               AceService aceService,
                               Replication replication,
                               AceConfiguration aceConfiguration,
-                              ReplicationProperties properties,
+                              PreservationProperties properties,
                               ReplicationNotifier notifier) {
         this.ingest = ingest;
         this.aceService = aceService;
@@ -83,9 +84,16 @@ public class AceRegisterTasklet implements Callable<Long> {
     }
 
     private void register(Bag bag) {
-        ReplicationProperties.Storage storage = properties.getStorage();
+        Posix posix;
+        if (properties.getPosix().isEmpty()) {
+            log.error("No Preservation Storage Areas defined! Aborting!");
+            throw new RuntimeException("No Preservation Storage Areas defined! Aborting!");
+        } else {
+            // todo: logic to pick which area to get
+            posix = properties.getPosix().get(0); // just get the head for now
+        }
         final String name = bag.getName();
-        Path collectionPath = Paths.get(storage.getPreservation(),
+        Path collectionPath = Paths.get(posix.getPath(),
                 bag.getDepositor(),
                 name);
 

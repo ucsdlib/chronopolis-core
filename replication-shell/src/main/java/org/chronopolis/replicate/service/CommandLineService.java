@@ -2,6 +2,7 @@ package org.chronopolis.replicate.service;
 
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.mail.SmtpProperties;
+import org.chronopolis.common.storage.PreservationProperties;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.Submitter;
 import org.chronopolis.rest.api.IngestAPI;
@@ -11,7 +12,6 @@ import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -39,26 +39,27 @@ import static org.chronopolis.rest.models.ReplicationStatus.STARTED;
 public class CommandLineService implements ReplicationService {
     private final Logger log = LoggerFactory.getLogger(CommandLineService.class);
 
-    private final ApplicationContext context;
+    // Maybe some type of property holder?
     private final AceConfiguration aceConfiguration;
     private final SmtpProperties smtpProperties;
     private final ReplicationProperties replicationProperties;
+    private final PreservationProperties preservationProperties;
     private final IngestAPIProperties properties;
     private final IngestAPI ingestAPI;
     private final Submitter submitter;
 
     @Autowired
-    public CommandLineService(ApplicationContext context,
-                              AceConfiguration aceConfiguration,
+    public CommandLineService(AceConfiguration aceConfiguration,
                               SmtpProperties smtpProperties,
                               ReplicationProperties replicationProperties,
+                              PreservationProperties preservationProperties,
                               IngestAPIProperties properties,
                               IngestAPI ingestAPI,
                               Submitter submitter) {
-        this.context = context;
         this.aceConfiguration = aceConfiguration;
         this.smtpProperties = smtpProperties;
         this.replicationProperties = replicationProperties;
+        this.preservationProperties = preservationProperties;
         this.properties = properties;
         this.ingestAPI = ingestAPI;
         this.submitter = submitter;
@@ -82,8 +83,12 @@ public class CommandLineService implements ReplicationService {
         // log.info("   api-password : {}", properties.getPassword());
         log.info("  Replication:");
         log.info("   node-name : {}", replicationProperties.getNode());
-        log.info("   preservation-dir : {}", replicationProperties.getStorage().getPreservation());
         log.info("   smtp-send-on-success : {}", replicationProperties.getSmtp().getSendOnSuccess());
+        log.info("  Preservation:");
+        preservationProperties.getPosix().forEach(posix -> {
+            log.info("   id : {}", posix.getId());
+            log.info("   preservation-dir : {}", posix.getPath());
+        });
     }
 
     /**

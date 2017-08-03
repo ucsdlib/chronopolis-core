@@ -6,6 +6,8 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 /**
  * Configuration for Bag Staging areas in Chronopolis
  *
+ * "storage.staging" instead of "chron.stage"?
+ *
  * @author shake
  */
 @ConfigurationProperties(prefix = "chron.stage.bags")
