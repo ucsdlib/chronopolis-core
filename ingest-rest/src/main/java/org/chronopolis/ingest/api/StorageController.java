@@ -84,7 +84,6 @@ public class StorageController extends IngestController {
      * todo: 404 if the node does not exist
      * todo: some type of identifier (local??) for storage regions?
      *       should this be included in the create call?
-     * todo: test persistence of ReplicationConfig
      *
      * @param create the request containing the information about the SR
      * @return the newly created StorageRegion
@@ -106,6 +105,7 @@ public class StorageController extends IngestController {
                     .setDataType(create.getDataType())
                     .setStorageType(create.getStorageType())
                     .setReplicationConfig(new ReplicationConfig()
+                            .setRegion(region)
                             .setPath(create.getReplicationPath())
                             .setServer(create.getReplicationServer())
                             .setUsername(create.getReplicationUser()));
