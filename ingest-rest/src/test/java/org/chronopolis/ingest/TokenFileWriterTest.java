@@ -7,7 +7,6 @@ import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.rest.entities.Bag;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -43,20 +42,13 @@ import java.nio.file.Paths;
 public class TokenFileWriterTest extends IngestTest {
     private final Logger log = LoggerFactory.getLogger(TokenFileWriterTest.class);
 
-    @Autowired BagRepository br;
-    @Autowired TokenRepository tr;
-    IngestSettings settings;
-
-    @Before
-    public void setup() {
-        settings = new IngestSettings();
-        settings.setTokenStage(System.getProperty("chron.stage.tokens"));
-    }
+    @Autowired private BagRepository br;
+    @Autowired private TokenRepository tr;
 
     @Test
     public void testWriteTokens() throws Exception {
         Bag b = br.findOne(Long.valueOf(3));
-        String stage = settings.getTokenStage();
+        String stage = System.getProperty("chron.stage.tokens");
         TokenFileWriter writer = new TokenFileWriter(stage, tr);
 
         boolean written = writer.writeTokens(b);
@@ -65,12 +57,14 @@ public class TokenFileWriterTest extends IngestTest {
         Assert.assertEquals(true, written);
 
         // assert that the file exists
-        Path tokens = Paths.get(stage, b.getTokenLocation());
+        Path tokens = Paths.get(stage, b.getTokenStorage().getPath());
         log.info("{}", tokens);
         Assert.assertEquals(true, java.nio.file.Files.exists(tokens));
 
         // the hash value is correct
         HashCode hash = Files.asByteSource(tokens.toFile()).hash(Hashing.sha256());
-        Assert.assertEquals(b.getTokenDigest(), hash.toString());
+        boolean fixityMatch = b.getTokenStorage().getFixities().stream()
+                .anyMatch(fixity -> fixity.getValue().equalsIgnoreCase(hash.toString()));
+        Assert.assertTrue(fixityMatch);
     }
 }

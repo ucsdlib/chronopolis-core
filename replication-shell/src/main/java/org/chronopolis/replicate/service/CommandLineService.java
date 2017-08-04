@@ -1,15 +1,17 @@
 package org.chronopolis.replicate.service;
 
-import org.chronopolis.common.settings.IngestAPISettings;
+import org.chronopolis.common.ace.AceConfiguration;
+import org.chronopolis.common.mail.SmtpProperties;
+import org.chronopolis.common.storage.PreservationProperties;
+import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.Submitter;
 import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.api.IngestAPIProperties;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -37,17 +39,56 @@ import static org.chronopolis.rest.models.ReplicationStatus.STARTED;
 public class CommandLineService implements ReplicationService {
     private final Logger log = LoggerFactory.getLogger(CommandLineService.class);
 
-    private final ApplicationContext context;
-    private final IngestAPISettings settings;
+    // Maybe some type of property holder?
+    private final AceConfiguration aceConfiguration;
+    private final SmtpProperties smtpProperties;
+    private final ReplicationProperties replicationProperties;
+    private final PreservationProperties preservationProperties;
+    private final IngestAPIProperties properties;
     private final IngestAPI ingestAPI;
     private final Submitter submitter;
 
     @Autowired
-    public CommandLineService(ApplicationContext context, IngestAPISettings settings, IngestAPI ingestAPI, Submitter submitter) {
-        this.context = context;
-        this.settings = settings;
+    public CommandLineService(AceConfiguration aceConfiguration,
+                              SmtpProperties smtpProperties,
+                              ReplicationProperties replicationProperties,
+                              PreservationProperties preservationProperties,
+                              IngestAPIProperties properties,
+                              IngestAPI ingestAPI,
+                              Submitter submitter) {
+        this.aceConfiguration = aceConfiguration;
+        this.smtpProperties = smtpProperties;
+        this.replicationProperties = replicationProperties;
+        this.preservationProperties = preservationProperties;
+        this.properties = properties;
         this.ingestAPI = ingestAPI;
         this.submitter = submitter;
+
+        printStart();
+    }
+
+    private void printStart() {
+        log.info("Replication-Shell started in development mode with properties:");
+        log.info("  ACE:");
+        log.info("   am-endpoint : {}", aceConfiguration.getAm());
+        log.info("   am-username : {}", aceConfiguration.getUsername());
+        // log.info("   am-password : {}", aceConfiguration.getPassword());
+        log.info("   am-audit-period : {}", aceConfiguration.getAuditPeriod());
+        log.info("  SMTP:");
+        log.info("   to : {}", smtpProperties.getTo());
+        log.info("   send : {}", smtpProperties.getSend());
+        log.info("  IngestAPI:");
+        log.info("   api-endpoint : {}", properties.getEndpoint());
+        log.info("   api-username : {}", properties.getUsername());
+        // log.info("   api-password : {}", properties.getPassword());
+        log.info("  Replication:");
+        log.info("   node-name : {}", replicationProperties.getNode());
+        log.info("   smtp-send-on-success : {}", replicationProperties.getSmtp().getSendOnSuccess());
+        log.info("  Preservation:");
+        preservationProperties.getPosix().forEach(posix -> {
+            log.info("   id : {}", posix.getId());
+            log.info("   preservation-dir : {}", posix.getPath());
+        });
     }
 
     /**
@@ -72,8 +113,6 @@ public class CommandLineService implements ReplicationService {
             }
 
         }
-
-        SpringApplication.exit(context);
     }
 
     /**
@@ -114,7 +153,7 @@ public class CommandLineService implements ReplicationService {
         Map<String, Object> params = new HashMap<>();
         Page<Replication> replications;
         params.put("status", status);
-        params.put("node", settings.getIngestAPIUsername());
+        params.put("node", properties.getUsername());
         Call<PageImpl<Replication>> call = ingestAPI.getReplications(params);
         try {
             Response<PageImpl<Replication>> execute = call.execute();
@@ -128,18 +167,6 @@ public class CommandLineService implements ReplicationService {
 
         for (Replication replication : replications) {
             log.info("Starting job for replication id {}", replication.getId());
-            /*
-            try {
-                Call<Bag> bcall = ingestAPI.getBag(replication.getBagId());
-                Response<Bag> execute = bcall.execute();
-                Bag bag = execute.body();
-                replication.setBag(BagConverter.toBagEntity(bag));
-            } catch (IOException e) {
-                log.error("", e);
-                continue;
-            }
-            */
-
             submitter.submit(replication);
         }
     }

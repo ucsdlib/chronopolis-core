@@ -1,10 +1,10 @@
 package org.chronopolis.ingest;
 
-import com.sun.akuma.Daemon;
-import org.chronopolis.common.settings.AceSettings;
-import org.chronopolis.ingest.api.StagingController;
+import org.chronopolis.ingest.api.BagController;
+import org.chronopolis.ingest.config.IngestConfig;
 import org.chronopolis.ingest.controller.SiteController;
 import org.chronopolis.ingest.repository.Authority;
+import org.chronopolis.ingest.repository.dao.ReplicationService;
 import org.chronopolis.ingest.service.IngestService;
 import org.chronopolis.ingest.task.TokenTask;
 import org.slf4j.Logger;
@@ -16,20 +16,19 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 
-import java.util.Arrays;
-
 /**
  * Moo moo moo
+ * Entry point for the ingest application
  *
- * Created by shake on 11/6/14.
+ * @author shake
  */
 @ComponentScan(basePackageClasses = {
-        AceSettings.class,
-        IngestSettings.class,
         IngestService.class,
-        StagingController.class,
+        BagController.class,
         SiteController.class,
-        TokenTask.class
+        TokenTask.class,
+        IngestConfig.class,
+        ReplicationService.class
 })
 @EntityScan(basePackages = "org.chronopolis.rest.entities", basePackageClasses = Authority.class)
 @EnableAutoConfiguration
@@ -45,24 +44,7 @@ public class Application implements CommandLineRunner {
 
     public static void main(String[] args) {
         log.debug("Started with args: {}", args);
-        Daemon d = new Daemon.WithoutChdir();
-        try {
-            if (d.isDaemonized()) {
-                d.init();
-            } else {
-                // We never have a long list of args so I don't think we need
-                // to care about performance
-                // But basically only go into daemon mode if we specify
-                if (Arrays.asList(args).contains("--daemonize")) {
-                    d.daemonize();
-                    System.exit(0);
-                }
-            }
-        } catch (Exception e) {
-            log.error("", e);
-        }
-
-        SpringApplication.run(Application.class, args);
+        SpringApplication.exit(SpringApplication.run(Application.class, args));
     }
 
     @Override

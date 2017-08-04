@@ -3,9 +3,10 @@ package org.chronopolis.replicate.batch.ace;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import org.chronopolis.common.ace.AceService;
+import org.chronopolis.common.storage.Posix;
+import org.chronopolis.common.storage.PreservationProperties;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
-import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.RStatusUpdate;
@@ -34,15 +35,15 @@ public class AceTokenTasklet implements Runnable {
     private IngestAPI ingest;
     private AceService aceService;
     private Replication replication;
-    private ReplicationSettings settings;
+    private final PreservationProperties properties;
     private ReplicationNotifier notifier;
     private Long id;
 
-    public AceTokenTasklet(IngestAPI ingest, AceService aceService, Replication replication, ReplicationSettings settings, ReplicationNotifier notifier, Long id) {
+    public AceTokenTasklet(IngestAPI ingest, AceService aceService, Replication replication, PreservationProperties properties, ReplicationNotifier notifier, Long id) {
         this.ingest = ingest;
         this.aceService = aceService;
         this.replication = replication;
-        this.settings = settings;
+        this.properties = properties;
         this.notifier = notifier;
         this.id = id;
     }
@@ -61,7 +62,15 @@ public class AceTokenTasklet implements Runnable {
         log.info("{} Loading token store", name);
         final AtomicBoolean complete = new AtomicBoolean(false);
 
-        Path manifest = Paths.get(settings.getPreservation(), bag.getTokenLocation());
+        Posix posix;
+        if (properties.getPosix().isEmpty()) {
+            log.error("No Preservation Storage Areas defined! Aborting!");
+            throw new RuntimeException("No Preservation Storage Areas defined! Aborting!");
+        } else {
+            // todo: logic to pick which area to get
+            posix = properties.getPosix().get(0); // just get the head for now
+        }
+        Path manifest = Paths.get(posix.getPath(), bag.getTokenStorage().getPath());
 
         log.info("{} loadTokenStore params = ({}, {})", new Object[]{name, id, manifest});
         Call<Void> call = aceService.loadTokenStore(id, RequestBody.create(MediaType.parse("ASCII Text"), manifest.toFile()));

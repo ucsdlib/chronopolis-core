@@ -2,6 +2,7 @@ package org.chronopolis.rest.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ComparisonChain;
+import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.listener.BagUpdateListener;
 import org.chronopolis.rest.models.BagStatus;
 import org.slf4j.Logger;
@@ -13,7 +14,9 @@ import javax.persistence.EntityListeners;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 import java.util.HashSet;
 import java.util.Set;
@@ -41,26 +44,23 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
     private String creator;
     private String depositor;
 
-    // Both locations are relative
-    // TODO: It would be better to have them be Paths
-    private String location;
-    private String tokenLocation;
-
-    private String tokenDigest;
-    private String tagManifestDigest;
-
     @Enumerated(EnumType.STRING)
     private BagStatus status;
-
-    private String fixityAlgorithm;
-    private long size;
-    private long totalFiles;
 
     private int requiredReplications;
 
     // Might want to lazy fetch this if possible
     @OneToMany(mappedBy = "bag", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<BagDistribution> distributions = new HashSet<>();
+
+    // We'll see how this works out
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "bag_storage_id")
+    private StagingStorage bagStorage;
+
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "token_storage_id")
+    private StagingStorage tokenStorage;
 
     protected Bag() { // JPA
     }
@@ -97,66 +97,8 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
         this.depositor = depositor;
     }
 
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(final String location) {
-        this.location = location;
-    }
-
-    public String getTokenLocation() {
-        return tokenLocation;
-    }
-
-    public void setTokenLocation(final String tokenLocation) {
-        this.tokenLocation = tokenLocation;
-    }
-
-    @JsonIgnore
-    public String getTokenDigest() {
-        return tokenDigest;
-    }
-
-    public void setTokenDigest(final String tokenDigest) {
-        this.tokenDigest = tokenDigest;
-    }
-
-    @JsonIgnore
-    public String getTagManifestDigest() {
-        return tagManifestDigest;
-    }
-
-    public void setTagManifestDigest(final String tagManifestDigest) {
-        this.tagManifestDigest = tagManifestDigest;
-    }
-
-    public String getFixityAlgorithm() {
-        return fixityAlgorithm;
-    }
-
-    public void setFixityAlgorithm(final String fixityAlgorithm) {
-        this.fixityAlgorithm = fixityAlgorithm;
-    }
-
-    public long getSize() {
-        return size;
-    }
-
-    public void setSize(final long size) {
-        this.size = size;
-    }
-
     public String resourceID() {
         return "bag/" + id;
-    }
-
-    public long getTotalFiles() {
-        return totalFiles;
-    }
-
-    public void setTotalFiles(final long totalFiles) {
-        this.totalFiles = totalFiles;
     }
 
     public BagStatus getStatus() {
@@ -243,6 +185,24 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
 
     public Bag setRequiredReplications(int requiredReplications) {
         this.requiredReplications = requiredReplications;
+        return this;
+    }
+
+    public StagingStorage getBagStorage() {
+        return bagStorage;
+    }
+
+    public Bag setBagStorage(StagingStorage bagStorage) {
+        this.bagStorage = bagStorage;
+        return this;
+    }
+
+    public StagingStorage getTokenStorage() {
+        return tokenStorage;
+    }
+
+    public Bag setTokenStorage(StagingStorage tokenStorage) {
+        this.tokenStorage = tokenStorage;
         return this;
     }
 }

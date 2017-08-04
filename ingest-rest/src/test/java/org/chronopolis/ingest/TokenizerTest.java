@@ -18,6 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,7 +73,6 @@ public class TokenizerTest extends IngestTest {
     // Two tokenizers for each bag we do
     private Tokenizer fullTokenizer;
     private Tokenizer partialTokenizer;
-    private IngestSettings settings;
 
     // Our mocks which get injected
     @Mock private Tokenizer.IMSFactory factory = mock(Tokenizer.IMSFactory.class);
@@ -80,21 +80,20 @@ public class TokenizerTest extends IngestTest {
 
     @Before
     public void setup() {
-        settings = new IngestSettings();
-        settings.setBagStage(System.getProperty("chron.stage.bags"));
-        settings.setTokenStage(System.getProperty("chron.stage.tokens"));
+        String fixityAlgorithm = "SHA-256";
+        String stage = System.getProperty("chron.stage.bags");
 
         // Create the tokenizer for digesting all tokens
         Bag fullBag = bagRepository.findOne(Long.valueOf(1));
-        Path fullPath = Paths.get(settings.getBagStage(), fullBag.getLocation());
+        Path fullPath = Paths.get(stage, fullBag.getBagStorage().getPath());
         fullCallback = new TokenCallback(tokenRepository, fullBag);
-        fullTokenizer = new Tokenizer(fullPath, fullBag.getFixityAlgorithm(), IMS_HOST, fullCallback, factory);
+        fullTokenizer = new Tokenizer(fullPath, fixityAlgorithm, IMS_HOST, fullCallback, factory);
 
         // Create the tokenizer for digesting some tokens
         Bag partialBag = bagRepository.findOne(Long.valueOf(2));
-        Path partialPath = Paths.get(settings.getBagStage(), partialBag.getLocation());
+        Path partialPath = Paths.get(stage, partialBag.getBagStorage().getPath());
         partialCallback = new TokenCallback(tokenRepository, partialBag);
-        partialTokenizer = new Tokenizer(partialPath, partialBag.getFixityAlgorithm(), IMS_HOST, partialCallback, factory);
+        partialTokenizer = new Tokenizer(partialPath, fixityAlgorithm, IMS_HOST, partialCallback, factory);
     }
 
 
@@ -104,16 +103,9 @@ public class TokenizerTest extends IngestTest {
         when(factory.createIMSConnection(any(String.class), any(RequestBatchCallback.class)))
                 .thenReturn(batch);
 
-        // TODO: Look into whether or not we should return an actual object instead of null
-        doAnswer(invocation -> {
-            Object[] args = invocation.getArguments();
-            TokenRequest arg = (TokenRequest) args[0];
-            createResponse(arg, fullCallback);
-            return null;
-        }).when(batch).add(any(TokenRequest.class));
+        doAnswer(invocation -> answer(invocation, fullCallback)).when(batch).add(any(TokenRequest.class));
 
         fullTokenizer.tokenize(filter);
-
         verifyMocks(FULL_FACTORY_CALLS, FULL_BATCH_CALLS, 1);
     }
 
@@ -122,22 +114,15 @@ public class TokenizerTest extends IngestTest {
         Filter<Path> filter = new TokenFilter(tokenRepository, 2L);
         when(factory.createIMSConnection(any(String.class), any(RequestBatchCallback.class)))
                 .thenReturn(batch);
-
-        doAnswer(invocation -> {
-            Object[] args = invocation.getArguments();
-            TokenRequest arg = (TokenRequest) args[0];
-            createResponse(arg, partialCallback);
-            return null;
-        }).when(batch).add(any(TokenRequest.class));
+        doAnswer(invocation -> answer(invocation, partialCallback)).when(batch).add(any(TokenRequest.class));
 
         partialTokenizer.tokenize(filter);
-
         verifyMocks(PART_FACTORY_CALLS, PART_BATCH_CALLS, 2);
     }
 
     // helpers
 
-    void verifyMocks(int factoryTimes, int batchTimes, int bagId) throws InterruptedException {
+    private void verifyMocks(int factoryTimes, int batchTimes, int bagId) throws InterruptedException {
         verify(factory, times(factoryTimes)).createIMSConnection(any(String.class), any(RequestBatchCallback.class));
         verify(batch, times(batchTimes)).add(any(TokenRequest.class));
 
@@ -145,7 +130,15 @@ public class TokenizerTest extends IngestTest {
         assertEquals(TOTAL_TOKENS, tokens.size());
     }
 
-    void createResponse(TokenRequest arg, TokenCallback callback) {
+    private Object answer(InvocationOnMock invocation, TokenCallback callback) {
+        // todo: look into whether we should return an actual object instead of null
+        Object[] args = invocation.getArguments();
+        TokenRequest arg = (TokenRequest) args[0];
+        createResponse(arg, callback);
+        return null;
+    }
+
+    private void createResponse(TokenRequest arg, TokenCallback callback) {
         // Build a token response
         TokenResponse response = new TokenResponse();
         response.setRoundId(1);
@@ -168,7 +161,6 @@ public class TokenizerTest extends IngestTest {
                 ImmutableList.of(arg),
                 ImmutableList.of(response)
         );
-
     }
 
 }

@@ -1,0 +1,14 @@
+{
+  "active": true,
+  "size": 100,
+  "region": 2,
+  "totalFiles": 10,
+  "path": "test-path",
+  "fixities": [
+    {
+      "algorithm": "test-algorithm",
+      "value": "test-value",
+      "createdAt": "2017-03-16T01:53:28Z"
+    }
+  ]
+}

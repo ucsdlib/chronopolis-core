@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: head">
+    <meta charset="UTF-8"/>
+    <title>Storage Region</title>
+</head>
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column m-3 align-items-center">
+    <div class="w-50">
+        <h4>Create StorageRegion</h4>
+        <h6 class="text-muted">Create a StorageRegion for a Node</h6>
+        <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem">
+
+            <!--/*@thymesVar id="node" type="org.chronopolis.rest.entities.Node"*/-->
+            <!--/*@thymesVar id="nodes" type="List<org.chronopolis.rest.entities.Node>"*/-->
+            <!--/*@thymesVar id="regionCreate" type="org.chronopolis.ingest.models.RegionCreate"*/-->
+            <!--/*@thymesVar id="dataTypes" type="List<org.chronopolis.rest.models.storage.DataType>"*/-->
+            <!--/*@thymesVar id="storageTypes" type="List<org.chronopolis.rest.models.storage.StorageType>"*/-->
+            <form method="post" th:action="@{/regions}" th:object="${regionCreate}">
+                <div class="form-group row">
+                    <label for="node" class="col-3 col-form-label">Owning Node</label>
+                    <!-- wrapped in an extra div in case we ever show warning/hints -->
+                    <div class="col-sm">
+                        <select class="form-control col-3" name="node" id="node">
+                            <option th:each="node: ${nodes}"
+                                    th:value="${node.username}" th:text="${node.username}"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label for="dataType" class="col-3 col-form-label">Data Type</label>
+                    <div class="col-sm">
+                        <select class="form-control col-3" name="dataType" id="dataType">
+                            <option th:each="type: ${dataTypes}"
+                                    th:value="${type}" th:text="${type}"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label for="storageType" class="col-3 col-form-label">Storage Type</label>
+                    <div class="col-sm">
+                        <select class="form-control col-3" name="storageType" id="storageType">
+                            <option th:each="type: ${storageTypes}"
+                                    th:value="${type}" th:text="${type}"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group row"
+                     th:with="capacityError=${#fields.hasErrors('capacity')}"
+                     th:classappend="${capacityError}? 'has-warning'">
+                    <label for="capacity" class="col-3 col-form-label">Total Capacity</label>
+                    <div class="col-sm">
+                        <input th:field="*{capacity}" th:classappend="${capacityError}? 'form-control-warning'"
+                               class="form-control" id="capacity" name="capacity"/>
+                        <div class="form-control-feedback" th:if="${capacityError}" th:errors="*{capacity}"></div>
+                    </div>
+                </div>
+
+                <div class="form-group row"
+                     th:with="serverError=${#fields.hasErrors('replicationServer')}"
+                     th:classappend="${serverError}? 'has-warning'">
+                    <label for="replication-server" class="col-3 col-form-label">Replication Server</label>
+                    <div class="col-sm">
+                        <input th:field="*{replicationServer}" th:classappend="${serverError}? 'form-control-warning'"
+                               class="form-control" id="replication-server" name="replicationServer"/>
+                        <div class="form-control-feedback" th:if="${serverError}"
+                             th:errors="*{replicationServer}"></div>
+                    </div>
+                </div>
+
+                <div class="form-group row"
+                     th:with="pathError=${#fields.hasErrors('replicationPath')}"
+                     th:classappend="${pathError}? 'has-warning'">
+                    <label for="replication-path" class="col-3 col-form-label">Replication Path</label>
+                    <div class="col-sm">
+                        <input th:field="*{replicationPath}" th:classappend="${pathError}? 'form-control-error'"
+                               class="form-control" id="replication-path" name="replicationPath"/>
+                        <div class="form-control-feedback" th:if="${pathError}" th:errors="*{replicationPath}"></div>
+                    </div>
+                </div>
+
+                <!-- This can be null -->
+                <div class="form-group row" th:with="userError=${#fields.hasErrors('replicationUser')}"
+                     th:classappend="${userError}? 'has-warning'">
+                    <label for="replication-username" class="col-3 col-form-label">Replication Username</label>
+                    <div class="col-sm">
+                        <input th:field="*{replicationUser}" th:classappend="${userError}? 'form-control-error'"
+                               class="form-control" id="replication-username" name="replicationUser"/>
+                        <div class="form-control-feedback" th:if="${userError}" th:errors="*{replicationUser}"></div>
+                    </div>
+                </div>
+                <input type="submit" class="btn btn-primary" value="Submit"/>
+            </form>
+        </div>
+    </div>
+</div>
+<div th:replace="layout :: foot"></div>
+</body>
+</html>

@@ -6,6 +6,9 @@ import org.chronopolis.ingest.WebContext;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagDistribution;
 import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.entities.storage.Fixity;
+import org.chronopolis.rest.entities.storage.StagingStorage;
+import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.BagStatus;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,6 +37,7 @@ import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatu
 public class BagSerializerTest {
 
     private final DateTimeFormatter fmt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC);
+    private final String dateTimeString = "2017-06-30T19:49:12.37Z";
     // init is done in the setup
     private JacksonTester<Bag> json;
 
@@ -50,31 +54,38 @@ public class BagSerializerTest {
 
     @Test
     public void testWriteJson() throws IOException {
-        final String location = "location";
-        final String dateTimeString = "2017-06-30T19:49:12.37Z";
         final Node node = new Node("node", "node");
-
         ZonedDateTime dateTime = ZonedDateTime.from(fmt.parse(dateTimeString));
 
         Bag b = new Bag("bag", "depositor");
         b.setId(1L);
-        b.setSize(1L);
-        b.setTotalFiles(1L);
+        b.setBagStorage(createStorage());
         b.setRequiredReplications(1);
         b.setCreator("creator");
         b.setDepositor("depositor");
-        b.setFixityAlgorithm("sha-256");
-        b.setTagManifestDigest("digest");
-        b.setTokenDigest("digest");
-        b.setLocation(location);
-        b.setTokenLocation(location);
         b.setStatus(BagStatus.REPLICATING);
         b.setCreatedAt(dateTime);
         b.setUpdatedAt(dateTime);
         b.addDistribution(new BagDistribution().setNode(node).setStatus(REPLICATE));
         assertThat(json.write(b)).isEqualToJson("bag.json");
     }
-    
 
+    private StagingStorage createStorage() {
+        StorageRegion region = new StorageRegion();
+        region.setId(1L);
+
+        Fixity fixity = new Fixity();
+        fixity.setAlgorithm("test-algorithm")
+                .setValue("test-value")
+                .setCreatedAt(ZonedDateTime.from(fmt.parse(dateTimeString)));
+
+        return new StagingStorage()
+                .setRegion(region)
+                .addFixity(fixity)
+                .setPath("location")
+                .setSize(1L)
+                .setTotalFiles(1L)
+                .setActive(true);
+    }
 
 }

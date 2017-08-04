@@ -1,9 +1,9 @@
 package org.chronopolis.replicate.scheduled;
 
-import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.replicate.batch.Submitter;
 import org.chronopolis.replicate.support.CallWrapper;
 import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.api.IngestAPIProperties;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.Replication;
@@ -42,30 +42,29 @@ import static org.mockito.Mockito.when;
  */
 public class ReplicationQueryTaskTest {
 
-    @Mock Submitter submitter;
-    @Mock IngestAPI ingestAPI;
-    @Mock IngestAPISettings settings;
+    @Mock private Submitter submitter;
+    @Mock private IngestAPI ingestAPI;
     @InjectMocks ReplicationQueryTask task;
 
     private final int NUM_REPLICATIONS = 5;
     private Call<PageImpl<Replication>> replications;
 
-
     @Before
     public void init() throws NoSuchFieldException, IllegalAccessException {
         MockitoAnnotations.initMocks(this);
+        IngestAPIProperties properties = new IngestAPIProperties();
 
         // Init our RQT
-        task = new ReplicationQueryTask(settings, ingestAPI, submitter);
+        task = new ReplicationQueryTask(properties, ingestAPI, submitter);
 
         // Init our returned objects
         ArrayList<Replication> replicationList = new ArrayList<>();
         Node n = new Node("test", "test");
         Bag b = new Bag()
                 .setName("test-name")
-                .setDepositor("test-depositor")
-                .setSize(0L)
-                .setTotalFiles(0L);
+                .setDepositor("test-depositor");
+                // .setSize(0L)
+                // .setTotalFiles(0L);
 
         Replication replication = new Replication()
                 .setStatus(ReplicationStatus.PENDING)

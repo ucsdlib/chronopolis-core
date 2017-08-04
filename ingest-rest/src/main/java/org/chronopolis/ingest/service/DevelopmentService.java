@@ -1,9 +1,10 @@
 package org.chronopolis.ingest.service;
 
 
+import org.chronopolis.common.storage.TokenStagingProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -20,25 +21,34 @@ import java.io.InputStreamReader;
 @Component
 @Profile("development")
 public class DevelopmentService implements IngestService {
+    private final Logger log = LoggerFactory.getLogger(DevelopmentService.class);
 
-    private final ApplicationContext context;
+    private final TokenStagingProperties properties;
 
     @Autowired
-    public DevelopmentService(ApplicationContext context) {
-        this.context = context;
+    public DevelopmentService(TokenStagingProperties properties) {
+        this.properties = properties;
     }
 
     @Override
     public void runServer() {
         boolean done = false;
+        printConfiguration();
         System.out.println("Enter 'q' to quit");
         while (!done) {
             if ("q".equalsIgnoreCase(readLine())) {
                 done = true;
             }
         }
+    }
 
-        SpringApplication.exit(context);
+    /**
+     * print out the configuration we read in
+     */
+    private void printConfiguration() {
+        log.info("Loaded StagingProperties:");
+        log.info("  tokens.id={}", properties.getPosix().getId());
+        log.info("  tokens.path={}", properties.getPosix().getPath());
     }
 
     private String readLine() {

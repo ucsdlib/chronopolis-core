@@ -5,6 +5,8 @@ import com.google.common.hash.HashingOutputStream;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.storage.Fixity;
+import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -24,7 +26,6 @@ import static java.nio.file.StandardOpenOption.CREATE;
 
 /**
  * Class which writes tokenstores
- * TODO: Runnable?
  *
  * Created by shake on 8/26/15.
  */
@@ -41,6 +42,7 @@ public class TokenFileWriter {
 
     /**
      * Write a token to a file identified by the bag name and date
+     * todo: Create TokenStorage
      * TODO: Remove various magic values
      *
      * @param bag
@@ -50,6 +52,10 @@ public class TokenFileWriter {
         Long bagId = bag.getId();
         String name = bag.getName();
         String depositor = bag.getDepositor();
+
+        // todo: get the storage id somehow
+        //       unless we want to allocate storage from bag init and update it here
+        StagingStorage storage = new StagingStorage();
 
         Path dir = stage.resolve(depositor);
         if (!dir.toFile().exists()) {
@@ -95,7 +101,10 @@ public class TokenFileWriter {
 
             // The stream will close on it's own, but call this anyways
             writer.close();
-            bag.setTokenDigest(writer.getTokenDigest());
+            storage.addFixity(new Fixity()
+                    .setCreatedAt(ZonedDateTime.now())
+                    .setAlgorithm("SHA-256")
+                    .setValue(writer.getTokenDigest()));
             log.info("TokenStore Digest for bag {}: {}", bagId, writer.getTokenDigest());
         } catch (IOException ex) {
             log.error("Error writing token store {}", store, ex);
@@ -103,7 +112,8 @@ public class TokenFileWriter {
         }
 
         log.info("Finished writing tokens");
-        bag.setTokenLocation(stage.relativize(store).toString());
+        storage.setPath(stage.relativize(store).toString());
+        bag.setTokenStorage(storage);
 
         return true;
     }

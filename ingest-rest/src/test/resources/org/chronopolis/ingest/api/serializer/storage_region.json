@@ -1,0 +1,13 @@
+{
+  "id": 2,
+  "node": "test-node",
+  "capacity": 250,
+  "dataType": "BAG",
+  "storageType": "LOCAL",
+  "replicationConfig": {
+    "region": 2,
+    "path": "test-path",
+    "server": "test-server",
+    "username": "test-user"
+  }
+}

@@ -56,10 +56,10 @@ public class RepairController {
     @Autowired
     public RepairController(SearchService<Bag, Long, BagRepository> bagService,
                             NodeRepository nodes,
-                            SearchService<Repair, Long, RepairRepository> rService) {
+                            SearchService<Repair, Long, RepairRepository> repairService) {
         this.bService = bagService;
         this.nodes = nodes;
-        this.rService = rService;
+        this.rService = repairService;
     }
 
     /**

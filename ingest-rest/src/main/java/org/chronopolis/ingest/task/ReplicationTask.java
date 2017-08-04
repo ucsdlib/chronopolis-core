@@ -1,6 +1,5 @@
 package org.chronopolis.ingest.task;
 
-import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
 import org.chronopolis.rest.entities.Bag;
@@ -27,13 +26,11 @@ import java.util.stream.Collectors;
 public class ReplicationTask {
     private final Logger log = LoggerFactory.getLogger(ReplicationTask.class);
 
-    private final IngestSettings settings;
     private final BagRepository bagRepository;
     private final ReplicationService service;
 
     @Autowired
-    public ReplicationTask(IngestSettings settings, BagRepository bagRepository, ReplicationService service) {
-        this.settings = settings;
+    public ReplicationTask(BagRepository bagRepository, ReplicationService service) {
         this.bagRepository = bagRepository;
         this.service = service;
     }
@@ -44,7 +41,7 @@ public class ReplicationTask {
 
         for (Bag bag : bags) {
             List<Replication> replications = bag.getDistributions().stream()
-                    .map(dist -> service.create(dist.getBag(), dist.getNode(), settings))
+                    .map(dist -> service.create(dist.getBag(), dist.getNode()))
                     .collect(Collectors.toList());
 
             if (replications.size() == bag.getDistributions().size() && replications.size() != 0) {

@@ -1,14 +1,16 @@
 package org.chronopolis.replicate.batch.ace;
 
+import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
+import org.chronopolis.common.storage.Posix;
+import org.chronopolis.common.storage.PreservationProperties;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
-import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.RStatusUpdate;
+import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,18 +35,25 @@ public class AceRegisterTasklet implements Callable<Long> {
     private IngestAPI ingest;
     private AceService aceService;
     private Replication replication;
-    private ReplicationSettings settings;
+    private final AceConfiguration aceConfiguration;
+    private PreservationProperties properties;
     private ReplicationNotifier notifier;
 
     private Long id = -1L;
 
     private final Phaser phaser;
 
-    public AceRegisterTasklet(IngestAPI ingest, AceService aceService, Replication replication, ReplicationSettings settings, ReplicationNotifier notifier) {
+    public AceRegisterTasklet(IngestAPI ingest,
+                              AceService aceService,
+                              Replication replication,
+                              AceConfiguration aceConfiguration,
+                              PreservationProperties properties,
+                              ReplicationNotifier notifier) {
         this.ingest = ingest;
         this.aceService = aceService;
         this.replication = replication;
-        this.settings = settings;
+        this.aceConfiguration = aceConfiguration;
+        this.properties = properties;
         this.notifier = notifier;
 
         // Phaser for main thread + callback
@@ -75,18 +84,26 @@ public class AceRegisterTasklet implements Callable<Long> {
     }
 
     private void register(Bag bag) {
+        Posix posix;
+        if (properties.getPosix().isEmpty()) {
+            log.error("No Preservation Storage Areas defined! Aborting!");
+            throw new RuntimeException("No Preservation Storage Areas defined! Aborting!");
+        } else {
+            // todo: logic to pick which area to get
+            posix = properties.getPosix().get(0); // just get the head for now
+        }
         final String name = bag.getName();
-        Path collectionPath = Paths.get(settings.getPreservation(),
+        Path collectionPath = Paths.get(posix.getPath(),
                 bag.getDepositor(),
                 name);
 
         GsonCollection aceGson = new GsonCollection.Builder()
                 .name(name)
-                .digestAlgorithm(bag.getFixityAlgorithm())
+                .digestAlgorithm("SHA-256")
                 .directory(collectionPath.toString())
                 .group(bag.getDepositor())
                 .storage("local")
-                .auditPeriod(String.valueOf(settings.getAuditPeriod()))
+                .auditPeriod(aceConfiguration.getAuditPeriod().toString())
                 .auditTokens("true")
                 .proxyData("false")
                 .build();

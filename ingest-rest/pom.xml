@@ -116,9 +116,11 @@
             <version>2.2.0</version>
         </dependency>
 
+        <!-- Override the default spring version of 3.2.1 -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
+            <version>4.0</version>
         </dependency>
 
     </dependencies>

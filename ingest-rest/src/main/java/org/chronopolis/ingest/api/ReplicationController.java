@@ -2,13 +2,12 @@ package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableMap;
 import org.chronopolis.ingest.IngestController;
-import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.criteria.ReplicationSearchCriteria;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.models.FixityUpdate;
 import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.ReplicationRequest;
@@ -26,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.util.Map;
+import java.util.Set;
 
 import static org.chronopolis.ingest.api.Params.CREATED_AFTER;
 import static org.chronopolis.ingest.api.Params.CREATED_BEFORE;
@@ -48,12 +48,10 @@ public class ReplicationController extends IngestController {
     private final Logger log = LoggerFactory.getLogger(ReplicationController.class);
 
     private final ReplicationService replicationService;
-    private final IngestSettings settings;
 
     @Autowired
-    public ReplicationController(ReplicationService replicationService, IngestSettings settings) {
+    public ReplicationController(ReplicationService replicationService) {
         this.replicationService = replicationService;
-        this.settings = settings;
     }
 
     /**
@@ -67,7 +65,7 @@ public class ReplicationController extends IngestController {
     @RequestMapping(method = RequestMethod.POST)
     public Replication createReplication(@RequestBody ReplicationRequest request) {
         log.debug("Received replication request {}", request);
-        return replicationService.create(request, settings);
+        return replicationService.create(request);
     }
 
     private ReplicationSearchCriteria createCriteria(Principal principal, Long id) {
@@ -81,6 +79,16 @@ public class ReplicationController extends IngestController {
         return criteria;
     }
 
+    /**
+     * Update the received fixity for a token store
+     *
+     * todo: could do /{id}/fixity/token
+     *
+     * @param principal the principal of the user
+     * @param replicationId the id of the replication
+     * @param update the update to apply
+     * @return the updated replication
+     */
     @RequestMapping(value = "/{id}/tokenstore", method = RequestMethod.PUT)
     public Replication updateTokenFixity(Principal principal,
                                          @PathVariable("id") Long replicationId,
@@ -91,17 +99,24 @@ public class ReplicationController extends IngestController {
         // Break out our objects
         Replication r = replicationService.find(criteria);
         Bag bag = r.getBag();
-        Node node = r.getNode();
         String fixity = update.getFixity();
 
         // Validate the fixity and update the replication
-        checkFixity(r, bag.getId(), node.getUsername(), bag.getTokenDigest(), fixity, ReplicationStatus.FAILURE_TOKEN_STORE);
+        checkFixity(r, bag.getTokenStorage().getFixities(), fixity, ReplicationStatus.FAILURE_TOKEN_STORE);
         r.setReceivedTokenFixity(fixity);
         r.checkTransferred();
         replicationService.save(r);
         return r;
     }
 
+    /**
+     * Update the received fixity for a tag manifest
+     *
+     * @param principal the principal of the user
+     * @param replicationId the id of the replication
+     * @param update the update to apply
+     * @return the updated replication
+     */
     @RequestMapping(value = "/{id}/tagmanifest", method = RequestMethod.PUT)
     public Replication updateTagFixity(Principal principal,
                                        @PathVariable("id") Long replicationId,
@@ -112,34 +127,46 @@ public class ReplicationController extends IngestController {
         // Break out our objects
         Replication r = replicationService.find(criteria);
         Bag bag = r.getBag();
-        Node node = r.getNode();
         String fixity = update.getFixity();
 
         // Validate the fixity and update the replication
-        checkFixity(r, bag.getId(), node.getUsername(), bag.getTagManifestDigest(), fixity, ReplicationStatus.FAILURE_TAG_MANIFEST);
+        checkFixity(r, bag.getBagStorage().getFixities(), fixity, ReplicationStatus.FAILURE_TAG_MANIFEST);
         r.setReceivedTagFixity(update.getFixity());
         r.checkTransferred();
         replicationService.save(r);
         return r;
     }
 
-    private boolean checkFixity(Replication r, Long id, String node, String stored, String received, ReplicationStatus failure) {
-        if (stored == null || !stored.equals(received)) {
+    /**
+     * Check a fixity against what we have stored
+     *
+     * @param r The replication we are checking
+     * @param stored The stored fixity values to check against
+     * @param received The received value
+     * @param failure The status to set upon failure
+     * @return true if matches, false otherwise
+     */
+    private boolean checkFixity(Replication r, Set<Fixity> stored, String received, ReplicationStatus failure) {
+        boolean match = stored.stream()
+                // getValue _should_ always be non-null, but we might need to validate this or enforce it in the schema
+                .anyMatch(fixity -> fixity.getValue().equalsIgnoreCase(received));
+
+        if (match) {
+            log.info("Matching fixity for {}", r.getId());
+        } else {
+            Long bagId = r.getBag().getId();
+            String node = r.getNode().getUsername();
             log.warn("Received invalid fixity (found={},expected={}) for bag {} from {}. Setting {}", new Object[]{
                     received,
                     stored,
-                    id,
+                    bagId,
                     node,
                     failure});
             r.setStatus(failure);
-        } else {
-            log.info("Matching fixity for {}", r.getId());
-            return true;
         }
 
-        return false;
+        return match;
     }
-
 
     @RequestMapping(value = "/{id}/failure", method = RequestMethod.PUT)
     public Replication failReplication(Principal principal,
