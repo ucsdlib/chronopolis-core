@@ -1,9 +1,13 @@
 package org.chronopolis.ingest.api;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import org.chronopolis.ingest.WebContext;
+import org.chronopolis.ingest.api.serializer.StorageRegionSerializer;
+import org.chronopolis.ingest.api.serializer.ZonedDateTimeDeserializer;
+import org.chronopolis.ingest.api.serializer.ZonedDateTimeSerializer;
 import org.chronopolis.ingest.models.RegionCreate;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.StorageRegionRepository;
@@ -12,12 +16,14 @@ import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.storage.StorageType;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,6 +32,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.time.ZonedDateTime;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -45,8 +54,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = WebContext.class)
 public class StorageControllerTest {
 
-    @Autowired
     private MockMvc mvc;
+    private StorageController controller;
 
     // Constructor params
     @MockBean private NodeRepository nodes;
@@ -55,6 +64,23 @@ public class StorageControllerTest {
     // Auth handling
     @MockBean private SecurityContext context;
     @MockBean private Authentication authentication;
+
+    @Before
+    public void setup() {
+        Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
+        builder.serializationInclusion(JsonInclude.Include.NON_NULL);
+        builder.serializerByType(StorageRegion.class, new StorageRegionSerializer());
+        builder.serializerByType(ZonedDateTime.class, new ZonedDateTimeSerializer());
+        builder.deserializerByType(ZonedDateTime.class, new ZonedDateTimeDeserializer());
+        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+        converter.setObjectMapper(builder.build());
+        converter.setSupportedMediaTypes(ImmutableList.of(MediaType.APPLICATION_JSON));
+
+        controller = new StorageController(nodes, service);
+        mvc = MockMvcBuilders.standaloneSetup(controller)
+                .setMessageConverters(converter)
+                .build();
+    }
 
     @Test
     public void getRegion() throws Exception {
