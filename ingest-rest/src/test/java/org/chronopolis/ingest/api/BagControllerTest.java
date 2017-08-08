@@ -53,11 +53,8 @@ public class BagControllerTest extends IngestTest {
     private MockMvc mvc;
 
     // Mocks for the StagingController
-    @MockBean
-    private SearchService<Bag, Long, BagRepository> bagService;
-
-    @MockBean
-    private NodeRepository nodes;
+    @MockBean private NodeRepository nodes;
+    @MockBean private SearchService<Bag, Long, BagRepository> bagService;
 
     @Test
     public void testGetBags() throws Exception {

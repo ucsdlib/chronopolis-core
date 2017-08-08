@@ -84,14 +84,9 @@ public class RepairControllerTest extends IngestTest {
     private RepairController controller;
 
     // Beans for the RepairController
-    @MockBean
-    private NodeRepository nodes;
-
-    @MockBean
-    private SearchService<Bag, Long, BagRepository> bags;
-
-    @MockBean
-    private SearchService<Repair, Long, RepairRepository> repairs;
+    @MockBean private NodeRepository nodes;
+    @MockBean private SearchService<Bag, Long, BagRepository> bags;
+    @MockBean private SearchService<Repair, Long, RepairRepository> repairs;
 
     // Beans for our usage
     @MockBean private SecurityContext context;
@@ -173,9 +168,7 @@ public class RepairControllerTest extends IngestTest {
                 .serializationInclusion(JsonInclude.Include.NON_NULL)
                 .build();
         try {
-            String string = mapper.writeValueAsString(request);
-            log.info("{}", string);
-            return string;
+            return mapper.writeValueAsString(request);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
