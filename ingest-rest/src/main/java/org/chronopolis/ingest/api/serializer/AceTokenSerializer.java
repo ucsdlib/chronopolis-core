@@ -12,7 +12,7 @@ import java.time.ZonedDateTime;
 
 /**
  * Serializer to return an {@link AceTokenModel} from an {@link AceToken} entity
- * Use a UTC zone for the create ZonedDateTime
+ * Use the UTC-0 zone for the create ZonedDateTime
  *
  * @author shake
  */
