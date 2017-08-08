@@ -19,6 +19,7 @@
     <modules>
         <module>common</module>
         <module>rest-common</module>
+        <module>tokenizer</module>
     </modules>
 
     <profiles>
