@@ -54,11 +54,11 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
     private Set<BagDistribution> distributions = new HashSet<>();
 
     // We'll see how this works out
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "bag_storage_id")
     private StagingStorage bagStorage;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "token_storage_id")
     private StagingStorage tokenStorage;
 
