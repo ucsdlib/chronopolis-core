@@ -11,6 +11,9 @@ import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.models.AceTokenModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import java.util.List;
 
@@ -46,7 +49,23 @@ public class TokenCallback implements RequestBatchCallback {
                         .setRound(tr.getRoundId())
                         .setCreateDate(tr.getTimestamp().toGregorianCalendar().toZonedDateTime());
 
-                tokens.createToken(bag.getId(), model);
+                Call<AceTokenModel> token = tokens.createToken(bag.getId(), model);
+                token.enqueue(new Callback<AceTokenModel>() {
+                    @Override
+                    public void onResponse(Call<AceTokenModel> call, Response<AceTokenModel> response) {
+                        if (response.isSuccessful()) {
+                            log.trace("[Bag {}] Successfully registered token(path={})", bag.getId(), model.getFilename());
+                        } else {
+                            log.warn("[Bag {}] Unable to regsiter token(path={}) with ingest server; response={}",
+                                    new Object[] {bag.getId(), model.getFilename(), response.code()});
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<AceTokenModel> call, Throwable t) {
+                        log.error("[Bag {}] Error calling ingest server", bag.getId(), t);
+                    }
+                });
             } else {
                 log.error("Received error for token: {} Code {}",
                         tr.getName(), tr.getStatusCode());
