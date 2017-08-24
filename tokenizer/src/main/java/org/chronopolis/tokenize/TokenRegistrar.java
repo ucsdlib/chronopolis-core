@@ -31,9 +31,9 @@ public class TokenRegistrar implements Supplier<TokenResponse> {
      */
     private static Pattern pattern = Pattern.compile("\\(.*?,.*?\\)::(.*)");
 
-    private TokenAPI tokens;
-    private ManifestEntry entry;
-    private TokenResponse response;
+    private final TokenAPI tokens;
+    private final ManifestEntry entry;
+    private final TokenResponse response;
 
     public TokenRegistrar(TokenAPI tokens, ManifestEntry entry, TokenResponse response) {
         this.tokens = tokens;
@@ -45,6 +45,7 @@ public class TokenRegistrar implements Supplier<TokenResponse> {
      * Register an AceToken with the Chronopolis Ingest Server and forward the TokenResponse
      * for the next action
      *
+     * todo: assert fields are not null?
      * todo: We might want to return something other than the TokenResponse so that we can handle
      *       when we fail to register an AceToken with the Ingest Server
      *
@@ -92,6 +93,7 @@ public class TokenRegistrar implements Supplier<TokenResponse> {
     @VisibleForTesting
     public String getFilename() {
         Matcher matcher = pattern.matcher(response.getName());
+        matcher.matches();
         return matcher.group(matcher.groupCount());
     }
 }
