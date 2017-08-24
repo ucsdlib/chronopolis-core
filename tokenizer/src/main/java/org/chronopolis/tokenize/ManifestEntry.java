@@ -44,6 +44,10 @@ public class ManifestEntry implements Validatable {
         return registeredDigest;
     }
 
+    public String tokenName() {
+        return "(" + bag.getDepositor() + "," + bag.getName() + ")::" + path;
+    }
+
     @Override
     public boolean isValid() {
         return Objects.equals(registeredDigest, calculatedDigest);

@@ -67,7 +67,7 @@ public class TokenRegistrarTest {
         response = new TokenResponse();
         response.setDigestProvider(provider);
         response.setDigestService(service);
-        response.setName(build(depositor, name, path));
+        response.setName(entry.tokenName());
         response.setRoundId(round);
         response.setStatusCode(status);
 
@@ -142,20 +142,6 @@ public class TokenRegistrarTest {
         log.info("Matches? {}", matcher.matches());
         log.info("Groups: {}", matcher.groupCount());
         log.info("Group: {}", matcher.group(1));
-    }
-
-    /**
-     * Build the token name to use in a TokenResponse
-     *
-     * todo: unify this with the version in ChronopolisRequestBatch
-     *
-     * @param depositor the depositor
-     * @param bag the name of the bag
-     * @param path the path of the file
-     * @return
-     */
-    private String build(String depositor, String bag, String path) {
-        return "(" + depositor + "," + bag + ")::" + path;
     }
 
 }
