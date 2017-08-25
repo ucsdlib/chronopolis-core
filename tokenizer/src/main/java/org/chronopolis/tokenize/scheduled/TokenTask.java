@@ -11,8 +11,8 @@ import org.chronopolis.common.util.Filter;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.BagStatus;
-import org.chronopolis.tokenize.ChronopolisTokenRequestBatch;
 import org.chronopolis.tokenize.ManifestEntry;
+import org.chronopolis.tokenize.batch.ChronopolisTokenRequestBatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +32,7 @@ import java.util.stream.Stream;
 
 /**
  * Basic task to submit bags for tokenization
- *
+ * <p>
  * Created by shake on 2/6/2015.
  */
 @Component
@@ -66,7 +66,6 @@ public class TokenTask {
 
         // Query ingest API
         // Maybe getMyBags? Can work this out later
-        // Also need the storage region
         Call<PageImpl<Bag>> bags = ingest.getBags(
                 ImmutableMap.of("status", BagStatus.DEPOSITED,
                         "region_id", properties.getPosix().getId()));
@@ -81,16 +80,14 @@ public class TokenTask {
 
     }
 
-    // Things we want to do:
-    //   - push this to a runnable? so we don't reprocess a bag
-    //   - submit entries in a manifest to a filtering queue (this can be batch/single doesn't matter)
-    //   - if an entry passes through the filter, tokenize it
-    //   - when all entries are complete, do the same for the tagmanifest
-    //   - when all tagmanifest entries are complete, tokenize the tagmanifest
-    //   - maybe this could be accomplished by registering a callback? just need the boolean value of completeness
-    //   - then manifest/tagmanifest continuation logic can be separated, while everything else remains the same
-    //   - do we pass the callback along through everything? might work.... only thing which is still messed up is the
-    //     RequestBatchCallback
+    /**
+     * Submit a bag to Tokenize its files
+     * <p>
+     * Possibly push this to another class so that we don't duplicate
+     * processing which is ongoing
+     *
+     * @param bag
+     */
     private void submit(Bag bag) {
         final String manifestName = "manifest-sha256.txt";
         final String tagmanifestName = "tagmanifest-sha256.txt";
@@ -101,16 +98,20 @@ public class TokenTask {
         // I'm not sure of the best way to handle this, but we only want to continue
         // if we've finished processing the previous manifest. In each case this means
         // we should have 0 items left over from the filter. This makes things a little slow
-        // but it's a first pass at how to incorporating the new logic
+        // but it's a first pass at how to incorporate the new logic
+        long processed = -1;
         for (String name : ImmutableList.of(manifestName, tagmanifestName)) {
-            long processed = process(bag, root, relative, name);
+            processed = process(bag, root, relative, name);
 
             if (processed < 0 || processed > 0) {
                 break;
             }
         }
 
-        // if processed == 0 tokenize the tagmanifest
+        // if processed == 0 && !filter.contains(entry)
+        // digest && validate
+        // submit
+
     }
 
     /**
@@ -133,7 +134,7 @@ public class TokenTask {
             // if it is greater than 0 then we were still creating tokens
             // not sure what type of strain this might put on the ingest server but we can do some testing
             count = lines.map(line -> line.split("\\s", 2))
-                    .filter(entries -> filter.contains(entries[PATH_IDX]))
+                    .filter(entries -> !filter.contains(entries[PATH_IDX]))
                     .map(entries -> { // push to another class
                         Path file = Paths.get(root, relative, entries[PATH_IDX]);
                         ManifestEntry entry = new ManifestEntry(bag, entries[PATH_IDX], entries[DIGEST_IDX]);
