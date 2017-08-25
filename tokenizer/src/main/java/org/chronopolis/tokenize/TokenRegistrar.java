@@ -5,6 +5,7 @@ import edu.umiacs.ace.ims.api.IMSUtil;
 import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.chronopolis.rest.api.TokenAPI;
 import org.chronopolis.rest.models.AceTokenModel;
+import org.chronopolis.rest.models.Bag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Call;
@@ -27,7 +28,7 @@ public class TokenRegistrar implements Supplier<TokenResponse> {
      * A regex Pattern to match the TokenResponse's name on
      * Some notes
      * - we should look into the regex used to see if we can refine it at all
-     *   - depositor/bag/path names can have all sorts of symbols, maybe wildcards are the best?
+     * - depositor/bag/path names can have all sorts of symbols, maybe wildcards are the best?
      */
     private static Pattern pattern = Pattern.compile("\\(.*?,.*?\\)::(.*)");
 
@@ -43,7 +44,8 @@ public class TokenRegistrar implements Supplier<TokenResponse> {
 
     /**
      * Register an AceToken with the Chronopolis Ingest Server and forward the TokenResponse
-     * for the next action
+     * for the next action. Makes three attempts to register with the Ingest Server before aborting.
+     * This can still be improved if we want to delay when we retry, fail fast if the response is a 409, etc.
      *
      * todo: assert fields are not null?
      * todo: We might want to return something other than the TokenResponse so that we can handle
@@ -54,7 +56,6 @@ public class TokenRegistrar implements Supplier<TokenResponse> {
     @Override
     public TokenResponse get() {
         String filename = getFilename();
-        String bag = entry.getBag().getName();
 
         AceTokenModel model = new AceTokenModel()
                 .setAlgorithm(response.getDigestService())
@@ -64,6 +65,26 @@ public class TokenRegistrar implements Supplier<TokenResponse> {
                 .setRound(response.getRoundId())
                 .setCreateDate(response.getTimestamp().toGregorianCalendar().toZonedDateTime());
 
+        int attempt = 0;
+        boolean success = false;
+        while (attempt < 3 && !success) {
+            attempt += 1;
+            success = call(entry.getBag(), model);
+        }
+
+        return response;
+    }
+
+    /**
+     * Make an attempt to register an AceToken with the Ingest Server
+     *
+     * @param bag the bag which the AceToken belongs to
+     * @param model the AceToken to register
+     * @return the result of the operation
+     */
+    private boolean call(Bag bag, AceTokenModel model) {
+        boolean result = true;
+        String filename = model.getFilename();
         Call<AceTokenModel> call = tokens.createToken(entry.getBag().getId(), model);
         try {
             Response<AceTokenModel> execute = call.execute();
@@ -72,20 +93,22 @@ public class TokenRegistrar implements Supplier<TokenResponse> {
             } else {
                 log.warn("[Tokenizer (Bag {})] Unable to register token with Ingest Server (response code {})",
                         bag, execute.code());
+                result = false;
             }
         } catch (IOException e) {
             log.error("[Tokenizer (Bag {})] Error communicating with Ingest Server", bag, e);
+            result = false;
         }
 
-        return response;
+        return result;
     }
 
     /**
      * Retrieve the path to a file from the "name" field of a TokenResponse
-     *
+     * <p>
      * In our case we know it is of the form "(depositor,bag)::path", so we make an attempt
      * to extract it
-     *
+     * <p>
      * Failure still tbd
      *
      * @return the filename associated with the TokenResponse

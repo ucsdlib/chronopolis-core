@@ -1,24 +1,22 @@
 package org.chronopolis.tokenize;
 
 import edu.umiacs.ace.ims.ws.TokenResponse;
-import okhttp3.Request;
 import org.chronopolis.rest.api.TokenAPI;
 import org.chronopolis.rest.models.AceTokenModel;
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.test.support.CallWrapper;
+import org.chronopolis.test.support.ErrorCallWrapper;
+import org.chronopolis.test.support.ExceptingCallWrapper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.GregorianCalendar;
 import java.util.regex.Matcher;
@@ -46,8 +44,8 @@ public class TokenRegistrarTest {
     private final Long round = 1L;
     private final Integer status = 1;
 
-
     private ManifestEntry entry;
+    private AceTokenModel model;
     private TokenResponse response;
     private TokenRegistrar registrar;
 
@@ -77,50 +75,27 @@ public class TokenRegistrarTest {
         response.setTokenClassName(tokenClass);
 
         registrar = new TokenRegistrar(tokens, entry, response);
+
+        model = new AceTokenModel()
+                .setCreateDate(ZonedDateTime.now())
+                .setRound(round)
+                .setImsService(service)
+                .setProof("test-proof")
+                .setFilename(path)
+                .setBagId(id)
+                .setId(id)
+                .setAlgorithm(provider);
     }
 
     @Test
     public void get() throws Exception {
-        // The call wrappers should be moved to a common module
-        when(tokens.createToken(eq(id), any(AceTokenModel.class))).thenReturn(new Call<AceTokenModel>() {
-            @Override
-            public Response<AceTokenModel> execute() throws IOException {
-                return Response.success(null);
-            }
-
-            @Override
-            public void enqueue(Callback<AceTokenModel> callback) {
-                callback.onResponse(this, Response.success(null));
-            }
-
-            @Override
-            public boolean isExecuted() {
-                return false;
-            }
-
-            @Override
-            public void cancel() {
-
-            }
-
-            @Override
-            public boolean isCanceled() {
-                return false;
-            }
-
-            @Override
-            public Call<AceTokenModel> clone() {
-                return null;
-            }
-
-            @Override
-            public Request request() {
-                return null;
-            }
-        });
+        CallWrapper<AceTokenModel> success = new CallWrapper<>(model);
+        ExceptingCallWrapper<AceTokenModel> exception = new ExceptingCallWrapper<>(model);
+        ErrorCallWrapper<AceTokenModel> error = new ErrorCallWrapper<>(model, 404, "Bag not found");
+        when(tokens.createToken(eq(id), any(AceTokenModel.class))).thenReturn(exception, error, success);
 
         registrar.get();
-        verify(tokens, times(1)).createToken(eq(id), any(AceTokenModel.class));
+        verify(tokens, times(3)).createToken(eq(id), any(AceTokenModel.class));
     }
 
     @Test
@@ -131,17 +106,20 @@ public class TokenRegistrarTest {
 
     @Test
     public void regex() {
-        String depositor = "ucsd-lib";
-        String bag = "bb7_2015-10-07";
-        String path = "data/folded_dir-withlotsofnoisy.stuff/.tagmanifest-sha256.txt";
-
         // Pattern pattern = Pattern.compile("(" + depositor + "," + bag + ")::");
         Pattern pattern = Pattern.compile("\\(.*?,.*?\\)::(.*)");
         Matcher matcher = pattern.matcher(response.getName());
 
-        log.info("Matches? {}", matcher.matches());
-        log.info("Groups: {}", matcher.groupCount());
-        log.info("Group: {}", matcher.group(1));
+        boolean matches = matcher.matches();
+        int groups = matcher.groupCount();
+        String group = matcher.group(1);
+
+        log.info("Matches? {}", matches);
+        log.info("Groups: {}", groups);
+        log.info("Group: {}", group);
+        Assert.assertTrue(matches);
+        Assert.assertEquals(1, groups);
+        Assert.assertEquals(path, group);
     }
 
 }
