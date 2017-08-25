@@ -17,6 +17,10 @@
     <dependencies>
         <dependency>
             <groupId>org.chronopolis</groupId>
+            <artifactId>chron-test</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.chronopolis</groupId>
             <artifactId>rest-common</artifactId>
         </dependency>
         <dependency>
