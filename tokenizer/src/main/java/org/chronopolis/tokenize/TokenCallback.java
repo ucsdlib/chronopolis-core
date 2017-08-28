@@ -23,6 +23,7 @@ import java.util.List;
  *
  * Created by shake on 2/5/15.
  */
+@Deprecated
 public class TokenCallback implements RequestBatchCallback {
     private final Logger log = LoggerFactory.getLogger(TokenCallback.class);
 

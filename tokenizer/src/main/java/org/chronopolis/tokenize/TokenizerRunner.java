@@ -18,6 +18,7 @@ import java.nio.file.Paths;
  *
  * @author shake
  */
+@Deprecated
 public class TokenizerRunner implements Runnable {
 
     /**
