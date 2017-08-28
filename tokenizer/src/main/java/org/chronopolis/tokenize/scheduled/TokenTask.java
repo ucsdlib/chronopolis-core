@@ -6,10 +6,12 @@ import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.storage.BagStagingProperties;
 import org.chronopolis.common.util.Filter;
 import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.api.TokenAPI;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.tokenize.BagProcessor;
 import org.chronopolis.tokenize.batch.ChronopolisTokenRequestBatch;
+import org.chronopolis.tokenize.filter.HttpFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,20 +36,20 @@ import java.io.IOException;
 public class TokenTask {
     private final Logger log = LoggerFactory.getLogger(TokenTask.class);
 
+    private final TokenAPI tokens;
     private final IngestAPI ingest;
-    private final Filter<String> filter;
     private final BagStagingProperties properties;
     private final ChronopolisTokenRequestBatch batch;
     private final TrackingThreadPoolExecutor<Bag> executor;
 
     @Autowired
-    public TokenTask(IngestAPI ingest,
-                     Filter<String> filter,
+    public TokenTask(TokenAPI tokens,
+                     IngestAPI ingest,
                      BagStagingProperties properties,
                      ChronopolisTokenRequestBatch batch,
                      TrackingThreadPoolExecutor<Bag> executor) {
+        this.tokens = tokens;
         this.ingest = ingest;
-        this.filter = filter;
         this.properties = properties;
         this.batch = batch;
         this.executor = executor;
@@ -65,8 +67,10 @@ public class TokenTask {
         try {
             Response<PageImpl<Bag>> response = bags.execute();
             if (response.isSuccessful()) {
-                response.body()
-                        .forEach(bag -> executor.submitIfAvailable(new BagProcessor(bag, filter, properties, batch), bag));
+                for (Bag bag : response.body()) {
+                    Filter<String> filter = new HttpFilter(bag.getId(), tokens);
+                    executor.submitIfAvailable(new BagProcessor(bag, filter, properties, batch), bag);
+                }
             }
         } catch (IOException e) {
             log.error("Error communicating with the ingest server", e);
