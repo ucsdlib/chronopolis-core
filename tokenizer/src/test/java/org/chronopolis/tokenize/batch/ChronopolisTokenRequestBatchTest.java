@@ -111,7 +111,7 @@ public class ChronopolisTokenRequestBatchTest {
     public void runImsException() throws InterruptedException {
         // most of this is shared, can break some of it apart easily
         ExecutorService es = Executors.newFixedThreadPool(1);
-        when(wrapper.requestTokensImmediate(anyString(), anyList())).thenThrow(new IMSException(-1, "cannot connect to ims"));
+        when(wrapper.requestTokensImmediate(anyString(), anyList())).thenThrow(new IMSException(-1, "Test IMSException: Cannot connect to ims"));
         batcher = new ChronopolisTokenRequestBatch(configuration, tokens, wrapper);
         es.submit(batcher);
         int bound = configuration.getIms().getQueueLength();

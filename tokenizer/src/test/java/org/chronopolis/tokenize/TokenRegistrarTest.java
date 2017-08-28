@@ -106,7 +106,6 @@ public class TokenRegistrarTest {
 
     @Test
     public void regex() {
-        // Pattern pattern = Pattern.compile("(" + depositor + "," + bag + ")::");
         Pattern pattern = Pattern.compile("\\(.*?,.*?\\)::(.*)");
         Matcher matcher = pattern.matcher(response.getName());
 
