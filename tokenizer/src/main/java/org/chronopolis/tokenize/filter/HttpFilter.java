@@ -9,14 +9,13 @@ import retrofit2.Call;
 import retrofit2.Response;
 
 import java.io.IOException;
-import java.nio.file.Path;
 
 /**
  * Basic TokenFilter to see if a token exists based on its path
  *
  * @author shake
  */
-public class HttpFilter implements Filter<Path> {
+public class HttpFilter implements Filter<String> {
 
     private Long bagId;
     private TokenAPI api;
@@ -27,14 +26,14 @@ public class HttpFilter implements Filter<Path> {
     }
 
     @Override
-    public boolean add(Path path) {
-        return false;
+    public boolean add(String path) {
+        return contains(path);
     }
 
     @Override
-    public boolean contains(Path path) {
+    public boolean contains(String path) {
         boolean contains;
-        Call<Page<AceTokenModel>> tokens = api.getBagTokens(bagId, ImmutableMap.of("filename", path.toString()));
+        Call<Page<AceTokenModel>> tokens = api.getBagTokens(bagId, ImmutableMap.of("filename", path));
         try {
             Response<Page<AceTokenModel>> response = tokens.execute();
             contains = response.isSuccessful() && response.body().getTotalElements() > 0;

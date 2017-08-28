@@ -2,16 +2,12 @@ package org.chronopolis.tokenize;
 
 import edu.umiacs.ace.ims.api.RequestBatchCallback;
 import org.chronopolis.common.ace.Tokenizer;
-import org.chronopolis.common.util.Filter;
 import org.chronopolis.rest.api.TokenAPI;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.tokenize.filter.HttpFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * Like BladeRunner, but with Tokens
@@ -58,7 +54,12 @@ public class TokenizerRunner implements Runnable {
         this.factory = new TokenizerRunner.Factory();
     }
 
+    @Override
+    public void run() {
+        log.warn("TokenRunner.run is deprecated");
+    }
 
+    /*
     @Override
     public void run() {
         // TODO: Send email on failures
@@ -68,7 +69,7 @@ public class TokenizerRunner implements Runnable {
 
         // Setup everything we need
         Path bagPath = Paths.get(bagStage, bag.getBagStorage().getPath());
-        Filter<Path> filter = new HttpFilter(bag.getId(), tokens);
+        Filter<String> filter = new HttpFilter(bag.getId(), tokens);
         TokenCallback callback = new TokenCallback(bag, tokens);
         Tokenizer tokenizer = factory.makeTokenizer(bagPath, bag, ims, callback);
 
@@ -82,6 +83,7 @@ public class TokenizerRunner implements Runnable {
 
         log.debug("Exiting TokenRunner for {}", bag.getName());
     }
+    */
 
 
 }
