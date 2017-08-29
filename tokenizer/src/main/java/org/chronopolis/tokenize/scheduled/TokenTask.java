@@ -32,7 +32,7 @@ import java.io.IOException;
  */
 @Component
 @EnableScheduling
-@EnableConfigurationProperties(AceConfiguration.class)
+@EnableConfigurationProperties(BagStagingProperties.class)
 public class TokenTask {
     private final Logger log = LoggerFactory.getLogger(TokenTask.class);
 
@@ -55,7 +55,7 @@ public class TokenTask {
         this.executor = executor;
     }
 
-    @Scheduled(cron = "${ingest.cron.tokens:0 */30 * * * *}")
+    @Scheduled(cron = "${ingest.cron.tokens:0/30 * * * * *}")
     public void tokenize() {
         log.info("Searching for bags to tokenize");
 
