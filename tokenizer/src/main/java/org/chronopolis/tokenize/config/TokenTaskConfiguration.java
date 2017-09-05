@@ -25,7 +25,9 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import java.lang.reflect.Type;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -75,8 +77,15 @@ public class TokenTaskConfiguration {
     }
 
     @Bean
-    public ChronopolisTokenRequestBatch batch(AceConfiguration configuration, TokenAPI tokens) {
-        return new ChronopolisTokenRequestBatch(configuration, tokens);
+    public Executor executorForBatch() {
+        return new ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+    }
+
+    @Bean(destroyMethod = "close")
+    public ChronopolisTokenRequestBatch batch(Executor executorForBatch, AceConfiguration configuration, TokenAPI tokens) {
+        ChronopolisTokenRequestBatch batch = new ChronopolisTokenRequestBatch(configuration, tokens);
+        executorForBatch.execute(batch);
+        return batch;
     }
 
 
