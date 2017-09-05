@@ -33,6 +33,7 @@ public class HttpFilter implements Filter<String> {
     @Override
     public boolean contains(String path) {
         boolean contains;
+        // todo: depending on what this returns we'll want to throw an exception (or some datatype indicating existence && !communicationsFailure)
         Call<Page<AceTokenModel>> tokens = api.getBagTokens(bagId, ImmutableMap.of("filename", path));
         try {
             Response<Page<AceTokenModel>> response = tokens.execute();

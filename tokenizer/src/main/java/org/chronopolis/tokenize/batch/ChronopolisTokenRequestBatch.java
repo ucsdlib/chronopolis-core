@@ -113,6 +113,7 @@ public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable
 
     @Override
     public void run() {
+        log.info("[Tokenizer] Starting");
         while (running.get()) {
             List<TokenRequest> buffer = new ArrayList<>(maxQueueLength);
             try {
@@ -132,6 +133,7 @@ public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable
         // why not
         entries.clear();
         requests.clear();
+        log.info("[Tokenizer] Finished");
     }
 
     /**

@@ -85,18 +85,19 @@ public class TokenRegistrar implements Supplier<TokenResponse> {
     private boolean call(Bag bag, AceTokenModel model) {
         boolean result = true;
         String filename = model.getFilename();
+        String identifier = bag.getDepositor() + "::" + bag.getName() + "/" + filename;
         Call<AceTokenModel> call = tokens.createToken(entry.getBag().getId(), model);
         try {
             Response<AceTokenModel> execute = call.execute();
             if (execute.isSuccessful()) {
-                log.debug("[Tokenizer (Bag {})] Successfully registered token for {}", bag, filename);
+                log.debug("[Tokenizer ({})] Successfully registered token", identifier);
             } else {
-                log.warn("[Tokenizer (Bag {})] Unable to register token with Ingest Server (response code {})",
-                        bag, execute.code());
+                log.warn("[Tokenizer ({})] Unable to register token with Ingest Server (response code {})",
+                        identifier, execute.code());
                 result = false;
             }
         } catch (IOException e) {
-            log.error("[Tokenizer (Bag {})] Error communicating with Ingest Server", bag, e);
+            log.error("[Tokenizer ({})] Error communicating with Ingest Server", identifier, e);
             result = false;
         }
 
