@@ -1,7 +1,6 @@
 package org.chronopolis.tokenize.scheduled;
 
 import com.google.common.collect.ImmutableMap;
-import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.storage.BagStagingProperties;
 import org.chronopolis.common.util.Filter;
