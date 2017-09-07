@@ -1,5 +1,6 @@
 package org.chronopolis.ingest.api;
 
+import com.google.common.collect.ImmutableList;
 import org.chronopolis.ingest.models.filter.AceTokenFilter;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -59,15 +61,20 @@ public class BagTokenController {
     }
 
     @PostMapping("/tokens")
-    public ResponseEntity<AceToken> createTokenForBag(Principal principal, @PathVariable("id") Long id, @RequestBody AceTokenModel model) {
+    public ResponseEntity<AceToken> createTokenForBag(Principal principal,
+                                                      @PathVariable("id") Long id,
+                                                      @RequestBody AceTokenModel model) {
         log.info("[POST /api/bags/{}/tokens] - {}", id, principal.getName());
 
-        ResponseEntity.BodyBuilder response = ResponseEntity.status(HttpStatus.CREATED);
+        ResponseEntity response; // = ResponseEntity.status(HttpStatus.CREATED);
         Bag bag = bags.find(new BagSearchCriteria().withId(id));
+        AceToken token = tokens.find(new AceTokenSearchCriteria().withBagId(id).withFilenames(ImmutableList.of(model.getFilename())));
         if (bag == null) {
-            response = ResponseEntity.status(HttpStatus.NOT_FOUND);
+            response = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } else if (token != null) {
+            response = ResponseEntity.status(HttpStatus.CONFLICT).build();
         } else {
-            AceToken token = new AceToken(bag,
+            token = new AceToken(bag,
                     Date.from(model.getCreateDate().toInstant()),
                     model.getFilename(),
                     model.getProof(),
@@ -75,10 +82,12 @@ public class BagTokenController {
                     model.getAlgorithm(),
                     model.getRound());
             tokens.save(token);
-            response.body(token);
+            response = ResponseEntity.status(HttpStatus.CREATED)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(token);
         }
 
-        return response.build();
+        return response;
     }
 
 }
