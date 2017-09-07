@@ -1,7 +1,7 @@
 package org.chronopolis.rest.api;
 
 import org.chronopolis.rest.models.AceTokenModel;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -19,13 +19,13 @@ import java.util.Map;
 public interface TokenAPI {
 
     @GET("/api/tokens")
-    Call<Page<AceTokenModel>> getTokens();
+    Call<PageImpl<AceTokenModel>> getTokens();
 
     @GET("/api/tokens/{id}")
     Call<AceTokenModel> getToken(@Path("id") Long id);
 
     @GET("/api/bags/{bagId}/tokens")
-    Call<Page<AceTokenModel>> getBagTokens(@Path("bagId") Long bagId, @QueryMap Map<String, String> params);
+    Call<PageImpl<AceTokenModel>> getBagTokens(@Path("bagId") Long bagId, @QueryMap Map<String, String> params);
 
     @POST("/api/bags/{bagId}/tokens")
     Call<AceTokenModel> createToken(@Path("bagId") Long bagId, @Body AceTokenModel model);
