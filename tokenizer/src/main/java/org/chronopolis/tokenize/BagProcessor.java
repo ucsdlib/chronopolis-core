@@ -112,6 +112,9 @@ public class BagProcessor implements Runnable {
      * @return the number of errors encountered
      */
     private long process(Bag bag, String root, String relative, String name) {
+        String identifier = bag.getDepositor() + "::" + bag.getName();
+        log.debug("[{}] Processing {}", identifier, name);
+
         long errors;
         final int PATH_IDX = 1;
         Path manifest = Paths.get(root, relative, name);

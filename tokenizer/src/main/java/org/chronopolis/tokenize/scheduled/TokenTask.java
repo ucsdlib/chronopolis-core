@@ -66,6 +66,7 @@ public class TokenTask {
         try {
             Response<PageImpl<Bag>> response = bags.execute();
             if (response.isSuccessful()) {
+                log.debug("Found {} bags for tokenization", response.body().getSize());
                 for (Bag bag : response.body()) {
                     Filter<String> filter = new HttpFilter(bag.getId(), tokens);
                     executor.submitIfAvailable(new BagProcessor(bag, filter, properties, batch), bag);
