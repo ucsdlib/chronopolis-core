@@ -10,6 +10,7 @@ import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.api.IngestAPIProperties;
 import org.chronopolis.rest.api.TokenAPI;
+import org.chronopolis.rest.models.AceTokenModel;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.support.PageDeserializer;
 import org.chronopolis.rest.support.ZonedDateTimeDeserializer;
@@ -54,9 +55,12 @@ public class TokenTaskConfiguration {
     private Retrofit buildRetrofit(IngestAPIProperties properties) {
         Type bagPage = new TypeToken<PageImpl<Bag>>() {}.getType();
         Type bagList = new TypeToken<List<Bag>>() {}.getType();
+        Type tokenPage = new TypeToken<PageImpl<AceTokenModel>>() {}.getType();
+        Type tokenList = new TypeToken<List<AceTokenModel>>() {}.getType();
 
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(bagPage, new PageDeserializer(bagList))
+                .registerTypeAdapter(tokenPage, new PageDeserializer(tokenList))
                 .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeSerializer())
                 .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeDeserializer())
                 .create();

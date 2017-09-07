@@ -4,11 +4,11 @@ import com.google.common.collect.ImmutableMap;
 import org.chronopolis.common.util.Filter;
 import org.chronopolis.rest.api.TokenAPI;
 import org.chronopolis.rest.models.AceTokenModel;
-import org.springframework.data.domain.Page;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageImpl;
 import retrofit2.Call;
 import retrofit2.Response;
-
-import java.io.IOException;
 
 /**
  * Basic TokenFilter to see if a token exists based on its path
@@ -16,6 +16,8 @@ import java.io.IOException;
  * @author shake
  */
 public class HttpFilter implements Filter<String> {
+
+    private final Logger log = LoggerFactory.getLogger(HttpFilter.class);
 
     private Long bagId;
     private TokenAPI api;
@@ -34,11 +36,12 @@ public class HttpFilter implements Filter<String> {
     public boolean contains(String path) {
         boolean contains;
         // todo: depending on what this returns we'll want to throw an exception (or some datatype indicating existence && !communicationsFailure)
-        Call<Page<AceTokenModel>> tokens = api.getBagTokens(bagId, ImmutableMap.of("filename", path));
+        Call<PageImpl<AceTokenModel>> tokens = api.getBagTokens(bagId, ImmutableMap.of("filename", path));
         try {
-            Response<Page<AceTokenModel>> response = tokens.execute();
+            Response<PageImpl<AceTokenModel>> response = tokens.execute();
             contains = response.isSuccessful() && response.body().getTotalElements() > 0;
-        } catch (IOException e) {
+            log.trace("{} token exists? {}", path, contains);
+        } catch (Exception e) {
             contains = false;
         }
 
