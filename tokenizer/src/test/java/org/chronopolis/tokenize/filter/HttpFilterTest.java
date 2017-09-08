@@ -57,7 +57,7 @@ public class HttpFilterTest {
     @Test
     public void testThrowsException() {
         when(tokens.getBagTokens(eq(1L), anyMap())).thenReturn(new ExceptingCallWrapper(new AceTokenModel()));
-        Assert.assertFalse(filter.contains(path));
+        Assert.assertTrue(filter.contains(path));
     }
 
     private CallWrapper<Page<AceTokenModel>> wrap(List<AceTokenModel> elements) {
