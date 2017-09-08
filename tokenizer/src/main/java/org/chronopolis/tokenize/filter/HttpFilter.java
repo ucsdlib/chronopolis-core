@@ -32,17 +32,32 @@ public class HttpFilter implements Filter<String> {
         return contains(path);
     }
 
+    /**
+     * Check against a Chronopolis Token API to see if a Bag contains a given token for a path
+     *
+     * Returns true if the token exists, or if there are any issues communicating with the server
+     * and creation needs to be skipped
+     * Returns false if the token does not exist
+     *
+     * Note: We might want to update this interface to reflect the multiple causes of filtering,
+     *       either by changing the return value to something more ?monadic?. Like an Either
+     *       interface... but something to convey information about network errors/400/409/etc
+     *
+     * @param path the path to query on
+     * @return existence of the token
+     */
     @Override
     public boolean contains(String path) {
         boolean contains;
-        // todo: depending on what this returns we'll want to throw an exception (or some datatype indicating existence && !communicationsFailure)
         Call<PageImpl<AceTokenModel>> tokens = api.getBagTokens(bagId, ImmutableMap.of("filename", path));
         try {
             Response<PageImpl<AceTokenModel>> response = tokens.execute();
             contains = response.isSuccessful() && response.body().getTotalElements() > 0;
             log.trace("{} token exists? {}", path, contains);
         } catch (Exception e) {
-            contains = false;
+            String identifier = String.valueOf(bagId) + "/" + path;
+            log.error("[{}] error communicating with ingest server, returning contains=true to avoid tokenization", identifier, e);
+            contains = true;
         }
 
         return contains;
