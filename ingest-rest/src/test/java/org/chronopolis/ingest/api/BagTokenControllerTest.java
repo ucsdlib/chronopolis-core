@@ -29,6 +29,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -57,14 +62,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = WebContext.class)
 public class BagTokenControllerTest extends IngestTest {
 
+    private static final String AUTHORIZED = "authorized";
+    private static UserDetails admin = new User(AUTHORIZED, AUTHORIZED, ImmutableList.of(() -> "ROLE_ADMIN"));
+
     private MockMvc mvc;
     private BagTokenController controller;
+
+    @MockBean private SecurityContext context;
+    @MockBean private Authentication authentication;
 
     @MockBean private SearchService<Bag, Long, BagRepository> bagService;
     @MockBean private SearchService<AceToken, Long, TokenRepository> tokenService;
 
     @Before
     public void setup() {
+        SecurityContextHolder.setContext(context);
+
         Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder()
                 .deserializerByType(ZonedDateTime.class, new ZonedDateTimeDeserializer());
 
@@ -116,6 +129,8 @@ public class BagTokenControllerTest extends IngestTest {
 
     private void runCreateToken(AceTokenModel model, Bag bag, HttpStatus responseStatus) throws Exception {
         when(bagService.find(any(SearchCriteria.class))).thenReturn(bag);
+        when(context.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(admin);
 
         mvc.perform(
                 post("/api/bags/{id}/tokens", 1L)
