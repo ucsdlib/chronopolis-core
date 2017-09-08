@@ -1,6 +1,7 @@
 package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableList;
+import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.models.filter.AceTokenFilter;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
@@ -35,7 +36,7 @@ import java.util.Date;
  */
 @RestController
 @RequestMapping("/api/bags/{id}")
-public class BagTokenController {
+public class BagTokenController extends IngestController {
 
     private final Logger log = LoggerFactory.getLogger(BagTokenController.class);
 
@@ -49,6 +50,14 @@ public class BagTokenController {
         this.tokens = tokenService;
     }
 
+    /**
+     * Retrieve all tokens for a bag
+     *
+     * @param principal the user requesting the tokens
+     * @param id the id of the bag
+     * @param filter parameters to filter on
+     * @return A paged view of tokens
+     */
     @GetMapping("/tokens")
     public Page<AceToken> getTokensForBag(Principal principal, @PathVariable("id") Long id, @ModelAttribute AceTokenFilter filter) {
         log.info("[GET /api/bags/{}/tokens] - {}", id, principal.getName());
@@ -60,17 +69,36 @@ public class BagTokenController {
         return tokens.findAll(searchCriteria, filter.createPageRequest());
     }
 
+    /**
+     * Create a token for a given bag
+     *
+     * ResponseCodes:
+     * 201 - Created successfully
+     * 400 - RequestBody could not be validated
+     * 401 - Unauthorized
+     * 403 - User is forbidden for modification of the resource (i.e. not the owner of the bag)
+     * 404 - Bag not found
+     * 409 - Token already exists for bag
+     *
+     * @param principal
+     * @param id
+     * @param model
+     * @return the newly created token
+     */
     @PostMapping("/tokens")
     public ResponseEntity<AceToken> createTokenForBag(Principal principal,
                                                       @PathVariable("id") Long id,
                                                       @RequestBody AceTokenModel model) {
         log.info("[POST /api/bags/{}/tokens] - {}", id, principal.getName());
 
-        ResponseEntity response; // = ResponseEntity.status(HttpStatus.CREATED);
+        ResponseEntity response;
         Bag bag = bags.find(new BagSearchCriteria().withId(id));
         AceToken token = tokens.find(new AceTokenSearchCriteria().withBagId(id).withFilenames(ImmutableList.of(model.getFilename())));
+
         if (bag == null) {
             response = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } else if (!authorized(principal, bag)) {
+            response = ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } else if (token != null) {
             response = ResponseEntity.status(HttpStatus.CONFLICT).build();
         } else {
@@ -88,6 +116,10 @@ public class BagTokenController {
         }
 
         return response;
+    }
+
+    private boolean authorized(Principal principal, Bag bag) {
+        return hasRoleAdmin() || bag.getCreator().equalsIgnoreCase(principal.getName());
     }
 
 }
