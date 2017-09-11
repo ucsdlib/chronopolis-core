@@ -1,5 +1,8 @@
 package org.chronopolis.rest.models;
 
+import org.hibernate.validator.constraints.NotBlank;
+
+import javax.validation.constraints.NotNull;
 import java.time.ZonedDateTime;
 
 /**
@@ -11,11 +14,23 @@ public class AceTokenModel {
 
     private Long id;
     private Long bagId;
+
+    @NotNull
     private Long round;
+
+    @NotBlank
     private String proof;
+
+    @NotBlank
     private String filename;
+
+    @NotBlank
     private String algorithm;
+
+    @NotBlank
     private String imsService;
+
+    @NotNull
     private ZonedDateTime createDate;
 
     public Long getId() {

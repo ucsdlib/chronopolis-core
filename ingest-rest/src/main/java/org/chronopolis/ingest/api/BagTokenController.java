@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.security.Principal;
 import java.util.Date;
 
@@ -54,8 +55,8 @@ public class BagTokenController extends IngestController {
      * Retrieve all tokens for a bag
      *
      * @param principal the user requesting the tokens
-     * @param id the id of the bag
-     * @param filter parameters to filter on
+     * @param id        the id of the bag
+     * @param filter    parameters to filter on
      * @return A paged view of tokens
      */
     @GetMapping("/tokens")
@@ -71,7 +72,7 @@ public class BagTokenController extends IngestController {
 
     /**
      * Create a token for a given bag
-     *
+     * <p>
      * ResponseCodes:
      * 201 - Created successfully
      * 400 - RequestBody could not be validated
@@ -88,12 +89,16 @@ public class BagTokenController extends IngestController {
     @PostMapping("/tokens")
     public ResponseEntity<AceToken> createTokenForBag(Principal principal,
                                                       @PathVariable("id") Long id,
-                                                      @RequestBody AceTokenModel model) {
+                                                      @Valid @RequestBody AceTokenModel model) {
         log.info("[POST /api/bags/{}/tokens] - {}", id, principal.getName());
 
         ResponseEntity response;
+        AceTokenSearchCriteria searchCriteria = new AceTokenSearchCriteria()
+                .withBagId(id)
+                .withFilenames(ImmutableList.of(model.getFilename()));
+
         Bag bag = bags.find(new BagSearchCriteria().withId(id));
-        AceToken token = tokens.find(new AceTokenSearchCriteria().withBagId(id).withFilenames(ImmutableList.of(model.getFilename())));
+        AceToken token = tokens.find(searchCriteria);
 
         if (bag == null) {
             response = ResponseEntity.status(HttpStatus.NOT_FOUND).build();

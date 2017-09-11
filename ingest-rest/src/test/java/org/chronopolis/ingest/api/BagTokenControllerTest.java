@@ -123,6 +123,19 @@ public class BagTokenControllerTest extends IngestTest {
         verify(tokenService, times(0)).save(any(AceToken.class));
     }
 
+    @Test
+    public void testCreateTokenBadRequest() throws Exception {
+        Bag bag = new Bag("test-name", "test-depositor");
+        bag.setId(1L);
+        AceTokenModel model = generateModel();
+        model.setFilename(null);
+
+        runCreateToken(model, bag, HttpStatus.BAD_REQUEST);
+        verify(bagService, times(0)).find(any(SearchCriteria.class));
+        verify(tokenService, times(0)).save(any(AceToken.class));
+    }
+
+
     //
     // Helpers
     //
