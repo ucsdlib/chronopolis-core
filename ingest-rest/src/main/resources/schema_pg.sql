@@ -28,6 +28,8 @@ CREATE TABLE bag (
     creator VARCHAR(255),
     depositor varchar(255),
     status varchar(255),
+    size bigint NOT NULL,
+    total_files bigint NOT NULL,
     required_replications int
 );
 

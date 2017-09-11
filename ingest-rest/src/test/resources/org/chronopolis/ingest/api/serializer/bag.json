@@ -1,5 +1,7 @@
 {
   "id": 1,
+  "size": 1,
+  "totalFiles": 1,
   "bagStorage": {
     "active": true,
     "size": 1,

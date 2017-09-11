@@ -13,6 +13,8 @@ import java.util.Set;
  */
 public class Bag implements Comparable<Bag> {
     private Long id;
+    private Long size;
+    private Long totalFiles;
     private StagingStorageModel bagStorage;
     private StagingStorageModel tokenStorage;
     private ZonedDateTime createdAt;
@@ -33,6 +35,24 @@ public class Bag implements Comparable<Bag> {
 
     public Bag setId(Long id) {
         this.id = id;
+        return this;
+    }
+
+    public Long getSize() {
+        return size;
+    }
+
+    public Bag setSize(Long size) {
+        this.size = size;
+        return this;
+    }
+
+    public Long getTotalFiles() {
+        return totalFiles;
+    }
+
+    public Bag setTotalFiles(Long totalFiles) {
+        this.totalFiles = totalFiles;
         return this;
     }
 
@@ -134,4 +154,5 @@ public class Bag implements Comparable<Bag> {
                 .compare(name, bag.name)
                 .result();
     }
+
 }

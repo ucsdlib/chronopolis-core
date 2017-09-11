@@ -59,6 +59,8 @@ public class BagSerializerTest {
 
         Bag b = new Bag("bag", "depositor");
         b.setId(1L);
+        b.setSize(1L);
+        b.setTotalFiles(1L);
         b.setBagStorage(createStorage());
         b.setRequiredReplications(1);
         b.setCreator("creator");
