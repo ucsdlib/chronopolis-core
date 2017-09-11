@@ -7,10 +7,12 @@ import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.WebContext;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
+import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.IngestRequest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,11 +55,9 @@ public class BagControllerTest extends IngestTest {
     private MockMvc mvc;
 
     // Mocks for the StagingController
-    @MockBean
-    private SearchService<Bag, Long, BagRepository> bagService;
-
-    @MockBean
-    private NodeRepository nodes;
+    @MockBean private NodeRepository nodes;
+    @MockBean private SearchService<Bag, Long, BagRepository> bagService;
+    @MockBean private SearchService<StorageRegion, Long, StorageRegionRepository> regions;
 
     @Test
     public void testGetBags() throws Exception {
@@ -110,6 +110,7 @@ public class BagControllerTest extends IngestTest {
         request.setReplicatingNodes(ImmutableList.of(NODE));
 
         when(bagService.find(any(SearchCriteria.class))).thenReturn(null);
+        when(regions.find(any(SearchCriteria.class))).thenReturn(new StorageRegion());
         when(nodes.findByUsername(eq(NODE))).thenReturn(new Node(NODE, "password"));
 
         mvc.perform(
@@ -138,6 +139,7 @@ public class BagControllerTest extends IngestTest {
         request.setReplicatingNodes(ImmutableList.of(NODE));
 
         when(bagService.find(any(SearchCriteria.class))).thenReturn(bag());
+        when(regions.find(any(SearchCriteria.class))).thenReturn(new StorageRegion());
 
         mvc.perform(
                 post("/api/bags")

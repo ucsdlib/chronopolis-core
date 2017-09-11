@@ -115,10 +115,11 @@ public class StorageControllerTest {
                 .setReplicationUser("test-user");
 
         when(nodes.findByUsername(eq(node))).thenReturn(new Node(node, node));
-        mvc.perform(post("/api/storage")
-                .principal(() -> node)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(asJson(request)))
+        mvc.perform(
+                post("/api/storage")
+                        .principal(() -> node)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJson(request)))
                 .andDo(print())
                 .andExpect(status().isCreated());
     }

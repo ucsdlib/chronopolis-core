@@ -66,14 +66,9 @@ public class ReplicationControllerTest extends IngestTest {
     @Autowired
     private MockMvc mvc;
 
-    @MockBean
-    private ReplicationService service;
-
-    @MockBean
-    private SecurityContext context;
-
-    @MockBean
-    private Authentication authentication;
+    @MockBean private SecurityContext context;
+    @MockBean private ReplicationService service;
+    @MockBean private Authentication authentication;
 
     @Before
     public void setup() {

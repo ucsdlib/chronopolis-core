@@ -1,5 +1,6 @@
 package org.chronopolis.rest.models;
 
+import com.google.common.collect.ComparisonChain;
 import org.chronopolis.rest.models.storage.StagingStorageModel;
 
 import java.time.ZonedDateTime;
@@ -7,10 +8,10 @@ import java.util.Set;
 
 /**
  * Representation of a bag which is seen from outside the ingest server
- *
+ * <p>
  * Created by shake on 8/1/16.
  */
-public class Bag {
+public class Bag implements Comparable<Bag> {
     private Long id;
     private StagingStorageModel bagStorage;
     private StagingStorageModel tokenStorage;
@@ -123,5 +124,14 @@ public class Bag {
     public Bag setTokenStorage(StagingStorageModel tokenStorage) {
         this.tokenStorage = tokenStorage;
         return this;
+    }
+
+    @Override
+    public int compareTo(Bag bag) {
+        return ComparisonChain.start()
+                .compare(id, bag.id)
+                .compare(depositor, bag.depositor)
+                .compare(name, bag.name)
+                .result();
     }
 }

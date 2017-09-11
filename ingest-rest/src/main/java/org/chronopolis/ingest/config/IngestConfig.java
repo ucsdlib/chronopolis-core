@@ -5,18 +5,24 @@ import org.apache.catalina.connector.Connector;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.storage.TokenStagingProperties;
 import org.chronopolis.ingest.IngestProperties;
+import org.chronopolis.ingest.api.serializer.AceTokenSerializer;
 import org.chronopolis.ingest.api.serializer.BagSerializer;
 import org.chronopolis.ingest.api.serializer.RepairSerializer;
 import org.chronopolis.ingest.api.serializer.ReplicationSerializer;
+import org.chronopolis.ingest.api.serializer.StagingStorageSerializer;
+import org.chronopolis.ingest.api.serializer.StorageRegionSerializer;
 import org.chronopolis.ingest.api.serializer.ZonedDateTimeDeserializer;
 import org.chronopolis.ingest.api.serializer.ZonedDateTimeSerializer;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
 import org.chronopolis.ingest.repository.StorageRegionRepository;
+import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Repair;
 import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +77,11 @@ public class IngestConfig {
     }
 
     @Bean
+    public SearchService<AceToken, Long, TokenRepository> tokenService(TokenRepository repository) {
+        return new SearchService<>(repository);
+    }
+
+    @Bean
     public EmbeddedServletContainerFactory embeddedServletContainerFactory(IngestProperties properties) {
         IngestProperties.Ajp ajp = properties.getAjp();
         String AJP_SCHEME = "http";
@@ -97,8 +108,11 @@ public class IngestConfig {
         builder.serializationInclusion(JsonInclude.Include.NON_NULL);
         builder.serializerByType(Bag.class, new BagSerializer());
         builder.serializerByType(Repair.class, new RepairSerializer());
+        builder.serializerByType(AceToken.class, new AceTokenSerializer());
         builder.serializerByType(Replication.class, new ReplicationSerializer());
+        builder.serializerByType(StorageRegion.class, new StorageRegionSerializer());
         builder.serializerByType(ZonedDateTime.class, new ZonedDateTimeSerializer());
+        builder.serializerByType(StagingStorage.class, new StagingStorageSerializer());
         builder.deserializerByType(ZonedDateTime.class, new ZonedDateTimeDeserializer());
         return builder;
     }

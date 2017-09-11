@@ -3,6 +3,8 @@ package org.chronopolis.ingest.models;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 /**
  * Hold common paging attributes
@@ -10,6 +12,8 @@ import com.google.common.collect.Multimaps;
  * Created by shake on 6/15/17.
  */
 public class Paged {
+
+    private static final int DEFAULT_PAGE_SIZE = 25;
 
     private String dir;
     private Integer page = 0;
@@ -45,6 +49,12 @@ public class Paged {
         this.orderBy = orderBy;
         parameters.put("orderBy", orderBy);
         return this;
+    }
+
+    public PageRequest createPageRequest() {
+        Sort.Direction direction = (dir == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(dir);
+        Sort s = new Sort(direction, orderBy);
+        return new PageRequest(page, DEFAULT_PAGE_SIZE, s);
     }
 
     public Multimap<String, String> getParameters() {

@@ -2,14 +2,18 @@ package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableMap;
 import org.chronopolis.ingest.IngestController;
+import org.chronopolis.ingest.exception.BadRequestException;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
+import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
+import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.storage.StagingStorage;
+import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.IngestRequest;
 import org.slf4j.Logger;
@@ -54,11 +58,15 @@ public class BagController extends IngestController {
 
     private final NodeRepository nodeRepository;
     private final SearchService<Bag, Long, BagRepository> bagService;
+    private final SearchService<StorageRegion, Long, StorageRegionRepository> regions;
 
     @Autowired
-    public BagController(NodeRepository nodeRepository, SearchService<Bag, Long, BagRepository> bagService) {
+    public BagController(NodeRepository nodeRepository,
+                         SearchService<Bag, Long, BagRepository> bagService,
+                         SearchService<StorageRegion, Long, StorageRegionRepository> regions) {
         this.nodeRepository = nodeRepository;
         this.bagService = bagService;
+        this.regions = regions;
     }
 
     /**
@@ -110,10 +118,16 @@ public class BagController extends IngestController {
     public Bag stageBag(Principal principal, @RequestBody IngestRequest request)  {
         String name = request.getName();
         String depositor = request.getDepositor();
+        Long regionId = request.getStorageRegion();
 
         BagSearchCriteria criteria = new BagSearchCriteria()
                 .withName(name)
                 .withDepositor(depositor);
+
+        StorageRegion region = regions.find(new StorageRegionSearchCriteria().withId(regionId));
+        if (region == null) {
+            throw new BadRequestException("Invalid StorageRegion");
+        }
 
         Bag bag = bagService.find(criteria);
         if (bag != null) {
@@ -129,8 +143,8 @@ public class BagController extends IngestController {
 
         // todo: More Storage information should be passed in upon creation
         //       * fixity information (done later?)
-        //       * get region by id
         StagingStorage storage = new StagingStorage();
+        storage.setRegion(region);
         storage.setActive(true);
         storage.setSize(request.getSize());
         storage.setTotalFiles(request.getTotalFiles());

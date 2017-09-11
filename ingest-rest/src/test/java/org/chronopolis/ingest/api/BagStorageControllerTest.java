@@ -49,12 +49,8 @@ public class BagStorageControllerTest {
     @Autowired
     private MockMvc mvc;
 
-    @MockBean
-    private SearchService<Bag, Long, BagRepository> bagService;
-
-    @MockBean
-    private NodeRepository nodes;
-
+    @MockBean private NodeRepository nodes;
+    @MockBean private SearchService<Bag, Long, BagRepository> bagService;
 
     @Before
     public void setup() {

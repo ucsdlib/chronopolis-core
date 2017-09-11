@@ -1,11 +1,10 @@
-package org.chronopolis.ingest;
+package org.chronopolis.ingest.tokens;
 
-import com.google.common.hash.HashingOutputStream;
 import edu.umiacs.ace.token.TokenStoreWriter;
 import org.chronopolis.rest.entities.AceToken;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
+import java.io.OutputStream;
 
 
 /**
@@ -20,14 +19,9 @@ import java.io.IOException;
  */
 public class TokenWriter extends TokenStoreWriter<AceToken> {
     final String ims;
-    final HashingOutputStream os;
 
-    @Nullable
-    private String digest;
-
-    public TokenWriter(HashingOutputStream os, String ims) {
+    public TokenWriter(OutputStream os, String ims) {
         super(os);
-        this.os = os;
         this.ims = ims;
     }
 
@@ -44,15 +38,9 @@ public class TokenWriter extends TokenStoreWriter<AceToken> {
         }
     }
 
-    public String getTokenDigest() {
-        return digest;
-    }
-
     @Override
     public void close() throws IOException {
         super.close();
-
-        this.digest = os.hash().toString();
     }
 
 }

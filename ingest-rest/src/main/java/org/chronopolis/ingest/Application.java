@@ -6,7 +6,7 @@ import org.chronopolis.ingest.controller.SiteController;
 import org.chronopolis.ingest.repository.Authority;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
 import org.chronopolis.ingest.service.IngestService;
-import org.chronopolis.ingest.task.TokenTask;
+import org.chronopolis.ingest.task.TokenWriteTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +26,7 @@ import org.springframework.context.annotation.ComponentScan;
         IngestService.class,
         BagController.class,
         SiteController.class,
-        TokenTask.class,
+        TokenWriteTask.class,
         IngestConfig.class,
         ReplicationService.class
 })
