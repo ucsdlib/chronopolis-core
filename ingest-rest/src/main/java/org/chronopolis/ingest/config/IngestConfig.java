@@ -17,6 +17,7 @@ import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
 import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
+import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
@@ -33,6 +34,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
+import javax.persistence.EntityManager;
 import java.time.ZonedDateTime;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -72,8 +74,8 @@ public class IngestConfig {
     }
 
     @Bean
-    public SearchService<Bag, Long, BagRepository> bagService(BagRepository repository) {
-        return new SearchService<>(repository);
+    public BagService bagService(BagRepository repository, EntityManager entityManager) {
+        return new BagService(repository, entityManager);
     }
 
     @Bean

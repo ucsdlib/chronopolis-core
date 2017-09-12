@@ -2,25 +2,19 @@ package org.chronopolis.ingest.task;
 
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.storage.TokenStagingProperties;
-import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
-import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
+import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.ingest.tokens.TokenStoreWriter;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.storage.StorageRegion;
-import org.chronopolis.rest.models.BagStatus;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import static org.chronopolis.ingest.api.Params.SORT_ID;
 
 /**
  * Task to spawn new TokenWriter threads or whatever
@@ -34,14 +28,14 @@ public class TokenWriteTask {
     private final TokenStagingProperties properties;
     private final TrackingThreadPoolExecutor<Bag> tokenExecutor;
 
-    private final SearchService<Bag, Long, BagRepository> bags;
+    private final BagService bags;
     private final SearchService<AceToken, Long, TokenRepository> tokens;
     private final SearchService<StorageRegion, Long, StorageRegionRepository> regions;
 
     @Autowired
     public TokenWriteTask(TokenStagingProperties properties,
                           TrackingThreadPoolExecutor<Bag> tokenExecutor,
-                          SearchService<Bag, Long, BagRepository> bags,
+                          BagService bags,
                           SearchService<AceToken, Long, TokenRepository> tokens,
                           SearchService<StorageRegion, Long, StorageRegionRepository> regions) {
         this.properties = properties;
@@ -51,18 +45,16 @@ public class TokenWriteTask {
         this.regions = regions;
     }
 
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "0 */1 * * * *")
     public void searchForTokenizedBags() {
         StorageRegionSearchCriteria srCriteria = new StorageRegionSearchCriteria()
                 .withId(properties.getPosix().getId());
         StorageRegion region = regions.find(srCriteria);
 
-        BagSearchCriteria criteria = new BagSearchCriteria()
-                .withStatus(BagStatus.TOKENIZED);
-
-        // see if we need to iterate pages or not
-        bags.findAll(criteria, new PageRequest(0, 50, Sort.DEFAULT_DIRECTION, SORT_ID))
-                .forEach(bag -> tokenExecutor.submitIfAvailable(new TokenStoreWriter(bag, region, properties, bags, tokens), bag));
+        bags.getBagsWithAllTokens().forEach(bag -> {
+            TokenStoreWriter writer = new TokenStoreWriter(bag, region, properties, bags, tokens);
+            tokenExecutor.submitIfAvailable(writer, bag);
+        });
     }
 
 }
