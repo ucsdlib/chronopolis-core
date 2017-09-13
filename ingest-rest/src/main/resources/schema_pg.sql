@@ -198,7 +198,6 @@ CREATE TABLE staging_storage (
     path VARCHAR(255),
     size BIGINT,
     total_files BIGINT,
-    -- checksum VARCHAR(255),
     created_at TIMESTAMP,
     updated_at TIMESTAMP
 );

@@ -45,7 +45,7 @@ public class TokenWriteTask {
         this.regions = regions;
     }
 
-    @Scheduled(cron = "0 */1 * * * *")
+    @Scheduled(cron = "0 */10 * * * *")
     public void searchForTokenizedBags() {
         StorageRegionSearchCriteria srCriteria = new StorageRegionSearchCriteria()
                 .withId(properties.getPosix().getId());
