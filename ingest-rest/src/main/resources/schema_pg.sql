@@ -244,3 +244,6 @@ ALTER TABLE bag
 
 ALTER TABLE bag
     ADD CONSTRAINT FK_bag_tokens FOREIGN KEY (bag_storage_id) REFERENCES staging_storage;
+
+-- Indices
+CREATE INDEX CONCURRENTLY idx_filename ON ace_token (bag, filename);
