@@ -43,7 +43,6 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
     private static final String DEFAULT_USER = "chronopolis";
     private final Logger log = LoggerFactory.getLogger(ReplicationService.class);
 
-    private final ReplicationRepository replicationRepository;
     private final BagRepository bagRepository;
     private final NodeRepository nodeRepository;
 
@@ -52,7 +51,6 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
                               BagRepository bagRepository,
                               NodeRepository nodeRepository) {
         super(replicationRepository);
-        this.replicationRepository = replicationRepository;
         this.bagRepository = bagRepository;
         this.nodeRepository = nodeRepository;
     }
