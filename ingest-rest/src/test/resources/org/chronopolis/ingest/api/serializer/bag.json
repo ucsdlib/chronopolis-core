@@ -22,7 +22,7 @@
   "creator": "creator",
   "depositor": "depositor",
   "status": "REPLICATING",
-  "requiredReplications": 0,
+  "requiredReplications": 1,
   "replicatingNodes": [
     "node"
   ]
