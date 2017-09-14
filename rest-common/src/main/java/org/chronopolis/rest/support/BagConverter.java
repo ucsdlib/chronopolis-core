@@ -27,6 +27,7 @@ public class BagConverter {
                 .setDepositor(be.getDepositor())
                 .setName(be.getName())
                 .setReplicatingNodes(be.getReplicatingNodes())
+                .setRequiredReplications(be.getRequiredReplications())
                 .setStatus(be.getStatus());
         return bm;
     }
