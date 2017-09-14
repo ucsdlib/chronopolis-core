@@ -138,11 +138,13 @@ public class BagProcessor implements Runnable {
      * @return the amount of errors occurred (0 or 1)
      */
     private int validate(String[] entry) {
+        String identifier = bag.getDepositor() + "::" + bag.getName();
         int error = 1;
         final int PATH_IDX = 1;
         final int DIGEST_IDX = 0;
         ManifestEntry manifestEntry = digester.entryFrom(bag, entry[PATH_IDX].trim(), entry[DIGEST_IDX].trim());
-        log.info("Creating entry from {} {}", entry[PATH_IDX].trim(), entry[DIGEST_IDX].trim());
+        log.trace("[{}] Creating entry from {} {}",
+                ImmutableList.of(identifier, entry[PATH_IDX].trim(), entry[DIGEST_IDX].trim()).toArray());
         if (manifestEntry.isValid()) {
             batch.add(manifestEntry);
             error = 0;
