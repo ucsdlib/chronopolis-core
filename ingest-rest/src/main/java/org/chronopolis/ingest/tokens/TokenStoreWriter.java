@@ -13,6 +13,7 @@ import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
+import org.chronopolis.rest.models.BagStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -132,6 +133,7 @@ public class TokenStoreWriter implements Runnable {
                     .setValue(hash));
 
             bag.setTokenStorage(storage);
+            bag.setStatus(BagStatus.TOKENIZED);
             bagService.save(bag);
         } catch (IOException ex) {
             log.error("Error writing token store {}", store, ex);

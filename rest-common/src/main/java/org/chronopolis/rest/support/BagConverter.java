@@ -20,11 +20,14 @@ public class BagConverter {
                 .setBagStorage(toStorageModel(be.getBagStorage()))
                 .setTokenStorage(toStorageModel(be.getTokenStorage()))
                 .setId(be.getId())
+                .setSize(be.getSize())
+                .setTotalFiles(be.getTotalFiles())
                 .setUpdatedAt(be.getUpdatedAt())
                 .setCreator(be.getCreator())
                 .setDepositor(be.getDepositor())
                 .setName(be.getName())
                 .setReplicatingNodes(be.getReplicatingNodes())
+                .setRequiredReplications(be.getRequiredReplications())
                 .setStatus(be.getStatus());
         return bm;
     }

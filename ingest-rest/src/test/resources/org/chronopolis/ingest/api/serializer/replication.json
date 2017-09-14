@@ -13,7 +13,7 @@
     "name": "bag",
     "depositor": "depositor",
     "status": "DEPOSITED",
-    "requiredReplications": 0,
+    "requiredReplications": 3,
     "replicatingNodes": []
   }
 }

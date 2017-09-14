@@ -1,6 +1,7 @@
 package org.chronopolis.rest.models;
 
 import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableSet;
 import org.chronopolis.rest.entities.Replication;
 
 /**
@@ -47,6 +48,10 @@ public enum ReplicationStatus {
     // TODO: Can use the isClientStatus() to shorten this
     public boolean isOngoing() {
         return !(this.isFailure() || this == SUCCESS);
+    }
+
+    public static ImmutableSet<ReplicationStatus> active() {
+        return ImmutableSet.of(PENDING, STARTED, TRANSFERRED, ACE_REGISTERED, ACE_TOKEN_LOADED, ACE_AUDITING);
     }
 
     public static ImmutableListMultimap<String, ReplicationStatus> statusByGroup() {

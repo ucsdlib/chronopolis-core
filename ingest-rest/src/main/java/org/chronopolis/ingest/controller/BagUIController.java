@@ -14,6 +14,7 @@ import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.ReplicationSearchCriteria;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
 import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.ingest.support.ReplicationCreateResult;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Replication;
@@ -373,8 +374,13 @@ public class BagUIController extends IngestController {
     @RequestMapping(value = "/replications/add", method = RequestMethod.POST)
     public String addReplication(Principal principal, ReplicationRequest request) {
         log.info("[POST /replications/add] - {}", principal.getName());
-        Replication replication = replicationService.create(request);
-        return "redirect:/replications/" + replication.getId();
+        ReplicationCreateResult result = replicationService.create(request);
+
+        // todo: find a way to display errors backwards
+        String template = result.getResult()
+                .map(repl -> "redirect:/replications/" + repl.getId())
+                .orElse("redirect:/replications/create");
+        return template;
     }
 
 }

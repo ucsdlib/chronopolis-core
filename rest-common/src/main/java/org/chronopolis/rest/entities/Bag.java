@@ -44,10 +44,12 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
     private String creator;
     private String depositor;
 
+    private long size;
+    private long totalFiles;
+    private int requiredReplications;
+
     @Enumerated(EnumType.STRING)
     private BagStatus status;
-
-    private int requiredReplications;
 
     // Might want to lazy fetch this if possible
     @OneToMany(mappedBy = "bag", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
@@ -203,6 +205,24 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
 
     public Bag setTokenStorage(StagingStorage tokenStorage) {
         this.tokenStorage = tokenStorage;
+        return this;
+    }
+
+    public long getSize() {
+        return size;
+    }
+
+    public Bag setSize(long size) {
+        this.size = size;
+        return this;
+    }
+
+    public long getTotalFiles() {
+        return totalFiles;
+    }
+
+    public Bag setTotalFiles(long totalFiles) {
+        this.totalFiles = totalFiles;
         return this;
     }
 }

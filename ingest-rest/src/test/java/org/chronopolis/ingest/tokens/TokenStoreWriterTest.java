@@ -18,6 +18,7 @@ import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
+import org.chronopolis.rest.models.BagStatus;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -76,6 +77,7 @@ public class TokenStoreWriterTest extends IngestTest {
         Bag updated = bagService.find(new BagSearchCriteria().withId(3L));
         Assert.assertNotNull(updated.getTokenStorage());
         Assert.assertNotNull(updated.getTokenStorage().getFixities());
+        Assert.assertEquals(BagStatus.TOKENIZED, updated.getStatus());
         Assert.assertNotEquals(0, updated.getTokenStorage().getFixities().size());
 
         // assert that the file exists

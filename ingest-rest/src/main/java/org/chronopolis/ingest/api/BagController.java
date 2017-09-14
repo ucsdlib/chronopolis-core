@@ -137,8 +137,12 @@ public class BagController extends IngestController {
         }
 
         log.debug("Received ingest request {}", request);
+        Long size = request.getSize();
+        Long totalFiles = request.getTotalFiles();
 
         bag = new Bag(name, depositor);
+        bag.setSize(size);
+        bag.setTotalFiles(totalFiles);
         bag.setCreator(principal.getName());
 
         // todo: More Storage information should be passed in upon creation
@@ -146,8 +150,8 @@ public class BagController extends IngestController {
         StagingStorage storage = new StagingStorage();
         storage.setRegion(region);
         storage.setActive(true);
-        storage.setSize(request.getSize());
-        storage.setTotalFiles(request.getTotalFiles());
+        storage.setSize(size);
+        storage.setTotalFiles(totalFiles);
         storage.setPath(request.getLocation());
         bag.setBagStorage(storage);
 

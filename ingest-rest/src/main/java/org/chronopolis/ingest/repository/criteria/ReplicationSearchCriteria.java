@@ -6,8 +6,8 @@ import org.chronopolis.rest.entities.QReplication;
 import org.chronopolis.rest.models.ReplicationStatus;
 
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -78,7 +78,7 @@ public class ReplicationSearchCriteria implements SearchCriteria {
         return this;
     }
 
-    public ReplicationSearchCriteria withStatuses(List<ReplicationStatus> statuses) {
+    public ReplicationSearchCriteria withStatuses(Collection<ReplicationStatus> statuses) {
         if (statuses != null) {
             criteria.put(Params.STATUS, replication.status.in(statuses));
         }

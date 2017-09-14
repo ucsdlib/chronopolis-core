@@ -28,6 +28,8 @@ CREATE TABLE bag (
     creator VARCHAR(255),
     depositor varchar(255),
     status varchar(255),
+    size bigint NOT NULL,
+    total_files bigint NOT NULL,
     required_replications int
 );
 
@@ -196,7 +198,6 @@ CREATE TABLE staging_storage (
     path VARCHAR(255),
     size BIGINT,
     total_files BIGINT,
-    -- checksum VARCHAR(255),
     created_at TIMESTAMP,
     updated_at TIMESTAMP
 );
@@ -243,3 +244,6 @@ ALTER TABLE bag
 
 ALTER TABLE bag
     ADD CONSTRAINT FK_bag_tokens FOREIGN KEY (bag_storage_id) REFERENCES staging_storage;
+
+-- Indices
+CREATE INDEX CONCURRENTLY idx_filename ON ace_token (bag, filename);

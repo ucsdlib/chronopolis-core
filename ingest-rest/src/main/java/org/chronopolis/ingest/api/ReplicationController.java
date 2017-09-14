@@ -16,6 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -63,9 +65,13 @@ public class ReplicationController extends IngestController {
      * @return
      */
     @RequestMapping(method = RequestMethod.POST)
-    public Replication createReplication(@RequestBody ReplicationRequest request) {
+    public ResponseEntity<Replication> createReplication(@RequestBody ReplicationRequest request) {
         log.debug("Received replication request {}", request);
-        return replicationService.create(request);
+        ResponseEntity<Replication> response;
+        response = replicationService.create(request)
+                .getResult().map(repl -> ResponseEntity.status(HttpStatus.CREATED).body(repl))
+                .orElse(ResponseEntity.badRequest().build());
+        return response;
     }
 
     private ReplicationSearchCriteria createCriteria(Principal principal, Long id) {

@@ -24,6 +24,8 @@ CREATE TABLE bag (
   creator VARCHAR(255),
   depositor VARCHAR(255),
   status VARCHAR(255),
+  size bigint not null,
+  total_files bigint not null,
   required_replications int,
   PRIMARY KEY (id)
 );
@@ -180,7 +182,6 @@ CREATE TABLE staging_storage (
     path VARCHAR(255),
     size BIGINT,
     total_files BIGINT,
-    -- checksum VARCHAR(255),
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     PRIMARY KEY(id)

@@ -1,0 +1,1 @@
+CREATE INDEX CONCURRENTLY idx_filename ON ace_token (bag, filename);
