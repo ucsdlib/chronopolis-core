@@ -8,7 +8,7 @@ import org.chronopolis.ingest.WebContext;
 import org.chronopolis.ingest.api.serializer.StorageRegionSerializer;
 import org.chronopolis.ingest.api.serializer.ZonedDateTimeDeserializer;
 import org.chronopolis.ingest.api.serializer.ZonedDateTimeSerializer;
-import org.chronopolis.ingest.models.RegionCreate;
+import org.chronopolis.rest.models.RegionCreate;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;

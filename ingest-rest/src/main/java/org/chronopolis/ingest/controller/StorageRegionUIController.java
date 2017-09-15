@@ -3,7 +3,7 @@ package org.chronopolis.ingest.controller;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.PageWrapper;
 import org.chronopolis.ingest.exception.ForbiddenException;
-import org.chronopolis.ingest.models.RegionCreate;
+import org.chronopolis.rest.models.RegionCreate;
 import org.chronopolis.ingest.models.ReplicationConfigUpdate;
 import org.chronopolis.ingest.models.filter.StorageRegionFilter;
 import org.chronopolis.ingest.repository.NodeRepository;
