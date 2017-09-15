@@ -5,6 +5,7 @@ import org.chronopolis.rest.models.repair.FulfillmentStrategy;
 import org.chronopolis.rest.models.repair.Repair;
 import org.chronopolis.rest.models.repair.RepairRequest;
 import org.chronopolis.rest.models.repair.RepairStatus;
+import org.springframework.data.domain.PageImpl;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
@@ -43,7 +44,7 @@ public interface RepairService {
      * @return
      */
     @GET(REPAIR_ROOT)
-    Call<Repair> get(@QueryMap Map<String, String> parameters);
+    Call<PageImpl<Repair>> get(@QueryMap Map<String, String> parameters);
 
     /**
      * Create a Repair request in the Ingest API

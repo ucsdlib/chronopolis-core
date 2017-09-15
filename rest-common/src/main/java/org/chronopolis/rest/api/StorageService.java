@@ -2,6 +2,7 @@ package org.chronopolis.rest.api;
 
 import org.chronopolis.rest.models.RegionCreate;
 import org.chronopolis.rest.models.storage.StorageRegion;
+import org.springframework.data.domain.PageImpl;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -42,7 +43,7 @@ public interface StorageService {
      * @return
      */
     @GET(STORAGE_ROOT)
-    Call<StorageRegion> get(@QueryMap Map<String, String>parameters);
+    Call<PageImpl<StorageRegion>> get(@QueryMap Map<String, String>parameters);
 
     /**
      * Create a StorageRegion for monitoring in the Ingest API
