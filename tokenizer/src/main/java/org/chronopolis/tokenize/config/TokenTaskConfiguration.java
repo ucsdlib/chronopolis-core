@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import okhttp3.OkHttpClient;
 import org.chronopolis.common.ace.AceConfiguration;
-import org.chronopolis.common.ace.OkBasicInterceptor;
+import org.chronopolis.rest.support.OkBasicInterceptor;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.api.IngestAPIProperties;

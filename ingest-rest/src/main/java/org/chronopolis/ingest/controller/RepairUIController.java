@@ -7,7 +7,7 @@ import okhttp3.OkHttpClient;
 import org.chronopolis.common.ace.AceCollections;
 import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.common.ace.MonitoredItem;
-import org.chronopolis.common.ace.OkBasicInterceptor;
+import org.chronopolis.rest.support.OkBasicInterceptor;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.PageWrapper;
 import org.chronopolis.ingest.models.CollectionInfo;

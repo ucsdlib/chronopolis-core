@@ -8,7 +8,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.ace.AceService;
-import org.chronopolis.common.ace.OkBasicInterceptor;
+import org.chronopolis.rest.support.OkBasicInterceptor;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.mail.SmtpProperties;
 import org.chronopolis.common.storage.PreservationProperties;
