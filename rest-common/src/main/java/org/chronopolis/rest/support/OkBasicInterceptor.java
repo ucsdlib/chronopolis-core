@@ -1,9 +1,9 @@
-package org.chronopolis.common.ace;
+package org.chronopolis.rest.support;
 
+import com.google.common.io.BaseEncoding;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.apache.commons.codec.binary.Base64;
 
 import java.io.IOException;
 
@@ -25,7 +25,7 @@ public class OkBasicInterceptor implements Interceptor {
     @Override
     public Response intercept(Chain chain) throws IOException {
         String credentials = username + ":" + password;
-        String basicAuth = "Basic " + Base64.encodeBase64String(credentials.getBytes());
+        String basicAuth = "Basic " + BaseEncoding.base64().encode(credentials.getBytes());
 
         Request request = chain.request().newBuilder().header("Authorization", basicAuth).build();
 

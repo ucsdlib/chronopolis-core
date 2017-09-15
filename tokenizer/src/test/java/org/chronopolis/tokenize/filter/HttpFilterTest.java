@@ -1,7 +1,7 @@
 package org.chronopolis.tokenize.filter;
 
 import com.google.common.collect.ImmutableList;
-import org.chronopolis.rest.api.TokenAPI;
+import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.AceTokenModel;
 import org.chronopolis.test.support.CallWrapper;
 import org.chronopolis.test.support.ErrorCallWrapper;
@@ -27,7 +27,7 @@ public class HttpFilterTest {
     private HttpFilter filter;
     
     @Mock
-    private TokenAPI tokens;
+    private TokenService tokens;
 
     @Before
     public void setup() {

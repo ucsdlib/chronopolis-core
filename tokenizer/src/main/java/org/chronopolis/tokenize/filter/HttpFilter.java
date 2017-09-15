@@ -2,7 +2,7 @@ package org.chronopolis.tokenize.filter;
 
 import com.google.common.collect.ImmutableMap;
 import org.chronopolis.common.util.Filter;
-import org.chronopolis.rest.api.TokenAPI;
+import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.AceTokenModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,9 +20,9 @@ public class HttpFilter implements Filter<String> {
     private final Logger log = LoggerFactory.getLogger(HttpFilter.class);
 
     private Long bagId;
-    private TokenAPI api;
+    private TokenService api;
 
-    public HttpFilter(Long bagId, TokenAPI api) {
+    public HttpFilter(Long bagId, TokenService api) {
         this.bagId = bagId;
         this.api = api;
     }

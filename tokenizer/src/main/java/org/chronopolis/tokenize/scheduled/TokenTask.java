@@ -5,7 +5,7 @@ import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.storage.BagStagingProperties;
 import org.chronopolis.common.util.Filter;
 import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.api.TokenAPI;
+import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.tokenize.BagProcessor;
@@ -35,14 +35,14 @@ import java.io.IOException;
 public class TokenTask {
     private final Logger log = LoggerFactory.getLogger(TokenTask.class);
 
-    private final TokenAPI tokens;
+    private final TokenService tokens;
     private final IngestAPI ingest;
     private final BagStagingProperties properties;
     private final ChronopolisTokenRequestBatch batch;
     private final TrackingThreadPoolExecutor<Bag> executor;
 
     @Autowired
-    public TokenTask(TokenAPI tokens,
+    public TokenTask(TokenService tokens,
                      IngestAPI ingest,
                      BagStagingProperties properties,
                      ChronopolisTokenRequestBatch batch,

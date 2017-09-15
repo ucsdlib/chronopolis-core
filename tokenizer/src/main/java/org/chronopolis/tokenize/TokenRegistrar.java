@@ -3,7 +3,7 @@ package org.chronopolis.tokenize;
 import com.google.common.annotations.VisibleForTesting;
 import edu.umiacs.ace.ims.api.IMSUtil;
 import edu.umiacs.ace.ims.ws.TokenResponse;
-import org.chronopolis.rest.api.TokenAPI;
+import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.AceTokenModel;
 import org.chronopolis.rest.models.Bag;
 import org.slf4j.Logger;
@@ -32,11 +32,11 @@ public class TokenRegistrar implements Supplier<TokenResponse> {
      */
     private static Pattern pattern = Pattern.compile("\\(.*?,.*?\\)::(.*)");
 
-    private final TokenAPI tokens;
+    private final TokenService tokens;
     private final ManifestEntry entry;
     private final TokenResponse response;
 
-    public TokenRegistrar(TokenAPI tokens, ManifestEntry entry, TokenResponse response) {
+    public TokenRegistrar(TokenService tokens, ManifestEntry entry, TokenResponse response) {
         this.tokens = tokens;
         this.entry = entry;
         this.response = response;

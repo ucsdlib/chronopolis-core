@@ -2,7 +2,7 @@ package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableMap;
 import org.chronopolis.ingest.IngestController;
-import org.chronopolis.ingest.models.RegionCreate;
+import org.chronopolis.rest.models.RegionCreate;
 import org.chronopolis.ingest.models.filter.StorageRegionFilter;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.StorageRegionRepository;

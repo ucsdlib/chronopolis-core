@@ -1,4 +1,4 @@
-package org.chronopolis.ingest.models;
+package org.chronopolis.rest.models;
 
 import org.chronopolis.rest.models.storage.DataType;
 import org.chronopolis.rest.models.storage.StorageType;

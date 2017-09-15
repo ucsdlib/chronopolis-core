@@ -1,7 +1,7 @@
 package org.chronopolis.tokenize;
 
 import edu.umiacs.ace.ims.ws.TokenResponse;
-import org.chronopolis.rest.api.TokenAPI;
+import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.AceTokenModel;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.test.support.CallWrapper;
@@ -49,11 +49,11 @@ public class TokenRegistrarTest {
     private TokenResponse response;
     private TokenRegistrar registrar;
 
-    @Mock private TokenAPI tokens;
+    @Mock private TokenService tokens;
 
     @Before
     public void setup() throws DatatypeConfigurationException {
-        tokens = mock(TokenAPI.class);
+        tokens = mock(TokenService.class);
 
         Bag bag = new Bag();
         bag.setId(id);
