@@ -24,7 +24,10 @@ import java.util.Map;
  * Interface laying out the RESTful functions of the ingest-server
  *
  * Created by shake on 11/25/14.
+ * @deprecated deprecated in favor of the Service classes to keep roles/work
+ *             separated
  */
+@Deprecated
 public interface IngestAPI {
 
     // Bag methods
