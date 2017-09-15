@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import edu.umiacs.ace.ims.api.IMSException;
 import edu.umiacs.ace.ims.ws.TokenRequest;
 import org.chronopolis.common.ace.AceConfiguration;
-import org.chronopolis.rest.api.TokenAPI;
+import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.junit.Assert;
@@ -31,7 +31,7 @@ public class ChronopolisTokenRequestBatchTest {
     private ChronopolisTokenRequestBatch batcher;
 
     @Mock
-    private TokenAPI tokens;
+    private TokenService tokens;
     @Mock
     private ChronopolisTokenRequestBatch.ImsServiceWrapper wrapper;
 
@@ -41,7 +41,7 @@ public class ChronopolisTokenRequestBatchTest {
                 .setName("test-name")
                 .setDepositor("test-depositor");
 
-        tokens = mock(TokenAPI.class);
+        tokens = mock(TokenService.class);
         wrapper = mock(ChronopolisTokenRequestBatch.ImsServiceWrapper.class);
         configuration = new AceConfiguration()
                 .setIms(new AceConfiguration.Ims().setEndpoint("test-ims-endpoint"));

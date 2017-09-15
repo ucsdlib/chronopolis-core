@@ -7,7 +7,7 @@ import edu.umiacs.ace.ims.api.TokenRequestBatch;
 import edu.umiacs.ace.ims.ws.TokenRequest;
 import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.chronopolis.common.ace.AceConfiguration;
-import org.chronopolis.rest.api.TokenAPI;
+import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.TokenRegistrar;
 import org.slf4j.Logger;
@@ -39,17 +39,17 @@ public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable
     private final LinkedBlockingQueue<TokenRequest> requests;
     private final ConcurrentHashMap<String, ManifestEntry> entries;
 
-    private final TokenAPI tokens;
+    private final TokenService tokens;
     private final String tokenClass;
     private final int maxWaitTime;
     private final int maxQueueLength;
     private final ImsServiceWrapper ims;
 
-    public ChronopolisTokenRequestBatch(AceConfiguration configuration, TokenAPI tokens) {
+    public ChronopolisTokenRequestBatch(AceConfiguration configuration, TokenService tokens) {
         this(configuration, tokens, new ImsServiceWrapper(configuration.getIms()));
     }
 
-    public ChronopolisTokenRequestBatch(AceConfiguration configuration, TokenAPI tokens, ImsServiceWrapper wrapper) {
+    public ChronopolisTokenRequestBatch(AceConfiguration configuration, TokenService tokens, ImsServiceWrapper wrapper) {
         this.ims = wrapper;
         this.tokens = tokens;
 
@@ -60,7 +60,7 @@ public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable
 
         running = new AtomicBoolean(true);
         entries = new ConcurrentHashMap<>();
-        requests = new LinkedBlockingQueue<>();
+        requests = new LinkedBlockingQueue<>(imsConfiguration.getQueueLength() * 2);
     }
 
     /**

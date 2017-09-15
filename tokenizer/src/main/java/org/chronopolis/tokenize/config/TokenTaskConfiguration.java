@@ -9,7 +9,7 @@ import org.chronopolis.common.ace.OkBasicInterceptor;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.api.IngestAPIProperties;
-import org.chronopolis.rest.api.TokenAPI;
+import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.AceTokenModel;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.support.PageDeserializer;
@@ -41,9 +41,9 @@ import java.util.concurrent.TimeUnit;
 public class TokenTaskConfiguration {
 
     @Bean
-    public TokenAPI tokens(IngestAPIProperties properties) {
+    public TokenService tokens(IngestAPIProperties properties) {
         return buildRetrofit(properties)
-                .create(TokenAPI.class);
+                .create(TokenService.class);
     }
 
     @Bean
@@ -86,7 +86,7 @@ public class TokenTaskConfiguration {
     }
 
     @Bean(destroyMethod = "close")
-    public ChronopolisTokenRequestBatch batch(Executor executorForBatch, AceConfiguration configuration, TokenAPI tokens) {
+    public ChronopolisTokenRequestBatch batch(Executor executorForBatch, AceConfiguration configuration, TokenService tokens) {
         ChronopolisTokenRequestBatch batch = new ChronopolisTokenRequestBatch(configuration, tokens);
         executorForBatch.execute(batch);
         return batch;
