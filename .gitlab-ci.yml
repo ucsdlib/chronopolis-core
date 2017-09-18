@@ -100,3 +100,10 @@ rpm_replication:
     - 'cd replication-shell/rpm'
     - './build.sh'
     - 'for f in `find RPMS -type f`; do curl -X POST -H "Authorization: token $BUILD_TOKEN" --data-binary @$f $SERVER/artifacts/chronopolis/$CI_BUILD_REF_NAME/$(echo $CI_BUILD_REF | cut -c -7)/$(basename $f); done'
+
+deploy_tokenizer:
+  <<: rpm
+  script:
+    - 'cd tokenizer/deploy'
+    - './build.sh'
+    - 'for f in `find TARS -type f`; do curl -X POST -H "Authorization: token $BUILD_TOKEN" --data-binary @$f $SERVER/artifacts/chronopolis/$CI_BUILD_REF_NAME/$(echo $CI_BUILD_REF | cut -c -7)/$(basename $f); done'
