@@ -38,7 +38,7 @@ echo $jarfile
 
 if [ ! -e $jarfile ]; then
     echo "Building latest jar..."
-    mvn -q clean install # > /dev/null
+    exec mvn -q -Dmaven.test.redirectTestOutputToFile=true clean install # > /dev/null
     if [ $? -ne 0 ]; then
         echo "Error building replication-shell"
         exit 99
