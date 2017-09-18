@@ -5,13 +5,14 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import okhttp3.OkHttpClient;
 import org.chronopolis.common.ace.AceConfiguration;
-import org.chronopolis.rest.support.OkBasicInterceptor;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
-import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.api.IngestAPIProperties;
+import org.chronopolis.rest.api.IngestGenerator;
+import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.AceTokenModel;
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.support.OkBasicInterceptor;
 import org.chronopolis.rest.support.PageDeserializer;
 import org.chronopolis.rest.support.ZonedDateTimeDeserializer;
 import org.chronopolis.rest.support.ZonedDateTimeSerializer;
@@ -47,9 +48,8 @@ public class TokenTaskConfiguration {
     }
 
     @Bean
-    public IngestAPI ingest(IngestAPIProperties properties) {
-        return buildRetrofit(properties)
-                .create(IngestAPI.class);
+    public ServiceGenerator generator(IngestAPIProperties properties) {
+        return new IngestGenerator(properties);
     }
 
     private Retrofit buildRetrofit(IngestAPIProperties properties) {
