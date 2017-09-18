@@ -1,0 +1,13 @@
+chron.stage.bags.posix:
+  id: 3
+  path: /scratch0/bags/
+
+ace.ims:
+  endpoint: localhost
+  port: 8080
+  waitTime: 5000
+
+ingest.api:
+  endpoint: http://localhost:8000/
+  username: admin
+  password: admin
