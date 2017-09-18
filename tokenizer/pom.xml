@@ -21,6 +21,7 @@
                 <configuration>
                     <finalName>tokenizer-standalone-${project.version}</finalName>
                     <outputDirectory>${project.build.directory}/standalone</outputDirectory>
+                    <attach>false</attach>
                 </configuration>
             </plugin>
         </plugins>

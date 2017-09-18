@@ -14,6 +14,7 @@
     <packaging>pom</packaging>
 
     <name>Core Chronopolis</name>
+    <url>https://gitlab.umiacs.umd.edu/chronopolis</url>
 
     <!-- Core Modules -->
     <modules>
