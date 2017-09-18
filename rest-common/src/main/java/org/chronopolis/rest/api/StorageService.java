@@ -43,7 +43,7 @@ public interface StorageService {
      * @return
      */
     @GET(STORAGE_ROOT)
-    Call<PageImpl<StorageRegion>> get(@QueryMap Map<String, String>parameters);
+    Call<PageImpl<StorageRegion>> get(@QueryMap Map<String, String> parameters);
 
     /**
      * Create a StorageRegion for monitoring in the Ingest API
