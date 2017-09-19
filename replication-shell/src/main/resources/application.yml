@@ -1,0 +1,62 @@
+# Replication Configuration Properties
+ 
+# Replication Service Configuration
+# node: the name to use when sending notification messages
+# send-on-success: flag to enable sending notification on successful replications
+chron:
+  node: chron
+  smtp.send-on-success: true
+ 
+# ACE-AM Configuration
+# am: the endpoint of the Audit Manager application
+# username: the username to connect to the Audit Manager with
+# password: the password to connect to the Audit Manager with
+ace:
+  am: http://localhost:8080/ace-am/
+  username: user
+  password: change-me
+ 
+# Ingest API Configuration
+# endpoint: the endpoint of the Ingest Server
+# username: the username to connect to the Ingest Server with
+# password: the password tot connect to the Ingest Server with
+ingest.api:
+  endpoint: https://localhost:8080/ingest/
+  username: ingest-user
+  password: change-me
+ 
+# Preservation Storage Configuration: Only posix supported at this time
+# posix: a list of Storage Filesystems available
+#   id: the id of the Storage Filesystem (optional for replication - Storage doesn't need to be registered with the Ingest Server)
+#   path: the path on disk to the Storage FS
+storage.preservation:
+  posix:
+    - id: 1
+      path: /export/bags/
+    - id: 2
+      path: /export/more-bags/
+ 
+# Replication Cron Job Configuration
+# The rate at which to poll the ingest server for replications
+replication.cron: 0 0 * * * *
+ 
+# Various Configuration Properties
+# timeout: the timeout in Minutes for HTTP communication with the Audit Manager
+ace.timeout: 5
+ 
+# SMTP Configuration
+smtp:
+  send: true
+  to: chron-support-l@mailman.ucsd.edu
+  from: localhost
+  host: localhost.localdomain
+ 
+# Specify the active profile for loading various services, normally production
+spring.profiles.active: production
+ 
+# Logging properties
+logging.file: replication.log
+logging.level:
+  org.springframework: ERROR
+  org.hibernate: ERROR
+  org.chronopolis: DEBUG 

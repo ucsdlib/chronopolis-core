@@ -50,7 +50,7 @@ fi
 
 # Copy the artifacts
 cp $jarfile rpm/$finaljar
-cp target/classes/application.properties rpm/$sources
+cp target/classes/application.yml rpm/$sources
 cp src/main/sh/replication.sh rpm/$sources
 
 # cd back to where we started and build the rpm
