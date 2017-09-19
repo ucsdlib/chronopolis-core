@@ -14,11 +14,6 @@
 #   with multiple JDKs.
 # * Uses site:stage to collect the documentation for multi-module projects.
 # * Publishes the documentation for `master` branch.
-
-before_script:
-  - apt-get update -y
-  - apt-get install -y rsync
-
 variables:
   # This will supress any download for dependencies and plugins or upload messages which would clutter the console log.
   # `showDateTime` will show the passed time in milliseconds. You need to specify `--batch-mode` to make this work.
@@ -37,6 +32,9 @@ cache:
 # Because some enforcer rules might check dependency convergence and class duplications
 # we use `test-compile` here instead of `validate`, so the correct classpath is picked up.
 .validate: &validate
+  before_script:
+    - apt-get update -y
+    - apt-get install -y rsync
   stage: build
   script:
     - 'mvn $MAVEN_CLI_OPTS test-compile'
@@ -44,6 +42,9 @@ cache:
 # For merge requests do not `deploy` but only run `verify`.
 # See https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html
 .verify: &verify
+  before_script:
+    - apt-get update -y
+    - apt-get install -y rsync
   stage: test
   script:
     - 'mvn $MAVEN_CLI_OPTS verify'
@@ -102,9 +103,12 @@ rpm_replication:
     - 'for f in `find RPMS -type f`; do curl -X POST -H "Authorization: token $BUILD_TOKEN" --data-binary @$f $SERVER/artifacts/chronopolis/$CI_BUILD_REF_NAME/$(echo $CI_BUILD_REF | cut -c -7)/$(basename $f); done'
 
 deploy_tokenizer:
-  <<: *rpm
+  stage: deploy
+  only:
+    - master
+    - develop
   script:
     - 'cd tokenizer/deploy'
     - './build.sh'
-    - 'ls TARS'
     - 'for f in `find TARS -type f`; do curl -X POST -H "Authorization: token $BUILD_TOKEN" --data-binary @$f $SERVER/artifacts/chronopolis/$CI_BUILD_REF_NAME/$(echo $CI_BUILD_REF | cut -c -7)/$(basename $f); done'
+  image: maven:3.3.9-jdk-8

@@ -38,7 +38,7 @@ jarfile=target/standalone/tokenizer-standalone-$version-$release_type.jar
 
 if [ ! -e $jarfile ]; then
     echo "Building latest jar..."
-    exec mvn -q -Dmaven.test.redirectTestOutputToFile=true clean install # > /dev/null
+    mvn -q -Dmaven.test.redirectTestOutputToFile=true clean install # > /dev/null
     if [ $? -ne 0 ]; then
         echo "Error building tokenizer"
         exit 99
@@ -47,8 +47,10 @@ else
     echo "Jar already built"
 fi
 
+echo "Copying jar build files to $working_dir/$sources_dir"
 cp $jarfile $working_dir/$sources_dir/$finaljar
 cp target/classes/application.yml $working_dir/$sources_dir/application.yml
 
+echo "Building tar"
 cd $working_dir
 tar cvf $build_dir/tokenizer-$version-$release_type.tar $sources_dir
