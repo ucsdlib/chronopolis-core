@@ -4,7 +4,8 @@ import com.google.common.collect.ImmutableMap;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.storage.BagStagingProperties;
 import org.chronopolis.common.util.Filter;
-import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.api.BagService;
+import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.BagStatus;
@@ -35,20 +36,20 @@ import java.io.IOException;
 public class TokenTask {
     private final Logger log = LoggerFactory.getLogger(TokenTask.class);
 
+    private final BagService service;
     private final TokenService tokens;
-    private final IngestAPI ingest;
     private final BagStagingProperties properties;
     private final ChronopolisTokenRequestBatch batch;
     private final TrackingThreadPoolExecutor<Bag> executor;
 
     @Autowired
     public TokenTask(TokenService tokens,
-                     IngestAPI ingest,
+                     ServiceGenerator generator,
                      BagStagingProperties properties,
                      ChronopolisTokenRequestBatch batch,
                      TrackingThreadPoolExecutor<Bag> executor) {
         this.tokens = tokens;
-        this.ingest = ingest;
+        this.service = generator.bags();
         this.properties = properties;
         this.batch = batch;
         this.executor = executor;
@@ -60,7 +61,7 @@ public class TokenTask {
 
         // Query ingest API
         // Maybe getMyBags? Can work this out later
-        Call<PageImpl<Bag>> bags = ingest.getBags(
+        Call<PageImpl<Bag>> bags = service.get(
                 ImmutableMap.of("status", BagStatus.DEPOSITED,
                         "region_id", properties.getPosix().getId()));
         try {
