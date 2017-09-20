@@ -79,7 +79,7 @@ public class TokenApplication implements CommandLineRunner {
             log.error("Error communicating with the ingest server", e);
         }
 
-        while(executor.getActiveCount() > 0) {
+        while(executor.getActiveCount() > 0 || batch.activeCount() > 0) {
             TimeUnit.SECONDS.sleep(5);
         }
     }
