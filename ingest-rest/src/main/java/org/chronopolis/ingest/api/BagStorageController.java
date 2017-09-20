@@ -131,9 +131,13 @@ public class BagStorageController {
         Bag bag = bagService.find(criteria);
 
         if (TOKEN_TYPE.equalsIgnoreCase(type)) {
-            bag.getTokenStorage().addFixity(fixity);
+            StagingStorage tokenStorage = bag.getTokenStorage();
+            tokenStorage.addFixity(fixity);
+            fixity.setStorage(tokenStorage);
         } else if (BAG_TYPE.equalsIgnoreCase(type)) {
-            bag.getBagStorage().addFixity(fixity);
+            StagingStorage bagStorage = bag.getBagStorage();
+            bagStorage.addFixity(fixity);
+            fixity.setStorage(bagStorage);
         } else {
             // hmmm
             // we'll probably want to validate the response body as well so maybe create this off the bat
