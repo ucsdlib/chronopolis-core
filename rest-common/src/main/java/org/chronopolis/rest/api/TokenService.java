@@ -11,6 +11,7 @@ import retrofit2.http.QueryMap;
 
 import java.util.Map;
 
+import static org.chronopolis.rest.api.Paths.BAG_ROOT;
 import static org.chronopolis.rest.api.Paths.TOKEN_ROOT;
 
 /**
@@ -26,10 +27,10 @@ public interface TokenService {
     @GET(TOKEN_ROOT + "/{id}")
     Call<AceTokenModel> getToken(@Path("id") Long id);
 
-    @GET(TOKEN_ROOT + "/{bagId}/tokens")
+    @GET(BAG_ROOT + "/{bagId}/tokens")
     Call<PageImpl<AceTokenModel>> getBagTokens(@Path("bagId") Long bagId, @QueryMap Map<String, String> params);
 
-    @POST(TOKEN_ROOT + "/{bagId}/tokens")
+    @POST(BAG_ROOT + "/{bagId}/tokens")
     Call<AceTokenModel> createToken(@Path("bagId") Long bagId, @Body AceTokenModel model);
 
 }
