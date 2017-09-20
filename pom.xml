@@ -211,19 +211,17 @@
                 </exclusions>
             </dependency>
 
-            <!-- For tomcat services -->
+            <!-- For tomcat services
             <dependency>
                 <groupId>log4j</groupId>
                 <artifactId>log4j</artifactId>
-                <version>1.2.14</version>
-            </dependency>
+            </dependency>-->
 
-            <!-- Logging utils -->
+            <!-- Logging utils
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
-                <version>1.6.4</version>
-            </dependency>
+            </dependency> -->
 
             <!-- Might be able to use this instead of log4j
             <dependency>
@@ -233,17 +231,17 @@
             </dependency>
             -->
 
+            <!--
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
-                <version>1.0.13</version>
             </dependency>
 
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-core</artifactId>
-                <version>1.0.13</version>
             </dependency>
+            -->
 
             <dependency>
                 <groupId>org.easymock</groupId>
