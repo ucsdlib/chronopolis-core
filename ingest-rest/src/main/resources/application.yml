@@ -5,7 +5,7 @@
 # request: the rate at which to check for bags which need their initial replications created
 ingest.cron:
   tokens: 0 0/10 * * * *
-  request: 0 0/10 * * *
+  request: 0 0/10 * * * *
  
 # Ingest AJP Settings
 # enabled: flag to enable an AJP connector
