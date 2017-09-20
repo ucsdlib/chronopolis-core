@@ -19,7 +19,7 @@ SPRING_CONFIG_LOCATION="/etc/chronopolis/"
 
 JAVA_BIN=/usr/bin/java
 JAVA_CMD="$JAVA_BIN -jar $REPL_JAR"
-PARAMS="--spring.config.location=$SPRING_CONFIG_LOCATION --daemonize"
+PARAMS="--spring.config.location=$SPRING_CONFIG_LOCATION &"
 
 . /etc/init.d/functions
 
