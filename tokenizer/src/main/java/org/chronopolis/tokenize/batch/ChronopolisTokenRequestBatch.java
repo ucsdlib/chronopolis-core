@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +37,7 @@ public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable
     private final AtomicBoolean running;
     private final LinkedBlockingQueue<TokenRequest> requests;
     private final ConcurrentHashMap<String, ManifestEntry> entries;
+    private final List<TokenRequest> buffer;
 
     private final TokenService tokens;
     private final String tokenClass;
@@ -60,6 +60,7 @@ public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable
 
         running = new AtomicBoolean(true);
         entries = new ConcurrentHashMap<>();
+        buffer = new ArrayList<>(maxQueueLength);
         requests = new LinkedBlockingQueue<>(imsConfiguration.getQueueLength() * 2);
     }
 
@@ -71,6 +72,7 @@ public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable
      * @param entry the entry to add
      */
     public boolean add(ManifestEntry entry) {
+        log.debug("Adding request {}", entry.getPath());
         boolean offer = false;
 
         // we can't really avoid the scenario where
@@ -111,11 +113,26 @@ public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable
         running.set(false);
     }
 
+    /**
+     * Return the number of active requests out there
+     *
+     * @return the number of active requests
+     */
+    public int activeCount() {
+        int size = 0;
+        if (requests != null) {
+            size = requests.size();
+        }
+        if (buffer != null) {
+            size += buffer.size();
+        }
+        return size;
+    }
+
     @Override
     public void run() {
         log.info("[Tokenizer] Starting");
         while (running.get()) {
-            List<TokenRequest> buffer = new ArrayList<>(maxQueueLength);
             try {
                 int drained = Queues.drain(requests, buffer, maxQueueLength, maxWaitTime, TimeUnit.MILLISECONDS);
                 if (drained > 0 && running.get()) {
@@ -124,6 +141,7 @@ public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable
                     //   - without blocking the queue can fill up and we can have requests denied
                     //   - if not, should we pass it to an Executor?
                     processRequests(buffer);
+                    buffer.clear();
                 }
             } catch (InterruptedException ex) {
                 log.error("[Tokenizer] Error draining BlockingQueue during tokenization", ex);
@@ -131,6 +149,7 @@ public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable
         }
 
         // why not
+        buffer.clear();
         entries.clear();
         requests.clear();
         log.info("[Tokenizer] Finished");
@@ -161,8 +180,11 @@ public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable
                     // need to register. imo this would be a good thing to build in as a second version
                     // of the implementation as we would need to bring in some more dependencies, update
                     // the filtering, etc.
-                    CompletableFuture.supplyAsync(new TokenRegistrar(tokens, entry, response))
-                            .whenComplete(this::removeEntry);
+                    TokenRegistrar registrar = new TokenRegistrar(tokens, entry, response);
+                    TokenResponse tr = registrar.get();
+                    if (tr != null) {
+                        removeEntry(tr.getName());
+                    }
                 }
             });
         } catch (Exception e) {
