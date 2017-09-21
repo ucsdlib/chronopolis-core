@@ -123,6 +123,7 @@ public class TokenStoreWriter implements Runnable {
             log.info("[Bag {}] Wrote TokenStore(size={},digest={})", new Object[]{bagId, count, hash});
 
             storage.setSize(count);
+            storage.setActive(true);
             storage.setTotalFiles(1L);
             storage.setPath(root.relativize(store).toString());
 
