@@ -152,7 +152,7 @@
         </table>
     </div>
 
-    <th:block th:if="${bag.bagStorage}">
+    <th:block th:if="${bag.bagStorage} != null">
         <div th:replace="fragments/storage :: card-display (storage=${bag.bagStorage},storageName='Bag')"/>
     </th:block>
 

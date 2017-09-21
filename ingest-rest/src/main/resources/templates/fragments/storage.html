@@ -25,14 +25,36 @@
             </tr>
             </tbody>
         </table>
-        <form method="GET" th:action="@{|/bags/${bag.id}/storage/activate|}">
-            <input type="hidden" name="type" th:value="${storageName}"/>
-            <!--/*@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"*/-->
-            <button class="btn btn-primary"
-                    th:href="@{|/bags/${bag.id}/${storageName}/activate|}"
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>Fixity Algorithm</th>
+                <th>Fixity Value</th>
+                <th>Created At</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!--/*@thymesVar id="fixity" type="org.chronopolis.rest.entities.storage.Fixity"*/-->
+            <tr th:each="fixity : ${storage.fixities}">
+                <td th:text="${fixity.algorithm}"></td>
+                <td th:text="${fixity.value}"></td>
+                <td th:text="${fixity.createdAt}"></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!--/*@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"*/-->
+        <div class="btn-group" role="group">
+
+            <!--/* use an outline so that we can see the split in the ui */-->
+            <a class="btn btn-outline-primary"
+                    th:href="@{|${bag.id}/storage/${storage.id}/activate|}"
                     th:text="${storage.isActive()} ? 'Set Inactive' : 'Set Active'"/>
-        </form>
+
+            <a class="btn btn-outline-primary"
+                    th:href="@{|${bag.id}/storage/${storage.id}/fixity|}"
+                    th:text="${storage.fixities.isEmpty()} ? 'Add Fixity' : 'Remove Fixity'"/>
+        </div>
     </div>
 </div>
-
 </html>
