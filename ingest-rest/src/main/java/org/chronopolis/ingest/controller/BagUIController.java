@@ -2,16 +2,19 @@ package org.chronopolis.ingest.controller;
 
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.PageWrapper;
+import org.chronopolis.ingest.exception.BadRequestException;
 import org.chronopolis.ingest.exception.ForbiddenException;
 import org.chronopolis.ingest.models.BagUpdate;
 import org.chronopolis.ingest.models.ReplicationCreate;
 import org.chronopolis.ingest.models.filter.BagFilter;
 import org.chronopolis.ingest.models.filter.ReplicationFilter;
-import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
+import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.ReplicationSearchCriteria;
+import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
+import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.ingest.support.ReplicationCreateResult;
@@ -42,9 +45,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
-
-import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatus.DISTRIBUTE;
+import java.util.Set;
 
 /**
  * Controller for handling bag/replication related requests
@@ -57,21 +60,23 @@ public class BagUIController extends IngestController {
     private final Integer DEFAULT_PAGE_SIZE = 20;
     private final Integer DEFAULT_PAGE = 0;
 
-    // final BagService bagService;
-    private final SearchService<Bag, Long, BagRepository> bagService;
+    private final BagService bagService;
     private final ReplicationService replicationService;
     private final TokenRepository tokenRepository;
     private final NodeRepository nodeRepository;
+    private final SearchService<StorageRegion, Long, StorageRegionRepository> regions;
 
     @Autowired
-    public BagUIController(SearchService<Bag, Long, BagRepository> bagService,
+    public BagUIController(BagService bagService,
                            ReplicationService replicationService,
                            TokenRepository tokenRepository,
-                           NodeRepository nodeRepository) {
+                           NodeRepository nodeRepository,
+                           SearchService<StorageRegion, Long, StorageRegionRepository> regions) {
         this.bagService = bagService;
         this.replicationService = replicationService;
         this.tokenRepository = tokenRepository;
         this.nodeRepository = nodeRepository;
+        this.regions = regions;
     }
 
     /**
@@ -214,59 +219,38 @@ public class BagUIController extends IngestController {
     @RequestMapping(value = "/bags/add", method = RequestMethod.POST)
     public String addBag(Principal principal, IngestRequest request) {
         log.info("[POST /bags/add] - {}", principal.getName());
-        String name = request.getName();
-        String depositor = request.getDepositor();
-        BagSearchCriteria criteria = new BagSearchCriteria()
-                .withDepositor(depositor)
-                .withName(name);
-        Bag bag = bagService.find(criteria);
+        Long regionId = request.getStorageRegion();
 
-        request.setRequiredReplications(request.getReplicatingNodes().size());
-
-        // only add new bags
-        if (bag == null) {
-            bag = new Bag(name, depositor);
-            // should be a Storage entity
-            // bag.setFixityAlgorithm("SHA-256");
-            // bag.setLocation(request.getLocation());
-            bag.setCreator(principal.getName());
-
-            if (request.getRequiredReplications() > 0) {
-                bag.setRequiredReplications(request.getRequiredReplications());
-            }
-
-            createBagDistributions(bag, request.getReplicatingNodes());
+        StorageRegion region = regions.find(new StorageRegionSearchCriteria()
+                .withId(regionId));
+        if (region == null) {
+            throw new BadRequestException("Bad Request: StorageRegion "
+                    + regionId
+                    + " not found!");
         }
 
-        bagService.save(bag);
+        Set<Node> replicatingNodes = replicatingNodes(request.getReplicatingNodes());
+        Bag bag = bagService.create(principal.getName(), request, region, replicatingNodes);
+
         return "redirect:/bags/" + bag.getId();
     }
 
-    // Copied from StagingController, unify both soon (before next release)
-    private void createBagDistributions(Bag bag, List<String> replicatingNodes) {
-        int numDistributions = 0;
-        if (replicatingNodes == null) {
-            replicatingNodes = new ArrayList<>();
+    private Set<Node> replicatingNodes(List<String> nodeNames) {
+        Set<Node> replicatingNodes = new HashSet<>();
+        if (nodeNames == null) {
+            nodeNames = new ArrayList<>();
         }
 
-        for (String nodeName : replicatingNodes) {
-            Node node = nodeRepository.findByUsername(nodeName);
+        for (String name : nodeNames) {
+            Node node = nodeRepository.findByUsername(name);
             if (node != null) {
-                log.debug("Creating dist record for {}", nodeName);
-                bag.addDistribution(node, DISTRIBUTE);
-                numDistributions++;
+                replicatingNodes.add(node);
+            } else {
+                log.warn("Node {} not found for distribution of bag!", name);
             }
         }
 
-        if (numDistributions < bag.getRequiredReplications()) {
-            for (Node node : nodeRepository.findAll()) {
-                log.debug("Creating dist record for {}", node.getUsername());
-                bag.addDistribution(node, DISTRIBUTE);
-                numDistributions++;
-            }
-        }
-
-        // if the distributions is still less, set error?
+        return replicatingNodes;
     }
 
     //

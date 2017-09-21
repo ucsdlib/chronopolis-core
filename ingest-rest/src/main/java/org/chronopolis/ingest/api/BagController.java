@@ -4,15 +4,14 @@ import com.google.common.collect.ImmutableMap;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.exception.BadRequestException;
 import org.chronopolis.ingest.exception.NotFoundException;
-import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
+import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.IngestRequest;
@@ -29,8 +28,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.chronopolis.ingest.api.Params.CREATED_AFTER;
 import static org.chronopolis.ingest.api.Params.CREATED_BEFORE;
@@ -43,11 +44,10 @@ import static org.chronopolis.ingest.api.Params.SORT_TOTAL_FILES;
 import static org.chronopolis.ingest.api.Params.STATUS;
 import static org.chronopolis.ingest.api.Params.UPDATED_AFTER;
 import static org.chronopolis.ingest.api.Params.UPDATED_BEFORE;
-import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatus.DISTRIBUTE;
 
 /**
  * REST Controller for controlling actions associated with bags
- *
+ * <p>
  * Created by shake on 11/5/14.
  */
 @RestController
@@ -56,13 +56,13 @@ public class BagController extends IngestController {
 
     private final Logger log = LoggerFactory.getLogger(BagController.class);
 
+    private final BagService bagService;
     private final NodeRepository nodeRepository;
-    private final SearchService<Bag, Long, BagRepository> bagService;
     private final SearchService<StorageRegion, Long, StorageRegionRepository> regions;
 
     @Autowired
     public BagController(NodeRepository nodeRepository,
-                         SearchService<Bag, Long, BagRepository> bagService,
+                         BagService bagService,
                          SearchService<StorageRegion, Long, StorageRegionRepository> regions) {
         this.nodeRepository = nodeRepository;
         this.bagService = bagService;
@@ -111,82 +111,44 @@ public class BagController extends IngestController {
      * Notification that a bag exists and is ready to be ingested into Chronopolis
      *
      * @param principal - authentication information
-     * @param request - the request containing the bag name, depositor, and location of the bag
+     * @param request   - the request containing the bag name, depositor, and location of the bag
      * @return the bag created from the IngestRequest
      */
     @PostMapping
-    public Bag stageBag(Principal principal, @RequestBody IngestRequest request)  {
-        String name = request.getName();
-        String depositor = request.getDepositor();
+    public Bag stageBag(Principal principal, @RequestBody IngestRequest request) {
         Long regionId = request.getStorageRegion();
-
-        BagSearchCriteria criteria = new BagSearchCriteria()
-                .withName(name)
-                .withDepositor(depositor);
-
         StorageRegion region = regions.find(new StorageRegionSearchCriteria().withId(regionId));
         if (region == null) {
             throw new BadRequestException("Invalid StorageRegion");
         }
 
-        Bag bag = bagService.find(criteria);
-        if (bag != null) {
-            // return a 409 instead?
-            log.debug("Bag {} exists from depositor {}, skipping creation", name, depositor);
-            return bag;
-        }
-
-        log.debug("Received ingest request {}", request);
-        Long size = request.getSize();
-        Long totalFiles = request.getTotalFiles();
-
-        bag = new Bag(name, depositor);
-        bag.setSize(size);
-        bag.setTotalFiles(totalFiles);
-        bag.setCreator(principal.getName());
-
-        // todo: More Storage information should be passed in upon creation
-        //       * fixity information (done later?)
-        StagingStorage storage = new StagingStorage();
-        storage.setRegion(region);
-        storage.setActive(true);
-        storage.setSize(size);
-        storage.setTotalFiles(totalFiles);
-        storage.setPath(request.getLocation());
-        bag.setBagStorage(storage);
-
-        if (request.getRequiredReplications() > 0) {
-            bag.setRequiredReplications(request.getRequiredReplications());
-        }
-
-        createBagDistributions(bag, request.getReplicatingNodes());
-        bagService.save(bag);
-
-        return bag;
+        Set<Node> replicatingNodes = replicatingNodes(request.getReplicatingNodes());
+        return bagService.create(principal.getName(), request, region, replicatingNodes);
     }
 
     /**
-     * Iterate through a list of node usernames and add them to the BagDistribution table
-     * TODO: List<String> -> List<Node> for replicating nodes
-     * TODO: Find a home for this
+     * Helper to get Nodes from a list of node names. Eventually we'll want to do this
+     * in the DB through a NodeService.
      *
-     * @param bag The bag to create distributions for
-     * @param replicatingNodes The nodes which the bag will be distributed to
+     * @param nodeNames the node usernames to query
+     * @return the set of Node entities found
      */
-    private void createBagDistributions(Bag bag, List<String> replicatingNodes) {
-        if (replicatingNodes == null) {
-            replicatingNodes = new ArrayList<>();
+    private Set<Node> replicatingNodes(List<String> nodeNames) {
+        Set<Node> replicatingNodes = new HashSet<>();
+        if (nodeNames == null) {
+            nodeNames = new ArrayList<>();
         }
 
-        for (String nodeName : replicatingNodes) {
-            Node node = nodeRepository.findByUsername(nodeName);
+        for (String name : nodeNames) {
+            Node node = nodeRepository.findByUsername(name);
             if (node != null) {
-                log.debug("Creating requested dist record for {}", nodeName);
-                bag.addDistribution(node, DISTRIBUTE);
+                replicatingNodes.add(node);
             } else {
-                log.debug("Unable to make dist record for node {}: Not found", nodeName);
+                log.debug("Node {} not found for distribution of bag!", name);
             }
         }
+
+        return replicatingNodes;
     }
 
 
