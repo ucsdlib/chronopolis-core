@@ -5,10 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.WebContext;
-import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;
+import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
@@ -25,7 +25,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Set;
+
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anySet;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -56,7 +59,7 @@ public class BagControllerTest extends IngestTest {
 
     // Mocks for the StagingController
     @MockBean private NodeRepository nodes;
-    @MockBean private SearchService<Bag, Long, BagRepository> bagService;
+    @MockBean private BagService bagService;
     @MockBean private SearchService<StorageRegion, Long, StorageRegionRepository> regions;
 
     @Test
@@ -100,6 +103,7 @@ public class BagControllerTest extends IngestTest {
 
     @Test
     public void testStageBag() throws Exception {
+        // Bag Ingest Request
         IngestRequest request = new IngestRequest();
         request.setDepositor(DEPOSITOR);
         request.setSize(1L);
@@ -109,9 +113,14 @@ public class BagControllerTest extends IngestTest {
         request.setLocation(LOCATION);
         request.setReplicatingNodes(ImmutableList.of(NODE));
 
-        when(bagService.find(any(SearchCriteria.class))).thenReturn(null);
+        // created bag to return
+        Bag bag = bag();
+        bag.setName(BAG);
+        bag.setDepositor(DEPOSITOR);
+
         when(regions.find(any(SearchCriteria.class))).thenReturn(new StorageRegion());
         when(nodes.findByUsername(eq(NODE))).thenReturn(new Node(NODE, "password"));
+        when(bagService.create(eq("user"), eq(request), any(StorageRegion.class), any(Set.class))).thenReturn(bag);
 
         mvc.perform(
                 post("/api/bags")
@@ -122,37 +131,10 @@ public class BagControllerTest extends IngestTest {
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.depositor").value(DEPOSITOR))
                 .andExpect(jsonPath("$.name").value(BAG));
-                // todo: expect storage values
-                // .andExpect(jsonPath("$.location").value(LOCATION))
-                // .andExpect(jsonPath("$.fixityAlgorithm").value("SHA-256"));
 
-        verify(bagService, times(1)).find(any(SearchCriteria.class));
+        // verify(bagService, times(1)).find(any(SearchCriteria.class));
+        verify(bagService, times(1)).create(eq("user"), eq(request), any(StorageRegion.class), anySet());
         verify(nodes, times(1)).findByUsername(eq(NODE));
-    }
-
-    @Test
-    public void testStageExists() throws Exception {
-        IngestRequest request = new IngestRequest();
-        request.setDepositor(DEPOSITOR);
-        request.setName(BAG);
-        request.setLocation(LOCATION);
-        request.setReplicatingNodes(ImmutableList.of(NODE));
-
-        when(bagService.find(any(SearchCriteria.class))).thenReturn(bag());
-        when(regions.find(any(SearchCriteria.class))).thenReturn(new StorageRegion());
-
-        mvc.perform(
-                post("/api/bags")
-                    .principal(() -> "user")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(asJson(request)))
-                .andDo(print())
-                .andExpect(status().is(200))
-                .andExpect(jsonPath("$.depositor").value(DEPOSITOR))
-                .andExpect(jsonPath("$.name").value(BAG));
-
-        verify(bagService, times(1)).find(any(SearchCriteria.class));
-        verify(nodes, times(0)).findByUsername(eq(NODE));
     }
 
     private Bag bag() {
