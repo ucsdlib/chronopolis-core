@@ -28,6 +28,10 @@ public class SearchService<T, I extends Serializable, E extends JpaRepository<T,
         this.e = e;
     }
 
+    public void delete(T t) {
+        e.delete(t);
+    }
+
     public T find(SearchCriteria sc) {
         Predicate predicate = buildPredicate(sc);
         return e.findOne(predicate);

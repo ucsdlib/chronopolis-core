@@ -18,6 +18,7 @@ import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
 import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.ingest.support.ReplicationCreateResult;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
@@ -62,7 +63,7 @@ import java.util.Set;
 @Controller
 public class BagUIController extends IngestController {
     private final Logger log = LoggerFactory.getLogger(BagUIController.class);
-    private final Logger access = LoggerFactory.getLogger("access-log");
+    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
     private final Integer DEFAULT_PAGE_SIZE = 20;
     private final Integer DEFAULT_PAGE = 0;
 

@@ -5,6 +5,7 @@ import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.criteria.ReplicationSearchCriteria;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
+import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.entities.storage.Fixity;
@@ -48,6 +49,7 @@ import static org.chronopolis.ingest.api.Params.UPDATED_BEFORE;
 @RequestMapping("/api/replications")
 public class ReplicationController extends IngestController {
     private final Logger log = LoggerFactory.getLogger(ReplicationController.class);
+    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private final ReplicationService replicationService;
 
@@ -66,6 +68,8 @@ public class ReplicationController extends IngestController {
      */
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<Replication> createReplication(@RequestBody ReplicationRequest request) {
+        access.info("[POST /api/replications]");
+        access.info("Post parameters - ", request.getBagId(), request.getNodeId());
         log.debug("Received replication request {}", request);
         ResponseEntity<Replication> response;
         response = replicationService.create(request)
@@ -99,7 +103,11 @@ public class ReplicationController extends IngestController {
     public Replication updateTokenFixity(Principal principal,
                                          @PathVariable("id") Long replicationId,
                                          @RequestBody FixityUpdate update) {
-        log.info("[{}] Updating token digest for {}", principal.getName(), replicationId);
+        access.info("[PUT /api/replications/{}/tokenstore] - {}", principal);
+        access.info("PUT parameters - {}", update.getFixity());
+        // not sure if we need the following logging statement anymore
+        // log.info("[{}] Updating token digest for {}", principal.getName(), replicationId);
+
         ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
 
         // Break out our objects
@@ -127,7 +135,9 @@ public class ReplicationController extends IngestController {
     public Replication updateTagFixity(Principal principal,
                                        @PathVariable("id") Long replicationId,
                                        @RequestBody FixityUpdate update) {
-        log.info("[{}] Updating tag digest for {}", principal.getName(), replicationId);
+        access.info("[PUT /api/replications/{}/tokenstore] - {}", principal);
+        access.info("PUT parameters - {}", update.getFixity());
+        // log.info("[{}] Updating tag digest for {}", principal.getName(), replicationId);
         ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
 
         // Break out our objects
@@ -177,6 +187,7 @@ public class ReplicationController extends IngestController {
     @RequestMapping(value = "/{id}/failure", method = RequestMethod.PUT)
     public Replication failReplication(Principal principal,
                                        @PathVariable("id") Long replicationId) {
+        access.info("[PUT /api/replications/{}/failure] - {}", replicationId, principal.getName());
         ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
         Replication r = replicationService.find(criteria);
         r.setStatus(ReplicationStatus.FAILURE);
@@ -188,6 +199,8 @@ public class ReplicationController extends IngestController {
     public Replication updateStatus(Principal principal,
                                     @PathVariable("id") Long replicationId,
                                     @RequestBody RStatusUpdate update) {
+        access.info("[PUT /api/replications/{}/status] - {}", replicationId, principal.getName());
+        access.info("PUT parameters - {}", update.getStatus());
         ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
         log.info("Received update request for replication {}: {}", replicationId, update.getStatus());
         Replication r = replicationService.find(criteria);
@@ -210,6 +223,10 @@ public class ReplicationController extends IngestController {
     public Replication updateReplication(Principal principal,
                                          @PathVariable("id") Long replicationId,
                                          @RequestBody Replication replication) {
+        access.info("[PUT /api/replications/{}] - {}", replicationId, principal.getName());
+        access.info("PUT parameters - {};{};{}", replication.getReceivedTokenFixity(),
+                replication.getReceivedTagFixity(),
+                replication.getStatus());
         ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
                 .withId(replicationId);
 
@@ -247,7 +264,8 @@ public class ReplicationController extends IngestController {
      */
     @RequestMapping(method = RequestMethod.GET)
     public Iterable<Replication> replications(@RequestParam Map<String, String> params) {
-        String name = null;
+        access.info("[GET /api/replications]");
+        String name;
 
         // Workaround for giving service accounts a view into all replications
         name = params.getOrDefault(NODE, null);
@@ -281,19 +299,10 @@ public class ReplicationController extends IngestController {
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public Replication findReplication(Principal principal,
                                        @PathVariable("id") Long actionId) {
-        log.info("[{}] Getting replication {}", principal.getName(), actionId);
-
+        access.info("[GET /api/replications/{}] - {}", actionId, principal.getName());
         return replicationService.find(
                 new ReplicationSearchCriteria().withId(actionId)
         );
     }
-
-    /*
-    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    public void deleteReplication(Principal principal,
-                                  @PathVariable("id") Long replicationId) {
-        replicationService.delete(replicationId);
-    }
-    */
 
 }

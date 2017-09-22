@@ -5,6 +5,7 @@ import org.chronopolis.ingest.models.filter.AceTokenFilter;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.criteria.AceTokenSearchCriteria;
 import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.AceToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +27,7 @@ import java.security.Principal;
 @RestController
 @RequestMapping("/api/tokens")
 public class TokenController {
-    private final Logger log = LoggerFactory.getLogger(TokenController.class);
+    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private final SearchService<AceToken, Long, TokenRepository> tokens;
 
@@ -37,7 +38,7 @@ public class TokenController {
 
     @GetMapping
     public Page<AceToken> getTokens(Principal principal, @ModelAttribute AceTokenFilter filter) {
-        log.info("[GET /api/tokens] - {}", principal.getName());
+        access.info("[GET /api/tokens] - {}", principal.getName());
         AceTokenSearchCriteria criteria = new AceTokenSearchCriteria()
                 .withBagId(filter.getBagId())
                 .withFilenames(filter.getFilename())
@@ -48,7 +49,7 @@ public class TokenController {
 
     @GetMapping("/{id}")
     public AceToken getToken(Principal principal, @PathVariable("id") Long id) {
-        log.info("[GET /api/tokens/{}] - ", id, principal.getName());
+        access.info("[GET /api/tokens/{}] - ", id, principal.getName());
         AceTokenSearchCriteria criteria = new AceTokenSearchCriteria().withId(id);
         AceToken token = tokens.find(criteria);
         if (token == null) {

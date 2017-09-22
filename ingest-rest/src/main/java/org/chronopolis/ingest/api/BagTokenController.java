@@ -8,6 +8,7 @@ import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.criteria.AceTokenSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.models.AceTokenModel;
@@ -39,7 +40,7 @@ import java.util.Date;
 @RequestMapping("/api/bags/{id}")
 public class BagTokenController extends IngestController {
 
-    private final Logger log = LoggerFactory.getLogger(BagTokenController.class);
+    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private final SearchService<Bag, Long, BagRepository> bags;
     private final SearchService<AceToken, Long, TokenRepository> tokens;
@@ -61,7 +62,7 @@ public class BagTokenController extends IngestController {
      */
     @GetMapping("/tokens")
     public Page<AceToken> getTokensForBag(Principal principal, @PathVariable("id") Long id, @ModelAttribute AceTokenFilter filter) {
-        log.info("[GET /api/bags/{}/tokens] - {}", id, principal.getName());
+        access.info("[GET /api/bags/{}/tokens] - {}", id, principal.getName());
         AceTokenSearchCriteria searchCriteria = new AceTokenSearchCriteria()
                 .withBagId(id)
                 .withFilenames(filter.getFilename())
@@ -90,7 +91,8 @@ public class BagTokenController extends IngestController {
     public ResponseEntity<AceToken> createTokenForBag(Principal principal,
                                                       @PathVariable("id") Long id,
                                                       @Valid @RequestBody AceTokenModel model) {
-        log.info("[POST /api/bags/{}/tokens] - {}", id, principal.getName());
+        access.info("[POST /api/bags/{}/tokens] - {}", id, principal.getName());
+        access.info("Post parameters - {};{}", model.getBagId(), model.getFilename());
 
         ResponseEntity response;
         AceTokenSearchCriteria searchCriteria = new AceTokenSearchCriteria()

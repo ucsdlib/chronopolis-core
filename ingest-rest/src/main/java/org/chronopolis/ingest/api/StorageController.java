@@ -2,6 +2,7 @@ package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableMap;
 import org.chronopolis.ingest.IngestController;
+import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.models.RegionCreate;
 import org.chronopolis.ingest.models.filter.StorageRegionFilter;
 import org.chronopolis.ingest.repository.NodeRepository;
@@ -36,7 +37,7 @@ import java.util.HashMap;
 @RestController
 @RequestMapping("/api/storage")
 public class StorageController extends IngestController {
-    private final Logger log = LoggerFactory.getLogger(StorageController.class);
+    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private NodeRepository nodes;
     private SearchService<StorageRegion, Long, StorageRegionRepository> service;
@@ -55,6 +56,7 @@ public class StorageController extends IngestController {
      */
     @GetMapping("{id}")
     public StorageRegion getRegion(@PathVariable("id") Long id) {
+        access.info("[GET /api/storage/{}]", id);
         StorageRegionSearchCriteria criteria = new StorageRegionSearchCriteria();
         criteria.withId(id);
         return service.find(criteria);
@@ -68,6 +70,7 @@ public class StorageController extends IngestController {
      */
     @GetMapping
     public Page<StorageRegion> getRegions(@ModelAttribute StorageRegionFilter filter) {
+        access.info("[GET /api/storage]");
         StorageRegionSearchCriteria criteria = new StorageRegionSearchCriteria()
                 .withStorageType(filter.getType())
                 .withNodeName(filter.getName())
@@ -90,6 +93,8 @@ public class StorageController extends IngestController {
      */
     @PostMapping
     public ResponseEntity<StorageRegion> createRegion(Principal principal, @RequestBody RegionCreate create) {
+        access.info("[POST /api/storage] - ", principal.getName());
+        access.info("POST parameters - {};{};{}", create.getNode(), create.getDataType(), create.getStorageType());
         ResponseEntity<StorageRegion> entity = ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .build();

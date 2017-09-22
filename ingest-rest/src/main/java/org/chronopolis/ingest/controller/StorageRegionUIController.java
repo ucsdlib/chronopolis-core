@@ -3,6 +3,7 @@ package org.chronopolis.ingest.controller;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.PageWrapper;
 import org.chronopolis.ingest.exception.ForbiddenException;
+import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.models.RegionCreate;
 import org.chronopolis.ingest.models.ReplicationConfigUpdate;
 import org.chronopolis.ingest.models.filter.StorageRegionFilter;
@@ -36,7 +37,7 @@ import java.security.Principal;
 public class StorageRegionUIController extends IngestController {
 
     private static final int DEFAULT_PAGE_SIZE = 25;
-    private final Logger log = LoggerFactory.getLogger(StorageRegionUIController.class);
+    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
 
     private final NodeRepository nodes;
@@ -58,7 +59,7 @@ public class StorageRegionUIController extends IngestController {
      */
     @GetMapping("/regions")
     public String getRegions(Model model, Principal principal, @ModelAttribute(value = "filter") StorageRegionFilter filter) {
-        log.info("[GET /regions] - {}", principal.getName());
+        access.info("[GET /regions] - {}", principal.getName());
 
         StorageRegionSearchCriteria criteria = new StorageRegionSearchCriteria()
                 .withCapacityGreaterThan(filter.getCapacityGreater())
@@ -88,7 +89,7 @@ public class StorageRegionUIController extends IngestController {
      */
     @GetMapping("/regions/create")
     public String createRegionForm(Model model, Principal principal, RegionCreate regionCreate) {
-        log.info("[GET /regions/create] - {}", principal.getName());
+        access.info("[GET /regions/create] - {}", principal.getName());
         appendFormAttributes(model, regionCreate);
         return "storage_region/create";
     }
@@ -107,10 +108,14 @@ public class StorageRegionUIController extends IngestController {
                                Principal principal,
                                @Valid RegionCreate regionCreate,
                                BindingResult bindingResult) throws ForbiddenException {
+        access.info("[POST /regions] - {}", principal.getName());
         if (bindingResult.hasErrors()) {
             appendFormAttributes(model, regionCreate);
             return "storage_region/create";
         }
+        access.info("POST parameters - {};{};{}", regionCreate.getNode(),
+                regionCreate.getDataType(),
+                regionCreate.getStorageType());
 
         Node owner;
         if (hasRoleAdmin() || principal.getName().equalsIgnoreCase(regionCreate.getNode())) {
@@ -160,7 +165,7 @@ public class StorageRegionUIController extends IngestController {
      */
     @GetMapping("/regions/{id}")
     public String getRegion(Model model, Principal principal, @PathVariable("id") Long id) {
-        log.info("[GET /regions/{}] - {}", id, principal.getName());
+        access.info("[GET /regions/{}] - {}", id, principal.getName());
 
         StorageRegionSearchCriteria criteria = new StorageRegionSearchCriteria().withId(id);
         StorageRegion region = service.find(criteria);
@@ -182,7 +187,7 @@ public class StorageRegionUIController extends IngestController {
      */
     @PostMapping("/regions/{id}/config")
     public String updateRegionConfig(Model model, Principal principal, @PathVariable("id") Long id, ReplicationConfigUpdate update) throws ForbiddenException {
-        log.info("[POST /regions/{}/config] - {}", id, principal.getName());
+        access.info("[POST /regions/{}/config] - {}", id, principal.getName());
         StorageRegionSearchCriteria criteria = new StorageRegionSearchCriteria().withId(id);
         StorageRegion region = service.find(criteria);
         Node owner = region.getNode();
@@ -214,6 +219,7 @@ public class StorageRegionUIController extends IngestController {
      */
     @GetMapping("/storage")
     public String storage() {
+        access.info("[GET /storage]");
         return "storage/index";
     }
 }

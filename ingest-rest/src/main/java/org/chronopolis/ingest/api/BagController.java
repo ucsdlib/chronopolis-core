@@ -10,6 +10,7 @@ import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.storage.StorageRegion;
@@ -55,6 +56,7 @@ import static org.chronopolis.ingest.api.Params.UPDATED_BEFORE;
 public class BagController extends IngestController {
 
     private final Logger log = LoggerFactory.getLogger(BagController.class);
+    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private final BagService bagService;
     private final NodeRepository nodeRepository;
@@ -77,6 +79,7 @@ public class BagController extends IngestController {
      */
     @GetMapping
     public Iterable<Bag> getBags(@RequestParam Map<String, String> params) {
+        access.info("[GET /api/bags]");
         BagSearchCriteria criteria = new BagSearchCriteria()
                 .createdAfter(params.getOrDefault(CREATED_AFTER, null))
                 .createdBefore(params.getOrDefault(CREATED_BEFORE, null))
@@ -97,6 +100,7 @@ public class BagController extends IngestController {
      */
     @GetMapping("/{id}")
     public Bag getBag(@PathVariable("id") Long id) {
+        access.info("[GET /api/bags/{}]", id);
         BagSearchCriteria criteria = new BagSearchCriteria()
                 .withId(id);
 
@@ -116,6 +120,8 @@ public class BagController extends IngestController {
      */
     @PostMapping
     public Bag stageBag(Principal principal, @RequestBody IngestRequest request) {
+        access.info("[POST /api/bags/] - {}", principal.getName());
+        access.info("POST parameters - {}", request.getDepositor(), request.getName(), request.getStorageRegion());
         Long regionId = request.getStorageRegion();
         StorageRegion region = regions.find(new StorageRegionSearchCriteria().withId(regionId));
         if (region == null) {
