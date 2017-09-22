@@ -206,4 +206,14 @@ public class StorageRegionUIController extends IngestController {
         model.addAttribute("region", region);
         return "storage_region/region";
     }
+
+    /**
+     * Placeholder for a Storage Statistics page
+     *
+     * @return storage template
+     */
+    @GetMapping("/storage")
+    public String storage() {
+        return "storage/index";
+    }
 }
