@@ -62,6 +62,7 @@ import java.util.Set;
 @Controller
 public class BagUIController extends IngestController {
     private final Logger log = LoggerFactory.getLogger(BagUIController.class);
+    private final Logger access = LoggerFactory.getLogger("access-log");
     private final Integer DEFAULT_PAGE_SIZE = 20;
     private final Integer DEFAULT_PAGE = 0;
 
@@ -94,7 +95,7 @@ public class BagUIController extends IngestController {
     @RequestMapping(value = "/bags", method = RequestMethod.GET)
     public String getBags(Model model, Principal principal,
                           @ModelAttribute(value = "filter") BagFilter filter) {
-        log.info("[GET /bags] - {}", principal.getName());
+        access.info("[GET /bags] - {}", principal.getName());
 
         BagSearchCriteria criteria = new BagSearchCriteria()
                 .nameLike(filter.getName())
@@ -122,7 +123,7 @@ public class BagUIController extends IngestController {
      */
     @RequestMapping(value = "/bags/{id}", method = RequestMethod.GET)
     public String getBag(Model model, Principal principal, @PathVariable("id") Long id) {
-        log.info("[GET /bags/{}] - {}", id, principal.getName());
+        access.info("[GET /bags/{}] - {}", id, principal.getName());
 
         BagSearchCriteria bsc = new BagSearchCriteria().withId(id);
         ReplicationSearchCriteria rsc = new ReplicationSearchCriteria().withBagId(id);
@@ -140,6 +141,7 @@ public class BagUIController extends IngestController {
      * Handler for updating a bag
      * <p>
      * todo: constraint on updating the bag as a non-admin
+     * todo: tostring for BagUpdate
      *
      * @param model  - the viewmodel
      * @param id     - id of the bag to update
@@ -148,9 +150,8 @@ public class BagUIController extends IngestController {
      */
     @RequestMapping(value = "/bags/{id}", method = RequestMethod.POST)
     public String updateBag(Model model, Principal principal, @PathVariable("id") Long id, BagUpdate update) {
-        log.info("[POST /bags/{}] - {}", id, principal.getName());
-        // should just be a toString
-        log.debug("POST parameters - {};{}", update.getLocation(), update.getStatus());
+        access.info("[POST /bags/{}] - {}", id, principal.getName());
+        access.info("POST parameters - {};{}", update.getLocation(), update.getStatus());
 
         BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
         Bag bag = bagService.find(criteria);
@@ -176,7 +177,7 @@ public class BagUIController extends IngestController {
     public String updateBagStorage(Principal principal,
                                    @PathVariable("id") Long id,
                                    @PathVariable("storageId") Long storageId) throws ForbiddenException {
-        log.info("[GET /bags/{}/storage/activate] - {}", id, principal.getName());
+        access.info("[GET /bags/{}/storage/{}/activate] - {}", id, storageId, principal.getName());
 
         BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
         Bag bag = bagService.find(criteria);
@@ -217,7 +218,7 @@ public class BagUIController extends IngestController {
                                       Principal principal,
                                       @PathVariable("id") Long id,
                                       @PathVariable("storageId") Long storageId) throws ForbiddenException {
-        log.info("[GET /bags/{}/storage/activate] - {}", id, principal.getName());
+        access.info("[GET /bags/{}/storage/{}/fixity] - {}", id, storageId, principal.getName());
         String template = "redirect:/bags/" + id;
 
         BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
@@ -249,6 +250,7 @@ public class BagUIController extends IngestController {
 
     /**
      * Create a Fixity for a given Bag and StagingStorage
+     * todo: tostring for FixityCreate
      *
      * @param principal the principal of the user
      * @param id        the id of the Bag
@@ -262,7 +264,8 @@ public class BagUIController extends IngestController {
                                       @PathVariable("id") Long id,
                                       @PathVariable("storageId") Long storageId,
                                       FixityCreate create) throws ForbiddenException {
-        log.info("[GET /bags/{}/storage/activate] - {}", id, principal.getName());
+        access.info("[POST /bags/{}/storage/{}/fixity] - {}", id, storageId, principal.getName());
+        access.info("POST parameters - {};{}", create.getAlgorithm(), create.getValue());
         String template = "redirect:/bags/" + id;
 
         BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
@@ -315,7 +318,7 @@ public class BagUIController extends IngestController {
      */
     @RequestMapping(value = "/bags/add", method = RequestMethod.GET)
     public String addBag(Model model, Principal principal) {
-        log.info("[GET /bags/add] - {}", principal.getName());
+        access.info("[GET /bags/add] - {}", principal.getName());
         model.addAttribute("nodes", nodeRepository.findAll());
         return "addbag";
     }
@@ -328,7 +331,8 @@ public class BagUIController extends IngestController {
      */
     @RequestMapping(value = "/bags/add", method = RequestMethod.POST)
     public String addBag(Principal principal, IngestRequest request) {
-        log.info("[POST /bags/add] - {}", principal.getName());
+        access.info("[POST /bags/add] - {}", principal.getName());
+        access.info("Post parameters: {};{}", request.getDepositor(), request.getName());
         Long regionId = request.getStorageRegion();
 
         StorageRegion region = regions.find(new StorageRegionSearchCriteria()
@@ -378,7 +382,7 @@ public class BagUIController extends IngestController {
     @RequestMapping(value = "/replications", method = RequestMethod.GET)
     public String getReplications(Model model, Principal principal,
                                   @ModelAttribute(value = "filter") ReplicationFilter filter) {
-        log.info("[GET /replications] - {}", principal.getName());
+        access.info("[GET /replications] - {}", principal.getName());
 
         Page<Replication> replications;
         ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
@@ -399,7 +403,7 @@ public class BagUIController extends IngestController {
 
     @RequestMapping(value = "/replications/{id}", method = RequestMethod.GET)
     public String getReplication(Model model, Principal principal, @PathVariable("id") Long id) {
-        log.info("[GET /replications/{}] - {}", id, principal.getName());
+        access.info("[GET /replications/{}] - {}", id, principal.getName());
         ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
                 .withId(id);
 
@@ -421,7 +425,7 @@ public class BagUIController extends IngestController {
      */
     @RequestMapping(value = "/replications/add", method = RequestMethod.GET)
     public String addReplications(Model model, Principal principal) {
-        log.info("[GET /replications/add] - {}", principal.getName());
+        access.info("[GET /replications/add] - {}", principal.getName());
         model.addAttribute("bags", bagService.findAll(new BagSearchCriteria(), new PageRequest(0, 100)));
         model.addAttribute("nodes", nodeRepository.findAll());
         return "addreplication";
@@ -436,7 +440,7 @@ public class BagUIController extends IngestController {
      */
     @RequestMapping(value = "/replications/create", method = RequestMethod.GET)
     public String createReplicationForm(Model model, Principal principal, @RequestParam("bag") Long bag) {
-        log.info("[GET /replications/create] - {}", principal.getName());
+        access.info("[GET /replications/create] - {}", principal.getName());
         model.addAttribute("bag", bag);
         if (hasRoleAdmin()) {
             model.addAttribute("nodes", nodeRepository.findAll());
@@ -453,7 +457,7 @@ public class BagUIController extends IngestController {
 
     @RequestMapping(value = "/replications/create", method = RequestMethod.POST)
     public String createReplications(Principal principal, @ModelAttribute("form") ReplicationCreate form) {
-        log.info("[POST /replications/create] - {}", principal.getName());
+        access.info("[POST /replications/create] - {}", principal.getName());
         final Long bag = form.getBag();
         form.getNodes().forEach(nodeId -> replicationService.create(bag, nodeId));
         return "redirect:/replications/";
@@ -467,7 +471,7 @@ public class BagUIController extends IngestController {
      */
     @RequestMapping(value = "/replications/add", method = RequestMethod.POST)
     public String addReplication(Principal principal, ReplicationRequest request) {
-        log.info("[POST /replications/add] - {}", principal.getName());
+        access.info("[POST /replications/add] - {}", principal.getName());
         ReplicationCreateResult result = replicationService.create(request);
 
         // todo: find a way to display errors backwards
