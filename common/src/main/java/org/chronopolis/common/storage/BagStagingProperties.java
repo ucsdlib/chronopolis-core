@@ -1,7 +1,6 @@
 package org.chronopolis.common.storage;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 /**
  * Configuration for Bag Staging areas in Chronopolis
@@ -13,8 +12,7 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 @ConfigurationProperties(prefix = "chron.stage.bags")
 public class BagStagingProperties {
 
-    @NestedConfigurationProperty
-    private Posix posix;
+    private Posix posix = new Posix();
 
     public Posix getPosix() {
         return posix;
