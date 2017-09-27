@@ -8,10 +8,10 @@ import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.ace.AceService;
-import org.chronopolis.rest.support.OkBasicInterceptor;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.mail.SmtpProperties;
 import org.chronopolis.common.storage.PreservationProperties;
+import org.chronopolis.common.storage.PreservationPropertiesValidator;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.Submitter;
 import org.chronopolis.rest.api.ErrorLogger;
@@ -19,6 +19,7 @@ import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.api.IngestAPIProperties;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.support.OkBasicInterceptor;
 import org.chronopolis.rest.support.PageDeserializer;
 import org.chronopolis.rest.support.ZonedDateTimeDeserializer;
 import org.chronopolis.rest.support.ZonedDateTimeSerializer;
@@ -29,6 +30,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.validation.Validator;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -180,6 +182,11 @@ public class ReplicationConfig {
         mailUtil.setSmtpHost(properties.getHost());
         mailUtil.setSmtpSend(properties.getSend());
         return mailUtil;
+    }
+
+    @Bean
+    static Validator configurationPropertiesValidator() {
+        return new PreservationPropertiesValidator();
     }
 
 }
