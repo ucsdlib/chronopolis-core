@@ -5,6 +5,51 @@
 </head>
 <body>
 <nav th:replace="layout :: navbar"></nav>
+<div class="hr-sect w-75 mx-auto">Quick Stats</div>
+<div class="w-75 mx-auto">
+    <div class="d-flex justify-content-center m-3">
+        <div class="w-25">
+            <span style="font-size: 85%; letter-spacing: .1em; color: #828a9f; text-transform: uppercase;">preserved bags</span>
+            <!--/*@thymesVar id="preserved" type="org.chronopolis.ingest.models.BagSummary"*/-->
+            <h3 th:inline="text">
+                [[${preserved.count}]]
+                <span th:text="${preserved.getFormattedSum()}"
+                      class="badge badge-info"
+                      style="font-size: 12px; vertical-align: middle">0 B
+                </span>
+            </h3>
+        </div>
+        <div class="w-25">
+            <span style="font-size: 85%; letter-spacing: .1em; color: #828a9f; text-transform: uppercase;">replicating bags</span>
+            <!--/*@thymesVar id="replicating" type="org.chronopolis.ingest.models.BagSummary"*/-->
+            <h3 th:inline="text">
+                [[${replicating.count}]]
+                <span th:text="${replicating.formattedSum}"
+                      class="badge badge-info"
+                      style="font-size: 12px; vertical-align: middle">55 GB
+                </span></h3>
+        </div>
+        <div class="w-25">
+            <span style="font-size: 85%; letter-spacing: .1em; color: #828a9f; text-transform: uppercase;">active replications</span>
+            <!--/*@thymesVar id="activeReplications" type="java.lang.Long"*/-->
+            <h3 th:text="${activeReplications}">0</h3>
+        </div>
+        <div class="w-25">
+            <span style="font-size: 85%; letter-spacing: .1em; color: #828a9f; text-transform: uppercase;">stuck replications</span>
+            <!--/*@thymesVar id="oneWeekReplications" type="java.lang.Long"*/-->
+            <h3 th:if="${oneWeekReplications} != null" th:inline="text">
+                [[${oneWeekReplications}]]
+                <small class="badge badge-warning" style="font-size: 12px; vertical-align: middle">&ge; 1 week</small>
+            </h3>
+            <!--/*@thymesVar id="twoWeekReplications" type="java.lang.Long"*/-->
+            <h3 th:if="${twoWeekReplications} != null" th:inline="text">
+                [[${twoWeekReplications}]]
+                <small class="badge badge-warning" style="font-size: 12px; vertical-align: middle">&ge; 1 week</small>
+                <small class="badge badge-warning" style="font-size: 12px; vertical-align: middle">&ge; 2 weeks</small>
+            </h3>
+        </div>
+    </div>
+</div>
 <div th:replace="layout :: foot"></div>
 </body>
 </html>
