@@ -1,26 +1,40 @@
 package org.chronopolis.ingest.controller;
 
+import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.EnumPath;
+import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.IngestController;
+import org.chronopolis.ingest.models.BagSummary;
 import org.chronopolis.ingest.models.UserRequest;
 import org.chronopolis.ingest.repository.Authority;
 import org.chronopolis.ingest.repository.dao.UserService;
+import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.QReplication;
+import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.PasswordUpdate;
+import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import javax.persistence.EntityManager;
 import java.security.Principal;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Controller for handling basic site interaction/administration
- *
+ * <p>
  * Created by shake on 4/15/15.
  */
 @Controller
@@ -28,11 +42,13 @@ public class SiteController extends IngestController {
 
     private final Logger log = LoggerFactory.getLogger(SiteController.class);
 
+    private final EntityManager entityManager;
     private final UserDetailsManager manager;
     private final UserService userService;
 
     @Autowired
-    public SiteController(UserDetailsManager manager, UserService userService) {
+    public SiteController(EntityManager entityManager, UserDetailsManager manager, UserService userService) {
+        this.entityManager = entityManager;
         this.manager = manager;
         this.userService = userService;
     }
@@ -42,10 +58,58 @@ public class SiteController extends IngestController {
      *
      * @return the main index
      */
-    @RequestMapping(value = "/", method = RequestMethod.GET)
-    public String getIndex() {
+    @GetMapping("/")
+    public String getIndex(Model model) {
         log.debug("GET index");
+        BagSummary preserved = new BagSummary(0L, 0L, BagStatus.PRESERVED);
+        BagSummary replicating = new BagSummary(0L, 0L, BagStatus.REPLICATING);
+
+        // push to separate func
+        QBag bag = QBag.bag;
+        NumberExpression<Long> sumExpr = bag.size.sum();
+        NumberExpression<Long> countExpr = bag.count();
+        EnumPath<BagStatus> statusExpr = bag.status;
+        JPAQueryFactory factory = new JPAQueryFactory(entityManager);
+        List<Tuple> tuples = factory.selectFrom(QBag.bag)
+                .select(sumExpr, countExpr, statusExpr)
+                .where(statusExpr.in(BagStatus.PRESERVED, BagStatus.REPLICATING))
+                .groupBy(statusExpr)
+                .fetch();
+        for (Tuple tuple : tuples) {
+            Long sum = tuple.get(sumExpr);
+            Long count = tuple.get(countExpr);
+            BagStatus status = tuple.get(statusExpr);
+
+            // might be a better way to do this
+            if (status == BagStatus.PRESERVED) {
+                preserved = new BagSummary(sum, count, status);
+            } else {
+                replicating = new BagSummary(sum, count, status);
+            }
+        }
+
+        QReplication replication = QReplication.replication;
+        Long active = replications(factory, replication.status.in(ReplicationStatus.active()));
+        Long oneWeek = replications(factory, replication.status.in(ReplicationStatus.active()),
+                replication.updatedAt.before(ZonedDateTime.now().minusWeeks(1)));
+        Long twoWeeks = replications(factory, replication.status.in(ReplicationStatus.active()),
+                replication.updatedAt.before(ZonedDateTime.now().minusWeeks(2)));
+
+        model.addAttribute("preserved", preserved);
+        model.addAttribute("replicating", replicating);
+        model.addAttribute("activeReplications", active);
+        model.addAttribute("oneWeekReplications", oneWeek);
+        model.addAttribute("twoWeeksReplications", twoWeeks);
+
         return "index";
+    }
+
+    private Long replications(JPAQueryFactory factory, Predicate... predicates) {
+        QReplication replication = QReplication.replication;
+        return factory.selectFrom(replication)
+                .select(replication.count())
+                .where(predicates)
+                .fetchOne();
     }
 
     /**
@@ -63,7 +127,7 @@ public class SiteController extends IngestController {
      * Return a list of all users if called by an admin, otherwise only add the current
      * user
      *
-     * @param model the model to add attributes to
+     * @param model     the model to add attributes to
      * @param principal the security principal of the user
      * @return the users page
      */
@@ -74,7 +138,7 @@ public class SiteController extends IngestController {
 
         // Give admins a view into all users
         if (hasRoleAdmin()) {
-           users.addAll(userService.listUserAuthorities());
+            users.addAll(userService.listUserAuthorities());
         } else {
             // TODO: userService.getAuthority(name)
             users.add(userService.getUserAuthority(user));
@@ -101,7 +165,7 @@ public class SiteController extends IngestController {
     /**
      * Handler for updating the current users password
      *
-     * @param update The password to update
+     * @param update    The password to update
      * @param principal The security principal of the user
      * @return redirect to the users page
      */
