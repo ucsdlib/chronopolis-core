@@ -53,7 +53,7 @@
         <div class="card-header">
             <h4>Replication Configuration</h4>
         </div>
-        <div class="card-block">
+        <div class="card-block p-2">
             <!-- this will need constraint satisfaction so that we do not errantly update the wrong storage region -->
             <form method="post" th:action="@{|/regions/${region.id}/config|}">
                 <div class="form-group row">
