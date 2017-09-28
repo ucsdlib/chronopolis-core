@@ -94,7 +94,7 @@ public class BagTokenController extends IngestController {
         access.info("[POST /api/bags/{}/tokens] - {}", id, principal.getName());
         access.info("Post parameters - {};{}", model.getBagId(), model.getFilename());
 
-        ResponseEntity response;
+        ResponseEntity<AceToken> response;
         AceTokenSearchCriteria searchCriteria = new AceTokenSearchCriteria()
                 .withBagId(id)
                 .withFilenames(ImmutableList.of(model.getFilename()));
