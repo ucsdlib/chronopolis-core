@@ -85,7 +85,8 @@
                 <td th:text="${region.node.username}"></td>
                 <td th:text="${region.storageType}"></td>
                 <td th:text="${region.dataType}"></td>
-                <td th:text="${region.capacity}"></td>
+                <!--/*@thymesVar id="formatter" type="org.chronopolis.ingest.support.FileSizeFormatter"*/-->
+                <td th:text="${formatter.format(region.capacity)}"></td>
             </tr>
             </tbody>
         </table>
