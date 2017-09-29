@@ -11,6 +11,10 @@ import java.math.RoundingMode;
  */
 public class FileSizeFormatter {
 
+    public String format(Long number) {
+        return format(new BigDecimal(number));
+    }
+
     public String format(BigDecimal decimal) {
         Unit unit = Unit.B;
 
