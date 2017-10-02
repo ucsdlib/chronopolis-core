@@ -1,10 +1,18 @@
 #!/bin/sh
-
+#
+# ingest-server  This script starts the ingset server process
+#
+# chkconfig: - 64 36
+# description: Start the Chronopolis Ingest Server
+# processname: ingest-server.jar
+# config: /usr/local/chronopolis/ingest/application.yml
+#
 ### BEGIN INIT INFO
 # Provides:      ingest-server
-# Default-Start: 3 5
-# Default-Stop:  0 1 2 6
-# Description:   Start the Chronopolis ingest API server
+# Required-Start: $network
+# Required-Stop: 
+# Short-Description: Chronopolis Ingest Server
+# Description:   Start the Chronopolis Ingest Server
 ### END INIT INFO
 
 # Amount of time to attempt to communicate with the serve
@@ -68,7 +76,7 @@ case "$1" in
     killproc ingest-server
     echo
     ;;
-    restart)
+    reload)
     $0 stop
     $0 start
     ;;
