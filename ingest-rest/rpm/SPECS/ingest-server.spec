@@ -43,13 +43,8 @@ rm -rf "%{buildroot}"
 %dir %{_confdir}
 %config %attr(0644,-,-) %{_confdir}/application.yml
 # jar
-%dir %attr(0755,chronopolis,chronopolis) %{_prefix}
+%dir %attr(0755,-,-) %{_prefix}
 %{_prefix}/%{service}.jar
 # init/log
 %config(noreplace) /etc/init.d/%{service}
-%dir %attr(0755,chronopolis,chronopolis) /var/log/chronopolis
-
-%pre
-/usr/sbin/groupadd -r chronopolis > /dev/null 2>&1 || :
-/usr/sbin/useradd -r -g chronopolis -c "Chronopolis Service User" \
-        -s /bin/bash -d /usr/lib/chronopolis/ chronopolis > /dev/null 2>&1 || :
+%dir %attr(0755,-,-) /var/log/chronopolis
