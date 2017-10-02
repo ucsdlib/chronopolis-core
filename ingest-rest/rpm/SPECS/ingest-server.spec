@@ -1,7 +1,8 @@
 %define __jar_repack {%nil}
-%define _prefix %{_usr}/lib/chronopolis
-%define _confdir /etc/chronopolis
-%define service ingest-server
+%define _prefix %{_usr}/local/chronopolis/ingest
+%define jar ingest-server.jar
+%define yaml application.yml
+%define initsh /etc/init.d/ingest-server
 %define build_time %(date +"%Y%m%d")
 
 Name: ingest-server
@@ -14,7 +15,7 @@ Summary: Chronopolis Ingest Server
 License: UMD
 URL: https://gitlab.umiacs.umd.edu/chronopolis
 Group: System Environment/Daemons
-Requires: /usr/sbin/groupadd, /usr/sbin/useradd, postgresql-server >= 8.1
+Requires: postgresql-server >= 8.1
 autoprov: yes
 autoreq: yes
 BuildArch: noarch
@@ -26,25 +27,18 @@ tokens.
 
 %install
 
-rm -rf "%{buildroot}"
-%__install -D -m0644 "%{SOURCE0}" "%{buildroot}%{_prefix}/%{service}.jar"
+%__install -D -m0644 "%{SOURCE0}" "%{buildroot}%{_prefix}/%{jar}"
+%__install -D -m0600 "%{SOURCE2}" "%{buildroot}%{_prefix}/%{yaml}"
+%__install -D -m0755 "%{SOURCE1}" "%{buildroot}%{initsh}"
 
 %__install -d "%{buildroot}/var/log/chronopolis"
-%__install -d "%{buildroot}/etc/chronopolis"
-
-%__install -D -m0755 "%{SOURCE1}" "%{buildroot}/etc/init.d/%{service}"
-%__install -D -m0600 "%{SOURCE2}" "%{buildroot}%{_confdir}/application.yml"
-
 
 %files
 
 %defattr(-,root,root)
-# conf
-%dir %{_confdir}
-%config %attr(0644,-,-) %{_confdir}/application.yml
-# jar
-%dir %attr(0755,-,-) %{_prefix}
-%{_prefix}/%{service}.jar
-# init/log
-%config(noreplace) /etc/init.d/%{service}
+%dir %{_prefix}
+%{_prefix}/%{jar}
+%config %{_prefix}/%{yaml}
+%config %{initsh}
+
 %dir %attr(0755,-,-) /var/log/chronopolis
