@@ -28,7 +28,7 @@ tokens.
 %install
 
 %__install -D -m0644 "%{SOURCE0}" "%{buildroot}%{_prefix}/%{jar}"
-%__install -D -m0600 "%{SOURCE2}" "%{buildroot}%{_prefix}/%{yaml}"
+%__install -D -m0644 "%{SOURCE2}" "%{buildroot}%{_prefix}/%{yaml}"
 %__install -D -m0755 "%{SOURCE1}" "%{buildroot}%{initsh}"
 
 %__install -d "%{buildroot}/var/log/chronopolis"
@@ -38,7 +38,21 @@ tokens.
 %defattr(-,root,root)
 %dir %{_prefix}
 %{_prefix}/%{jar}
-%config %{_prefix}/%{yaml}
-%config %{initsh}
+%config(noreplace) %{_prefix}/%{yaml}
+%{initsh}
 
 %dir %attr(0755,-,-) /var/log/chronopolis
+
+%post
+
+chkconfig --add ingest-server
+
+%preun
+
+chkconfig --del ingest-server
+
+%changelog
+
+* Mon Oct 2 2017 Mike Ritter <shake@umiacs.umd.edu> 1.6.0-20171002
+- added changelog entry
+- update mod for application yaml
