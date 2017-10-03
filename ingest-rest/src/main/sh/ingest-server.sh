@@ -21,23 +21,37 @@ TIMEOUT=15
 # User to execute as
 CHRON_USER="chronopolis"
 
-REPL_JAR="/usr/lib/chronopolis/ingest-server.jar"
-REPL_PID_FILE="/var/run/ingest-server.pid"
+INGEST_DIR="/usr/local/chronopolis/ingest"
+INGEST_JAR="ingest-server.jar"
+INGEST_PID_FILE="/var/run/ingest-server.pid"
 
-# Set the location which holds our application.properties
-# SPRING_CONFIG_NAME="settings.conf"
-SPRING_CONFIG_LOCATION="/etc/chronopolis/"
+# todo: see if we need to keep this env variable around
+SPRING_CONFIG_LOCATION="$INGEST_DIR/"
 
 JAVA_BIN=/usr/bin/java
-JAVA_CMD="$JAVA_BIN -jar $REPL_JAR"
+JAVA_CMD="$JAVA_BIN -jar $INGEST_DIR/$INGEST_JAR"
 PARAMS="--spring.config.location=$SPRING_CONFIG_LOCATION &"
 
 . /etc/init.d/functions
 
 RETVAL=0
 
+# This needs to be updated to start/stop correctly...
+# start todos:
+# - lockfile
+# - pidfile 
+# stop todos:
+# - lockfile
+# - check status of kill
+
 case "$1" in
     start)
+    if ! getent passwd "$CHRON_USER" 2>&1; then
+        echo "User $CHRON_USER does not exist; unable to start Ingest Server"
+        action "Started Ingest Server: " /bin/false
+        exit 2
+    fi
+
     echo "Starting the ingest server"
     daemon --user "$CHRON_USER" --pidfile "$REPL_PID_FILE" $JAVA_CMD $PARAMS > /dev/null 2>&1
 
@@ -57,7 +71,6 @@ case "$1" in
 
     # This bit is from the jenkins init script, I'm not sure if we'll need it though
     if [ $RETVAL -eq 0 ]; then
-        success
         /bin/ps hww -u "$CHRON_USER" -o sess,ppid,pid,cmd | \
         while read sess ppid pid cmd; do
         [ $ppid -eq 1 ] || continue
@@ -65,16 +78,16 @@ case "$1" in
         [ $? -eq 0 ] || continue
         echo $pid > $REPL_PID_FILE
         done
+        action "Started Ingest Server " /bin/true
     else
-        failure
+        action "Started Ingest Server " /bin/false
     fi
     echo
     RETVAL=$?
     ;;
     stop)
-    echo "Stopping the ingest server"
     killproc ingest-server
-    echo
+    action "Stopped Ingest Server" /bin/true
     ;;
     reload)
     $0 stop
