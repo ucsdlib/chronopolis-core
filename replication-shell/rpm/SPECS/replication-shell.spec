@@ -5,12 +5,13 @@
 %define _binary_filedigest_algorithm 1
 
 # For use below
-%define _prefix %{_usr}/lib/chronopolis
-%define _confdir /etc/chronopolis
-%define service replication
+%define _prefix %{_usr}/local/chronopolis/replication
+%define jar replication.jar
+%define yaml application.yml
+%define initsh /etc/init.d/replicationd
 %define build_date %(date +"%Y%m%d")
 
-Name: replication-shell
+Name: replicationd
 Version: %{ver}
 Release: %{build_date}%{?dist}
 Source: replication-shell.jar
@@ -20,7 +21,6 @@ Summary: Chronopolis Replication Service
 License: UMD
 URL: https://gitlab.umiacs.umd.edu/chronopolis
 Group: System Environment/Daemons
-Requires: /usr/sbin/groupadd /usr/sbin/useradd
 autoprov: yes
 autoreq: yes
 BuildArch: noarch
@@ -32,30 +32,31 @@ and does replication and registration on them.
 
 %install
 
-rm -rf "%{buildroot}"
-%__install -D -m0644 "%{SOURCE0}" "%{buildroot}%{_prefix}/%{service}.jar"
+%__install -D -m0644 "%{SOURCE0}" "%{buildroot}%{_prefix}/%{jar}"
+%__install -D -m0644 "%{SOURCE2}" "%{buildroot}%{_prefix}/%{yaml}"
+%__install -D -m0755 "%{SOURCE1}" "%{buildroot}%{initsh}"
 
 %__install -d "%{buildroot}/var/log/chronopolis"
-%__install -d "%{buildroot}/etc/chronopolis"
-
-%__install -D -m0755 "%{SOURCE1}" "%{buildroot}/etc/init.d/%{service}"
-%__install -D -m0600 "%{SOURCE2}" "%{buildroot}%{_confdir}/application.yml"
-
 
 %files
 
 %defattr(-,root,root)
-# conf
-%dir %{_confdir}
-%config %attr(0644,-,-) %{_confdir}/application.yml
-# jar
-%dir %attr(0755,chronopolis,chronopolis) %{_prefix}
-%{_prefix}/%{service}.jar
-# init/log
-%config(noreplace) /etc/init.d/%{service}
-%dir %attr(0755,chronopolis,chronopolis) /var/log/chronopolis
+%dir %{_prefix}
+%{_prefix}/%{jar}
+%config(noreplace) %{_prefix}/%{yaml}
+%{initsh}
 
-%pre
-/usr/sbin/groupadd -r chronopolis > /dev/null 2>&1 || :
-/usr/sbin/useradd -r -g chronopolis -c "Chronopolis Service User" \
-        -s /bin/bash -d /usr/lib/chronopolis/ chronopolis > /dev/null 2>&1 || :
+%dir %attr(0755,-,-) /var/log/chronopolis
+
+%post
+
+chkconfig --add  replication
+
+%preun
+
+chkconfig --del replication
+
+%changelog
+
+* Tue Oct 3 2017 Mike Ritter <shake@umiacs.umd.edu> 1.6.0-20171003
+- cleanup spec to include missing sections
