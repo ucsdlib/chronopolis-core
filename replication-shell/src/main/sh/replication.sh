@@ -1,9 +1,17 @@
 #!/bin/sh
-
+#
+# replicationd - This script starts the replication service
+# 
+# chkconfig: - 64 36
+# description: Start the Chronopolis Replication Service 
+# processname: replication.jar
+# config: /usr/local/chronopolis/ingest/application.yml
+#
 ### BEGIN INIT INFO
 # Provides:      replication
-# Default-Start: 3 5
-# Default-Stop:  0 1 2 6
+# Required-Start: $network
+# Required-Stop:
+# Short-Description: Chronopolis Replication Service
 # Description:   Start the Chronopolis replication service
 ### END INIT INFO
 
@@ -68,7 +76,7 @@ case "$1" in
     echo "Stopping the replication service"
     killproc replication
     ;;
-    restart)
+    reload)
     $0 stop
     $0 start
     ;;
