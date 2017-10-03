@@ -8,8 +8,8 @@
 %define _prefix %{_usr}/local/chronopolis/replication
 %define jar replicationd.jar
 %define yaml application.yml
-%define wait replication-wait-ready
-%define service /usr/lib/systemd/system/replicaitond.service
+%define wait replicationd-wait-ready
+%define service /usr/lib/systemd/system/replicationd.service
 %define build_date %(date +"%Y%m%d")
 
 Name: replicationd
@@ -29,8 +29,13 @@ BuildArch: noarch
 BuildRoot: ${_tmppath}/build-%{name}-%{version}
 
 %description
+
 The Replication Services monitors for packages being ingested into Chronopolis
 and does replication and registration on them.
+
+%preun
+
+systemctl disable replicationd
 
 %install
 

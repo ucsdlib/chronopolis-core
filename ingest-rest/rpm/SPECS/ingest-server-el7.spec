@@ -27,6 +27,10 @@ BuildRoot: ${_tmppath}/build-%{name}-%{version}
 The Ingest Server hosts the API for handling bags, transfers, and
 tokens.
 
+%preun
+
+systemctl disable ingest-server
+
 %install
 
 %__install -D -m0644 "%{SOURCE0}" "%{buildroot}%{service}"
