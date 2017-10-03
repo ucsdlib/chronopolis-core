@@ -6,8 +6,8 @@ After=network.target
 Type=simple
 User=chronopolis
 Group=chronopolis
-Environment=PARAMS="--spring.config.location=/usr/local/chronopolis/ingest"
-ExecStart=java -jar /usr/local/chronopolis/ingest/ingest-server.jar $PARAMS
+Environment=SPRING_CONFIG_LOCATION=/usr/local/chronopolis/ingest/
+ExecStart=/usr/bin/java -jar /usr/local/chronopolis/ingest/ingest-server.jar
 ExecStartPost=/usr/local/chronopolis/ingest/ingest-wait-ready $MAINPID
 TimeoutSec=300
 

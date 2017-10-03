@@ -6,8 +6,8 @@ After=network.target
 Type=simple
 User=chronopolis
 Group=chronopolis
-Environment=PARAMS="--spring-config-location=/usr/local/chronopolis/replication"
-ExecStart=java -jar /usr/local/chronopolis/replication/replicationd.jar $PARAMS
+Environment=SPRING_CONFIG_LOCATION=/usr/local/chronopolis/replication/
+ExecStart=/usr/bin/java -jar /usr/local/chronopolis/replication/replicationd.jar
 ExecStartPost=/usr/local/chronopolis/replication/replicationd-wait-ready $MAINPID
 TimeoutSec=300
 
