@@ -13,7 +13,7 @@
 
 Name: replicationd
 Version: %{ver}
-Release: %{build_date}%{?dist}
+Release: %{build_date}.el6
 Source: replication-shell.jar
 Source1: replication.sh
 Source2: application.yml

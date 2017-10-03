@@ -19,7 +19,7 @@
 CHRON_USER="chronopolis"
 
 REPL_DIR="/usr/local/chronopolis/replication"
-REPL_JAR="replication.jar"
+REPL_JAR="replicationd.jar"
 REPL_PID_FILE="/var/run/replication.pid"
 
 # Set the location which holds our application.properties

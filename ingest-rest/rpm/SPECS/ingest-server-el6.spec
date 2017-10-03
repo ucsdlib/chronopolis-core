@@ -7,7 +7,7 @@
 
 Name: ingest-server
 Version: %{ver}
-Release: %{build_time}%{?dist}
+Release: %{build_time}.el6
 Source: ingest-server.jar
 Source1: ingest-server.sh
 Source2: application.yml
