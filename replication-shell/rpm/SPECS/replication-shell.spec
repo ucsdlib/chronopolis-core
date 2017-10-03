@@ -6,7 +6,7 @@
 
 # For use below
 %define _prefix %{_usr}/local/chronopolis/replication
-%define jar replication.jar
+%define jar replicationd.jar
 %define yaml application.yml
 %define initsh /etc/init.d/replicationd
 %define build_date %(date +"%Y%m%d")
