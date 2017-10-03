@@ -1,0 +1,15 @@
+[Unit]
+Description=Chronopolis Ingest Server
+After=network.target
+
+[Service]
+Type=simple
+User=chronopolis
+Group=chronopolis
+Environment=PARAMS="--spring.config.location=/usr/local/chronopolis/ingest"
+ExecStart=java -jar /usr/local/chronopolis/ingest/ingest-server.jar $PARAMS
+ExecStartPost=/usr/local/chronopolis/ingest/ingest-wait-ready $MAINPID
+TimeoutSec=300
+
+[Install]
+WantedBy=multi-user.target
