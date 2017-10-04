@@ -53,6 +53,7 @@ smtp:
  
 # Specify the active profile for loading various services, normally production
 spring.profiles.active: production
+spring.pid.file: /var/run/replicationd.pid
  
 # Logging properties
 logging.file: replication.log
