@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import org.apache.catalina.connector.Connector;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.storage.TokenStagingProperties;
+import org.chronopolis.common.storage.TokenStagingPropertiesValidator;
 import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.ingest.api.serializer.AceTokenSerializer;
 import org.chronopolis.ingest.api.serializer.BagSerializer;
@@ -33,6 +34,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.validation.Validator;
 
 import javax.persistence.EntityManager;
 import java.time.ZonedDateTime;
@@ -117,6 +119,11 @@ public class IngestConfig {
         builder.serializerByType(StagingStorage.class, new StagingStorageSerializer());
         builder.deserializerByType(ZonedDateTime.class, new ZonedDateTimeDeserializer());
         return builder;
+    }
+
+    @Bean
+    public static Validator configurationPropertiesValidator() {
+        return new TokenStagingPropertiesValidator();
     }
 
 }

@@ -6,6 +6,7 @@ import com.google.gson.reflect.TypeToken;
 import okhttp3.OkHttpClient;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
+import org.chronopolis.common.storage.BagStagingPropertiesValidator;
 import org.chronopolis.rest.api.IngestAPIProperties;
 import org.chronopolis.rest.api.IngestGenerator;
 import org.chronopolis.rest.api.ServiceGenerator;
@@ -21,6 +22,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.validation.Validator;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -92,5 +94,9 @@ public class TokenTaskConfiguration {
         return batch;
     }
 
+    @Bean
+    public static Validator configurationPropertiesValidator() {
+        return new BagStagingPropertiesValidator();
+    }
 
 }
