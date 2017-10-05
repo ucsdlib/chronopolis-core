@@ -8,7 +8,6 @@
 %define _prefix %{_usr}/local/chronopolis/replication
 %define jar replicationd.jar
 %define yaml application.yml
-%define wait replicationd-wait-ready
 %define service /usr/lib/systemd/system/replicationd.service
 %define build_date %(date +"%Y%m%d")
 
@@ -17,8 +16,7 @@ Version: %{ver}
 Release: %{build_date}.el7
 Source: replicationd.service
 Source1: replication-shell.jar
-Source2: replicationd-wait-ready.sh
-Source3: application.yml
+Source2: application.yml
 Summary: Chronopolis Replication Service
 License: UMD
 URL: https://gitlab.umiacs.umd.edu/chronopolis
@@ -41,8 +39,7 @@ systemctl disable replicationd
 
 %__install -D -m0644 "%{SOURCE0}" "%{buildroot}%{service}"
 %__install -D -m0644 "%{SOURCE1}" "%{buildroot}%{_prefix}/%{jar}"
-%__install -D -m0755 "%{SOURCE2}" "%{buildroot}%{_prefix}/%{wait}"
-%__install -D -m0644 "%{SOURCE3}" "%{buildroot}%{_prefix}/%{yaml}"
+%__install -D -m0644 "%{SOURCE2}" "%{buildroot}%{_prefix}/%{yaml}"
 
 %__install -d "%{buildroot}/var/log/chronopolis"
 
@@ -54,7 +51,6 @@ systemctl disable replicationd
 
 %{service}
 %{_prefix}/%{jar}
-%{_prefix}/%{wait}
 %config(noreplace) %{_prefix}/%{yaml}
 
 %changelog
