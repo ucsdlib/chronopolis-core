@@ -1,0 +1,14 @@
+[Unit]
+Description=Chronopolis Ingest Server
+After=network.target
+
+[Service]
+Type=simple
+User=chronopolis
+Group=chronopolis
+Environment=SPRING_CONFIG_LOCATION=/usr/local/chronopolis/ingest/
+ExecStart=/usr/bin/java -jar /usr/local/chronopolis/ingest/ingest-server.jar
+TimeoutSec=300
+
+[Install]
+WantedBy=multi-user.target

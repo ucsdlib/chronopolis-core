@@ -30,9 +30,10 @@ spring.datasource:
  
 # Specify the active profile for loading various services, normally production
 spring.profiles.active: production
+spring.pid.file: /var/run/ingest-server.pid
  
 # debug: true
-server.port: 8000
+server.port: 8080
  
 # Logging properties
 logging.file: ingest.log

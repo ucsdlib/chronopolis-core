@@ -1,0 +1,14 @@
+[Unit]
+Description=Chronopolis Replication Service
+After=network.target
+
+[Service]
+Type=simple
+User=chronopolis
+Group=chronopolis
+Environment=SPRING_CONFIG_LOCATION=/usr/local/chronopolis/replication/
+ExecStart=/usr/bin/java -jar /usr/local/chronopolis/replication/replicationd.jar
+TimeoutSec=300
+
+[Install]
+WantedBy=multi-user.target
