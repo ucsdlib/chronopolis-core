@@ -2,7 +2,6 @@
 %define _prefix %{_usr}/local/chronopolis/ingest
 %define jar ingest-server.jar
 %define yaml application.yml
-%define wait ingest-wait-ready
 %define service /usr/lib/systemd/system/ingest-server.service
 %define build_time %(date +"%Y%m%d")
 
@@ -11,8 +10,7 @@ Version: %{ver}
 Release: %{build_time}.el7
 Source: ingest-server.service
 Source1: ingest-server.jar
-Source2: ingest-wait-ready.sh
-Source3: application.yml
+Source2: application.yml
 Summary: Chronopolis Ingest Server
 License: UMD
 URL: https://gitlab.umiacs.umd.edu/chronopolis
@@ -35,8 +33,7 @@ systemctl disable ingest-server
 
 %__install -D -m0644 "%{SOURCE0}" "%{buildroot}%{service}"
 %__install -D -m0644 "%{SOURCE1}" "%{buildroot}%{_prefix}/%{jar}"
-%__install -D -m0755 "%{SOURCE2}" "%{buildroot}%{_prefix}/%{wait}"
-%__install -D -m0644 "%{SOURCE3}" "%{buildroot}%{_prefix}/%{yaml}"
+%__install -D -m0644 "%{SOURCE2}" "%{buildroot}%{_prefix}/%{yaml}"
 
 %__install -d "%{buildroot}/var/log/chronopolis"
 
@@ -49,7 +46,6 @@ systemctl disable ingest-server
 
 %{service}
 %{_prefix}/%{jar}
-%{_prefix}/%{wait}
 %config(noreplace) %{_prefix}/%{yaml}
 
 %changelog

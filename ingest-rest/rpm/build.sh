@@ -51,7 +51,6 @@ fi
 cp $jarfile rpm/$finaljar
 cp target/classes/application.yml rpm/$sources
 cp src/main/sh/ingest-server.sh rpm/$sources
-cp src/main/sh/ingest-wait-ready.sh rpm/$sources
 cp src/main/sh/ingest-server.service rpm/$sources
 
 # cd back to where we started and build the rpm
