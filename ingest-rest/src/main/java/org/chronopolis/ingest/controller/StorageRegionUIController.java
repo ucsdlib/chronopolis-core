@@ -15,8 +15,10 @@ import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.storage.ReplicationConfig;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.RegionCreate;
+import org.chronopolis.rest.models.RegionEdit;
 import org.chronopolis.rest.models.storage.DataType;
 import org.chronopolis.rest.models.storage.StorageType;
+import org.chronopolis.rest.support.StorageUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,7 @@ import java.security.Principal;
 public class StorageRegionUIController extends IngestController {
 
     private static final int DEFAULT_PAGE_SIZE = 25;
+    private final Logger log = LoggerFactory.getLogger(StorageRegionUIController.class);
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
 
@@ -54,9 +57,9 @@ public class StorageRegionUIController extends IngestController {
     /**
      * Show a list of all StorageRegions
      *
-     * @param model the model for the controller
+     * @param model     the model for the controller
      * @param principal the security principal of the user
-     * @param filter the parameters to filter on
+     * @param filter    the parameters to filter on
      * @return the template for listing StorageRegions
      */
     @GetMapping("/regions")
@@ -86,7 +89,7 @@ public class StorageRegionUIController extends IngestController {
     /**
      * Return a form for creating a StorageRegion
      *
-     * @param model the model for the controller
+     * @param model     the model for the controller
      * @param principal the principal of the user
      * @return the template to create a StorageRegion
      */
@@ -100,9 +103,9 @@ public class StorageRegionUIController extends IngestController {
     /**
      * Process a request to create a StorageRegion
      *
-     * @param model the model of the controller
-     * @param principal the principal of the user
-     * @param regionCreate the RegionCreate form
+     * @param model         the model of the controller
+     * @param principal     the principal of the user
+     * @param regionCreate  the RegionCreate form
      * @param bindingResult the form validation result
      * @return the newly created StorageRegion
      */
@@ -146,9 +149,80 @@ public class StorageRegionUIController extends IngestController {
     }
 
     /**
+     * Return the form for updating a StorageRegion
+     *
+     * @param model      the model for the controller
+     * @param principal  the principal of the user
+     * @param id         the id of the StorageRegion
+     * @param regionEdit the values of the form
+     * @return the template for editing
+     */
+    @GetMapping("/regions/{id}/edit")
+    public String editRegionForm(Model model, Principal principal, @PathVariable("id") Long id, RegionEdit regionEdit) {
+        access.info("[GET /regions/{}/edit] - {}", id, principal.getName());
+        model.addAttribute("dataTypes", DataType.values());
+        model.addAttribute("storageTypes", StorageType.values());
+        model.addAttribute("storageUnits", StorageUnit.values());
+        model.addAttribute("regionEdit", regionEdit);
+        return "storage_region/edit";
+    }
+
+    /**
+     * Update a StorageRegion with the values of the regionEdit form
+     *
+     * @param model         the model of the controller
+     * @param principal     the principal of the user
+     * @param id            the id of the StorageRegion
+     * @param regionEdit    the form
+     * @param bindingResult the result of validation
+     * @return the updated StorageRegion
+     * @throws ForbiddenException if the user does not have permission to update the resource
+     */
+    @PostMapping("/regions/{id}/edit")
+    public String editRegion(Model model,
+                             Principal principal,
+                             @PathVariable("id") Long id,
+                             @Valid RegionEdit regionEdit,
+                             BindingResult bindingResult) throws ForbiddenException {
+        access.info("[POST /regions/{}/edit] - {}", id, principal.getName());
+        if (bindingResult.hasErrors()) {
+
+            bindingResult.getFieldErrors()
+                    .forEach(error -> {
+                        log.info("{}:{}", error.getField(), error.getDefaultMessage());
+                    });
+
+            model.addAttribute("dataTypes", DataType.values());
+            model.addAttribute("storageTypes", StorageType.values());
+            model.addAttribute("storageUnits", StorageUnit.values());
+            model.addAttribute("regionEdit", regionEdit);
+            return "storage_region/edit";
+        }
+
+        access.info("POST parameters - {};{};{};{}", regionEdit.getCapacity(),
+                regionEdit.getStorageUnit(),
+                regionEdit.getDataType(),
+                regionEdit.getStorageType());
+
+        StorageRegion region = service.find(new StorageRegionSearchCriteria().withId(id));
+
+        if (!hasRoleAdmin() && !principal.getName().equalsIgnoreCase(region.getNode().getUsername())) {
+            throw new ForbiddenException("User does not have permissions to create this resource");
+        }
+
+        region.setDataType(regionEdit.getDataType());
+        region.setStorageType(regionEdit.getStorageType());
+        Double capacity = regionEdit.getCapacity() * Math.pow(1000, regionEdit.getStorageUnit().getPower());
+        region.setCapacity(capacity.longValue());
+
+        service.save(region);
+        return "redirect:/regions/" + id;
+    }
+
+    /**
      * Append basic attributes to a model for use as form data
      *
-     * @param model the model of the controller
+     * @param model        the model of the controller
      * @param regionCreate the previous form data
      */
     private void appendFormAttributes(Model model, RegionCreate regionCreate) {
@@ -161,9 +235,9 @@ public class StorageRegionUIController extends IngestController {
     /**
      * Retrieve information for a single StorageRegion
      *
-     * @param model the model for the controller
+     * @param model     the model for the controller
      * @param principal the security principal of the user
-     * @param id the id of the StorageRegion
+     * @param id        the id of the StorageRegion
      * @return the template for displaying a StorageRegion
      */
     @GetMapping("/regions/{id}")
@@ -181,14 +255,14 @@ public class StorageRegionUIController extends IngestController {
 
     /**
      * Update the replication configuration information for a StorageRegion
-     *
+     * <p>
      * Constraints still to do:
-     *   - if a user is not an admin && not the owning node -> 403
+     * - if a user is not an admin && not the owning node -> 403
      *
-     * @param model the model for the controller
+     * @param model     the model for the controller
      * @param principal the security principal of the user
-     * @param id the id of the StorageRegion
-     * @param update the replication configuration information
+     * @param id        the id of the StorageRegion
+     * @param update    the replication configuration information
      * @return the template for displaying a StorageRegion
      */
     @PostMapping("/regions/{id}/config")

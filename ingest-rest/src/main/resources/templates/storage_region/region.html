@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:include="layout :: head">
     <meta charset="UTF-8"/>
     <title>Storage Region</title>
@@ -8,8 +8,12 @@
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column m-3 align-items-center">
     <div class="card w-50">
+        <!--/*@thymesVar id="region" type="org.chronopolis.rest.entities.storage.StorageRegion"*/-->
         <div class="card-header">
             <h3>Storage Region Overview</h3>
+            <!-- by using both btn and badge we get a little bit more room to breathe from the badge
+                 with something smaller than a btn-sm. 'snice -->
+            <a class="btn badge badge-primary" th:href="@{|/regions/${region.id}/edit|}">Edit</a>
         </div>
         <div class="card-block">
             <table class="table table-bordered w-50">
@@ -28,6 +32,7 @@
                 </tr>
                 <tr>
                     <td>Capacity</td>
+                    <!--/*@thymesVar id="capacity" type="java.lang.Long"*/-->
                     <td th:text="${capacity}"></td>
                 </tr>
                 <tr>
