@@ -1,5 +1,7 @@
 package org.chronopolis.ingest.support;
 
+import org.chronopolis.rest.support.StorageUnit;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
@@ -16,7 +18,7 @@ public class FileSizeFormatter {
     }
 
     public String format(BigDecimal decimal) {
-        Unit unit = Unit.B;
+        StorageUnit unit = StorageUnit.B;
 
         BigDecimal result = decimal;
         while (result.longValue() >= 1000L) {
@@ -26,29 +28,6 @@ public class FileSizeFormatter {
         }
 
         return result.stripTrailingZeros().toPlainString() + " " + unit.name();
-    }
-
-    public enum Unit {
-        B, KiB, MiB, GiB, TiB, OOB;
-
-        public Unit next() {
-            switch (this) {
-                case B:
-                    return KiB;
-                case KiB:
-                    return MiB;
-                case MiB:
-                    return GiB;
-                case GiB:
-                    return TiB;
-                case TiB:
-                    return OOB;
-                case OOB:
-                    return OOB;
-                default:
-                    return OOB;
-            }
-        }
     }
 
 }
