@@ -7,6 +7,7 @@ import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
+import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.FixityUpdate;
 import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.ReplicationStatus;
@@ -121,16 +122,20 @@ public class ReplicationControllerTest extends ControllerTest {
     }
 
     private Bag bag() {
+        StorageRegion region = new StorageRegion();
+        region.setId(1L);
         Bag bag = new Bag("test-bag", "test-depositor");
         bag.setId(1L);
         bag.setBagStorage(new StagingStorage().addFixity(
                 new Fixity().setAlgorithm("test-algorithm")
                         .setValue(CORRECT_TAG_FIXITY)
-                        .setCreatedAt(ZonedDateTime.now())));
+                        .setCreatedAt(ZonedDateTime.now()))
+                .setRegion(region));
         bag.setTokenStorage(new StagingStorage().addFixity(
                 new Fixity().setAlgorithm("test-algorithm")
                         .setValue(CORRECT_TOKEN_FIXITY)
-                        .setCreatedAt(ZonedDateTime.now())));
+                        .setCreatedAt(ZonedDateTime.now()))
+                .setRegion(region));
         return bag;
     }
 

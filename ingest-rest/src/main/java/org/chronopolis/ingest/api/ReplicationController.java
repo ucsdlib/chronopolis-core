@@ -172,12 +172,11 @@ public class ReplicationController extends IngestController {
         } else {
             Long bagId = r.getBag().getId();
             String node = r.getNode().getUsername();
-            log.warn("Received invalid fixity (found={},expected={}) for bag {} from {}. Setting {}", new Object[]{
-                    received,
+            log.warn("Received invalid fixity (found={},expected={}) for bag {} from {}. Setting {}", received,
                     stored,
                     bagId,
                     node,
-                    failure});
+                    failure);
             r.setStatus(failure);
         }
 
@@ -293,15 +292,15 @@ public class ReplicationController extends IngestController {
      * Retrieve a single replication based on its Id
      *
      * @param principal - authentication information
-     * @param actionId  - the Id to search for
+     * @param id  - the id to search for
      * @return the replication specified by the id
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public Replication findReplication(Principal principal,
-                                       @PathVariable("id") Long actionId) {
-        access.info("[GET /api/replications/{}] - {}", actionId, principal.getName());
+                                       @PathVariable("id") Long id) {
+        access.info("[GET /api/replications/{}] - {}", id, principal.getName());
         return replicationService.find(
-                new ReplicationSearchCriteria().withId(actionId)
+                new ReplicationSearchCriteria().withId(id)
         );
     }
 
