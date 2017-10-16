@@ -24,7 +24,7 @@ CREATE TABLE bag (
     token_storage_id BIGINT,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
-    name varchar(255),
+    name varchar(255) UNIQUE,
     creator VARCHAR(255),
     depositor varchar(255),
     status varchar(255),
@@ -211,7 +211,8 @@ CREATE TABLE fixity (
     storage_id BIGINT NOT NULL,
     algorithm VARCHAR(255) NOT NULL,
     value VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP
+    created_at TIMESTAMP,
+    UNIQUE(storage_id, algorithm)
 );
 
 -- replication_config

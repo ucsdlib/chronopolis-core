@@ -1,0 +1,1 @@
+ALTER TABLE fixity ADD CONSTRAINT unique_storage_and_fixity UNIQUE(storage_id, algorithm);
