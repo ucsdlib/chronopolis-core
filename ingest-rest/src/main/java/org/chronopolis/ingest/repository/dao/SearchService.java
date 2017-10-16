@@ -11,6 +11,7 @@ import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 
 import javax.transaction.Transactional;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,6 +36,10 @@ public class SearchService<T, I extends Serializable, E extends JpaRepository<T,
     public T find(SearchCriteria sc) {
         Predicate predicate = buildPredicate(sc);
         return e.findOne(predicate);
+    }
+
+    public List<T> findAll() {
+        return e.findAll();
     }
 
     public Page<T> findAll(SearchCriteria sc, Pageable pageable) {
