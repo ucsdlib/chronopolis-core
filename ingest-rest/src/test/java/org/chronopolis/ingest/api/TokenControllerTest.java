@@ -30,8 +30,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Test for the TokenController
  *
- * todo: AceToken -> AceTokenModel during serialization
- *
  * @author shake
  */
 @RunWith(SpringRunner.class)

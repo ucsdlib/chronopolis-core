@@ -4,9 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.WebContext;
-import org.chronopolis.ingest.api.serializer.ZonedDateTimeDeserializer;
 import org.chronopolis.ingest.api.serializer.ZonedDateTimeSerializer;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
@@ -28,16 +26,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.ZonedDateTime;
 import java.util.Date;
@@ -58,37 +50,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * - Check json output
  */
 @RunWith(SpringRunner.class)
-@WebMvcTest(secure = false, controllers = BagTokenController.class)
+@WebMvcTest(controllers = BagTokenController.class)
 @ContextConfiguration(classes = WebContext.class)
-public class BagTokenControllerTest extends IngestTest {
+public class BagTokenControllerTest extends ControllerTest {
 
     private static final String AUTHORIZED = "authorized";
     private static UserDetails admin = new User(AUTHORIZED, AUTHORIZED, ImmutableList.of(() -> "ROLE_ADMIN"));
 
-    private MockMvc mvc;
     private BagTokenController controller;
-
-    @MockBean private SecurityContext context;
-    @MockBean private Authentication authentication;
 
     @MockBean private SearchService<Bag, Long, BagRepository> bagService;
     @MockBean private SearchService<AceToken, Long, TokenRepository> tokenService;
 
     @Before
     public void setup() {
-        SecurityContextHolder.setContext(context);
-
-        Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder()
-                .deserializerByType(ZonedDateTime.class, new ZonedDateTimeDeserializer());
-
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(builder.build());
-        converter.setSupportedMediaTypes(ImmutableList.of(MediaType.APPLICATION_JSON));
-
         controller = new BagTokenController(bagService, tokenService);
-        mvc = MockMvcBuilders.standaloneSetup(controller)
-                .setMessageConverters(converter)
-                .build();
+        setupMvc(controller);
     }
 
     //
@@ -101,7 +78,7 @@ public class BagTokenControllerTest extends IngestTest {
 
         mvc.perform(
                 get("/api/bags/{id}/tokens", 1L)
-                        .principal(() -> "test-user"))
+                        .principal(authorizedPrincipal))
                 .andDo(print())
                 .andExpect(status().is(HttpStatus.OK.value()));
     }
@@ -147,7 +124,7 @@ public class BagTokenControllerTest extends IngestTest {
 
         mvc.perform(
                 post("/api/bags/{id}/tokens", 1L)
-                        .principal(() -> "test-user")
+                        .principal(authorizedPrincipal)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(model)))
                 .andDo(print())
@@ -177,6 +154,7 @@ public class BagTokenControllerTest extends IngestTest {
 
     // These are pulled from the TokenControllerTest, since we're doing simple operations at the moment that's ok
     // but we'll probably want a better way to do this
+    @SuppressWarnings("Duplicates")
     private AceToken generateToken() {
         Bag bag = new Bag("test-name", "test-depositor");
         bag.setId(1L);

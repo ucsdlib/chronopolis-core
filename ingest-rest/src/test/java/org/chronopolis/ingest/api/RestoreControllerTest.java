@@ -1,20 +1,16 @@
 package org.chronopolis.ingest.api;
 
-import org.chronopolis.ingest.IngestTest;
-import org.chronopolis.ingest.WebContext;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.RestoreRepository;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Restoration;
 import org.chronopolis.rest.models.ReplicationStatus;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
@@ -23,25 +19,26 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(secure = false, controllers = RestoreController.class)
-@ContextConfiguration(classes = WebContext.class)
-public class RestoreControllerTest extends IngestTest {
+@WebMvcTest(controllers = RestoreController.class)
+public class RestoreControllerTest extends ControllerTest {
 
-    @Autowired
-    private MockMvc mvc;
+    private RestoreController controller;
 
-    @MockBean
-    private RestoreRepository restores;
+    @MockBean private RestoreRepository restores;
+    @MockBean private NodeRepository nodes;
 
-    @MockBean
-    private NodeRepository nodes;
+    @Before
+    public void setup() {
+        controller = new RestoreController(restores, nodes);
+        setupMvc(controller);
+    }
 
     @Test
     public void testGetRestorations() throws Exception {
         when(restores.findByStatus(any(ReplicationStatus.class))).thenReturn(null);
         mvc.perform(
                 get("/api/restorations")
-                        .principal(() -> "user"))
+                        .principal(authorizedPrincipal))
                 .andExpect(status().is(200));
     }
 
@@ -56,7 +53,7 @@ public class RestoreControllerTest extends IngestTest {
         when(restores.findOne(anyLong())).thenReturn(restoration);
         mvc.perform(
                 get("/api/restorations/{id}", 1L)
-                        .principal(() -> "user"))
+                        .principal(authorizedPrincipal))
                 .andExpect(status().is(200));
     }
 

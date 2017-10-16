@@ -1,11 +1,8 @@
 package org.chronopolis.ingest.api;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.chronopolis.ingest.IngestTest;
-import org.chronopolis.ingest.WebContext;
 import org.chronopolis.ingest.api.serializer.BagSerializer;
 import org.chronopolis.ingest.api.serializer.RepairSerializer;
 import org.chronopolis.ingest.api.serializer.ZonedDateTimeDeserializer;
@@ -27,26 +24,16 @@ import org.chronopolis.rest.models.repair.RepairStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.io.IOException;
-import java.security.Principal;
 import java.time.ZonedDateTime;
 
 import static org.mockito.Matchers.any;
@@ -65,20 +52,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @RunWith(SpringRunner.class)
 @WebMvcTest(RepairController.class)
-@ContextConfiguration(classes = WebContext.class)
-public class RepairControllerTest extends IngestTest {
-    private final Logger log = LoggerFactory.getLogger(RepairControllerTest.class);
-
-    private static final String UNAUTHORIZED = "unauthorized";
-    private static final String AUTHORIZED = "authorized";
-    private static final String REQUESTER = "requester";
-
-    private static Principal unauthorizedPrincipal = () -> UNAUTHORIZED;
-    private static Principal authorizedPrincipal = () -> AUTHORIZED;
-    private static Principal requesterPrincipal = () -> REQUESTER;
-
-    private static UserDetails user = new User(AUTHORIZED, AUTHORIZED, ImmutableList.of(() -> "ROLE_USER"));
-    private static UserDetails admin = new User(AUTHORIZED, AUTHORIZED, ImmutableList.of(() -> "ROLE_ADMIN"));
+public class RepairControllerTest extends ControllerTest {
 
     private MockMvc mvc;
     private RepairController controller;
@@ -88,14 +62,8 @@ public class RepairControllerTest extends IngestTest {
     @MockBean private SearchService<Bag, Long, BagRepository> bags;
     @MockBean private SearchService<Repair, Long, RepairRepository> repairs;
 
-    // Beans for our usage
-    @MockBean private SecurityContext context;
-    @MockBean private Authentication authentication;
-
     @Before
     public void setup() {
-        SecurityContextHolder.setContext(context);
-
         // move to helper?
         Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
         builder.serializationInclusion(JsonInclude.Include.NON_NULL);
@@ -144,8 +112,7 @@ public class RepairControllerTest extends IngestTest {
 
     @Test
     public void createRepair() throws Exception {
-        when(context.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(user);
+        authenticateUser();
         // requester instead of authorized?
         when(nodes.findByUsername(AUTHORIZED)).thenReturn(new Node(AUTHORIZED, AUTHORIZED));
         when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", "test-depositor"));
@@ -163,21 +130,9 @@ public class RepairControllerTest extends IngestTest {
                 .andExpect(jsonPath("$.to").value(AUTHORIZED));
     }
 
-    private <T> String asJson(T request) {
-        ObjectMapper mapper = new Jackson2ObjectMapperBuilder()
-                .serializationInclusion(JsonInclude.Include.NON_NULL)
-                .build();
-        try {
-            return mapper.writeValueAsString(request);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     @Test
     public void createRepairAdmin() throws Exception {
-        when(context.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(admin);
+        authenticateAdmin();
         when(nodes.findByUsername(REQUESTER)).thenReturn(new Node(REQUESTER, REQUESTER));
         when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", "test-depositor"));
 
@@ -197,8 +152,7 @@ public class RepairControllerTest extends IngestTest {
 
     @Test
     public void createRepairUnauthorized() throws Exception {
-        when(context.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(user);
+        authenticateUser();
         when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", "test-depositor"));
 
         // For some reason the ObjectMapper isn't creating proper json for the RepairRequest class, so we'll just hard code it for now
@@ -249,8 +203,7 @@ public class RepairControllerTest extends IngestTest {
     public void readyFulfillment() throws Exception {
         Repair fulfilling = fulfilling();
         when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
-        when(context.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(user);
+        authenticateUser();
 
         ACEStrategy strategy = new ACEStrategy()
                 .setApiKey("test-api-key")
@@ -270,8 +223,7 @@ public class RepairControllerTest extends IngestTest {
     public void readyFulfillmentUnauthorized() throws Exception {
         Repair fulfilling = fulfilling();
         when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
-        when(context.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(user);
+        authenticateUser();
 
         ACEStrategy strategy = new ACEStrategy()
                 .setApiKey("test-api-key")
@@ -290,8 +242,7 @@ public class RepairControllerTest extends IngestTest {
     public void completeFulfillmentNoStrategy() throws Exception {
         Repair fulfilling = fulfilling();
         when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
-        when(context.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(user);
+        authenticateUser();
         mvc.perform(put("/api/repairs/{id}/complete", fulfilling.getId()).principal(requesterPrincipal))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
@@ -302,8 +253,7 @@ public class RepairControllerTest extends IngestTest {
     public void completeFulfillment() throws Exception {
         Repair completing = completing();
         when(repairs.find(any(SearchCriteria.class))).thenReturn(completing);
-        when(context.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(user);
+        authenticateUser();
 
         mvc.perform(put("/api/repairs/{id}/complete", completing.getId()).principal(requesterPrincipal))
                 .andDo(print())
@@ -315,8 +265,7 @@ public class RepairControllerTest extends IngestTest {
     public void completeFulfillmentUnauthorized() throws Exception {
         Repair completing = completing();
         when(repairs.find(any(SearchCriteria.class))).thenReturn(completing);
-        when(context.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(user);
+        authenticateUser();
 
         mvc.perform(put("/api/repairs/{id}/complete", completing.getId()).principal(unauthorizedPrincipal))
                 .andDo(print())
@@ -327,8 +276,7 @@ public class RepairControllerTest extends IngestTest {
     public void repairAuditing() throws Exception {
         Repair auditing = auditing();
         when(repairs.find(any(SearchCriteria.class))).thenReturn(auditing);
-        when(context.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(user);
+        authenticateUser();
 
         mvc.perform(
                 put("/api/repairs/{id}/audit", auditing.getId())
@@ -357,8 +305,7 @@ public class RepairControllerTest extends IngestTest {
     public void repairAuditingUnauthorized() throws Exception {
         Repair auditing = auditing();
         when(repairs.find(any(SearchCriteria.class))).thenReturn(auditing);
-        when(context.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(user);
+        authenticateUser();
 
         mvc.perform(
                 put("/api/repairs/{id}/audit",auditing.getId())
@@ -371,8 +318,7 @@ public class RepairControllerTest extends IngestTest {
     public void repairCleaned() throws Exception {
         Repair cleaning = cleaning();
         when(repairs.find(any(SearchCriteria.class))).thenReturn(cleaning);
-        when(context.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(user);
+        authenticateUser();
 
         mvc.perform(
                 put("/api/repairs/{id}/cleaned", cleaning.getId()).principal(requesterPrincipal))
@@ -393,8 +339,7 @@ public class RepairControllerTest extends IngestTest {
     public void repairCleanUnauthorized() throws Exception {
         Repair cleaning = cleaning();
         when(repairs.find(any(SearchCriteria.class))).thenReturn(cleaning());
-        when(context.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(user);
+        authenticateUser();
 
         mvc.perform(put("/api/repairs/{id}/cleaned", cleaning.getId()).principal(unauthorizedPrincipal))
                 .andDo(print())
@@ -405,8 +350,7 @@ public class RepairControllerTest extends IngestTest {
     public void repairReplaced() throws Exception {
         Repair replacing = replacing();
         when(repairs.find(any(SearchCriteria.class))).thenReturn(replacing);
-        when(context.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(user);
+        authenticateUser();
 
         mvc.perform(put("/api/repairs/{id}/replaced", replacing.getId()).principal(requesterPrincipal))
                 .andDo(print())
@@ -426,8 +370,7 @@ public class RepairControllerTest extends IngestTest {
     public void repairReplacedUnauthorized() throws Exception {
         Repair replacing = replacing();
         when(repairs.find(any(SearchCriteria.class))).thenReturn(replacing);
-        when(context.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(user);
+        authenticateUser();
 
         mvc.perform(put("/api/repairs/{id}/replaced", replacing.getId()).principal(unauthorizedPrincipal))
                 .andDo(print())
@@ -438,8 +381,7 @@ public class RepairControllerTest extends IngestTest {
     public void fulfillmentUpdated() throws Exception {
         Repair fulfilling = fulfilling();
         when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
-        when(context.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(user);
+        authenticateUser();
         mvc.perform(
                 put("/api/repairs/{id}/status", fulfilling.getId())
                     .principal(authorizedPrincipal).contentType(MediaType.APPLICATION_JSON).content(asJson(RepairStatus.READY)))
@@ -452,8 +394,7 @@ public class RepairControllerTest extends IngestTest {
     public void fulfillmentUpdatedXfer() throws Exception {
         Repair transferred = transferred();
         when(repairs.find(any(SearchCriteria.class))).thenReturn(transferred);
-        when(context.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(user);
+        authenticateUser();
         mvc.perform(put("/api/repairs/{id}/status", transferred.getId())
                 .principal(requesterPrincipal).contentType(MediaType.APPLICATION_JSON).content(asJson(RepairStatus.TRANSFERRED)))
                 .andDo(print())
@@ -474,8 +415,7 @@ public class RepairControllerTest extends IngestTest {
     public void fulfillmentUpdateUnauthorizedXfer() throws Exception {
         Repair transferred = transferred();
         when(repairs.find(any(SearchCriteria.class))).thenReturn(transferred);
-        when(context.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(user);
+        authenticateUser();
         mvc.perform(
                 put("/api/repairs/{id}/status", transferred.getId())
                         .principal(unauthorizedPrincipal).contentType(MediaType.APPLICATION_JSON).content(asJson(RepairStatus.TRANSFERRED)))
@@ -487,8 +427,7 @@ public class RepairControllerTest extends IngestTest {
     public void fulfillmentUpdateUnauthorized() throws Exception {
         Repair transferred = transferred();
         when(repairs.find(any(SearchCriteria.class))).thenReturn(transferred);
-        when(context.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(user);
+        authenticateUser();
         mvc.perform(
                 put("/api/repairs/{id}/status", transferred.getId())
                         .principal(unauthorizedPrincipal).contentType(MediaType.APPLICATION_JSON).content(asJson(RepairStatus.FAILED)))

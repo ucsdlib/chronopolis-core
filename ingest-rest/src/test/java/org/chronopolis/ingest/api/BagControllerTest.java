@@ -1,10 +1,6 @@
 package org.chronopolis.ingest.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-import org.chronopolis.ingest.IngestTest;
-import org.chronopolis.ingest.WebContext;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;
@@ -14,16 +10,14 @@ import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.IngestRequest;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Set;
 
@@ -45,22 +39,26 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  */
 @RunWith(SpringRunner.class)
-@WebMvcTest(secure = false, controllers = BagController.class)
-@ContextConfiguration(classes = WebContext.class)
-public class BagControllerTest extends IngestTest {
+@WebMvcTest(controllers = BagController.class)
+public class BagControllerTest extends ControllerTest {
 
     private final String DEPOSITOR = "test-depositor";
     private final String BAG = "test-bag";
     private final String LOCATION = "bags/test-bag-0";
     private final String NODE = "test-node";
 
-    @Autowired
-    private MockMvc mvc;
+    private BagController controller;
 
     // Mocks for the StagingController
     @MockBean private NodeRepository nodes;
     @MockBean private BagService bagService;
     @MockBean private SearchService<StorageRegion, Long, StorageRegionRepository> regions;
+
+    @Before
+    public void setup() {
+        controller = new BagController(nodes, bagService, regions);
+        setupMvc(controller);
+    }
 
     @Test
     public void testGetBags() throws Exception {
@@ -142,15 +140,5 @@ public class BagControllerTest extends IngestTest {
         b.setId(1L);
         return b;
     }
-
-    private <T> String asJson(T request) {
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            return mapper.writeValueAsString(request);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
 
 }

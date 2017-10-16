@@ -1,9 +1,5 @@
 package org.chronopolis.ingest.api;
 
-import com.google.common.collect.ImmutableList;
-import org.chronopolis.ingest.WebContext;
-import org.chronopolis.ingest.api.serializer.StagingStorageSerializer;
-import org.chronopolis.ingest.api.serializer.ZonedDateTimeDeserializer;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;
@@ -19,12 +15,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.ZonedDateTime;
 
@@ -39,18 +30,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Tests for the BagStorageController
  *
- * todo: do we want to have proper objectmapping in the MockMvc (i.e. entity -> model)
- *
  */
 @RunWith(SpringRunner.class)
-@WebMvcTest(secure = false, controllers = BagStorageController.class)
-@ContextConfiguration(classes = WebContext.class)
-public class BagStorageControllerTest {
+@WebMvcTest(controllers = BagStorageController.class)
+public class BagStorageControllerTest extends ControllerTest {
     private static final long ID = 1L;
     private static final String TYPE = "bag";
 
     private Bag bag;
-    private MockMvc mvc;
     private BagStorageController controller;
 
     @MockBean private NodeRepository nodes;
@@ -81,19 +68,8 @@ public class BagStorageControllerTest {
         bag = new Bag("test-bag", "test-depositor");
         bag.setBagStorage(storage);
 
-
-        Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder()
-                .serializerByType(StagingStorage.class, new StagingStorageSerializer())
-                .deserializerByType(ZonedDateTime.class, new ZonedDateTimeDeserializer());
-
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(builder.build());
-        converter.setSupportedMediaTypes(ImmutableList.of(MediaType.APPLICATION_JSON));
-
         controller = new BagStorageController(nodes, bagService);
-        mvc = MockMvcBuilders.standaloneSetup(controller)
-                .setMessageConverters(converter)
-                .build();
+        setupMvc(controller);
     }
 
     @Test

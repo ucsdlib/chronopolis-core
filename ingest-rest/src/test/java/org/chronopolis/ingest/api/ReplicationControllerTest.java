@@ -1,10 +1,5 @@
 package org.chronopolis.ingest.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
-import org.chronopolis.ingest.IngestTest;
-import org.chronopolis.ingest.WebContext;
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
 import org.chronopolis.rest.entities.Bag;
@@ -18,19 +13,11 @@ import org.chronopolis.rest.models.ReplicationStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.time.ZonedDateTime;
@@ -46,41 +33,36 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Tests for the replication controller
- *
+ * <p>
  * Things we need to setup before hand:
- *   - Bag for the replication
- *   - Node who is replicating
- *   - Possibly node who does not own the replication
- *   - SecurityContext (probably a better way to handle this but the static method usage kind of hurts us)
- *
+ * - Bag for the replication
+ * - Node who is replicating
+ * - Possibly node who does not own the replication
+ * - SecurityContext (probably a better way to handle this but the static method usage kind of hurts us)
  */
 @RunWith(SpringRunner.class)
-@WebMvcTest(secure = false, controllers = ReplicationController.class)
-@ContextConfiguration(classes = WebContext.class)
-public class ReplicationControllerTest extends IngestTest {
+@WebMvcTest(controllers = ReplicationController.class)
+public class ReplicationControllerTest extends ControllerTest {
 
     private final String CORRECT_TAG_FIXITY = "tag-fixity";
     private final String CORRECT_TOKEN_FIXITY = "token-fixity";
     private final String INVALID_FIXITY = "fxity";
 
-    @Autowired
-    private MockMvc mvc;
+    private ReplicationController controller;
 
-    @MockBean private SecurityContext context;
-    @MockBean private ReplicationService service;
-    @MockBean private Authentication authentication;
+    @MockBean
+    private ReplicationService service;
 
     @Before
     public void setup() {
-        // Inject the mock context
-        SecurityContextHolder.setContext(context);
+        controller = new ReplicationController(service);
+        setupMvc(controller);
     }
 
     @Test
     public void testReplications() throws Exception {
-        // todo return a proper pageable object
         when(service.findAll(any(SearchCriteria.class), any(Pageable.class))).thenReturn(null);
-        mvc.perform(get("/api/replications?node=umiacs"))
+        mvc.perform(get("/api/replications?node=umiacs").principal(authorizedPrincipal))
                 .andDo(print())
                 .andExpect(status().is(200))
                 .andReturn();
@@ -89,7 +71,7 @@ public class ReplicationControllerTest extends IngestTest {
     @Test
     public void testFindReplication() throws Exception {
         when(service.find(any(SearchCriteria.class))).thenReturn(new Replication(node(), bag()));
-        mvc.perform(get("/api/replications/{id}", 4L).principal(() -> "user"))
+        mvc.perform(get("/api/replications/{id}", 4L).principal(authorizedPrincipal))
                 .andDo(print())
                 .andExpect(status().is(200))
                 .andReturn();
@@ -103,7 +85,7 @@ public class ReplicationControllerTest extends IngestTest {
                 .andExpect(jsonPath("$.receivedTokenFixity").value(CORRECT_TOKEN_FIXITY));
     }
 
-   @Test
+    @Test
     public void testClientUpdate() throws Exception {
         setupPut("/api/replications/{id}/status", 4L, new RStatusUpdate(ReplicationStatus.STARTED))
                 .andExpect(status().is(200))
@@ -127,14 +109,12 @@ public class ReplicationControllerTest extends IngestTest {
     }
 
     public <T> ResultActions setupPut(String uri, Long id, T obj) throws Exception {
-        UserDetails details = new User("user", "password", ImmutableList.of(() -> "ROLE_USER"));
         when(service.find(any(SearchCriteria.class))).thenReturn(new Replication(node(), bag()));
-        when(context.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(details);
+        authenticateUser();
         return mvc.perform(
                 put(uri, id)
-                        .with(user(details)) // any way to streamline some of this I wonder?
-                        .principal(() -> "user")
+                        .with(user(user)) // any way to streamline some of this I wonder?
+                        .principal(authorizedPrincipal)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJson(obj)))
                 .andDo(print());
@@ -155,17 +135,8 @@ public class ReplicationControllerTest extends IngestTest {
     }
 
 
-    private Node node (){
+    private Node node() {
         return new Node("user", "password");
-    }
-
-    private <T> String asJson(T t) {
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            return mapper.writeValueAsString(t);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
     }
 
 }
