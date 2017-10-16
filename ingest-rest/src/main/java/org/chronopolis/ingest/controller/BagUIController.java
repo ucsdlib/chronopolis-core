@@ -267,7 +267,6 @@ public class BagUIController extends IngestController {
                                       FixityCreate create) throws ForbiddenException {
         access.info("[POST /bags/{}/storage/{}/fixity] - {}", id, storageId, principal.getName());
         access.info("POST parameters - {};{}", create.getAlgorithm(), create.getValue());
-        String template = "redirect:/bags/" + id;
 
         BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
         Bag bag = bagService.find(criteria);
@@ -321,6 +320,7 @@ public class BagUIController extends IngestController {
     public String addBag(Model model, Principal principal) {
         access.info("[GET /bags/add] - {}", principal.getName());
         model.addAttribute("nodes", nodeRepository.findAll());
+        model.addAttribute("regions", regions.findAll());
         return "addbag";
     }
 

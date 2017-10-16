@@ -31,11 +31,16 @@
                                id="location"/>
                     </div>
                 </div>
-                <!--/* todo: helper for selecting regions owned by node/user */-->
+
                 <div class="form-group row">
                     <label for="storageRegion" class="col-4 col-form-label">Storage Region</label>
                     <div class="col-8">
-                        <input class="form-control" type="text" name="storageRegion" id="storageRegion"/>
+                        <select name="storageRegion" id="storageRegion">
+                            <!--/*@thymesVar id="regions" type="List<org.chronopolis.rest.entities.storage.StorageRegion>" */-->
+                            <!--/*@thymesVar id="region" type="org.chronopolis.rest.entities.storage.StorageRegion" */-->
+                            <option th:each="region : ${regions}" th:value="${region.id}"
+                                    th:text="@{|${region.node.username}: ${region.dataType} ${region.storageType} |}"></option>
+                        </select>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -51,18 +56,16 @@
                     </div>
                 </div>
 
-                <!--@thymesVar id="nodes" type="List<Node>"-->
-                <!--@thymesVar id="node" type="org.chronopolis.rest.entities.Node"-->
-                <fieldset class="form-group row">
-                    <legend class="col-form-legend col-sm-4">Replicate To</legend>
-                    <div class="col-sm-10" th:each="node: ${nodes}">
-                        <label class="form-check-label">
-                            <input class="form-check-input" type="checkbox" name="replicatingNodes"
-                                   th:value="${node.username}"/>
-                            <p th:text="${node.username}"></p>
-                        </label>
+                <!--/*@thymesVar id="nodes" type="List<Node>" */-->
+                <!--/*@thymesVar id="node" type="org.chronopolis.rest.entities.Node" */-->
+                <div class="form-group row">
+                    <label for="replicatingNodes" class="col-4 col-form-label">Replicate To</label>
+                    <div class="col-8">
+                        <select multiple="multiple" name="replicatingNodes" id="replicatingNodes" class="form-control">
+                            <option th:each="node : ${nodes}" th:value="${node.username}" th:text="${node.username}"></option>
+                        </select>
                     </div>
-                </fieldset>
+                </div>
 
                 <input class="btn btn-primary" type="submit" value="Create Bag"/> <!-- onclick="submit()"/> -->
             </form>
