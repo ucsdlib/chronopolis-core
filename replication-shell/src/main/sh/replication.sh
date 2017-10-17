@@ -62,7 +62,7 @@ start(){
         return 0
     fi
 
-    daemon --user "$CHRON_USER" --pidfile "$REPL_PID_FILE" $JAVA_CMD
+    daemon --user "$CHRON_USER" --pidfile "$pidfile" $JAVA_CMD
     RC=$?
 
     # We just sleep arbitrary amount then hope for the best
