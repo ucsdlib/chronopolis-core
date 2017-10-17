@@ -84,7 +84,6 @@ public class StorageController extends IngestController {
     /**
      * Create a StorageRegion for a node
      *
-     * todo: 404 if the node does not exist
      * todo: some type of identifier (local??) for storage regions?
      *       should this be included in the create call?
      *
@@ -101,23 +100,29 @@ public class StorageController extends IngestController {
 
         // Good enough I suppose
         if (hasRoleAdmin() || principal.getName().equalsIgnoreCase(create.getNode())) {
-            // Can throw a 404
             Node node = nodes.findByUsername(create.getNode());
 
-            StorageRegion region = new StorageRegion();
-            region.setCapacity(create.getCapacity())
-                    .setNode(node)
-                    .setDataType(create.getDataType())
-                    .setStorageType(create.getStorageType())
-                    .setReplicationConfig(new ReplicationConfig()
-                            .setRegion(region)
-                            .setPath(create.getReplicationPath())
-                            .setServer(create.getReplicationServer())
-                            .setUsername(create.getReplicationUser()));
-            service.save(region);
-            entity = ResponseEntity
-                    .status(HttpStatus.CREATED)
-                    .body(region);
+            // check if the create exists, and if not return a bad request
+            if (node == null) {
+                entity = ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .build();
+            } else {
+                StorageRegion region = new StorageRegion();
+                region.setCapacity(create.getCapacity())
+                        .setNode(node)
+                        .setDataType(create.getDataType())
+                        .setStorageType(create.getStorageType())
+                        .setReplicationConfig(new ReplicationConfig()
+                                .setRegion(region)
+                                .setPath(create.getReplicationPath())
+                                .setServer(create.getReplicationServer())
+                                .setUsername(create.getReplicationUser()));
+                service.save(region);
+                entity = ResponseEntity
+                        .status(HttpStatus.CREATED)
+                        .body(region);
+            }
         }
 
         return entity;
