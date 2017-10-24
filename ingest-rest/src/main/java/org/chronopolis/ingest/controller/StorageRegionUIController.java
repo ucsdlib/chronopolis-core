@@ -188,9 +188,7 @@ public class StorageRegionUIController extends IngestController {
         if (bindingResult.hasErrors()) {
 
             bindingResult.getFieldErrors()
-                    .forEach(error -> {
-                        log.info("{}:{}", error.getField(), error.getDefaultMessage());
-                    });
+                    .forEach(error -> log.info("{}:{}", error.getField(), error.getDefaultMessage()));
 
             model.addAttribute("dataTypes", DataType.values());
             model.addAttribute("storageTypes", StorageType.values());

@@ -120,6 +120,8 @@ public class BagProcessor implements Runnable {
         log.debug("[{}] Processing {}", identifier, name);
         Path manifest = Paths.get(root, relative, name);
         try (Stream<String> lines = Files.lines(manifest)) {
+            // todo: could filter on entry.length == 2 just in case something happens
+            //       otherwise we probably want to increment the error counter but idk
             errors = lines.map(line -> line.split("\\s", 2))
                     .map(entry -> new ManifestTuple(entry[PATH_IDX], entry[DIGEST_IDX]))
                     .filter(entry -> !filter.contains(entry.getPath()))
