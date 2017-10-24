@@ -16,7 +16,7 @@ INSERT INTO replication_config VALUES(2, 2, 'test-server', 'test-replication-use
 INSERT INTO staging_storage VALUES(1, 1, 1, 'bags/test-location', 1500, 3, CURRENT_DATE, CURRENT_DATE);
 INSERT INTO staging_storage VALUES(2, 2, 1, 'tokens/test-location', 1500, 3, CURRENT_DATE, CURRENT_DATE);
 INSERT INTO fixity VALUES(1, 1, 'test-alg', 'test-fixity', CURRENT_DATE);
-INSERT INTO fixity VALUES(2, 1, 'test-alg', 'test-fixity', CURRENT_DATE);
+INSERT INTO fixity VALUES(2, 2, 'test-alg', 'test-fixity', CURRENT_DATE);
 UPDATE bag SET bag_storage_id = 1, token_storage_id = 2;
 
 -- Create some distribution records too
