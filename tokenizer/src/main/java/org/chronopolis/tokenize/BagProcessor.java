@@ -112,15 +112,17 @@ public class BagProcessor implements Runnable {
      * @return the number of errors encountered
      */
     private long process(Bag bag, String root, String relative, String name) {
-        String identifier = bag.getDepositor() + "::" + bag.getName();
-        log.debug("[{}] Processing {}", identifier, name);
-
         long errors;
         final int PATH_IDX = 1;
+        final int DIGEST_IDX = 0;
+        String identifier = bag.getDepositor() + "::" + bag.getName();
+
+        log.debug("[{}] Processing {}", identifier, name);
         Path manifest = Paths.get(root, relative, name);
         try (Stream<String> lines = Files.lines(manifest)) {
             errors = lines.map(line -> line.split("\\s", 2))
-                    .filter(entry -> !filter.contains(entry[PATH_IDX]))
+                    .map(entry -> new ManifestTuple(entry[PATH_IDX], entry[DIGEST_IDX]))
+                    .filter(entry -> !filter.contains(entry.getPath()))
                     .reduce(0, (u, entry) -> validate(entry), (l, r) -> l + r);
         } catch (IOException e) {
             log.error("[{}] Error processing {}", bag.getName(), name);
@@ -137,14 +139,11 @@ public class BagProcessor implements Runnable {
      * @param entry the manifest entry to add, should be of the form "digest  relative/path"
      * @return the amount of errors occurred (0 or 1)
      */
-    private int validate(String[] entry) {
+    private int validate(ManifestTuple entry) {
         String identifier = bag.getDepositor() + "::" + bag.getName();
         int error = 1;
-        final int PATH_IDX = 1;
-        final int DIGEST_IDX = 0;
-        ManifestEntry manifestEntry = digester.entryFrom(bag, entry[PATH_IDX].trim(), entry[DIGEST_IDX].trim());
-        log.trace("[{}] Creating entry from {} {}",
-                ImmutableList.of(identifier, entry[PATH_IDX].trim(), entry[DIGEST_IDX].trim()).toArray());
+        ManifestEntry manifestEntry = digester.entryFrom(bag, entry.getPath(), entry.getDigest());
+        log.trace("[{}] Creating entry from {} {}", identifier, entry.getPath(), entry.getDigest());
         if (manifestEntry.isValid()) {
             batch.add(manifestEntry);
             error = 0;
@@ -153,6 +152,23 @@ public class BagProcessor implements Runnable {
         return error;
     }
 
+    public static class ManifestTuple {
+        private final String path;
+        private final String digest;
+
+        public ManifestTuple(String path, String digest) {
+            this.path = path.trim();
+            this.digest = digest.trim();
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public String getDigest() {
+            return digest;
+        }
+    }
 
     public static class Digester {
         private final Path root;
@@ -212,6 +228,7 @@ public class BagProcessor implements Runnable {
          * @throws IOException if there's an error hashing
          */
         private HashCode run(String name) throws IOException {
+            log.trace("digesting {}", name);
             return asByteSource(root.resolve(name).toFile())
                     .hash(Hashing.sha256());
 
