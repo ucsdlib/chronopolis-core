@@ -49,8 +49,8 @@ public class HttpFilter implements Filter<String> {
     @Override
     public boolean contains(String path) {
         boolean contains;
-        Call<PageImpl<AceTokenModel>> tokens = api.getBagTokens(bagId, ImmutableMap.of("filename", path));
         try {
+            Call<PageImpl<AceTokenModel>> tokens = api.getBagTokens(bagId, ImmutableMap.of("filename", path.trim()));
             Response<PageImpl<AceTokenModel>> response = tokens.execute();
             contains = response.isSuccessful() && response.body().getTotalElements() > 0;
             log.trace("{} token exists? {}", path, contains);
