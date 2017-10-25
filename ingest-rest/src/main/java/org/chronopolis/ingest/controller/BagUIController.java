@@ -190,15 +190,7 @@ public class BagUIController extends IngestController {
             throw new NotFoundException("Bag does not exist");
         }
 
-        StagingStorage storage = findStorageForBag(bag, storageId);
-
-        // could do a null check here...
-        StorageRegion region = storage.getRegion();
-        String owner = region.getNode().getUsername();
-        if (!hasRoleAdmin() && !owner.equalsIgnoreCase(principal.getName())) {
-            throw new ForbiddenException("User is not allowed to update this resource");
-        }
-
+        StagingStorage storage = findStorageForBag(principal, bag, storageId);
         storage.setActive(!storage.isActive());
         bagService.save(bag);
         return "redirect:/bags/" + id;
@@ -228,15 +220,7 @@ public class BagUIController extends IngestController {
             throw new NotFoundException("Bag does not exist");
         }
 
-        StagingStorage storage = findStorageForBag(bag, storageId);
-
-        // could do a null check here...
-        StorageRegion region = storage.getRegion();
-        String owner = region.getNode().getUsername();
-        if (!hasRoleAdmin() && !owner.equalsIgnoreCase(principal.getName())) {
-            throw new ForbiddenException("User is not allowed to update this resource");
-        }
-
+        StagingStorage storage = findStorageForBag(principal, bag, storageId);
         stagingService.deleteFixity(storage, fixityId);
         return "redirect:/bags/" + id;
     }
@@ -269,14 +253,7 @@ public class BagUIController extends IngestController {
             throw new NotFoundException("Bag does not exist!");
         }
 
-        StagingStorage storage = findStorageForBag(bag, storageId);
-
-        // could do a null check here...
-        StorageRegion region = storage.getRegion();
-        String owner = region.getNode().getUsername();
-        if (!hasRoleAdmin() && !owner.equalsIgnoreCase(principal.getName())) {
-            throw new ForbiddenException("User is not allowed to update this resource");
-        }
+        StagingStorage storage = findStorageForBag(principal, bag, storageId);
 
         if (storage.getFixities().isEmpty()) {
             model.addAttribute("bag", bag);
@@ -312,14 +289,7 @@ public class BagUIController extends IngestController {
             throw new NotFoundException("Bag does not exist!");
         }
 
-        StagingStorage storage = findStorageForBag(bag, storageId);
-
-        // could do a null check here...
-        StorageRegion region = storage.getRegion();
-        String owner = region.getNode().getUsername();
-        if (!hasRoleAdmin() && !owner.equalsIgnoreCase(principal.getName())) {
-            throw new ForbiddenException("User is not allowed to update this resource");
-        }
+        StagingStorage storage = findStorageForBag(principal, bag, storageId);
 
         Fixity fixity = new Fixity();
         fixity.setStorage(storage);
@@ -332,9 +302,22 @@ public class BagUIController extends IngestController {
         return "redirect:/bags/" + id;
     }
 
-    private StagingStorage findStorageForBag(Bag bag, Long storageId) {
+    /**
+     * Get a StagingStorage object for a bag by its id and validate permissions
+     * for the Region it is associated with on the given principal
+     *
+     * @param principal the user attempting to modify the StagingStorage
+     * @param bag       the bag owning the StagingStorage entity
+     * @param storageId the id of the StagingStorage entity
+     * @return the StagingStorage entity
+     * @throws ForbiddenException
+     */
+    private StagingStorage findStorageForBag(Principal principal, Bag bag, Long storageId) throws ForbiddenException {
         StagingStorage storage;
         // todo: through the db
+        //       there are a couple caveats to this - we'll probably need to wait until we have a
+        //       join table so that we can get a single storage object back and not rely on
+        //       bag.bagStorage or bag.tokenStorage... anyways we can't quite do it yet but soon^TM
         if (bag.getBagStorage() != null
                 && bag.getBagStorage().getId().equals(storageId)) {
             storage = bag.getBagStorage();
@@ -345,6 +328,14 @@ public class BagUIController extends IngestController {
             // should have a related ExceptionHandler
             throw new RuntimeException("Invalid Storage Id");
         }
+
+        // should do a null check here...
+        StorageRegion region = storage.getRegion();
+        String owner = region.getNode().getUsername();
+        if (!hasRoleAdmin() && !owner.equalsIgnoreCase(principal.getName())) {
+            throw new ForbiddenException("User is not allowed to update this resource");
+        }
+
         return storage;
     }
 
