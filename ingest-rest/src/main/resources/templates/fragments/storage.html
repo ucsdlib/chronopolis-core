@@ -28,6 +28,7 @@
         <table class="table table-bordered">
             <thead>
             <tr>
+                <th/>
                 <th>Fixity Algorithm</th>
                 <th>Fixity Value</th>
                 <th>Created At</th>
@@ -36,7 +37,13 @@
             <tbody>
             <!--/*@thymesVar id="fixity" type="org.chronopolis.rest.entities.storage.Fixity"*/-->
             <tr th:each="fixity : ${storage.fixities}">
-                <td th:text="${fixity.algorithm}"></td>
+                <td class="text-center">
+                    <a class="badge badge-danger"
+                       th:href="@{|${bag.id}/storage/${storage.id}/fixity/${fixity.id}|}">
+                        <i class="fa fa-remove" aria-hidden="true"></i>
+                    </a>
+                </td>
+                <td th:text="${fixity.algorithm}"/>
                 <td th:text="${fixity.value}"></td>
                 <td th:text="${fixity.createdAt}"></td>
             </tr>
@@ -48,12 +55,13 @@
 
             <!--/* use an outline so that we can see the split in the ui */-->
             <a class="btn btn-outline-primary"
-                    th:href="@{|${bag.id}/storage/${storage.id}/activate|}"
-                    th:text="${storage.isActive()} ? 'Set Inactive' : 'Set Active'"/>
+               th:href="@{|${bag.id}/storage/${storage.id}/activate|}"
+               th:text="${storage.isActive()} ? 'Set Inactive' : 'Set Active'"/>
 
             <a class="btn btn-outline-primary"
-                    th:href="@{|${bag.id}/storage/${storage.id}/fixity|}"
-                    th:text="${storage.fixities.isEmpty()} ? 'Add Fixity' : 'Remove Fixity'"/>
+               th:href="@{|${bag.id}/storage/${storage.id}/fixity|}">
+                Add Fixity
+            </a>
         </div>
     </div>
 </div>

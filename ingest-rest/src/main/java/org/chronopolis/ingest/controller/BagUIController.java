@@ -18,6 +18,7 @@ import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
 import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.ingest.repository.dao.StagingService;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.ingest.support.ReplicationCreateResult;
 import org.chronopolis.rest.entities.Bag;
@@ -68,6 +69,7 @@ public class BagUIController extends IngestController {
     private final Integer DEFAULT_PAGE = 0;
 
     private final BagService bagService;
+    private final StagingService stagingService;
     private final ReplicationService replicationService;
     private final TokenRepository tokenRepository;
     private final NodeRepository nodeRepository;
@@ -75,11 +77,13 @@ public class BagUIController extends IngestController {
 
     @Autowired
     public BagUIController(BagService bagService,
+                           StagingService stagingService,
                            ReplicationService replicationService,
                            TokenRepository tokenRepository,
                            NodeRepository nodeRepository,
                            SearchService<StorageRegion, Long, StorageRegionRepository> regions) {
         this.bagService = bagService;
+        this.stagingService = stagingService;
         this.replicationService = replicationService;
         this.tokenRepository = tokenRepository;
         this.nodeRepository = nodeRepository;
@@ -201,11 +205,48 @@ public class BagUIController extends IngestController {
     }
 
     /**
+     * Remove a fixity entity for a given StagingStorage object
+     *
+     * @param principal the security principal of the user
+     * @param id        the id of the Bag
+     * @param storageId the id of the StagingStorage
+     * @param fixityId  the id of the Fixity entity
+     * @return /bags/id
+     * @throws ForbiddenException
+     */
+    @GetMapping("/bags/{id}/storage/{storageId}/fixity/{fixityId}")
+    public String removeStorageFixity(Principal principal,
+                                      @PathVariable("id") Long id,
+                                      @PathVariable("storageId") Long storageId,
+                                      @PathVariable("fixityId") Long fixityId) throws ForbiddenException {
+        access.info("[GET /bags/{}/storage/{}/fixity/{}] - {}", id, storageId, fixityId, principal.getName());
+
+        // check constraints first - existence && permissions
+        BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
+        Bag bag = bagService.find(criteria);
+        if (bag == null) {
+            throw new NotFoundException("Bag does not exist");
+        }
+
+        StagingStorage storage = findStorageForBag(bag, storageId);
+
+        // could do a null check here...
+        StorageRegion region = storage.getRegion();
+        String owner = region.getNode().getUsername();
+        if (!hasRoleAdmin() && !owner.equalsIgnoreCase(principal.getName())) {
+            throw new ForbiddenException("User is not allowed to update this resource");
+        }
+
+        stagingService.deleteFixity(storage, fixityId);
+        return "redirect:/bags/" + id;
+    }
+
+    /**
      * Update a fixity for a Bag's Storage Area
      * <p>
      * This is kind of a patch job at the moment to help with doing things through the ui
      * For now: if the fixity is null send to a create page
-     *          else remove the fixity
+     * else remove the fixity
      *
      * @param model     the model for the controller
      * @param principal the security principal of the user
@@ -241,9 +282,6 @@ public class BagUIController extends IngestController {
             model.addAttribute("bag", bag);
             model.addAttribute("storage", storage);
             template = "fixity/create";
-        } else {
-            // this should be for an individual fixity value but w/e
-            log.info("[{}] Removing Fixities", bag.getDepositor() + "::" + bag.getName());
         }
 
         return template;
