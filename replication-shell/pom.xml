@@ -60,11 +60,5 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.kohsuke</groupId>
-            <artifactId>akuma</artifactId>
-            <version>1.9</version>
-        </dependency>
-
    </dependencies>
 </project>
