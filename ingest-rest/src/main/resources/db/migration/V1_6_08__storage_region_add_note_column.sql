@@ -1,0 +1,1 @@
+ALTER TABLE storage_region ADD COLUMN note TEXT;

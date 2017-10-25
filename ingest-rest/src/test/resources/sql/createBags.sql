@@ -9,8 +9,8 @@ INSERT INTO bag(id, created_at, updated_at, name, creator, depositor, status, si
 INSERT INTO bag(id, created_at, updated_at, name, creator, depositor, status, size, total_files, required_replications) VALUES (9, CURRENT_DATE, CURRENT_DATE, 'bag-8', 'admin', 'test-depositor', 'STAGED', 1, 1, 3);
 INSERT INTO bag(id, created_at, updated_at, name, creator, depositor, status, size, total_files, required_replications) VALUES (10, CURRENT_DATE, CURRENT_DATE, 'bag-9', 'admin', 'test-depositor', 'TOKENIZED', 1, 1, 3);
 
-INSERT INTO storage_region VALUES(1, 1, 'BAG', 'LOCAL', 1000000, CURRENT_DATE, CURRENT_DATE);
-INSERT INTO storage_region VALUES(2, 1, 'TOKEN', 'LOCAL', 1000000, CURRENT_DATE, CURRENT_DATE);
+INSERT INTO storage_region VALUES(1, 1, 'BAG', 'LOCAL', 1000000, '', CURRENT_DATE, CURRENT_DATE);
+INSERT INTO storage_region VALUES(2, 1, 'TOKEN', 'LOCAL', 1000000, '', CURRENT_DATE, CURRENT_DATE);
 INSERT INTO replication_config VALUES(1, 1, 'test-server', 'test-replication-user', 'test-replication-path');
 INSERT INTO replication_config VALUES(2, 2, 'test-server', 'test-replication-user', 'test-replication-path');
 INSERT INTO staging_storage VALUES(1, 1, 1, 'bags/test-location', 1500, 3, CURRENT_DATE, CURRENT_DATE);

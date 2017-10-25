@@ -14,6 +14,8 @@ import javax.validation.constraints.NotNull;
  */
 public class RegionCreate {
 
+    private String note;
+
     @NotNull
     private String node;
 
@@ -98,6 +100,15 @@ public class RegionCreate {
 
     public RegionCreate setDataType(DataType dataType) {
         this.dataType = dataType;
+        return this;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public RegionCreate setNote(String note) {
+        this.note = note;
         return this;
     }
 }

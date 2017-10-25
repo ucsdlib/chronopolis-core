@@ -182,6 +182,7 @@ CREATE TABLE storage_region (
     data_type VARCHAR(255) NOT NULL,
     storage_type VARCHAR(255) NOT NULL,
     capacity BIGINT,
+    note TEXT,
     created_at TIMESTAMP,
     updated_at TIMESTAMP
 );

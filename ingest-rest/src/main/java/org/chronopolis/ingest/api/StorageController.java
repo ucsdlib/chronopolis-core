@@ -111,6 +111,7 @@ public class StorageController extends IngestController {
                 StorageRegion region = new StorageRegion();
                 region.setCapacity(create.getCapacity())
                         .setNode(node)
+                        .setNote(create.getNote())
                         .setDataType(create.getDataType())
                         .setStorageType(create.getStorageType())
                         .setReplicationConfig(new ReplicationConfig()

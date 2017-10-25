@@ -134,6 +134,7 @@ public class StorageRegionUIController extends IngestController {
         }
 
         StorageRegion region = new StorageRegion();
+        region.setNote(regionCreate.getNote());
         region.setDataType(regionCreate.getDataType());
         region.setStorageType(regionCreate.getStorageType());
         region.setCapacity(regionCreate.getCapacity());
@@ -211,6 +212,7 @@ public class StorageRegionUIController extends IngestController {
             throw new ForbiddenException("User does not have permissions to create this resource");
         }
 
+        region.setNote(regionEdit.getNote());
         region.setDataType(regionEdit.getDataType());
         region.setStorageType(regionEdit.getStorageType());
         Double capacity = regionEdit.getCapacity() * Math.pow(1000, regionEdit.getStorageUnit().getPower());

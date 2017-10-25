@@ -51,6 +51,7 @@ public class StorageRegionSerializerTest {
     public void serializer() throws IOException {
         StorageRegion region = new StorageRegion();
         region.setId(2L);
+        region.setNote("note");
         region.setNode(new Node("test-node", "test-node"));
         region.setStorage(ImmutableSet.of());
         region.setCapacity(250L);
