@@ -38,6 +38,7 @@ import static org.chronopolis.ingest.api.Params.CREATED_AFTER;
 import static org.chronopolis.ingest.api.Params.CREATED_BEFORE;
 import static org.chronopolis.ingest.api.Params.DEPOSITOR;
 import static org.chronopolis.ingest.api.Params.NAME;
+import static org.chronopolis.ingest.api.Params.REGION;
 import static org.chronopolis.ingest.api.Params.SORT_BY_SIZE;
 import static org.chronopolis.ingest.api.Params.SORT_BY_TOTAL_FILES;
 import static org.chronopolis.ingest.api.Params.SORT_SIZE;
@@ -81,12 +82,14 @@ public class BagController extends IngestController {
     public Iterable<Bag> getBags(@RequestParam Map<String, String> params) {
         access.info("[GET /api/bags]");
         BagSearchCriteria criteria = new BagSearchCriteria()
+                .withName(params.getOrDefault(NAME, null))
+                .withRegion(params.getOrDefault(REGION, null))
+                .withDepositor(params.getOrDefault(DEPOSITOR, null))
                 .createdAfter(params.getOrDefault(CREATED_AFTER, null))
                 .createdBefore(params.getOrDefault(CREATED_BEFORE, null))
                 .updatedAfter(params.getOrDefault(UPDATED_AFTER, null))
                 .updatedBefore(params.getOrDefault(UPDATED_BEFORE, null))
-                .withDepositor(params.getOrDefault(DEPOSITOR, null))
-                .withName(params.getOrDefault(NAME, null))
+                .withActiveStorage(params.getOrDefault(Params.ACTIVE, null))
                 .withStatus(params.containsKey(STATUS) ? BagStatus.valueOf(params.get(STATUS)) : null);
 
         return bagService.findAll(criteria, createPageRequest(params, valid()));
