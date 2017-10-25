@@ -6,6 +6,7 @@ import org.chronopolis.rest.entities.storage.QStagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 
 import javax.persistence.EntityManager;
+import java.util.Optional;
 
 /**
  * hey look another guy here just saying remember to eat your vegetables so you can
@@ -28,13 +29,13 @@ public class StorageRegionService extends SearchService<StorageRegion, Long, Sto
      * @param region the storage region
      * @return the used space
      */
-    public Long getUsedSpace(StorageRegion region) {
+    public Optional<Long> getUsedSpace(StorageRegion region) {
         JPAQueryFactory factory = new JPAQueryFactory(entityManager);
         QStagingStorage storage = QStagingStorage.stagingStorage;
-        return factory.selectFrom(storage)
+        return Optional.ofNullable(factory.selectFrom(storage)
                 .select(storage.size.sum())
                 // make sure this queries on region.id
                 .where(storage.region.eq(region), storage.active.isTrue())
-                .fetchOne();
+                .fetchOne());
     }
 }

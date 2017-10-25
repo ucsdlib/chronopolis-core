@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.Optional;
 
 /**
  * View controller for the StorageRegion pages
@@ -249,10 +250,10 @@ public class StorageRegionUIController extends IngestController {
 
         StorageRegionSearchCriteria criteria = new StorageRegionSearchCriteria().withId(id);
         StorageRegion region = service.find(criteria);
-        Long usedRaw = service.getUsedSpace(region);
+        Optional<Long> usedRaw = service.getUsedSpace(region);
         FileSizeFormatter formatter = new FileSizeFormatter();
         String capacity = formatter.format(new BigDecimal(region.getCapacity()));
-        String used = formatter.format(usedRaw);
+        String used = formatter.format(usedRaw.orElse(0L));
         model.addAttribute("region", region);
         model.addAttribute("capacity", capacity);
         model.addAttribute("used", used);
