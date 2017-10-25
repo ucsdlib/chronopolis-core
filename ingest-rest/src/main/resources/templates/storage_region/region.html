@@ -31,9 +31,14 @@
                     <td th:text="${region.dataType}"></td>
                 </tr>
                 <tr>
-                    <td>Capacity</td>
-                    <!--/*@thymesVar id="capacity" type="java.lang.Long"*/-->
+                    <td>Total Capacity</td>
+                    <!--/*@thymesVar id="capacity" type="java.lang.String"*/-->
                     <td th:text="${capacity}"></td>
+                </tr>
+                <tr>
+                    <td>Amount Used</td>
+                    <!--/*@thymesVar id="used" type="java.lang.String"*/-->
+                    <td th:text="${used}"></td>
                 </tr>
                 <tr>
                     <td>Owner</td>

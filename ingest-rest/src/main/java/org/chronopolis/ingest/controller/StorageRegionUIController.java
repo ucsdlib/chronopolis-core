@@ -6,9 +6,8 @@ import org.chronopolis.ingest.exception.ForbiddenException;
 import org.chronopolis.ingest.models.ReplicationConfigUpdate;
 import org.chronopolis.ingest.models.filter.StorageRegionFilter;
 import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
-import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.ingest.repository.dao.StorageRegionService;
 import org.chronopolis.ingest.support.FileSizeFormatter;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Node;
@@ -37,6 +36,11 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.security.Principal;
 
+/**
+ * View controller for the StorageRegion pages
+ *
+ * @author shake
+ */
 @Controller
 public class StorageRegionUIController extends IngestController {
 
@@ -44,12 +48,11 @@ public class StorageRegionUIController extends IngestController {
     private final Logger log = LoggerFactory.getLogger(StorageRegionUIController.class);
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
-
     private final NodeRepository nodes;
-    private final SearchService<StorageRegion, Long, StorageRegionRepository> service;
+    private final StorageRegionService service;
 
     @Autowired
-    public StorageRegionUIController(NodeRepository nodes, SearchService<StorageRegion, Long, StorageRegionRepository> service) {
+    public StorageRegionUIController(NodeRepository nodes, StorageRegionService service) {
         this.nodes = nodes;
         this.service = service;
     }
@@ -244,10 +247,13 @@ public class StorageRegionUIController extends IngestController {
 
         StorageRegionSearchCriteria criteria = new StorageRegionSearchCriteria().withId(id);
         StorageRegion region = service.find(criteria);
+        Long usedRaw = service.getUsedSpace(region);
         FileSizeFormatter formatter = new FileSizeFormatter();
         String capacity = formatter.format(new BigDecimal(region.getCapacity()));
+        String used = formatter.format(usedRaw);
         model.addAttribute("region", region);
         model.addAttribute("capacity", capacity);
+        model.addAttribute("used", used);
         return "storage_region/region";
     }
 

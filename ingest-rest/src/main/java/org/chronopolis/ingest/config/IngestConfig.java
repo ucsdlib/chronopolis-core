@@ -20,6 +20,7 @@ import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.ingest.repository.dao.StorageRegionService;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Repair;
@@ -78,6 +79,11 @@ public class IngestConfig {
     @Bean
     public BagService bagService(BagRepository repository, EntityManager entityManager) {
         return new BagService(repository, entityManager);
+    }
+
+    @Bean
+    public StorageRegionService storageRegionService(StorageRegionRepository repository, EntityManager entityManager) {
+        return new StorageRegionService(repository, entityManager);
     }
 
     @Bean
