@@ -1,9 +1,7 @@
 package org.chronopolis.ingest.api;
 
-import org.chronopolis.ingest.repository.BagRepository;
-import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
-import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.storage.Fixity;
@@ -41,12 +39,10 @@ public class BagStorageController {
     private static final String BAG_TYPE = "bag";
     private static final String TOKEN_TYPE = "token";
 
-    private final NodeRepository nodeRepository;
-    private final SearchService<Bag, Long, BagRepository> bagService;
+    private final BagService bagService;
 
     @Autowired
-    public BagStorageController(NodeRepository nodeRepository, SearchService<Bag, Long, BagRepository> bagService) {
-        this.nodeRepository = nodeRepository;
+    public BagStorageController(BagService bagService) {
         this.bagService = bagService;
     }
 

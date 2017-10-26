@@ -5,11 +5,10 @@ import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.exception.BadRequestException;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
-import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.ingest.repository.dao.StorageRegionService;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
@@ -61,12 +60,12 @@ public class BagController extends IngestController {
 
     private final BagService bagService;
     private final NodeRepository nodeRepository;
-    private final SearchService<StorageRegion, Long, StorageRegionRepository> regions;
+    private final StorageRegionService regions;
 
     @Autowired
     public BagController(NodeRepository nodeRepository,
                          BagService bagService,
-                         SearchService<StorageRegion, Long, StorageRegionRepository> regions) {
+                         StorageRegionService regions) {
         this.nodeRepository = nodeRepository;
         this.bagService = bagService;
         this.regions = regions;

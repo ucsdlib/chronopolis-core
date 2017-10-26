@@ -6,9 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import org.chronopolis.ingest.WebContext;
 import org.chronopolis.ingest.api.serializer.ZonedDateTimeSerializer;
-import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;
+import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
@@ -59,7 +59,7 @@ public class BagTokenControllerTest extends ControllerTest {
 
     private BagTokenController controller;
 
-    @MockBean private SearchService<Bag, Long, BagRepository> bagService;
+    @MockBean private BagService bagService;
     @MockBean private SearchService<AceToken, Long, TokenRepository> tokenService;
 
     @Before

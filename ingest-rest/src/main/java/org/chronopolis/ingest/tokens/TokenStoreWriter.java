@@ -4,9 +4,9 @@ import com.google.common.hash.Hashing;
 import com.google.common.hash.HashingOutputStream;
 import com.google.common.io.CountingOutputStream;
 import org.chronopolis.common.storage.TokenStagingProperties;
-import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.criteria.AceTokenSearchCriteria;
+import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
@@ -48,13 +48,13 @@ public class TokenStoreWriter implements Runnable {
     private final Bag bag;
     private final StorageRegion region;
     private final TokenStagingProperties properties;
-    private final SearchService<Bag, Long, BagRepository> bagService;
+    private final BagService bagService;
     private final SearchService<AceToken, Long, TokenRepository> tokenService;
 
     public TokenStoreWriter(Bag bag,
                             StorageRegion region,
                             TokenStagingProperties properties,
-                            SearchService<Bag, Long, BagRepository> bagService,
+                            BagService bagService,
                             SearchService<AceToken, Long, TokenRepository> tokenService) {
         this.bag = bag;
         this.region = region;

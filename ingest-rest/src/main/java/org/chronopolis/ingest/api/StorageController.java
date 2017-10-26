@@ -2,13 +2,12 @@ package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableMap;
 import org.chronopolis.ingest.IngestController;
+import org.chronopolis.ingest.repository.dao.StorageRegionService;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.models.RegionCreate;
 import org.chronopolis.ingest.models.filter.StorageRegionFilter;
 import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
-import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.storage.ReplicationConfig;
 import org.chronopolis.rest.entities.storage.StorageRegion;
@@ -40,10 +39,10 @@ public class StorageController extends IngestController {
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private NodeRepository nodes;
-    private SearchService<StorageRegion, Long, StorageRegionRepository> service;
+    private StorageRegionService service;
 
     @Autowired
-    public StorageController(NodeRepository nodes, SearchService<StorageRegion, Long, StorageRegionRepository> storageRegionService) {
+    public StorageController(NodeRepository nodes, StorageRegionService storageRegionService) {
         this.nodes = nodes;
         this.service = storageRegionService;
     }

@@ -1,9 +1,7 @@
 package org.chronopolis.ingest.api;
 
-import org.chronopolis.ingest.repository.BagRepository;
-import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;
-import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
@@ -40,8 +38,7 @@ public class BagStorageControllerTest extends ControllerTest {
     private Bag bag;
     private BagStorageController controller;
 
-    @MockBean private NodeRepository nodes;
-    @MockBean private SearchService<Bag, Long, BagRepository> bagService;
+    @MockBean private BagService bagService;
 
     @Before
     public void setup() {
@@ -68,7 +65,7 @@ public class BagStorageControllerTest extends ControllerTest {
         bag = new Bag("test-bag", "test-depositor");
         bag.setBagStorage(storage);
 
-        controller = new BagStorageController(nodes, bagService);
+        controller = new BagStorageController(bagService);
         setupMvc(controller);
     }
 

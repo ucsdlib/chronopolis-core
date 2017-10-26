@@ -10,15 +10,14 @@ import org.chronopolis.ingest.models.ReplicationCreate;
 import org.chronopolis.ingest.models.filter.BagFilter;
 import org.chronopolis.ingest.models.filter.ReplicationFilter;
 import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.ReplicationSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
-import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.ingest.repository.dao.StagingService;
+import org.chronopolis.ingest.repository.dao.StorageRegionService;
 import org.chronopolis.ingest.support.FileSizeFormatter;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.ingest.support.ReplicationCreateResult;
@@ -74,7 +73,7 @@ public class BagUIController extends IngestController {
     private final ReplicationService replicationService;
     private final TokenRepository tokenRepository;
     private final NodeRepository nodeRepository;
-    private final SearchService<StorageRegion, Long, StorageRegionRepository> regions;
+    private final StorageRegionService regions;
 
     @Autowired
     public BagUIController(BagService bagService,
@@ -82,7 +81,7 @@ public class BagUIController extends IngestController {
                            ReplicationService replicationService,
                            TokenRepository tokenRepository,
                            NodeRepository nodeRepository,
-                           SearchService<StorageRegion, Long, StorageRegionRepository> regions) {
+                           StorageRegionService regions) {
         this.bagService = bagService;
         this.stagingService = stagingService;
         this.replicationService = replicationService;
