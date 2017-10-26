@@ -59,7 +59,7 @@
         </form>
     </div>
 
-    <table class="table table-striped">
+    <table class="table table-hover">
         <thead>
         <tr>
             <th>ID</th>
@@ -77,8 +77,8 @@
         <tbody>
         <!--@thymesVar id="bags" type="Page<Bag>"-->
         <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
-        <tr th:each="bag: ${bags}">
-            <td><a th:text="${bag.id}" th:href="@{|/bags/${bag.id}|}"></a></td>
+        <tr th:each="bag: ${bags}" th:attr="data-href=@{|/bags/${bag.id}|}" class="table-clickable">
+            <td th:text="${bag.id}"></td>
             <td th:text="${bag.depositor}"></td>
             <td th:text="${bag.name}"></td>
             <td th:text="${bag.status}"></td>

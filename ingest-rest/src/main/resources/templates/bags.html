@@ -9,5 +9,10 @@
     <div th:replace="fragments/bags :: simple-table"></div>
 </div>
 <div th:replace="layout :: foot"></div>
+<script type="text/javascript">
+    $(".table-clickable").click(function() {
+        window.location = $(this).data("href");
+    });
+</script>
 </body>
 </html>
