@@ -43,12 +43,11 @@ public class TokenTask {
     private final TrackingThreadPoolExecutor<Bag> executor;
 
     @Autowired
-    public TokenTask(TokenService tokens,
-                     ServiceGenerator generator,
+    public TokenTask(ServiceGenerator generator,
                      BagStagingProperties properties,
                      ChronopolisTokenRequestBatch batch,
                      TrackingThreadPoolExecutor<Bag> executor) {
-        this.tokens = tokens;
+        this.tokens = generator.tokens();
         this.service = generator.bags();
         this.properties = properties;
         this.batch = batch;
