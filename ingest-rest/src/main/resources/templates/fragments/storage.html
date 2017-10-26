@@ -19,7 +19,8 @@
             <tbody>
             <tr>
                 <td th:text="${storage.path}"></td>
-                <td th:text="${storage.size}"></td>
+                <!--/*@thymesVar id="formatter" type="org.chronopolis.ingest.support.FileSizeFormatter"*/-->
+                <td th:text="${formatter.format(storage.size)}"></td>
                 <td th:text="${storage.totalFiles}"></td>
                 <td th:text="${storage.active}"></td>
             </tr>

@@ -19,6 +19,7 @@ import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.ingest.repository.dao.StagingService;
+import org.chronopolis.ingest.support.FileSizeFormatter;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.ingest.support.ReplicationCreateResult;
 import org.chronopolis.rest.entities.Bag;
@@ -131,8 +132,10 @@ public class BagUIController extends IngestController {
         access.info("[GET /bags/{}] - {}", id, principal.getName());
 
         BagSearchCriteria bsc = new BagSearchCriteria().withId(id);
+        FileSizeFormatter formatter = new FileSizeFormatter();
         ReplicationSearchCriteria rsc = new ReplicationSearchCriteria().withBagId(id);
 
+        model.addAttribute("formatter", formatter);
         model.addAttribute("bag", bagService.find(bsc));
         model.addAttribute("replications", replicationService.findAll(rsc,
                 new PageRequest(DEFAULT_PAGE, DEFAULT_PAGE_SIZE)));
