@@ -35,11 +35,11 @@
                 <div class="form-group row">
                     <label for="storageRegion" class="col-4 col-form-label">Storage Region</label>
                     <div class="col-8">
-                        <select name="storageRegion" id="storageRegion">
+                        <select class="form-control" name="storageRegion" id="storageRegion">
                             <!--/*@thymesVar id="regions" type="List<org.chronopolis.rest.entities.storage.StorageRegion>" */-->
                             <!--/*@thymesVar id="region" type="org.chronopolis.rest.entities.storage.StorageRegion" */-->
                             <option th:each="region : ${regions}" th:value="${region.id}"
-                                    th:text="@{|${region.node.username}: ${region.dataType} ${region.storageType} |}"></option>
+                                    th:text="|(${region.id}) ${region.node.username}: ${region.dataType} ${region.storageType}|"></option>
                         </select>
                     </div>
                 </div>
