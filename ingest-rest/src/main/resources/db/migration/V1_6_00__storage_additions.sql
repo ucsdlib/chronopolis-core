@@ -1,5 +1,3 @@
--- may be 2.0 I'm not sure here
--- Do we need separate id generators? can some be shared? I don't see any reason why not
 -- storage_region
 DROP TABLE IF EXISTS storage_region;
 DROP SEQUENCE IF EXISTS storage_region_id_seq;
@@ -15,7 +13,6 @@ CREATE TABLE storage_region (
 );
 
 -- storage
--- note the size/total_files might still live in the bag, but are here for now as their usage emerges
 DROP TABLE IF EXISTS staging_storage;
 DROP SEQUENCE IF EXISTS staging_storage_id_seq;
 CREATE SEQUENCE staging_storage_id_seq;
@@ -31,7 +28,7 @@ CREATE TABLE staging_storage (
     updated_at TIMESTAMP
 );
 
--- OneToMany makes more sense but... yea.
+-- fixity
 DROP TABLE IF EXISTS fixity;
 DROP SEQUENCE IF EXISTS fixity_id_seq;
 CREATE SEQUENCE fixity_id_seq;
