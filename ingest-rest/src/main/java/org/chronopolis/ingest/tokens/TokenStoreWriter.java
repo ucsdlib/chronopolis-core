@@ -89,8 +89,7 @@ public class TokenStoreWriter implements Runnable {
         try (OutputStream os = Files.newOutputStream(store, CREATE);
              HashingOutputStream hos = new HashingOutputStream(Hashing.sha256(), os);
              CountingOutputStream cos = new CountingOutputStream(hos)) {
-            String ims = "ims.umiacs.umd.edu";
-            TokenWriter writer = new TokenWriter(cos, ims);
+            TokenWriter writer = new TokenWriter(cos);
 
             boolean next = true;
             while (next) {
@@ -120,7 +119,7 @@ public class TokenStoreWriter implements Runnable {
 
             Long count = cos.getCount();
             String hash = hos.hash().toString();
-            log.info("[Bag {}] Wrote TokenStore(size={},digest={})", new Object[]{bagId, count, hash});
+            log.info("[Bag {}] Wrote TokenStore(size={},digest={})", bagId, count, hash);
 
             storage.setSize(count);
             storage.setActive(true);
