@@ -107,7 +107,7 @@ public class BagUIController extends IngestController {
                 .depositorLike(filter.getDepositor())
                 .withStatuses(filter.getStatus());
 
-        Sort.Direction direction = (filter.getDir() == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(filter.getDir());
+        Sort.Direction direction = (filter.getDir() == null) ? Sort.Direction.DESC : Sort.Direction.fromStringOrNull(filter.getDir());
         Sort s = new Sort(direction, filter.getOrderBy());
         Page<Bag> bags = bagService.findAll(criteria, new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, s));
 
@@ -420,7 +420,7 @@ public class BagUIController extends IngestController {
                 .nodeUsernameLike(filter.getNode())
                 .withStatuses(filter.getStatus());
 
-        Sort.Direction direction = (filter.getDir() == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(filter.getDir());
+        Sort.Direction direction = (filter.getDir() == null) ? Sort.Direction.DESC : Sort.Direction.fromStringOrNull(filter.getDir());
         Sort s = new Sort(direction, filter.getOrderBy());
         replications = replicationService.findAll(criteria, new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, s));
 

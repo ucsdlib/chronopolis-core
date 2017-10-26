@@ -200,13 +200,12 @@ public class RepairUIController extends IngestController {
      *
      * todo: still want to verify that the bag is nonnull (should be added to sql too)
      *
-     * @param model The model
      * @param principal The user's principal
      * @param request The repair request to process
      * @return The newly created repair
      */
     @PostMapping("/repairs")
-    public String requestRepair(Model model, Principal principal, RepairRequest request) {
+    public String requestRepair(Principal principal, RepairRequest request) {
         access.info("[POST /repairs] - {}", principal.getName());
         log.info("{} items requested", request.getFiles().size());
         Bag bag = bags.find(new BagSearchCriteria()
@@ -242,7 +241,7 @@ public class RepairUIController extends IngestController {
                 .withAuditStatuses(filter.getAuditStatus());
 
         // might be able to put Sort.Direction in the Paged class
-        Sort.Direction direction = (filter.getDir() == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(filter.getDir());
+        Sort.Direction direction = (filter.getDir() == null) ? Sort.Direction.DESC : Sort.Direction.fromStringOrNull(filter.getDir());
         Sort s = new Sort(direction, filter.getOrderBy());
         Page<Repair> results = repairs.findAll(criteria, new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, s));
 
