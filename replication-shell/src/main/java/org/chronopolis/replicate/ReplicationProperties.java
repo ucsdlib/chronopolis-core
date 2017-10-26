@@ -17,17 +17,7 @@ public class ReplicationProperties {
      * Node name to use for sending mail
      */
     private String node = "chron";
-    private Storage storage = new Storage();
     private Smtp smtp = new Smtp();
-
-    public Storage getStorage() {
-        return storage;
-    }
-
-    public ReplicationProperties setStorage(Storage storage) {
-        this.storage = storage;
-        return this;
-    }
 
     public Smtp getSmtp() {
         return smtp;
@@ -45,22 +35,6 @@ public class ReplicationProperties {
     public ReplicationProperties setNode(String node) {
         this.node = node;
         return this;
-    }
-
-    /**
-     * @deprecated This is no longer being used
-     */
-    public static class Storage {
-        private String preservation;
-
-        public String getPreservation() {
-            return preservation;
-        }
-
-        public Storage setPreservation(String preservation) {
-            this.preservation = preservation;
-            return this;
-        }
     }
 
     /**
