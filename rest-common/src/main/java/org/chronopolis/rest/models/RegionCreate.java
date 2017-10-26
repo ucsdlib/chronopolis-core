@@ -2,6 +2,7 @@ package org.chronopolis.rest.models;
 
 import org.chronopolis.rest.models.storage.DataType;
 import org.chronopolis.rest.models.storage.StorageType;
+import org.chronopolis.rest.support.StorageUnit;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.Min;
@@ -25,6 +26,9 @@ public class RegionCreate {
 
     @NotNull
     private DataType dataType;
+
+    @NotNull
+    private StorageUnit storageUnit;
 
     @NotNull
     private StorageType storageType;
@@ -109,6 +113,15 @@ public class RegionCreate {
 
     public RegionCreate setNote(String note) {
         this.note = note;
+        return this;
+    }
+
+    public StorageUnit getStorageUnit() {
+        return storageUnit;
+    }
+
+    public RegionCreate setStorageUnit(StorageUnit storageUnit) {
+        this.storageUnit = storageUnit;
         return this;
     }
 }

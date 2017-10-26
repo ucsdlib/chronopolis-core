@@ -232,6 +232,7 @@ public class StorageRegionUIController extends IngestController {
     private void appendFormAttributes(Model model, RegionCreate regionCreate) {
         model.addAttribute("nodes", nodes.findAll());
         model.addAttribute("dataTypes", DataType.values());
+        model.addAttribute("storageUnits", StorageUnit.values());
         model.addAttribute("storageTypes", StorageType.values());
         model.addAttribute("regionCreate", regionCreate);
     }
