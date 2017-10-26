@@ -143,6 +143,7 @@ public class BagTokenControllerTest extends ControllerTest {
 
     private AceTokenModel generateModel() {
         AceTokenModel model = new AceTokenModel();
+        model.setImsHost("test-ims-host");
         model.setImsService("test-ims-service");
         model.setAlgorithm("test-algorithm");
         model.setRound(1L);
@@ -162,6 +163,7 @@ public class BagTokenControllerTest extends ControllerTest {
                 new Date(),
                 "test-filename",
                 "test-proof",
+                "test-ims-host",
                 "test-ims",
                 "test-algorithm",
                 100L);

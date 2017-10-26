@@ -73,6 +73,7 @@ CREATE TABLE ace_token (
   create_date TIMESTAMP,
   filename VARCHAR (255),
   proof VARCHAR (1024),
+  ims_host varchar(255) NOT NULL,
   ims_service VARCHAR (255),
   algorithm VARCHAR (255),
   round bigint,

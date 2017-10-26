@@ -12,9 +12,9 @@ INSERT INTO staging_storage VALUES(1, 1, 1, 'test-depositor/new-bag-1', 1500, 3,
 UPDATE bag SET bag_storage_id = 1; --, token_storage_id = 2;
 
 -- insert a token for the hello_world file
-INSERT INTO ace_token VALUES(DEFAULT, CURRENT_DATE, '/data/hello_world', 'test-proof-hw', 'SHA-256', 'SHA-256', 1, 2);
+INSERT INTO ace_token VALUES(DEFAULT, CURRENT_DATE, '/data/hello_world', 'test-proof-hw', 'ims-host', 'SHA-256', 'SHA-256', 1, 2);
 
 -- create the three tokens for new-bag-3
-INSERT INTO ace_token VALUES(DEFAULT, CURRENT_DATE, '/data/hello_world', 'test-proof-hw', 'SHA-256', 'SHA-256', 1, 3);
-INSERT INTO ace_token VALUES(DEFAULT, CURRENT_DATE, '/manifest-sha256.txt', 'test-proof-hw', 'SHA-256', 'SHA-256', 1, 3);
-INSERT INTO ace_token VALUES(DEFAULT, CURRENT_DATE, '/tagmanifest-sha256.txt', 'test-proof-hw', 'SHA-256', 'SHA-256', 1, 3);
+INSERT INTO ace_token VALUES(DEFAULT, CURRENT_DATE, '/data/hello_world', 'test-proof-hw', 'ims-host', 'SHA-256', 'SHA-256', 1, 3);
+INSERT INTO ace_token VALUES(DEFAULT, CURRENT_DATE, '/manifest-sha256.txt', 'test-proof-hw', 'ims-host', 'SHA-256', 'SHA-256', 1, 3);
+INSERT INTO ace_token VALUES(DEFAULT, CURRENT_DATE, '/tagmanifest-sha256.txt', 'test-proof-hw', 'ims-host', 'SHA-256', 'SHA-256', 1, 3);

@@ -22,6 +22,9 @@ public class AceTokenModel {
     private String proof;
 
     @NotBlank
+    private String imsHost;
+
+    @NotBlank
     private String filename;
 
     @NotBlank
@@ -105,5 +108,13 @@ public class AceTokenModel {
         return filename;
     }
 
+    public String getImsHost() {
+        return imsHost;
+    }
+
+    public AceTokenModel setImsHost(String imsHost) {
+        this.imsHost = imsHost;
+        return this;
+    }
 }
 

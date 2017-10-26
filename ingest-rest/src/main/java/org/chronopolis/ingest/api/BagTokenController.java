@@ -113,6 +113,7 @@ public class BagTokenController extends IngestController {
                     Date.from(model.getCreateDate().toInstant()),
                     model.getFilename(),
                     model.getProof(),
+                    model.getImsHost(),
                     model.getImsService(),
                     model.getAlgorithm(),
                     model.getRound());

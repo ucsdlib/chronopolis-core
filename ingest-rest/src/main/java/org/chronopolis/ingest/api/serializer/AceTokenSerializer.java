@@ -24,6 +24,7 @@ public class AceTokenSerializer extends JsonSerializer<AceToken> {
              .setBagId(value.getBag().getId())
              .setRound(value.getRound())
              .setProof(value.getProof())
+             .setImsHost(value.getImsHost())
              .setAlgorithm(value.getAlgorithm())
              .setFilename(value.getFilename())
              .setImsService(value.getImsService())
