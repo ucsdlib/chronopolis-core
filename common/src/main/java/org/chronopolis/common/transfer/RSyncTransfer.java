@@ -5,6 +5,7 @@ import org.chronopolis.common.exception.FileTransferException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -66,10 +67,12 @@ public class RSyncTransfer implements FileTransfer {
             } catch (IOException e) {
                 log.error("IO Exception in rsync ", e);
                 p.destroy();
+                errors = new ByteArrayInputStream(e.getMessage().getBytes());
                 throw new FileTransferException("IOException in rsync", e);
             } catch (InterruptedException e) {
                 log.error("rsync was interrupted", e);
                 p.destroy();
+                errors = new ByteArrayInputStream(e.getMessage().getBytes());
                 throw new FileTransferException("rsync was interrupted", e);
             }
 
