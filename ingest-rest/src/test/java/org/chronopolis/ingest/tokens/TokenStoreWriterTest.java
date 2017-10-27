@@ -12,7 +12,9 @@ import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
+import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.ingest.repository.dao.StorageRegionService;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.storage.Fixity;
@@ -30,6 +32,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.persistence.EntityManager;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
@@ -44,14 +47,15 @@ import java.util.Set;
 public class TokenStoreWriterTest extends IngestTest {
 
     // Beans created by spring
+    @Autowired private EntityManager entityManager;
     @Autowired private BagRepository bagRepository;
     @Autowired private TokenRepository tokenRepository;
     @Autowired private StorageRegionRepository regionRepository;
 
     // Our search services which we need to create
-    private SearchService<Bag, Long, BagRepository> bagService;
+    private BagService bagService;
     private SearchService<AceToken, Long, TokenRepository> tokenService;
-    private SearchService<StorageRegion, Long, StorageRegionRepository> storageRegionService;
+    private StorageRegionService storageRegionService;
 
     private TokenStagingProperties properties;
 
@@ -59,9 +63,9 @@ public class TokenStoreWriterTest extends IngestTest {
     public void setup() {
         properties = new TokenStagingProperties()
                 .setPosix(new Posix().setId(1L).setPath(System.getProperty("chron.stage.tokens")));
-        bagService = new SearchService<>(bagRepository);
+        bagService = new BagService(bagRepository, entityManager);
         tokenService = new SearchService<>(tokenRepository);
-        storageRegionService = new SearchService<>(regionRepository);
+        storageRegionService = new StorageRegionService(regionRepository, entityManager);
     }
 
     @Test

@@ -81,6 +81,7 @@ CREATE TABLE ace_token (
     create_date timestamp,
     filename text,
     proof text,
+    ims_host varchar(255) NOT NULL,
     ims_service varchar(255),
     algorithm varchar(255),
     round bigint,
@@ -182,6 +183,7 @@ CREATE TABLE storage_region (
     data_type VARCHAR(255) NOT NULL,
     storage_type VARCHAR(255) NOT NULL,
     capacity BIGINT,
+    note TEXT,
     created_at TIMESTAMP,
     updated_at TIMESTAMP
 );

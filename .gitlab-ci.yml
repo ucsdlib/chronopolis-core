@@ -69,13 +69,25 @@ verify:jdk8:
 # See https://maven.apache.org/settings.html
 deploy:jdk8:
   # Use stage test here, so the pages job may later pickup the created site.
+  before_script:
+    - apt-get update -y
+    - apt-get install -y rsync
   stage: test
   script:
     - 'mvn $MAVEN_CLI_OPTS deploy'
   only:
     - master
-  # Archive up the built documentation site.
   image: maven:3.3.9-jdk-8
+  artifacts:
+    expire_in: 1 week
+    untracked: true
+    when: on_failure
+    paths:
+    - common/target/surefire-reports/
+    - tokenizer/target/surefire-reports/
+    - rest-common/target/surefire-reports/
+    - ingest-rest/target/surefire-reports/
+    - replication-shell/target/surefire-reports/
 
 .rpm: &rpm
   before_script:

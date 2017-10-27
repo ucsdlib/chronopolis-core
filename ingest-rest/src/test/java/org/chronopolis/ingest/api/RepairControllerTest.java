@@ -7,10 +7,10 @@ import org.chronopolis.ingest.api.serializer.BagSerializer;
 import org.chronopolis.ingest.api.serializer.RepairSerializer;
 import org.chronopolis.ingest.api.serializer.ZonedDateTimeDeserializer;
 import org.chronopolis.ingest.api.serializer.ZonedDateTimeSerializer;
-import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;
+import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.ingest.support.PageImpl;
 import org.chronopolis.rest.entities.Bag;
@@ -59,7 +59,7 @@ public class RepairControllerTest extends ControllerTest {
 
     // Beans for the RepairController
     @MockBean private NodeRepository nodes;
-    @MockBean private SearchService<Bag, Long, BagRepository> bags;
+    @MockBean private BagService bags;
     @MockBean private SearchService<Repair, Long, RepairRepository> repairs;
 
     @Before

@@ -25,6 +25,7 @@ public class StorageRegionSerializer extends JsonSerializer<StorageRegion> {
         org.chronopolis.rest.models.storage.StorageRegion model = new org.chronopolis.rest.models.storage.StorageRegion();
         model.setId(entity.getId());
         model.setCapacity(entity.getCapacity());
+        model.setNote(entity.getNote());
         model.setNode(entity.getNode().getUsername());
         model.setDataType(entity.getDataType());
         model.setStorageType(entity.getStorageType());

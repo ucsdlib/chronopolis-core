@@ -73,6 +73,7 @@ CREATE TABLE ace_token (
   create_date TIMESTAMP,
   filename VARCHAR (255),
   proof VARCHAR (1024),
+  ims_host varchar(255) NOT NULL,
   ims_service VARCHAR (255),
   algorithm VARCHAR (255),
   round bigint,
@@ -167,6 +168,7 @@ CREATE TABLE storage_region (
     data_type VARCHAR(255) NOT NULL,
     storage_type VARCHAR(255) NOT NULL,
     capacity BIGINT,
+    note VARCHAR(255),
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     PRIMARY KEY(id)
@@ -196,7 +198,8 @@ CREATE TABLE fixity (
     algorithm VARCHAR(255) NOT NULL,
     value VARCHAR(255) NOT NULL,
     created_at TIMESTAMP,
-    PRIMARY KEY(id)
+    PRIMARY KEY(id),
+    UNIQUE (storage_id, algorithm)
 );
 
 -- replication_config

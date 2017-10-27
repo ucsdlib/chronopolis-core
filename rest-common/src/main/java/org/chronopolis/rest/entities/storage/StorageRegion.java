@@ -43,7 +43,7 @@ public class StorageRegion extends UpdatableEntity {
     private ReplicationConfig replicationConfig;
 
     private Long capacity;
-
+    private String note;
 
     public StorageRegion() {
         // here for JPA
@@ -100,6 +100,15 @@ public class StorageRegion extends UpdatableEntity {
 
     public StorageRegion setDataType(DataType dataType) {
         this.dataType = dataType;
+        return this;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public StorageRegion setNote(String note) {
+        this.note = note;
         return this;
     }
 }

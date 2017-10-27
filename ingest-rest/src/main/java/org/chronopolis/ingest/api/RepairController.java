@@ -5,11 +5,11 @@ import org.chronopolis.ingest.exception.BadRequestException;
 import org.chronopolis.ingest.exception.ConflictException;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.exception.UnauthorizedException;
-import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.RepairSearchCriteria;
+import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
@@ -52,11 +52,11 @@ public class RepairController {
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private final NodeRepository nodes;
-    private final SearchService<Bag, Long, BagRepository> bService;
+    private final BagService bService;
     private final SearchService<Repair, Long, RepairRepository> rService;
 
     @Autowired
-    public RepairController(SearchService<Bag, Long, BagRepository> bagService,
+    public RepairController(BagService bagService,
                             NodeRepository nodes,
                             SearchService<Repair, Long, RepairRepository> repairService) {
         this.bService = bagService;

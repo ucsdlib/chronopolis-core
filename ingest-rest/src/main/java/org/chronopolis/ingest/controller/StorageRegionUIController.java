@@ -6,9 +6,8 @@ import org.chronopolis.ingest.exception.ForbiddenException;
 import org.chronopolis.ingest.models.ReplicationConfigUpdate;
 import org.chronopolis.ingest.models.filter.StorageRegionFilter;
 import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
-import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.ingest.repository.dao.StorageRegionService;
 import org.chronopolis.ingest.support.FileSizeFormatter;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Node;
@@ -36,7 +35,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.Optional;
 
+/**
+ * View controller for the StorageRegion pages
+ *
+ * @author shake
+ */
 @Controller
 public class StorageRegionUIController extends IngestController {
 
@@ -44,12 +49,11 @@ public class StorageRegionUIController extends IngestController {
     private final Logger log = LoggerFactory.getLogger(StorageRegionUIController.class);
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
-
     private final NodeRepository nodes;
-    private final SearchService<StorageRegion, Long, StorageRegionRepository> service;
+    private final StorageRegionService service;
 
     @Autowired
-    public StorageRegionUIController(NodeRepository nodes, SearchService<StorageRegion, Long, StorageRegionRepository> service) {
+    public StorageRegionUIController(NodeRepository nodes, StorageRegionService service) {
         this.nodes = nodes;
         this.service = service;
     }
@@ -131,6 +135,7 @@ public class StorageRegionUIController extends IngestController {
         }
 
         StorageRegion region = new StorageRegion();
+        region.setNote(regionCreate.getNote());
         region.setDataType(regionCreate.getDataType());
         region.setStorageType(regionCreate.getStorageType());
         region.setCapacity(regionCreate.getCapacity());
@@ -208,6 +213,7 @@ public class StorageRegionUIController extends IngestController {
             throw new ForbiddenException("User does not have permissions to create this resource");
         }
 
+        region.setNote(regionEdit.getNote());
         region.setDataType(regionEdit.getDataType());
         region.setStorageType(regionEdit.getStorageType());
         Double capacity = regionEdit.getCapacity() * Math.pow(1000, regionEdit.getStorageUnit().getPower());
@@ -226,6 +232,7 @@ public class StorageRegionUIController extends IngestController {
     private void appendFormAttributes(Model model, RegionCreate regionCreate) {
         model.addAttribute("nodes", nodes.findAll());
         model.addAttribute("dataTypes", DataType.values());
+        model.addAttribute("storageUnits", StorageUnit.values());
         model.addAttribute("storageTypes", StorageType.values());
         model.addAttribute("regionCreate", regionCreate);
     }
@@ -244,10 +251,13 @@ public class StorageRegionUIController extends IngestController {
 
         StorageRegionSearchCriteria criteria = new StorageRegionSearchCriteria().withId(id);
         StorageRegion region = service.find(criteria);
+        Optional<Long> usedRaw = service.getUsedSpace(region);
         FileSizeFormatter formatter = new FileSizeFormatter();
         String capacity = formatter.format(new BigDecimal(region.getCapacity()));
+        String used = formatter.format(usedRaw.orElse(0L));
         model.addAttribute("region", region);
         model.addAttribute("capacity", capacity);
+        model.addAttribute("used", used);
         return "storage_region/region";
     }
 

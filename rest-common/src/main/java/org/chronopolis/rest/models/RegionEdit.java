@@ -13,6 +13,8 @@ public class RegionEdit {
     @Min(1)
     private Long capacity;
 
+    private String note;
+
     @NotNull
     private StorageUnit storageUnit;
 
@@ -55,6 +57,15 @@ public class RegionEdit {
 
     public RegionEdit setStorageType(StorageType storageType) {
         this.storageType = storageType;
+        return this;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public RegionEdit setNote(String note) {
+        this.note = note;
         return this;
     }
 }

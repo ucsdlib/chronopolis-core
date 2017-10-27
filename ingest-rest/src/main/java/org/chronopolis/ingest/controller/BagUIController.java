@@ -10,14 +10,15 @@ import org.chronopolis.ingest.models.ReplicationCreate;
 import org.chronopolis.ingest.models.filter.BagFilter;
 import org.chronopolis.ingest.models.filter.ReplicationFilter;
 import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.ReplicationSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
-import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.ingest.repository.dao.StagingService;
+import org.chronopolis.ingest.repository.dao.StorageRegionService;
+import org.chronopolis.ingest.support.FileSizeFormatter;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.ingest.support.ReplicationCreateResult;
 import org.chronopolis.rest.entities.Bag;
@@ -68,18 +69,21 @@ public class BagUIController extends IngestController {
     private final Integer DEFAULT_PAGE = 0;
 
     private final BagService bagService;
+    private final StagingService stagingService;
     private final ReplicationService replicationService;
     private final TokenRepository tokenRepository;
     private final NodeRepository nodeRepository;
-    private final SearchService<StorageRegion, Long, StorageRegionRepository> regions;
+    private final StorageRegionService regions;
 
     @Autowired
     public BagUIController(BagService bagService,
+                           StagingService stagingService,
                            ReplicationService replicationService,
                            TokenRepository tokenRepository,
                            NodeRepository nodeRepository,
-                           SearchService<StorageRegion, Long, StorageRegionRepository> regions) {
+                           StorageRegionService regions) {
         this.bagService = bagService;
+        this.stagingService = stagingService;
         this.replicationService = replicationService;
         this.tokenRepository = tokenRepository;
         this.nodeRepository = nodeRepository;
@@ -103,7 +107,7 @@ public class BagUIController extends IngestController {
                 .depositorLike(filter.getDepositor())
                 .withStatuses(filter.getStatus());
 
-        Sort.Direction direction = (filter.getDir() == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(filter.getDir());
+        Sort.Direction direction = (filter.getDir() == null) ? Sort.Direction.DESC : Sort.Direction.fromStringOrNull(filter.getDir());
         Sort s = new Sort(direction, filter.getOrderBy());
         Page<Bag> bags = bagService.findAll(criteria, new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, s));
 
@@ -127,8 +131,10 @@ public class BagUIController extends IngestController {
         access.info("[GET /bags/{}] - {}", id, principal.getName());
 
         BagSearchCriteria bsc = new BagSearchCriteria().withId(id);
+        FileSizeFormatter formatter = new FileSizeFormatter();
         ReplicationSearchCriteria rsc = new ReplicationSearchCriteria().withBagId(id);
 
+        model.addAttribute("formatter", formatter);
         model.addAttribute("bag", bagService.find(bsc));
         model.addAttribute("replications", replicationService.findAll(rsc,
                 new PageRequest(DEFAULT_PAGE, DEFAULT_PAGE_SIZE)));
@@ -186,17 +192,38 @@ public class BagUIController extends IngestController {
             throw new NotFoundException("Bag does not exist");
         }
 
-        StagingStorage storage = findStorageForBag(bag, storageId);
-
-        // could do a null check here...
-        StorageRegion region = storage.getRegion();
-        String owner = region.getNode().getUsername();
-        if (!hasRoleAdmin() && !owner.equalsIgnoreCase(principal.getName())) {
-            throw new ForbiddenException("User is not allowed to update this resource");
-        }
-
+        StagingStorage storage = findStorageForBag(principal, bag, storageId);
         storage.setActive(!storage.isActive());
         bagService.save(bag);
+        return "redirect:/bags/" + id;
+    }
+
+    /**
+     * Remove a fixity entity for a given StagingStorage object
+     *
+     * @param principal the security principal of the user
+     * @param id        the id of the Bag
+     * @param storageId the id of the StagingStorage
+     * @param fixityId  the id of the Fixity entity
+     * @return /bags/id
+     * @throws ForbiddenException
+     */
+    @GetMapping("/bags/{id}/storage/{storageId}/fixity/{fixityId}")
+    public String removeStorageFixity(Principal principal,
+                                      @PathVariable("id") Long id,
+                                      @PathVariable("storageId") Long storageId,
+                                      @PathVariable("fixityId") Long fixityId) throws ForbiddenException {
+        access.info("[GET /bags/{}/storage/{}/fixity/{}] - {}", id, storageId, fixityId, principal.getName());
+
+        // check constraints first - existence && permissions
+        BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
+        Bag bag = bagService.find(criteria);
+        if (bag == null) {
+            throw new NotFoundException("Bag does not exist");
+        }
+
+        StagingStorage storage = findStorageForBag(principal, bag, storageId);
+        stagingService.deleteFixity(storage, fixityId);
         return "redirect:/bags/" + id;
     }
 
@@ -205,7 +232,7 @@ public class BagUIController extends IngestController {
      * <p>
      * This is kind of a patch job at the moment to help with doing things through the ui
      * For now: if the fixity is null send to a create page
-     *          else remove the fixity
+     * else remove the fixity
      *
      * @param model     the model for the controller
      * @param principal the security principal of the user
@@ -228,22 +255,12 @@ public class BagUIController extends IngestController {
             throw new NotFoundException("Bag does not exist!");
         }
 
-        StagingStorage storage = findStorageForBag(bag, storageId);
-
-        // could do a null check here...
-        StorageRegion region = storage.getRegion();
-        String owner = region.getNode().getUsername();
-        if (!hasRoleAdmin() && !owner.equalsIgnoreCase(principal.getName())) {
-            throw new ForbiddenException("User is not allowed to update this resource");
-        }
+        StagingStorage storage = findStorageForBag(principal, bag, storageId);
 
         if (storage.getFixities().isEmpty()) {
             model.addAttribute("bag", bag);
             model.addAttribute("storage", storage);
             template = "fixity/create";
-        } else {
-            // this should be for an individual fixity value but w/e
-            log.info("[{}] Removing Fixities", bag.getDepositor() + "::" + bag.getName());
         }
 
         return template;
@@ -274,14 +291,7 @@ public class BagUIController extends IngestController {
             throw new NotFoundException("Bag does not exist!");
         }
 
-        StagingStorage storage = findStorageForBag(bag, storageId);
-
-        // could do a null check here...
-        StorageRegion region = storage.getRegion();
-        String owner = region.getNode().getUsername();
-        if (!hasRoleAdmin() && !owner.equalsIgnoreCase(principal.getName())) {
-            throw new ForbiddenException("User is not allowed to update this resource");
-        }
+        StagingStorage storage = findStorageForBag(principal, bag, storageId);
 
         Fixity fixity = new Fixity();
         fixity.setStorage(storage);
@@ -294,9 +304,22 @@ public class BagUIController extends IngestController {
         return "redirect:/bags/" + id;
     }
 
-    private StagingStorage findStorageForBag(Bag bag, Long storageId) {
+    /**
+     * Get a StagingStorage object for a bag by its id and validate permissions
+     * for the Region it is associated with on the given principal
+     *
+     * @param principal the user attempting to modify the StagingStorage
+     * @param bag       the bag owning the StagingStorage entity
+     * @param storageId the id of the StagingStorage entity
+     * @return the StagingStorage entity
+     * @throws ForbiddenException
+     */
+    private StagingStorage findStorageForBag(Principal principal, Bag bag, Long storageId) throws ForbiddenException {
         StagingStorage storage;
         // todo: through the db
+        //       there are a couple caveats to this - we'll probably need to wait until we have a
+        //       join table so that we can get a single storage object back and not rely on
+        //       bag.bagStorage or bag.tokenStorage... anyways we can't quite do it yet but soon^TM
         if (bag.getBagStorage() != null
                 && bag.getBagStorage().getId().equals(storageId)) {
             storage = bag.getBagStorage();
@@ -307,6 +330,14 @@ public class BagUIController extends IngestController {
             // should have a related ExceptionHandler
             throw new RuntimeException("Invalid Storage Id");
         }
+
+        // should do a null check here...
+        StorageRegion region = storage.getRegion();
+        String owner = region.getNode().getUsername();
+        if (!hasRoleAdmin() && !owner.equalsIgnoreCase(principal.getName())) {
+            throw new ForbiddenException("User is not allowed to update this resource");
+        }
+
         return storage;
     }
 
@@ -391,7 +422,7 @@ public class BagUIController extends IngestController {
                 .nodeUsernameLike(filter.getNode())
                 .withStatuses(filter.getStatus());
 
-        Sort.Direction direction = (filter.getDir() == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(filter.getDir());
+        Sort.Direction direction = (filter.getDir() == null) ? Sort.Direction.DESC : Sort.Direction.fromStringOrNull(filter.getDir());
         Sort s = new Sort(direction, filter.getOrderBy());
         replications = replicationService.findAll(criteria, new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, s));
 

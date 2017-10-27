@@ -80,6 +80,7 @@ public class TokenControllerTest {
                 new Date(),
                 "test-filename",
                 "test-proof",
+                "test-ims-host",
                 "test-ims",
                 "test-algorithm",
                 100L);

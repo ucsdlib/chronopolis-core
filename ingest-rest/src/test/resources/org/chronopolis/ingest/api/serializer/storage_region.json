@@ -1,5 +1,6 @@
 {
   "id": 2,
+  "note": "note",
   "node": "test-node",
   "capacity": 250,
   "dataType": "BAG",

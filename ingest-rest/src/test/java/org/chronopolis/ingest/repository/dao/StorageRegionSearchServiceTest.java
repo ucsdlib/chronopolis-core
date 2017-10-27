@@ -20,6 +20,8 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.persistence.EntityManager;
+
 /**
  * Simple tests to validate querying and saving when interacting with {@link StorageRegion}s
  *
@@ -32,17 +34,15 @@ public class StorageRegionSearchServiceTest extends IngestTest {
 
     private final Logger log = LoggerFactory.getLogger(StorageRegionSearchServiceTest.class);
 
-    @Autowired
-    private NodeRepository nodes;
+    @Autowired private NodeRepository nodes;
+    @Autowired private EntityManager entityManager;
+    @Autowired private StorageRegionRepository repository;
 
-    @Autowired
-    private StorageRegionRepository repository;
-
-    private SearchService<StorageRegion, Long, StorageRegionRepository> service;
+    private StorageRegionService service;
 
     @Before
     public void setup() {
-        service = new SearchService<>(repository);
+        service = new StorageRegionService(repository, entityManager);
     }
 
     @Test

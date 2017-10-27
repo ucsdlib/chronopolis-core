@@ -73,9 +73,9 @@ public class SubmitterTest {
     private TrackingThreadPoolExecutor<Replication> io;
     private TrackingThreadPoolExecutor<Replication> http;
 
-    @Mock AceService ace;
-    @Mock IngestAPI ingest;
-    @Mock MailUtil mail;
+    @Mock private AceService ace;
+    @Mock private IngestAPI ingest;
+    @Mock private MailUtil mail;
 
     private Path bags;
     private Path tokens;
@@ -96,8 +96,6 @@ public class SubmitterTest {
         AceConfiguration aceConfiguration = new AceConfiguration();
         properties = new ReplicationProperties();
         properties.setSmtp(new ReplicationProperties.Smtp().setSendOnSuccess(true));
-        properties.setStorage(new ReplicationProperties.Storage()
-                .setPreservation(Paths.get(resources.toURI()).resolve("preservation").toString()));
 
         bags = Paths.get(resources.toURI()).resolve("bags");
         tokens = Paths.get(resources.toURI()).resolve("tokens");

@@ -5,11 +5,10 @@ import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.exception.BadRequestException;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
-import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.ingest.repository.dao.StorageRegionService;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
@@ -38,6 +37,7 @@ import static org.chronopolis.ingest.api.Params.CREATED_AFTER;
 import static org.chronopolis.ingest.api.Params.CREATED_BEFORE;
 import static org.chronopolis.ingest.api.Params.DEPOSITOR;
 import static org.chronopolis.ingest.api.Params.NAME;
+import static org.chronopolis.ingest.api.Params.REGION;
 import static org.chronopolis.ingest.api.Params.SORT_BY_SIZE;
 import static org.chronopolis.ingest.api.Params.SORT_BY_TOTAL_FILES;
 import static org.chronopolis.ingest.api.Params.SORT_SIZE;
@@ -60,12 +60,12 @@ public class BagController extends IngestController {
 
     private final BagService bagService;
     private final NodeRepository nodeRepository;
-    private final SearchService<StorageRegion, Long, StorageRegionRepository> regions;
+    private final StorageRegionService regions;
 
     @Autowired
     public BagController(NodeRepository nodeRepository,
                          BagService bagService,
-                         SearchService<StorageRegion, Long, StorageRegionRepository> regions) {
+                         StorageRegionService regions) {
         this.nodeRepository = nodeRepository;
         this.bagService = bagService;
         this.regions = regions;
@@ -81,12 +81,14 @@ public class BagController extends IngestController {
     public Iterable<Bag> getBags(@RequestParam Map<String, String> params) {
         access.info("[GET /api/bags]");
         BagSearchCriteria criteria = new BagSearchCriteria()
+                .withName(params.getOrDefault(NAME, null))
+                .withRegion(params.getOrDefault(REGION, null))
+                .withDepositor(params.getOrDefault(DEPOSITOR, null))
                 .createdAfter(params.getOrDefault(CREATED_AFTER, null))
                 .createdBefore(params.getOrDefault(CREATED_BEFORE, null))
                 .updatedAfter(params.getOrDefault(UPDATED_AFTER, null))
                 .updatedBefore(params.getOrDefault(UPDATED_BEFORE, null))
-                .withDepositor(params.getOrDefault(DEPOSITOR, null))
-                .withName(params.getOrDefault(NAME, null))
+                .withActiveStorage(params.getOrDefault(Params.ACTIVE, null))
                 .withStatus(params.containsKey(STATUS) ? BagStatus.valueOf(params.get(STATUS)) : null);
 
         return bagService.findAll(criteria, createPageRequest(params, valid()));

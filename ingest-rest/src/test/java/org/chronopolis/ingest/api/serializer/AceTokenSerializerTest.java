@@ -49,9 +49,10 @@ public class AceTokenSerializerTest {
         final Long round = 100L;
         final String algorithm = "test-algorithm";
         final String ims = "test-ims-service";
+        final String host = "test-ims-host";
         final String proof = "test-proof";
         final String filename = "test-filename";
-        AceToken token = new AceToken(genBag(), date, filename, proof, ims, algorithm, round);
+        AceToken token = new AceToken(genBag(), date, filename, proof, host, ims, algorithm, round);
         assertThat(json.write(token)).isEqualToJson("token.json");
     }
 

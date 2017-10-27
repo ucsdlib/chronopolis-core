@@ -3,10 +3,10 @@ package org.chronopolis.ingest.api;
 import com.google.common.collect.ImmutableList;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.models.filter.AceTokenFilter;
-import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.criteria.AceTokenSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
+import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.AceToken;
@@ -42,11 +42,11 @@ public class BagTokenController extends IngestController {
 
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
-    private final SearchService<Bag, Long, BagRepository> bags;
+    private final BagService bags;
     private final SearchService<AceToken, Long, TokenRepository> tokens;
 
     @Autowired
-    public BagTokenController(SearchService<Bag, Long, BagRepository> bagService,
+    public BagTokenController(BagService bagService,
                               SearchService<AceToken, Long, TokenRepository> tokenService) {
         this.bags = bagService;
         this.tokens = tokenService;
@@ -113,6 +113,7 @@ public class BagTokenController extends IngestController {
                     Date.from(model.getCreateDate().toInstant()),
                     model.getFilename(),
                     model.getProof(),
+                    model.getImsHost(),
                     model.getImsService(),
                     model.getAlgorithm(),
                     model.getRound());

@@ -10,6 +10,7 @@ public class StorageRegion {
 
     private Long id;
     private String node;
+    private String note;
     private Long capacity;
     private DataType dataType;
     private StorageType storageType;
@@ -66,6 +67,15 @@ public class StorageRegion {
 
     public StorageRegion setDataType(DataType dataType) {
         this.dataType = dataType;
+        return this;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public StorageRegion setNote(String note) {
+        this.note = note;
         return this;
     }
 }

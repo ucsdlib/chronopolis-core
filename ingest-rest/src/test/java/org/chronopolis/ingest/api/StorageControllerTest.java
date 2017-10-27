@@ -1,11 +1,9 @@
 package org.chronopolis.ingest.api;
 
 import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;
-import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.ingest.repository.dao.StorageRegionService;
 import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.RegionCreate;
 import org.chronopolis.rest.models.storage.StorageType;
 import org.junit.Before;
@@ -37,7 +35,7 @@ public class StorageControllerTest extends ControllerTest {
 
     // Constructor params
     @MockBean private NodeRepository nodes;
-    @MockBean private SearchService<StorageRegion, Long, StorageRegionRepository> service;
+    @MockBean private StorageRegionService service;
 
     @Before
     public void setup() {

@@ -2,10 +2,9 @@ package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableList;
 import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
-import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.ingest.repository.dao.StorageRegionService;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.storage.StorageRegion;
@@ -52,7 +51,7 @@ public class BagControllerTest extends ControllerTest {
     // Mocks for the StagingController
     @MockBean private NodeRepository nodes;
     @MockBean private BagService bagService;
-    @MockBean private SearchService<StorageRegion, Long, StorageRegionRepository> regions;
+    @MockBean private StorageRegionService regions;
 
     @Before
     public void setup() {
