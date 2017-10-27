@@ -1,7 +1,5 @@
 package org.chronopolis.rest.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -23,7 +21,6 @@ public class AceToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JsonIgnore
     @JoinColumn(name = "bag")
     @ManyToOne(fetch = FetchType.LAZY)
     private Bag bag;
@@ -31,6 +28,7 @@ public class AceToken {
     private Date createDate;
     private String filename;
     private String proof;
+    private String imsHost;
     private String imsService;
     private String algorithm;
     private Long round;
@@ -42,6 +40,7 @@ public class AceToken {
                     final Date createDate,
                     final String filename,
                     final String proof,
+                    final String imsHost,
                     final String imsService,
                     final String algorithm,
                     final Long round) {
@@ -49,6 +48,7 @@ public class AceToken {
         this.createDate = createDate;
         this.filename = filename;
         this.proof = proof;
+        this.imsHost = imsHost;
         this.imsService = imsService;
         this.algorithm = algorithm;
         this.round = round;
@@ -116,5 +116,14 @@ public class AceToken {
 
     public void setRound(final Long round) {
         this.round = round;
+    }
+
+    public String getImsHost() {
+        return imsHost;
+    }
+
+    public AceToken setImsHost(String imsHost) {
+        this.imsHost = imsHost;
+        return this;
     }
 }

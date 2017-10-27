@@ -20,17 +20,14 @@ DROP SEQUENCE IF EXISTS bag_id_seq;
 CREATE SEQUENCE bag_id_seq;
 CREATE TABLE bag (
     id bigint PRIMARY KEY DEFAULT nextval('bag_id_seq'),
+    bag_storage_id BIGINT,
+    token_storage_id BIGINT,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
-    name varchar(255),
+    name varchar(255) UNIQUE,
     creator VARCHAR(255),
     depositor varchar(255),
-    location varchar(255),
-    token_location varchar(255),
-    token_digest varchar(255),
-    tag_manifest_digest varchar(255),
     status varchar(255),
-    fixity_algorithm varchar(255),
     size bigint NOT NULL,
     total_files bigint NOT NULL,
     required_replications int
@@ -84,6 +81,7 @@ CREATE TABLE ace_token (
     create_date timestamp,
     filename text,
     proof text,
+    ims_host varchar(255) NOT NULL,
     ims_service varchar(255),
     algorithm varchar(255),
     round bigint,
@@ -175,3 +173,80 @@ ALTER TABLE repair_file
 ALTER TABLE repair
     ADD CONSTRAINT FK_repair_strat FOREIGN KEY (strategy_id) REFERENCES strategy ON DELETE CASCADE;
 
+-- storage
+DROP TABLE IF EXISTS storage_region;
+DROP SEQUENCE IF EXISTS storage_region_id_seq;
+CREATE SEQUENCE storage_region_id_seq;
+CREATE TABLE storage_region (
+    id BIGINT PRIMARY KEY DEFAULT nextval('storage_region_id_seq'),
+    node_id BIGINT NOT NULL,
+    data_type VARCHAR(255) NOT NULL,
+    storage_type VARCHAR(255) NOT NULL,
+    capacity BIGINT,
+    note TEXT,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
+
+-- storage
+-- note the size/total_files might still live in the bag, but are here for now as their usage emerges
+DROP TABLE IF EXISTS staging_storage;
+DROP SEQUENCE IF EXISTS staging_storage_id_seq;
+CREATE SEQUENCE staging_storage_id_seq;
+CREATE TABLE staging_storage (
+    id BIGINT PRIMARY KEY DEFAULT nextval('staging_storage_id_seq'),
+    region_id BIGINT NOT NULL,
+    active BOOLEAN,
+    path VARCHAR(255),
+    size BIGINT,
+    total_files BIGINT,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
+
+
+DROP TABLE IF EXISTS fixity;
+DROP SEQUENCE IF EXISTS fixity_id_seq;
+CREATE SEQUENCE fixity_id_seq;
+CREATE TABLE fixity (
+    id BIGINT PRIMARY KEY DEFAULT nextval('fixity_id_seq'),
+    storage_id BIGINT NOT NULL,
+    algorithm VARCHAR(255) NOT NULL,
+    value VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP,
+    UNIQUE(storage_id, algorithm)
+);
+
+-- replication_config
+DROP TABLE IF EXISTS replication_config;
+DROP SEQUENCE IF EXISTS replication_config_id_seq;
+CREATE SEQUENCE replication_config_id_seq;
+CREATE TABLE replication_config(
+    id BIGINT  PRIMARY KEY DEFAULT nextval('replication_config_id_seq'),
+    region_id BIGINT NOT NULL,
+    server VARCHAR(255) NOT NULL,
+    username VARCHAR(255), --nullable
+    path VARCHAR(255)
+);
+
+-- FKs
+ALTER TABLE storage_region
+    ADD CONSTRAINT FK_sr_node FOREIGN KEY (node_id) REFERENCES node;
+
+ALTER TABLE staging_storage
+    ADD CONSTRAINT FK_storage_sr FOREIGN KEY (region_id) REFERENCES storage_region;
+
+ALTER TABLE fixity
+    ADD CONSTRAINT FK_fixity_storage FOREIGN KEY (storage_id) REFERENCES staging_storage;
+
+ALTER TABLE replication_config
+    ADD CONSTRAINT FK_rc_sr FOREIGN KEY (region_id) REFERENCES storage_region;
+
+ALTER TABLE bag
+    ADD CONSTRAINT FK_bag_storage FOREIGN KEY (bag_storage_id) REFERENCES staging_storage;
+
+ALTER TABLE bag
+    ADD CONSTRAINT FK_bag_tokens FOREIGN KEY (bag_storage_id) REFERENCES staging_storage;
+
+-- Indices
+CREATE INDEX CONCURRENTLY idx_filename ON ace_token (bag, filename);

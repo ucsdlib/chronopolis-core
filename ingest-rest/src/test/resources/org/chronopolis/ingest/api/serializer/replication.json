@@ -1,0 +1,19 @@
+{
+  "id": 1,
+  "createdAt": "2017-06-30T20:24:01.311Z",
+  "updatedAt": "2017-06-30T20:24:01.311Z",
+  "status": "SUCCESS",
+  "bagLink": "link",
+  "tokenLink": "link",
+  "protocol": "rsync",
+  "receivedTagFixity": "fixity",
+  "receivedTokenFixity": "fixity",
+  "node": "node",
+  "bag": {
+    "name": "bag",
+    "depositor": "depositor",
+    "status": "DEPOSITED",
+    "requiredReplications": 3,
+    "replicatingNodes": []
+  }
+}

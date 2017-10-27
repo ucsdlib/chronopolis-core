@@ -16,15 +16,15 @@
         </div>
     </div>
     <div id="filter-body" class="collapse p-2">
-        <form role="form" th:action="@{/bags}" method="GET">
+        <form th:action="@{/bags}" method="GET">
             <div class="form-group row">
                 <label for="depositor-table-filter" class="col-form-label col-2">Depositor</label>
-                <input type="text" class="form-control col-9" id="depositor-table-filter" name="depositor"
+                <input class="form-control col-9" id="depositor-table-filter" name="depositor"
                        placeholder="Search Depositor"/>
             </div>
             <div class="form-group row">
                 <label for="name-table-filter" class="col-form-label col-2">Bag Name</label>
-                <input type="text" class="form-control col-9" id="name-table-filter" name="name"
+                <input class="form-control col-9" id="name-table-filter" name="name"
                        placeholder="Search Name"/>
             </div>
             <div class="form-group row">
@@ -37,7 +37,7 @@
                 </select>
             </div>
             <div class="form-group row">
-            <label class="col-form-label col-2" for="direction-filter">Order By</label>
+                <label class="col-form-label col-2" for="direction-filter">Order By</label>
                 <div class="form-check col-2">
                     <label class="form-check-label">
                         <input class="form-check-input" type="radio" name="orderBy" id="optionUpdatedAt" value="updatedAt"/> UpdatedAt
@@ -48,18 +48,18 @@
                         <input class="form-check-input" type="radio" name="orderBy" id="optionCreatedAt" value="createdAt"/> CreatedAt
                     </label>
                 </div>
-            <div class="col-3">
-                <select name="dir" id="direction-filter" class="form-control">
-                    <option value="ASC">Ascending</option>
-                    <option value="DESC">Descending</option>
-                </select>
-            </div>
+                <div class="col-3">
+                    <select name="dir" id="direction-filter" class="form-control">
+                        <option value="ASC">Ascending</option>
+                        <option value="DESC">Descending</option>
+                    </select>
+                </div>
             </div>
             <button th:type="submit" class="btn btn-primary">Search</button>
         </form>
     </div>
 
-    <table class="table table-striped">
+    <table class="table table-hover">
         <thead>
         <tr>
             <th>ID</th>
@@ -77,8 +77,8 @@
         <tbody>
         <!--@thymesVar id="bags" type="Page<Bag>"-->
         <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
-        <tr th:each="bag: ${bags}">
-            <td><a th:text="${bag.id}" th:href="@{|/bags/${bag.id}|}"></a></td>
+        <tr th:each="bag: ${bags}" th:attr="data-href=@{|/bags/${bag.id}|}" class="table-clickable">
+            <td th:text="${bag.id}"></td>
             <td th:text="${bag.depositor}"></td>
             <td th:text="${bag.name}"></td>
             <td th:text="${bag.status}"></td>
@@ -87,9 +87,6 @@
         </tr>
         </tbody>
     </table>
-
-    <!--@thymesVar id="bags" type="Page<Bag>"-->
-    <!--<input type="button" value="next" class="btn btn-small" th:href="@{/bags/(page=${bags.number})}" />-->
 
     <div th:replace="fragments/page :: page"></div>
 </div>
@@ -103,76 +100,70 @@
     <div class="card-header">
         <h3>Bag Overview</h3>
     </div>
+
+    <!--@thymesVar id="tokens" type="Long"-->
+    <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
     <div class="card-block">
-        <form class="m-3" method="POST">
-            <table class="table table-bordered">
-                <!--@thymesVar id="tokens" type="Long"-->
-                <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
-                <tbody>
-                <tr>
-                    <td>Id</td>
-                    <td th:text="${bag.id}"></td>
-                </tr>
-                <tr>
-                    <td>Created By</td>
-                    <td th:text="${bag.creator}"></td>
-                </tr>
-                <tr>
-                    <td>Name</td>
-                    <td th:text="${bag.name}"></td>
-                </tr>
-                <tr>
-                    <td>Depositor</td>
-                    <td th:text="${bag.depositor}"></td>
-                </tr>
-                <tr>
-                    <td>Location</td>
-                    <td><input type="text" name="location" style="width: 100%" th:value="${bag.location}"/></td>
-                </tr>
-                <tr>
-                    <td>Size</td>
-                    <td th:text="${bag.size}"></td>
-                </tr>
-                <tr>
-                    <td>Num Files</td>
-                    <td th:text="${bag.totalFiles}"></td>
-                </tr>
-                <tr>
-                    <!-- ajax instead? -->
-                    <td>Num Tokens</td>
-                    <td th:text="${tokens}"></td>
-                </tr>
-                <tr>
-                    <td>Status</td>
-                    <!--@thymesVar id="statuses" type="List" -->
-                    <td>
-                        <select name="status" id="status">
-                            <option th:each="status : ${statuses}"
-                                    th:value="${status.value}" th:text="${status.value}"
-                                    th:selected="${status == bag.status}">
-                            </option>
-                            <!-- <td th:text="${bag.status}"></td> -->
-                        </select>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Created At</td>
-                    <td th:text="${bag.createdAt}"></td>
-                </tr>
-                <tr>
-                    <td>Updated At</td>
-                    <td th:text="${bag.updatedAt}"></td>
-                </tr>
-                </tbody>
-            </table>
-            <input type="submit" value="Update Bag" class="btn btn-primary btn-small"/>
-        </form>
+        <table class="table table-bordered">
+            <tbody>
+            <tr>
+                <td>Id</td>
+                <td th:text="${bag.id}"></td>
+            </tr>
+            <tr>
+                <td>Created By</td>
+                <td th:text="${bag.creator}"></td>
+            </tr>
+            <tr>
+                <td>Name</td>
+                <td th:text="${bag.name}"></td>
+            </tr>
+            <tr>
+                <td>Depositor</td>
+                <td th:text="${bag.depositor}"></td>
+            </tr>
+            <tr>
+                <!-- ajax instead? -->
+                <td>Num Tokens</td>
+                <td th:text="${tokens}"></td>
+            </tr>
+            <tr>
+                <td>Status</td>
+                <!--@thymesVar id="statuses" type="List" -->
+                <td>
+                    <select name="status" id="status">
+                        <option th:each="status : ${statuses}"
+                                th:value="${status.value}" th:text="${status.value}"
+                                th:selected="${status == bag.status}">
+                        </option>
+                        <!-- <td th:text="${bag.status}"></td> -->
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Created At</td>
+                <td th:text="${bag.createdAt}"></td>
+            </tr>
+            <tr>
+                <td>Updated At</td>
+                <td th:text="${bag.updatedAt}"></td>
+            </tr>
+            </tbody>
+        </table>
     </div>
+
+    <th:block th:if="${bag.bagStorage} != null">
+        <div th:replace="fragments/storage :: card-display (storage=${bag.bagStorage},storageName='Bag')"/>
+    </th:block>
+
+    <th:block th:if="${bag.tokenStorage} != null">
+        <div th:replace="fragments/storage :: card-display (storage=${bag.tokenStorage},storageName='Token')"></div>
+    </th:block>
 
     <div class="card-header">
         <h4>Associated Replications</h4>
     </div>
-    <div class="card-block">
+    <div class="card-block p-2">
         <table class="table table-bordered">
             <thead>
             <tr>

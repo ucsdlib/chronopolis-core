@@ -1,17 +1,18 @@
 package org.chronopolis.ingest.repository;
 
 import org.chronopolis.ingest.IngestTest;
-import org.chronopolis.ingest.TestApplication;
+import org.chronopolis.ingest.JpaContext;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatus.REPLICATE;
 
@@ -22,19 +23,17 @@ import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatu
  *
  * Created by shake on 4/14/15.
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = TestApplication.class)
+@RunWith(SpringRunner.class)
+@DataJpaTest
+@ContextConfiguration(classes = JpaContext.class)
 @SqlGroup({
         @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:sql/createBagsWithReplications.sql"),
         @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = "classpath:sql/deleteBagsWithReplications.sql")
 })
 public class ReplicatingNodeTest extends IngestTest {
 
-    @Autowired
-    NodeRepository nodeRepository;
-
-    @Autowired
-    BagRepository bagRepository;
+    @Autowired NodeRepository nodeRepository;
+    @Autowired BagRepository bagRepository;
 
     @Test
     public void testNumReplications() {

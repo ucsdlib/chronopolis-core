@@ -10,10 +10,10 @@ import java.util.Set;
  */
 public class RepairRequest {
 
-    String to;
-    String depositor;
-    String collection;
-    Set<String> files;
+    private String to;
+    private String depositor;
+    private String collection;
+    private Set<String> files;
 
     public String getDepositor() {
         return depositor;

@@ -1,311 +1,482 @@
 package org.chronopolis.ingest.api;
 
-import com.google.common.collect.ImmutableMap;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.chronopolis.ingest.IngestTest;
-import org.chronopolis.ingest.TestApplication;
-import org.chronopolis.ingest.exception.BadRequestException;
-import org.chronopolis.ingest.exception.ConflictException;
-import org.chronopolis.ingest.exception.NotFoundException;
-import org.chronopolis.ingest.exception.UnauthorizedException;
+import org.chronopolis.ingest.api.serializer.BagSerializer;
+import org.chronopolis.ingest.api.serializer.RepairSerializer;
+import org.chronopolis.ingest.api.serializer.ZonedDateTimeDeserializer;
+import org.chronopolis.ingest.api.serializer.ZonedDateTimeSerializer;
+import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
-import org.chronopolis.ingest.repository.criteria.RepairSearchCriteria;
+import org.chronopolis.ingest.repository.criteria.SearchCriteria;
+import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.ingest.support.PageImpl;
+import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Repair;
+import org.chronopolis.rest.entities.fulfillment.Ace;
 import org.chronopolis.rest.models.repair.ACEStrategy;
 import org.chronopolis.rest.models.repair.AuditStatus;
 import org.chronopolis.rest.models.repair.FulfillmentType;
-import org.chronopolis.rest.models.repair.RepairRequest;
 import org.chronopolis.rest.models.repair.RepairStatus;
-import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.boot.test.WebIntegrationTest;
-import org.springframework.data.domain.Page;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.context.jdbc.SqlGroup;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.security.Principal;
+import java.time.ZonedDateTime;
 
-import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
-import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Tests for our repair controller
  *
- * I'm not sure if this is the best way to test our controller (calling it directly),
- * but it seems pretty straightforward.
- *
- * Also it would be nice if we could programmatically generate test cases instead of
- * using a static set from the sql. It would help in that we could have less hard coded
- * values (node/principal names, ids) which probably don't make sense when first reading
- * the tests.
- *
  * Created by shake on 1/26/17.
  */
-@WebIntegrationTest("server.port:0")
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = TestApplication.class)
-@SqlGroup({
-        @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:sql/createRepairs.sql"),
-        @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = "classpath:sql/deleteRepairs.sql")
-})
-public class RepairControllerTest extends IngestTest {
-    private final Logger log = LoggerFactory.getLogger(RepairControllerTest.class);
+@RunWith(SpringRunner.class)
+@WebMvcTest(RepairController.class)
+public class RepairControllerTest extends ControllerTest {
 
-    private static final String NCAR = "ncar";
-    private static final String UCSD = "ucsd";
-    private static final String ADMIN = "admin";
-    private static final String UMIACS = "umiacs";
-    private static Principal ncarPrincipal = () -> NCAR;
-    private static Principal ucsdPrincipal = () -> UCSD;
-    private static Principal adminPrincipal = () -> ADMIN;
-    private static Principal umiacsPrincipal = () -> UMIACS;
+    private MockMvc mvc;
+    private RepairController controller;
 
-    @Autowired private RepairController controller;
-    @Autowired private SearchService<Repair, Long, RepairRepository> repairs;
+    // Beans for the RepairController
+    @MockBean private NodeRepository nodes;
+    @MockBean private BagService bags;
+    @MockBean private SearchService<Repair, Long, RepairRepository> repairs;
+
+    @Before
+    public void setup() {
+        // move to helper?
+        Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
+        builder.serializationInclusion(JsonInclude.Include.NON_NULL);
+        builder.serializerByType(Bag.class, new BagSerializer());
+        builder.serializerByType(Repair.class, new RepairSerializer());
+        builder.serializerByType(ZonedDateTime.class, new ZonedDateTimeSerializer());
+        builder.deserializerByType(ZonedDateTime.class, new ZonedDateTimeDeserializer());
+        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+        converter.setObjectMapper(builder.build());
+        converter.setSupportedMediaTypes(ImmutableList.of(MediaType.APPLICATION_JSON));
+
+        controller = new RepairController(bags, nodes, repairs);
+        mvc = MockMvcBuilders.standaloneSetup(controller)
+                .setMessageConverters(converter)
+                .build();
+    }
 
     @Test
     public void getRepair() throws Exception {
-        Repair repair = controller.getRequest(1L);
-        assertEquals(RepairStatus.STAGING, repair.getStatus());
-        assertEquals(UCSD, repair.getRequester());
+        Repair unfulfilled = baseRepair();
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(unfulfilled);
+        mvc.perform(
+                get("/api/repairs/{id}", unfulfilled.getId())
+                        .principal(authorizedPrincipal))
+                .andDo(print())
+                .andExpect(status().is(200));
     }
 
-    @Test(expected = NotFoundException.class)
-    public void getRepairNotFound() {
-        controller.getRequest(100L);
+    @Test
+    public void getRepairNotFound() throws Exception {
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(null);
+        mvc.perform(
+                get("/api/repairs/{id}", 100L)
+                    .principal(authorizedPrincipal))
+                .andDo(print())
+                .andExpect(status().is(404));
     }
 
     @Test
     public void getRepairs() throws Exception {
-        Page<Repair> repairs = controller.getRequests(ImmutableMap.of());
-        assertEquals(3, repairs.getTotalElements());
+        when(repairs.findAll(any(SearchCriteria.class), any(Pageable.class))).thenReturn(new PageImpl<>());
+        mvc.perform(get("/api/repairs").principal(authorizedPrincipal))
+                .andDo(print())
+                .andExpect(status().is2xxSuccessful());
     }
 
     @Test
-    @WithMockUser(UMIACS)
     public void createRepair() throws Exception {
-        RepairRequest request = new RepairRequest()
-                .setCollection("bag-0")
-                .setDepositor("test-depositor")
-                .setFiles(ImmutableSet.of("test-file-1"));
+        authenticateUser();
+        // requester instead of authorized?
+        when(nodes.findByUsername(AUTHORIZED)).thenReturn(new Node(AUTHORIZED, AUTHORIZED));
+        when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", "test-depositor"));
 
-        Repair repair = controller.createRequest(umiacsPrincipal, request);
-        assertEquals(RepairStatus.REQUESTED, repair.getStatus());
-        assertEquals(UMIACS, repair.getRequester());
-        assertEquals(UMIACS, repair.getTo().getUsername());
+        String json = "{\"depositor\":\"test-depositor\",\"collection\":\"bag-0\",\"files\":[\"test-file-1\"]}";
+        mvc.perform(
+                post("/api/repairs")
+                        .principal(authorizedPrincipal)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andDo(print())
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$.status").value(RepairStatus.REQUESTED.name()))
+                .andExpect(jsonPath("$.requester").value(AUTHORIZED))
+                .andExpect(jsonPath("$.to").value(AUTHORIZED));
     }
 
     @Test
-    @WithMockUser(value = ADMIN, roles = ADMIN)
     public void createRepairAdmin() throws Exception {
-        RepairRequest request = new RepairRequest()
-                .setTo(UMIACS)
-                .setCollection("bag-0")
-                .setDepositor("test-depositor")
-                .setFiles(ImmutableSet.of("test-file-1"));
+        authenticateAdmin();
+        when(nodes.findByUsername(REQUESTER)).thenReturn(new Node(REQUESTER, REQUESTER));
+        when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", "test-depositor"));
 
-        Repair repair = controller.createRequest(adminPrincipal, request);
-        assertEquals(RepairStatus.REQUESTED, repair.getStatus());
-        assertEquals(ADMIN, repair.getRequester());
-        assertEquals(UMIACS, repair.getTo().getUsername());
+        String json = "{\"to\":\"requester\",\"depositor\":\"test-depositor\",\"collection\":\"bag-0\",\"files\":[\"test-file-1\"]}";
+
+        // Need to inject Mock SecurityContext here
+        mvc.perform(
+                post("/api/repairs")
+                        .principal(authorizedPrincipal)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andDo(print())
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$.requester").value(AUTHORIZED))
+                .andExpect(jsonPath("$.to").value(REQUESTER));
     }
 
-    @Test(expected = UnauthorizedException.class)
-    @WithMockUser(NCAR)
+    @Test
     public void createRepairUnauthorized() throws Exception {
-        RepairRequest request = new RepairRequest()
-                .setTo(UMIACS)
-                .setCollection("bag-0")
-                .setDepositor("test-depositor")
-                .setFiles(ImmutableSet.of("test-file-1"));
+        authenticateUser();
+        when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", "test-depositor"));
 
-        controller.createRequest(ncarPrincipal, request);
+        // For some reason the ObjectMapper isn't creating proper json for the RepairRequest class, so we'll just hard code it for now
+        String json = "{\"to\":\"requester\",\"depositor\":\"test-depositor\",\"collection\":\"bag-0\",\"files\":[\"test-file-1\"]}";
+
+        mvc.perform(post("/api/repairs").principal(unauthorizedPrincipal).contentType(MediaType.APPLICATION_JSON).content(json))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    @WithMockUser(UMIACS)
     public void fulfillRequest() throws Exception {
-        controller.fulfillRequest(umiacsPrincipal, 2L);
-        Repair repair = repairs.find(new RepairSearchCriteria().withId(2L));
-        assertNotNull(repair.getFrom());
-        assertEquals(UMIACS, repair.getFrom().getUsername());
+        Repair unfulfilled = baseRepair();
+        when(nodes.findByUsername(AUTHORIZED)).thenReturn(new Node(AUTHORIZED, AUTHORIZED));
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(unfulfilled);
+        mvc.perform(post("/api/repairs/{id}/fulfill", unfulfilled.getId()).principal(authorizedPrincipal))
+                .andDo(print())
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$.from").value(AUTHORIZED));
+
+        // verify...
     }
 
-    @Test(expected = ConflictException.class)
-    @WithMockUser(NCAR)
-    public void fulfillRequestConflict() {
-        controller.fulfillRequest(ncarPrincipal, 1L);
-    }
-
-    @WithMockUser(NCAR)
-    @Test(expected = BadRequestException.class)
+    @Test
     public void fulfillOwnRequest() throws Exception {
-        controller.fulfillRequest(ncarPrincipal, 2L);
+        Repair unfulfilled = baseRepair();
+        when(nodes.findByUsername(REQUESTER)).thenReturn(new Node(REQUESTER, REQUESTER));
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(unfulfilled);
+
+        mvc.perform(post("/api/repairs/{id}/fulfill", unfulfilled.getId()).principal(requesterPrincipal))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    @WithMockUser(UMIACS)
+    public void fulfillRequestConflict() throws Exception {
+        Repair fulfilling = fulfilling();
+        when(nodes.findByUsername(UNAUTHORIZED)).thenReturn(new Node(UNAUTHORIZED, UNAUTHORIZED));
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
+
+        mvc.perform(post("/api/repairs/{id}/fulfill", fulfilling.getId()).principal(unauthorizedPrincipal))
+                .andDo(print())
+                .andExpect(status().isConflict());
+    }
+
+
+    @Test
     public void readyFulfillment() throws Exception {
+        Repair fulfilling = fulfilling();
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
+        authenticateUser();
+
         ACEStrategy strategy = new ACEStrategy()
                 .setApiKey("test-api-key")
                 .setUrl("test-url");
 
-        Repair entity = controller.readyFulfillment(umiacsPrincipal, strategy, 1L);
-
-        log.info(entity.toString());
-        assertEquals(FulfillmentType.ACE, entity.getType());
+        mvc.perform(
+                put("/api/repairs/{id}/ready", fulfilling.getId())
+                        .principal(authorizedPrincipal)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJson(strategy)))
+                .andDo(print())
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$.type").value(FulfillmentType.ACE.name()));
     }
 
-    @Test(expected = UnauthorizedException.class)
-    @WithMockUser(NCAR)
+    @Test
     public void readyFulfillmentUnauthorized() throws Exception {
+        Repair fulfilling = fulfilling();
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
+        authenticateUser();
+
         ACEStrategy strategy = new ACEStrategy()
                 .setApiKey("test-api-key")
                 .setUrl("test-url");
 
-        controller.readyFulfillment(ncarPrincipal, strategy, 1L);
+        mvc.perform(
+                put("/api/repairs/{id}/ready", fulfilling.getId())
+                        .principal(unauthorizedPrincipal)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJson(strategy)))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
     }
 
-    @Test(expected = BadRequestException.class)
-    @WithMockUser(UCSD)
+    @Test
     public void completeFulfillmentNoStrategy() throws Exception {
-        controller.completeFulfillment(ucsdPrincipal, 1L);
+        Repair fulfilling = fulfilling();
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
+        authenticateUser();
+        mvc.perform(put("/api/repairs/{id}/complete", fulfilling.getId()).principal(requesterPrincipal))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
     }
 
 
     @Test
-    @WithMockUser(UMIACS)
     public void completeFulfillment() throws Exception {
-        Repair repair = controller.completeFulfillment(umiacsPrincipal, 3L);
-        assertEquals(RepairStatus.REPAIRED, repair.getStatus());
+        Repair completing = completing();
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(completing);
+        authenticateUser();
+
+        mvc.perform(put("/api/repairs/{id}/complete", completing.getId()).principal(requesterPrincipal))
+                .andDo(print())
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$.status").value(RepairStatus.REPAIRED.name()));
     }
 
-    @Test(expected = UnauthorizedException.class)
-    @WithMockUser(NCAR)
+    @Test
     public void completeFulfillmentUnauthorized() throws Exception {
-        controller.completeFulfillment(ncarPrincipal, 3L);
+        Repair completing = completing();
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(completing);
+        authenticateUser();
+
+        mvc.perform(put("/api/repairs/{id}/complete", completing.getId()).principal(unauthorizedPrincipal))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    @WithMockUser(UCSD)
-    public void repairAuditing() {
-        AuditStatus auditing = AuditStatus.AUDITING;
-        Repair repair = controller.repairAuditing(ucsdPrincipal, 1L, auditing);
-        Assert.assertEquals(auditing, repair.getAudit());
-    }
+    public void repairAuditing() throws Exception {
+        Repair auditing = auditing();
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(auditing);
+        authenticateUser();
 
-    @Test(expected = NotFoundException.class)
-    @WithMockUser(UCSD)
-    public void repairAuditingNotFound() {
-        controller.repairAuditing(ucsdPrincipal, 14L, AuditStatus.AUDITING);
-    }
-
-    @Test(expected = UnauthorizedException.class)
-    @WithMockUser(username = "umiacs")
-    public void repairAuditingUnauthorized() {
-        controller.repairAuditing(umiacsPrincipal, 1L, AuditStatus.AUDITING);
+        mvc.perform(
+                put("/api/repairs/{id}/audit", auditing.getId())
+                        .principal(requesterPrincipal)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJson(AuditStatus.AUDITING)))
+                .andDo(print())
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$.audit").value(AuditStatus.AUDITING.name()));
     }
 
     @Test
-    @WithMockUser(UCSD)
-    public void repairCleaned() {
-        Repair repair = controller.repairCleaned(ucsdPrincipal, 1L);
-        Assert.assertEquals(true, repair.getCleaned());
-    }
-
-    @Test(expected = NotFoundException.class)
-    @WithMockUser(UCSD)
-    public void repairCleanNotFound() {
-        controller.repairCleaned(ucsdPrincipal, 12L);
-    }
-
-    @Test(expected = UnauthorizedException.class)
-    @WithMockUser(UMIACS)
-    public void repairCleanUnauthorized() {
-        controller.repairCleaned(umiacsPrincipal, 1L);
+    public void repairAuditingNotFound() throws Exception {
+        Repair auditing = auditing();
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(null);
+        mvc.perform(
+                put("/api/repairs/{id}/audit", auditing.getId())
+                        .principal(requesterPrincipal)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJson(AuditStatus.AUDITING)))
+                .andDo(print())
+                .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser(UCSD)
-    public void repairReplaced() {
-        Repair repair = controller.repairReplaced(ucsdPrincipal, 1L);
-        Assert.assertEquals(true, repair.getReplaced());
-    }
+    public void repairAuditingUnauthorized() throws Exception {
+        Repair auditing = auditing();
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(auditing);
+        authenticateUser();
 
-    @Test(expected = NotFoundException.class)
-    @WithMockUser(UCSD)
-    public void repairReplacedNotFound() {
-        controller.repairReplaced(ucsdPrincipal, 13L);
-    }
-
-    @Test(expected = UnauthorizedException.class)
-    @WithMockUser(UMIACS)
-    public void repairReplacedUnauthorized() {
-        controller.repairReplaced(umiacsPrincipal, 1L);
-    }
-
-    /*
-    @Test
-    @WithMockUser(UMIACS)
-    public void fulfillmentCleaned() {
-        Fulfillment fulfillment = controller.fulfillmentCleaned(umiacsPrincipal, 1L);
-        Assert.assertEquals(true, fulfillment.getCleaned());
-    }
-
-    @Test(expected = NotFoundException.class)
-    @WithMockUser(UMIACS)
-    public void fulfillmentCleanNotFound() {
-        controller.fulfillmentCleaned(umiacsPrincipal, 12L);
-    }
-
-    @Test(expected = UnauthorizedException.class)
-    @WithMockUser(NCAR)
-    public void fulfillmentCleanUnauthorized() {
-        controller.fulfillmentCleaned(ncarPrincipal, 1L);
-    }
-    */
-
-    @Test
-    @WithMockUser(UMIACS)
-    public void fulfillmentUpdated() {
-        // The likelihood of this test happen is very low, but we're doing it just for completeness
-        RepairStatus ready = RepairStatus.READY;
-        Repair repair = controller.fulfillmentUpdated(umiacsPrincipal, 1L, ready);
-        Assert.assertEquals(ready, repair.getStatus());
+        mvc.perform(
+                put("/api/repairs/{id}/audit",auditing.getId())
+                        .principal(unauthorizedPrincipal).contentType(MediaType.APPLICATION_JSON).content(asJson(AuditStatus.AUDITING)))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    @WithMockUser(UCSD)
-    public void fulfillmentUpdatedXfer() {
-        RepairStatus transferred = RepairStatus.TRANSFERRED;
-        Repair repair = controller.fulfillmentUpdated(ucsdPrincipal, 1L, transferred);
-        Assert.assertEquals(transferred, repair.getStatus());
+    public void repairCleaned() throws Exception {
+        Repair cleaning = cleaning();
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(cleaning);
+        authenticateUser();
+
+        mvc.perform(
+                put("/api/repairs/{id}/cleaned", cleaning.getId()).principal(requesterPrincipal))
+                .andDo(print())
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$.cleaned").value(true));
     }
 
-    @Test(expected = NotFoundException.class)
-    @WithMockUser(UMIACS)
-    public void fulfillmentUpdateNotFound() {
-        controller.fulfillmentUpdated(umiacsPrincipal, 12L, RepairStatus.FAILED);
+    @Test
+    public void repairCleanNotFound() throws Exception {
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(null);
+        mvc.perform(put("/api/repairs/{id}/cleaned", cleaning().getId()).principal(requesterPrincipal))
+                .andDo(print())
+                .andExpect(status().isNotFound());
     }
 
-    @Test(expected = UnauthorizedException.class)
-    @WithMockUser(NCAR)
-    public void fulfillmentUpdateUnauthorizedXfer() {
-        controller.fulfillmentUpdated(ncarPrincipal, 1L, RepairStatus.TRANSFERRED);
+    @Test
+    public void repairCleanUnauthorized() throws Exception {
+        Repair cleaning = cleaning();
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(cleaning());
+        authenticateUser();
+
+        mvc.perform(put("/api/repairs/{id}/cleaned", cleaning.getId()).principal(unauthorizedPrincipal))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
     }
 
-    @Test(expected = UnauthorizedException.class)
-    @WithMockUser(NCAR)
-    public void fulfillmentUpdateUnauthorized() {
-        controller.fulfillmentUpdated(ncarPrincipal, 1L, RepairStatus.FAILED);
+    @Test
+    public void repairReplaced() throws Exception {
+        Repair replacing = replacing();
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(replacing);
+        authenticateUser();
+
+        mvc.perform(put("/api/repairs/{id}/replaced", replacing.getId()).principal(requesterPrincipal))
+                .andDo(print())
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$.replaced").value(true));
+    }
+
+    @Test
+    public void repairReplacedNotFound() throws Exception {
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(null);
+        mvc.perform(put("/api/repairs/{id}/replaced", replacing().getId()).principal(requesterPrincipal))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void repairReplacedUnauthorized() throws Exception {
+        Repair replacing = replacing();
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(replacing);
+        authenticateUser();
+
+        mvc.perform(put("/api/repairs/{id}/replaced", replacing.getId()).principal(unauthorizedPrincipal))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void fulfillmentUpdated() throws Exception {
+        Repair fulfilling = fulfilling();
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
+        authenticateUser();
+        mvc.perform(
+                put("/api/repairs/{id}/status", fulfilling.getId())
+                    .principal(authorizedPrincipal).contentType(MediaType.APPLICATION_JSON).content(asJson(RepairStatus.READY)))
+                .andDo(print())
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$.status").value(RepairStatus.READY.name()));
+    }
+
+    @Test
+    public void fulfillmentUpdatedXfer() throws Exception {
+        Repair transferred = transferred();
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(transferred);
+        authenticateUser();
+        mvc.perform(put("/api/repairs/{id}/status", transferred.getId())
+                .principal(requesterPrincipal).contentType(MediaType.APPLICATION_JSON).content(asJson(RepairStatus.TRANSFERRED)))
+                .andDo(print())
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$.status").value(RepairStatus.TRANSFERRED.name()));
+    }
+
+    @Test
+    public void fulfillmentUpdateNotFound() throws Exception {
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(null);
+        mvc.perform(put("/api/repairs/{id}/status", baseRepair().getId())
+                .principal(authorizedPrincipal).contentType(MediaType.APPLICATION_JSON).content(asJson(RepairStatus.TRANSFERRED)))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void fulfillmentUpdateUnauthorizedXfer() throws Exception {
+        Repair transferred = transferred();
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(transferred);
+        authenticateUser();
+        mvc.perform(
+                put("/api/repairs/{id}/status", transferred.getId())
+                        .principal(unauthorizedPrincipal).contentType(MediaType.APPLICATION_JSON).content(asJson(RepairStatus.TRANSFERRED)))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void fulfillmentUpdateUnauthorized() throws Exception {
+        Repair transferred = transferred();
+        when(repairs.find(any(SearchCriteria.class))).thenReturn(transferred);
+        authenticateUser();
+        mvc.perform(
+                put("/api/repairs/{id}/status", transferred.getId())
+                        .principal(unauthorizedPrincipal).contentType(MediaType.APPLICATION_JSON).content(asJson(RepairStatus.FAILED)))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
+
+    private Repair baseRepair() {
+        Repair repair = new Repair();
+        repair.setBag(new Bag("test-bag", "test-depositor"));
+        repair.setId(1L);
+        repair.setRequester(REQUESTER);
+        repair.setFiles(ImmutableSet.of());
+        repair.setStatus(RepairStatus.READY);
+        repair.setTo(new Node(REQUESTER, REQUESTER));
+        return repair;
+    }
+
+    private Repair fulfilling() {
+        return baseRepair()
+                .setStatus(RepairStatus.STAGING)
+                .setFrom(new Node(AUTHORIZED, AUTHORIZED));
+    }
+
+    private Repair transferred() {
+        return baseRepair()
+                .setStatus(RepairStatus.TRANSFERRED)
+                .setFrom(new Node(AUTHORIZED, AUTHORIZED))
+                .setStrategy(new Ace());
+    }
+
+    private Repair auditing () {
+        return transferred()
+                .setValidated(true);
+    }
+
+    private Repair replacing() {
+        return auditing()
+                .setAudit(AuditStatus.SUCCESS);
+    }
+
+    private Repair completing() {
+        return replacing()
+                .setReplaced(true);
+    }
+
+    private Repair cleaning() {
+        return completing()
+                .setStatus(RepairStatus.REPAIRED);
     }
 
 }

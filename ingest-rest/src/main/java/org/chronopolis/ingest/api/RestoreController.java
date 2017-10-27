@@ -90,12 +90,6 @@ public class RestoreController extends IngestController {
             throw new NotFoundException("restore/" + id);
         }
 
-        Node node = restoration.getNode();
-        // check if the user is authorized to access the resource
-        if (node != null && !node.getUsername().equals(principal.getName())) {
-            throw new UnauthorizedException("restore/" + id);
-        }
-
         return restoration;
     }
 

@@ -39,3 +39,5 @@
 /duracloud-backend/rpm/SOURCES/
 /duracloud-backend/rpm/SRPMS/
 /duracloud-backend/rpm/tmp/
+/tokenizer/deploy/TARS/
+/tokenizer/deploy/tokenizer/

@@ -5,12 +5,13 @@ import org.chronopolis.ingest.exception.BadRequestException;
 import org.chronopolis.ingest.exception.ConflictException;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.exception.UnauthorizedException;
-import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.RepairSearchCriteria;
+import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Repair;
@@ -48,18 +49,19 @@ import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
 @RequestMapping("/api/repairs")
 public class RepairController {
     private final Logger log = LoggerFactory.getLogger(RepairController.class);
+    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private final NodeRepository nodes;
-    private final SearchService<Bag, Long, BagRepository> bService;
+    private final BagService bService;
     private final SearchService<Repair, Long, RepairRepository> rService;
 
     @Autowired
-    public RepairController(SearchService<Bag, Long, BagRepository> bagService,
+    public RepairController(BagService bagService,
                             NodeRepository nodes,
-                            SearchService<Repair, Long, RepairRepository> rService) {
+                            SearchService<Repair, Long, RepairRepository> repairService) {
         this.bService = bagService;
         this.nodes = nodes;
-        this.rService = rService;
+        this.rService = repairService;
     }
 
     /**
@@ -70,6 +72,7 @@ public class RepairController {
      */
     @RequestMapping(method = RequestMethod.GET)
     public Page<Repair> getRequests(@RequestParam Map<String, String> params) {
+        access.info("[GET /api/repairs]");
         RepairStatus status = params.containsKey(Params.STATUS) ? RepairStatus.valueOf(params.get(Params.STATUS)) : null;
 
         RepairSearchCriteria criteria = new RepairSearchCriteria()
@@ -91,6 +94,7 @@ public class RepairController {
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public Repair getRequest(@PathVariable("id") Long id) {
+        access.info("[GET /api/repairs/{}]", id);
         RepairSearchCriteria criteria = new RepairSearchCriteria()
                 .withId(id);
         Repair repair = rService.find(criteria);
@@ -113,8 +117,10 @@ public class RepairController {
      * @throws UnauthorizedException if the user is not part of the node requesting the repair
      */
     @SuppressWarnings("ConstantConditions")
-    @RequestMapping(value = "/", method = RequestMethod.POST)
+    @RequestMapping(method = RequestMethod.POST)
     public Repair createRequest(Principal principal, @RequestBody RepairRequest request) {
+        access.info("[POST /api/repairs/] - ", principal.getName());
+        access.info("POST parameters - {};{}", request.getCollection(), request.getDepositor());
         boolean ignore = true;
         boolean admin = hasRoleAdmin();
         boolean sameNode = request.getTo()
@@ -165,6 +171,7 @@ public class RepairController {
      */
     @RequestMapping(value = "/{id}/fulfill", method = RequestMethod.POST)
     public Repair fulfillRequest(Principal principal, @PathVariable("id") Long id) {
+        access.info("[POST /api/repairs/{}/fulfill] - {}", id, principal.getName());
         Node from = nodes.findByUsername(principal.getName());
         RepairSearchCriteria criteria = new RepairSearchCriteria()
                 .withId(id);
@@ -204,6 +211,8 @@ public class RepairController {
      */
     @RequestMapping(value = "/{id}/ready", method = RequestMethod.PUT)
     public Repair readyFulfillment(Principal principal, @RequestBody FulfillmentStrategy strategy, @PathVariable("id") Long id) {
+        access.info("[PUT /api/repairs/{}/ready] - {}", id, principal.getName());
+        access.info("PUT parameters - {}", strategy.getType());
         RepairSearchCriteria criteria = new RepairSearchCriteria()
                 .withId(id);
         Repair repair = rService.find(criteria);
@@ -241,6 +250,7 @@ public class RepairController {
      */
     @RequestMapping(value = "/{id}/complete", method = RequestMethod.PUT)
     public Repair completeFulfillment(Principal principal, @PathVariable("id") Long id) {
+        access.info("[PUT /api/repairs/{}/complete] - {}", id, principal.getName());
         RepairSearchCriteria criteria = new RepairSearchCriteria()
                 .withId(id);
         Repair repair = rService.find(criteria);
@@ -273,6 +283,7 @@ public class RepairController {
      */
     @RequestMapping(path = "/{id}/audit", method = RequestMethod.PUT)
     public Repair repairAuditing(Principal principal, @PathVariable("id") Long id, @RequestBody AuditStatus status) {
+        access.info("[PUT /api/repairs/{}/audit] - {}", id, principal.getName());
         RepairSearchCriteria criteria = new RepairSearchCriteria().withId(id);
         Repair repair = rService.find(criteria);
         checkNotFound(repair, "Repair does not exist!");
@@ -295,6 +306,7 @@ public class RepairController {
      */
     @RequestMapping(path = "/{id}/cleaned", method = RequestMethod.PUT)
     public Repair repairCleaned(Principal principal, @PathVariable("id") Long id) {
+        access.info("[PUT /api/repairs/{}/cleaned] - {}", id, principal.getName());
         RepairSearchCriteria criteria = new RepairSearchCriteria().withId(id);
         Repair repair = rService.find(criteria);
         checkNotFound(repair, "Repair does not exist");
@@ -317,6 +329,7 @@ public class RepairController {
      */
     @RequestMapping(path = "/{id}/replaced", method = RequestMethod.PUT)
     public Repair repairReplaced(Principal principal, @PathVariable("id") Long id) {
+        access.info("[PUT /api/repairs/{}/replaced] - {}", id, principal.getName());
         RepairSearchCriteria criteria = new RepairSearchCriteria().withId(id);
         Repair repair = rService.find(criteria);
         checkNotFound(repair, "Repair does not exist");
@@ -363,6 +376,7 @@ public class RepairController {
      */
     @RequestMapping(path = "/{id}/status", method = RequestMethod.PUT)
     public Repair fulfillmentUpdated(Principal principal, @PathVariable("id") Long id, @RequestBody RepairStatus status) {
+        access.info("[PUT /api/repairs/{}/status] - {}", id, principal.getName());
         RepairSearchCriteria criteria = new RepairSearchCriteria().withId(id);
         Repair repair = rService.find(criteria);
         checkNotFound(repair, "Repair does not exist");
@@ -391,6 +405,8 @@ public class RepairController {
      */
     @RequestMapping(path = "/{id}/validated", method = RequestMethod.PUT)
     public Repair fulfillmentValidated(Principal principal, @PathVariable("id") Long id) {
+        access.info("[PUT /api/repairs/{}/validated] - {}", id, principal.getName());
+
         RepairSearchCriteria criteria = new RepairSearchCriteria().withId(id);
         Repair repair = rService.find(criteria);
         checkNotFound(repair, "Repair does not exist");

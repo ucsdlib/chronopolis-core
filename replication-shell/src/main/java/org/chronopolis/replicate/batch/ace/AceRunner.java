@@ -1,9 +1,10 @@
 package org.chronopolis.replicate.batch.ace;
 
 import com.google.common.collect.ImmutableList;
+import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.ace.AceService;
+import org.chronopolis.common.storage.PreservationProperties;
 import org.chronopolis.replicate.ReplicationNotifier;
-import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
@@ -30,19 +31,21 @@ import java.util.function.Supplier;
 public class AceRunner implements Supplier<ReplicationStatus>, Function<Void, ReplicationStatus> {
     private final Logger log = LoggerFactory.getLogger("ace-log");
 
-    final AceService ace;
-    final IngestAPI ingest;
-    final Long replicationId;
-    final ReplicationSettings settings;
+    private final AceService ace;
+    private final IngestAPI ingest;
+    private final Long replicationId;
+    private final AceConfiguration aceConfiguration;
+    private final PreservationProperties properties;
 
     // TODO: May be able to remove this
-    final ReplicationNotifier notifier;
+    private final ReplicationNotifier notifier;
 
-    public AceRunner(AceService ace, IngestAPI ingest, Long replicationId, ReplicationSettings settings, ReplicationNotifier notifier) {
+    public AceRunner(AceService ace, IngestAPI ingest, Long replicationId, AceConfiguration aceConfiguration, PreservationProperties properties, ReplicationNotifier notifier) {
         this.ace = ace;
         this.ingest = ingest;
         this.replicationId = replicationId;
-        this.settings = settings;
+        this.aceConfiguration = aceConfiguration;
+        this.properties = properties;
         this.notifier = notifier;
     }
 
@@ -59,7 +62,7 @@ public class AceRunner implements Supplier<ReplicationStatus>, Function<Void, Re
             return ReplicationStatus.FAILURE;
         }
 
-        AceRegisterTasklet register = new AceRegisterTasklet(ingest, ace, replication, settings, notifier);
+        AceRegisterTasklet register = new AceRegisterTasklet(ingest, ace, replication, aceConfiguration, properties, notifier);
         Long id = null;
         try {
             id = register.call();
@@ -77,7 +80,7 @@ public class AceRunner implements Supplier<ReplicationStatus>, Function<Void, Re
         // TODO: We will probably want to break this up more - and do some validation along the way
         //       - load tokens + validate we have the expected amount (maybe pull info from ingest)
         //       - run audit
-        AceTokenTasklet token = new AceTokenTasklet(ingest, ace, replication, settings, notifier, id);
+        AceTokenTasklet token = new AceTokenTasklet(ingest, ace, replication, properties, notifier, id);
         AceAuditTasklet audit = new AceAuditTasklet(ingest, ace, replication, notifier, id);
         for (Runnable runnable : ImmutableList.of(token, audit)) {
             if (notifier.isSuccess()) {

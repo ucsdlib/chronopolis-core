@@ -1,13 +1,14 @@
 package org.chronopolis.replicate.scheduled;
 
-import org.chronopolis.common.settings.IngestAPISettings;
 import org.chronopolis.replicate.batch.Submitter;
 import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.api.IngestAPIProperties;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -25,21 +26,24 @@ import java.util.Map;
 
 /**
  * Scheduled task for checking the ingest-server for replication requests
+ *
+ * todo check if we can enable configuration properties here
  * <p/>
  * Created by shake on 12/10/14.
  */
 @Component
 @EnableScheduling
+@EnableConfigurationProperties(IngestAPIProperties.class)
 public class ReplicationQueryTask {
     private final Logger log = LoggerFactory.getLogger(ReplicationQueryTask.class);
 
-    private final IngestAPISettings settings;
+    private final IngestAPIProperties properties;
     private final IngestAPI ingestAPI;
     private final Submitter submitter;
 
     @Autowired
-    public ReplicationQueryTask(IngestAPISettings settings, IngestAPI ingest, Submitter submitter) {
-        this.settings = settings;
+    public ReplicationQueryTask(IngestAPIProperties properties, IngestAPI ingest, Submitter submitter) {
+        this.properties = properties;
         this.ingestAPI = ingest;
         this.submitter = submitter;
     }
@@ -81,7 +85,7 @@ public class ReplicationQueryTask {
         params.put("page", page);
         params.put("status", status);
         params.put("page_size", pageSize);
-        params.put("node", settings.getIngestAPIUsername());
+        params.put("node", properties.getUsername());
 
         // TODO: As replications get updated, the state can change and alter the
         // amount of pages. We might want to switch this to only work on one page

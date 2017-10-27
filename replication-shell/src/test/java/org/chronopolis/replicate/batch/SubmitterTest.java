@@ -5,11 +5,14 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import okhttp3.RequestBody;
+import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.mail.MailUtil;
-import org.chronopolis.replicate.config.ReplicationSettings;
+import org.chronopolis.common.storage.Posix;
+import org.chronopolis.common.storage.PreservationProperties;
+import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.support.CallWrapper;
 import org.chronopolis.replicate.support.NotFoundCallWrapper;
 import org.chronopolis.rest.api.IngestAPI;
@@ -19,6 +22,7 @@ import org.chronopolis.rest.models.FixityUpdate;
 import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.models.storage.StagingStorageModel;
 import org.chronopolis.rest.support.ZonedDateTimeDeserializer;
 import org.chronopolis.rest.support.ZonedDateTimeSerializer;
 import org.junit.Before;
@@ -62,23 +66,23 @@ public class SubmitterTest {
     private static final String TM_DIGEST = "699caf4dc3dd8bd084f18174035a627b71f31cf5d07d5adbd722c45b874e7a78";
     private static final String TOKEN_DIGEST = "d20b847cbe138983b1235efb607ce9d9a0ba7d5d1d2e95767b3393857ea2cb82";
 
-    Submitter submitter;
-    ReplicationSettings settings;
+    private Submitter submitter;
+    private ReplicationProperties properties;
 
     // Mock these? No... that wouldn't be good...
-    TrackingThreadPoolExecutor<Replication> io;
-    TrackingThreadPoolExecutor<Replication> http;
+    private TrackingThreadPoolExecutor<Replication> io;
+    private TrackingThreadPoolExecutor<Replication> http;
 
-    @Mock AceService ace;
-    @Mock IngestAPI ingest;
-    @Mock MailUtil mail;
+    @Mock private AceService ace;
+    @Mock private IngestAPI ingest;
+    @Mock private MailUtil mail;
 
-    Path bags;
-    Path tokens;
-    String testBag;
-    String testToken;
+    private Path bags;
+    private Path tokens;
+    private String testBag;
+    private String testToken;
 
-    Node node;
+    private Node node;
 
     @Before
     public void setup() throws URISyntaxException {
@@ -88,19 +92,24 @@ public class SubmitterTest {
 
         URL resources = ClassLoader.getSystemClassLoader().getResource("");
 
-        settings = new ReplicationSettings();
-        settings.setSendOnSuccess(true);
-        settings.setPreservation(Paths.get(resources.toURI()).resolve("preservation").toString());
+
+        AceConfiguration aceConfiguration = new AceConfiguration();
+        properties = new ReplicationProperties();
+        properties.setSmtp(new ReplicationProperties.Smtp().setSendOnSuccess(true));
 
         bags = Paths.get(resources.toURI()).resolve("bags");
         tokens = Paths.get(resources.toURI()).resolve("tokens");
 
+
         testBag = bags.resolve("test-bag").toString();
         testToken = tokens.resolve("test-token-store").toString();
 
+        PreservationProperties preservation = new PreservationProperties();
+        preservation.getPosix().add(new Posix().setPath(bags.toString()));
+
         io = new TrackingThreadPoolExecutor<>(1, 1, 1, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
         http = new TrackingThreadPoolExecutor<>(1, 1, 1, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
-        submitter = new Submitter(mail, ace, ingest, settings, io, http);
+        submitter = new Submitter(mail, ace, ingest, preservation, aceConfiguration, properties, io, http);
 
         node = new Node("node-user", "not-a-real-field");
     }
@@ -169,6 +178,7 @@ public class SubmitterTest {
     public void fromPendingSuccess() throws InterruptedException, ExecutionException, IOException, ClassNotFoundException {
         Bag bag = createBag(testBag, testToken);
 
+        // todo: check to see if mockito can capture the old values
         // Because we need to create an updated replication, there's a bit of ugliness we need to
         // deal with until we have a replication model class as well
         Replication r = createReplication(ReplicationStatus.PENDING, bag);
@@ -244,12 +254,12 @@ public class SubmitterTest {
         verify(mail, times(1)).send(any(SimpleMailMessage.class));
     }
 
-    Replication createReplication(ReplicationStatus status, Bag bag) {
+    private Replication createReplication(ReplicationStatus status, Bag bag) {
         Replication r = new Replication();
         r.setId(1L);
         r.setBag(bag);
-        r.setBagLink(bag.getLocation());
-        r.setTokenLink(bag.getTokenLocation());
+        r.setBagLink(bag.getBagStorage().getPath());
+        r.setTokenLink(bag.getTokenStorage().getPath());
         r.setCreatedAt(ZonedDateTime.now());
         r.setUpdatedAt(ZonedDateTime.now());
         r.setNode(node.username);
@@ -258,14 +268,14 @@ public class SubmitterTest {
         return r;
     }
 
-    Bag createBag(String location, String tokens) {
+    private Bag createBag(String location, String tokens) {
         Bag bag = new Bag()
                 .setName("test-bag")
                 .setDepositor("test-depositor")
                 .setCreator("submitter-test");
         bag.setId(1L);
-        bag.setTokenLocation(tokens);
-        bag.setLocation(location);
+        bag.setTokenStorage(new StagingStorageModel().setPath(tokens));
+        bag.setBagStorage(new StagingStorageModel().setPath(location));
         bag.setCreatedAt(ZonedDateTime.now());
         bag.setUpdatedAt(ZonedDateTime.now());
         return bag;
@@ -278,7 +288,7 @@ public class SubmitterTest {
      *
      * via: http://javatechniques.com/blog/faster-deep-copies-of-java-objects/
      */
-    <T> T copy(T orig, Type type) {
+    private <T> T copy(T orig, Type type) {
         // log.info("{}", type.getTypeName());
         Gson g = new GsonBuilder()
                 .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeSerializer())

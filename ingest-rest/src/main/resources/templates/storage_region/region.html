@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: head">
+    <meta charset="UTF-8"/>
+    <title>Storage Region</title>
+</head>
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column m-3 align-items-center">
+    <div class="card w-50">
+        <!--/*@thymesVar id="region" type="org.chronopolis.rest.entities.storage.StorageRegion"*/-->
+        <div class="card-header">
+            <h3>Storage Region Overview</h3>
+            <!-- by using both btn and badge we get a little bit more room to breathe from the badge
+                 with something smaller than a btn-sm. 'snice -->
+            <a class="btn badge badge-primary" th:href="@{|/regions/${region.id}/edit|}">Edit</a>
+        </div>
+        <div class="card-block">
+            <table class="table table-bordered w-50">
+                <tbody>
+                <tr>
+                    <td>Id</td>
+                    <td th:text="${region.id}"></td>
+                </tr>
+                <tr>
+                    <td>Storage Type</td>
+                    <td th:text="${region.storageType}"></td>
+                </tr>
+                <tr>
+                    <td>Data Type</td>
+                    <td th:text="${region.dataType}"></td>
+                </tr>
+                <tr>
+                    <td>Total Capacity</td>
+                    <!--/*@thymesVar id="capacity" type="java.lang.String"*/-->
+                    <td th:text="${capacity}"></td>
+                </tr>
+                <tr>
+                    <td>Amount Used</td>
+                    <!--/*@thymesVar id="used" type="java.lang.String"*/-->
+                    <td th:text="${used}"></td>
+                </tr>
+                <tr>
+                    <td>Owner</td>
+                    <td th:text="${region.node.username}"></td>
+                </tr>
+                <tr>
+                    <td>Created At</td>
+                    <td th:text="${region.createdAt.toLocalDateTime()}"></td>
+                </tr>
+                <tr>
+                    <td>Updated At</td>
+                    <td th:text="${region.updatedAt.toLocalDateTime()}"></td>
+                </tr>
+                <tr>
+                    <td>Storage Region Information</td>
+                    <td th:text="${region.note}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <!--
+            Instead of checking if the config is not null, always have these options be mutable
+            with a form for updating wrapping everything. If the values are null, they shouldn't be displayed
+            otherwise display the hints.
+        -->
+        <div class="card-header">
+            <h4>Replication Configuration</h4>
+        </div>
+        <div class="card-block p-2">
+            <!-- this will need constraint satisfaction so that we do not errantly update the wrong storage region -->
+            <form method="post" th:action="@{|/regions/${region.id}/config|}">
+                <div class="form-group row">
+                    <label for="replication-server" class="col-3 col-form-label">Replication Server</label>
+                    <div class="col">
+                        <!-- find a better way to handle this null check -->
+                        <input class="form-control" id="replication-server" name="server"
+                               th:value="${region.replicationConfig} != null ? ${region.replicationConfig.server} : ''"/>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="replication-path" class="col-3 col-form-label">Replication Path</label>
+                    <div class="col">
+                        <input class="form-control" id="replication-path" name="path"
+                               th:value="${region.replicationConfig} != null ? ${region.replicationConfig.path} : ''"/>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="replication-username" class="col-3 col-form-label">Replication Username</label>
+                    <div class="col">
+                        <input class="form-control" id="replication-username" name="username"
+                               th:value="${region.replicationConfig} != null ? ${region.replicationConfig.username}"/>
+                    </div>
+                </div>
+
+                <input type="submit" class="btn btn-primary" value="Update"/>
+            </form>
+        </div>
+    </div>
+</div>
+<div th:replace="layout :: foot"></div>
+</body>
+</html>

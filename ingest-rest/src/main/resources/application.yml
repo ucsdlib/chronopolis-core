@@ -1,0 +1,43 @@
+# Ingest Configuration Properties
+ 
+# Ingest Cron job properties
+# tokens: the rate at which to check for bags which have all tokens and can have a Token Store written
+# request: the rate at which to check for bags which need their initial replications created
+ingest.cron:
+  tokens: 0 0/10 * * * *
+  request: 0 0/10 * * * *
+ 
+# Ingest AJP Settings
+# enabled: flag to enable an AJP connector
+# port: the port for the connector to listen on
+ingest.ajp:
+  enabled: false
+  port: 8009
+ 
+# The staging area for writing Token Stores. Nonposix support not yet implemented.
+## id: The id of the StagingStorage in the Ingest server
+## path: The path to the filesystem on disk
+chron.stage.tokens.posix.id: -1
+chron.stage.tokens.posix.path: /dev/null
+ 
+# Database connection
+# Initialize should be kept false so that the server does not attempt to run a drop/create on the tables
+spring.datasource:
+  url: jdbc:postgresql://localhost/ingest
+  username: postgres
+  password: dbpass
+  initialize: false
+ 
+# Specify the active profile for loading various services, normally production
+spring.profiles.active: production
+spring.pid.file: /var/run/ingest-server.pid
+ 
+# debug: true
+server.port: 8080
+ 
+# Logging properties
+logging.file: ingest.log
+logging.level:
+  org.springframework: ERROR
+  org.hibernate: ERROR
+  org.chronopolis: DEBUG

@@ -1,6 +1,6 @@
 package org.chronopolis.ingest.repository.criteria;
 
-import com.mysema.query.types.expr.BooleanExpression;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import org.chronopolis.ingest.api.Params;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.models.BagStatus;
@@ -51,6 +51,22 @@ public class BagSearchCriteria implements SearchCriteria {
     public BagSearchCriteria withDepositor(String depositor) {
         if (depositor != null && !depositor.isEmpty()) {
             criteria.put(Params.DEPOSITOR, bag.depositor.eq(depositor));
+        }
+        return this;
+    }
+
+    public BagSearchCriteria withRegion(String region) {
+        if (region != null) {
+            Long regionId = Long.parseLong(region);
+            criteria.put(Params.REGION, bag.bagStorage.region.id.eq(regionId));
+        }
+        return this;
+    }
+
+    public BagSearchCriteria withActiveStorage(String active) {
+        if (active != null) {
+            Boolean isActive = Boolean.parseBoolean(active);
+            criteria.put(Params.ACTIVE, bag.bagStorage.active.eq(isActive));
         }
         return this;
     }

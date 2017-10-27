@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout :: head">
+    <title>Chronopolis Ingestion Service</title>
+</head>
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column align-items-center m-3">
+    <div class="w-50">
+        <h4>Create Fixity For Bag</h4>
+        <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem;">
+            <!--/*@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"*/-->
+            <!--/*@thymesVar id="storage" type="org.chronopolis.rest.entities.storage.StagingStorage"*/-->
+            <form method="post" name="fixity" th:action="@{|/bags/${bag.id}/storage/${storage.id}/fixity|}">
+                <div class="form-group row">
+                    <label for="algorithm" class="col-form-label col-2">Fixity Algorithm</label>
+                    <div class="col-sm">
+                        <input name="algorithm" id="algorithm" class="form-control" type="text"
+                               th:value="SHA-256" readonly="readonly"></input>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="value" class="col-form-label col-2">Fixity Value</label>
+                    <input name="value" id="value" class="form-control" type="text"/>
+                </div>
+                <input class="btn btn-primary" type="submit" value="Create Fixity"/>
+            </form>
+        </div>
+    </div>
+    <div th:replace="layout :: foot"></div>
+</div>
+</body>
+</html>

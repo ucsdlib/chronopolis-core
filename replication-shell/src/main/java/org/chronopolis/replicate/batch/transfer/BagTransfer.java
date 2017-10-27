@@ -2,9 +2,10 @@ package org.chronopolis.replicate.batch.transfer;
 
 import com.google.common.hash.HashCode;
 import org.chronopolis.common.exception.FileTransferException;
+import org.chronopolis.common.storage.Posix;
+import org.chronopolis.common.storage.PreservationProperties;
 import org.chronopolis.common.transfer.RSyncTransfer;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
-import org.chronopolis.replicate.config.ReplicationSettings;
 import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.FixityUpdate;
@@ -27,17 +28,17 @@ public class BagTransfer implements Transfer, Runnable {
     // Fields set by constructor
     private final Bag bag;
     private final IngestAPI ingestAPI;
-    private final ReplicationSettings settings;
+    private final PreservationProperties properties;
 
     // These could all be local
     private final Long id;
     private final String location;
     private final String depositor;
 
-    public BagTransfer(Replication r, IngestAPI ingestAPI, ReplicationSettings settings) {
+    public BagTransfer(Replication r, IngestAPI ingestAPI, PreservationProperties properties) {
         this.bag = r.getBag();
         this.ingestAPI = ingestAPI;
-        this.settings = settings;
+        this.properties = properties;
 
         this.id = r.getId();
         this.location = r.getBagLink();
@@ -46,11 +47,19 @@ public class BagTransfer implements Transfer, Runnable {
 
     @Override
     public void run() {
+        Posix posix;
+        if (properties.getPosix().isEmpty()) {
+            log.error("No Preservation Storage Areas defined! Aborting!");
+            throw new RuntimeException("No Preservation Storage Areas defined! Aborting!");
+        } else {
+            // todo: logic to pick which area to get
+            posix = properties.getPosix().get(0); // just get the head for now
+        }
         String name = bag.getName();
 
         // Replicate the collection
         log.info("{} Downloading bag from {}", name, location);
-        Path depositorPath = Paths.get(settings.getPreservation(), depositor);
+        Path depositorPath = Paths.get(posix.getPath(), depositor);
         RSyncTransfer transfer = new RSyncTransfer(location);
 
         try {

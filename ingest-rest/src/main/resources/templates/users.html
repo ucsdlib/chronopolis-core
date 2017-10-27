@@ -7,7 +7,6 @@
 
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column align-items-center m-2">
-
     <div class="card w-50">
         <div class="card-header">
             <ul class="nav nav-tabs card-header-tabs">
@@ -27,7 +26,7 @@
         <div class="card-block">
             <div id="tab-content" class="tab-content">
                 <div id="info" class="tab-pane fade active show" th:include="fragments/users :: table"></div>
-                <div id="update" class="tab-pane fade">
+                <div id="update" class="tab-pane fade p-2">
                     <form enctype="application/json" method="post" name="ingest" action="/users/update"
                           th:action="@{/users/update}">
 
@@ -47,8 +46,7 @@
                         <input type="submit" class="btn btn-primary btn-small" value="Update Password"/>
                     </form>
                 </div>
-
-                <div id="add" class="tab-pane fade" sec:authorize="hasRole('ROLE_ADMIN')">
+                <div id="add" class="tab-pane fade p-2" sec:authorize="hasRole('ROLE_ADMIN')">
                     <form enctype="application/json" method="post" name="ingest" action="/users/add"
                           th:action="@{/users/add}">
                             <div class="form-group row">

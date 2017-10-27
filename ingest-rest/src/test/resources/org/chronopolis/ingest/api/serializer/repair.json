@@ -1,0 +1,25 @@
+{
+  "id": 1,
+  "createdAt": "2017-06-30T20:05:19.634Z",
+  "updatedAt": "2017-06-30T20:05:19.634Z",
+  "cleaned": false,
+  "replaced": false,
+  "validated": true,
+  "audit": "AUDITING",
+  "status": "STAGING",
+  "to": "to",
+  "requester": "requester",
+  "depositor": "depositor",
+  "collection": "bag",
+  "files": [
+    "file-2",
+    "file-1"
+  ],
+  "from": "from",
+  "type": "ACE",
+  "credentials": {
+    "type": "ACE",
+    "apiKey": "api-key",
+    "url": "url"
+  }
+}

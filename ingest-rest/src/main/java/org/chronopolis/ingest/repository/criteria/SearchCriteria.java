@@ -1,6 +1,7 @@
 package org.chronopolis.ingest.repository.criteria;
 
-import com.mysema.query.types.expr.BooleanExpression;
+
+import com.querydsl.core.types.dsl.BooleanExpression;
 
 import java.util.Map;
 

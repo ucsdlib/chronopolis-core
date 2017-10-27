@@ -7,25 +7,26 @@ import okhttp3.OkHttpClient;
 import org.chronopolis.common.ace.AceCollections;
 import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.common.ace.MonitoredItem;
-import org.chronopolis.common.ace.OkBasicInterceptor;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.PageWrapper;
 import org.chronopolis.ingest.models.CollectionInfo;
 import org.chronopolis.ingest.models.FulfillmentRequest;
 import org.chronopolis.ingest.models.HttpError;
 import org.chronopolis.ingest.models.filter.RepairFilter;
-import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.RepairSearchCriteria;
+import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Repair;
 import org.chronopolis.rest.models.repair.AuditStatus;
 import org.chronopolis.rest.models.repair.RepairRequest;
 import org.chronopolis.rest.models.repair.RepairStatus;
+import org.chronopolis.rest.support.OkBasicInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,10 +35,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.PostMapping;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -63,13 +64,14 @@ public class RepairUIController extends IngestController {
     private final Integer DEFAULT_PAGE_SIZE = 20;
 
     private final Logger log = LoggerFactory.getLogger(RepairUIController.class);
+    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private final NodeRepository nodes;
-    private final SearchService<Bag, Long, BagRepository> bags;
+    private final BagService bags;
     private final SearchService<Repair, Long, RepairRepository> repairs;
 
     @Autowired
-    public RepairUIController(SearchService<Bag, Long, BagRepository> bService,
+    public RepairUIController(BagService bService,
                               NodeRepository nodes,
                               SearchService<Repair, Long, RepairRepository> rService) {
         this.bags = bService;
@@ -82,8 +84,9 @@ public class RepairUIController extends IngestController {
      *
      * @return the add page
      */
-    @RequestMapping(path = "/repairs/add", method = RequestMethod.GET)
+    @GetMapping("/repairs/add")
     public String newRepairRequest() {
+        log.info("[GET /repairs/add]");
         return "repair/add";
     }
 
@@ -95,8 +98,9 @@ public class RepairUIController extends IngestController {
      * @param credentials The credentials for ACE
      * @return the corrupted collections to choose from
      */
-    @RequestMapping(path = "/repairs/ace", method = RequestMethod.POST)
+    @PostMapping("/repairs/ace")
     public String getCollections(Model model, HttpSession session, AceCredentials credentials) {
+        log.info("[POST /repairs/ace]");
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Date.class,
                         (JsonDeserializer<Date>)
@@ -146,8 +150,10 @@ public class RepairUIController extends IngestController {
      * @param infoRequest Information about the ACE collection
      * @return page to select which files to choose
      */
-    @RequestMapping(path = "/repairs/collection", method = RequestMethod.POST)
+    @PostMapping("/repairs/collection")
     public String getErrors(Model model, Principal principal, HttpSession session, CollectionInfo infoRequest) {
+        access.info("[POST /repairs/collection] - {}", principal.getName());
+        access.info("POST parameters - {};{}", infoRequest.getCollection(), infoRequest.getDepositor());
         AceCollections collections;
         Object o = session.getAttribute("ace");
         if (o == null || !(o instanceof AceCollections)) {
@@ -194,13 +200,13 @@ public class RepairUIController extends IngestController {
      *
      * todo: still want to verify that the bag is nonnull (should be added to sql too)
      *
-     * @param model The model
      * @param principal The user's principal
      * @param request The repair request to process
      * @return The newly created repair
      */
-    @RequestMapping(path = "/repairs", method = RequestMethod.POST)
-    public String requestRepair(Model model, Principal principal, RepairRequest request) {
+    @PostMapping("/repairs")
+    public String requestRepair(Principal principal, RepairRequest request) {
+        access.info("[POST /repairs] - {}", principal.getName());
         log.info("{} items requested", request.getFiles().size());
         Bag bag = bags.find(new BagSearchCriteria()
                 .withDepositor(request.getDepositor())
@@ -225,8 +231,9 @@ public class RepairUIController extends IngestController {
      * @param filter Parameters to filter on
      * @return The list of repairs
      */
-    @RequestMapping(path = "/repairs", method = RequestMethod.GET)
+    @GetMapping("/repairs")
     public String repairs(Model model, @ModelAttribute(value = "filter") RepairFilter filter) {
+        access.info("[GET /repairs]");
         RepairSearchCriteria criteria = new RepairSearchCriteria()
                 .withTo(filter.getNode())
                 .withFulfillingNode(filter.getFulfillingNode())
@@ -234,7 +241,7 @@ public class RepairUIController extends IngestController {
                 .withAuditStatuses(filter.getAuditStatus());
 
         // might be able to put Sort.Direction in the Paged class
-        Sort.Direction direction = (filter.getDir() == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(filter.getDir());
+        Sort.Direction direction = (filter.getDir() == null) ? Sort.Direction.DESC : Sort.Direction.fromStringOrNull(filter.getDir());
         Sort s = new Sort(direction, filter.getOrderBy());
         Page<Repair> results = repairs.findAll(criteria, new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, s));
 
@@ -254,8 +261,9 @@ public class RepairUIController extends IngestController {
      * @param id The id of the repair
      * @return the repair specified by id
      */
-    @RequestMapping(path = "/repairs/{id}")
+    @GetMapping("/repairs/{id}")
     public String repair(Model model, @PathVariable("id") Long id) {
+        access.info("[GET /repairs/{}]", id);
         Repair repair = repairs.find(new RepairSearchCriteria().withId(id));
         model.addAttribute("repair", repair);
         if (repair.getStrategy() != null) {
@@ -272,8 +280,9 @@ public class RepairUIController extends IngestController {
      * @param principal The user's principal
      * @return Repairs to fulfill
      */
-    @RequestMapping(path = "/repairs/fulfill", method = RequestMethod.GET)
+    @GetMapping("/repairs/fulfill")
     public String fulfillRepair(Model model, Principal principal) {
+        access.info("[GET /repairs/fulfill]");
         // todo: either to withFromNot principal.getName
         //       or disable all radios w/ the selected from in the page
         Page<Repair> availableRepairs = repairs.findAll(new RepairSearchCriteria()
@@ -300,8 +309,9 @@ public class RepairUIController extends IngestController {
      * @param request fulfillment information
      * @return the repair being fulfilled
      */
-    @RequestMapping(path = "/repairs/fulfill", method = RequestMethod.POST)
+    @PostMapping("/repairs/fulfill")
     public String createFulfillment(Model model, Principal principal, FulfillmentRequest request) {
+        access.info("[POST /repairs/fulfill] - ", principal.getName());
         log.info("{} offering to fulfill {}", request.getFrom(), request.getRepair());
         Repair repair = repairs.find(new RepairSearchCriteria().withId(request.getRepair()));
         String toNode = repair.getTo().getUsername();

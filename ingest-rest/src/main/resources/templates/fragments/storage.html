@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="card-display (storage,storageName)">
+    <!--/*@thymesVar id="storage" type="org.chronopolis.rest.entities.storage.StagingStorage"*/-->
+    <div class="card-header">
+        <h4 th:text="|Storage Information:  ${storageName}|">Storage Information</h4>
+    </div>
+    <div class="card-block p-2">
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>Relative Path</th>
+                <th>Size on Disk</th>
+                <th>Total Files</th>
+                <th>Active</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td th:text="${storage.path}"></td>
+                <!--/*@thymesVar id="formatter" type="org.chronopolis.ingest.support.FileSizeFormatter"*/-->
+                <td th:text="${formatter.format(storage.size)}"></td>
+                <td th:text="${storage.totalFiles}"></td>
+                <td th:text="${storage.active}"></td>
+            </tr>
+            </tbody>
+        </table>
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th/>
+                <th>Fixity Algorithm</th>
+                <th>Fixity Value</th>
+                <th>Created At</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!--/*@thymesVar id="fixity" type="org.chronopolis.rest.entities.storage.Fixity"*/-->
+            <tr th:each="fixity : ${storage.fixities}">
+                <td class="text-center">
+                    <a class="badge badge-danger"
+                       th:href="@{|${bag.id}/storage/${storage.id}/fixity/${fixity.id}|}">
+                        <i class="fa fa-remove" aria-hidden="true"></i>
+                    </a>
+                </td>
+                <td th:text="${fixity.algorithm}"/>
+                <td th:text="${fixity.value}"></td>
+                <td th:text="${fixity.createdAt}"></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!--/*@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"*/-->
+        <div class="btn-group" role="group">
+
+            <!--/* use an outline so that we can see the split in the ui */-->
+            <a class="btn btn-outline-primary"
+               th:href="@{|${bag.id}/storage/${storage.id}/activate|}"
+               th:text="${storage.isActive()} ? 'Set Inactive' : 'Set Active'"/>
+
+            <a class="btn btn-outline-primary"
+               th:href="@{|${bag.id}/storage/${storage.id}/fixity|}">
+                Add Fixity
+            </a>
+        </div>
+    </div>
+</div>
+</html>

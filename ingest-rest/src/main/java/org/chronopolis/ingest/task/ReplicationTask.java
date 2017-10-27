@@ -1,10 +1,8 @@
 package org.chronopolis.ingest.task;
 
-import org.chronopolis.ingest.IngestSettings;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.models.BagStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,12 +12,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Simple task to create replications for bags which have finished tokenizing
- *
+ * <p>
  * Created by shake on 2/13/15.
  */
 @Component
@@ -27,13 +23,11 @@ import java.util.stream.Collectors;
 public class ReplicationTask {
     private final Logger log = LoggerFactory.getLogger(ReplicationTask.class);
 
-    private final IngestSettings settings;
     private final BagRepository bagRepository;
     private final ReplicationService service;
 
     @Autowired
-    public ReplicationTask(IngestSettings settings, BagRepository bagRepository, ReplicationService service) {
-        this.settings = settings;
+    public ReplicationTask(BagRepository bagRepository, ReplicationService service) {
         this.bagRepository = bagRepository;
         this.service = service;
     }
@@ -43,15 +37,21 @@ public class ReplicationTask {
         Collection<Bag> bags = bagRepository.findByStatus(BagStatus.TOKENIZED);
 
         for (Bag bag : bags) {
-            List<Replication> replications = bag.getDistributions().stream()
-                    .map(dist -> service.create(dist.getBag(), dist.getNode(), settings))
-                    .collect(Collectors.toList());
+            // we probably don't need to create a new stream object for this but w.e. it works
+            long successes = bag.getDistributions().stream()
+                    .map(dist -> service.create(dist.getBag(), dist.getNode()))
+                    .filter(result -> result.getErrors().isEmpty())
+                    .count();
 
-            if (replications.size() == bag.getDistributions().size() && replications.size() != 0) {
+            if (successes == bag.getDistributions().size() && successes != 0) {
                 log.debug("{} updating status to replicating", bag.getName());
                 bag.setStatus(BagStatus.REPLICATING);
                 bagRepository.save(bag);
+            } else {
+                String resource = bag.getDepositor() + "::" + bag.getName();
+                log.warn("{} unable to create replications, check staging areas + fixity information", resource);
             }
+
         }
 
     }

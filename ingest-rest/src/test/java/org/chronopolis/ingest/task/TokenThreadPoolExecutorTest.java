@@ -2,7 +2,6 @@ package org.chronopolis.ingest.task;
 
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.ingest.IngestTest;
-import org.chronopolis.ingest.TestApplication;
 import org.chronopolis.rest.entities.Bag;
 import org.junit.Assert;
 import org.junit.Before;
@@ -11,8 +10,7 @@ import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Optional;
 import java.util.concurrent.FutureTask;
@@ -24,12 +22,11 @@ import java.util.concurrent.TimeUnit;
  *
  * Created by shake on 5/22/15.
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = TestApplication.class)
+@RunWith(SpringRunner.class)
 public class TokenThreadPoolExecutorTest extends IngestTest {
     private final Logger log = LoggerFactory.getLogger(TokenThreadPoolExecutorTest.class);
 
-    TrackingThreadPoolExecutor<Bag> trackingExecutor;
+    private TrackingThreadPoolExecutor<Bag> trackingExecutor;
 
     Bag b0 = new Bag("test-name-0", "test-depositor");
     Bag b1 = new Bag("test-name-1", "test-depositor");

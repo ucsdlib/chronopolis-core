@@ -1,15 +1,20 @@
 package org.chronopolis.ingest.repository.dao;
 
-import org.chronopolis.ingest.IngestSettings;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
 import org.chronopolis.ingest.repository.criteria.ReplicationSearchCriteria;
+import org.chronopolis.ingest.support.ReplicationCreateResult;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagDistribution;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.entities.storage.Fixity;
+import org.chronopolis.rest.entities.storage.ReplicationConfig;
+import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.models.ReplicationRequest;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
@@ -29,15 +34,15 @@ import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatu
 /**
  * Class to help querying for replication objects based on various values.
  * ex: search by node, bag-id, status
- *
+ * <p>
  * Created by shake on 5/21/15.
  */
 @Component
 @Transactional
-public class ReplicationService extends SearchService<Replication, Long, ReplicationRepository>{
+public class ReplicationService extends SearchService<Replication, Long, ReplicationRepository> {
+    private static final String DEFAULT_USER = "chronopolis";
     private final Logger log = LoggerFactory.getLogger(ReplicationService.class);
 
-    private final ReplicationRepository replicationRepository;
     private final BagRepository bagRepository;
     private final NodeRepository nodeRepository;
 
@@ -46,7 +51,6 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
                               BagRepository bagRepository,
                               NodeRepository nodeRepository) {
         super(replicationRepository);
-        this.replicationRepository = replicationRepository;
         this.bagRepository = bagRepository;
         this.nodeRepository = nodeRepository;
     }
@@ -55,12 +59,12 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
     /**
      * Public method to create a replication based on a bag id and node id
      *
-     * @param bagId the id of the bag to replicate
+     * @param bagId  the id of the bag to replicate
      * @param nodeId the id of the node to replicate to
-     * @throws NotFoundException if the bag or node do not exist
      * @return the newly created replication
+     * @throws NotFoundException if the bag or node do not exist
      */
-    public Replication create(Long bagId, Long nodeId, IngestSettings settings) {
+    public ReplicationCreateResult create(Long bagId, Long nodeId) {
         log.debug("Processing request for Bag {}", bagId);
 
         // Get our db resources
@@ -73,7 +77,7 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
             throw new NotFoundException("Node " + nodeId);
         }
 
-        return create(bag, node, settings);
+        return create(bag, node);
     }
 
     /**
@@ -81,75 +85,118 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
      * If a replication already exists (and is not terminated), return it instead of creating a new one
      *
      * @param request The request to create a replication for
-     * @param settings The settings for basic information
-     * @throws NotFoundException if the bag or node do not exist
      * @return the newly created replication
+     * @throws NotFoundException if the bag or node do not exist
      */
-    public Replication create(ReplicationRequest request, IngestSettings settings) {
-       return create(request.getBagId(), request.getNodeId(), settings);
+    public ReplicationCreateResult create(ReplicationRequest request) {
+        return create(request.getBagId(), request.getNodeId());
     }
 
     /**
      * Create a replication with a Bag and Node which have already been
      * pulled from the DB
      *
-     * @param bag The bag to create a replication for
+     * @param bag  The bag to create a replication for
      * @param node The node to send the replication to
-     * @param settings The settings for basic information
      * @return the newly created replication
      */
-    public Replication create(final Bag bag, final Node node, IngestSettings settings) {
+    public ReplicationCreateResult create(final Bag bag, final Node node) {
+        ReplicationCreateResult result;
+        StagingStorage bagStorage = bag.getBagStorage();
+        StagingStorage tokenStorage = bag.getTokenStorage();
 
-        // create a dist object if it's missing
-        // todo: move this out of the replication create
-        createDist(bag, node);
+        // conditions to meet for creating replications
+        // todo: ensure these are for the most recent storage entities
+        boolean active = bagStorage.isActive() && tokenStorage.isActive();
+        ImmutableSet<Fixity> fixities = ImmutableSet.<Fixity>builder()
+                .addAll(bagStorage.getFixities())
+                .addAll(tokenStorage.getFixities())
+                .build();
 
-        // vars to help create replication stuff
-        final String user = settings.getReplicationUser();
-        final String server = settings.getStorageServer();
-        final String bagStage = settings.getRsyncBags();
-        final String tokenStage = settings.getRsyncTokens();
+        if (active && !fixities.isEmpty()) {
+            // create a dist object if it's missing
+            // todo: move this out of the replication create
+            createDist(bag, node);
 
-        Path tokenPath = Paths.get(tokenStage, bag.getTokenLocation());
-        String tokenLink =  buildLink(user, server, tokenPath);
+            String tokenLink = createReplicationString(bag.getTokenStorage());
+            String bagLink = createReplicationString(bag.getBagStorage());
 
-        Path bagPath = Paths.get(bagStage, bag.getLocation());
-        String bagLink = buildLink(user, server, bagPath);
+            ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
+                    .withBagId(bag.getId())
+                    .withNodeUsername(node.getUsername())
+                    .withStatuses(ReplicationStatus.active());
 
-        // TODO: Allow searching for multiple status
-        ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
-                .withBagId(bag.getId())
-                .withNodeUsername(node.getUsername());
+            Page<Replication> ongoing = findAll(criteria, new PageRequest(0, 10));
+            Replication action = new Replication(node, bag, bagLink, tokenLink);
 
-        Page<Replication> ongoing = findAll(criteria, new PageRequest(0, 10));
-        Replication action = new Replication(node, bag, bagLink, tokenLink);
-        action.setProtocol("rsync"); // TODO: Magic val... once we update our storage model this can be updated
+            // So... the protocol field needs to be looked at during the next update
+            // basically we have a field which is authoritative for both links, even though the
+            // bag and token are likely in different staging areas. Either we'll want separate
+            // protocol fields, separate replications, or some other way of doing this. Needs thinking.
+            action.setProtocol("rsync");
 
-        // iterate through our ongoing replications and search for a non terminal replication
-        // TODO: Partial index this instead:
-        //       create unique index "one_repl" on replications(node_id) where status == ''...
-        if (ongoing.getTotalElements() != 0) {
-            for (Replication replication : ongoing.getContent()) {
-                ReplicationStatus status = replication.getStatus();
-                if (status.isOngoing()) {
-                    log.info("Found ongoing replication for {} to {}, ignoring create request",
-                            bag.getName(), node.getUsername());
-                    action = replication;
+            // iterate through our ongoing replications and search for a non terminal replication
+            // Partial index this instead?
+            //       create unique index "one_repl" on replications(node_id) where status == ''...
+            if (ongoing.getTotalElements() != 0) {
+                for (Replication replication : ongoing.getContent()) {
+                    ReplicationStatus status = replication.getStatus();
+                    if (status.isOngoing()) {
+                        log.info("Found ongoing replication for {} to {}, ignoring create request",
+                                bag.getName(), node.getUsername());
+                        action = replication;
+                    }
                 }
+            } else {
+                log.info("Created new replication request for {} to {}",
+                        bag.getName(), node.getUsername());
             }
+
+            save(action);
+            result = new ReplicationCreateResult(action);
         } else {
-            log.info("Created new replication request for {} to {}",
-                    bag.getName(), node.getUsername());
+            String resource = bag.getDepositor() + "::" + bag.getName();
+            String error = "Conditions not met for " + resource
+                    + ": active staging storage = " + active
+                    + "; registered fixities for storage = " + fixities.size();
+            result = new ReplicationCreateResult(ImmutableList.of(error));
         }
 
-        save(action);
-        return action;
+        return result;
+    }
+
+    /**
+     * Build a string for replication based off the storage for the object
+     * <p>
+     * todo: determine who the default user should be
+     *
+     * @param storage The storage to replication from
+     * @return The string for the replication
+     */
+    private String createReplicationString(StagingStorage storage) {
+        ReplicationConfig config;
+
+        if (storage.getRegion() != null && storage.getRegion().getReplicationConfig() != null) {
+            config = storage.getRegion()
+                    .getReplicationConfig();
+        } else {
+            // Probably want something different from a RuntimeException, but for now this should suffice
+            throw new RuntimeException("Unable to create replication for storage object " + storage.getId());
+        }
+
+        final String user = config.getUsername() != null ? config.getUsername() : DEFAULT_USER;
+        final String server = config.getServer();
+        final String root = config.getPath();
+
+        Path path = Paths.get(root, storage.getPath());
+        // inline this?
+        return buildLink(user, server, path);
     }
 
     /**
      * Get or create the BagDistribution for a node
      *
-     * @param bag the bag being distributed
+     * @param bag  the bag being distributed
      * @param node the node being distributed to
      */
     private void createDist(Bag bag, Node node) {

@@ -1,26 +1,28 @@
 package org.chronopolis.rest.models;
 
+import com.google.common.collect.ComparisonChain;
+import org.chronopolis.rest.models.storage.StagingStorageModel;
+
 import java.time.ZonedDateTime;
 import java.util.Set;
 
 /**
  * Representation of a bag which is seen from outside the ingest server
- *
+ * <p>
  * Created by shake on 8/1/16.
  */
-public class Bag {
+public class Bag implements Comparable<Bag> {
     private Long id;
+    private Long size;
+    private Long totalFiles;
+    private StagingStorageModel bagStorage;
+    private StagingStorageModel tokenStorage;
     private ZonedDateTime createdAt;
     private ZonedDateTime updatedAt;
     private String name;
     private String creator;
     private String depositor;
-    private String location;
-    private String tokenLocation;
     private BagStatus status;
-    private String fixityAlgorithm;
-    private Long size;
-    private Long totalFiles;
     private int requiredReplications;
     private Set<String> replicatingNodes;
 
@@ -33,6 +35,24 @@ public class Bag {
 
     public Bag setId(Long id) {
         this.id = id;
+        return this;
+    }
+
+    public Long getSize() {
+        return size;
+    }
+
+    public Bag setSize(Long size) {
+        this.size = size;
+        return this;
+    }
+
+    public Long getTotalFiles() {
+        return totalFiles;
+    }
+
+    public Bag setTotalFiles(Long totalFiles) {
+        this.totalFiles = totalFiles;
         return this;
     }
 
@@ -81,57 +101,12 @@ public class Bag {
         return this;
     }
 
-    public String getLocation() {
-        return location;
-    }
-
-    public Bag setLocation(String location) {
-        this.location = location;
-        return this;
-    }
-
-    public String getTokenLocation() {
-        return tokenLocation;
-    }
-
-    public Bag setTokenLocation(String tokenLocation) {
-        this.tokenLocation = tokenLocation;
-        return this;
-    }
-
     public BagStatus getStatus() {
         return status;
     }
 
     public Bag setStatus(BagStatus status) {
         this.status = status;
-        return this;
-    }
-
-    public String getFixityAlgorithm() {
-        return fixityAlgorithm;
-    }
-
-    public Bag setFixityAlgorithm(String fixityAlgorithm) {
-        this.fixityAlgorithm = fixityAlgorithm;
-        return this;
-    }
-
-    public Long getSize() {
-        return size;
-    }
-
-    public Bag setSize(Long size) {
-        this.size = size;
-        return this;
-    }
-
-    public Long getTotalFiles() {
-        return totalFiles;
-    }
-
-    public Bag setTotalFiles(Long totalFiles) {
-        this.totalFiles = totalFiles;
         return this;
     }
 
@@ -152,4 +127,32 @@ public class Bag {
         this.replicatingNodes = replicatingNodes;
         return this;
     }
+
+    public StagingStorageModel getBagStorage() {
+        return bagStorage;
+    }
+
+    public Bag setBagStorage(StagingStorageModel bagStorage) {
+        this.bagStorage = bagStorage;
+        return this;
+    }
+
+    public StagingStorageModel getTokenStorage() {
+        return tokenStorage;
+    }
+
+    public Bag setTokenStorage(StagingStorageModel tokenStorage) {
+        this.tokenStorage = tokenStorage;
+        return this;
+    }
+
+    @Override
+    public int compareTo(Bag bag) {
+        return ComparisonChain.start()
+                .compare(id, bag.id)
+                .compare(depositor, bag.depositor)
+                .compare(name, bag.name)
+                .result();
+    }
+
 }
