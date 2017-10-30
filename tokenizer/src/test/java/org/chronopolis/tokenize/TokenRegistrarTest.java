@@ -34,6 +34,7 @@ public class TokenRegistrarTest {
 
     // include extraneous characters?
     private final String path = "data/path/to/file.txt";
+    private final String host = "test-ims-host";
     private final String name = "test-name";
     private final String digest = "digest";
     private final String service = "test-service";
@@ -74,7 +75,7 @@ public class TokenRegistrarTest {
         response.setTimestamp(calendar);
         response.setTokenClassName(tokenClass);
 
-        registrar = new TokenRegistrar(tokens, entry, response);
+        registrar = new TokenRegistrar(tokens, entry, response, host);
 
         model = new AceTokenModel()
                 .setCreateDate(ZonedDateTime.now())

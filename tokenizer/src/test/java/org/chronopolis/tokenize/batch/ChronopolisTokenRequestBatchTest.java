@@ -89,6 +89,7 @@ public class ChronopolisTokenRequestBatchTest {
 
         // http calls
         // we should aim for this to actually return a list of Responses to "process"
+        when(wrapper.configuration()).thenReturn(configuration.getIms());
         when(wrapper.requestTokensImmediate(anyString(), anyList())).thenReturn(ImmutableList.of());
 
         batcher = new ChronopolisTokenRequestBatch(configuration, tokens, wrapper);
@@ -111,6 +112,7 @@ public class ChronopolisTokenRequestBatchTest {
     public void runImsException() throws InterruptedException {
         // most of this is shared, can break some of it apart easily
         ExecutorService es = Executors.newFixedThreadPool(1);
+        when(wrapper.configuration()).thenReturn(configuration.getIms());
         when(wrapper.requestTokensImmediate(anyString(), anyList())).thenThrow(new IMSException(-1, "Test IMSException: Cannot connect to ims"));
         batcher = new ChronopolisTokenRequestBatch(configuration, tokens, wrapper);
         es.submit(batcher);
@@ -121,6 +123,8 @@ public class ChronopolisTokenRequestBatchTest {
         }
 
         TimeUnit.MILLISECONDS.sleep(100);
+        batcher.close();
+        verify(wrapper, times(1)).requestTokensImmediate(anyString(), anyList());
         Assert.assertEquals(0, batcher.getEntries().size());
         batcher.close();
         es.shutdown();
