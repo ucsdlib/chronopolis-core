@@ -32,14 +32,16 @@ public class TokenRegistrar implements Supplier<TokenResponse> {
      */
     private static Pattern pattern = Pattern.compile("\\(.*?,.*?\\)::(.*)");
 
+    private final String imsHost;
     private final TokenService tokens;
     private final ManifestEntry entry;
     private final TokenResponse response;
 
-    public TokenRegistrar(TokenService tokens, ManifestEntry entry, TokenResponse response) {
+    public TokenRegistrar(TokenService tokens, ManifestEntry entry, TokenResponse response, String imsHost) {
         this.tokens = tokens;
         this.entry = entry;
         this.response = response;
+        this.imsHost = imsHost;
     }
 
     /**
@@ -61,6 +63,7 @@ public class TokenRegistrar implements Supplier<TokenResponse> {
                 .setAlgorithm(response.getDigestService())
                 .setFilename(filename)
                 .setProof(IMSUtil.formatProof(response))
+                .setImsHost(imsHost)
                 .setImsService(response.getTokenClassName())
                 .setRound(response.getRoundId())
                 .setCreateDate(response.getTimestamp().toGregorianCalendar().toZonedDateTime());

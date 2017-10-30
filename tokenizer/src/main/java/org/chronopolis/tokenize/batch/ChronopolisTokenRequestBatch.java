@@ -168,6 +168,7 @@ public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable
     private void processRequests(List<TokenRequest> requests) {
         log.info("[Tokenizer] Sending batch: {} requests", requests.size());
 
+        final String imsHost = ims.configuration().getEndpoint();
         try {
             List<TokenResponse> responses = ims.requestTokensImmediate(tokenClass, requests);
             responses.forEach(response -> {
@@ -180,7 +181,7 @@ public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable
                     // need to register. imo this would be a good thing to build in as a second version
                     // of the implementation as we would need to bring in some more dependencies, update
                     // the filtering, etc.
-                    TokenRegistrar registrar = new TokenRegistrar(tokens, entry, response);
+                    TokenRegistrar registrar = new TokenRegistrar(tokens, entry, response, imsHost);
                     TokenResponse tr = registrar.get();
                     if (tr != null) {
                         removeEntry(tr.getName());
@@ -245,6 +246,10 @@ public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable
 
         public ImsServiceWrapper(AceConfiguration.Ims configuration) {
             this.configuration = configuration;
+        }
+
+        public AceConfiguration.Ims configuration() {
+            return configuration;
         }
 
         public IMSService connect() {
