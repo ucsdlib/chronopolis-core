@@ -26,17 +26,28 @@ cd ../
 # Get the version of the build and trim off the -SNAPSHOT
 echo "Getting version from maven..."
 full_version=`mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec`
-version=`echo $full_version | sed 's/-.*//'`
-release_type=`echo $full_version | sed 's/.*-//'`
 
 if [ $? -ne 0 ]; then
     echo "Error getting version from maven exec plugin"
-    exit
+    exit -1
+fi
+
+version=`echo $full_version | sed 's/-.*//'`
+release_type=`echo $full_version | sed 's/.*-//'`
+
+if [ -z "$version" ]; then
+    echo "Could not get version string"
+    exit -1
+fi
+
+if [ -z "$release_type" ]; then
+    echo "Could not get release type"
+    exit -1
 fi
 
 jarfile=target/standalone/tokenizer-standalone-$version-$release_type.jar
 
-if [ ! -e $jarfile ]; then
+if [ ! -e "$jarfile" ]; then
     echo "Building latest jar..."
     mvn -q -Dmaven.test.redirectTestOutputToFile=true clean install # > /dev/null
     if [ $? -ne 0 ]; then
