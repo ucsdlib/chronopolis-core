@@ -43,12 +43,11 @@ public class TokenApplication implements CommandLineRunner {
     private final TrackingThreadPoolExecutor<Bag> executor;
 
     @Autowired
-    public TokenApplication(TokenService tokens,
-                            ServiceGenerator generator,
+    public TokenApplication(ServiceGenerator generator,
                             BagStagingProperties properties,
                             ChronopolisTokenRequestBatch batch,
                             TrackingThreadPoolExecutor<Bag> executor) {
-        this.tokens = tokens;
+        this.tokens = generator.tokens();
         this.bagService = generator.bags();
         this.properties = properties;
         this.batch = batch;
