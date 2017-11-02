@@ -44,8 +44,8 @@ public class TokenTaskConfiguration {
     }
 
     @Bean(destroyMethod = "close")
-    public ChronopolisTokenRequestBatch batch(Executor executorForBatch, AceConfiguration configuration, TokenService tokens) {
-        ChronopolisTokenRequestBatch batch = new ChronopolisTokenRequestBatch(configuration, tokens);
+    public ChronopolisTokenRequestBatch batch(Executor executorForBatch, AceConfiguration configuration, ServiceGenerator generator) {
+        ChronopolisTokenRequestBatch batch = new ChronopolisTokenRequestBatch(configuration, generator.tokens());
         executorForBatch.execute(batch);
         return batch;
     }
