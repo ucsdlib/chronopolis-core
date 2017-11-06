@@ -83,7 +83,7 @@
         <tbody>
         <!--@thymesVar id="replications" type="Set<Bag>"-->
         <!--@thymesVar id="replication" type="org.chronopolis.rest.entities.Replication"-->
-        <tr th:each="replication: ${replications}" th:attr="data-href=@{|/replications/${replication.id}|}">
+        <tr th:each="replication: ${replications}" th:attr="data-href=@{|/replications/${replication.id}|}" class="table-clickable">
             <td th:text="${replication.id}"></td>
             <td th:text="${replication.bag.name}"></td>
             <td th:text="${replication.node.username}"></td>
