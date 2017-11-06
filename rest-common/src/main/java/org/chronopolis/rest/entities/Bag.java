@@ -5,8 +5,6 @@ import com.google.common.collect.ComparisonChain;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.listener.BagUpdateListener;
 import org.chronopolis.rest.models.BagStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -26,17 +24,12 @@ import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatu
 /**
  * Representation of a bag in chronopolis
  *
- * TODO: Flesh out status and how to reflect that in chronopolis
- *
  * Created by shake on 11/5/14.
  */
 @Entity
 @EntityListeners(BagUpdateListener.class)
 public class Bag extends UpdatableEntity implements Comparable<Bag> {
 
-    @Transient
-    private final Logger log = LoggerFactory.getLogger(Bag.class);
-    
     @Transient
     private final int DEFAULT_REPLICATIONS = 3;
 
