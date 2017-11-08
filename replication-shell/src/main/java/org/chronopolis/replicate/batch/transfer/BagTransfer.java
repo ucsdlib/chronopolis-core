@@ -4,9 +4,10 @@ import com.google.common.hash.HashCode;
 import org.chronopolis.common.exception.FileTransferException;
 import org.chronopolis.common.storage.Posix;
 import org.chronopolis.common.storage.PreservationProperties;
+import org.chronopolis.common.storage.StorageOperation;
 import org.chronopolis.common.transfer.RSyncTransfer;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
-import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.api.ReplicationService;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.FixityUpdate;
 import org.chronopolis.rest.models.Replication;
@@ -27,7 +28,7 @@ public class BagTransfer implements Transfer, Runnable {
 
     // Fields set by constructor
     private final Bag bag;
-    private final IngestAPI ingestAPI;
+    private final ReplicationService replications;
     private final PreservationProperties properties;
 
     // These could all be local
@@ -35,9 +36,15 @@ public class BagTransfer implements Transfer, Runnable {
     private final String location;
     private final String depositor;
 
-    public BagTransfer(Replication r, IngestAPI ingestAPI, PreservationProperties properties) {
+    private StorageOperation operation;
+
+    public BagTransfer(Replication r, ReplicationService replications, PreservationProperties properties) {
         this.bag = r.getBag();
-        this.ingestAPI = ingestAPI;
+        this.operation = new StorageOperation();
+        this.operation.setSize(r.getBag().getSize());
+        this.operation.setIdentifier(r.getBag().getDepositor() + r.getBag().getName());
+        this.operation.setPath(Paths.get(r.getBag().getDepositor(), r.getBag().getName()));
+        this.replications = replications;
         this.properties = properties;
 
         this.id = r.getId();
@@ -78,7 +85,7 @@ public class BagTransfer implements Transfer, Runnable {
         String calculatedDigest = hash.toString();
         log.info("{} Calculated digest {} for tagmanifest", bag.getName(), calculatedDigest);
 
-        Call<Replication> call = ingestAPI.updateTagManifest(id, new FixityUpdate(calculatedDigest));
+        Call<Replication> call = replications.updateTagManifestFixity(id, new FixityUpdate(calculatedDigest));
         call.enqueue(new UpdateCallback());
     }
 }

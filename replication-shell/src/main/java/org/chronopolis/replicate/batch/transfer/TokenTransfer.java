@@ -6,7 +6,7 @@ import org.chronopolis.common.storage.Posix;
 import org.chronopolis.common.storage.PreservationProperties;
 import org.chronopolis.common.transfer.RSyncTransfer;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
-import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.api.ReplicationService;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.FixityUpdate;
 import org.chronopolis.rest.models.Replication;
@@ -28,7 +28,7 @@ public class TokenTransfer implements Transfer, Runnable {
 
     // Set in our constructor
     private final Bag bag;
-    private final IngestAPI ingest;
+    private final ReplicationService replications;
     private final PreservationProperties properties;
 
     // These could all be local
@@ -36,9 +36,9 @@ public class TokenTransfer implements Transfer, Runnable {
     private final String location;
     private final String depositor;
 
-    public TokenTransfer(Replication r, IngestAPI ingest, PreservationProperties properties) {
+    public TokenTransfer(Replication r, ReplicationService replications, PreservationProperties properties) {
         this.bag = r.getBag();
-        this.ingest = ingest;
+        this.replications = replications;
         this.properties = properties;
 
         this.id = r.getId();
@@ -90,7 +90,7 @@ public class TokenTransfer implements Transfer, Runnable {
         String calculatedDigest = hash.toString();
         log.info("{} Calculated digest {} for token store", bag.getName(), calculatedDigest);
 
-        Call<Replication> call = ingest.updateTokenStore(id, new FixityUpdate(calculatedDigest));
+        Call<Replication> call = replications.updateTokenStoreFixity(id, new FixityUpdate(calculatedDigest));
         call.enqueue(new UpdateCallback());
     }
 
