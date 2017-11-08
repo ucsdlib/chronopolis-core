@@ -27,6 +27,7 @@ public class RSyncTransfer implements FileTransfer {
     private final Logger log = LoggerFactory.getLogger("rsync-log");
     private final ExecutorService threadPool = Executors.newSingleThreadExecutor();
     private final String link;
+    private final Path storage;
 
     // Set during the execution of our process
     private InputStream stream;
@@ -34,6 +35,12 @@ public class RSyncTransfer implements FileTransfer {
 
     public RSyncTransfer(String link) {
         this.link = link;
+        this.storage = null;
+    }
+
+    public RSyncTransfer(final String uri, final Path local) {
+        this.link = uri;
+        this.storage = local;
     }
 
     @Override
@@ -95,6 +102,10 @@ public class RSyncTransfer implements FileTransfer {
     }
 
     @Override
+    public Path get() throws FileTransferException {
+        return getFile(link, storage);
+    }
+
     public void put(final Path localFile, final String uri) throws FileTransferException {
         Callable<Boolean> upload = () -> {
             // Ensure that we don't include the directory
@@ -143,8 +154,6 @@ public class RSyncTransfer implements FileTransfer {
     /**
      * Return the input stream from the output of the rsync
      *
-     * // TODO: 2/17/17 optional?
-     *
      * @return InputStream
      */
     public InputStream getOutput() {
@@ -171,7 +180,7 @@ public class RSyncTransfer implements FileTransfer {
      * @return the last directory
      */
     @VisibleForTesting
-    protected String last() {
+    String last() {
         if (link == null) {
             throw new IllegalArgumentException("Cannot retrieve directory of null link");
         }
