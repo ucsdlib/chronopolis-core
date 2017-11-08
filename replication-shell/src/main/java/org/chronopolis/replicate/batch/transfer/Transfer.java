@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 
 /**
  * Common code between our bag and token transfers
- *
+ * <p>
  * Created by shake on 2/17/17.
  */
 public interface Transfer {
@@ -26,11 +26,11 @@ public interface Transfer {
 
     /**
      * Hash a file for a given bag
-     *
+     * <p>
      * The exception thrown is a RuntimeException so that this can be used
      * in a chain of CompletableFutures without having a checked exception
      *
-     * @param bag The bag we are operating on
+     * @param bag  The bag we are operating on
      * @param path The path of the file to hash
      * @throws RuntimeException if there's an error hashing
      */
@@ -67,7 +67,7 @@ public interface Transfer {
     /**
      * Log information for a bag, typically from the rsync output
      *
-     * @param bag The bag to operate on
+     * @param bag    The bag to operate on
      * @param stream The InputStream to read from
      */
     default void log(Bag bag, InputStream stream) {
@@ -75,6 +75,20 @@ public interface Transfer {
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
         try (Stream<String> lines = reader.lines()) {
             lines.forEach(line -> log.info("{} {}", bag.getName(), line));
+        }
+    }
+
+    /**
+     * Same as the other log
+     *
+     * @param name
+     * @param stream
+     */
+    default void log(String name, InputStream stream) {
+        Logger log = LoggerFactory.getLogger("rsync-log");
+        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+        try (Stream<String> lines = reader.lines()) {
+            lines.forEach(line -> log.info("{} {}", name, line));
         }
     }
 }
