@@ -36,8 +36,6 @@ and does replication and registration on them.
 %__install -D -m0644 "%{SOURCE2}" "%{buildroot}%{_prefix}/%{yaml}"
 %__install -D -m0755 "%{SOURCE1}" "%{buildroot}%{initsh}"
 
-%__install -d "%{buildroot}/var/log/chronopolis"
-
 %files
 
 %defattr(-,root,root)
@@ -45,8 +43,6 @@ and does replication and registration on them.
 %{_prefix}/%{jar}
 %config(noreplace) %{_prefix}/%{yaml}
 %{initsh}
-
-%dir %attr(0755,-,-) /var/log/chronopolis
 
 %post
 
@@ -57,6 +53,9 @@ chkconfig --add  replication
 chkconfig --del replication
 
 %changelog
+
+* Wed Nov 8 2017 Mike Ritter <shake@umiacs.umd.edu> 2.0.3-20171108
+- remove install commands for logging directory
 
 * Tue Oct 3 2017 Mike Ritter <shake@umiacs.umd.edu> 1.6.0-20171003
 - cleanup spec to include missing sections

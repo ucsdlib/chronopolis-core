@@ -7,6 +7,8 @@ Type=simple
 User=chronopolis
 Group=chronopolis
 Environment=SPRING_CONFIG_LOCATION=/usr/local/chronopolis/ingest/
+PermissionsStartOnly=true
+ExecStartPre=/usr/local/chronopolis/ingest/ingest-prepare
 ExecStart=/usr/bin/java -jar /usr/local/chronopolis/ingest/ingest-server.jar
 TimeoutSec=300
 
