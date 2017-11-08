@@ -31,8 +31,6 @@ tokens.
 %__install -D -m0644 "%{SOURCE2}" "%{buildroot}%{_prefix}/%{yaml}"
 %__install -D -m0755 "%{SOURCE1}" "%{buildroot}%{initsh}"
 
-%__install -d "%{buildroot}/var/log/chronopolis"
-
 %files
 
 %defattr(-,root,root)
@@ -40,8 +38,6 @@ tokens.
 %{_prefix}/%{jar}
 %config(noreplace) %{_prefix}/%{yaml}
 %{initsh}
-
-%dir %attr(0755,-,-) /var/log/chronopolis
 
 %post
 
@@ -52,6 +48,9 @@ chkconfig --add ingest-server
 chkconfig --del ingest-server
 
 %changelog
+
+* Wed Nov 8 2017 Mike Ritter <shake@umiacs.umd.edu> 2.0.3-20171108
+- remove install command for logging directory
 
 * Mon Oct 2 2017 Mike Ritter <shake@umiacs.umd.edu> 1.6.0-20171002
 - added changelog entry

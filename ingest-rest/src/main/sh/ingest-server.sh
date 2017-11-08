@@ -50,6 +50,20 @@ start(){
         return 2
     fi
 
+    # log directory exists
+    if [ ! -d "$logdir" ]; then
+        echo "Creating $logdir"
+        mkdir "$logdir"
+    fi
+
+    # permissions for logging
+    uname="$(stat --format '%U' "$logdir")"
+    if [ "x${uname}" != "x${CHRON_USER}" ]; then
+        echo "Updating permissions for $logdir"
+        chown "$CHRON_USER":"$CHRON_USER" "$logdir"
+    fi
+
+
     # check if we're already running
     RUNNING=0
     if [ -f "$pidfile" ]; then
