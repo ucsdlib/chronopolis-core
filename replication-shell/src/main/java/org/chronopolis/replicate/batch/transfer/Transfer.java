@@ -4,6 +4,8 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
+import org.chronopolis.common.exception.FileTransferException;
+import org.chronopolis.common.transfer.FileTransfer;
 import org.chronopolis.rest.models.Bag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -23,6 +26,23 @@ import java.util.stream.Stream;
 public interface Transfer {
 
     void update(HashCode hash);
+
+    @SuppressWarnings("Duplicates")
+    default Optional<Path> transfer(FileTransfer transfer, String id) {
+        Logger log = LoggerFactory.getLogger("rsync-log");
+        Optional<Path> result = Optional.empty();
+        try {
+            // so interestingly enough... we don't rely on the bag path anymore...
+            // but use it as a way to determine if the transfer succeeded I guess
+            result = Optional.ofNullable(transfer.get());
+            log(id, transfer.getOutput());
+        } catch (FileTransferException e) {
+            log(id, transfer.getErrors());
+            log.error("{} File transfer exception", id, e);
+            fail(e);
+        }
+        return result;
+    }
 
     /**
      * Hash a file for a given bag
