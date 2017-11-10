@@ -3,11 +3,12 @@ package org.chronopolis.replicate.batch.ace;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
-import org.chronopolis.common.storage.Posix;
-import org.chronopolis.common.storage.PreservationProperties;
+import org.chronopolis.common.storage.Bucket;
+import org.chronopolis.common.storage.StorageOperation;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
-import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.api.ReplicationService;
+import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.Replication;
@@ -19,42 +20,46 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Phaser;
 
 /**
+ * Runnable task to register a collection in ACE from a
+ * given Bucket and Replication/StorageOperation
  *
+ * <p>
  * Created by shake on 3/8/16.
  */
 public class AceRegisterTasklet implements Callable<Long> {
     private final Logger log = LoggerFactory.getLogger("ace-log");
 
-    private IngestAPI ingest;
-    private AceService aceService;
-    private Replication replication;
+    private final AceService aceService;
+    private final Replication replication;
+    private final ReplicationService replications;
     private final AceConfiguration aceConfiguration;
-    private PreservationProperties properties;
-    private ReplicationNotifier notifier;
+    private final ReplicationNotifier notifier;
+
+    private final Bucket bucket;
+    private final StorageOperation operation;
 
     private Long id = -1L;
-
     private final Phaser phaser;
 
-    public AceRegisterTasklet(IngestAPI ingest,
-                              AceService aceService,
+    public AceRegisterTasklet(AceService aceService,
                               Replication replication,
+                              ServiceGenerator generator,
                               AceConfiguration aceConfiguration,
-                              PreservationProperties properties,
-                              ReplicationNotifier notifier) {
-        this.ingest = ingest;
+                              ReplicationNotifier notifier,
+                              Bucket bucket,
+                              StorageOperation operation) {
+        this.bucket = bucket;
+        this.notifier = notifier;
+        this.operation = operation;
         this.aceService = aceService;
         this.replication = replication;
         this.aceConfiguration = aceConfiguration;
-        this.properties = properties;
-        this.notifier = notifier;
+        this.replications = generator.replications();
 
         // Phaser for main thread + callback
         phaser = new Phaser();
@@ -64,11 +69,6 @@ public class AceRegisterTasklet implements Callable<Long> {
         Bag bag = replication.getBag();
         String name = bag.getName();
         log.trace("{} Building ACE json", name);
-
-        // What we want to do:
-        // get bag.name/bag.collection
-        // -> 200 -> return id
-        // -> 204 -> register
 
         phaser.register();
         getId(bag);
@@ -84,36 +84,38 @@ public class AceRegisterTasklet implements Callable<Long> {
     }
 
     private void register(Bag bag) {
+
+        /*
         Posix posix;
         if (properties.getPosix().isEmpty()) {
             log.error("No Preservation Storage Areas defined! Aborting!");
             throw new RuntimeException("No Preservation Storage Areas defined! Aborting!");
         } else {
-            // todo: logic to pick which area to get
             posix = properties.getPosix().get(0); // just get the head for now
         }
-        final String name = bag.getName();
+
         Path collectionPath = Paths.get(posix.getPath(),
                 bag.getDepositor(),
                 name);
+       */
 
-        GsonCollection aceGson = new GsonCollection.Builder()
+        final String name = bag.getName();
+        GsonCollection.Builder builder = new GsonCollection.Builder()
                 .name(name)
                 .digestAlgorithm("SHA-256")
-                .directory(collectionPath.toString())
                 .group(bag.getDepositor())
-                .storage("local")
                 .auditPeriod(aceConfiguration.getAuditPeriod().toString())
                 .auditTokens("true")
-                .proxyData("false")
-                .build();
+                .proxyData("false");
+        builder = bucket.getAceStorage(operation, builder);
+        GsonCollection coll = builder.build();
 
-        log.debug("{} POSTing {}", name, aceGson.toJsonJackson());
+        log.debug("{} POSTing {}", name, coll.toJsonJackson());
 
         // callback register
         phaser.register();
 
-        Call<Map<String, Long>> call = aceService.addCollection(aceGson);
+        Call<Map<String, Long>> call = aceService.addCollection(coll);
         call.enqueue(new Callback<Map<String, Long>>() {
             @Override
             public void onResponse(Call<Map<String, Long>> call, Response<Map<String, Long>> response) {
@@ -121,7 +123,7 @@ public class AceRegisterTasklet implements Callable<Long> {
                     id = response.body().get("id");
                     setRegistered();
                 } else {
-                    log.error("{} Error registering collection in ACE: {} - {}", new Object[]{name, response.code(), response.message()});
+                    log.error("{} Error registering collection in ACE: {} - {}", name, response.code(), response.message());
                     try {
                         log.debug("{} {}", name, response.errorBody().string());
                     } catch (IOException ignored) {
@@ -172,7 +174,7 @@ public class AceRegisterTasklet implements Callable<Long> {
 
     private void setRegistered() {
         log.info("{} Setting replication as REGISTERED", replication.getBag().getName());
-        Call<Replication> update = ingest.updateReplicationStatus(replication.getId(),
+        Call<Replication> update = replications.updateStatus(replication.getId(),
                 new RStatusUpdate(ReplicationStatus.ACE_REGISTERED));
         update.enqueue(new UpdateCallback());
     }
