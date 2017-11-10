@@ -1,8 +1,9 @@
 package org.chronopolis.replicate.scheduled;
 
 import org.chronopolis.replicate.batch.Submitter;
-import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.api.IngestAPIProperties;
+import org.chronopolis.rest.api.ReplicationService;
+import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
@@ -38,14 +39,14 @@ public class ReplicationQueryTask {
     private final Logger log = LoggerFactory.getLogger(ReplicationQueryTask.class);
 
     private final IngestAPIProperties properties;
-    private final IngestAPI ingestAPI;
+    private final ReplicationService replications;
     private final Submitter submitter;
 
     @Autowired
-    public ReplicationQueryTask(IngestAPIProperties properties, IngestAPI ingest, Submitter submitter) {
+    public ReplicationQueryTask(IngestAPIProperties properties, ServiceGenerator generator, Submitter submitter) {
         this.properties = properties;
-        this.ingestAPI = ingest;
         this.submitter = submitter;
+        this.replications = generator.replications();
     }
 
     /**
@@ -92,14 +93,13 @@ public class ReplicationQueryTask {
         // at a time or figure something else out.
         try {
             while (hasNext) {
-                Call<PageImpl<Replication>> call = ingestAPI.getReplications(params);
+                Call<PageImpl<Replication>> call = replications.get(params);
                 Response<PageImpl<Replication>> response = call.execute();
                 Page<Replication> replications = response.body();
-                log.debug("[{}] On page {} with {} replications. {} total.", new Object[]{
-                        status,
+                log.debug("[{}] On page {} with {} replications. {} total.", status,
                         replications.getNumber(),
                         replications.getNumberOfElements(),
-                        replications.getTotalElements()});
+                        replications.getTotalElements());
 
                 ++page;
                 hasNext = replications.hasNext();

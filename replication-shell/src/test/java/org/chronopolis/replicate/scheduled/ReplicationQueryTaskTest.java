@@ -2,15 +2,16 @@ package org.chronopolis.replicate.scheduled;
 
 import org.chronopolis.replicate.batch.Submitter;
 import org.chronopolis.replicate.support.CallWrapper;
-import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.replicate.support.ReplGenerator;
 import org.chronopolis.rest.api.IngestAPIProperties;
+import org.chronopolis.rest.api.ReplicationService;
+import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.PageImpl;
@@ -42,20 +43,23 @@ import static org.mockito.Mockito.when;
  */
 public class ReplicationQueryTaskTest {
 
-    @Mock private Submitter submitter;
-    @Mock private IngestAPI ingestAPI;
-    @InjectMocks ReplicationQueryTask task;
-
     private final int NUM_REPLICATIONS = 5;
+
+    @Mock private Submitter submitter;
+    @Mock private ReplicationService replicationService;
+
+    private ReplicationQueryTask task;
+    private ServiceGenerator generator;
     private Call<PageImpl<Replication>> replications;
 
     @Before
     public void init() throws NoSuchFieldException, IllegalAccessException {
         MockitoAnnotations.initMocks(this);
         IngestAPIProperties properties = new IngestAPIProperties();
+        generator = new ReplGenerator(replicationService);
 
         // Init our RQT
-        task = new ReplicationQueryTask(properties, ingestAPI, submitter);
+        task = new ReplicationQueryTask(properties, generator, submitter);
 
         // Init our returned objects
         ArrayList<Replication> replicationList = new ArrayList<>();
@@ -82,12 +86,12 @@ public class ReplicationQueryTaskTest {
     @Test
     @SuppressWarnings("unchecked")
     public void testCheckForReplications() throws Exception {
-        when(ingestAPI.getReplications(anyMap())).thenReturn(replications);
+        when(replicationService.get(anyMap())).thenReturn(replications);
         task.checkForReplications();
 
         // We have 6 ongoing types of replication states, so query for them
         verify(submitter, times(NUM_REPLICATIONS * 6)).submit(any(Replication.class));
-        verify(ingestAPI, times(6)).getReplications(anyMap());
+        verify(replicationService, times(6)).get(anyMap());
     }
 
 }
