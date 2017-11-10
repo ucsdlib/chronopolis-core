@@ -1,13 +1,17 @@
 package org.chronopolis.replicate.batch.ace;
 
+import com.google.common.io.ByteSource;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
+import okio.BufferedSink;
+import okio.Okio;
 import org.chronopolis.common.ace.AceService;
-import org.chronopolis.common.storage.Posix;
-import org.chronopolis.common.storage.PreservationProperties;
+import org.chronopolis.common.storage.Bucket;
+import org.chronopolis.common.storage.StorageOperation;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
-import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.api.ReplicationService;
+import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.Replication;
@@ -19,33 +23,42 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * moo
+ * Runnable task to load an ACE Token Store to an ACE AM instance
  *
  * Created by shake on 3/8/16.
  */
 public class AceTokenTasklet implements Runnable {
     private final Logger log = LoggerFactory.getLogger("ace-log");
 
-    private IngestAPI ingest;
-    private AceService aceService;
-    private Replication replication;
-    private final PreservationProperties properties;
-    private ReplicationNotifier notifier;
-    private Long id;
+    private final Bucket bucket;
+    private final AceService aceService;
+    private final Replication replication;
+    private final StorageOperation operation;
+    private final ReplicationService replications;
+    private final ReplicationNotifier notifier;
 
-    public AceTokenTasklet(IngestAPI ingest, AceService aceService, Replication replication, PreservationProperties properties, ReplicationNotifier notifier, Long id) {
-        this.ingest = ingest;
+    private final Long id;
+
+    public AceTokenTasklet(Bucket bucket,
+                           StorageOperation operation,
+                           ServiceGenerator generator,
+                           AceService aceService,
+                           Replication replication,
+                           ReplicationNotifier notifier,
+                           Long id) {
+        this.id = id;
+        this.bucket = bucket;
+        this.notifier = notifier;
+        this.operation = operation;
         this.aceService = aceService;
         this.replication = replication;
-        this.properties = properties;
-        this.notifier = notifier;
-        this.id = id;
+        this.replications = generator.replications();
     }
 
     @Override
@@ -57,29 +70,29 @@ public class AceTokenTasklet implements Runnable {
         }
 
         Bag bag = replication.getBag();
-        String name = bag.getName();
+        final String name = bag.getName();
 
-        log.info("{} Loading token store", name);
+        // might be able to pull this from the storageOp
+        String manifest = bag.getTokenStorage().getPath();
+        log.info("{} loadTokenStore params = ({}, {})", name, id, manifest);
+        Optional<ByteSource> stream = bucket.stream(operation, Paths.get(manifest));
+        stream.map(source -> aceService.loadTokenStore(id, new AceTokenBody(source)))
+                .ifPresent(call -> attemptLoad(call, name));
+    }
+
+    /**
+     * Run a given call, presumably for loading a token store to an ACE-AM instance
+     *
+     * @param call the call to execute
+     */
+    private void attemptLoad(Call<Void> call, String name) {
         final AtomicBoolean complete = new AtomicBoolean(false);
-
-        Posix posix;
-        if (properties.getPosix().isEmpty()) {
-            log.error("No Preservation Storage Areas defined! Aborting!");
-            throw new RuntimeException("No Preservation Storage Areas defined! Aborting!");
-        } else {
-            // todo: logic to pick which area to get
-            posix = properties.getPosix().get(0); // just get the head for now
-        }
-        Path manifest = Paths.get(posix.getPath(), bag.getTokenStorage().getPath());
-
-        log.info("{} loadTokenStore params = ({}, {})", new Object[]{name, id, manifest});
-        Call<Void> call = aceService.loadTokenStore(id, RequestBody.create(MediaType.parse("ASCII Text"), manifest.toFile()));
         call.enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
                     log.info("{} loaded token store", name);
-                    Call<Replication> update = ingest.updateReplicationStatus(replication.getId(), new RStatusUpdate(ReplicationStatus.ACE_TOKEN_LOADED));
+                    Call<Replication> update = replications.updateStatus(replication.getId(), new RStatusUpdate(ReplicationStatus.ACE_TOKEN_LOADED));
                     update.enqueue(new UpdateCallback());
                 } else {
                     log.error("{} Error loading token store: {} - {}", response.code(), response.message());
@@ -111,6 +124,11 @@ public class AceTokenTasklet implements Runnable {
     }
 
 
+    /**
+     * Wait for an AtomicBoolean to be set to true
+     *
+     * @param complete the AtomicBoolean to wait on
+     */
     private void waitForCallback(AtomicBoolean complete) {
         while (!complete.get()) {
             try {
@@ -118,6 +136,26 @@ public class AceTokenTasklet implements Runnable {
             } catch (InterruptedException e) {
                 log.error("Sleep interrupted", e);
             }
+        }
+    }
+
+    public class AceTokenBody extends RequestBody {
+
+        private ByteSource source;
+
+        public AceTokenBody(ByteSource source) {
+            this.source = source;
+        }
+
+        @Override
+        public MediaType contentType() {
+            return MediaType.parse("ASCII Text");
+        }
+
+        @Override
+        public void writeTo(BufferedSink sink) throws IOException {
+            // todo test this
+            sink.writeAll(Okio.source(source.openBufferedStream()));
         }
     }
 }
