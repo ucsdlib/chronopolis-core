@@ -2,7 +2,8 @@ package org.chronopolis.common.storage;
 
 import com.google.common.hash.HashCode;
 import com.google.common.io.ByteSource;
-import org.chronopolis.common.transfer.RSyncTransfer;
+import org.chronopolis.common.ace.GsonCollection;
+import org.chronopolis.common.transfer.FileTransfer;
 
 import java.nio.file.Path;
 import java.util.Optional;
@@ -16,8 +17,31 @@ import java.util.Optional;
  */
 public interface Bucket {
 
+    /**
+     * Try to add a StorageOperation to a Bucket, failing if there is not enough space
+     * in the bucket
+     *
+     * @param operation the operation to add
+     * @return true if there is room; false otherwise
+     */
     boolean allocate(StorageOperation operation);
+
+    /**
+     * Check if a Bucket contains a StorageOperation, if it is pending or if it is
+     * already exists in the Bucket
+     *
+     * @param operation the operation to check
+     * @return true if the operation exists; false otherwise
+     */
     boolean contains(StorageOperation operation);
+
+    /**
+     * Check if a Bucket has enough usable storage to write the total size of a StorageOperation
+     * i.e. operation.size < bucket.usable
+     *
+     * @param operation the operation to check
+     * @return true if space is available; false otherwise
+     */
     boolean writeable(StorageOperation operation);
 
     /**
@@ -26,13 +50,13 @@ public interface Bucket {
      * @param operation the operation containing information about the Transfer
      * @return the FileTransfer, or an empty optional if no transfer could be created
      */
-    Optional<RSyncTransfer> transfer(StorageOperation operation);
+    Optional<FileTransfer> transfer(StorageOperation operation);
 
     /**
      * Retrieve the hash for a file for a given StorageOperation
      *
      * @param operation the operation which the file belongs to
-     * @param file the relative path of the file
+     * @param file      the relative path of the file
      * @return the sha256 hash of the file
      */
     Optional<HashCode> hash(StorageOperation operation, Path file);
@@ -41,13 +65,24 @@ public interface Bucket {
      * Retrieve the input stream of a file for a given StorageOperation
      *
      * @param operation the operation which the file belongs to
-     * @param file the relative path of the file
+     * @param file      the relative path of the file
      * @return the OutputStream of the file
      */
     Optional<ByteSource> stream(StorageOperation operation, Path file);
 
+    /**
+     * Update the ACE Collection.Builder with storage information for this
+     * bucket
+     *
+     * @param operation
+     * @param collection
+     * @return
+     */
+    GsonCollection.Builder fillAceStorage(StorageOperation operation, GsonCollection.Builder collection);
+
     // just in case we need these ops
     void free(StorageOperation operation);
+
     void refresh();
 
 }

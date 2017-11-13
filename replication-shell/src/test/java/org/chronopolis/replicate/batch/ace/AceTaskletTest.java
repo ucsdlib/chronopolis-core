@@ -196,7 +196,7 @@ public class AceTaskletTest {
     }
 
         private void prepareACERegister() {
-        when(bagBucket.getAceStorage(any(StorageOperation.class), any(GsonCollection.Builder.class)))
+        when(bagBucket.fillAceStorage(any(StorageOperation.class), any(GsonCollection.Builder.class)))
                 .thenAnswer((Answer<GsonCollection.Builder>) invocation -> invocation.getArgumentAt(1, GsonCollection.Builder.class));
         when(ace.getCollectionByName(any(String.class), any(String.class)))
                 .thenReturn(new NotFoundCallWrapper<>());

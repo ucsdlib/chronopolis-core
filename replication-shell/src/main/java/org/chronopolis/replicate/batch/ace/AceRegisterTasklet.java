@@ -107,7 +107,7 @@ public class AceRegisterTasklet implements Callable<Long> {
                 .auditPeriod(aceConfiguration.getAuditPeriod().toString())
                 .auditTokens("true")
                 .proxyData("false");
-        builder = bucket.getAceStorage(operation, builder);
+        builder = bucket.fillAceStorage(operation, builder);
         GsonCollection coll = builder.build();
 
         log.debug("{} POSTing {}", name, coll.toJsonJackson());

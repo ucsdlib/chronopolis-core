@@ -5,6 +5,8 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
+import org.chronopolis.common.ace.GsonCollection;
+import org.chronopolis.common.transfer.FileTransfer;
 import org.chronopolis.common.transfer.RSyncTransfer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  * Bucket for posix-like systems
@@ -27,20 +30,22 @@ public class PosixBucket implements Bucket {
 
     private final ImmutableSet<OperationType> supportedOperations = ImmutableSet.of(OperationType.RSYNC);
 
-    private Posix posix;
-    private FileStore fileStore;
-    private Set<StorageOperation> pendingOperations;
+    private final Posix posix;
+    private final FileStore fileStore;
+    private final Set<StorageOperation> pendingOperations;
 
-    public PosixBucket(Posix posix, FileStore fileStore, Set<StorageOperation> pendingOperations) {
+    public PosixBucket(Posix posix, FileStore fileStore) {
         this.posix = posix;
         this.fileStore = fileStore;
-        this.pendingOperations = pendingOperations;
+        this.pendingOperations = new ConcurrentSkipListSet<>();
     }
 
     @Override
     public boolean allocate(StorageOperation operation) {
         boolean allocated = false;
 
+        // do we want a lock when checking all of these? it would probably be useful but
+        // I guess for now we can just use a single thread for allocation and what not
         if (contains(operation)) {
             allocated = true;
         } else if (writeable(operation) && supported(operation.getType())) {
@@ -92,11 +97,11 @@ public class PosixBucket implements Bucket {
     }
 
     @Override
-    public Optional<RSyncTransfer> transfer(StorageOperation operation) {
-        Optional<RSyncTransfer> response = Optional.empty();
+    public Optional<FileTransfer> transfer(StorageOperation operation) {
+        Optional<FileTransfer> response = Optional.empty();
         OperationType type = operation.getType();
         if (contains(operation) && supported(type)) {
-            if (type.toString().equalsIgnoreCase("rsync")) {
+            if (type == OperationType.RSYNC) {
                 Path rsyncPath = Paths.get(posix.getPath()).resolve(operation.getPath());
                 response = Optional.of(new RSyncTransfer(operation.getLink(), rsyncPath));
             } else {
@@ -124,6 +129,27 @@ public class PosixBucket implements Bucket {
     @Override
     public Optional<ByteSource> stream(StorageOperation operation, Path file) {
         return Optional.empty();
+    }
+
+    @Override
+    public GsonCollection.Builder fillAceStorage(StorageOperation operation, GsonCollection.Builder builder) {
+        builder.storage("local");
+        Path root;
+        if (posix.getAce() != null) {
+            root = Paths.get(posix.getAce());
+        } else {
+            root = Paths.get(posix.getPath());
+        }
+
+        // this is missing the actual name of the bag
+        // posix.getPath :: op.getPath
+        // maps to
+        // /root/operation/
+        // instead of
+        // /root/operation/{subfolder}
+        builder.directory(root.resolve(operation.getPath()).toString());
+
+        return builder;
     }
 
     @Override
