@@ -1,5 +1,7 @@
 package org.chronopolis.common.storage;
 
+import com.google.common.collect.ComparisonChain;
+
 import java.nio.file.Path;
 
 /**
@@ -7,7 +9,7 @@ import java.nio.file.Path;
  *
  * @author shake
  */
-public class StorageOperation {
+public class StorageOperation implements Comparable<StorageOperation> {
 
     /**
      * The size in bytes the operation will need
@@ -77,5 +79,34 @@ public class StorageOperation {
     public StorageOperation setLink(String link) {
         this.link = link;
         return this;
+    }
+
+    @Override
+    public int compareTo(StorageOperation operation) {
+        return ComparisonChain.start()
+                .compare(this.size, operation.size)
+                .compare(this.type, operation.type)
+                .compare(this.identifier, operation.identifier)
+                .result();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        StorageOperation operation = (StorageOperation) o;
+
+        if (size != null ? !size.equals(operation.size) : operation.size != null) return false;
+        if (type != operation.type) return false;
+        return identifier != null ? identifier.equals(operation.identifier) : operation.identifier == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = size != null ? size.hashCode() : 0;
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + (identifier != null ? identifier.hashCode() : 0);
+        return result;
     }
 }
