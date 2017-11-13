@@ -1,6 +1,8 @@
 package org.chronopolis.replicate.batch;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.hash.HashCode;
+import com.google.common.io.ByteSource;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -10,12 +12,18 @@ import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.mail.MailUtil;
+import org.chronopolis.common.storage.Bucket;
+import org.chronopolis.common.storage.BucketBroker;
+import org.chronopolis.common.storage.OperationType;
 import org.chronopolis.common.storage.Posix;
 import org.chronopolis.common.storage.PreservationProperties;
+import org.chronopolis.common.storage.StorageOperation;
+import org.chronopolis.common.transfer.RSyncTransfer;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.support.CallWrapper;
 import org.chronopolis.replicate.support.NotFoundCallWrapper;
-import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.replicate.support.ReplGenerator;
+import org.chronopolis.rest.api.ReplicationService;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.FixityUpdate;
@@ -29,6 +37,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 
@@ -39,6 +49,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -57,11 +68,19 @@ import static org.mockito.Mockito.when;
  * tests for our submitter for various flows and their outcomes
  * should these be split into multiple classes? (for ease of readability)
  * also we can now test the result of our replication... which could be nice
- *
+ * <p>
+ * I _really_ don't like the complexity in these tests, and think maybe we should look for a way
+ * to scope them a bit better. At the moment we need to set up all sorts of mocking which makes
+ * them not only hard to follow, but hard to update, especially as we make changes to the classes
+ * which run the steps involved in replicating.
+ * <p>
+ * One possibility would have these only testing the flow of how things are submitted, and how
+ * failure is handled.
+ * <p>
  * Created by shake on 10/18/16.
  */
 public class SubmitterTest {
-    // private final Logger log = LoggerFactory.getLogger(SubmitterTest.class);
+    private final Logger log = LoggerFactory.getLogger(SubmitterTest.class);
 
     private static final String TM_DIGEST = "699caf4dc3dd8bd084f18174035a627b71f31cf5d07d5adbd722c45b874e7a78";
     private static final String TOKEN_DIGEST = "d20b847cbe138983b1235efb607ce9d9a0ba7d5d1d2e95767b3393857ea2cb82";
@@ -73,25 +92,34 @@ public class SubmitterTest {
     private TrackingThreadPoolExecutor<Replication> io;
     private TrackingThreadPoolExecutor<Replication> http;
 
-    @Mock private AceService ace;
-    @Mock private IngestAPI ingest;
-    @Mock private MailUtil mail;
+    @Mock
+    private AceService ace;
+    @Mock
+    private MailUtil mail;
+    @Mock
+    private ReplicationService replications;
+    @Mock
+    private Bucket bucket;
 
     private Path bags;
     private Path tokens;
     private String testBag;
     private String testToken;
+    private BucketBroker broker;
 
     private Node node;
 
     @Before
     public void setup() throws URISyntaxException {
         ace = mock(AceService.class);
-        ingest = mock(IngestAPI.class);
         mail = mock(MailUtil.class);
+        bucket = mock(Bucket.class);
+        replications = mock(ReplicationService.class);
 
+        ReplGenerator generator = new ReplGenerator(replications);
+
+        broker = BucketBroker.forBucket(bucket);
         URL resources = ClassLoader.getSystemClassLoader().getResource("");
-
 
         AceConfiguration aceConfiguration = new AceConfiguration();
         properties = new ReplicationProperties();
@@ -99,7 +127,6 @@ public class SubmitterTest {
 
         bags = Paths.get(resources.toURI()).resolve("bags");
         tokens = Paths.get(resources.toURI()).resolve("tokens");
-
 
         testBag = bags.resolve("test-bag").toString();
         testToken = tokens.resolve("test-token-store").toString();
@@ -109,7 +136,7 @@ public class SubmitterTest {
 
         io = new TrackingThreadPoolExecutor<>(1, 1, 1, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
         http = new TrackingThreadPoolExecutor<>(1, 1, 1, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
-        submitter = new Submitter(mail, ace, ingest, preservation, aceConfiguration, properties, io, http);
+        submitter = new Submitter(mail, ace, broker, generator, aceConfiguration, properties, io, http);
 
         node = new Node("node-user", "not-a-real-field");
     }
@@ -121,6 +148,7 @@ public class SubmitterTest {
         FixityUpdate tokenUpdate = new FixityUpdate(TOKEN_DIGEST);
         FixityUpdate tagUpdate = new FixityUpdate(TM_DIGEST);
 
+        when(bucket.allocate(any(StorageOperation.class))).thenReturn(true);
         Mockito.doThrow(new MailSendException("Unable to send msg")).when(mail).send(any(SimpleMailMessage.class));
         CompletableFuture<ReplicationStatus> submission = submitter.submit(r);
         // workaround to block on our submission
@@ -128,10 +156,10 @@ public class SubmitterTest {
         handle.get();
 
         assertFalse(submitter.isRunning(r));
-        verify(ingest, times(0)).updateTokenStore(r.getId(), tokenUpdate);
-        verify(ingest, times(0)).updateTagManifest(r.getId(), tagUpdate);
-        verify(ingest, times(0)).getReplication(r.getId());
-        verify(ingest, times(0)).updateReplicationStatus(eq(r.getId()), any(RStatusUpdate.class));
+        verify(replications, times(0)).updateTokenStoreFixity(r.getId(), tokenUpdate);
+        verify(replications, times(0)).updateTagManifestFixity(r.getId(), tagUpdate);
+        verify(replications, times(0)).get(r.getId());
+        verify(replications, times(0)).updateStatus(eq(r.getId()), any(RStatusUpdate.class));
         verify(ace, times(0)).getCollectionByName(bag.getName(), bag.getDepositor());
         verify(ace, times(0)).addCollection(any(GsonCollection.class));
         verify(ace, times(0)).loadTokenStore(eq(1L), any(RequestBody.class));
@@ -140,34 +168,38 @@ public class SubmitterTest {
 
     @Test
     public void fromPendingServerStop() throws InterruptedException, ExecutionException {
-        Bag bag = createBag(testBag, testToken);
+        final Optional<HashCode> tokenDigest = Optional.of(HashCode.fromString(TOKEN_DIGEST));
+        final Optional<HashCode> tmDigest = Optional.of(HashCode.fromString(TM_DIGEST));
+        final FixityUpdate tokenUpdate = new FixityUpdate(TOKEN_DIGEST);
+        final FixityUpdate tagUpdate = new FixityUpdate(TM_DIGEST);
 
-        // Because we need to create an updated replication, there's a bit of ugliness we need to
-        // deal with until we have a replication model class as well
+        // same issue here as in fromPendingSuccess
+        Bag bag = createBag(testBag, testToken);
         Replication r = createReplication(ReplicationStatus.PENDING, bag);
         r.setBag(null);
         Replication updated = copy(r, TypeToken.of(Replication.class).getType());
         r.setBag(bag);
         updated.setBag(bag);
 
-        FixityUpdate tokenUpdate = new FixityUpdate(TOKEN_DIGEST);
-        FixityUpdate tagUpdate = new FixityUpdate(TM_DIGEST);
+        StorageOperation tokenOp = prepBuckets(r, r.getBag().getTokenStorage(), r.getTokenLink(), tokenDigest);
+        StorageOperation bagOp = prepBuckets(r, r.getBag().getBagStorage(), r.getBagLink(), tmDigest);
 
-        when(ingest.updateTokenStore(r.getId(), tokenUpdate))
+        when(bucket.allocate(any(StorageOperation.class))).thenReturn(true);
+        when(replications.updateTokenStoreFixity(r.getId(), tokenUpdate))
                 .thenReturn(new CallWrapper<>(r));
-        when(ingest.updateTagManifest(r.getId(), tagUpdate))
+        when(replications.updateTagManifestFixity(r.getId(), tagUpdate))
                 .thenReturn(new CallWrapper<>(r));
 
         updated.setStatus(ReplicationStatus.FAILURE_TAG_MANIFEST);
-        when(ingest.getReplication(r.getId())).thenReturn(new CallWrapper<>(updated));
+        when(replications.get(r.getId())).thenReturn(new CallWrapper<>(updated));
 
         CompletableFuture<ReplicationStatus> submission = submitter.submit(r);
         submission.get();
 
-        verify(ingest, times(1)).updateTokenStore(r.getId(), tokenUpdate);
-        verify(ingest, times(1)).updateTagManifest(r.getId(), tagUpdate);
-        verify(ingest, times(1)).getReplication(r.getId());
-        verify(ingest, times(0)).updateReplicationStatus(eq(r.getId()), any(RStatusUpdate.class));
+        verify(replications, times(1)).updateTokenStoreFixity(r.getId(), tokenUpdate);
+        verify(replications, times(1)).updateTagManifestFixity(r.getId(), tagUpdate);
+        verify(replications, times(1)).get(r.getId());
+        verify(replications, times(0)).updateStatus(eq(r.getId()), any(RStatusUpdate.class));
         verify(ace, times(0)).getCollectionByName(bag.getName(), bag.getDepositor());
         verify(ace, times(0)).addCollection(any(GsonCollection.class));
         verify(ace, times(0)).loadTokenStore(eq(1L), any(RequestBody.class));
@@ -176,61 +208,66 @@ public class SubmitterTest {
 
     @Test
     public void fromPendingSuccess() throws InterruptedException, ExecutionException, IOException, ClassNotFoundException {
-        Bag bag = createBag(testBag, testToken);
+        // vars which don't change over the lifetime of the test
+        final Optional<HashCode> tokenDigest = Optional.of(HashCode.fromString(TOKEN_DIGEST));
+        final Optional<HashCode> tmDigest = Optional.of(HashCode.fromString(TM_DIGEST));
+        final FixityUpdate tokenUpdate = new FixityUpdate(TOKEN_DIGEST);
+        final FixityUpdate tagUpdate = new FixityUpdate(TM_DIGEST);
 
         // todo: check to see if mockito can capture the old values
         // Because we need to create an updated replication, there's a bit of ugliness we need to
         // deal with until we have a replication model class as well
+        Bag bag = createBag(testBag, testToken);
         Replication r = createReplication(ReplicationStatus.PENDING, bag);
         r.setBag(null);
         Replication updated = copy(r, TypeToken.of(Replication.class).getType());
         r.setBag(bag);
         updated.setBag(bag);
 
-        FixityUpdate tokenUpdate = new FixityUpdate(TOKEN_DIGEST);
-        FixityUpdate tagUpdate = new FixityUpdate(TM_DIGEST);
 
-        when(ingest.updateTokenStore(r.getId(), tokenUpdate))
+        StorageOperation tokenOp = prepBuckets(r, r.getBag().getTokenStorage(), r.getTokenLink(), tokenDigest);
+        StorageOperation bagOp = prepBuckets(r, r.getBag().getBagStorage(), r.getBagLink(), tmDigest);
+
+        when(replications.updateTokenStoreFixity(r.getId(), tokenUpdate))
                 .thenReturn(new CallWrapper<>(r));
-        when(ingest.updateTagManifest(r.getId(), tagUpdate))
+        when(replications.updateTagManifestFixity(r.getId(), tagUpdate))
                 .thenReturn(new CallWrapper<>(r));
 
         // todo: make sure this is the updated replication with status > pending/w.e.
         updated.setStatus(ReplicationStatus.TRANSFERRED);
-        when(ingest.getReplication(r.getId())).thenReturn(new CallWrapper<>(updated));
+        when(replications.get(r.getId())).thenReturn(new CallWrapper<>(updated));
         when(ace.getCollectionByName(bag.getName(), bag.getDepositor())).thenReturn(new NotFoundCallWrapper<>());
 
         // add + update
+        when(bucket.fillAceStorage(eq(bagOp), any(GsonCollection.Builder.class)))
+                .thenAnswer(invocation -> invocation.getArgumentAt(1, GsonCollection.Builder.class));
         when(ace.addCollection(any(GsonCollection.class))).thenReturn(new CallWrapper<>(ImmutableMap.of("id", 1L)));
-        when(ingest.updateReplicationStatus(eq(r.getId()), eq(new RStatusUpdate(ReplicationStatus.ACE_REGISTERED))))
+        when(replications.updateStatus(eq(r.getId()), eq(new RStatusUpdate(ReplicationStatus.ACE_REGISTERED))))
                 .thenReturn(new CallWrapper<>(updated));
 
         // token + update
+        when(bucket.stream(eq(tokenOp), any(Path.class))).thenAnswer(invocation -> Optional.of(ByteSource.empty()));
         when(ace.loadTokenStore(eq(1L), any(RequestBody.class))).thenReturn(new CallWrapper<>(null));
-        when(ingest.updateReplicationStatus(eq(r.getId()), eq(new RStatusUpdate(ReplicationStatus.ACE_TOKEN_LOADED))))
+        when(replications.updateStatus(eq(r.getId()), eq(new RStatusUpdate(ReplicationStatus.ACE_TOKEN_LOADED))))
                 .thenReturn(new CallWrapper<>(updated));
 
         // audit + update
         when(ace.startAudit(eq(1L), eq(false))).thenReturn(new CallWrapper<>(null));
-        when(ingest.updateReplicationStatus(eq(r.getId()), eq(new RStatusUpdate(ReplicationStatus.ACE_AUDITING))))
+        when(replications.updateStatus(eq(r.getId()), eq(new RStatusUpdate(ReplicationStatus.ACE_AUDITING))))
                 .thenReturn(new CallWrapper<>(updated));
 
         CompletableFuture<ReplicationStatus> submission = submitter.submit(r);
         submission.get();
 
-        verify(ingest, times(1)).updateTokenStore(r.getId(), tokenUpdate);
-        verify(ingest, times(1)).updateTagManifest(r.getId(), tagUpdate);
-        verify(ingest, times(1)).getReplication(r.getId());
-        verify(ingest, times(3)).updateReplicationStatus(eq(r.getId()), any(RStatusUpdate.class));
+        verify(replications, times(1)).updateTokenStoreFixity(r.getId(), tokenUpdate);
+        verify(replications, times(1)).updateTagManifestFixity(r.getId(), tagUpdate);
+        verify(replications, times(1)).get(r.getId());
+        verify(replications, times(3)).updateStatus(eq(r.getId()), any(RStatusUpdate.class));
         verify(ace, times(1)).getCollectionByName(bag.getName(), bag.getDepositor());
         verify(ace, times(1)).addCollection(any(GsonCollection.class));
         verify(ace, times(1)).loadTokenStore(eq(1L), any(RequestBody.class));
         verify(ace, times(1)).startAudit(eq(1L), eq(false));
         verify(mail, times(0)).send(any(SimpleMailMessage.class));
-    }
-
-    // @Test
-    public void fromTransferred() {
     }
 
     @Test
@@ -244,14 +281,38 @@ public class SubmitterTest {
                 .storage("local")
                 .build();
 
+        when(bucket.allocate(any(StorageOperation.class))).thenReturn(true);
         when(ace.getCollectionByName(bag.getName(), bag.getDepositor())).thenReturn(new CallWrapper<>(c));
-        when(ingest.updateReplicationStatus(anyLong(), any(RStatusUpdate.class))).thenReturn(new CallWrapper<>(r));
+        when(replications.updateStatus(anyLong(), any(RStatusUpdate.class))).thenReturn(new CallWrapper<>(r));
         CompletableFuture<ReplicationStatus> submission = submitter.submit(r);
         submission.get();
 
         verify(ace, times(1)).getCollectionByName(bag.getName(), bag.getDepositor());
-        verify(ingest, times(1)).updateReplicationStatus(1L, new RStatusUpdate(ReplicationStatus.SUCCESS));
+        verify(replications, times(1)).updateStatus(1L, new RStatusUpdate(ReplicationStatus.SUCCESS));
         verify(mail, times(1)).send(any(SimpleMailMessage.class));
+    }
+
+    private StorageOperation operation(Replication r, StagingStorageModel storage, String link) {
+        Bag b = r.getBag();
+        StorageOperation operation = new StorageOperation()
+                .setLink(link)
+                .setSize(storage.getSize())
+                .setType(OperationType.RSYNC)
+                .setPath(Paths.get(b.getDepositor()))
+                .setIdentifier(b.getDepositor() + "/" + b.getName());
+        return operation;
+    }
+
+    private StorageOperation prepBuckets(Replication r, StagingStorageModel storage, String link, Optional<HashCode> digest) {
+        Bag bag =  r.getBag();
+        StorageOperation op = operation(r, storage, link);
+
+        RSyncTransfer tokenXfer = new RSyncTransfer(op.getLink(), bags.resolve(bag.getDepositor()));
+
+        when(bucket.allocate(any(StorageOperation.class))).thenReturn(true);
+        when(bucket.transfer(eq(op))).thenReturn(Optional.of(tokenXfer));
+        when(bucket.hash(eq(op), any(Path.class))).thenReturn(digest);
+        return op;
     }
 
     private Replication createReplication(ReplicationStatus status, Bag bag) {
@@ -263,7 +324,7 @@ public class SubmitterTest {
         r.setCreatedAt(ZonedDateTime.now());
         r.setUpdatedAt(ZonedDateTime.now());
         r.setNode(node.username);
-        r.setProtocol("rsync");
+        r.setProtocol("RSYNC");
         r.setStatus(status);
         return r;
     }
@@ -274,8 +335,8 @@ public class SubmitterTest {
                 .setDepositor("test-depositor")
                 .setCreator("submitter-test");
         bag.setId(1L);
-        bag.setTokenStorage(new StagingStorageModel().setPath(tokens));
-        bag.setBagStorage(new StagingStorageModel().setPath(location));
+        bag.setTokenStorage(new StagingStorageModel().setPath(tokens).setSize(1L));
+        bag.setBagStorage(new StagingStorageModel().setPath(location).setSize(10L));
         bag.setCreatedAt(ZonedDateTime.now());
         bag.setUpdatedAt(ZonedDateTime.now());
         return bag;
@@ -285,7 +346,7 @@ public class SubmitterTest {
     /**
      * Returns a copy of the object, or null if the object cannot
      * be serialized.
-     *
+     * <p>
      * via: http://javatechniques.com/blog/faster-deep-copies-of-java-objects/
      */
     private <T> T copy(T orig, Type type) {
