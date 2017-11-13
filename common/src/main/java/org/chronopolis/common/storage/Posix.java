@@ -17,6 +17,11 @@ public class Posix {
      */
     private String path = "/dev/null";
 
+    /**
+     * The local path for ACE
+     */
+    private String ace;
+
     public Long getId() {
         return id;
     }
@@ -32,6 +37,15 @@ public class Posix {
 
     public Posix setPath(String path) {
         this.path = path;
+        return this;
+    }
+
+    public String getAce() {
+        return ace;
+    }
+
+    public Posix setAce(String ace) {
+        this.ace = ace;
         return this;
     }
 }
