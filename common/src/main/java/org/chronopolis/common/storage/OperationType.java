@@ -10,6 +10,6 @@ package org.chronopolis.common.storage;
  */
 public enum OperationType {
 
-    RSYNC
+    RSYNC, NOP
 
 }
