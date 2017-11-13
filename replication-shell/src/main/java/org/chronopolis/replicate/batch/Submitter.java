@@ -102,8 +102,14 @@ public class Submitter {
         if (replicating.add(identifier)) {
             log.info("Submitting replication {}", identifier);
 
-            StorageOperation bagOp = createOperation(replication, replication.getBagLink(), replication.getBag().getBagStorage(), identifier);
-            StorageOperation tokenOp = createOperation(replication, replication.getTokenLink(), replication.getBag().getTokenStorage(), identifier);
+            StorageOperation bagOp = createOperation(replication,
+                    identifier,
+                    replication.getBag().getBagStorage(),
+                    replication.getBagLink());
+            StorageOperation tokenOp = createOperation(replication,
+                    identifier,
+                    replication.getBag().getTokenStorage(),
+                    replication.getTokenLink());
 
             // tf will this do on an exception?
             // we could try to differentiate between allocate and find... but then we deal with so many fsking optionals
