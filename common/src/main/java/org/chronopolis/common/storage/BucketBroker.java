@@ -1,5 +1,7 @@
 package org.chronopolis.common.storage;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.hash.Hashing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +11,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Stream;
 
@@ -30,6 +33,17 @@ public class BucketBroker {
 
     private BucketBroker() {
         this.buckets = new CopyOnWriteArrayList<>();
+    }
+
+    /**
+     * Getter only for testing so that we can introspect on the buckets managed by
+     * the broker
+     *
+     * @return the managed buckets
+     */
+    @VisibleForTesting
+    protected Set<Bucket> buckets() {
+        return ImmutableSet.copyOf(buckets);
     }
 
     /**
