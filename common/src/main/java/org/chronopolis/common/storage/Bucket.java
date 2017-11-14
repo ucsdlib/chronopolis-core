@@ -80,9 +80,14 @@ public interface Bucket {
      */
     GsonCollection.Builder fillAceStorage(StorageOperation operation, GsonCollection.Builder collection);
 
-    // just in case we need these ops
+    /**
+     * What does it mean to free an operation in our context? Remove it from disk? Reclaim its allocated space?
+     *
+     * For now it might be best only to use this when a replication cannot be recovered and needs to
+     * be removed from a Bucket
+     *
+     * @param operation the operation to free
+     */
     void free(StorageOperation operation);
-
-    void refresh();
 
 }
