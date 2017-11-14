@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -50,6 +51,11 @@ public class RSyncTransfer implements FileTransfer {
         // Currently uses passwordless SSH keys to login
 
         Callable<Path> download = () -> {
+            // todo: should we do this createDirectories or add a trailing slash to local?
+            if (!local.toFile().exists()) {
+                Files.createDirectories(local);
+            }
+
             String[] cmd = new String[]{"rsync",
                     "-aL",
                     "-e ssh -o 'PasswordAuthentication no'",
