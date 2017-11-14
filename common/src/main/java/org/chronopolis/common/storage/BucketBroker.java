@@ -7,9 +7,6 @@ import org.springframework.beans.factory.BeanCreationException;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -49,9 +46,8 @@ public class BucketBroker {
         // I guess we'll need to do this for each type of storage
         // should probably be a private static method
         preservationProperties.getPosix().forEach(posix -> {
-            Path root = Paths.get(posix.getPath());
             try {
-                broker.addBucket(new PosixBucket(posix, Files.getFileStore(root)));
+                broker.addBucket(new PosixBucket(posix));
             } catch (IOException e) {
                 // Not sure if we should push this to the constructor or do it here
                 log.error("[{}] Error creating Bucket", posix.getPath(), e);

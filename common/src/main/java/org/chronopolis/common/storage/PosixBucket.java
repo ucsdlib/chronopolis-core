@@ -31,13 +31,21 @@ public class PosixBucket implements Bucket {
     private final ImmutableSet<OperationType> supportedOperations = ImmutableSet.of(OperationType.RSYNC);
 
     private final Posix posix;
-    private final FileStore fileStore;
     private final Set<StorageOperation> pendingOperations;
 
-    public PosixBucket(Posix posix, FileStore fileStore) {
+    private Long usable;
+    private final Long total;
+
+    public PosixBucket(Posix posix) throws IOException {
         this.posix = posix;
-        this.fileStore = fileStore;
         this.pendingOperations = new ConcurrentSkipListSet<>();
+
+        // Grab some values from the FileStore
+        // Note that this can fail, and if it does we should throw a
+        // BeanCreationException to fail the entire startup
+        FileStore store = java.nio.file.Files.getFileStore(Paths.get(posix.getPath()));
+        this.total = store.getTotalSpace();
+        this.usable = store.getUsableSpace();
     }
 
     @Override
@@ -49,6 +57,8 @@ public class PosixBucket implements Bucket {
         if (contains(operation)) {
             allocated = true;
         } else if (writeable(operation) && supported(operation.getType())) {
+            // todo: could do one more check for sanity that (usable - size) > 0
+            usable -= operation.getSize();
             pendingOperations.add(operation);
             allocated = true;
         }
@@ -69,29 +79,19 @@ public class PosixBucket implements Bucket {
     @Override
     public boolean writeable(StorageOperation operation) {
         boolean writeable = false;
-        try {
 
-            // this is pretty tricky as this is not entirely accurate
-            // because pending operations could be going on while we compute
-            // new totals. unfortunately with most transfers it's not really
-            // possible to update the size as the transfer goes on because we
-            // simply don't have access to that type of information. this means
-            // we can either track the usable space on init and update it as
-            // operations are added/removed or we can... do this. I don't think
-            // tracking would be too much extra work, but it's additional overhead
-            // which can be error prone.
-            long total = fileStore.getTotalSpace();
-            long usable = fileStore.getUsableSpace();
-            for (StorageOperation op : pendingOperations) {
-                usable += op.getSize();
-            }
+        // There's still an issue here of multiple operations accessing the
+        // various fields concurrently, but we're operating in a ST manner
+        // at the moment so syncing/locking can be handled at a later time
 
-            long after = usable + operation.getSize();
-            if (after < total && after/total < 0.9) {
-                writeable = true;
-            }
-        } catch (IOException e) {
-            log.error("[{}] Unable to read filestore!", operation.getIdentifier(), e);
+        Long size = operation.getSize();
+        // not sure if there will be overflow issues on the other side... we're testing with
+        // Long.MAX so we should be ok
+        Double remainder = new Double(usable - size);
+
+        log.trace("[{}] Total {}; Remainder {} ({} %(UL))", operation.getIdentifier(), total, remainder, remainder / total);
+        if (remainder > 0 && remainder / total >= 0.1) {
+            writeable = true;
         }
         return writeable;
     }
@@ -128,7 +128,12 @@ public class PosixBucket implements Bucket {
 
     @Override
     public Optional<ByteSource> stream(StorageOperation operation, Path file) {
-        return Optional.empty();
+        // I'm not sure if this is really how we'll want to do this moving forward, but it's
+        // what we have for now
+        Path resolved = Paths.get(posix.getPath())
+                .resolve(operation.getPath())
+                .resolve(file);
+        return Optional.ofNullable(Files.asByteSource(resolved.toFile()));
     }
 
     @Override
@@ -155,10 +160,8 @@ public class PosixBucket implements Bucket {
     @Override
     public void free(StorageOperation operation) {
         pendingOperations.remove(operation);
+
+        // update usable?? refresh??
     }
 
-    @Override
-    public void refresh() {
-        // noop
-    }
 }
