@@ -116,6 +116,7 @@ public class PosixBucket implements Bucket {
         Optional<HashCode> response = Optional.empty();
         Path root = Paths.get(posix.getPath());
         Path resolved = root.resolve(operation.getPath()).resolve(file);
+        log.debug("[{}] Resolved file for hashing: {}", operation.getIdentifier(), resolved);
         if (resolved.toFile().exists()) {
             try {
                 response = Optional.of(Files.asByteSource(resolved.toFile()).hash(Hashing.sha256()));
