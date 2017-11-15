@@ -84,21 +84,6 @@ public class AceRegisterTasklet implements Callable<Long> {
     }
 
     private void register(Bag bag) {
-
-        /*
-        Posix posix;
-        if (properties.getPosix().isEmpty()) {
-            log.error("No Preservation Storage Areas defined! Aborting!");
-            throw new RuntimeException("No Preservation Storage Areas defined! Aborting!");
-        } else {
-            posix = properties.getPosix().get(0); // just get the head for now
-        }
-
-        Path collectionPath = Paths.get(posix.getPath(),
-                bag.getDepositor(),
-                name);
-       */
-
         final String name = bag.getName();
         GsonCollection.Builder builder = new GsonCollection.Builder()
                 .name(name)
