@@ -7,8 +7,10 @@ import com.google.common.io.Files;
 import org.chronopolis.common.exception.FileTransferException;
 import org.chronopolis.common.transfer.FileTransfer;
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.Replication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import retrofit2.Callback;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,9 +27,21 @@ import java.util.stream.Stream;
  */
 public interface Transfer {
 
-    void update(HashCode hash);
+    /**
+     * Update (the Ingest API) with a given hash value
+     *
+     * @param hash the hash value to update the Ingest API with
+     * @return the UpdateCallback for the connection to the Ingest API
+     */
+    Callback<Replication> update(HashCode hash);
 
-    @SuppressWarnings("Duplicates")
+    /**
+     * Initiate a FileTransfer and log the results
+     *
+     * @param transfer the transfer to initiate
+     * @param id       the id of the operation
+     * @return the top level path of the transfer
+     */
     default Optional<Path> transfer(FileTransfer transfer, String id) {
         Logger log = LoggerFactory.getLogger("rsync-log");
         Optional<Path> result = Optional.empty();
@@ -38,7 +52,7 @@ public interface Transfer {
             log(id, transfer.getOutput());
         } catch (FileTransferException e) {
             log(id, transfer.getErrors());
-            log.error("{} File transfer exception", id, e);
+            log.error("[{}] File transfer exception", id, e);
             fail(e);
         }
         return result;
