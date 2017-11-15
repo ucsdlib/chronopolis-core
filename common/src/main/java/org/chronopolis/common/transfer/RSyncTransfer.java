@@ -51,9 +51,10 @@ public class RSyncTransfer implements FileTransfer {
         // Currently uses passwordless SSH keys to login
 
         Callable<Path> download = () -> {
-            // todo: should we do this createDirectories or add a trailing slash to local?
-            if (!local.toFile().exists()) {
-                Files.createDirectories(local);
+            Path parent = local.getParent();
+            if (!parent.toFile().exists()) {
+                log.debug("Creating parent directory {}", parent);
+                Files.createDirectories(parent);
             }
 
             String[] cmd = new String[]{"rsync",
@@ -96,7 +97,7 @@ public class RSyncTransfer implements FileTransfer {
         threadPool.execute(timedTask);
 
         try {
-            // TODO: Timeout based on collection size
+            // TODO: Timeout based on collection size?
             // return timedTask.get(1, TimeUnit.DAYS);
             return timedTask.get();
         } catch (InterruptedException | ExecutionException e) {
