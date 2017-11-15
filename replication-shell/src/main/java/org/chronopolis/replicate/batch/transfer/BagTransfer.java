@@ -11,6 +11,7 @@ import org.chronopolis.rest.models.Replication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Call;
+import retrofit2.Callback;
 
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -48,15 +49,18 @@ public class BagTransfer implements Transfer, Runnable {
         // This might work better as a CompletableFuture... but this works too
         transfer.flatMap(xfer -> transfer(xfer, operation.getIdentifier()))
                 .flatMap(ignored -> bucket.hash(operation, Paths.get("tagmanifest-sha256.txt")))
-                .ifPresent(this::update);
+                .map(this::update)
+                .orElseThrow(() -> new RuntimeException("Unable to update bag tagmanifest value. Check that the file exists or that the Ingest API is available."));
     }
 
     @Override
-    public void update(HashCode hash) {
+    public Callback<Replication> update(HashCode hash) {
+        UpdateCallback cb = new UpdateCallback();
         String calculatedDigest = hash.toString();
         log.info("{} Calculated digest {} for tagmanifest", operation.getIdentifier(), calculatedDigest);
 
         Call<Replication> call = replications.updateTagManifestFixity(id, new FixityUpdate(calculatedDigest));
-        call.enqueue(new UpdateCallback());
+        call.enqueue(cb);
+        return cb;
     }
 }

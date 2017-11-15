@@ -11,6 +11,7 @@ import org.chronopolis.rest.models.Replication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Call;
+import retrofit2.Callback;
 
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -44,19 +45,23 @@ public class TokenTransfer implements Transfer, Runnable {
         Optional<FileTransfer> transfer = bucket.transfer(operation);
 
         transfer.flatMap(xfer -> transfer(xfer, operation.getIdentifier()))
-                // For a a Token Operation, the operation path contains the full path to the token store
-                // so we join it with an empty path
+                // For a a Token Operation, the operation path contains the
+                // full path to the token store so we join it with an empty path
                 .flatMap(ignored -> bucket.hash(operation, Paths.get("")))
-                .ifPresent(this::update);
+                .map(this::update)
+                .orElseThrow(() -> new RuntimeException("Unable to update token store fixity value. Check that the file exists or that the Ingest API is available."));
     }
 
     @Override
-    public void update(HashCode hash) {
+    public Callback<Replication> update(HashCode hash) {
+        UpdateCallback cb = new UpdateCallback();
         String calculatedDigest = hash.toString();
         log.info("{} Calculated digest {} for token store", operation.getIdentifier(), calculatedDigest);
 
+        // could probably extend call and do our own enqueue which returns a callback
         Call<Replication> call = replications.updateTokenStoreFixity(id, new FixityUpdate(calculatedDigest));
-        call.enqueue(new UpdateCallback());
+        call.enqueue(cb);
+        return cb;
     }
 
 }
