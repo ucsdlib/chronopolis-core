@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Call;
 
-import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 /**
@@ -25,13 +25,10 @@ public class TokenTransfer implements Transfer, Runnable {
     // todo: something other than rsync-log
     private final Logger log = LoggerFactory.getLogger("rsync-log");
 
-    // Set in our constructor
+    private final Long id;
     private final Bucket bucket;
     private final StorageOperation operation;
     private final ReplicationService replications;
-
-    // These could all be local
-    private final Long id;
 
     public TokenTransfer(Bucket bucket, StorageOperation operation, Replication replication, ReplicationService replications) {
         this.bucket = bucket;
@@ -46,17 +43,11 @@ public class TokenTransfer implements Transfer, Runnable {
 
         Optional<FileTransfer> transfer = bucket.transfer(operation);
 
-        // todo: have checkdirexists somewhere somehow
         transfer.flatMap(xfer -> transfer(xfer, operation.getIdentifier()))
-                .flatMap(path -> bucket.hash(operation, path.getFileName()))
+                // For a a Token Operation, the operation path contains the full path to the token store
+                // so we join it with an empty path
+                .flatMap(ignored -> bucket.hash(operation, Paths.get("")))
                 .ifPresent(this::update);
-    }
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private void checkDirExists(Path stage) {
-        if (!stage.toFile().exists()) {
-            stage.toFile().mkdirs();
-        }
     }
 
     @Override
