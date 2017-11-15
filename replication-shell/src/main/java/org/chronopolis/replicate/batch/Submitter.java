@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 
 import javax.annotation.Nullable;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
@@ -41,9 +42,9 @@ import java.util.function.BiConsumer;
  * want to find a way to resubmit operations to our io pool, possibly through a different
  * ExecutorService, but testing will need to be done to see how that plays with the
  * CompletableFuture interface.
- *
+ * <p>
  * todo: +ingestAPIProperties
- *
+ * <p>
  * <p>
  * Created by shake on 10/12/16.
  */
@@ -150,12 +151,31 @@ public class Submitter {
         return CompletableFuture.supplyAsync(replication::getStatus);
     }
 
+    /**
+     * Create a StorageOperation for a given Replication, identifier, StagingStorage, and link
+     * <p>
+     * Because we have two different transfers which need to be made, we pass in extra information in order to
+     * update some of the StorageOperation fields. This way we can choose between the TokenStorage and BagStorage,
+     * and get separate links/sizes for both.
+     * <p>
+     * In addition, when setting the Path for the Operation, we want to make sure it allows for the hashing/stream/ace
+     * methods to be used by the Bucket. Basically, for a Bag Operation we want to point to the root of the bag:
+     * "depositor/bag_name", and for a Token Operation we simply point at the TokenStore: "depositor/token_store_name".
+     * For both of these we can extract the bag_name or token_store_name from the final child of the StagingStorageModel path.
+     *
+     * @param replication the replication to create an operation for
+     * @param identifier  an identifier for the operation
+     * @param staging     the StagingStorageModel to determine information about the size and path of the operation
+     * @param link        the link for the StorageOperation (will likely be replaced post-2.1.0)
+     * @return the StorageOperation
+     */
     private StorageOperation createOperation(Replication replication, String identifier, StagingStorageModel staging, String link) {
+        Path relative = Paths.get(staging.getPath()).getFileName();
         return new StorageOperation()
                 .setLink(link)
                 .setIdentifier(identifier)
                 .setSize(staging.getSize())
-                .setPath(Paths.get(replication.getBag().getDepositor()))
+                .setPath(Paths.get(replication.getBag().getDepositor()).resolve(relative))
                 .setType(OperationType.valueOf(replication.getProtocol()));
     }
 
