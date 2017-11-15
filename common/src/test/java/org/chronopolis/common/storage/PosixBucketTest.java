@@ -235,12 +235,10 @@ public class PosixBucketTest {
                 .setType(OperationType.RSYNC);
 
         GsonCollection.Builder bldr = new GsonCollection.Builder();
-        Path root = Paths.get(TEST_FILE);
-        bldr = bucket.fillAceStorage(op, root, bldr);
+        bldr = bucket.fillAceStorage(op, bldr);
         GsonCollection collection = bldr.build();
 
-        // not technically a directory... but... whatever
-        final Path finalDirectory = dir.resolve(STORAGE).resolve(TEST_FILE);
+        final Path finalDirectory = dir.resolve(STORAGE);
 
         Assert.assertEquals("local", collection.getStorage());
         Assert.assertEquals(finalDirectory.toString(), collection.getDirectory());
