@@ -75,7 +75,10 @@ public class AceTokenTasklet implements Runnable {
         // might be able to pull this from the storageOp
         String manifest = bag.getTokenStorage().getPath();
         log.info("{} loadTokenStore params = ({}, {})", name, id, manifest);
-        Optional<ByteSource> stream = bucket.stream(operation, Paths.get(manifest));
+
+        // For a a Token Operation, the operation path contains the
+        // full path to the token store so we join it with an empty path
+        Optional<ByteSource> stream = bucket.stream(operation, Paths.get(""));
         stream.map(source -> aceService.loadTokenStore(id, new AceTokenBody(source)))
                 .ifPresent(call -> attemptLoad(call, name));
     }
