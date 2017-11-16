@@ -35,6 +35,7 @@ import java.util.function.BiConsumer;
 
 /**
  * Submit a replication for processing
+ * <p>
  * TODO: Figure out if we want to eagerly reject replications (i.e., keep our queues bounded)
  * This way we can simulate back pressure, and not worry about running our of memory if
  * we receive too many replications. It just has other implications surrounding how we
@@ -42,6 +43,12 @@ import java.util.function.BiConsumer;
  * want to find a way to resubmit operations to our io pool, possibly through a different
  * ExecutorService, but testing will need to be done to see how that plays with the
  * CompletableFuture interface.
+ * <p>
+ * Also we'll want to reevaluate if we want to do partial flows (replicate; ace register; ace load; ace audit)
+ * or if we should keep it how it is now. Either way there will be some updates to make a distinction of
+ * when to audit ace data as currently we trigger the audit eagerly, which could be bad if tokens fail to
+ * upload.
+ * <p>
  * <p>
  * todo: +ingestAPIProperties
  * <p>
@@ -102,7 +109,6 @@ public class Submitter {
         // todo: do we want to run through the entire flow or have it staggered like before?
         if (replicating.add(identifier)) {
             log.info("Submitting replication {}", identifier);
-
             StorageOperation bagOp = createOperation(replication,
                     identifier,
                     replication.getBag().getBagStorage(),
@@ -112,27 +118,18 @@ public class Submitter {
                     replication.getBag().getTokenStorage(),
                     replication.getTokenLink());
 
-            // tf will this do on an exception?
-            // we could try to differentiate between allocate and find... but then we deal with so many fsking optionals
-            // trying to think of the best way to handle all of this
-            // could also do it in each runnable but... eh
-            Bucket bagBucket = broker.allocateSpaceForOperation(bagOp)
-                    .orElseThrow(() -> new IllegalArgumentException("No bucket allocated for bag!"));
-            Bucket tokenBucket = broker.allocateSpaceForOperation(tokenOp)
-                    .orElseThrow(() -> new IllegalArgumentException("No bucket allocated for token!"));
-
             CompletableFuture<ReplicationStatus> future;
             switch (replication.getStatus()) {
                 // Run through the full flow
                 case PENDING:
                 case STARTED:
-                    future = fromPending(replication, bagOp, bagBucket, tokenOp, tokenBucket);
+                    future = fromPending(replication, bagOp, tokenOp);
                     break;
                 // Do all ACE work
                 case TRANSFERRED:
                 case ACE_REGISTERED:
                 case ACE_TOKEN_LOADED:
-                    future = fromTransferred(null, replication, bagOp, bagBucket, tokenOp, tokenBucket);
+                    future = fromTransferred(null, replication, bagOp, tokenOp);
                     break;
                 case ACE_AUDITING:
                     future = fromAceAuditing(replication);
@@ -151,7 +148,7 @@ public class Submitter {
         return CompletableFuture.supplyAsync(replication::getStatus);
     }
 
-    /**
+   /**
      * Create a StorageOperation for a given Replication, identifier, StagingStorage, and link
      * <p>
      * Because we have two different transfers which need to be made, we pass in extra information in order to
@@ -176,28 +173,25 @@ public class Submitter {
                 .setIdentifier(identifier)
                 .setSize(staging.getSize())
                 .setPath(Paths.get(replication.getBag().getDepositor()).resolve(relative))
-                .setType(OperationType.valueOf(replication.getProtocol()));
+                .setType(OperationType.from(replication.getProtocol()));
     }
 
     /**
      * Create a CompletableFuture with all steps needed from the PENDING state
      *
      * @param replication the replication to work on
-     * @param bagOp
-     * @param bagBucket
-     * @param tokenOp
-     * @param tokenBucket
+     * @param bagOp       the StorageOperation for replicating a Bag
+     * @param tokenOp     the StorageOperation for replicating a TokenStore
      * @return a {@link CompletableFuture} which runs both the token and bag transfers tasks
      */
-    private CompletableFuture<ReplicationStatus> fromPending(Replication replication,
-                                                             StorageOperation bagOp,
-                                                             Bucket bagBucket,
-                                                             StorageOperation tokenOp,
-                                                             Bucket tokenBucket) {
-        // todo: test with optionals, see if we can do something with composability
-        // Optional<Bucket> bOptional = Optional.of(bagBucket);
-        // Optional<Bucket> tOptional = Optional.of(tokenBucket);
-        // String id = replicationIdentifier(replication);
+    private CompletableFuture<ReplicationStatus> fromPending(Replication replication, StorageOperation bagOp, StorageOperation tokenOp) {
+        // tf will this do on an exception?
+        // not sure if this is the best way but... hey
+        Bucket bagBucket = broker.allocateSpaceForOperation(bagOp)
+                .orElseThrow(() -> new IllegalArgumentException("No bucket allocated for bag!"));
+        Bucket tokenBucket = broker.allocateSpaceForOperation(tokenOp)
+                .orElseThrow(() -> new IllegalArgumentException("No bucket allocated for token!"));
+
 
         ReplicationService replications = generator.replications();
         BagTransfer bxfer = new BagTransfer(bagBucket, bagOp, replication, replications);
@@ -208,7 +202,7 @@ public class Submitter {
                 CompletableFuture
                         .runAsync(txfer, io)
                         .thenRunAsync(bxfer, io),
-                replication, bagOp, bagBucket, tokenOp, tokenBucket);
+                replication, bagOp, tokenOp);
     }
 
     /**
@@ -221,10 +215,16 @@ public class Submitter {
     private CompletableFuture<ReplicationStatus> fromTransferred(@Nullable CompletableFuture<Void> future,
                                                                  Replication replication,
                                                                  StorageOperation bagOp,
-                                                                 Bucket bagBucket,
-                                                                 StorageOperation tokenOp,
-                                                                 Bucket tokenBucket) {
+                                                                 StorageOperation tokenOp) {
         ReplicationNotifier notifier = new ReplicationNotifier(replication);
+
+        // tf will this do on an exception?
+        // could also do it in each runnable but... eh
+        Bucket bagBucket = broker.findBucketForOperation(bagOp)
+                .orElseThrow(() -> new IllegalArgumentException("No bucket allocated for bag!"));
+        Bucket tokenBucket = broker.findBucketForOperation(tokenOp)
+                .orElseThrow(() -> new IllegalArgumentException("No bucket allocated for token!"));
+
         AceRunner runner = new AceRunner(ace, generator, replication.getId(), aceConfiguration, bagBucket, tokenBucket, bagOp, tokenOp, notifier);
         if (future == null) {
             return CompletableFuture.supplyAsync(runner, http);
