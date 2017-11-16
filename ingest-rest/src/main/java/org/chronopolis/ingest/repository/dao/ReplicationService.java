@@ -118,8 +118,8 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
             // todo: move this out of the replication create
             createDist(bag, node);
 
-            String tokenLink = createReplicationString(bag.getTokenStorage());
-            String bagLink = createReplicationString(bag.getBagStorage());
+            String tokenLink = createReplicationString(bag.getTokenStorage(), false);
+            String bagLink = createReplicationString(bag.getBagStorage(), true);
 
             ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
                     .withBagId(bag.getId())
@@ -169,11 +169,12 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
      * Build a string for replication based off the storage for the object
      * <p>
      * todo: determine who the default user should be
+     * todo: might want this to be created by a subclass for the ReplicationConfig (RsyncReplConfig, HttpReplConfig, etc)
      *
      * @param storage The storage to replication from
      * @return The string for the replication
      */
-    private String createReplicationString(StagingStorage storage) {
+    private String createReplicationString(StagingStorage storage, Boolean trailingSlash) {
         ReplicationConfig config;
 
         if (storage.getRegion() != null && storage.getRegion().getReplicationConfig() != null) {
@@ -190,7 +191,7 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
 
         Path path = Paths.get(root, storage.getPath());
         // inline this?
-        return buildLink(user, server, path);
+        return buildLink(user, server, path, trailingSlash);
     }
 
     /**
@@ -216,10 +217,10 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
         }
     }
 
-    private String buildLink(String user, String server, Path file) {
+    private String buildLink(String user, String server, Path file, Boolean trailingSlash) {
         return user +
                 "@" + server +
-                ":" + file.toString();
+                ":" + file.toString() + (trailingSlash ? "/" : "");
     }
 
 }
