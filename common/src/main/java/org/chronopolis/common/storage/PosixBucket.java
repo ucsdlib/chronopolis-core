@@ -165,4 +165,18 @@ public class PosixBucket implements Bucket {
         // update usable?? refresh??
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PosixBucket that = (PosixBucket) o;
+
+        return posix != null ? posix.equals(that.posix) : that.posix == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return posix != null ? posix.hashCode() : 0;
+    }
 }

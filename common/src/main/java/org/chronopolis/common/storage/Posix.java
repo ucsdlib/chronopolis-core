@@ -48,4 +48,25 @@ public class Posix {
         this.ace = ace;
         return this;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        // could change this to try and do posix.getPath.fileStore or smth
+        Posix posix = (Posix) o;
+
+        if (id != null ? !id.equals(posix.id) : posix.id != null) return false;
+        if (path != null ? !path.equals(posix.path) : posix.path != null) return false;
+        return ace != null ? ace.equals(posix.ace) : posix.ace == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (path != null ? path.hashCode() : 0);
+        result = 31 * result + (ace != null ? ace.hashCode() : 0);
+        return result;
+    }
 }
