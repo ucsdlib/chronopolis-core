@@ -18,7 +18,6 @@ import org.chronopolis.ingest.repository.dao.StorageRegionService;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.storage.Fixity;
-import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.BagStatus;
 import org.junit.Assert;
@@ -33,6 +32,7 @@ import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.persistence.EntityManager;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
@@ -80,24 +80,32 @@ public class TokenStoreWriterTest extends IngestTest {
         // Refresh the bag from the db
         Bag updated = bagService.find(new BagSearchCriteria().withId(3L));
         Assert.assertNotNull(updated.getTokenStorage());
-        Assert.assertNotNull(updated.getTokenStorage().getFixities());
+        Assert.assertFalse(updated.getTokenStorage().isEmpty());
+        updated.getTokenStorage().forEach(storage -> {
+            // fixity asserts
+            Assert.assertNotNull(storage.getFixities());
+            Assert.assertFalse(storage.getFixities().isEmpty());
+
+            // path assert
+            Path tokens = Paths.get(stage, storage.getPath());
+            Assert.assertEquals(true, java.nio.file.Files.exists(tokens));
+            Assert.assertEquals(tokens.toFile().length(), storage.getSize());
+            Assert.assertEquals(1, storage.getTotalFiles());
+
+            // combination fixity + path (check that it was recorded correctly)
+            Set<Fixity> fixities = storage.getFixities();
+            HashCode hash;
+            try {
+                hash = Files.asByteSource(tokens.toFile()).hash(Hashing.sha256());
+                boolean fixityMatch = fixities.stream()
+                        .anyMatch(fixity -> fixity.getValue().equalsIgnoreCase(hash.toString()));
+                Assert.assertTrue(fixityMatch);
+            } catch (IOException e) {
+                // ughhhh
+            }
+        });
+
         Assert.assertEquals(BagStatus.TOKENIZED, updated.getStatus());
-        Assert.assertNotEquals(0, updated.getTokenStorage().getFixities().size());
 
-        // assert that the file exists
-        Path tokens = Paths.get(stage, updated.getTokenStorage().getPath());
-        Assert.assertEquals(true, java.nio.file.Files.exists(tokens));
-
-        // the recorded storage information is correct
-        StagingStorage staging = updated.getTokenStorage();
-        Assert.assertEquals(tokens.toFile().length(), staging.getSize());
-        Assert.assertEquals(1, staging.getTotalFiles());
-
-        // the hash value is correct
-        Set<Fixity> fixities = updated.getTokenStorage().getFixities();
-        HashCode hash = Files.asByteSource(tokens.toFile()).hash(Hashing.sha256());
-        boolean fixityMatch = fixities.stream()
-                .anyMatch(fixity -> fixity.getValue().equalsIgnoreCase(hash.toString()));
-        Assert.assertTrue(fixityMatch);
     }
 }
