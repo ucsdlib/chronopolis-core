@@ -2,8 +2,10 @@ package org.chronopolis.ingest.api;
 
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
+import org.chronopolis.ingest.repository.dao.StagingService;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.models.storage.ActiveToggle;
@@ -27,8 +29,8 @@ import java.util.Set;
 /**
  * REST controller for interacting with the Storage fields in a Bag
  * todos
- *  - Constraints on PUTs (only the node/admin may alter its own resources)
- *
+ * - Constraints on PUTs (only the node/admin may alter its own resources)
+ * - BadRequest on invalid type?
  */
 @RestController
 @RequestMapping("/api/bags/{id}")
@@ -40,87 +42,76 @@ public class BagStorageController {
     private static final String TOKEN_TYPE = "token";
 
     private final BagService bagService;
+    private final StagingService stagingService;
 
     @Autowired
-    public BagStorageController(BagService bagService) {
+    public BagStorageController(BagService bagService, StagingService stagingService) {
         this.bagService = bagService;
+        this.stagingService = stagingService;
     }
 
 
     /**
      * Retrieve the storage area a bag resides in
      *
-     * @param id The id of the bag
+     * @param id   The id of the bag
      * @param type The type of storage to retrieve
      * @return The bag's storage information
      */
     @GetMapping("/storage/{type}")
-    private StagingStorage getBagStorage(@PathVariable("id") Long id, @PathVariable("type") String type) {
+    private Optional<StagingStorage> getBagStorage(@PathVariable("id") Long id, @PathVariable("type") String type) {
         access.info("[GET /api/bags/{}/storage/{}]", id, type);
-
-        StagingStorage storage = null;
         BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
         Bag bag = bagService.find(criteria);
-        if (TOKEN_TYPE.equalsIgnoreCase(type)) {
-            storage = bag.getTokenStorage();
-        } else if (BAG_TYPE.equalsIgnoreCase(type)) {
-            storage = bag.getBagStorage();
-        }
-        return storage;
+        return storageFor(bag, type);
     }
 
     /**
      * Update the activity of a bag storage area
      *
-     * @param id The id of the bag
-     * @param type The type of storage to retrieve
+     * @param id     The id of the bag
+     * @param type   The type of storage to retrieve
      * @param toggle The active flag to set
      * @return The updated Storage information
      */
     @PutMapping("/storage/{type}")
-    private StagingStorage updateStorage(@PathVariable("id") Long id, @PathVariable("type") String type, @RequestBody ActiveToggle toggle) {
+    private Optional<StagingStorage> updateStorage(@PathVariable("id") Long id, @PathVariable("type") String type, @RequestBody ActiveToggle toggle) {
         access.info("[PUT /api/bags/{}/storage/{}]", id, type);
         access.info("PUT parameters - {}", toggle.isActive());
+
         BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
         Bag bag = bagService.find(criteria);
-        if (TOKEN_TYPE.equalsIgnoreCase(type)) {
-            bag.getTokenStorage().setActive(toggle.isActive());
-        } else if (BAG_TYPE.equalsIgnoreCase(type)) {
-            bag.getBagStorage().setActive(toggle.isActive());
-        }
-        bagService.save(bag);
-        return bag.getBagStorage();
+        Optional<StagingStorage> stagingStorage = storageFor(bag, type);
+
+        stagingStorage.ifPresent(s -> {
+            s.setActive(toggle.isActive());
+            stagingService.save(s);
+        });
+        return stagingStorage;
     }
 
     /**
      * Retrieve all fixities associated with a Bag
-     * todo: should this be a Page<Fixity>?
+     * todo: should this be a Page<Fixity>? could do storage.map(this::paged) or smth
      *
-     * @param id The id of the bag
+     * @param id   The id of the bag
      * @param type The type of storage to retrieve
      * @return The fixities associated with the TagManifest of the bag
      */
     @GetMapping("/storage/{type}/fixity")
-    private Set<Fixity> getFixities(@PathVariable("id") Long id, @PathVariable("type") String type) {
+    private Optional<Set<Fixity>> getFixities(@PathVariable("id") Long id, @PathVariable("type") String type) {
         access.info("[GET /api/bags/{}/storage/{}/fixity]", id, type);
-        Set<Fixity> fixities = null;
         BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
         Bag bag = bagService.find(criteria);
-
-        if (BAG_TYPE.equalsIgnoreCase(type)) {
-            fixities = bag.getBagStorage().getFixities();
-        } else if (TOKEN_TYPE.equalsIgnoreCase(type)) {
-            fixities = bag.getTokenStorage().getFixities();
-        }
-
-        return fixities;
+        Optional<StagingStorage> storage = storageFor(bag, type);
+        return storage.map(StagingStorage::getFixities);
     }
 
     /**
      * Add a fixity to a Bag
      *
-     * @param id the id of the bag
-     * @param type The type of storage to retrieve
+     * @param id     the id of the bag
+     * @param type   The type of storage to retrieve
      * @param create the fixity to create
      * @return the newly created fixity
      */
@@ -133,38 +124,32 @@ public class BagStorageController {
                 .setValue(create.getValue())
                 .setAlgorithm(create.getAlgorithm())
                 .setCreatedAt(ZonedDateTime.now());
-        ResponseEntity<Fixity> response = ResponseEntity.status(HttpStatus.CREATED)
-                .body(fixity);
 
         BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
         Bag bag = bagService.find(criteria);
+        Optional<StagingStorage> stagingStorage = storageFor(bag, type);
 
-        if (TOKEN_TYPE.equalsIgnoreCase(type)) {
-            StagingStorage tokenStorage = bag.getTokenStorage();
-            tokenStorage.addFixity(fixity);
-            fixity.setStorage(tokenStorage);
-        } else if (BAG_TYPE.equalsIgnoreCase(type)) {
-            StagingStorage bagStorage = bag.getBagStorage();
-            bagStorage.addFixity(fixity);
-            fixity.setStorage(bagStorage);
-        } else {
-            // hmmm
-            // we'll probably want to validate the response body as well so maybe create this off the bat
-            response = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+        // todo: might need 409/401 responses too
+        return stagingStorage.map(s -> saveFixity(s, fixity))
+                .map(f -> ResponseEntity.status(HttpStatus.CREATED).body(fixity))
+                .orElse(ResponseEntity.badRequest().build());
+    }
 
-        bagService.save(bag);
-        return response;
+    private Fixity saveFixity(StagingStorage storage, Fixity fixity) {
+        storage.addFixity(fixity);
+        fixity.setStorage(storage);
+        stagingService.save(storage);
+        return fixity;
     }
 
     /**
      * Retrieve a fixity for a bag identified by its algorithm
-     *
+     * <p>
      * todo: the db should really be pulling the fixity object out; when we look into
-     *       using more of the querydsl functionality we should be able to do that
+     * using more of the querydsl functionality we should be able to do that
      *
-     * @param id The id of the bag
-     * @param type The type of storage to retrieve
+     * @param id        The id of the bag
+     * @param type      The type of storage to retrieve
      * @param algorithm The algorithm used to compute the fixity
      * @return The fixity value for the algorithm, if it exists
      */
@@ -174,11 +159,31 @@ public class BagStorageController {
 
         BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
         Bag bag = bagService.find(criteria);
-        return bag.getBagStorage().getFixities()
-                .stream()
-                .filter(fixity -> fixity.getAlgorithm().equals(algorithm))
-                .findFirst();
+        Optional<StagingStorage> storage = storageFor(bag, type);
+        return storage.map(StagingStorage::getFixities)
+                // this.... sucks
+                .flatMap(fixities -> fixities.stream()
+                        .filter(f -> f.getAlgorithm().equalsIgnoreCase(algorithm))
+                        .findFirst());
+    }
 
+    /**
+     * Retrieve the StagingStorage for a given Bag and type, or Optional.empty if it does not exist
+     *
+     * @param bag  the bag to retrieve the StagingStorage object from
+     * @param type the type of StagingStorage to retrieve
+     * @return the StagingStorage
+     */
+    private Optional<StagingStorage> storageFor(Bag bag, String type) {
+        Optional<StagingStorage> storage = Optional.empty();
+
+        if (TOKEN_TYPE.equalsIgnoreCase(type)) {
+            storage = stagingService.activeStorageForBag(bag, QBag.bag.tokenStorage);
+        } else if (BAG_TYPE.equalsIgnoreCase(type)) {
+            storage = stagingService.activeStorageForBag(bag, QBag.bag.bagStorage);
+        }
+
+        return storage;
     }
 
 }
