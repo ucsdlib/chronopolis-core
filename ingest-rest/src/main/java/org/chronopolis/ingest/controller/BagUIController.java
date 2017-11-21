@@ -13,6 +13,7 @@ import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.ReplicationSearchCriteria;
+import org.chronopolis.ingest.repository.criteria.StagingStorageSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
@@ -23,6 +24,7 @@ import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.ingest.support.ReplicationCreateResult;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
@@ -54,6 +56,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -122,6 +125,9 @@ public class BagUIController extends IngestController {
     /**
      * Get information about a single bag
      *
+     * todo: constants for these things
+     * todo: token count async
+     *
      * @param model - the view model
      * @param id    - the id of the bag
      * @return page showing the individual bag
@@ -133,13 +139,20 @@ public class BagUIController extends IngestController {
         BagSearchCriteria bsc = new BagSearchCriteria().withId(id);
         FileSizeFormatter formatter = new FileSizeFormatter();
         ReplicationSearchCriteria rsc = new ReplicationSearchCriteria().withBagId(id);
+        Bag bag = bagService.find(bsc);
+        Optional<StagingStorage> activeBagStorage = stagingService.activeStorageForBag(bag, QBag.bag.bagStorage);
+        Optional<StagingStorage> activeTokenStorage = stagingService.activeStorageForBag(bag, QBag.bag.tokenStorage);
+        log.info("bagStorage {}", activeBagStorage.isPresent());
+        log.info("tokenStorage {}", activeTokenStorage.isPresent());
 
         model.addAttribute("formatter", formatter);
-        model.addAttribute("bag", bagService.find(bsc));
+        model.addAttribute("bag", bag);
         model.addAttribute("replications", replicationService.findAll(rsc,
                 new PageRequest(DEFAULT_PAGE, DEFAULT_PAGE_SIZE)));
         model.addAttribute("statuses", Arrays.asList(BagStatus.values()));
         model.addAttribute("tokens", tokenRepository.countByBagId(id));
+        activeBagStorage.ifPresent(s -> model.addAttribute("activeBagStorage", s));
+        activeTokenStorage.ifPresent(s -> model.addAttribute("activeTokenStorage", s));
 
         return "bag";
     }
@@ -315,22 +328,14 @@ public class BagUIController extends IngestController {
      * @throws ForbiddenException
      */
     private StagingStorage findStorageForBag(Principal principal, Bag bag, Long storageId) throws ForbiddenException {
-        StagingStorage storage;
-        // todo: through the db
-        //       there are a couple caveats to this - we'll probably need to wait until we have a
-        //       join table so that we can get a single storage object back and not rely on
-        //       bag.bagStorage or bag.tokenStorage... anyways we can't quite do it yet but soon^TM
-        if (bag.getBagStorage() != null
-                && bag.getBagStorage().getId().equals(storageId)) {
-            storage = bag.getBagStorage();
-        } else if (bag.getTokenStorage() != null
-                && bag.getTokenStorage().getId().equals(storageId)) {
-            storage = bag.getTokenStorage();
-        } else {
-            // should have a related ExceptionHandler
+        // might be able to make criteria out of this or smth not sure yet
+        StagingStorageSearchCriteria ssmc = new StagingStorageSearchCriteria()
+                .withId(storageId);
+
+        StagingStorage storage = stagingService.find(ssmc);
+        if (storage == null) {
             throw new RuntimeException("Invalid Storage Id");
         }
-
         // should do a null check here...
         StorageRegion region = storage.getRegion();
         String owner = region.getNode().getUsername();

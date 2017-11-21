@@ -2,6 +2,8 @@ package org.chronopolis.ingest.repository.dao;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
@@ -11,8 +13,10 @@ import org.chronopolis.ingest.support.ReplicationCreateResult;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagDistribution;
 import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.entities.storage.Fixity;
+import org.chronopolis.rest.entities.storage.QStagingStorage;
 import org.chronopolis.rest.entities.storage.ReplicationConfig;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.models.ReplicationRequest;
@@ -24,9 +28,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatus.DISTRIBUTE;
@@ -43,14 +49,18 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
     private static final String DEFAULT_USER = "chronopolis";
     private final Logger log = LoggerFactory.getLogger(ReplicationService.class);
 
+    private final EntityManager manager;
+
     private final BagRepository bagRepository;
     private final NodeRepository nodeRepository;
 
     @Autowired
-    public ReplicationService(ReplicationRepository replicationRepository,
+    public ReplicationService(EntityManager manager,
+                              ReplicationRepository replicationRepository,
                               BagRepository bagRepository,
                               NodeRepository nodeRepository) {
         super(replicationRepository);
+        this.manager = manager;
         this.bagRepository = bagRepository;
         this.nodeRepository = nodeRepository;
     }
@@ -102,15 +112,44 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
      */
     public ReplicationCreateResult create(final Bag bag, final Node node) {
         ReplicationCreateResult result;
-        StagingStorage bagStorage = bag.getBagStorage();
-        StagingStorage tokenStorage = bag.getTokenStorage();
+
+        /**
+         * The query we want to mimic
+         * SELECT s.id, s.path, s.size, ...
+         * FROM staging_storage s
+         *   JOIN bag_storage AS bs
+         *   ON bs.staging_id = s.id AND bs.bag_id = 12
+         * WHERE s.active = 't';
+         *
+         * Maybe there's a way to do it without the join? All we're doing is getting the staging_storage...
+         * SELECT s.id, s.path, s.size, ...
+         * FROM staging_storage s
+         * WHERE s.active = 't' AND s.id = (SELECT staging_id FROM bag_storage AS b WHERE b.bag_id = ?1);
+         */
+        QBag b = QBag.bag;
+        QStagingStorage storage = QStagingStorage.stagingStorage;
+        JPAQueryFactory factory = new JPAQueryFactory(manager);
+
+        // this is a pretty suboptimal query; if needed we can look into it
+        // might be easier to execute native sql than fiddle with querydsl in this case
+        JPAQuery<StagingStorage> bagStorageQuery = factory.from(b)
+                .innerJoin(b.bagStorage, storage)
+                .where(storage.active.isTrue().and(b.id.eq(bag.getId())))
+                .select(storage);
+
+        JPAQuery<StagingStorage> tokenStorageQuery = factory.from(b)
+                .innerJoin(b.tokenStorage, storage)
+                .where(storage.active.isTrue().and(b.id.eq(bag.getId())))
+                .select(storage);
+
+        Optional<StagingStorage> bagStorage = Optional.ofNullable(bagStorageQuery.fetchFirst());
+        Optional<StagingStorage> tokenStorage = Optional.of(tokenStorageQuery.fetchFirst());
 
         // conditions to meet for creating replications
-        // todo: ensure these are for the most recent storage entities
-        boolean active = bagStorage.isActive() && tokenStorage.isActive();
+        boolean active = bagStorage.isPresent() && tokenStorage.isPresent();
         ImmutableSet<Fixity> fixities = ImmutableSet.<Fixity>builder()
-                .addAll(bagStorage.getFixities())
-                .addAll(tokenStorage.getFixities())
+                .addAll(bagStorage.map(StagingStorage::getFixities).orElse(ImmutableSet.of()))
+                .addAll(tokenStorage.map(StagingStorage::getFixities).orElse(ImmutableSet.of()))
                 .build();
 
         if (active && !fixities.isEmpty()) {
@@ -118,8 +157,8 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
             // todo: move this out of the replication create
             createDist(bag, node);
 
-            String tokenLink = createReplicationString(bag.getTokenStorage());
-            String bagLink = createReplicationString(bag.getBagStorage());
+            String tokenLink = createReplicationString(tokenStorage.get());
+            String bagLink = createReplicationString(bagStorage.get());
 
             ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
                     .withBagId(bag.getId())
