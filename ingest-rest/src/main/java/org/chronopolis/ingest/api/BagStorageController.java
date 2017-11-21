@@ -1,5 +1,6 @@
 package org.chronopolis.ingest.api;
 
+import com.google.common.collect.ImmutableSet;
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.StagingService;
@@ -59,11 +60,13 @@ public class BagStorageController {
      * @return The bag's storage information
      */
     @GetMapping("/storage/{type}")
-    private Optional<StagingStorage> getBagStorage(@PathVariable("id") Long id, @PathVariable("type") String type) {
+    private ResponseEntity<StagingStorage> getBagStorage(@PathVariable("id") Long id, @PathVariable("type") String type) {
         access.info("[GET /api/bags/{}/storage/{}]", id, type);
         BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
         Bag bag = bagService.find(criteria);
-        return storageFor(bag, type);
+        return storageFor(bag, type)
+                .map(storage -> ResponseEntity.ok(storage))
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
@@ -75,7 +78,7 @@ public class BagStorageController {
      * @return The updated Storage information
      */
     @PutMapping("/storage/{type}")
-    private Optional<StagingStorage> updateStorage(@PathVariable("id") Long id, @PathVariable("type") String type, @RequestBody ActiveToggle toggle) {
+    private ResponseEntity<StagingStorage> updateStorage(@PathVariable("id") Long id, @PathVariable("type") String type, @RequestBody ActiveToggle toggle) {
         access.info("[PUT /api/bags/{}/storage/{}]", id, type);
         access.info("PUT parameters - {}", toggle.isActive());
 
@@ -87,7 +90,8 @@ public class BagStorageController {
             s.setActive(toggle.isActive());
             stagingService.save(s);
         });
-        return stagingStorage;
+        return stagingStorage.map(storage -> ResponseEntity.ok(storage))
+                .orElse(ResponseEntity.badRequest().build());
     }
 
     /**
@@ -99,12 +103,14 @@ public class BagStorageController {
      * @return The fixities associated with the TagManifest of the bag
      */
     @GetMapping("/storage/{type}/fixity")
-    private Optional<Set<Fixity>> getFixities(@PathVariable("id") Long id, @PathVariable("type") String type) {
+    private ResponseEntity<Set<Fixity>> getFixities(@PathVariable("id") Long id, @PathVariable("type") String type) {
         access.info("[GET /api/bags/{}/storage/{}/fixity]", id, type);
         BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
         Bag bag = bagService.find(criteria);
         Optional<StagingStorage> storage = storageFor(bag, type);
-        return storage.map(StagingStorage::getFixities);
+        return storage.map(StagingStorage::getFixities)
+                .map(fixities -> ResponseEntity.ok(fixities))
+                .orElse(ResponseEntity.ok(ImmutableSet.of())); // no 404, just an empty set
     }
 
     /**
@@ -154,7 +160,7 @@ public class BagStorageController {
      * @return The fixity value for the algorithm, if it exists
      */
     @GetMapping("/storage/{type}/fixity/{alg}")
-    private Optional<Fixity> getFixity(@PathVariable("id") Long id, @PathVariable("type") String type, @PathVariable("alg") String algorithm) {
+    private ResponseEntity<Fixity> getFixity(@PathVariable("id") Long id, @PathVariable("type") String type, @PathVariable("alg") String algorithm) {
         access.info("[GET /api/bags/{}/storage/{}/fixity/{alg}]", id, type, algorithm);
 
         BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
@@ -164,7 +170,9 @@ public class BagStorageController {
                 // this.... sucks
                 .flatMap(fixities -> fixities.stream()
                         .filter(f -> f.getAlgorithm().equalsIgnoreCase(algorithm))
-                        .findFirst());
+                        .findFirst())
+                .map(fixity -> ResponseEntity.ok(fixity))
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**

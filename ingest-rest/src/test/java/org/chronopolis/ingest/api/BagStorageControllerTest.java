@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -82,26 +83,23 @@ public class BagStorageControllerTest extends ControllerTest {
     public void testGetStorage() throws Exception {
         when(bagService.find(any(SearchCriteria.class))).thenReturn(bag);
         when(stagingService.activeStorageForBag(eq(bag), eq(storageJoin))).thenReturn(Optional.of(storage));
-        // todo: check json vals
         mvc.perform(get("/api/bags/{id}/storage/{type}", ID, TYPE))
                 .andDo(print())
-                .andExpect(status().is(HttpStatus.OK.value()));
-                // .andExpect(jsonPath("$.id").value(ID))
-                // .andExpect(jsonPath("$.active").value(true))
-                // .andExpect(jsonPath("$.size").value(100L));
+                .andExpect(status().is(HttpStatus.OK.value()))
+                .andExpect(jsonPath("$.active").value(true))
+                .andExpect(jsonPath("$.size").value(100L));
     }
 
     @Test
     public void testUpdateStorage() throws Exception {
         when(bagService.find(any(SearchCriteria.class))).thenReturn(bag);
         when(stagingService.activeStorageForBag(eq(bag), eq(storageJoin))).thenReturn(Optional.of(storage));
-        // todo: check json vals
         mvc.perform(put("/api/bags/{id}/storage/{type}", ID, TYPE)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"active\": false}"))
                 .andDo(print())
-                .andExpect(status().is(HttpStatus.OK.value()));
-                // .andExpect(jsonPath("$.active").value(false));
+                .andExpect(status().is(HttpStatus.OK.value()))
+                .andExpect(jsonPath("$.active").value(false));
     }
 
     @Test
