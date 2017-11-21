@@ -152,12 +152,14 @@
         </table>
     </div>
 
-    <th:block th:if="${bag.bagStorage} != null">
-        <div th:replace="fragments/storage :: card-display (storage=${bag.bagStorage},storageName='Bag')"/>
+    <!--/*@thymesVar id="activeBagStorage" type="org.chronopolis.rest.entities.storage.StagingStorage"*/-->
+    <th:block th:if="${activeBagStorage} != null">
+        <div th:replace="fragments/storage :: card-display (storage=${activeBagStorage},storageName='Bag')"/>
     </th:block>
 
-    <th:block th:if="${bag.tokenStorage} != null">
-        <div th:replace="fragments/storage :: card-display (storage=${bag.tokenStorage},storageName='Token')"></div>
+    <!--/*@thymesVar id="activeTokenStorage" type="org.chronopolis.rest.entities.storage.StagingStorage"*/-->
+    <th:block th:if="${activeTokenStorage} != null">
+        <div th:replace="fragments/storage :: card-display (storage=${activeTokenStorage},storageName='Token')"></div>
     </th:block>
 
     <div class="card-header">
