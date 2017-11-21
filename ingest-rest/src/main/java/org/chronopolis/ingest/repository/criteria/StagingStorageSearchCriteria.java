@@ -21,6 +21,13 @@ public class StagingStorageSearchCriteria implements SearchCriteria {
         criteria = new HashMap<>();
     }
 
+    public StagingStorageSearchCriteria withId(Long id) {
+        if (id != null) {
+            criteria.put(Params.SORT_ID, storage.id.eq(id));
+        }
+        return this;
+    }
+
     public StagingStorageSearchCriteria withNodeName(String name) {
         if (name != null) {
             criteria.put(Params.NODE, storage.region.node.username.eq(name));
@@ -30,7 +37,7 @@ public class StagingStorageSearchCriteria implements SearchCriteria {
 
     public StagingStorageSearchCriteria withRegion(Long id) {
         if (id != null) {
-            criteria.put(Params.SORT_ID, storage.region.id.eq(id));
+            criteria.put(Params.REGION, storage.region.id.eq(id));
         }
         return this;
     }
