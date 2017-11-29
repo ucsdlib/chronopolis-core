@@ -31,26 +31,38 @@ public class StagingService extends SearchService<StagingStorage, Long, StorageR
     /**
      * Get the active storage object for a bag
      *
-     * @param bag the bag whose staging_storage we're retrieving
-     * @param storageJoin
-     * @return the StagingStorage object, if found
+     * @param bag         the bag whose staging_storage we're retrieving
+     * @param storageJoin the table to join on
+     * @return the StagingStorage entity, if found
      */
     public Optional<StagingStorage> activeStorageForBag(Bag bag, CollectionExpression<?, StagingStorage> storageJoin) {
+        return activeStorageForBag(bag.getId(), storageJoin);
+    }
+
+    /**
+     * Get the active storage object for a bag given its id
+     *
+     * @param bag         the id of the bag
+     * @param storageJoin the table to join on
+     * @return the StagingStorage entity, if found
+     */
+    public Optional<StagingStorage> activeStorageForBag(Long bag, CollectionExpression<?, StagingStorage> storageJoin) {
         JPAQueryFactory factory = new JPAQueryFactory(manager);
         QBag b = QBag.bag;
         QStagingStorage storage = QStagingStorage.stagingStorage;
         // once again not the best query but that's ok
         return Optional.ofNullable(factory.from(b)
                 .innerJoin(storageJoin, storage)
-                .where(storage.active.isTrue().and(b.id.eq(bag.getId())))
+                .where(storage.active.isTrue().and(b.id.eq(bag)))
                 .select(storage)
                 .fetchOne());
     }
 
+
     /**
      * Remove a fixity value fora given StagingStorage entity
      *
-     * @param storage the StagingStorage entity
+     * @param storage  the StagingStorage entity
      * @param fixityId the id of the fixity to remove
      */
     public void deleteFixity(StagingStorage storage, Long fixityId) {
