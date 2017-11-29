@@ -1,6 +1,7 @@
 package org.chronopolis.rest.models.storage;
 
 import org.chronopolis.rest.support.StorageUnit;
+import org.hibernate.validator.constraints.NotBlank;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -15,13 +16,12 @@ public class StagingCreate {
     /**
      * The relative location of the data which has been staged
      */
-    @NotNull
+    @NotBlank
     private String location;
 
     /**
      * The ID of the StorageRegion which data is staged in
      */
-    @Min(1L)
     @NotNull
     private Long storageRegion;
 
