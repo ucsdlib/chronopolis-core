@@ -19,11 +19,14 @@
             <th:block th:if="!${conflict}">
                 <!--/*@thymesVar id="stagingCreate" type="org.chronopolis.rest.models.storage.StagingCreate"*/-->
                 <form method="post" th:action="@{add}" th:object="${stagingCreate}">
-                    <div class="form-group row">
+                    <div class="form-group row"
+                        th:with="locError=${#fields.hasErrors('location')}"
+                        th:classappend="${locError}? 'has-warning'">
                         <label for="location" class="col-3 col-form-label">Location</label>
                         <div class="col-8">
-                            <input class="form-control" type="text" name="location"
-                                   placeholder="depositor-name/bag-name" id="location"/>
+                            <input th:field="*{location}" th:classappend="${locError} ? 'is-invalid'"
+                                   class="form-control" name="location" placeholder="depositor-name/bag-name" id="location"/>
+                            <div class="invalid-feedback" th:if="${locError}" th:errors="*{location}"></div>
                         </div>
                     </div>
 
@@ -39,10 +42,14 @@
                         </div>
                     </div>
 
-                    <div class="form-group row">
+                    <div class="form-group row"
+                        th:with="numError=${#fields.hasErrors('totalFiles')}"
+                        th:classappend="${numError}? 'has-warning'">
                         <label for="totalFiles" class="col-3 col-form-label">Number of Files</label>
-                        <div class="col-8">
-                            <input class="form-control" type="text" name="totalFiles" id="totalFiles"/>
+                        <div class="col-sm">
+                            <input th:field="*{totalFiles}" th:classappend="${numError} ? 'is-invalid'"
+                                   class="form-control" name="totalFiles" id="totalFiles"/>
+                            <div class="invalid-feedback" th:if="${numError}" th:errors="*{totalFiles}"></div>
                         </div>
                     </div>
 
@@ -51,20 +58,11 @@
                          th:classappend="${sizeError}? 'has-warning'">
                         <label for="size" class="col-3 col-form-label">Size</label>
                         <div class="col-sm">
-                            <input th:field="*{size}" th:classappend="${sizeError}? 'form-control-warning'"
+                            <input th:field="*{size}" th:classappend="${sizeError}? 'is-invalid'"
                                    class="form-control" id="size" name="size"/>
-                            <div class="form-control-feedback" th:if="${sizeError}" th:errors="*{size}"></div>
+                            <div class="invalid-feedback" th:if="${sizeError}" th:errors="*{size}"></div>
                         </div>
                     </div>
-
-                    <!--
-                    <div class="form-group row">
-                        <label for="size" class="col-3 col-form-label">Size</label>
-                        <div class="col-sm">
-                            <input class="form-control" id="size" name="size"/>
-                        </div>
-                    </div>
-                    -->
 
                     <div class="form-group row">
                         <label for="storageUnit" class="col-3 col-form-label">Size Unit</label>
