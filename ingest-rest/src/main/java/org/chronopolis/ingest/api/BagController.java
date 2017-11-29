@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.chronopolis.ingest.api.Params.*;
 import static org.chronopolis.ingest.api.Params.CREATED_AFTER;
 import static org.chronopolis.ingest.api.Params.CREATED_BEFORE;
 import static org.chronopolis.ingest.api.Params.DEPOSITOR;
@@ -83,12 +84,13 @@ public class BagController extends IngestController {
         BagSearchCriteria criteria = new BagSearchCriteria()
                 .withName(params.getOrDefault(NAME, null))
                 .withRegion(params.getOrDefault(REGION, null))
+                .withCreator(params.getOrDefault(CREATOR, null))
                 .withDepositor(params.getOrDefault(DEPOSITOR, null))
                 .createdAfter(params.getOrDefault(CREATED_AFTER, null))
                 .createdBefore(params.getOrDefault(CREATED_BEFORE, null))
                 .updatedAfter(params.getOrDefault(UPDATED_AFTER, null))
                 .updatedBefore(params.getOrDefault(UPDATED_BEFORE, null))
-                .withActiveStorage(params.getOrDefault(Params.ACTIVE, null))
+                .withActiveStorage(params.getOrDefault(ACTIVE, null))
                 .withStatus(params.containsKey(STATUS) ? BagStatus.valueOf(params.get(STATUS)) : null);
 
         return bagService.findAll(criteria, createPageRequest(params, valid()));
