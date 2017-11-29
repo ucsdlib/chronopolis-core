@@ -48,6 +48,13 @@ public class BagSearchCriteria implements SearchCriteria {
         return this;
     }
 
+    public BagSearchCriteria withCreator(String creator) {
+        if (creator != null && !creator.isEmpty()) {
+            criteria.put(Params.CREATOR, bag.creator.eq(creator));
+        }
+        return this;
+    }
+
     public BagSearchCriteria withDepositor(String depositor) {
         if (depositor != null && !depositor.isEmpty()) {
             criteria.put(Params.DEPOSITOR, bag.depositor.eq(depositor));
