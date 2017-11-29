@@ -34,6 +34,8 @@ import org.chronopolis.rest.models.IngestRequest;
 import org.chronopolis.rest.models.ReplicationRequest;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.chronopolis.rest.models.storage.FixityCreate;
+import org.chronopolis.rest.models.storage.StagingCreate;
+import org.chronopolis.rest.support.StorageUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +44,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,6 +53,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import javax.validation.Valid;
 import java.security.Principal;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -96,8 +100,8 @@ public class BagUIController extends IngestController {
     /**
      * Retrieve information about all bags
      *
-     * @param model     - the view model
-     * @param principal - authentication information
+     * @param model     the view model
+     * @param principal authentication information
      * @return page listing all bags
      */
     @RequestMapping(value = "/bags", method = RequestMethod.GET)
@@ -124,12 +128,12 @@ public class BagUIController extends IngestController {
 
     /**
      * Get information about a single bag
-     *
+     * <p>
      * todo: constants for these things
      * todo: token count async
      *
-     * @param model - the view model
-     * @param id    - the id of the bag
+     * @param model the view model
+     * @param id    the id of the bag
      * @return page showing the individual bag
      */
     @RequestMapping(value = "/bags/{id}", method = RequestMethod.GET)
@@ -163,9 +167,9 @@ public class BagUIController extends IngestController {
      * todo: constraint on updating the bag as a non-admin
      * todo: tostring for BagUpdate
      *
-     * @param model  - the viewmodel
-     * @param id     - id of the bag to update
-     * @param update - the updated information
+     * @param model  the view model
+     * @param id     id of the bag to update
+     * @param update the updated information
      * @return page showing the individual bag
      */
     @RequestMapping(value = "/bags/{id}", method = RequestMethod.POST)
@@ -347,9 +351,79 @@ public class BagUIController extends IngestController {
     }
 
     /**
+     * Retrieve the page for inputting form data to create a new StagingStorage entity for a Bag
+     *
+     * @param model         the view model
+     * @param principal     the principal of the user
+     * @param id            the id of the bag
+     * @param stagingCreate the model with the form data
+     * @return the create form
+     */
+    @GetMapping("/bags/{id}/storage/add")
+    public String addStagingForm(Model model, Principal principal, @PathVariable("id") Long id, StagingCreate stagingCreate) {
+        access.info("[GET /bags/{}/storage/add] - {}", id, principal.getName());
+
+        Optional<StagingStorage> stagingStorage = stagingService.activeStorageForBag(id, QBag.bag.bagStorage);
+        model.addAttribute("conflict", stagingStorage.isPresent());
+        model.addAttribute("regions", regions.findAll());
+        model.addAttribute("storageUnits", StorageUnit.values());
+        model.addAttribute("stagingCreate", stagingCreate);
+        return "staging/create";
+    }
+
+    /**
+     * Add a StagingStorage entity to a Bag
+     * <p>
+     * This requires the StagingCreate form data to be valid (if not, we return the create form again),
+     * and ownership of the Bag/an admin user. We will also require that the StorageRegion used is
+     * part of the same Node as the Bag, but right now we don't exactly have the means of doing that.
+     *
+     * @param model         the model to pass to the view
+     * @param principal     the principal of the user
+     * @param id            the id of the Bag
+     * @param stagingCreate the form data
+     * @param bindingResult the validation data for the form
+     * @return redirect to the Bag if successful; the create form if there are errors; or a 4xx page for any other type of errors
+     * @throws ForbiddenException
+     */
+    @PostMapping("/bags/{id}/storage/add")
+    public String addStaging(Model model,
+                             Principal principal,
+                             @PathVariable("id") Long id,
+                             @Valid StagingCreate stagingCreate,
+                             BindingResult bindingResult) throws ForbiddenException {
+        access.info("[POST /bags/{}/storage/add] - {}", id, principal.getName());
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("regions", regions.findAll());
+            model.addAttribute("storageUnits", StorageUnit.values());
+            model.addAttribute("stagingCreate", stagingCreate);
+            return "staging/create";
+        }
+
+        Bag bag = bagService.find(new BagSearchCriteria().withId(id));
+        StorageRegion region = regions.find(new StorageRegionSearchCriteria().withId(stagingCreate.getStorageRegion()));
+        if (!hasRoleAdmin() && !bag.getCreator().equalsIgnoreCase(principal.getName())) {
+            throw new ForbiddenException("User is not allowed to update this resource");
+        }
+
+        double size = Math.pow(stagingCreate.getSize(), stagingCreate.getStorageUnit().getPower());
+        StagingStorage storage = new StagingStorage()
+                .setActive(true)
+                .setRegion(region)
+                .setPath(stagingCreate.getLocation())
+                .setSize(Double.doubleToLongBits(size))
+                .setTotalFiles(stagingCreate.getTotalFiles());
+        bag.setBagStorage(storage);
+        bagService.save(bag);
+
+        return "redirect:/bags/" + id;
+    }
+
+
+    /**
      * Retrieve the page for adding bags
      *
-     * @param model - the view model
+     * @param model the view model
      * @return page to add a bag
      */
     @RequestMapping(value = "/bags/add", method = RequestMethod.GET)
@@ -363,7 +437,7 @@ public class BagUIController extends IngestController {
     /**
      * Handler for adding bags
      *
-     * @param request - the request containing the bag name, depositor, and location
+     * @param request the request containing the bag name, depositor, and location
      * @return redirect to the bags page
      */
     @RequestMapping(value = "/bags/add", method = RequestMethod.POST)
@@ -412,8 +486,8 @@ public class BagUIController extends IngestController {
      * If admin, return a list of all replications
      * else return a list for the given user
      *
-     * @param model     - the viewmodel
-     * @param principal - authentication information
+     * @param model     the viewmodel
+     * @param principal authentication information
      * @return the page listing all replications
      */
     @RequestMapping(value = "/replications", method = RequestMethod.GET)
@@ -456,8 +530,8 @@ public class BagUIController extends IngestController {
      * If admin, return a list of all replications
      * else return a list for the given user
      *
-     * @param model     - the viewmodel
-     * @param principal - authentication information
+     * @param model     the viewmodel
+     * @param principal authentication information
      * @return the addreplication page
      */
     @RequestMapping(value = "/replications/add", method = RequestMethod.GET)
@@ -503,7 +577,7 @@ public class BagUIController extends IngestController {
     /**
      * Handler for adding bags
      *
-     * @param request - the request containing the bag name, depositor, and location
+     * @param request the request containing the bag name, depositor, and location
      * @return redirect to all replications
      */
     @RequestMapping(value = "/replications/add", method = RequestMethod.POST)

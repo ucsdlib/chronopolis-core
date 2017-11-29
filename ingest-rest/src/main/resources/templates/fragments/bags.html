@@ -9,7 +9,8 @@
     <div class="card-header">
         <div class="d-flex justify-content-start">
             <h3 class="card-title p-2">Bags</h3>
-            <button data-toggle="collapse" data-target="#filter-body" id="dropdown" class="btn btn-default btn-xs btn-filter ml-auto p-2"
+            <button data-toggle="collapse" data-target="#filter-body" id="dropdown"
+                    class="btn btn-default btn-xs btn-filter ml-auto p-2"
                     aria-expanded="false" aria-controls="filter-body">
                 <i class="fa fa-search"></i> Search
             </button>
@@ -32,7 +33,8 @@
                 <select multiple="multiple" name="status" id="status-table-filter" class="form-control col-9">
                     <!--/*@thymesVar id="statuses" type="com.google.common.collect.ImmutableListMultimap<String, BagStatus>"*/-->
                     <optgroup th:each="group : ${statuses.keySet()}" th:label="${group}">
-                        <option th:each="status : ${statuses.get(group)}" th:value="${status}" th:text="${status}"></option>
+                        <option th:each="status : ${statuses.get(group)}" th:value="${status}"
+                                th:text="${status}"></option>
                     </optgroup>
                 </select>
             </div>
@@ -40,12 +42,14 @@
                 <label class="col-form-label col-2" for="direction-filter">Order By</label>
                 <div class="form-check col-2">
                     <label class="form-check-label">
-                        <input class="form-check-input" type="radio" name="orderBy" id="optionUpdatedAt" value="updatedAt"/> UpdatedAt
+                        <input class="form-check-input" type="radio" name="orderBy" id="optionUpdatedAt"
+                               value="updatedAt"/> UpdatedAt
                     </label>
                 </div>
                 <div class="form-check col-2">
                     <label class="form-check-label">
-                        <input class="form-check-input" type="radio" name="orderBy" id="optionCreatedAt" value="createdAt"/> CreatedAt
+                        <input class="form-check-input" type="radio" name="orderBy" id="optionCreatedAt"
+                               value="createdAt"/> CreatedAt
                     </label>
                 </div>
                 <div class="col-3">
@@ -155,6 +159,15 @@
     <!--/*@thymesVar id="activeBagStorage" type="org.chronopolis.rest.entities.storage.StagingStorage"*/-->
     <th:block th:if="${activeBagStorage} != null">
         <div th:replace="fragments/storage :: card-display (storage=${activeBagStorage},storageName='Bag')"/>
+    </th:block>
+    <th:block th:if="${activeBagStorage} == null">
+        <div class="btn-group p-2" role="group">
+            <!--/*@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"*/-->
+            <a class="btn btn-outline-primary"
+               th:href="@{|${bag.id}/storage/add|}">
+                Add Bag Staging
+            </a>
+        </div>
     </th:block>
 
     <!--/*@thymesVar id="activeTokenStorage" type="org.chronopolis.rest.entities.storage.StagingStorage"*/-->
