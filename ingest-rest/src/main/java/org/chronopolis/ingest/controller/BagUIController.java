@@ -406,12 +406,14 @@ public class BagUIController extends IngestController {
             throw new ForbiddenException("User is not allowed to update this resource");
         }
 
-        double size = Math.pow(stagingCreate.getSize(), stagingCreate.getStorageUnit().getPower());
+        double multiple = Math.pow(10, stagingCreate.getStorageUnit().getPower());
+        long size = Double.valueOf(stagingCreate.getSize() * multiple).longValue();
+
         StagingStorage storage = new StagingStorage()
+                .setSize(size)
                 .setActive(true)
                 .setRegion(region)
                 .setPath(stagingCreate.getLocation())
-                .setSize(Double.doubleToLongBits(size))
                 .setTotalFiles(stagingCreate.getTotalFiles());
         bag.setBagStorage(storage);
         bagService.save(bag);
