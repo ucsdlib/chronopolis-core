@@ -42,7 +42,7 @@ systemctl disable replicationd
 %__install -D -m0644 "%{SOURCE0}" "%{buildroot}%{service}"
 %__install -D -m0644 "%{SOURCE1}" "%{buildroot}%{_prefix}/%{jar}"
 %__install -D -m0644 "%{SOURCE2}" "%{buildroot}%{_prefix}/%{yaml}"
-%__install -D -m0644 "%{SOURCE3}" "%{buildroot}%{_prefix}/%{prep}"
+%__install -D -m0755 "%{SOURCE3}" "%{buildroot}%{_prefix}/%{prep}"
 
 %files
 
@@ -55,6 +55,9 @@ systemctl disable replicationd
 %config(noreplace) %{_prefix}/%{yaml}
 
 %changelog
+
+* Fri Dec 1 2017 Mike Ritter <shake@umiacs.umd.edu> 2.0.5-20171201
+- fix default modebits for prepare script
 
 * Wed Nov 8 2017 Mike Ritter <shake@umiacs.umd.edu> 2.0.3-20171108
 - add replicationd-prepare script
