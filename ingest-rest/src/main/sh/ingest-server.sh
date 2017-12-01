@@ -36,6 +36,7 @@ RETVAL=0
 prog="ingest-server"
 pidfile="/var/run/ingest-server.pid"
 lockfile=/var/lock/subsys/ingest-server
+logdir=/var/log/chronopolis
 
 # env vars for spring
 export SPRING_PID_FILE=$pidfile
