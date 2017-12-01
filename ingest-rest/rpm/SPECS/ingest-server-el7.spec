@@ -36,7 +36,7 @@ systemctl disable ingest-server
 %__install -D -m0644 "%{SOURCE0}" "%{buildroot}%{service}"
 %__install -D -m0644 "%{SOURCE1}" "%{buildroot}%{_prefix}/%{jar}"
 %__install -D -m0644 "%{SOURCE2}" "%{buildroot}%{_prefix}/%{yaml}"
-%__install -D -m0644 "%{SOURCE3}" "%{buildroot}%{_prefix}/%{prep}"
+%__install -D -m0755 "%{SOURCE3}" "%{buildroot}%{_prefix}/%{prep}"
 
 %files
 
@@ -51,9 +51,12 @@ systemctl disable ingest-server
 
 %changelog
 
+* Fri Dec 1 2017 Mike Ritter <shake@umiacs.umd.edu> 2.0.5-20171201
+- fix default modebits for prepare script
+
 * Wed Nov 8 2017 Mike Ritter <shake@umiacs.umd.edu> 2.0.3-20171108
 - add ingest-prepare script
-- rmeove install commands for logging directory
+- remove install commands for logging directory
 
 * Mon Oct 2 2017 Mike Ritter <shake@umiacs.umd.edu> 1.6.0-20171002
 - added changelog entry
