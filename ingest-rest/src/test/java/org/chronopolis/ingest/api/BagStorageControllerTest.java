@@ -1,7 +1,6 @@
 package org.chronopolis.ingest.api;
 
 import com.querydsl.core.types.dsl.SetPath;
-import org.chronopolis.ingest.repository.criteria.SearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.StagingService;
 import org.chronopolis.rest.entities.Bag;
@@ -22,7 +21,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -81,8 +79,7 @@ public class BagStorageControllerTest extends ControllerTest {
 
     @Test
     public void testGetStorage() throws Exception {
-        when(bagService.find(any(SearchCriteria.class))).thenReturn(bag);
-        when(stagingService.activeStorageForBag(eq(bag), eq(storageJoin))).thenReturn(Optional.of(storage));
+        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin))).thenReturn(Optional.of(storage));
         mvc.perform(get("/api/bags/{id}/storage/{type}", ID, TYPE))
                 .andDo(print())
                 .andExpect(status().is(HttpStatus.OK.value()))
@@ -92,8 +89,7 @@ public class BagStorageControllerTest extends ControllerTest {
 
     @Test
     public void testUpdateStorage() throws Exception {
-        when(bagService.find(any(SearchCriteria.class))).thenReturn(bag);
-        when(stagingService.activeStorageForBag(eq(bag), eq(storageJoin))).thenReturn(Optional.of(storage));
+        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin))).thenReturn(Optional.of(storage));
         mvc.perform(put("/api/bags/{id}/storage/{type}", ID, TYPE)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"active\": false}"))
@@ -104,8 +100,7 @@ public class BagStorageControllerTest extends ControllerTest {
 
     @Test
     public void testGetFixities() throws Exception {
-        when(bagService.find(any(SearchCriteria.class))).thenReturn(bag);
-        when(stagingService.activeStorageForBag(eq(bag), eq(storageJoin))).thenReturn(Optional.of(storage));
+        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin))).thenReturn(Optional.of(storage));
         mvc.perform(get("/api/bags/{id}/storage/{type}/fixity", ID, TYPE))
                 .andDo(print())
                 .andExpect(status().is(HttpStatus.OK.value()));
@@ -113,8 +108,7 @@ public class BagStorageControllerTest extends ControllerTest {
 
     @Test
     public void testGetFixity() throws Exception {
-        when(bagService.find(any(SearchCriteria.class))).thenReturn(bag);
-        when(stagingService.activeStorageForBag(eq(bag), eq(storageJoin))).thenReturn(Optional.of(storage));
+        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin))).thenReturn(Optional.of(storage));
         mvc.perform(get("/api/bags/{id}/storage/{type}/fixity/{alg}", ID, TYPE, "test-algorithm"))
                 .andDo(print())
                 .andExpect(status().is(HttpStatus.OK.value()));
@@ -122,8 +116,7 @@ public class BagStorageControllerTest extends ControllerTest {
 
     @Test
     public void testAddFixity() throws Exception {
-        when(bagService.find(any(SearchCriteria.class))).thenReturn(bag);
-        when(stagingService.activeStorageForBag(eq(bag), eq(storageJoin))).thenReturn(Optional.of(storage));
+        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin))).thenReturn(Optional.of(storage));
         mvc.perform(put("/api/bags/{id}/storage/{type}/fixity", ID, TYPE)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"algorithm\": \"test-put\", \"value\": \"success\"}"))
