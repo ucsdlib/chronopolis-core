@@ -3,6 +3,7 @@ package org.chronopolis.ingest.controller;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.PageWrapper;
 import org.chronopolis.ingest.exception.BadRequestException;
+import org.chronopolis.ingest.exception.ConflictException;
 import org.chronopolis.ingest.exception.ForbiddenException;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.models.BagUpdate;
@@ -401,9 +402,14 @@ public class BagUIController extends IngestController {
         }
 
         Bag bag = bagService.find(new BagSearchCriteria().withId(id));
+        // not too crazy about the stream... but... it works
+        Boolean activeExists = bag.getBagStorage().stream()
+                .anyMatch(StagingStorage::isActive);
         StorageRegion region = regions.find(new StorageRegionSearchCriteria().withId(stagingCreate.getStorageRegion()));
         if (!hasRoleAdmin() && !bag.getCreator().equalsIgnoreCase(principal.getName())) {
             throw new ForbiddenException("User is not allowed to update this resource");
+        } else if (activeExists) {
+            throw new ConflictException("Resource already has active storage!");
         }
 
         double multiple = Math.pow(10, stagingCreate.getStorageUnit().getPower());
