@@ -5,11 +5,11 @@ import com.google.common.collect.ComparisonChain;
 import java.nio.file.Path;
 
 /**
- * Class to represent a basic type of operation regardless of the Storage Type
+ * Base Class to represent a basic type of operation regardless of the Storage Type
  *
  * @author shake
  */
-public class StorageOperation implements Comparable<StorageOperation> {
+public abstract class StorageOperation implements Comparable<StorageOperation> {
 
     /**
      * The size in bytes the operation will need
@@ -27,14 +27,16 @@ public class StorageOperation implements Comparable<StorageOperation> {
     private String identifier;
 
     /**
-     * The path to put the operation under
-     */
-    private Path path;
-
-    /**
      * The link/uri to transfer content with
      */
     private String link;
+
+    /**
+     * Retrieve the root directory for the operation
+     *
+     * @return the root of the operation
+     */
+    public abstract Path getRoot();
 
     public Long getSize() {
         return size;
@@ -60,15 +62,6 @@ public class StorageOperation implements Comparable<StorageOperation> {
 
     public StorageOperation setIdentifier(String identifier) {
         this.identifier = identifier;
-        return this;
-    }
-
-    public Path getPath() {
-        return path;
-    }
-
-    public StorageOperation setPath(Path path) {
-        this.path = path;
         return this;
     }
 
