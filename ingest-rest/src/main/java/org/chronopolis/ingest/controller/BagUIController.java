@@ -351,6 +351,16 @@ public class BagUIController extends IngestController {
         return storage;
     }
 
+    @GetMapping("/bags/{id}/storage/all")
+    public String getAllStorage(Model model, Principal principal, @PathVariable("id") Long id) {
+        access.info("[GET /bags/{}/storage/add] - {}", id, principal.getName());
+
+        Bag bag = bagService.find(new BagSearchCriteria().withId(id));
+        // we can get everything from the bag so maybe... we're ok to just do this?
+        model.addAttribute("bag", bag);
+        return "staging/all";
+    }
+
     /**
      * Retrieve the page for inputting form data to create a new StagingStorage entity for a Bag
      *
