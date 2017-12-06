@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: head">
+    <title>Chronopolis - Repair Request</title>
+</head>
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column align-items-center m-3">
+    <div class="card w-50 filterable">
+        <div class="card-header">
+            <div class="d-flex justify-content-start">
+                <!-- Display Bag Name/Identifier + Back Link-->
+                <!-- Maybe provided in some heading for breadcrumbs -->
+                <h3 class="card-title p-2">Whatever</h3>
+            </div>
+        </div>
+
+        <!-- ...carousel may not be the best choice.. might be easier to use collapsible cards -->
+        <div class="carousel slide" data-ride="carousel">
+            <div class="carousel-inner">
+            <!--@thymesVar id="storages" type="Set<StagingStorage>"-->
+            <!--@thymesVar id="storage" type="org.chronopolis.rest.entities.storage.StagingStorage"-->
+            <div class="carousel-item" th:each="storage: ${storages}">
+                <p th:text="${storage.size}"></p>
+                <p th:text="${storage.totalFiles}"></p>
+                <p th:text="${storage.path}"></p>
+                <p th:text="${storage.active}"></p>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="layout :: foot"></div>
+<script type="text/javascript">
+    $(".table-clickable").click(function() {
+        window.location = $(this).data("href");
+    });
+</script>
+</body>
+</html>
