@@ -48,47 +48,43 @@ public class PosixBucketTest {
     }
 
     @Test
-    public void allocate() throws Exception {
-        StorageOperation operation = new StorageOperation()
+    public void allocate() {
+        StorageOperation operation = new DirectoryStorageOperation(Paths.get(ALLOCATION))
                 .setSize(0L)
                 .setLink(LINK)
                 .setIdentifier(ALLOCATION)
-                .setType(OperationType.RSYNC)
-                .setPath(Paths.get(ALLOCATION));
+                .setType(OperationType.RSYNC);
         Assert.assertTrue("Operation is writeable and supported", bucket.allocate(operation));
         Assert.assertTrue("Operation is writeable and supported (resubmission)", bucket.allocate(operation));
     }
 
     @Test
     public void allocateNotWriteable() {
-        StorageOperation operation = new StorageOperation()
+        StorageOperation operation = new DirectoryStorageOperation(Paths.get(ALLOCATION))
                 .setLink(LINK)
                 .setSize(Long.MAX_VALUE) // ehhh
                 .setIdentifier(ALLOCATION)
-                .setType(OperationType.RSYNC)
-                .setPath(Paths.get(ALLOCATION));
+                .setType(OperationType.RSYNC);
         Assert.assertFalse("Operation is not writeable and supported", bucket.allocate(operation));
     }
 
     @Test
     public void allocateNotSupported() {
-        StorageOperation operation = new StorageOperation()
+        StorageOperation operation = new DirectoryStorageOperation(Paths.get(ALLOCATION))
                 .setSize(0L)
                 .setLink(LINK)
                 .setIdentifier(ALLOCATION)
-                .setType(OperationType.NOP)
-                .setPath(Paths.get(ALLOCATION));
+                .setType(OperationType.NOP);
         Assert.assertFalse("Operation is writeable and not supported", bucket.allocate(operation));
     }
 
     @Test
-    public void contains() throws Exception {
-        StorageOperation operation = new StorageOperation()
+    public void contains() {
+        StorageOperation operation = new DirectoryStorageOperation(Paths.get(CONTAINS))
                 .setSize(0L)
                 .setLink(LINK)
                 .setIdentifier(CONTAINS)
-                .setType(OperationType.RSYNC)
-                .setPath(Paths.get(CONTAINS));
+                .setType(OperationType.RSYNC);
         bucket.allocate(operation);
         Assert.assertTrue("Operation exists in bucket's pending operations", bucket.contains(operation));
     }
@@ -99,35 +95,32 @@ public class PosixBucketTest {
 
     @Test
     public void notContains() {
-        StorageOperation operation = new StorageOperation()
+        StorageOperation operation = new DirectoryStorageOperation(Paths.get(CONTAINS))
                 .setSize(0L)
                 .setLink(LINK)
                 .setIdentifier(CONTAINS)
-                .setType(OperationType.RSYNC)
-                .setPath(Paths.get(CONTAINS));
+                .setType(OperationType.RSYNC);
         Assert.assertFalse("Operation does not exist", bucket.contains(operation));
     }
 
     @Test
-    public void writeable() throws Exception {
-        StorageOperation operation = new StorageOperation()
+    public void writeable() {
+        StorageOperation operation = new DirectoryStorageOperation(Paths.get(WRITEABLE))
                 .setSize(1L)
                 .setLink(LINK)
                 .setIdentifier(WRITEABLE)
-                .setType(OperationType.RSYNC)
-                .setPath(Paths.get(WRITEABLE));
+                .setType(OperationType.RSYNC);
 
         Assert.assertTrue("Operation is writeable", bucket.writeable(operation));
     }
 
     @Test
     public void writeableNoSpace() {
-        StorageOperation operation = new StorageOperation()
+        StorageOperation operation = new DirectoryStorageOperation(Paths.get(WRITEABLE))
                 .setLink(LINK)
                 .setSize(Long.MAX_VALUE)
                 .setIdentifier(WRITEABLE)
-                .setType(OperationType.RSYNC)
-                .setPath(Paths.get(WRITEABLE));
+                .setType(OperationType.RSYNC);
 
         Assert.assertFalse("Operation is not writeable", bucket.writeable(operation));
     }
@@ -139,24 +132,22 @@ public class PosixBucketTest {
         // max =  usable - limit
         Double limit = dir.toFile().getTotalSpace() * 0.12;
         Double size = dir.toFile().getUsableSpace() - limit;
-        StorageOperation operation = new StorageOperation()
+        StorageOperation operation = new DirectoryStorageOperation(Paths.get(WRITEABLE))
                 .setLink(LINK)
                 .setSize(size.longValue())
                 .setIdentifier(WRITEABLE)
-                .setType(OperationType.RSYNC)
-                .setPath(Paths.get(WRITEABLE));
+                .setType(OperationType.RSYNC);
 
         Assert.assertTrue("Operation is writeable", bucket.writeable(operation));
     }
 
     @Test
-    public void transfer() throws Exception {
-        StorageOperation op = new StorageOperation()
+    public void transfer() {
+        StorageOperation op = new DirectoryStorageOperation(Paths.get(TRANSFER))
                 .setSize(1L)
                 .setLink(LINK)
                 .setIdentifier(TRANSFER)
-                .setType(OperationType.RSYNC)
-                .setPath(Paths.get(TRANSFER));
+                .setType(OperationType.RSYNC);
 
         bucket.allocate(op);
         Optional<FileTransfer> transfer = bucket.transfer(op);
@@ -167,25 +158,23 @@ public class PosixBucketTest {
 
     @Test
     public void transferNotInPending() {
-        StorageOperation op = new StorageOperation()
+        StorageOperation op = new DirectoryStorageOperation(Paths.get(TRANSFER))
                 .setSize(1L)
                 .setLink(LINK)
                 .setIdentifier(TRANSFER)
-                .setType(OperationType.RSYNC)
-                .setPath(Paths.get(TRANSFER));
+                .setType(OperationType.RSYNC);
 
         Optional<FileTransfer> transfer = bucket.transfer(op);
         Assert.assertFalse("transfer is empty", transfer.isPresent());
     }
 
     @Test
-    public void hash() throws Exception {
-        StorageOperation operation = new StorageOperation()
+    public void hash() {
+        StorageOperation operation = new DirectoryStorageOperation(Paths.get(TEST_DEPOSITOR))
                 .setSize(1L)
                 .setLink(LINK)
                 .setIdentifier(HASH)
-                .setType(OperationType.RSYNC)
-                .setPath(Paths.get(TEST_DEPOSITOR));
+                .setType(OperationType.RSYNC);
 
         bucket.allocate(operation);
         Optional<HashCode> hash = bucket.hash(operation, Paths.get(TEST_FILE));
@@ -194,13 +183,12 @@ public class PosixBucketTest {
     }
 
     @Test
-    public void hashFileDNE() throws Exception {
-        StorageOperation operation = new StorageOperation()
+    public void hashFileDNE() {
+        StorageOperation operation = new DirectoryStorageOperation(Paths.get(TEST_DEPOSITOR))
                 .setSize(1L)
                 .setLink(LINK)
                 .setIdentifier(HASH)
-                .setType(OperationType.RSYNC)
-                .setPath(Paths.get(TEST_DEPOSITOR));
+                .setType(OperationType.RSYNC);
 
         bucket.allocate(operation);
         Optional<HashCode> hash = bucket.hash(operation, Paths.get("some-fake-file"));
@@ -210,12 +198,11 @@ public class PosixBucketTest {
 
     @Test
     public void stream() throws Exception {
-         StorageOperation operation = new StorageOperation()
+         StorageOperation operation = new DirectoryStorageOperation(Paths.get(TEST_DEPOSITOR))
                 .setSize(1L)
                 .setLink(LINK)
                 .setIdentifier(STREAM)
-                .setType(OperationType.RSYNC)
-                .setPath(Paths.get(TEST_DEPOSITOR));
+                .setType(OperationType.RSYNC);
 
         bucket.allocate(operation);
         Optional<ByteSource> source = bucket.stream(operation, Paths.get(TEST_FILE));
@@ -226,12 +213,11 @@ public class PosixBucketTest {
     }
 
     @Test
-    public void fillAceStorage() throws Exception {
-        StorageOperation op = new StorageOperation()
+    public void fillAceStorage() {
+        StorageOperation op = new DirectoryStorageOperation(Paths.get(STORAGE))
                 .setSize(0L)
                 .setLink(LINK)
                 .setIdentifier(STORAGE)
-                .setPath(Paths.get(STORAGE))
                 .setType(OperationType.RSYNC);
 
         GsonCollection.Builder bldr = new GsonCollection.Builder();
@@ -245,12 +231,11 @@ public class PosixBucketTest {
     }
 
     @Test
-    public void free() throws Exception {
-        StorageOperation op = new StorageOperation()
+    public void free() {
+        StorageOperation op = new DirectoryStorageOperation(Paths.get(FREE))
                 .setSize(0L)
                 .setLink(LINK)
                 .setIdentifier(FREE)
-                .setPath(Paths.get(FREE))
                 .setType(OperationType.RSYNC);
 
         Assert.assertTrue(bucket.allocate(op));

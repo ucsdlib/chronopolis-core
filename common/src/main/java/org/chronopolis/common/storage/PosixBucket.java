@@ -72,9 +72,16 @@ public class PosixBucket implements Bucket {
 
     @Override
     public boolean contains(StorageOperation operation) {
-        Path path = Paths.get(posix.getPath()).resolve(operation.getPath());
+        Path path = Paths.get(posix.getPath()).resolve(operation.getRoot());
         return pendingOperations.contains(operation) || path.toFile().exists();
     }
+
+    @Override
+    public boolean contains(StorageOperation operation, Path file) {
+        Path path = Paths.get(posix.getPath()).resolve(operation.getRoot()).resolve(file);
+        return pendingOperations.contains(operation) || path.toFile().exists();
+    }
+
 
     @Override
     public boolean writeable(StorageOperation operation) {
@@ -97,12 +104,27 @@ public class PosixBucket implements Bucket {
     }
 
     @Override
+    public Optional<Path> mkdir(StorageOperation operation) {
+        Path path = Paths.get(posix.getPath()).resolve(operation.getRoot());
+
+        Optional<Path> root = Optional.empty();
+        try {
+            java.nio.file.Files.createDirectories(path);
+            root = Optional.of(path);
+        } catch (IOException e) {
+            log.error("Unable to create directories for {}", path);
+        }
+
+        return root;
+    }
+
+    @Override
     public Optional<FileTransfer> transfer(StorageOperation operation) {
         Optional<FileTransfer> response = Optional.empty();
         OperationType type = operation.getType();
         if (contains(operation) && supported(type)) {
             if (type == OperationType.RSYNC) {
-                Path rsyncPath = Paths.get(posix.getPath()).resolve(operation.getPath());
+                Path rsyncPath = Paths.get(posix.getPath()).resolve(operation.getRoot());
                 response = Optional.of(new RSyncTransfer(operation.getLink(), rsyncPath));
             } else {
                 log.warn("Unable to support transfer of type {}", type);
@@ -115,7 +137,7 @@ public class PosixBucket implements Bucket {
     public Optional<HashCode> hash(StorageOperation operation, Path file) {
         Optional<HashCode> response = Optional.empty();
         Path root = Paths.get(posix.getPath());
-        Path resolved = root.resolve(operation.getPath()).resolve(file);
+        Path resolved = root.resolve(operation.getRoot()).resolve(file);
         log.debug("[{}] Resolved file for hashing: {}", operation.getIdentifier(), resolved);
         if (resolved.toFile().exists()) {
             try {
@@ -132,7 +154,7 @@ public class PosixBucket implements Bucket {
         // I'm not sure if this is really how we'll want to do this moving forward, but it's
         // what we have for now
         Path resolved = Paths.get(posix.getPath())
-                .resolve(operation.getPath())
+                .resolve(operation.getRoot())
                 .resolve(file);
         return Optional.ofNullable(Files.asByteSource(resolved.toFile()));
     }
@@ -147,13 +169,7 @@ public class PosixBucket implements Bucket {
             root = Paths.get(posix.getPath());
         }
 
-        // this is missing the actual name of the bag
-        // posix.getPath :: op.getPath
-        // maps to
-        // /root/operation/
-        // instead of
-        // /root/operation/{subfolder}
-        builder.directory(root.resolve(operation.getPath()).toString());
+        builder.directory(root.resolve(operation.getRoot()).toString());
 
         return builder;
     }

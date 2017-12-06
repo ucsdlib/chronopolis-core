@@ -44,13 +44,12 @@ public class BucketBrokerTest {
     }
 
     @Test
-    public void allocateSpaceForOperation() throws Exception {
-        final StorageOperation operation = new StorageOperation()
+    public void allocateSpaceForOperation() {
+        final StorageOperation operation = new DirectoryStorageOperation(Paths.get(ALLOCATE))
                 .setSize(1L)
                 .setLink(ALLOCATE)
                 .setIdentifier(ALLOCATE)
-                .setType(OperationType.RSYNC)
-                .setPath(Paths.get(ALLOCATE));
+                .setType(OperationType.RSYNC);
 
         Optional<Bucket> bucket = broker.allocateSpaceForOperation(operation);
         Assert.assertTrue(bucket.isPresent());
@@ -65,25 +64,23 @@ public class BucketBrokerTest {
     }
 
     @Test
-    public void allocateSpaceForOperationNotSupported() throws Exception {
-        StorageOperation operation = new StorageOperation()
+    public void allocateSpaceForOperationNotSupported() {
+        StorageOperation operation = new DirectoryStorageOperation(Paths.get(ALLOCATE))
                 .setSize(1L)
                 .setLink(ALLOCATE)
                 .setIdentifier(ALLOCATE)
-                .setType(OperationType.NOP)
-                .setPath(Paths.get(ALLOCATE));
+                .setType(OperationType.NOP);
 
         Optional<Bucket> bucket = broker.allocateSpaceForOperation(operation);
         Assert.assertFalse(bucket.isPresent());
     }
 
     @Test
-    public void findBucketForOperation() throws Exception {
-        StorageOperation operation = new StorageOperation()
+    public void findBucketForOperation() {
+        StorageOperation operation = new DirectoryStorageOperation(Paths.get(SEARCH))
                 .setSize(1L)
                 .setLink(SEARCH)
                 .setIdentifier(SEARCH)
-                .setPath(Paths.get(SEARCH))
                 .setType(OperationType.RSYNC);
 
         Optional<Bucket> bucketForOperation = broker.findBucketForOperation(operation);
@@ -91,13 +88,12 @@ public class BucketBrokerTest {
     }
 
     @Test
-    public void findBucketForOperationNotExists() throws Exception {
-        StorageOperation operation = new StorageOperation()
+    public void findBucketForOperationNotExists() {
+        StorageOperation operation = new DirectoryStorageOperation(Paths.get(SEARCH_DNE))
                 .setSize(1L)
                 .setLink(SEARCH_DNE)
                 .setIdentifier(SEARCH_DNE)
-                .setType(OperationType.RSYNC)
-                .setPath(Paths.get(SEARCH_DNE));
+                .setType(OperationType.RSYNC);
 
         Optional<Bucket> bucketForOperation = broker.findBucketForOperation(operation);
         Assert.assertFalse(bucketForOperation.isPresent());
