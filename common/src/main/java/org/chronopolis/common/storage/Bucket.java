@@ -36,6 +36,15 @@ public interface Bucket {
     boolean contains(StorageOperation operation);
 
     /**
+     * Check if a Bucket contains a given file for a StorageOperation
+     *
+     * @param operation the operation to check
+     * @param file      the file in the operation
+     * @return true if the file exists for the operation; false otherwise
+     */
+    boolean contains(StorageOperation operation, Path file);
+
+    /**
      * Check if a Bucket has enough usable storage to write the total size of a StorageOperation
      * i.e. operation.size < bucket.usable
      *
@@ -43,6 +52,14 @@ public interface Bucket {
      * @return true if space is available; false otherwise
      */
     boolean writeable(StorageOperation operation);
+
+    /**
+     * Create directories up to the operation's path
+     *
+     * @param operation the operation to create the directories for
+     * @return the path to the operation's root directory, if available
+     */
+    Optional<Path> mkdir(StorageOperation operation);
 
     /**
      * Create a FileTransfer which can be used to replicate content into this Bucket
@@ -82,7 +99,7 @@ public interface Bucket {
 
     /**
      * What does it mean to free an operation in our context? Remove it from disk? Reclaim its allocated space?
-     *
+     * <p>
      * For now it might be best only to use this when a replication cannot be recovered and needs to
      * be removed from a Bucket
      *
