@@ -7,53 +7,52 @@
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column align-items-center m-3">
     <div class="w-50">
-    <h4>Repair Request</h4>
+        <h4>Repair Request</h4>
 
-    <!--/*@thymesVar id="collections" type="List<org.chronopolis.common.ace.GsonCollection>"*/-->
-    <!--/*@thymesVar id="error" type="org.chronopolis.ingest.models.HttpError"*/-->
-    <h6 th:if="${collections == null}" class="text-muted">Query your node's ACE to retrieve corrupt collections</h6>
-    <h6 th:if="${collections != null}" class="text-muted">Select a collection to repair</h6>
-    <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem;">
-         <form th:if="${collections == null || error != null}"
-               th:action="@{/repairs/ace}" id="request" enctype="application/json" method="post" name="replication">
-            <div class="form-group row">
-                <label for="ace-endpoint" class="col-2 col-form-lab">ACE Endpoint</label>
-                <div class="col-10">
-                    <input type="text" class="form-control" id="ace-endpoint" name="endpoint"/>
+        <!--/*@thymesVar id="collections" type="List<org.chronopolis.common.ace.GsonCollection>"*/-->
+        <!--/*@thymesVar id="error" type="org.chronopolis.ingest.models.HttpError"*/-->
+        <h6 th:if="${collections == null}" class="text-muted">Query your node's ACE to retrieve corrupt collections</h6>
+        <h6 th:if="${collections != null}" class="text-muted">Select a collection to repair</h6>
+        <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem;">
+            <form th:if="${collections == null || error != null}"
+                  th:action="@{/repairs/ace}" id="request" enctype="application/json" method="post" name="replication">
+                <div class="form-group row">
+                    <label for="ace-endpoint" class="col-2 col-form-lab">ACE Endpoint</label>
+                    <div class="col-10">
+                        <input type="text" class="form-control" id="ace-endpoint" name="endpoint"/>
+                    </div>
                 </div>
-            </div>
-            <div class="form-group row">
-                <label for="username" class="col-2 col-form-lab">ACE Username</label>
-                <div class="col-10">
-                    <input type="text" class="form-control" id="username" name="username"/>
+                <div class="form-group row">
+                    <label for="username" class="col-2 col-form-lab">ACE Username</label>
+                    <div class="col-10">
+                        <input type="text" class="form-control" id="username" name="username"/>
+                    </div>
                 </div>
-            </div>
-            <div class="form-group row">
-                <label for="password" class="col-2 col-form-lab">ACE Password</label>
-                <div class="col-10">
-                    <input type="password" class="form-control" id="password" name="password"/>
+                <div class="form-group row">
+                    <label for="password" class="col-2 col-form-lab">ACE Password</label>
+                    <div class="col-10">
+                        <input type="password" class="form-control" id="password" name="password"/>
+                    </div>
                 </div>
-            </div>
-            <input type="submit" value="Next" class="btn btn-primary"/>
-            <h5 th:if="${error != null}"><span class="badge badge-danger" th:text="|Unable to connect to ACE: ${error.code} ${error.message}|"></span></h5>
-        </form>
+                <input type="submit" value="Next" class="btn btn-primary"/>
+                <h5 th:if="${error != null}"><span class="badge badge-danger" th:text="|Unable to connect to ACE: ${error.code} ${error.message}|"></span></h5>
+            </form>
 
-        <div th:if="${collections != null}" class="card mb-2 w-25" th:each="collection: ${collections}">
-            <div class="card-block">
-                <p class="card-text" th:text="|Depositor: ${collection.group}|"></p>
-                <p class="card-text" th:text="|Collection: ${collection.name}|"></p>
-                <form id="collection" method="post" th:action="@{/repairs/collection}">
-                    <input type="hidden" name="depositor" th:value="${collection.group}"/>
-                    <input type="hidden" name="collection" th:value="${collection.name}"/>
-                    <input type="hidden" name="id" th:value="${collection.id}"/>
-                    <input type="submit" value="Select Collection" class="btn btn-primary"/>
-                </form>
+            <div th:if="${collections != null}" class="card mb-2 w-25" th:each="collection: ${collections}">
+                <div class="card-block">
+                    <p class="card-text" th:text="|Depositor: ${collection.group}|"></p>
+                    <p class="card-text" th:text="|Collection: ${collection.name}|"></p>
+                    <form id="collection" method="post" th:action="@{/repairs/collection}">
+                        <input type="hidden" name="depositor" th:value="${collection.group}"/>
+                        <input type="hidden" name="collection" th:value="${collection.name}"/>
+                        <input type="hidden" name="id" th:value="${collection.id}"/>
+                        <input type="submit" value="Select Collection" class="btn btn-primary"/>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-    </div>
 </div>
-
 <div th:replace="layout :: foot"></div>
 </body>
 </html>
