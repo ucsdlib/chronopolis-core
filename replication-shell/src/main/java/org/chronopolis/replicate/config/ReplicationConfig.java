@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Configuration
 @EnableConfigurationProperties({SmtpProperties.class,
+        IngestAPIProperties.class,
         PreservationProperties.class,
         ReplicationProperties.class,
         AceConfiguration.class})

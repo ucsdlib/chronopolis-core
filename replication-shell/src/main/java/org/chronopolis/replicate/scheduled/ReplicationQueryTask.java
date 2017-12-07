@@ -9,7 +9,6 @@ import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -34,7 +33,6 @@ import java.util.Map;
  */
 @Component
 @EnableScheduling
-@EnableConfigurationProperties(IngestAPIProperties.class)
 public class ReplicationQueryTask {
     private final Logger log = LoggerFactory.getLogger(ReplicationQueryTask.class);
 
@@ -72,7 +70,7 @@ public class ReplicationQueryTask {
      * Query the ingest-server and add requests to the {@link Submitter}
      * if they are not already being replicated
      *
-     * @param status - the status of the request to get
+     * @param status the status of the request to get
      */
     private Query query(ReplicationStatus status) {
         log.info("Querying for {} replications", status.toString());
@@ -114,7 +112,7 @@ public class ReplicationQueryTask {
         return q;
     }
 
-    private void startReplications(List<Replication> replications) throws IOException {
+    private void startReplications(List<Replication> replications) {
         for (Replication replication : replications) {
             log.trace("Replication {} has bag-id {}", replication.getId(), replication.getBag().getId());
             submitter.submit(replication);
@@ -122,9 +120,9 @@ public class ReplicationQueryTask {
     }
 
     private class Query {
-        boolean success;
+        private boolean success;
         @Nullable
-        Throwable t;
+        private Throwable t;
 
         public Query(boolean success) {
             this.success = success;
