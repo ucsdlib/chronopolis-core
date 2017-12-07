@@ -7,7 +7,7 @@ import okio.BufferedSink;
 import okio.Okio;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.storage.Bucket;
-import org.chronopolis.common.storage.StorageOperation;
+import org.chronopolis.common.storage.SingleFileOperation;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
 import org.chronopolis.rest.api.ReplicationService;
@@ -23,7 +23,6 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -39,14 +38,14 @@ public class AceTokenTasklet implements Runnable {
     private final Bucket bucket;
     private final AceService aceService;
     private final Replication replication;
-    private final StorageOperation operation;
+    private final SingleFileOperation operation;
     private final ReplicationService replications;
     private final ReplicationNotifier notifier;
 
     private final Long id;
 
     public AceTokenTasklet(Bucket bucket,
-                           StorageOperation operation,
+                           SingleFileOperation operation,
                            ServiceGenerator generator,
                            AceService aceService,
                            Replication replication,
@@ -78,7 +77,7 @@ public class AceTokenTasklet implements Runnable {
 
         // For a a Token Operation, the operation path contains the
         // full path to the token store so we join it with an empty path
-        Optional<ByteSource> stream = bucket.stream(operation, Paths.get(""));
+        Optional<ByteSource> stream = bucket.stream(operation, operation.getFile());
         stream.map(source -> aceService.loadTokenStore(id, new AceTokenBody(source)))
                 .ifPresent(call -> attemptLoad(call, name));
     }

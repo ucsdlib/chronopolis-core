@@ -2,7 +2,7 @@ package org.chronopolis.replicate.batch.transfer;
 
 import com.google.common.hash.HashCode;
 import org.chronopolis.common.storage.Bucket;
-import org.chronopolis.common.storage.StorageOperation;
+import org.chronopolis.common.storage.SingleFileOperation;
 import org.chronopolis.common.transfer.FileTransfer;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
 import org.chronopolis.rest.api.ReplicationService;
@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import retrofit2.Call;
 import retrofit2.Callback;
 
-import java.nio.file.Paths;
 import java.util.Optional;
 
 /**
@@ -28,10 +27,10 @@ public class TokenTransfer implements Transfer, Runnable {
 
     private final Long id;
     private final Bucket bucket;
-    private final StorageOperation operation;
+    private final SingleFileOperation operation;
     private final ReplicationService replications;
 
-    public TokenTransfer(Bucket bucket, StorageOperation operation, Replication replication, ReplicationService replications) {
+    public TokenTransfer(Bucket bucket, SingleFileOperation operation, Replication replication, ReplicationService replications) {
         this.bucket = bucket;
         this.operation = operation;
         this.replications = replications;
@@ -47,7 +46,7 @@ public class TokenTransfer implements Transfer, Runnable {
         transfer.flatMap(xfer -> transfer(xfer, operation.getIdentifier()))
                 // For a a Token Operation, the operation path contains the
                 // full path to the token store so we join it with an empty path
-                .flatMap(ignored -> bucket.hash(operation, Paths.get("")))
+                .flatMap(ignored -> bucket.hash(operation, operation.getFile()))
                 .map(this::update)
                 .orElseThrow(() -> new RuntimeException("Unable to update token store fixity value. Check that the file exists or that the Ingest API is available."));
     }
