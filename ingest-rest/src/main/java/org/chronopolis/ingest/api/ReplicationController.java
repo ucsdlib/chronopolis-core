@@ -5,10 +5,13 @@ import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.criteria.ReplicationSearchCriteria;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
+import org.chronopolis.ingest.repository.dao.StagingService;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.entities.storage.Fixity;
+import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.models.FixityUpdate;
 import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.ReplicationRequest;
@@ -28,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.chronopolis.ingest.api.Params.CREATED_AFTER;
@@ -51,17 +55,18 @@ public class ReplicationController extends IngestController {
     private final Logger log = LoggerFactory.getLogger(ReplicationController.class);
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
+    private final StagingService stagingService;
     private final ReplicationService replicationService;
 
     @Autowired
-    public ReplicationController(ReplicationService replicationService) {
+    public ReplicationController(StagingService stagingService, ReplicationService replicationService) {
+        this.stagingService = stagingService;
         this.replicationService = replicationService;
     }
 
     /**
      * Create a replication request for a given node and bag
      * <p/>
-     * TODO: Return a 201
      *
      * @param request   - request containing the bag id to replicate
      * @return
@@ -105,8 +110,6 @@ public class ReplicationController extends IngestController {
                                          @RequestBody FixityUpdate update) {
         access.info("[PUT /api/replications/{}/tokenstore] - {}", principal);
         access.info("PUT parameters - {}", update.getFixity());
-        // not sure if we need the following logging statement anymore
-        // log.info("[{}] Updating token digest for {}", principal.getName(), replicationId);
 
         ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
 
@@ -116,7 +119,9 @@ public class ReplicationController extends IngestController {
         String fixity = update.getFixity();
 
         // Validate the fixity and update the replication
-        checkFixity(r, bag.getTokenStorage().getFixities(), fixity, ReplicationStatus.FAILURE_TOKEN_STORE);
+        // need to get active storage
+        Optional<StagingStorage> storage = stagingService.activeStorageForBag(bag, QBag.bag.tokenStorage);
+        storage.ifPresent(s -> checkFixity(r, s.getFixities(), fixity, ReplicationStatus.FAILURE_TOKEN_STORE));
         r.setReceivedTokenFixity(fixity);
         r.checkTransferred();
         replicationService.save(r);
@@ -137,7 +142,6 @@ public class ReplicationController extends IngestController {
                                        @RequestBody FixityUpdate update) {
         access.info("[PUT /api/replications/{}/tokenstore] - {}", principal);
         access.info("PUT parameters - {}", update.getFixity());
-        // log.info("[{}] Updating tag digest for {}", principal.getName(), replicationId);
         ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
 
         // Break out our objects
@@ -146,7 +150,8 @@ public class ReplicationController extends IngestController {
         String fixity = update.getFixity();
 
         // Validate the fixity and update the replication
-        checkFixity(r, bag.getBagStorage().getFixities(), fixity, ReplicationStatus.FAILURE_TAG_MANIFEST);
+        Optional<StagingStorage> storage = stagingService.activeStorageForBag(bag, QBag.bag.bagStorage);
+        storage.ifPresent(s -> checkFixity(r, s.getFixities(), fixity, ReplicationStatus.FAILURE_TAG_MANIFEST));
         r.setReceivedTagFixity(update.getFixity());
         r.checkTransferred();
         replicationService.save(r);

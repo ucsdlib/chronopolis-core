@@ -2,6 +2,7 @@ package org.chronopolis.rest.entities;
 
 
 import org.chronopolis.rest.entities.storage.Fixity;
+import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.listener.ReplicationUpdateListener;
 import org.chronopolis.rest.models.ReplicationStatus;
 
@@ -39,17 +40,6 @@ public class Replication extends UpdatableEntity {
     private String receivedTagFixity;
     private String receivedTokenFixity;
 
-    // For JSON (ignored because we use the JsonGetter/Setter below)
-    /*
-    @Transient
-    @JsonIgnore
-    private String nodeUser;
-
-    @Transient
-    @JsonIgnore
-    private Long bagId;
-    */
-
     // JPA...
     protected Replication() {
     }
@@ -59,9 +49,6 @@ public class Replication extends UpdatableEntity {
         this.status = ReplicationStatus.PENDING;
         this.node = node;
         this.bag = bag;
-        // this.nodeUser = node.getUsername();
-        // this.bagId = bag.getId();
-        // this.bagID = bagID;
         this.bagLink = "";
         this.tokenLink = "";
         this.protocol = "rsync";
@@ -74,8 +61,6 @@ public class Replication extends UpdatableEntity {
         this.status = ReplicationStatus.PENDING;
         this.node = node;
         this.bag = bag;
-        // this.nodeUser = node.getUsername();
-        // this.bagId = bag.getId();
         this.bagLink = bagLink;
         this.tokenLink = tokenLink;
     }
@@ -93,13 +78,23 @@ public class Replication extends UpdatableEntity {
     }
 
     public void checkTransferred() {
-        Set<Fixity> bagFixities = bag.getBagStorage().getFixities();
-        Set<Fixity> tokenFixities = bag.getTokenStorage().getFixities();
+        // this is... not ideal...
+        // we could pass the active storage objects in? honestly I'm not sure what to do
+        Set<StagingStorage> bagFixities = bag.getBagStorage();
+        Set<StagingStorage> tokenFixities = bag.getTokenStorage();
+
+        boolean tagMatch = bagFixities.stream()
+                .map(b -> b.getFixities())
+                .map(f -> fixityEquals(f, receivedTagFixity))
+                .anyMatch(Boolean::booleanValue);
+
+        boolean tokenMatch = tokenFixities.stream()
+                .map(b -> b.getFixities())
+                .map(f -> fixityEquals(f, receivedTokenFixity))
+                .anyMatch(Boolean::booleanValue);
 
         // Contains in fixities set
-        if (status.isOngoing() &&
-                fixityEquals(bagFixities, receivedTagFixity) &&
-                fixityEquals(tokenFixities, receivedTokenFixity)) {
+        if (status.isOngoing() && tagMatch && tokenMatch) {
             this.status = ReplicationStatus.TRANSFERRED;
         }
     }

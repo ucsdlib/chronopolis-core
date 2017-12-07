@@ -20,8 +20,8 @@ DROP SEQUENCE IF EXISTS bag_id_seq;
 CREATE SEQUENCE bag_id_seq;
 CREATE TABLE bag (
     id bigint PRIMARY KEY DEFAULT nextval('bag_id_seq'),
-    bag_storage_id BIGINT,
-    token_storage_id BIGINT,
+    -- bag_storage_id BIGINT,
+    -- token_storage_id BIGINT,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     name varchar(255) UNIQUE,
@@ -204,6 +204,20 @@ CREATE TABLE staging_storage (
     updated_at TIMESTAMP
 );
 
+-- join tables for bag <-> staging relationship
+-- bag storage
+DROP TABLE IF EXISTS bag_storage;
+CREATE TABLE bag_storage (
+    bag_id BIGINT NOT NULL,
+    staging_id BIGINT NOT NULL
+);
+
+-- token storage
+DROP TABLE IF EXISTS token_storage;
+CREATE TABLE token_storage (
+    bag_id BIGINT NOT NULL,
+    staging_id BIGINT NOT NULL
+);
 
 DROP TABLE IF EXISTS fixity;
 DROP SEQUENCE IF EXISTS fixity_id_seq;
@@ -242,11 +256,19 @@ ALTER TABLE fixity
 ALTER TABLE replication_config
     ADD CONSTRAINT FK_rc_sr FOREIGN KEY (region_id) REFERENCES storage_region;
 
-ALTER TABLE bag
-    ADD CONSTRAINT FK_bag_storage FOREIGN KEY (bag_storage_id) REFERENCES staging_storage;
+ALTER TABLE bag_storage
+    ADD CONSTRAINT FK_bs_bag FOREIGN KEY (bag_id) REFERENCES bag;
 
-ALTER TABLE bag
-    ADD CONSTRAINT FK_bag_tokens FOREIGN KEY (bag_storage_id) REFERENCES staging_storage;
+ALTER TABLE token_storage
+    ADD CONSTRAINT FK_ts_bag FOREIGN KEY (bag_id) REFERENCES bag;
+
+ALTER TABLE bag_storage
+    ADD CONSTRAINT FK_bs_storage FOREIGN KEY (staging_id) REFERENCES staging_storage;
+
+ALTER TABLE token_storage
+    ADD CONSTRAINT FK_ts_storage FOREIGN KEY (staging_id) REFERENCES staging_storage;
 
 -- Indices
 CREATE INDEX CONCURRENTLY idx_filename ON ace_token (bag, filename);
+CREATE INDEX CONCURRENTLY idx_bag_storage ON bag_storage (bag_id, staging_id);
+CREATE INDEX CONCURRENTLY idx_token_storage ON token_storage (bag_id, staging_id);

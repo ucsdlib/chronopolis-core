@@ -9,11 +9,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- *
  * Created by shake on 8/1/16.
  */
 public class BagConverter {
 
+    /**
+     * Convert a BagEntity to a BagModel
+     *
+     * @param be the BagEntity
+     * @return a BagModel
+     */
     public static org.chronopolis.rest.models.Bag toBagModel(org.chronopolis.rest.entities.Bag be) {
         org.chronopolis.rest.models.Bag bm = new Bag();
         bm.setCreatedAt(be.getCreatedAt())
@@ -40,17 +45,22 @@ public class BagConverter {
         return be;
     }
 
-    private static StagingStorageModel toStorageModel(StagingStorage storage) {
-        if (storage == null) {
+    private static StagingStorageModel toStorageModel(Set<StagingStorage> storage) {
+        if (storage == null || storage.isEmpty()) {
             return null;
         }
 
-        return new StagingStorageModel().setTotalFiles(storage.getTotalFiles())
-                .setSize(storage.getSize())
-                .setRegion(storage.getRegion().getId())
-                .setPath(storage.getPath())
-                .setActive(storage.isActive())
-                .setFixities(toFixityModel(storage.getFixities()));
+        // this is normally not fetched... could cause issues... need to test from the api
+        return storage.stream()
+                .filter(StagingStorage::isActive)
+                .findFirst()
+                .map(ss -> new StagingStorageModel().setTotalFiles(ss.getTotalFiles())
+                        .setSize(ss.getSize())
+                        .setRegion(ss.getRegion().getId())
+                        .setActive(ss.isActive())
+                        .setPath(ss.getPath())
+                        // the null kind of negates the safety we get from the Optional... but it's ignored by the serializer anyway
+                        .setFixities(toFixityModel(ss.getFixities()))).orElse(null);
     }
 
     private static Set<Fixity> toFixityModel(Set<org.chronopolis.rest.entities.storage.Fixity> fixities) {
