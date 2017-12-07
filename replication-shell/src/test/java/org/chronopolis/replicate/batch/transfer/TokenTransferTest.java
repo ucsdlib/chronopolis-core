@@ -3,7 +3,7 @@ package org.chronopolis.replicate.batch.transfer;
 import com.google.common.io.ByteSource;
 import org.chronopolis.common.storage.Bucket;
 import org.chronopolis.common.storage.OperationType;
-import org.chronopolis.common.storage.StorageOperation;
+import org.chronopolis.common.storage.SingleFileOperation;
 import org.chronopolis.common.transfer.FileTransfer;
 import org.chronopolis.rest.api.ReplicationService;
 import org.chronopolis.rest.models.FixityUpdate;
@@ -29,7 +29,7 @@ public class TokenTransferTest {
     @Mock private FileTransfer ft;
     @Mock private ReplicationService replications;
 
-    private StorageOperation op;
+    private SingleFileOperation op;
     private Replication replication;
 
     private TokenTransfer transfer;
@@ -40,12 +40,11 @@ public class TokenTransferTest {
         MockitoAnnotations.initMocks(this);
 
         EMPTY_PATH = Paths.get("");
-        op = new StorageOperation()
-                .setType(OperationType.NOP)
-                .setSize(0L)
-                .setLink("link")
-                .setIdentifier("id")
-                .setPath(Paths.get("path"));
+        op = new SingleFileOperation(Paths.get("path"));
+        op.setType(OperationType.NOP);
+        op.setSize(0L);
+        op.setLink("link");
+        op.setIdentifier("id");
 
         replication = new Replication()
                 .setId(1L);

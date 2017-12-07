@@ -138,9 +138,9 @@ public class SubmitterTest {
     }
 
     @Test
-    public void fromPendingFailToken() throws ExecutionException, InterruptedException {
+    public void fromStartedFailToken() throws ExecutionException, InterruptedException {
         Bag bag = createBag(testBag, testToken.replace("test-token-store", "test-tokens-404"));
-        Replication r = createReplication(ReplicationStatus.PENDING, bag);
+        Replication r = createReplication(ReplicationStatus.STARTED, bag);
         FixityUpdate tokenUpdate = new FixityUpdate(TOKEN_DIGEST);
         FixityUpdate tagUpdate = new FixityUpdate(TM_DIGEST);
 
@@ -162,13 +162,13 @@ public class SubmitterTest {
     }
 
     @Test
-    public void fromPendingServerStop() throws InterruptedException, ExecutionException {
+    public void fromStartedServerStop() throws InterruptedException, ExecutionException {
         final FixityUpdate tokenUpdate = new FixityUpdate(TOKEN_DIGEST);
         final FixityUpdate tagUpdate = new FixityUpdate(TM_DIGEST);
 
         // same issue here as in fromPendingSuccess
         Bag bag = createBag(testBag, testToken);
-        Replication r = createReplication(ReplicationStatus.PENDING, bag);
+        Replication r = createReplication(ReplicationStatus.STARTED, bag);
         r.setBag(null);
         Replication updated = copy(r, TypeToken.of(Replication.class).getType());
         r.setBag(bag);
@@ -198,7 +198,7 @@ public class SubmitterTest {
     }
 
     @Test
-    public void fromPendingSuccess() throws InterruptedException, ExecutionException, IOException, ClassNotFoundException {
+    public void fromStartedSuccess() throws InterruptedException, ExecutionException {
         // vars which don't change over the lifetime of the test
         final FixityUpdate tokenUpdate = new FixityUpdate(TOKEN_DIGEST);
         final FixityUpdate tagUpdate = new FixityUpdate(TM_DIGEST);
@@ -207,7 +207,7 @@ public class SubmitterTest {
         // Because we need to create an updated replication, there's a bit of ugliness we need to
         // deal with until we have a replication model class as well
         Bag bag = createBag(testBag, testToken);
-        Replication r = createReplication(ReplicationStatus.PENDING, bag);
+        Replication r = createReplication(ReplicationStatus.STARTED, bag);
         r.setBag(null);
         Replication updated = copy(r, TypeToken.of(Replication.class).getType());
         r.setBag(bag);

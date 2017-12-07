@@ -7,6 +7,8 @@ import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.common.storage.Bucket;
+import org.chronopolis.common.storage.DirectoryStorageOperation;
+import org.chronopolis.common.storage.SingleFileOperation;
 import org.chronopolis.common.storage.StorageOperation;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.support.CallWrapper;
@@ -61,8 +63,8 @@ public class AceTaskletTest {
     private Replication replication;
     private ReplicationNotifier notifier;
     private AceConfiguration aceConfiguration;
-    private StorageOperation bagOp;
-    private StorageOperation tokenOp;
+    private DirectoryStorageOperation bagOp;
+    private SingleFileOperation tokenOp;
     private ServiceGenerator generator;
 
     private Path tokens;
@@ -78,14 +80,14 @@ public class AceTaskletTest {
         URL bags = ClassLoader.getSystemClassLoader().getResource("");
         tokens = Paths.get(bags.toURI()).resolve(b.getTokenStorage().getPath());
         aceConfiguration = new AceConfiguration();
-        bagOp = new StorageOperation();
-        tokenOp = new StorageOperation();
+        bagOp = new DirectoryStorageOperation(Paths.get(group, name));
+        tokenOp = new SingleFileOperation(Paths.get(group, "test-token-store"));
         generator = new ReplGenerator(replications);
     }
 
 
     @Test
-    public void testAllRun() throws Exception {
+    public void testAllRun() {
         replication = new Replication();
         replication.setBag(b);
         replication.setId(1L);
@@ -114,7 +116,7 @@ public class AceTaskletTest {
     }
 
     @Test
-    public void testAllRunWithCollection() throws Exception {
+    public void testAllRunWithCollection() {
         replication = new Replication();
         replication.setBag(b);
         replication.setId(1L);
@@ -143,7 +145,7 @@ public class AceTaskletTest {
     }
 
     @Test
-    public void testFromTokenLoaded() throws Exception {
+    public void testFromTokenLoaded() {
         replication = new Replication();
         replication.setBag(b);
         replication.setId(1L);
@@ -168,7 +170,7 @@ public class AceTaskletTest {
     }
 
     @Test
-    public void testFromRegistered() throws Exception {
+    public void testFromRegistered() {
         replication = new Replication();
         replication.setBag(b);
         replication.setId(1L);

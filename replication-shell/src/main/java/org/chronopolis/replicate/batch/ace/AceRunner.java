@@ -4,7 +4,8 @@ import com.google.common.collect.ImmutableList;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.storage.Bucket;
-import org.chronopolis.common.storage.StorageOperation;
+import org.chronopolis.common.storage.DirectoryStorageOperation;
+import org.chronopolis.common.storage.SingleFileOperation;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.rest.api.ReplicationService;
 import org.chronopolis.rest.api.ServiceGenerator;
@@ -42,8 +43,8 @@ public class AceRunner implements Supplier<ReplicationStatus>, Function<Void, Re
     // these could be put into a single class which we can get them with... idk... not a big deal imo
     private final Bucket bagBucket;
     private final Bucket tokenBucket;
-    private final StorageOperation bagOp;
-    private final StorageOperation tokenOp;
+    private final DirectoryStorageOperation bagOp;
+    private final SingleFileOperation tokenOp;
 
     private final ServiceGenerator generator;
 
@@ -55,8 +56,8 @@ public class AceRunner implements Supplier<ReplicationStatus>, Function<Void, Re
                      AceConfiguration aceConfiguration,
                      Bucket bagBucket,
                      Bucket tokenBucket,
-                     StorageOperation bagOp,
-                     StorageOperation tokenOp,
+                     DirectoryStorageOperation bagOp,
+                     SingleFileOperation tokenOp,
                      ReplicationNotifier notifier) {
         this.ace = ace;
         this.tokenBucket = tokenBucket;
