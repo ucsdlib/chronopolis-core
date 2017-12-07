@@ -8,10 +8,12 @@ import org.chronopolis.common.storage.Posix;
 import org.chronopolis.common.storage.PosixBucket;
 import org.chronopolis.common.storage.SingleFileOperation;
 import org.chronopolis.common.storage.StorageOperation;
+import org.chronopolis.replicate.support.CallWrapper;
 import org.chronopolis.replicate.support.ReplGenerator;
 import org.chronopolis.rest.api.ReplicationService;
 import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.junit.Assert;
@@ -25,6 +27,10 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for various allocation possibilities
@@ -64,7 +70,9 @@ public class AllocatorTest {
 
         broker = BucketBroker.forBucket(bucket);
         generator = new ReplGenerator(replications);
-        replication = new Replication().setBag(new Bag().setName("ALLOCATOR-TEST"));
+        replication = new Replication()
+                .setId(1L)
+                .setBag(new Bag().setName("ALLOCATOR-TEST"));
     }
 
     @Test
@@ -77,6 +85,8 @@ public class AllocatorTest {
                 .setType(OperationType.RSYNC)
                 .setIdentifier("id")
                 .setSize(1L);
+
+        when(replications.updateStatus(eq(1L), any(RStatusUpdate.class))).thenReturn(new CallWrapper<>(replication));
 
         allocator = new Allocator(broker, op1, op2, replication, generator);
         ReplicationStatus status = allocator.get();
@@ -102,6 +112,7 @@ public class AllocatorTest {
                 .setIdentifier("id")
                 .setSize(1L);
 
+        when(replications.updateStatus(eq(1L), any(RStatusUpdate.class))).thenReturn(new CallWrapper<>(replication));
         allocator = new Allocator(broker, op1, op2, replication, generator);
         ReplicationStatus status = allocator.get();
         Assert.assertEquals(EXPECTED_SUCCESS, status);
