@@ -3,7 +3,8 @@ package org.chronopolis.replicate.batch.ace;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
-import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.api.ReplicationService;
+import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
@@ -16,24 +17,34 @@ import retrofit2.Response;
 import java.io.IOException;
 
 /**
- *
+ * Start an audit in an ACE AM instance for a given collection id
+ * <p>
  * Created by shake on 3/8/16.
  */
 public class AceAuditTasklet implements Runnable {
     private final Logger log = LoggerFactory.getLogger("ace-log");
 
-    private IngestAPI ingest;
-    private AceService aceService;
-    private Replication replication;
-    private ReplicationNotifier notifier;
-    private Long id;
+    private final Long id;
+    private final AceService aceService;
+    private final Replication replication;
+    private final ReplicationNotifier notifier;
+    private final ReplicationService replications;
 
-    public AceAuditTasklet(IngestAPI ingest, AceService aceService, Replication replication, ReplicationNotifier notifier, Long id) {
-        this.ingest = ingest;
+    /**
+     * Constructor for AceAuditTasklet
+     *
+     * @param generator   the generator to create Chronopolis Ingest API connections
+     * @param aceService  the service to connect to an ACE AM
+     * @param replication the replication to audit/update
+     * @param notifier    the notifier to hold status information regarding this process
+     * @param id          the id of the collection in ACE
+     */
+    public AceAuditTasklet(ServiceGenerator generator, AceService aceService, Replication replication, ReplicationNotifier notifier, Long id) {
+        this.id = id;
+        this.notifier = notifier;
         this.aceService = aceService;
         this.replication = replication;
-        this.notifier = notifier;
-        this.id = id;
+        this.replications = generator.replications();
     }
 
     @Override
@@ -45,10 +56,10 @@ public class AceAuditTasklet implements Runnable {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
-                    Call<Replication> update = ingest.updateReplicationStatus(replication.getId(), new RStatusUpdate(ReplicationStatus.ACE_AUDITING));
+                    Call<Replication> update = replications.updateStatus(replication.getId(), new RStatusUpdate(ReplicationStatus.ACE_AUDITING));
                     update.enqueue(new UpdateCallback());
                 } else {
-                    log.error("{} Error starting audit for collection: {} - {}", new Object[]{name, response.code(), response.message()});
+                    log.error("{} Error starting audit for collection: {} - {}", name, response.code(), response.message());
                     String message = "Error starting audit:\n";
                     try {
                         message += response.errorBody().string();

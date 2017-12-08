@@ -1,8 +1,13 @@
 package org.chronopolis.common.transfer;
 
+import org.chronopolis.common.exception.FileTransferException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
@@ -10,10 +15,6 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import org.chronopolis.common.exception.FileTransferException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * TODO: Stop requests that are sent w/ http
@@ -64,6 +65,10 @@ public class HttpsTransfer implements FileTransfer {
     }
 
     @Override
+    public Path get() throws FileTransferException {
+        return null;
+    }
+
     public void put(final Path localFile, final String uri) throws FileTransferException {
         // TBD
     }
@@ -71,5 +76,15 @@ public class HttpsTransfer implements FileTransfer {
     @Override
     public String getStats() {
         return "";
+    }
+
+    @Override
+    public InputStream getOutput() {
+        return null;
+    }
+
+    @Override
+    public InputStream getErrors() {
+        return null;
     }
 }

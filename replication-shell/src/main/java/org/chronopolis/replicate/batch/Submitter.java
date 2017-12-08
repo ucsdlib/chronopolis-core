@@ -3,21 +3,28 @@ package org.chronopolis.replicate.batch;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.mail.MailUtil;
-import org.chronopolis.common.storage.PreservationProperties;
+import org.chronopolis.common.storage.Bucket;
+import org.chronopolis.common.storage.BucketBroker;
+import org.chronopolis.common.storage.DirectoryStorageOperation;
+import org.chronopolis.common.storage.OperationType;
+import org.chronopolis.common.storage.SingleFileOperation;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.ace.AceRunner;
 import org.chronopolis.replicate.batch.transfer.BagTransfer;
 import org.chronopolis.replicate.batch.transfer.TokenTransfer;
-import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.api.ReplicationService;
+import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.models.storage.StagingStorageModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 
 import javax.annotation.Nullable;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
@@ -28,14 +35,24 @@ import java.util.function.BiConsumer;
 
 /**
  * Submit a replication for processing
+ * <p>
  * TODO: Figure out if we want to eagerly reject replications (i.e., keep our queues bounded)
- *       This way we can simulate back pressure, and not worry about running our of memory if
- *       we receive too many replications. It just has other implications surrounding how we
- *       track which replications are ongoing, and how to handle them. In addition, we'll
- *       want to find a way to resubmit operations to our io pool, possibly through a different
- *       ExecutorService, but testing will need to be done to see how that plays with the
- *       CompletableFuture interface.
- *
+ * This way we can simulate back pressure, and not worry about running our of memory if
+ * we receive too many replications. It just has other implications surrounding how we
+ * track which replications are ongoing, and how to handle them. In addition, we'll
+ * want to find a way to resubmit operations to our io pool, possibly through a different
+ * ExecutorService, but testing will need to be done to see how that plays with the
+ * CompletableFuture interface.
+ * <p>
+ * Also we'll want to reevaluate if we want to do partial flows (replicate; ace register; ace load; ace audit)
+ * or if we should keep it how it is now. Either way there will be some updates to make a distinction of
+ * when to audit ace data as currently we trigger the audit eagerly, which could be bad if tokens fail to
+ * upload.
+ * <p>
+ * <p>
+ * todo: +ingestAPIProperties
+ * <p>
+ * <p>
  * Created by shake on 10/12/16.
  */
 public class Submitter {
@@ -43,9 +60,11 @@ public class Submitter {
 
     private final MailUtil mail;
     private final AceService ace;
-    private final IngestAPI ingest;
+
+    private final BucketBroker broker;
+    private final ServiceGenerator generator;
+
     private final ReplicationProperties properties;
-    private final PreservationProperties preservationProperties;
     private final ThreadPoolExecutor io;
     private final ThreadPoolExecutor http;
 
@@ -55,15 +74,16 @@ public class Submitter {
     @Autowired
     public Submitter(MailUtil mail,
                      AceService ace,
-                     IngestAPI ingest,
-                     PreservationProperties preservationProperties, AceConfiguration aceConfiguration,
+                     BucketBroker broker,
+                     ServiceGenerator generator,
+                     AceConfiguration aceConfiguration,
                      ReplicationProperties properties,
                      ThreadPoolExecutor io,
                      ThreadPoolExecutor http) {
         this.mail = mail;
         this.ace = ace;
-        this.ingest = ingest;
-        this.preservationProperties = preservationProperties;
+        this.broker = broker;
+        this.generator = generator;
         this.aceConfiguration = aceConfiguration;
         this.properties = properties;
         this.io = io;
@@ -89,18 +109,40 @@ public class Submitter {
         // todo: do we want to run through the entire flow or have it staggered like before?
         if (replicating.add(identifier)) {
             log.info("Submitting replication {}", identifier);
+
+            StagingStorageModel bagStorage = replication.getBag().getBagStorage();
+            StagingStorageModel tokenStorage = replication.getBag().getTokenStorage();
+
+            // create storage operations
+            DirectoryStorageOperation bagOp = new DirectoryStorageOperation(Paths.get(bagStorage.getPath()));
+            bagOp.setIdentifier(identifier);
+            bagOp.setSize(bagStorage.getSize());
+            bagOp.setLink(replication.getBagLink());
+            bagOp.setType(OperationType.from(replication.getProtocol()));
+
+
+            SingleFileOperation tokenOp = new SingleFileOperation(Paths.get(tokenStorage.getPath()));
+            tokenOp.setIdentifier(identifier);
+            tokenOp.setSize(tokenStorage.getSize());
+            tokenOp.setLink(replication.getTokenLink());
+            tokenOp.setType(OperationType.from(replication.getProtocol()));
+
+            // create work based on replication status
             CompletableFuture<ReplicationStatus> future;
             switch (replication.getStatus()) {
-                // Run through the full flow
+                // Allocate
                 case PENDING:
+                    future = allocate(replication, bagOp, tokenOp);
+                    break;
+                // Replicate
                 case STARTED:
-                    future = fromPending(replication);
+                    future = fromStarted(replication, bagOp, tokenOp);
                     break;
                 // Do all ACE work
                 case TRANSFERRED:
                 case ACE_REGISTERED:
                 case ACE_TOKEN_LOADED:
-                    future = fromTransferred(null, replication);
+                    future = fromTransferred(null, replication, bagOp, tokenOp);
                     break;
                 case ACE_AUDITING:
                     future = fromAceAuditing(replication);
@@ -120,21 +162,45 @@ public class Submitter {
     }
 
     /**
+     * Allocate a bucket for both the BagOperation and TokenOperation (Directory and SingleFile Operations, respectively). If not able to complete,
+     * then fail.
+     *
+     * @param replication the replication being processed
+     * @param bagOp the StorageOperation for replicating a Bag
+     * @param tokenOp the StorageOperation for replicating a TokenStore
+     * @return a {@link CompletableFuture} with the updated status of the Replication
+     */
+    private CompletableFuture<ReplicationStatus> allocate(Replication replication, DirectoryStorageOperation bagOp, SingleFileOperation tokenOp) {
+        return CompletableFuture.supplyAsync(new Allocator(broker, bagOp, tokenOp, replication, generator));
+    }
+
+    /**
      * Create a CompletableFuture with all steps needed from the PENDING state
      *
      * @param replication the replication to work on
+     * @param bagOp       the StorageOperation for replicating a Bag
+     * @param tokenOp     the StorageOperation for replicating a TokenStore
      * @return a {@link CompletableFuture} which runs both the token and bag transfers tasks
      */
-    private CompletableFuture<ReplicationStatus> fromPending(Replication replication) {
-        BagTransfer bxfer = new BagTransfer(replication, ingest, preservationProperties);
-        TokenTransfer txfer = new TokenTransfer(replication, ingest, preservationProperties);
+    private CompletableFuture<ReplicationStatus> fromStarted(Replication replication, DirectoryStorageOperation bagOp, SingleFileOperation tokenOp) {
+        // tf will this do on an exception?
+        // really would like a way to do this without throwing an exception...
+        Bucket bagBucket = broker.findBucketForOperation(bagOp)
+                .orElseThrow(() -> new IllegalArgumentException("No bucket allocated for bag!"));
+        Bucket tokenBucket = broker.findBucketForOperation(tokenOp)
+                .orElseThrow(() -> new IllegalArgumentException("No bucket allocated for token!"));
+
+
+        ReplicationService replications = generator.replications();
+        BagTransfer bxfer = new BagTransfer(bagBucket, bagOp, replication, replications);
+        TokenTransfer txfer = new TokenTransfer(tokenBucket, tokenOp, replication, replications);
 
         // todo: maybe we shouldn't chain together fromTransferred?
         return fromTransferred(
                 CompletableFuture
                         .runAsync(txfer, io)
                         .thenRunAsync(bxfer, io),
-                replication);
+                replication, bagOp, tokenOp);
     }
 
     /**
@@ -144,9 +210,20 @@ public class Submitter {
      * @param replication the replication to work on
      * @return a completable future which runs ace registration tasks
      */
-    private CompletableFuture<ReplicationStatus> fromTransferred(@Nullable CompletableFuture<Void> future, Replication replication) {
+    private CompletableFuture<ReplicationStatus> fromTransferred(@Nullable CompletableFuture<Void> future,
+                                                                 Replication replication,
+                                                                 DirectoryStorageOperation bagOp,
+                                                                 SingleFileOperation tokenOp) {
         ReplicationNotifier notifier = new ReplicationNotifier(replication);
-        AceRunner runner = new AceRunner(ace, ingest, replication.getId(), aceConfiguration, preservationProperties, notifier);
+
+        // tf will this do on an exception?
+        // could also do it in each runnable but... eh
+        Bucket bagBucket = broker.findBucketForOperation(bagOp)
+                .orElseThrow(() -> new IllegalArgumentException("No bucket allocated for bag!"));
+        Bucket tokenBucket = broker.findBucketForOperation(tokenOp)
+                .orElseThrow(() -> new IllegalArgumentException("No bucket allocated for token!"));
+
+        AceRunner runner = new AceRunner(ace, generator, replication.getId(), aceConfiguration, bagBucket, tokenBucket, bagOp, tokenOp, notifier);
         if (future == null) {
             return CompletableFuture.supplyAsync(runner, http);
         }
@@ -160,7 +237,7 @@ public class Submitter {
      * @return a {@link CompletableFuture} which runs the AceCheck runnable
      */
     private CompletableFuture<ReplicationStatus> fromAceAuditing(Replication replication) {
-        AceCheck check = new AceCheck(ace, ingest, replication);
+        AceCheck check = new AceCheck(ace, generator, replication);
         return CompletableFuture.supplyAsync(check, http);
     }
 
@@ -168,10 +245,9 @@ public class Submitter {
     /**
      * Consumer which runs at the end of a replication, ensures removal from the
      * replicating set
-     *
+     * <p>
      * eventually switch to a better interface for notifications
      * so we can have multiple outputs. i.e. email, slack, db, etc
-     *
      */
     private class Completer implements BiConsumer<ReplicationStatus, Throwable> {
         private final Logger log = LoggerFactory.getLogger(Completer.class);
@@ -197,8 +273,8 @@ public class Submitter {
                             + "\n"
                             + Arrays.toString(throwable.getStackTrace());
                     send(subject, body);
-                // Send mail if we are set to and the replication is complete
-                // S
+
+                    // Send mail if we are set to and the replication is complete
                 } else if (properties.getSmtp().getSendOnSuccess() && status == ReplicationStatus.SUCCESS) {
                     subject = "Successful replication of " + s;
                     body = "";
@@ -213,7 +289,6 @@ public class Submitter {
         }
 
         private void send(String subject, String body) {
-            // todo: should be the same user that connects to the ingest api
             SimpleMailMessage message = mail.createMessage(properties.getNode(), subject, body);
             mail.send(message);
         }

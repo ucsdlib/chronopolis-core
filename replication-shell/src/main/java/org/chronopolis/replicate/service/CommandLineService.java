@@ -5,8 +5,8 @@ import org.chronopolis.common.mail.SmtpProperties;
 import org.chronopolis.common.storage.PreservationProperties;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.Submitter;
-import org.chronopolis.rest.api.IngestAPI;
 import org.chronopolis.rest.api.IngestAPIProperties;
+import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
@@ -45,7 +45,7 @@ public class CommandLineService implements ReplicationService {
     private final ReplicationProperties replicationProperties;
     private final PreservationProperties preservationProperties;
     private final IngestAPIProperties properties;
-    private final IngestAPI ingestAPI;
+    private final ServiceGenerator generator;
     private final Submitter submitter;
 
     @Autowired
@@ -54,14 +54,14 @@ public class CommandLineService implements ReplicationService {
                               ReplicationProperties replicationProperties,
                               PreservationProperties preservationProperties,
                               IngestAPIProperties properties,
-                              IngestAPI ingestAPI,
+                              ServiceGenerator generator,
                               Submitter submitter) {
         this.aceConfiguration = aceConfiguration;
         this.smtpProperties = smtpProperties;
         this.replicationProperties = replicationProperties;
         this.preservationProperties = preservationProperties;
         this.properties = properties;
-        this.ingestAPI = ingestAPI;
+        this.generator = generator;
         this.submitter = submitter;
 
         printStart();
@@ -154,7 +154,7 @@ public class CommandLineService implements ReplicationService {
         Page<Replication> replications;
         params.put("status", status);
         params.put("node", properties.getUsername());
-        Call<PageImpl<Replication>> call = ingestAPI.getReplications(params);
+        Call<PageImpl<Replication>> call = generator.replications().get(params);
         try {
             Response<PageImpl<Replication>> execute = call.execute();
             replications = execute.body();

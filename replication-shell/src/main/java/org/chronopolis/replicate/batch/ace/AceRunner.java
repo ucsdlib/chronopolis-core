@@ -3,9 +3,12 @@ package org.chronopolis.replicate.batch.ace;
 import com.google.common.collect.ImmutableList;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.ace.AceService;
-import org.chronopolis.common.storage.PreservationProperties;
+import org.chronopolis.common.storage.Bucket;
+import org.chronopolis.common.storage.DirectoryStorageOperation;
+import org.chronopolis.common.storage.SingleFileOperation;
 import org.chronopolis.replicate.ReplicationNotifier;
-import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.api.ReplicationService;
+import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
@@ -23,6 +26,8 @@ import java.util.function.Supplier;
  * 2 - ACE_LOAD
  * 3 - ACE_AUDIT
  *
+ * Might want to revisit this and see if we can clean it up
+ *
  * TODO: We may want validation between some of these steps so we know they
  *       completed successfully.
  *
@@ -32,21 +37,37 @@ public class AceRunner implements Supplier<ReplicationStatus>, Function<Void, Re
     private final Logger log = LoggerFactory.getLogger("ace-log");
 
     private final AceService ace;
-    private final IngestAPI ingest;
     private final Long replicationId;
     private final AceConfiguration aceConfiguration;
-    private final PreservationProperties properties;
 
-    // TODO: May be able to remove this
+    // these could be put into a single class which we can get them with... idk... not a big deal imo
+    private final Bucket bagBucket;
+    private final Bucket tokenBucket;
+    private final DirectoryStorageOperation bagOp;
+    private final SingleFileOperation tokenOp;
+
+    private final ServiceGenerator generator;
+
     private final ReplicationNotifier notifier;
 
-    public AceRunner(AceService ace, IngestAPI ingest, Long replicationId, AceConfiguration aceConfiguration, PreservationProperties properties, ReplicationNotifier notifier) {
+    public AceRunner(AceService ace,
+                     ServiceGenerator generator,
+                     Long replicationId,
+                     AceConfiguration aceConfiguration,
+                     Bucket bagBucket,
+                     Bucket tokenBucket,
+                     DirectoryStorageOperation bagOp,
+                     SingleFileOperation tokenOp,
+                     ReplicationNotifier notifier) {
         this.ace = ace;
-        this.ingest = ingest;
+        this.tokenBucket = tokenBucket;
+        this.tokenOp = tokenOp;
+        this.bagBucket = bagBucket;
+        this.bagOp = bagOp;
+        this.notifier = notifier;
+        this.generator = generator;
         this.replicationId = replicationId;
         this.aceConfiguration = aceConfiguration;
-        this.properties = properties;
-        this.notifier = notifier;
     }
 
     @Override
@@ -62,7 +83,8 @@ public class AceRunner implements Supplier<ReplicationStatus>, Function<Void, Re
             return ReplicationStatus.FAILURE;
         }
 
-        AceRegisterTasklet register = new AceRegisterTasklet(ingest, ace, replication, aceConfiguration, properties, notifier);
+        // any op needed...?
+        AceRegisterTasklet register = new AceRegisterTasklet(ace, replication, generator, aceConfiguration, notifier, bagBucket, bagOp);
         Long id = null;
         try {
             id = register.call();
@@ -80,8 +102,11 @@ public class AceRunner implements Supplier<ReplicationStatus>, Function<Void, Re
         // TODO: We will probably want to break this up more - and do some validation along the way
         //       - load tokens + validate we have the expected amount (maybe pull info from ingest)
         //       - run audit
-        AceTokenTasklet token = new AceTokenTasklet(ingest, ace, replication, properties, notifier, id);
-        AceAuditTasklet audit = new AceAuditTasklet(ingest, ace, replication, notifier, id);
+
+        // tokens -> tokenBucket + tokenOp?
+        // audit -> noBucket + noOp (not to be confused with 0x90)
+        AceTokenTasklet token = new AceTokenTasklet(tokenBucket, tokenOp, generator, ace, replication, notifier, id);
+        AceAuditTasklet audit = new AceAuditTasklet(generator, ace, replication, notifier, id);
         for (Runnable runnable : ImmutableList.of(token, audit)) {
             if (notifier.isSuccess()) {
                 runnable.run();
@@ -95,7 +120,8 @@ public class AceRunner implements Supplier<ReplicationStatus>, Function<Void, Re
      * @return the associated replication or null
      */
     private Replication getReplication() {
-        Call<Replication> replication = ingest.getReplication(replicationId);
+        ReplicationService replications = generator.replications();
+        Call<Replication> replication = replications.get(replicationId);
         Replication r = null;
         try {
             Response<Replication> execute = replication.execute();

@@ -35,6 +35,12 @@
 
         <dependency>
             <groupId>org.chronopolis</groupId>
+            <artifactId>chron-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.chronopolis</groupId>
             <artifactId>rest-common</artifactId>
         </dependency>
 
