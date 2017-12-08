@@ -7,6 +7,8 @@ Type=simple
 User=chronopolis
 Group=chronopolis
 Environment=SPRING_CONFIG_LOCATION=/usr/local/chronopolis/replication/
+PermissionsStartOnly=true
+ExecStartPre=/usr/local/chronopolis/replication/replicationd-prepare
 ExecStart=/usr/bin/java -jar /usr/local/chronopolis/replication/replicationd.jar
 TimeoutSec=300
 

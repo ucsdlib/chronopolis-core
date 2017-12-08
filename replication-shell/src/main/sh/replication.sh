@@ -28,6 +28,7 @@ JAVA_CMD="$JAVA_BIN -jar $REPL_DIR/$REPL_JAR &"
 
 # our vars
 prog="replicationd"
+logdir="/var/log/chronopolis/"
 pidfile="/var/run/replicationd.pid"
 lockfile=/var/lock/subsys/replicationd
 
@@ -42,6 +43,20 @@ start(){
         action $"Starting $prog: " /bin/false
         return 2
     fi
+
+    # log directory exists
+    if [ ! -d "$logdir" ]; then
+        echo "Creating $logdir"
+        mkdir "$logdir"
+    fi
+
+    # permissions for logging
+    uname="$(stat --format '%U' "$logdir")"
+    if [ "x${uname}" != "x${CHRON_USER}" ]; then
+        echo "Updating permissions for $logdir"
+        chown "$CHRON_USER":"$CHRON_USER" "$logdir"
+    fi
+
 
     # check already running
     RUNNING=0

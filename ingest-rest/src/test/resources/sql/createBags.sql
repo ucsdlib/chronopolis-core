@@ -17,7 +17,26 @@ INSERT INTO staging_storage VALUES(1, 1, 1, 'bags/test-location', 1500, 3, CURRE
 INSERT INTO staging_storage VALUES(2, 2, 1, 'tokens/test-location', 1500, 3, CURRENT_DATE, CURRENT_DATE);
 INSERT INTO fixity VALUES(1, 1, 'test-alg', 'test-fixity', CURRENT_DATE);
 INSERT INTO fixity VALUES(2, 2, 'test-alg', 'test-fixity', CURRENT_DATE);
-UPDATE bag SET bag_storage_id = 1, token_storage_id = 2;
+INSERT INTO bag_storage VALUES(1, 1);
+INSERT INTO token_storage VALUES(1, 2);
+INSERT INTO bag_storage VALUES(2, 1);
+INSERT INTO token_storage VALUES(2, 2);
+INSERT INTO bag_storage VALUES(3, 1);
+INSERT INTO token_storage VALUES(3, 2);
+INSERT INTO bag_storage VALUES(4, 1);
+INSERT INTO token_storage VALUES(4, 2);
+INSERT INTO bag_storage VALUES(5, 1);
+INSERT INTO token_storage VALUES(5, 2);
+INSERT INTO bag_storage VALUES(6, 1);
+INSERT INTO token_storage VALUES(6, 2);
+INSERT INTO bag_storage VALUES(7, 1);
+INSERT INTO token_storage VALUES(7, 2);
+INSERT INTO bag_storage VALUES(8, 1);
+INSERT INTO token_storage VALUES(8, 2);
+INSERT INTO bag_storage VALUES(9, 1);
+INSERT INTO token_storage VALUES(9, 2);
+INSERT INTO bag_storage VALUES(10, 1);
+INSERT INTO token_storage VALUES(10, 2);
 
 -- Create some distribution records too
 INSERT INTO bag_distribution VALUES (1, 10, 1, 'DISTRIBUTE');

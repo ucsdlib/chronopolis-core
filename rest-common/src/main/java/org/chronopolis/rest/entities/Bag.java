@@ -13,8 +13,9 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 import java.util.HashSet;
 import java.util.Set;
@@ -48,14 +49,17 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
     @OneToMany(mappedBy = "bag", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<BagDistribution> distributions = new HashSet<>();
 
-    // We'll see how this works out
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinColumn(name = "bag_storage_id")
-    private StagingStorage bagStorage;
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @JoinTable(name = "bag_storage",
+            joinColumns = @JoinColumn(name = "bag_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "staging_id", referencedColumnName = "id"))
+    private Set<StagingStorage> bagStorage;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinColumn(name = "token_storage_id")
-    private StagingStorage tokenStorage;
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @JoinTable(name = "token_storage",
+            joinColumns = @JoinColumn(name = "bag_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "staging_id", referencedColumnName = "id"))
+    private Set<StagingStorage> tokenStorage;
 
     protected Bag() { // JPA
     }
@@ -90,10 +94,6 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
 
     public void setDepositor(final String depositor) {
         this.depositor = depositor;
-    }
-
-    public String resourceID() {
-        return "bag/" + id;
     }
 
     public BagStatus getStatus() {
@@ -183,21 +183,27 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
         return this;
     }
 
-    public StagingStorage getBagStorage() {
+    public Set<StagingStorage> getBagStorage() {
         return bagStorage;
     }
 
-    public Bag setBagStorage(StagingStorage bagStorage) {
-        this.bagStorage = bagStorage;
+    public Bag setBagStorage(StagingStorage storage) {
+        if (bagStorage == null) {
+            bagStorage = new HashSet<>();
+        }
+        bagStorage.add(storage);
         return this;
     }
 
-    public StagingStorage getTokenStorage() {
+    public Set<StagingStorage> getTokenStorage() {
         return tokenStorage;
     }
 
-    public Bag setTokenStorage(StagingStorage tokenStorage) {
-        this.tokenStorage = tokenStorage;
+    public Bag setTokenStorage(StagingStorage storage) {
+        if (tokenStorage == null) {
+            tokenStorage = new HashSet<>();
+        }
+        this.tokenStorage.add(storage);
         return this;
     }
 

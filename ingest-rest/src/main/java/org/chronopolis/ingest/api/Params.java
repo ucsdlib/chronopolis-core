@@ -14,6 +14,7 @@ public class Params {
     public static final String FROM = "from";
     public static final String ACTIVE = "active";
     public static final String REGION = "region";
+    public static final String CREATOR = "creator";
     public static final String DEPOSITOR = "depositor";
     public static final String REQUESTER = "requester";
     public static final String PAGE  = "page";

@@ -36,7 +36,7 @@ spring.pid.file: /var/run/ingest-server.pid
 server.port: 8080
  
 # Logging properties
-logging.file: ingest.log
+logging.file: /var/log/chronopolis/ingest.log
 logging.level:
   org.springframework: ERROR
   org.hibernate: ERROR

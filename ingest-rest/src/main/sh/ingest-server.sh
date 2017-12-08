@@ -36,6 +36,7 @@ RETVAL=0
 prog="ingest-server"
 pidfile="/var/run/ingest-server.pid"
 lockfile=/var/lock/subsys/ingest-server
+logdir=/var/log/chronopolis
 
 # env vars for spring
 export SPRING_PID_FILE=$pidfile
@@ -49,6 +50,20 @@ start(){
         action $"Starting $prog: " /bin/false
         return 2
     fi
+
+    # log directory exists
+    if [ ! -d "$logdir" ]; then
+        echo "Creating $logdir"
+        mkdir "$logdir"
+    fi
+
+    # permissions for logging
+    uname="$(stat --format '%U' "$logdir")"
+    if [ "x${uname}" != "x${CHRON_USER}" ]; then
+        echo "Updating permissions for $logdir"
+        chown "$CHRON_USER":"$CHRON_USER" "$logdir"
+    fi
+
 
     # check if we're already running
     RUNNING=0
