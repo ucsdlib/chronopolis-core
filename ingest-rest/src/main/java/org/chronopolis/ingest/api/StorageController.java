@@ -87,7 +87,9 @@ public class StorageController extends IngestController {
      *       should this be included in the create call?
      *
      * @param create the request containing the information about the SR
-     * @return the newly created StorageRegion
+     * @return 201 with the new StorageRegion
+     *         400 if the request is not valid
+     *         403 if the user does not have permissions to create the StorageRegion
      */
     @PostMapping
     public ResponseEntity<StorageRegion> createRegion(Principal principal, @RequestBody RegionCreate create) {

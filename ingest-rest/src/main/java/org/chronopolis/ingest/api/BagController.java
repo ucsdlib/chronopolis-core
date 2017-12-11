@@ -75,7 +75,7 @@ public class BagController extends IngestController {
     /**
      * Retrieve all the bags we know about
      *
-     * @param params - Query parameters used for searching
+     * @param params Query parameters used for searching
      * @return all bags matching the query parameters
      */
     @GetMapping
@@ -99,7 +99,7 @@ public class BagController extends IngestController {
     /**
      * Retrieve information about a single bag
      *
-     * @param id - the bag id to retrieve
+     * @param id the bag id to retrieve
      * @return the bag specified by the id
      */
     @GetMapping("/{id}")
@@ -118,8 +118,8 @@ public class BagController extends IngestController {
     /**
      * Notification that a bag exists and is ready to be ingested into Chronopolis
      *
-     * @param principal - authentication information
-     * @param request   - the request containing the bag name, depositor, and location of the bag
+     * @param principal authentication information
+     * @param request   the request containing the bag name, depositor, and location of the bag
      * @return the bag created from the IngestRequest
      */
     @PostMapping
