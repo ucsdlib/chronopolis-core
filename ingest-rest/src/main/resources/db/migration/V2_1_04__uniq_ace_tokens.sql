@@ -1,0 +1,1 @@
+ALTER TABLE ace_token ADD CONSTRAINT unique_filename UNIQUE (filename, bag);
