@@ -39,17 +39,19 @@ public class TokenApplication implements CommandLineRunner {
     private final TokenService tokens;
     private final BagService bagService;
     private final BagStagingProperties properties;
+    private final IngestAPIProperties ingestProperties;
     private final ChronopolisTokenRequestBatch batch;
     private final TrackingThreadPoolExecutor<Bag> executor;
 
     @Autowired
     public TokenApplication(ServiceGenerator generator,
                             BagStagingProperties properties,
-                            ChronopolisTokenRequestBatch batch,
+                            IngestAPIProperties ingestProperties, ChronopolisTokenRequestBatch batch,
                             TrackingThreadPoolExecutor<Bag> executor) {
         this.tokens = generator.tokens();
         this.bagService = generator.bags();
         this.properties = properties;
+        this.ingestProperties = ingestProperties;
         this.batch = batch;
         this.executor = executor;
     }
@@ -63,6 +65,7 @@ public class TokenApplication implements CommandLineRunner {
     @SuppressWarnings("Duplicates")
     public void run(String... strings) throws Exception {
         Call<PageImpl<Bag>> bags = bagService.get(ImmutableMap.of(
+                "creator", ingestProperties.getUsername(),
                 "status", BagStatus.DEPOSITED,
                 "region_id", properties.getPosix().getId()));
         try {

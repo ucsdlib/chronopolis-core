@@ -5,6 +5,7 @@ import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.storage.BagStagingProperties;
 import org.chronopolis.common.util.Filter;
 import org.chronopolis.rest.api.BagService;
+import org.chronopolis.rest.api.IngestAPIProperties;
 import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.Bag;
@@ -39,17 +40,20 @@ public class TokenTask {
     private final BagService service;
     private final TokenService tokens;
     private final BagStagingProperties properties;
+    private final IngestAPIProperties ingestProperties;
     private final ChronopolisTokenRequestBatch batch;
     private final TrackingThreadPoolExecutor<Bag> executor;
 
     @Autowired
     public TokenTask(ServiceGenerator generator,
                      BagStagingProperties properties,
+                     IngestAPIProperties ingestProperties,
                      ChronopolisTokenRequestBatch batch,
                      TrackingThreadPoolExecutor<Bag> executor) {
         this.tokens = generator.tokens();
         this.service = generator.bags();
         this.properties = properties;
+        this.ingestProperties = ingestProperties;
         this.batch = batch;
         this.executor = executor;
     }
@@ -62,6 +66,7 @@ public class TokenTask {
         // Maybe getMyBags? Can work this out later
         Call<PageImpl<Bag>> bags = service.get(
                 ImmutableMap.of("status", BagStatus.DEPOSITED,
+                        "creator", ingestProperties.getUsername(),
                         "region_id", properties.getPosix().getId()));
         try {
             Response<PageImpl<Bag>> response = bags.execute();
