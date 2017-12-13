@@ -156,23 +156,37 @@
         </table>
     </div>
 
+    <div class="card-header" data-toggle="collapse" href="#stagingCollapse" aria-expanded="true"
+         aria-controls="stagingCollapse">
+        <h4>Active Staging</h4>
+    </div>
+    <!--/*@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"*/-->
     <!--/*@thymesVar id="activeBagStorage" type="org.chronopolis.rest.entities.storage.StagingStorage"*/-->
+    <!--/*@thymesVar id="activeTokenStorage" type="org.chronopolis.rest.entities.storage.StagingStorage"*/-->
+    <!-- add pill for link to all? -->
+    <div class="hr-sect mx-auto">Bag Staging</div>
     <th:block th:if="${activeBagStorage} != null">
-        <div th:replace="fragments/storage :: card-display (storage=${activeBagStorage},storageName='Bag')"/>
+        <div th:replace="fragments/storage :: card-display (storage=${activeBagStorage},storageName='Bag')"></div>
     </th:block>
     <th:block th:if="${activeBagStorage} == null">
         <div class="btn-group p-2" role="group">
-            <!--/*@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"*/-->
             <a class="btn btn-outline-primary"
                th:href="@{|${bag.id}/storage/add|}">
                 Add Bag Staging
             </a>
         </div>
     </th:block>
-
-    <!--/*@thymesVar id="activeTokenStorage" type="org.chronopolis.rest.entities.storage.StagingStorage"*/-->
+    <div class="hr-sect mx-auto">Token Staging</div>
     <th:block th:if="${activeTokenStorage} != null">
         <div th:replace="fragments/storage :: card-display (storage=${activeTokenStorage},storageName='Token')"></div>
+    </th:block>
+    <th:block th:if="${activeTokenStorage} == null">
+        <div class="btn-group p-2" role="group">
+            <a class="btn btn-outline-primary"
+               th:href="@{|${bag.id}/storage/add|}">
+                Write Tokens
+            </a>
+        </div>
     </th:block>
 
     <div class="card-header">
