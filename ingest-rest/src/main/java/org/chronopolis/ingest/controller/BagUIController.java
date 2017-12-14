@@ -356,8 +356,11 @@ public class BagUIController extends IngestController {
         access.info("[GET /bags/{}/storage/add] - {}", id, principal.getName());
 
         Bag bag = bagService.find(new BagSearchCriteria().withId(id));
-        // we can get everything from the bag so maybe... we're ok to just do this?
+        // for whatever reason we need to use get*Storage to retrieve the entities from the DB
+        // maybe the lazy loading idk
+        log.info("{} #storage = {}", bag.getName(), bag.getBagStorage().size());
         model.addAttribute("bag", bag);
+        model.addAttribute("formatter", new FileSizeFormatter());
         return "staging/all";
     }
 
