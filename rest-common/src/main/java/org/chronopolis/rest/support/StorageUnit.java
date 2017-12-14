@@ -1,7 +1,7 @@
 package org.chronopolis.rest.support;
 
 public enum StorageUnit {
-    B(0), KiB(1), MiB(2), GiB(3), TiB(4), OOB(-1);
+    B(0), KiB(1), MiB(2), GiB(3), TiB(4), PiB(5), OOB(-1);
 
     private final int power;
 
@@ -20,6 +20,8 @@ public enum StorageUnit {
             case GiB:
                 return TiB;
             case TiB:
+                return PiB;
+            case PiB:
                 return OOB;
             case OOB:
                 return OOB;

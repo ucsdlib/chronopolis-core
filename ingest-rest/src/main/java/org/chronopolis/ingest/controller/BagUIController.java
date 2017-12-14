@@ -351,6 +351,19 @@ public class BagUIController extends IngestController {
         return storage;
     }
 
+    @GetMapping("/bags/{id}/storage/all")
+    public String getAllStorage(Model model, Principal principal, @PathVariable("id") Long id) {
+        access.info("[GET /bags/{}/storage/add] - {}", id, principal.getName());
+
+        Bag bag = bagService.find(new BagSearchCriteria().withId(id));
+        // for whatever reason we need to use get*Storage to retrieve the entities from the DB
+        // maybe the lazy loading idk
+        log.info("{} #storage = {}", bag.getName(), bag.getBagStorage().size());
+        model.addAttribute("bag", bag);
+        model.addAttribute("formatter", new FileSizeFormatter());
+        return "staging/all";
+    }
+
     /**
      * Retrieve the page for inputting form data to create a new StagingStorage entity for a Bag
      *

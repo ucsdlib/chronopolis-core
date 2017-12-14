@@ -3,63 +3,31 @@
 <head lang="en">
     <meta charset="UTF-8"/>
     <title></title>
-    <link href="../static/css/bootstrap.min.css"
-          th:href="@{/css/bootstrap.min.css}"
-          rel="stylesheet">
-    </link>
+    <style type="text/css">
 
+    </style>
 </head>
 <body>
 <div class="card w-50" th:fragment="element">
-    <div class="card-header">
-        <h3>Replication Overview</h3>
-    </div>
-    <div class="card-block">
-        <table class="table table-bordered">
-            <!--/*@thymesVar id="replication" type="org.chronopolis.rest.entities.Replication"*/-->
-            <tbody>
-            <tr>
-                <td>Id</td>
-                <td th:text="${replication.id}"></td>
-            </tr>
-            <tr>
-                <td>Bag</td>
-                <td><a th:text="${replication.bag.name}" th:href="@{|/bags/${replication.bag.id}|}"></a></td>
-            </tr>
-            <tr>
-                <td>Replicating Node</td>
-                <td th:text="${replication.node.username}"></td>
-            </tr>
-            <tr>
-                <td>Bag Download Link</td>
-                <td th:text="${replication.bagLink}"></td>
-            </tr>
-            <tr>
-                <td>Received Tag Fixity</td>
-                <td th:text="${replication.receivedTagFixity}"></td>
-            </tr>
-            <tr>
-                <td>Token Download Link</td>
-                <td th:text="${replication.tokenLink}"></td>
-            </tr>
-            <tr>
-                <td>Received Token Fixity</td>
-                <td th:text="${replication.receivedTokenFixity}"></td>
-            </tr>
-            <tr>
-                <td>Status</td>
-                <td th:text="${replication.status}"></td>
-            </tr>
-            <tr>
-                <td>Created At</td>
-                <td th:text="${replication.createdAt}"></td>
-            </tr>
-            <tr>
-                <td>Updated At</td>
-                <td th:text="${replication.updatedAt}"></td>
-            </tr>
-            </tbody>
-
+    <!--/*@thymesVar id="replication" type="org.chronopolis.rest.entities.Replication"*/-->
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/replications}">Replications</a></li>
+            <li class="breadcrumb-item"><a th:href="@{/replications(bag=${replication.bag.name})}"
+                                           th:text="${replication.bag.name}">Bag</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page" th:text="${replication.id}">Replication Id</li>
+        </ol>
+    </nav>
+    <div class="card-block p-2">
+        <table class="c-table">
+            <div th:replace="fragments/storage :: list-item(head='Bag DL Link', content=${replication.bagLink})"></div>
+            <div th:replace="fragments/storage :: list-item(head='Tagmanifest Fixity', content=${replication.receivedTagFixity})"></div>
+            <div th:replace="fragments/storage :: list-item(head='Token DL Link', content=${replication.tokenLink})"></div>
+            <div th:replace="fragments/storage :: list-item(head='Token Fixity', content=${replication.receivedTokenFixity})"></div>
+            <div th:replace="fragments/storage :: list-item(head='Status', content=${replication.status})"></div>
+            <div th:replace="fragments/storage :: list-item(head='Created At', content=${replication.createdAt})"></div>
+            <div th:replace="fragments/storage :: list-item(head='Updated At', content=${replication.updatedAt})"></div>
         </table>
     </div>
 </div>

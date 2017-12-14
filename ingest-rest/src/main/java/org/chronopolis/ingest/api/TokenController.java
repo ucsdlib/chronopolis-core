@@ -21,7 +21,7 @@ import java.security.Principal;
 
 /**
  * API for querying tokens
- *
+ * <p>
  * Created by shake on 7/27/17.
  */
 @RestController
@@ -36,6 +36,13 @@ public class TokenController {
         this.tokens = tokenService;
     }
 
+    /**
+     * Retrieve ACE Tokens, optionally filtered
+     *
+     * @param principal the user requesting to retrieve tokens
+     * @param filter    the parameters to filter on
+     * @return the ACE Tokens matching the filter
+     */
     @GetMapping
     public Page<AceToken> getTokens(Principal principal, @ModelAttribute AceTokenFilter filter) {
         access.info("[GET /api/tokens] - {}", principal.getName());
@@ -47,6 +54,13 @@ public class TokenController {
         return tokens.findAll(criteria, filter.createPageRequest());
     }
 
+    /**
+     * Retrieve an ACE Token by its id
+     *
+     * @param principal the user requesting the token
+     * @param id        the id of the token
+     * @return the ACE Token
+     */
     @GetMapping("/{id}")
     public AceToken getToken(Principal principal, @PathVariable("id") Long id) {
         access.info("[GET /api/tokens/{}] - ", id, principal.getName());

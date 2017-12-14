@@ -101,79 +101,68 @@
      Might put the Associated repls in a tab or smth
      -->
 <div class="card w-50" th:fragment="info">
-    <div class="card-header">
-        <h3>Bag Overview</h3>
-    </div>
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/bags}">Bags</a></li>
+            <li class="breadcrumb-item"><a th:href="@{/bags(depositor=${bag.depositor})}" th:text="${bag.depositor}">Depositor</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page" th:text="${bag.name}">Bag Name</li>
+        </ol>
+    </nav>
 
     <!--@thymesVar id="tokens" type="Long"-->
     <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
-    <div class="card-block">
-        <table class="table table-bordered">
-            <tbody>
-            <tr>
-                <td>Id</td>
-                <td th:text="${bag.id}"></td>
-            </tr>
-            <tr>
-                <td>Created By</td>
-                <td th:text="${bag.creator}"></td>
-            </tr>
-            <tr>
-                <td>Name</td>
-                <td th:text="${bag.name}"></td>
-            </tr>
-            <tr>
-                <td>Depositor</td>
-                <td th:text="${bag.depositor}"></td>
-            </tr>
-            <tr>
-                <!-- ajax instead? -->
-                <td>Num Tokens</td>
-                <td th:text="${tokens}"></td>
-            </tr>
-            <tr>
-                <td>Status</td>
-                <!--@thymesVar id="statuses" type="List" -->
-                <td>
-                    <select name="status" id="status">
-                        <option th:each="status : ${statuses}"
-                                th:value="${status.value}" th:text="${status.value}"
-                                th:selected="${status == bag.status}">
-                        </option>
-                        <!-- <td th:text="${bag.status}"></td> -->
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <td>Created At</td>
-                <td th:text="${bag.createdAt}"></td>
-            </tr>
-            <tr>
-                <td>Updated At</td>
-                <td th:text="${bag.updatedAt}"></td>
-            </tr>
-            </tbody>
+    <div class="card-block p-2">
+        <table class="c-table">
+            <div th:replace="fragments/storage :: list-item(head='Id', content=${bag.id})"></div>
+            <div th:replace="fragments/storage :: list-item(head='Num Tokens', content=${tokens})"></div>
+            <div th:replace="fragments/storage :: list-item(head='Status', content=${bag.status})"></div>
+            <div th:replace="fragments/storage :: list-item(head='Created By', content=${bag.creator})"></div>
+            <div th:replace="fragments/storage :: list-item(head='Created At', content=${bag.createdAt})"></div>
+            <div th:replace="fragments/storage :: list-item(head='Updated At', content=${bag.updatedAt})"></div>
         </table>
     </div>
 
-    <!--/*@thymesVar id="activeBagStorage" type="org.chronopolis.rest.entities.storage.StagingStorage"*/-->
-    <th:block th:if="${activeBagStorage} != null">
-        <div th:replace="fragments/storage :: card-display (storage=${activeBagStorage},storageName='Bag')"/>
-    </th:block>
-    <th:block th:if="${activeBagStorage} == null">
-        <div class="btn-group p-2" role="group">
-            <!--/*@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"*/-->
-            <a class="btn btn-outline-primary"
-               th:href="@{|${bag.id}/storage/add|}">
-                Add Bag Staging
-            </a>
-        </div>
-    </th:block>
+    <div class="card-header" data-toggle="collapse" href="#stagingCollapse"
+         aria-expanded="false" aria-controls="stagingCollapse">
+        <h4>Active Staging</h4>
+    </div>
+    <div class="collapse" id="stagingCollapse">
+        <!--/*@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"*/-->
+        <!--/*@thymesVar id="activeBagStorage" type="org.chronopolis.rest.entities.storage.StagingStorage"*/-->
+        <!--/*@thymesVar id="activeTokenStorage" type="org.chronopolis.rest.entities.storage.StagingStorage"*/-->
+        <!-- add pill for link to all? -->
+        <div class="card-block p-2">
+            <div class="hr-sect mx-auto">Bag Staging</div>
+            <th:block th:if="${activeBagStorage} != null">
+                <div th:replace="fragments/storage :: card-display (storage=${activeBagStorage},storageName='bag',rw=true)"></div>
+            </th:block>
+            <th:block th:if="${activeBagStorage} == null">
+                <div class="btn-group p-2" role="group">
+                    <a class="btn btn-outline-primary"
+                       th:href="@{|${bag.id}/storage/add|}">
+                        Add Bag Staging
+                    </a>
+                </div>
+            </th:block>
+            <div class="hr-sect mx-auto">Token Staging</div>
+            <th:block th:if="${activeTokenStorage} != null">
+                <div th:replace="fragments/storage :: card-display (storage=${activeTokenStorage},storageName='token',rw=true)"></div>
+            </th:block>
+            <th:block th:if="${activeTokenStorage} == null">
+                <div class="btn-group p-2" role="group">
+                    <a class="btn btn-outline-primary"
+                       th:href="@{|${bag.id}/storage/add|}">
+                        Write Tokens
+                    </a>
+                </div>
+            </th:block>
 
-    <!--/*@thymesVar id="activeTokenStorage" type="org.chronopolis.rest.entities.storage.StagingStorage"*/-->
-    <th:block th:if="${activeTokenStorage} != null">
-        <div th:replace="fragments/storage :: card-display (storage=${activeTokenStorage},storageName='Token')"></div>
-    </th:block>
+            <div class="btn-group p-2" role="group">
+                <a class="btn btn-primary" th:href="@{|${bag.id}/storage/all|}">See Inactive Staging</a>
+            </div>
+        </div>
+    </div>
 
     <div class="card-header">
         <h4>Associated Replications</h4>

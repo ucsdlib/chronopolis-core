@@ -43,10 +43,7 @@ import static org.chronopolis.ingest.api.Params.UPDATED_BEFORE;
 
 /**
  * REST controller for replication methods
- * <p/>
- * TODO: We'll probably want a separate class to handle common db stuff
- * using the 3 repository classes
- * <p/>
+ *
  * Created by shake on 11/5/14.
  */
 @RestController
@@ -68,8 +65,9 @@ public class ReplicationController extends IngestController {
      * Create a replication request for a given node and bag
      * <p/>
      *
-     * @param request   - request containing the bag id to replicate
-     * @return
+     * @param request request containing the bag id to replicate
+     * @return 201 with the newly created Replication
+     * 400 if the request is not valid
      */
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<Replication> createReplication(@RequestBody ReplicationRequest request) {
@@ -96,12 +94,12 @@ public class ReplicationController extends IngestController {
 
     /**
      * Update the received fixity for a token store
-     *
+     * <p>
      * todo: could do /{id}/fixity/token
      *
-     * @param principal the principal of the user
+     * @param principal     the principal of the user
      * @param replicationId the id of the replication
-     * @param update the update to apply
+     * @param update        the update to apply
      * @return the updated replication
      */
     @RequestMapping(value = "/{id}/tokenstore", method = RequestMethod.PUT)
@@ -131,9 +129,9 @@ public class ReplicationController extends IngestController {
     /**
      * Update the received fixity for a tag manifest
      *
-     * @param principal the principal of the user
+     * @param principal     the principal of the user
      * @param replicationId the id of the replication
-     * @param update the update to apply
+     * @param update        the update to apply
      * @return the updated replication
      */
     @RequestMapping(value = "/{id}/tagmanifest", method = RequestMethod.PUT)
@@ -161,10 +159,10 @@ public class ReplicationController extends IngestController {
     /**
      * Check a fixity against what we have stored
      *
-     * @param r The replication we are checking
-     * @param stored The stored fixity values to check against
+     * @param r        The replication we are checking
+     * @param stored   The stored fixity values to check against
      * @param received The received value
-     * @param failure The status to set upon failure
+     * @param failure  The status to set upon failure
      * @return true if matches, false otherwise
      */
     private boolean checkFixity(Replication r, Set<Fixity> stored, String received, ReplicationStatus failure) {
@@ -218,9 +216,9 @@ public class ReplicationController extends IngestController {
      * Update a given replication based on the id of the path used
      * TODO: either create a new endpoint (../fixity) or move to the bag/repl object
      *
-     * @param principal     - authentication information
-     * @param replicationId - the id of the replication to update
-     * @param replication   - the updated replication sent from the client
+     * @param principal     authentication information
+     * @param replicationId the id of the replication to update
+     * @param replication   the updated replication sent from the client
      * @return the updated replication
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
@@ -263,7 +261,7 @@ public class ReplicationController extends IngestController {
     /**
      * Retrieve all replications associated with a particular node/user
      *
-     * @param params    - query parameters used for searching
+     * @param params query parameters used for searching
      * @return all replication matching the request parameters
      */
     @RequestMapping(method = RequestMethod.GET)
@@ -296,8 +294,8 @@ public class ReplicationController extends IngestController {
     /**
      * Retrieve a single replication based on its Id
      *
-     * @param principal - authentication information
-     * @param id  - the id to search for
+     * @param principal authentication information
+     * @param id        the id to search for
      * @return the replication specified by the id
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)

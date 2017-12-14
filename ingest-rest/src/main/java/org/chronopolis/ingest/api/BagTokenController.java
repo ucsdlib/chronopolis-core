@@ -82,9 +82,9 @@ public class BagTokenController extends IngestController {
      * 404 - Bag not found
      * 409 - Token already exists for bag
      *
-     * @param principal
-     * @param id
-     * @param model
+     * @param principal the user creating an ACE Token for a bag
+     * @param id        the id of the bag
+     * @param model     the information for the ACE Token
      * @return the newly created token
      */
     @PostMapping("/tokens")

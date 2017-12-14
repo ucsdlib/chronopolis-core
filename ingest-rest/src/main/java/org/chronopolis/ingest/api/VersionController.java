@@ -15,6 +15,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class VersionController {
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
+    /**
+     * Get the current running version of the Ingest Server
+     *
+     * @return the version
+     */
     @RequestMapping(method = RequestMethod.GET)
     public Version getVersion() {
         access.info("[GET /api/version]");
