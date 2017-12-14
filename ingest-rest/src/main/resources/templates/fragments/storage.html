@@ -43,7 +43,7 @@
                             <div th:replace="fragments/storage :: list-item(head='Size', content=${formatter.format(storage.size)})"></div>
                             <!-- inactive + modal -->
                             <!-- can see about making this a fragment as well -->
-                            <li class="row w-100" style="display: block; border: 1px solid rgba(0,0,0,.125)">
+                            <li class="w-100" style="display: block; border: 1px solid rgba(0,0,0,.125)">
                                 <button data-toggle="modal" th:data-target="|#${storageName}-remove|"
                                         class="btn btn-danger col-2" style="border-radius: 0">Set Inactive
                                 </button>
@@ -76,7 +76,7 @@
                             <div th:replace="fragments/storage :: list-item(head='Value', content=${fixity.value})"></div>
                             <div th:replace="fragments/storage :: list-item(head='Created', content=${fixity.createdAt})"></div>
                             <!-- remove + modal -->
-                            <li class="row w-100" style="display: block; border: 1px solid rgba(0,0,0,.125)">
+                            <li class="w-100" style="display: block; border: 1px solid rgba(0,0,0,.125)">
                                 <button data-toggle="modal"
                                         th:data-target="|#${fixity.algorithm}-${storageName}-remove|"
                                         class="btn btn-danger col-2" style="border-radius: 0">Remove
@@ -108,7 +108,7 @@
     </div>
 </div>
 
-<li th:fragment="list-item (head, content)" class="row w-100"
+<li th:fragment="list-item (head, content)" class="w-100"
     style="display: block; border: 1px solid rgba(0,0,0,.125)">
     <button type="button" class="btn btn-secondary float-left col-2"
             style="border-radius: 0; border-right: 1px solid rgba(0,0,0,0.125)" th:text="${head}">
