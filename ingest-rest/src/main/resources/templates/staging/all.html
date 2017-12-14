@@ -6,33 +6,45 @@
 <body>
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column align-items-center m-3">
+    <!--/*@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"*/-->
     <div class="card w-50 filterable">
-        <div class="card-header">
-            <div class="d-flex justify-content-start">
-                <!-- Display Bag Name/Identifier + Back Link-->
-                <!-- Maybe provided in some heading for breadcrumbs -->
-                <h3 class="card-title p-2">Whatever</h3>
+        <nav aria-label="breadcrumb" role="navigation">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/bags}">Bags</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/bags(depositor=${bag.depositor})}"
+                                               th:text="${bag.depositor}">Depositor</a>
+                </li>
+                <li class="breadcrumb-item"><a th:href="@{|/bags/${bag.id}|}"
+                                               th:text="${bag.name}">Bag</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">All Storage</li>
+            </ol>
+        </nav>
+
+        <div class="hr-sect mx-auto">Bag Staging</div>
+        <div th:each="storage: ${bag.bagStorage}">
+            <div class="card-header" data-toggle="collapse" th:href="@{|#${storage.id}-collapse|}"
+                 aria-expanded="false" th:aria-controls="|${storage.id}-collapse|" th:text="|Bag-${storage.id}|">
+            </div>
+            <div class="collapse" th:id="|${storage.id}-collapse|">
+                <div th:replace="fragments/storage :: card-display (storage=${storage},storageName=${storage.id},rw=false)"></div>
             </div>
         </div>
 
-        <!-- ...carousel may not be the best choice.. might be easier to use collapsible cards -->
-        <div class="carousel slide" data-ride="carousel">
-            <div class="carousel-inner">
-            <!--@thymesVar id="storages" type="Set<StagingStorage>"-->
-            <!--@thymesVar id="storage" type="org.chronopolis.rest.entities.storage.StagingStorage"-->
-            <div class="carousel-item" th:each="storage: ${storages}">
-                <p th:text="${storage.size}"></p>
-                <p th:text="${storage.totalFiles}"></p>
-                <p th:text="${storage.path}"></p>
-                <p th:text="${storage.active}"></p>
+        <div class="hr-sect mx-auto">Token Staging</div>
+        <div th:each="storage: ${bag.tokenStorage}">
+            <div class="card-header" data-toggle="collapse" th:href="@{|#${storage.id}-collapse|}"
+                 aria-expanded="false" th:aria-controls="|${storage.id}-collapse|" th:text="|Token-${storage.id}|">
             </div>
+            <div class="collapse" th:id="|${storage.id}-collapse|">
+                <div th:replace="fragments/storage :: card-display (storage=${storage},storageName=${storage.id},rw=false)"></div>
             </div>
         </div>
     </div>
 </div>
 <div th:replace="layout :: foot"></div>
 <script type="text/javascript">
-    $(".table-clickable").click(function() {
+    $(".table-clickable").click(function () {
         window.location = $(this).data("href");
     });
 </script>
