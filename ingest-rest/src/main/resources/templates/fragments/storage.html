@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 
-<div th:fragment="card-display (storage,storageName)">
+<div th:fragment="card-display (storage,storageName,rw)">
     <!--/*@thymesVar id="formatter" type="org.chronopolis.ingest.support.FileSizeFormatter"*/-->
     <!--/*@thymesVar id="storage" type="org.chronopolis.rest.entities.storage.StagingStorage"*/-->
     <!--/*@thymesVar id="fixity" type="org.chronopolis.rest.entities.storage.Fixity"*/-->
@@ -25,7 +25,8 @@
                        class="nav-link" data-toggle="pill" role="tab" aria-selected="false">
                     </a>
 
-                    <a th:id="|v-add-fixity-tab-${storageName}|"
+                    <a th:if="${rw}"
+                       th:id="|v-add-fixity-tab-${storageName}|"
                        th:href="@{|${bag.id}/storage/${storage.id}/fixity|}"
                        th:aria-controls="|v-add-fixity-${storageName}|"
                        class="nav-link" data-toggle="pill" role="tab" aria-selected="false">Add Fixity</a>
@@ -44,8 +45,9 @@
 
                             <!-- inactive + modal -->
                             <!-- can see about making this a fragment as well -->
-                            <tr>
-                                <td class="c-table-danger col-2" data-toggle="modal" th:data-target="|#${storageName}-remove|">
+                            <tr th:if="${rw}">
+                                <td class="c-table-danger col-2" data-toggle="modal"
+                                    th:data-target="|#${storageName}-remove|">
                                     Set Inactive
                                 </td>
                                 <div class="modal fade" th:id="|${storageName}-remove|" tabindex="-1" role="dialog">
@@ -76,30 +78,32 @@
                             <div th:replace="fragments/storage :: list-item(head='Value', content=${fixity.value})"></div>
                             <div th:replace="fragments/storage :: list-item(head='Created', content=${fixity.createdAt})"></div>
                             <!-- remove + modal -->
-                            <tr>
+                            <tr th:if="${rw}">
                                 <td class="c-table-danger col-2" data-toggle="modal"
                                     th:data-target="|#${fixity.algorithm}-${storageName}-remove|">
                                     Remove
                                 </td>
-                            </tr>
 
-                            <div class="modal fade" th:id="|${fixity.algorithm}-${storageName}-remove|" tabindex="-1"
-                                 role="dialog">
-                                <div class="modal-dialog" role="document">
-                                    <div class="modal-content">
-                                        <div class="modal-body">
-                                            Warning: Proceeding will remove the fixity object.
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close
-                                            </button>
-                                            <a th:href="@{|${bag.id}/storage/${storage.id}/fixity/${fixity.id}|}"
-                                               class="btn btn-danger">Remove Fixity
-                                            </a>
+                                <div class="modal fade" th:id="|${fixity.algorithm}-${storageName}-remove|"
+                                     tabindex="-1"
+                                     role="dialog">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-body">
+                                                Warning: Proceeding will remove the fixity object.
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                                    Close
+                                                </button>
+                                                <a th:href="@{|${bag.id}/storage/${storage.id}/fixity/${fixity.id}|}"
+                                                   class="btn btn-danger">Remove Fixity
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </tr>
                         </table>
                     </div>
                 </div>

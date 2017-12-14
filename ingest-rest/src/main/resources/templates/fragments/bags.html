@@ -135,7 +135,7 @@
         <div class="card-block p-2">
             <div class="hr-sect mx-auto">Bag Staging</div>
             <th:block th:if="${activeBagStorage} != null">
-                <div th:replace="fragments/storage :: card-display (storage=${activeBagStorage},storageName='Bag')"></div>
+                <div th:replace="fragments/storage :: card-display (storage=${activeBagStorage},storageName='bag',rw=true)"></div>
             </th:block>
             <th:block th:if="${activeBagStorage} == null">
                 <div class="btn-group p-2" role="group">
@@ -147,7 +147,7 @@
             </th:block>
             <div class="hr-sect mx-auto">Token Staging</div>
             <th:block th:if="${activeTokenStorage} != null">
-                <div th:replace="fragments/storage :: card-display (storage=${activeTokenStorage},storageName='Token')"></div>
+                <div th:replace="fragments/storage :: card-display (storage=${activeTokenStorage},storageName='token',rw=true)"></div>
             </th:block>
             <th:block th:if="${activeTokenStorage} == null">
                 <div class="btn-group p-2" role="group">
