@@ -113,14 +113,14 @@
     <!--@thymesVar id="tokens" type="Long"-->
     <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
     <div class="card-block p-2">
-        <ul class="list-group">
+        <table class="c-table">
             <div th:replace="fragments/storage :: list-item(head='Id', content=${bag.id})"></div>
             <div th:replace="fragments/storage :: list-item(head='Num Tokens', content=${tokens})"></div>
             <div th:replace="fragments/storage :: list-item(head='Status', content=${bag.status})"></div>
             <div th:replace="fragments/storage :: list-item(head='Created By', content=${bag.creator})"></div>
             <div th:replace="fragments/storage :: list-item(head='Created At', content=${bag.createdAt})"></div>
             <div th:replace="fragments/storage :: list-item(head='Updated At', content=${bag.updatedAt})"></div>
-        </ul>
+        </table>
     </div>
 
     <div class="card-header" data-toggle="collapse" href="#stagingCollapse"

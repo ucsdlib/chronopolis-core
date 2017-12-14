@@ -37,17 +37,17 @@
                 <div class="tab-content" th:id="|v-content-${storageName}|">
                     <div class="tab-pane fade show active" th:id="|v-storage-${storageName}|" role="tabpanel"
                          th:aria-labelledby="|v-storage-tab-${storageName}|">
-                        <ul class="list-group">
+                        <table class="c-table">
                             <div th:replace="fragments/storage :: list-item(head='Path', content=${storage.path})"></div>
                             <div th:replace="fragments/storage :: list-item(head='Files', content=${storage.totalFiles})"></div>
                             <div th:replace="fragments/storage :: list-item(head='Size', content=${formatter.format(storage.size)})"></div>
+
                             <!-- inactive + modal -->
                             <!-- can see about making this a fragment as well -->
-                            <li class="w-100" style="display: block; border: 1px solid rgba(0,0,0,.125)">
-                                <button data-toggle="modal" th:data-target="|#${storageName}-remove|"
-                                        class="btn btn-danger col-2" style="border-radius: 0">Set Inactive
-                                </button>
-
+                            <tr>
+                                <td class="c-table-danger col-2" data-toggle="modal" th:data-target="|#${storageName}-remove|">
+                                    Set Inactive
+                                </td>
                                 <div class="modal fade" th:id="|${storageName}-remove|" tabindex="-1" role="dialog">
                                     <div class="modal-dialog" role="document">
                                         <div class="modal-content">
@@ -65,23 +65,23 @@
                                         </div>
                                     </div>
                                 </div>
-                            </li>
-                        </ul>
+                            </tr>
+                        </table>
                     </div>
 
                     <div th:each="fixity: ${storage.fixities}" class="tab-pane fade"
                          th:id="|v-${fixity.algorithm}-${storageName}|" role="tabpanel"
                          th:aria-labelledby="|v-${fixity.algorithm}-tab-${storageName}|">
-                        <ul class="list-group">
+                        <table class="c-table">
                             <div th:replace="fragments/storage :: list-item(head='Value', content=${fixity.value})"></div>
                             <div th:replace="fragments/storage :: list-item(head='Created', content=${fixity.createdAt})"></div>
                             <!-- remove + modal -->
-                            <li class="w-100" style="display: block; border: 1px solid rgba(0,0,0,.125)">
-                                <button data-toggle="modal"
-                                        th:data-target="|#${fixity.algorithm}-${storageName}-remove|"
-                                        class="btn btn-danger col-2" style="border-radius: 0">Remove
-                                </button>
-                            </li>
+                            <tr>
+                                <td class="c-table-danger col-2" data-toggle="modal"
+                                    th:data-target="|#${fixity.algorithm}-${storageName}-remove|">
+                                    Remove
+                                </td>
+                            </tr>
 
                             <div class="modal fade" th:id="|${fixity.algorithm}-${storageName}-remove|" tabindex="-1"
                                  role="dialog">
@@ -100,7 +100,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </ul>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -108,13 +108,8 @@
     </div>
 </div>
 
-<li th:fragment="list-item (head, content)" class="w-100"
-    style="display: block; border: 1px solid rgba(0,0,0,.125)">
-    <button type="button" class="btn btn-secondary float-left col-2"
-            style="border-radius: 0; border-right: 1px solid rgba(0,0,0,0.125)" th:text="${head}">
-    </button>
-    <!-- todo: something other than button -->
-    <button type="button" class="btn btn-light text-left col-10" style="border-radius: 0"
-            th:text="${content}"></button>
-</li>
+<tr th:fragment="list-item (head, content)">
+    <td class="c-table-secondary col-2" style="border-right: 1px solid rgba(0,0,0,0.125)" th:text="${head}"></td>
+    <td class="c-table-light text-left col-10" th:text="${content}"></td>
+</tr>
 </html>
