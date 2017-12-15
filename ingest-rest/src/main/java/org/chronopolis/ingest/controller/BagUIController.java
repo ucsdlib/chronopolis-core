@@ -425,7 +425,7 @@ public class BagUIController extends IngestController {
             throw new ConflictException("Resource already has active storage!");
         }
 
-        double multiple = Math.pow(10, stagingCreate.getStorageUnit().getPower());
+        double multiple = Math.pow(1000, stagingCreate.getStorageUnit().getPower());
         long size = Double.valueOf(stagingCreate.getSize() * multiple).longValue();
 
         StagingStorage storage = new StagingStorage()
