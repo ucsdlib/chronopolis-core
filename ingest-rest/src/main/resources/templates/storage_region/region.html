@@ -9,56 +9,34 @@
 <div class="d-flex flex-column m-3 align-items-center">
     <div class="card w-50">
         <!--/*@thymesVar id="region" type="org.chronopolis.rest.entities.storage.StorageRegion"*/-->
-        <div class="card-header">
-            <h3>Storage Region Overview</h3>
-            <!-- by using both btn and badge we get a little bit more room to breathe from the badge
-                 with something smaller than a btn-sm. 'snice -->
-            <a class="btn badge badge-primary" th:href="@{|/regions/${region.id}/edit|}">Edit</a>
-        </div>
-        <div class="card-block">
-            <table class="table table-bordered w-50">
-                <tbody>
-                <tr>
-                    <td>Id</td>
-                    <td th:text="${region.id}"></td>
-                </tr>
-                <tr>
-                    <td>Storage Type</td>
-                    <td th:text="${region.storageType}"></td>
-                </tr>
-                <tr>
-                    <td>Data Type</td>
-                    <td th:text="${region.dataType}"></td>
-                </tr>
-                <tr>
-                    <td>Total Capacity</td>
-                    <!--/*@thymesVar id="capacity" type="java.lang.String"*/-->
-                    <td th:text="${capacity}"></td>
-                </tr>
-                <tr>
-                    <td>Amount Used</td>
-                    <!--/*@thymesVar id="used" type="java.lang.String"*/-->
-                    <td th:text="${used}"></td>
-                </tr>
-                <tr>
-                    <td>Owner</td>
-                    <td th:text="${region.node.username}"></td>
-                </tr>
-                <tr>
-                    <td>Created At</td>
-                    <td th:text="${region.createdAt.toLocalDateTime()}"></td>
-                </tr>
-                <tr>
-                    <td>Updated At</td>
-                    <td th:text="${region.updatedAt.toLocalDateTime()}"></td>
-                </tr>
-                <tr>
-                    <td>Storage Region Information</td>
-                    <td th:text="${region.note}"></td>
-                </tr>
-                </tbody>
+        <!--/*@thymesVar id="capacity" type="java.lang.String"*/-->
+        <!--/*@thymesVar id="used" type="java.lang.String"*/-->
+        <nav aria-label="breadcrumb" role="navigation">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/regions}">Storage Regions</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/regions(node=${region.node.username})}"
+                                               th:text="${region.node.username}">Node</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page" th:text="${region.id}">Region Id</li>
+
+                <!-- trying to determine the best way to display this... hmmm -->
+                <a class="pull-right" th:href="@{|/regions/${region.id}/edit|}"><i class="fa fa-pencil"></i></a>
+            </ol>
+        </nav>
+
+        <div class="card-block p-2">
+            <table class="c-table">
+                <div th:replace="fragments/storage :: list-item(head='Owner',content=${region.node.username})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Storage Type',content=${region.storageType})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Data Type',content=${region.dataType})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Total Capacity',content=${capacity})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Used Capacity',content=${used})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Created At',content=${region.createdAt.toLocalDateTime()})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Updated At',content=${region.updatedAt.toLocalDateTime()})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Information',content=${region.note})"></div>
             </table>
         </div>
+
         <!--
             Instead of checking if the config is not null, always have these options be mutable
             with a form for updating wrapping everything. If the values are null, they shouldn't be displayed

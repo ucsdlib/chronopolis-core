@@ -8,77 +8,43 @@
 <div class="d-flex flex-column m-3 align-items-center">
     <!--@thymesVar id="repair" type="org.chronopolis.rest.entities.Repair"-->
     <div class="card w-50 ">
+        <nav aria-label="breadcrumb" role="navigation">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/repairs}">Storage Regions</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/repairs(node=${repair.to.username})}"
+                                               th:text="${repair.to.username}">To Node</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page" th:text="${repair.id}">Repair Id</li>
+            </ol>
+        </nav>
+
         <div class="card-header">
             <h3>Repair Overview</h3>
         </div>
-        <div class="card-block">
-            <table class="table table-bordered w-50">
-                <tbody>
-                <tr>
-                    <td>Id</td>
-                    <td th:text="${repair.id}"></td>
-                </tr>
-                <tr>
-                    <td>Repair Status</td>
-                    <td th:text="${repair.status}"></td>
-                </tr>
-                <tr>
-                    <td>Audit Status</td>
-                    <td th:text="${repair.audit}"></td>
-                </tr>
-
-                <tr>
-                    <td>Requested By</td>
-                    <td th:text="${repair.requester}"></td>
-                </tr>
-                <tr>
-                    <td>Node</td>
-                    <td th:text="${repair.to.username}"></td>
-                </tr>
-                <tr>
-                    <td>Validated</td>
-                    <td th:text="${repair.validated}"></td>
-                </tr>
-                <tr>
-                    <td>Replaced</td>
-                    <td th:text="${repair.replaced}"></td>
-                </tr>
-                <tr>
-                    <td>Cleaned</td>
-                    <td th:text="${repair.cleaned}"></td>
-                </tr>
-                <tr>
-                    <td>Files</td>
-                    <td th:text="${repair.files}"></td>
-                </tr>
-                </tbody>
+        <div class="card-block p-2">
+            <table class="c-table">
+                <div th:replace="fragments/storage :: list-item(head='Requested By',content=${repair.requester})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Node',content=${repair.to.username})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Repair Status',content=${repair.status})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Audit Status',content=${repair.audit})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Validated',content=${repair.validated})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Replaced',content=${repair.replaced})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Cleaned',content=${repair.cleaned})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Files',content=${repair.files})"></div>
             </table>
         </div>
+
         <div class="card-header" th:if="${repair.from} != null">
             <h4>Fulfilling Information</h4>
         </div>
-        <div class="card-block" th:if="${repair.from} != null">
-            <table class="table table-bordered w-50">
+        <div class="card-block p-2" th:if="${repair.from} != null">
+            <table class="c-table">
                 <!--@thymesVar id="node_to_node" type="org.chronopolis.rest.entities.fulfillment.Rsync"-->
                 <!--@thymesVar id="ace" type="org.chronopolis.rest.entities.fulfillment.Ace"-->
-                <tbody>
-                    <tr>
-                        <td>Fulfilling Node</td>
-                        <td th:text="${repair.from.username}"></td>
-                    </tr>
-                    <tr th:if="${repair.type} != null">
-                        <td>Fulfillment Type</td>
-                        <td th:text="${repair.type}"></td>
-                    </tr>
-                    <tr th:if="${node_to_node} != null">
-                        <td>Rsync Location</td>
-                        <td th:text="${node_to_node.link}"></td>
-                    </tr>
-                    <tr th:if="${ace} != null">
-                        <td>ACE url</td>
-                        <td th:text="${ace.url}"></td>
-                    </tr>
-                </tbody>
+                <div th:replace="fragments/storage :: list-item(head='Fulfilling Node', content=${repair.from.username})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Fulfillment Type', content=${repair.type})"></div>
+                <div th:if="${node_to_node} != null" th:replace="fragments/storage :: list-item(head='Rsync Location', content=${node_to_node.link})"></div>
+                <div th:if="${ace} != null" th:replace="fragments/storage :: list-item(head='ACE URL', content=${ace.url})"></div>
             </table>
         </div>
     </div>
