@@ -105,7 +105,7 @@ public class BagUIController extends IngestController {
      * @param principal authentication information
      * @return page listing all bags
      */
-    @RequestMapping(value = "/bags", method = RequestMethod.GET)
+    @GetMapping("/bags")
     public String getBags(Model model, Principal principal,
                           @ModelAttribute(value = "filter") BagFilter filter) {
         access.info("[GET /bags] - {}", principal.getName());
@@ -137,7 +137,7 @@ public class BagUIController extends IngestController {
      * @param id    the id of the bag
      * @return page showing the individual bag
      */
-    @RequestMapping(value = "/bags/{id}", method = RequestMethod.GET)
+    @GetMapping("/bags/{id}")
     public String getBag(Model model, Principal principal, @PathVariable("id") Long id) {
         access.info("[GET /bags/{}] - {}", id, principal.getName());
 
@@ -173,7 +173,7 @@ public class BagUIController extends IngestController {
      * @param update the updated information
      * @return page showing the individual bag
      */
-    @RequestMapping(value = "/bags/{id}", method = RequestMethod.POST)
+    @PostMapping("/bags/{id}")
     public String updateBag(Model model, Principal principal, @PathVariable("id") Long id, BagUpdate update) {
         access.info("[POST /bags/{}] - {}", id, principal.getName());
         access.info("POST parameters - {};{}", update.getLocation(), update.getStatus());
