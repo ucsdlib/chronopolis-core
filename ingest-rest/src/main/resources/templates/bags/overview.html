@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: head">
+    <meta charset="UTF-8">
+    <title>Bags Overview</title>
+</head>
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column align-items-center m-3">
+    <!-- will probably wrap these in a div -->
+    <!--
+    | st | dt |
+    -----------
+    | ?? | ?? |
+    -->
+    <table class="c-table" style="width: 20% !important">
+        <!--/*@thymesVar id="statusSummaries" type="List<org.chronopolis.ingest.models.BagSummary>"*/-->
+        <!--/*@thymesVar id="item" type="org.chronopolis.ingest.models.BagSummary"*/-->
+        <tr th:each="item : ${statusSummaries}">
+            <td class="c-table-secondary col-2" th:text="${item.status}">
+            </td>
+            <td class="c-table-light col-10 text-left">
+                [[${item.count}]] bags
+                <span class="badge badge-primary badge-pill pull-right" th:text="${item.formattedSum}"></span>
+            </td>
+        </tr>
+    </table>
+
+    <table class="c-table" style="width: 20% !important">
+        <!--/*@thymesVar id="depositorSummaries" type="List<org.chronopolis.ingest.models.DepositorSummary>"*/-->
+        <!--/*@thymesVar id="item" type="org.chronopolis.ingest.models.DepositorSummary"*/-->
+        <tr th:each="item : ${depositorSummaries}">
+            <td class="c-table-secondary col-2" th:text="${item.depositor}">
+            </td>
+            <td class="c-table-light col-10 text-left">
+                [[${item.count}]] bags
+                <!--/*@thymesVar id="formatter" type="org.chronopolis.ingest.support.FileSizeFormatter"*/-->
+                <span class="badge badge-primary badge-pill pull-right" th:text="${formatter.format(item.sum)}"></span>
+            </td>
+        </tr>
+    </table>
+</div>
+<div th:replace="layout :: foot"></div>
+</body>
+</html>

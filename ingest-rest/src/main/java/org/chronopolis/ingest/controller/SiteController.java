@@ -2,14 +2,18 @@ package org.chronopolis.ingest.controller;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.models.BagSummary;
+import org.chronopolis.ingest.models.DepositorSummary;
 import org.chronopolis.ingest.models.UserRequest;
 import org.chronopolis.ingest.repository.Authority;
 import org.chronopolis.ingest.repository.dao.UserService;
+import org.chronopolis.ingest.support.FileSizeFormatter;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.QReplication;
 import org.chronopolis.rest.models.BagStatus;
@@ -102,6 +106,48 @@ public class SiteController extends IngestController {
         model.addAttribute("twoWeeksReplications", twoWeeks);
 
         return "index";
+    }
+
+    /**
+     * Return information about all bags in Chronopolis
+     * - depositor totals + distribution stats
+     * - status totals
+     *
+     * @param model     the view model
+     * @param principal the security principal of the user
+     * @return the bags/overview template for display
+     */
+    @GetMapping("/bags/overview")
+    public String getBagsOverview(Model model, Principal principal) {
+        // access.info("[GET /bags/overview] - {}", principal.getName());
+
+        QBag bag = QBag.bag;
+        JPAQueryFactory factory = new JPAQueryFactory(entityManager);
+
+        // retrieve BagStatusSummary
+        NumberExpression<Long> sumExpr = bag.size.sum();
+        NumberExpression<Long> countExpr = bag.countDistinct();
+        EnumPath<BagStatus> statusExpr = bag.status;
+        List<BagSummary> summaries = factory.selectFrom(QBag.bag)
+                .select(Projections.constructor(BagSummary.class, sumExpr, countExpr, statusExpr))
+                .groupBy(statusExpr)
+                .fetch();
+
+        // retrieve DepositorSummary
+        StringPath depositorExpr = bag.depositor;
+        List<DepositorSummary> depositorSummaries = factory.selectFrom(QBag.bag)
+                .select(Projections.constructor(DepositorSummary.class, sumExpr, countExpr, depositorExpr))
+                .groupBy(depositorExpr)
+                .limit(10)
+                .fetch();
+
+        // retrieve suck Bags
+
+        model.addAttribute("statusSummaries", summaries);
+        model.addAttribute("depositorSummaries", depositorSummaries);
+        model.addAttribute("formatter", new FileSizeFormatter());
+
+        return "bags/overview";
     }
 
     private Long replications(JPAQueryFactory factory, Predicate... predicates) {
