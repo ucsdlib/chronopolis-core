@@ -133,6 +133,14 @@ public class SiteController extends IngestController {
                 .groupBy(statusExpr)
                 .fetch();
 
+        List<String> summaryLabels = new ArrayList<>();
+        List<String> summaryData = new ArrayList<>();
+
+        for (BagSummary summary : summaries) {
+            summaryLabels.add(summary.getStatus().toString());
+            summaryData.add(summary.getCount().toString());
+        }
+
         // retrieve DepositorSummary
         StringPath depositorExpr = bag.depositor;
         List<DepositorSummary> depositorSummaries = factory.selectFrom(QBag.bag)
@@ -141,13 +149,15 @@ public class SiteController extends IngestController {
                 .limit(10)
                 .fetch();
 
-        // retrieve suck Bags
+        // retrieve stuck Bags
 
+        model.addAttribute("summaryLabels", summaryLabels);
+        model.addAttribute("summaryData", summaryData);
         model.addAttribute("statusSummaries", summaries);
         model.addAttribute("depositorSummaries", depositorSummaries);
         model.addAttribute("formatter", new FileSizeFormatter());
 
-        return "bags/overview";
+        return "bags/index";
     }
 
     private Long replications(JPAQueryFactory factory, Predicate... predicates) {
