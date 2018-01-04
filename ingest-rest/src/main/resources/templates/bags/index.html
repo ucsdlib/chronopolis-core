@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: head">
+    <meta charset="UTF-8">
+    <title>Bags Overview</title>
+</head>
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<!-- new shit we getting hyphy in here -->
+<div class="d-flex flex-column align-items-center m-3">
+    <div class="card w-50">
+        <nav aria-label="breadcrumb" role="navigation">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active">Bags Overview</li>
+            </ol>
+        </nav>
+
+        <div class="card-body p-2 d-flex">
+            <div style="width: 300px; height: 300px; margin: 15px auto;">
+                <canvas id="status-summary" style="display: block"></canvas>
+            </div>
+
+            <div style="width: 300px; height: 300px; margin: 15px auto;">
+                <canvas id="test-chart"></canvas>
+            </div>
+
+            <table class="c-table p-2 m-2" style="width: 20% !important">
+                <tr>
+                    <td class="c-table-secondary col-2">Depositor-1</td>
+                    <td class="c-table-light col-10 text-left">Bag-1</td>
+                </tr>
+                <tr>
+                    <td class="c-table-secondary col-2">Depositor-1</td>
+                    <td class="c-table-light col-10 text-left">Bag-2</td>
+                </tr>
+                <tr>
+                    <td class="c-table-secondary col-2">Depositor-1</td>
+                    <td class="c-table-light col-10 text-left">Bag-3</td>
+                </tr>
+            </table>
+
+            <table class="c-table p-2 m-2" style="width: 20% !important">
+                <tr>
+                    <td class="c-table-secondary col-2">Depositor-1</td>
+                    <td class="c-table-light col-10 text-left">Bag-1</td>
+                </tr>
+                <tr>
+                    <td class="c-table-secondary col-2">Depositor-1</td>
+                    <td class="c-table-light col-10 text-left">Bag-2</td>
+                </tr>
+                <tr>
+                    <td class="c-table-secondary col-2">Depositor-1</td>
+                    <td class="c-table-light col-10 text-left">Bag-3</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="hr-sect mx-auto w-100">Recent Bags</div>
+        <div class="card-body p-2">
+        <table class="c-table">
+            <tr>
+                <td class="c-table-secondary col-2">Depositor-1</td>
+                <td class="c-table-light col-10 text-left">Bag-1</td>
+            </tr>
+            <tr>
+                <td class="c-table-secondary col-2">Depositor-1</td>
+                <td class="c-table-light col-10 text-left">Bag-2</td>
+            </tr>
+            <tr>
+                <td class="c-table-secondary col-2">Depositor-1</td>
+                <td class="c-table-light col-10 text-left">Bag-3</td>
+            </tr>
+            <tr>
+                <td class="c-table-secondary col-2">Depositor-2</td>
+                <td class="c-table-light col-10 text-left">Bag-1</td>
+            </tr>
+            <tr>
+                <td class="c-table-secondary col-2">Depositor-3</td>
+                <td class="c-table-light col-10 text-left">Bag-1</td>
+            </tr>
+        </table>
+
+        <a class="btn btn-primary">Deposit Bag</a>
+        </div>
+
+    </div>
+
+
+    <!-- header w/ breadcrumbs -->
+    <div class="text-left">
+        <h2>Bags Overview</h2>
+    </div>
+
+    <hr/>
+
+    <!-- misc info + stats -->
+    <div class="d-flex">
+        <table class="c-table p-2" style="width: 20% !important">
+            <tr>
+                <td class="c-table-secondary col-2">Depositor-1</td>
+                <td class="c-table-light col-10 text-left">Bag-1</td>
+            </tr>
+            <tr>
+                <td class="c-table-secondary col-2">Depositor-1</td>
+                <td class="c-table-light col-10 text-left">Bag-2</td>
+            </tr>
+            <tr>
+                <td class="c-table-secondary col-2">Depositor-1</td>
+                <td class="c-table-light col-10 text-left">Bag-3</td>
+            </tr>
+        </table>
+
+        <table class="c-table p-2" style="width: 20% !important">
+            <tr>
+                <td class="c-table-secondary col-2">Depositor-1</td>
+                <td class="c-table-light col-10 text-left">Bag-1</td>
+            </tr>
+            <tr>
+                <td class="c-table-secondary col-2">Depositor-1</td>
+                <td class="c-table-light col-10 text-left">Bag-2</td>
+            </tr>
+            <tr>
+                <td class="c-table-secondary col-2">Depositor-1</td>
+                <td class="c-table-light col-10 text-left">Bag-3</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- sub header -->
+    <div>
+        <h5>Recent Bags</h5>
+    </div>
+
+    <hr/>
+
+    <!-- recent bags table -->
+    <div>
+        <table class="c-table" style="width: 20% !important">
+            <tr>
+                <td class="c-table-secondary col-2">Depositor-1</td>
+                <td class="c-table-light col-10 text-left">Bag-1</td>
+            </tr>
+            <tr>
+                <td class="c-table-secondary col-2">Depositor-1</td>
+                <td class="c-table-light col-10 text-left">Bag-2</td>
+            </tr>
+            <tr>
+                <td class="c-table-secondary col-2">Depositor-1</td>
+                <td class="c-table-light col-10 text-left">Bag-3</td>
+            </tr>
+            <tr>
+                <td class="c-table-secondary col-2">Depositor-2</td>
+                <td class="c-table-light col-10 text-left">Bag-1</td>
+            </tr>
+            <tr>
+                <td class="c-table-secondary col-2">Depositor-3</td>
+                <td class="c-table-light col-10 text-left">Bag-1</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div th:replace="layout :: foot"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.min.js"
+        integrity="sha256-N4u5BjTLNwmGul6RgLoESPNqDFVUibVuOYhP4gJgrew=" crossorigin="anonymous"></script>
+<script th:inline="javascript" type="application/javascript">
+    Chart.defaults.global.legend.display = false;
+
+    var canvas = $("#status-summary");
+    var cfg = {
+        type: 'doughnut',
+        data: {
+            datasets: [{
+                data: [[${summaryData}]],
+                backgroundColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)',
+                ],
+                label: 'Status Dataset'
+            }],
+            labels: [[${summaryLabels}]]
+        },
+            options: {
+                  title: {
+                    display: true,
+                    text: 'Status Distribution'
+                  }
+                }
+    };
+
+    var sumChart = new Chart(canvas, cfg);
+
+    var testCanvas = $("#test-chart");
+    var testcfg = {
+        type: 'doughnut',
+        data: {
+            datasets: [{
+                data: [230, 102],
+                borderColor: '#252830',
+                backgroundColor: ['#1ca8dd', '#1bc98d']
+            }],
+            labels: ['Returning', 'New'],
+            options: {
+                responsive: true,
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Chart.js Doughnut Chart'
+                },
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                }
+            }
+
+        }
+    };
+    var testChart = new Chart(testCanvas, testcfg);
+
+    /*
+    window.onload = function() {
+        var ctx = document.getElementById("status-summary").getContext("2d");
+        window.myPie = new Chart(ctx, cfg);
+        var testctx = document.getElementById("test-chart").getContext("2d");
+        window.myTest = new Chart(testctx, test_cfg);
+    };
+    */
+</script>
+</body>
+</html>
