@@ -8,7 +8,7 @@
 <nav th:replace="layout :: navbar"></nav>
 <!-- new shit we getting hyphy in here -->
 <div class="d-flex flex-column align-items-center m-3">
-    <div class="card w-50">
+    <div class="card" style="width: 66%">
         <nav aria-label="breadcrumb" role="navigation">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item active">Bags Overview</li>
@@ -16,17 +16,13 @@
         </nav>
 
         <div class="card-body p-2 d-flex">
-            <div style="width: 300px">
+            <div style="width: 45%">
                 <canvas id="status-summary" style="display: block"></canvas>
             </div>
 
-            <!--
-            <div style="width: 300px; height: 300px; margin: 15px auto;">
-                <canvas id="node-summary" style="display: block"></canvas>
-            </div>
-            -->
-
-            <table class="c-table p-2 m-2 w-25">
+            <div class="flex-column" style="width: 45% !important">
+                <h6>Bag to Node Distribution</h6>
+            <table class="table table-bordered table-hover">
                 <thead>
                     <tr>
                         <th>Node</th>
@@ -35,11 +31,12 @@
                     </tr>
                 </thead>
                 <tr th:each="summary: ${nodeSummaries}">
-                    <td class="c-table-secondary col-2" th:text="${summary.depositor}">Depositor-1</td>
-                    <td class="c-table-light col-5 text-left" th:text="${summary.count}">Bag-1</td>
-                    <td class="c-table-light col-5 text-left" th:text="${summary.sum}">Bag-1</td>
+                    <td th:text="${summary.depositor}">Depositor-1</td>
+                    <td th:text="${summary.count}">Bag-1</td>
+                    <td th:text="${summary.sum}">Bag-1</td>
                 </tr>
             </table>
+            </div>
         </div>
 
         <div class="hr-sect mx-auto w-100">Recent Bags</div>
@@ -65,8 +62,8 @@
                 </tr>
             </table>
 
-            <a class="btn btn-primary">View All Bags</a>
-            <a class="btn btn-primary">Deposit Bag</a>
+            <a class="btn btn-primary text-white" th:href="@{/bags}">View All Bags</a>
+            <a class="btn btn-primary text-white" th:href="@{/bags/add}">Deposit Bag</a>
         </div>
 
     </div>
@@ -148,17 +145,33 @@
 
 <div th:replace="layout :: foot"></div>
 
+<!-- this is used in a few places - should make our own js file ye -->
+<script type="application/javascript">
+    $(".table-clickable").click(function() {
+        window.location = $(this).data("href");
+    });
+</script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.min.js"
         integrity="sha256-N4u5BjTLNwmGul6RgLoESPNqDFVUibVuOYhP4gJgrew=" crossorigin="anonymous"></script>
-<script th:inline="javascript" type="application/javascript">
+<script type="application/javascript" th:inline="javascript">
     Chart.defaults.global.legend.display = false;
 
-    var canvas = $("#status-summary");
-    var canvas2 = $("#status-summary-2");
+    // setup up our dataset, labels, and extra tooltip info
+    var statusDataset = [];
+    var statusLabels = [];
+    var statusSizes = [];
+
+    [[${statusSummaries}]].forEach(function(item, index, array) {
+        console.log(item, index);
+        statusDataset.push(item.count);
+        statusLabels.push(item.status);
+        statusSizes.push(item.formattedSum);
+    });
 
     var statusData = {
         datasets: [{
-            data: [[${summaryData}]],
+            data: statusDataset,
             backgroundColor: [
                 'rgb(255, 99, 132)',
                 'rgb(255, 159, 64)',
@@ -168,14 +181,14 @@
             ],
             label: 'Status Dataset'
         }],
-        labels: [[${summaryLabels}]]
+        labels: statusLabels
     };
 
     var cfg = {
-        type: 'doughnut',
+        type: 'pie',
         data: {
             datasets: [{
-                data: [[${summaryData}]],
+                data: statusDataset,
                 backgroundColor: [
                     'rgb(255, 99, 132)',
                     'rgb(255, 159, 64)',
@@ -185,42 +198,28 @@
                 ],
                 label: 'Status Dataset'
             }],
-            labels: [[${summaryLabels}]]
+            labels: statusLabels
         },
         options: {
             title: {
                 display: true,
                 text: 'Status Distribution'
+            },
+            tooltips: {
+                enabled: true,
+                callbacks: {
+                    footer: function(tooltipItem, chart) {
+                        return 'Total Size: ' + statusSizes[tooltipItem[0].index];
+                    } 
+                }
             }
         }
     };
 
+    var canvas = $("#status-summary");
+    var canvas2 = $("#status-summary-2");
     var sumChart = new Chart(canvas, cfg);
-
     var sumChart2 = new Chart(canvas2, cfg);
-
-
-    /*
-    var nodeChart = new Chart(nodeCanvas, {
-        type: 'doughnut',
-        data: nodeData,
-        options: {
-            title: {
-                display: true,
-                text: 'Node Holdings'
-            }
-        }
-    });
-    */
-
-    /*
-    window.onload = function() {
-        var ctx = document.getElementById("status-summary").getContext("2d");
-        window.myPie = new Chart(ctx, cfg);
-        var testctx = document.getElementById("test-chart").getContext("2d");
-        window.myTest = new Chart(testctx, test_cfg);
-    };
-    */
 </script>
 </body>
 </html>
