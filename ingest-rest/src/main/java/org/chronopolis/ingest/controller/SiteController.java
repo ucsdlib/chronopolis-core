@@ -14,7 +14,10 @@ import org.chronopolis.ingest.models.UserRequest;
 import org.chronopolis.ingest.repository.Authority;
 import org.chronopolis.ingest.repository.dao.UserService;
 import org.chronopolis.ingest.support.FileSizeFormatter;
+import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.BagDistribution;
 import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.QBagDistribution;
 import org.chronopolis.rest.entities.QReplication;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.PasswordUpdate;
@@ -122,7 +125,14 @@ public class SiteController extends IngestController {
         // access.info("[GET /bags/overview] - {}", principal.getName());
 
         QBag bag = QBag.bag;
+        QBagDistribution distribution = QBagDistribution.bagDistribution;
         JPAQueryFactory factory = new JPAQueryFactory(entityManager);
+
+        // retrieve recent bags
+        List<Bag> recentBags = factory.selectFrom(QBag.bag)
+                .orderBy(bag.createdAt.desc())
+                .limit(5)
+                .fetch();
 
         // retrieve BagStatusSummary
         NumberExpression<Long> sumExpr = bag.size.sum();
@@ -151,6 +161,21 @@ public class SiteController extends IngestController {
 
         // retrieve stuck Bags
 
+        // Node totals
+        List<DepositorSummary> nodeTotals = factory.from(QBagDistribution.bagDistribution)
+                .innerJoin(QBagDistribution.bagDistribution.bag, bag)
+                .select(Projections.constructor(DepositorSummary.class, sumExpr, countExpr, QBagDistribution.bagDistribution.node.username))
+                .where(QBagDistribution.bagDistribution.status.eq(BagDistribution.BagDistributionStatus.REPLICATE))
+                .groupBy(QBagDistribution.bagDistribution.node.username)
+                .fetch();
+
+        nodeTotals.forEach(tuple -> {
+            log.info("Got a summary: {} {} {}", tuple.getDepositor(), tuple.getSum(), tuple.getCount());
+        });
+
+
+        model.addAttribute("recentBags", recentBags);
+        model.addAttribute("nodeSummaries", nodeTotals);
         model.addAttribute("summaryLabels", summaryLabels);
         model.addAttribute("summaryData", summaryData);
         model.addAttribute("statusSummaries", summaries);
