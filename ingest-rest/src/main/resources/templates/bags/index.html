@@ -16,78 +16,63 @@
         </nav>
 
         <div class="card-body p-2 d-flex">
-            <div style="width: 300px; height: 300px; margin: 15px auto;">
+            <div style="width: 300px">
                 <canvas id="status-summary" style="display: block"></canvas>
             </div>
 
+            <!--
             <div style="width: 300px; height: 300px; margin: 15px auto;">
-                <canvas id="test-chart"></canvas>
+                <canvas id="node-summary" style="display: block"></canvas>
             </div>
+            -->
 
-            <table class="c-table p-2 m-2" style="width: 20% !important">
-                <tr>
-                    <td class="c-table-secondary col-2">Depositor-1</td>
-                    <td class="c-table-light col-10 text-left">Bag-1</td>
-                </tr>
-                <tr>
-                    <td class="c-table-secondary col-2">Depositor-1</td>
-                    <td class="c-table-light col-10 text-left">Bag-2</td>
-                </tr>
-                <tr>
-                    <td class="c-table-secondary col-2">Depositor-1</td>
-                    <td class="c-table-light col-10 text-left">Bag-3</td>
-                </tr>
-            </table>
-
-            <table class="c-table p-2 m-2" style="width: 20% !important">
-                <tr>
-                    <td class="c-table-secondary col-2">Depositor-1</td>
-                    <td class="c-table-light col-10 text-left">Bag-1</td>
-                </tr>
-                <tr>
-                    <td class="c-table-secondary col-2">Depositor-1</td>
-                    <td class="c-table-light col-10 text-left">Bag-2</td>
-                </tr>
-                <tr>
-                    <td class="c-table-secondary col-2">Depositor-1</td>
-                    <td class="c-table-light col-10 text-left">Bag-3</td>
+            <table class="c-table p-2 m-2 w-25">
+                <thead>
+                    <tr>
+                        <th>Node</th>
+                        <th>Num Bags</th>
+                        <th>Total Size</th>
+                    </tr>
+                </thead>
+                <tr th:each="summary: ${nodeSummaries}">
+                    <td class="c-table-secondary col-2" th:text="${summary.depositor}">Depositor-1</td>
+                    <td class="c-table-light col-5 text-left" th:text="${summary.count}">Bag-1</td>
+                    <td class="c-table-light col-5 text-left" th:text="${summary.sum}">Bag-1</td>
                 </tr>
             </table>
         </div>
 
         <div class="hr-sect mx-auto w-100">Recent Bags</div>
         <div class="card-body p-2">
-        <table class="c-table">
-            <tr>
-                <td class="c-table-secondary col-2">Depositor-1</td>
-                <td class="c-table-light col-10 text-left">Bag-1</td>
-            </tr>
-            <tr>
-                <td class="c-table-secondary col-2">Depositor-1</td>
-                <td class="c-table-light col-10 text-left">Bag-2</td>
-            </tr>
-            <tr>
-                <td class="c-table-secondary col-2">Depositor-1</td>
-                <td class="c-table-light col-10 text-left">Bag-3</td>
-            </tr>
-            <tr>
-                <td class="c-table-secondary col-2">Depositor-2</td>
-                <td class="c-table-light col-10 text-left">Bag-1</td>
-            </tr>
-            <tr>
-                <td class="c-table-secondary col-2">Depositor-3</td>
-                <td class="c-table-light col-10 text-left">Bag-1</td>
-            </tr>
-        </table>
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Depositor</th>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                    <th>Updated At</th>
+                </tr>
+                </thead>
+                <tr th:each="bag : ${recentBags}" th:attr="data-href=@{|/bags/${bag.id}|}" class="table-clickable">
+                    <td th:text="${bag.id}"></td>
+                    <td th:text="${bag.depositor}"></td>
+                    <td th:text="${bag.name}"></td>
+                    <td th:text="${bag.status}"></td>
+                    <td th:text="${bag.createdAt.toLocalDate()}"></td>
+                    <td th:text="${bag.updatedAt.toLocalDate()}"></td>
+                </tr>
+            </table>
 
-        <a class="btn btn-primary">Deposit Bag</a>
+            <a class="btn btn-primary">View All Bags</a>
+            <a class="btn btn-primary">Deposit Bag</a>
         </div>
 
     </div>
 
-
     <!-- header w/ breadcrumbs -->
-    <div class="text-left">
+    <div style="margin-top: 30px" class="text-left">
         <h2>Bags Overview</h2>
     </div>
 
@@ -95,6 +80,10 @@
 
     <!-- misc info + stats -->
     <div class="d-flex">
+        <div style="width: 300px; height: 300px; margin: 15px auto;">
+            <canvas id="status-summary-2" style="display: block"></canvas>
+        </div>
+
         <table class="c-table p-2" style="width: 20% !important">
             <tr>
                 <td class="c-table-secondary col-2">Depositor-1</td>
@@ -127,36 +116,33 @@
     </div>
 
     <!-- sub header -->
-    <div>
-        <h5>Recent Bags</h5>
-    </div>
-
-    <hr/>
+    <div class="hr-sect mx-auto w-75">Recent Bags</div>
 
     <!-- recent bags table -->
-    <div>
-        <table class="c-table" style="width: 20% !important">
+    <div class="w-75">
+        <table class="table table-hover">
+            <thead>
             <tr>
-                <td class="c-table-secondary col-2">Depositor-1</td>
-                <td class="c-table-light col-10 text-left">Bag-1</td>
+                <th>ID</th>
+                <th>Depositor</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Created At</th>
+                <th>Updated At</th>
             </tr>
-            <tr>
-                <td class="c-table-secondary col-2">Depositor-1</td>
-                <td class="c-table-light col-10 text-left">Bag-2</td>
-            </tr>
-            <tr>
-                <td class="c-table-secondary col-2">Depositor-1</td>
-                <td class="c-table-light col-10 text-left">Bag-3</td>
-            </tr>
-            <tr>
-                <td class="c-table-secondary col-2">Depositor-2</td>
-                <td class="c-table-light col-10 text-left">Bag-1</td>
-            </tr>
-            <tr>
-                <td class="c-table-secondary col-2">Depositor-3</td>
-                <td class="c-table-light col-10 text-left">Bag-1</td>
+            </thead>
+            <tr th:each="bag : ${recentBags}" th:attr="data-href=@{|/bags/${bag.id}|}" class="table-clickable">
+                <td th:text="${bag.id}"></td>
+                <td th:text="${bag.depositor}"></td>
+                <td th:text="${bag.name}"></td>
+                <td th:text="${bag.status}"></td>
+                <td th:text="${bag.createdAt.toLocalDate()}"></td>
+                <td th:text="${bag.updatedAt.toLocalDate()}"></td>
             </tr>
         </table>
+
+        <a class="btn btn-primary">View All Bags</a>
+        <a class="btn btn-primary">Deposit Bag</a>
     </div>
 </div>
 
@@ -168,6 +154,23 @@
     Chart.defaults.global.legend.display = false;
 
     var canvas = $("#status-summary");
+    var canvas2 = $("#status-summary-2");
+
+    var statusData = {
+        datasets: [{
+            data: [[${summaryData}]],
+            backgroundColor: [
+                'rgb(255, 99, 132)',
+                'rgb(255, 159, 64)',
+                'rgb(255, 205, 86)',
+                'rgb(75, 192, 192)',
+                'rgb(54, 162, 235)'
+            ],
+            label: 'Status Dataset'
+        }],
+        labels: [[${summaryLabels}]]
+    };
+
     var cfg = {
         type: 'doughnut',
         data: {
@@ -184,44 +187,31 @@
             }],
             labels: [[${summaryLabels}]]
         },
-            options: {
-                  title: {
-                    display: true,
-                    text: 'Status Distribution'
-                  }
-                }
+        options: {
+            title: {
+                display: true,
+                text: 'Status Distribution'
+            }
+        }
     };
 
     var sumChart = new Chart(canvas, cfg);
 
-    var testCanvas = $("#test-chart");
-    var testcfg = {
-        type: 'doughnut',
-        data: {
-            datasets: [{
-                data: [230, 102],
-                borderColor: '#252830',
-                backgroundColor: ['#1ca8dd', '#1bc98d']
-            }],
-            labels: ['Returning', 'New'],
-            options: {
-                responsive: true,
-                legend: {
-                    position: 'top',
-                },
-                title: {
-                    display: true,
-                    text: 'Chart.js Doughnut Chart'
-                },
-                animation: {
-                    animateScale: true,
-                    animateRotate: true
-                }
-            }
+    var sumChart2 = new Chart(canvas2, cfg);
 
+
+    /*
+    var nodeChart = new Chart(nodeCanvas, {
+        type: 'doughnut',
+        data: nodeData,
+        options: {
+            title: {
+                display: true,
+                text: 'Node Holdings'
+            }
         }
-    };
-    var testChart = new Chart(testCanvas, testcfg);
+    });
+    */
 
     /*
     window.onload = function() {
