@@ -25,7 +25,7 @@
             </ol>
         </nav>
 
-        <div class="card-block p-2">
+        <div class="card-body p-2">
             <table class="c-table">
                 <div th:replace="fragments/storage :: list-item(head='Owner',content=${region.node.username})"></div>
                 <div th:replace="fragments/storage :: list-item(head='Storage Type',content=${region.storageType})"></div>
@@ -64,7 +64,7 @@
         <div class="card-header">
             <h4>Replication Configuration</h4>
         </div>
-        <div class="card-block p-2">
+        <div class="card-body p-2">
             <!-- this will need constraint satisfaction so that we do not errantly update the wrong storage region -->
             <form method="post" th:action="@{|/regions/${region.id}/config|}">
                 <div class="form-group row">

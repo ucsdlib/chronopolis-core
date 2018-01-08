@@ -19,7 +19,7 @@
             <li class="breadcrumb-item active" aria-current="page" th:text="${replication.id}">Replication Id</li>
         </ol>
     </nav>
-    <div class="card-block p-2">
+    <div class="card-body p-2">
         <table class="c-table">
             <div th:replace="fragments/storage :: list-item(head='Bag DL Link', content=${replication.bagLink})"></div>
             <div th:replace="fragments/storage :: list-item(head='Tagmanifest Fixity', content=${replication.receivedTagFixity})"></div>

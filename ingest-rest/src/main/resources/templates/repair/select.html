@@ -38,7 +38,7 @@
                         </h5>
                     </div>
                     <div id="collapse-missing" class="collapse" role="tabpanel" aria-labelledby="missing-heading" aria-expanded="false">
-                        <div class="card-block">
+                        <div class="card-body">
                             <fieldset class="form-group row">
                                 <div class="col-sm-10">
                                     <div class="form-check" th:each="item : ${missing}">
@@ -67,7 +67,7 @@
                         </h5>
                     </div>
                     <div id="collapse-corrupt" class="collapse" role="tabpanel" aria-labelledby="corrupt-heading" aria-expanded="false">
-                        <div class="card-block">
+                        <div class="card-body">
                             <fieldset class="form-group row">
                                 <div class="col-sm-10">
                                     <div class="form-check" th:each="item : ${corrupt}">
@@ -97,7 +97,7 @@
                         </h5>
                     </div>
                     <div id="collapse-invalid" class="collapse" role="tabpanel" aria-labelledby="invalid-heading" aria-expanded="false">
-                        <div class="card-block">
+                        <div class="card-body">
                             <fieldset class="form-group row">
                                 <div class="col-sm-10">
                                     <div class="form-check" th:each="item : ${invalid}">
@@ -112,7 +112,7 @@
                     </div>
                 </div>
 
-                <div class="card-block">
+                <div class="card-body">
                     <input type="submit" value="Select Items" class="btn btn-primary"/>
                 </div>
             </form>

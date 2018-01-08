@@ -112,7 +112,7 @@
 
     <!--@thymesVar id="tokens" type="Long"-->
     <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
-    <div class="card-block p-2">
+    <div class="card-body p-2">
         <table class="c-table">
             <div th:replace="fragments/storage :: list-item(head='Id', content=${bag.id})"></div>
             <div th:replace="fragments/storage :: list-item(head='Num Tokens', content=${tokens})"></div>
@@ -132,7 +132,7 @@
         <!--/*@thymesVar id="activeBagStorage" type="org.chronopolis.rest.entities.storage.StagingStorage"*/-->
         <!--/*@thymesVar id="activeTokenStorage" type="org.chronopolis.rest.entities.storage.StagingStorage"*/-->
         <!-- add pill for link to all? -->
-        <div class="card-block p-2">
+        <div class="card-body p-2">
             <div class="hr-sect mx-auto">Bag Staging</div>
             <th:block th:if="${activeBagStorage} != null">
                 <div th:replace="fragments/storage :: card-display (storage=${activeBagStorage},storageName='bag',rw=true)"></div>
@@ -167,7 +167,7 @@
     <div class="card-header">
         <h4>Associated Replications</h4>
     </div>
-    <div class="card-block p-2">
+    <div class="card-body p-2">
         <table class="table table-bordered">
             <thead>
             <tr>
