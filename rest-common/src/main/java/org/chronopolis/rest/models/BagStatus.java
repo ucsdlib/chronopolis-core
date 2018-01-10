@@ -1,6 +1,8 @@
 package org.chronopolis.rest.models;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Status types for our bags. Subject to change.
@@ -34,6 +36,18 @@ public enum BagStatus {
 
     public String getValue() {
         return value;
+    }
+
+    public static ImmutableCollection<BagStatus> processingStates() {
+        return ImmutableSet.of(DEPOSITED, INITIALIZED, TOKENIZED, REPLICATING);
+    }
+
+    public static ImmutableCollection<BagStatus> preservedStates() {
+        return ImmutableSet.of(PRESERVED);
+    }
+
+    public static ImmutableCollection<BagStatus> inactiveStates() {
+        return ImmutableSet.of(DEPRECATED, DELETED, ERROR);
     }
 
     public static ImmutableListMultimap<String, BagStatus> statusByGroup() {
