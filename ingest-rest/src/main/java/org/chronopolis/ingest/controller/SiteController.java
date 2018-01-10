@@ -34,6 +34,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.persistence.EntityManager;
 import java.security.Principal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -106,7 +109,7 @@ public class SiteController extends IngestController {
         model.addAttribute("replicating", replicating);
         model.addAttribute("activeReplications", active);
         model.addAttribute("oneWeekReplications", oneWeek);
-        model.addAttribute("twoWeeksReplications", twoWeeks);
+        model.addAttribute("twoWeekReplications", twoWeeks);
 
         return "index";
     }
@@ -123,6 +126,8 @@ public class SiteController extends IngestController {
     @GetMapping("/bags/overview")
     public String getBagsOverview(Model model, Principal principal) {
         // access.info("[GET /bags/overview] - {}", principal.getName());
+
+        LocalDate before = LocalDate.now().minusWeeks(1);
 
         QBag bag = QBag.bag;
         QBagDistribution distribution = QBagDistribution.bagDistribution;
@@ -143,12 +148,13 @@ public class SiteController extends IngestController {
                 .groupBy(statusExpr)
                 .fetch();
 
-        List<String> summaryLabels = new ArrayList<>();
-        List<String> summaryData = new ArrayList<>();
+        Long totalBags = 0L;
+        Long totalSize = 0L;
 
+        // we only have a few status types so do this here instead of another db call
         for (BagSummary summary : summaries) {
-            summaryLabels.add(summary.getStatus().toString());
-            summaryData.add(summary.getCount().toString());
+            totalBags += summary.getCount();
+            totalSize += summary.getSum();
         }
 
         // retrieve DepositorSummary
@@ -159,7 +165,12 @@ public class SiteController extends IngestController {
                 .limit(10)
                 .fetch();
 
-        // retrieve stuck Bags
+        // retrieve stuck Bags?
+        ZonedDateTime beforeDateTime = ZonedDateTime.of(before, LocalTime.of(0, 0), ZoneOffset.UTC);
+        Long stuck = factory.selectFrom(bag)
+                .select(bag.countDistinct())
+                .where(bag.status.in(BagStatus.processingStates()).and(bag.updatedAt.before(beforeDateTime)))
+                .fetchOne();
 
         // Node totals
         List<DepositorSummary> nodeTotals = factory.from(QBagDistribution.bagDistribution)
@@ -169,15 +180,12 @@ public class SiteController extends IngestController {
                 .groupBy(QBagDistribution.bagDistribution.node.username)
                 .fetch();
 
-        nodeTotals.forEach(tuple -> {
-            log.info("Got a summary: {} {} {}", tuple.getDepositor(), tuple.getSum(), tuple.getCount());
-        });
-
-
+        model.addAttribute("before", before);
+        model.addAttribute("stuckBags", stuck);
         model.addAttribute("recentBags", recentBags);
+        model.addAttribute("totalBags", totalBags);
+        model.addAttribute("totalSize", totalSize);
         model.addAttribute("nodeSummaries", nodeTotals);
-        model.addAttribute("summaryLabels", summaryLabels);
-        model.addAttribute("summaryData", summaryData);
         model.addAttribute("statusSummaries", summaries);
         model.addAttribute("depositorSummaries", depositorSummaries);
         model.addAttribute("formatter", new FileSizeFormatter());
