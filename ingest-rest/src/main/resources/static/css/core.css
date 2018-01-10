@@ -92,3 +92,10 @@ c-table.focus, .c-table.hover {
     outline: 0;
     box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
 }
+
+.subheading {
+    font-size: 75%;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: rgba(0, 0, 0, 0.65);
+}
