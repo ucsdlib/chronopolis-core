@@ -6,9 +6,8 @@
 </head>
 <body>
 <nav th:replace="layout :: navbar"></nav>
-<!-- new shit we getting hyphy in here -->
 <div class="d-flex flex-column align-items-center m-3">
-    <div class="card" style="width: 66%">
+    <div class="card" style="width: 66%;">
         <nav aria-label="breadcrumb" role="navigation">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item active">Bags Overview</li>
@@ -16,26 +15,76 @@
         </nav>
 
         <div class="card-body p-2 d-flex">
-            <div style="width: 45%">
-                <canvas id="status-summary" style="display: block"></canvas>
+            <div class="w-50 p-2">
+                <div class="d-flex justify-content-between">
+                    <div class="p-1">
+                        <h3 style="margin-bottom: 0" th:text="${totalBags}"></h3>
+                        <span class="subheading">Total Bags</span>
+                    </div>
+
+                    <div class="p-1">
+                        <h3 style="margin-bottom: 0" th:text="${formatter.format(totalSize)}"></h3>
+                        <span class="subheading">Total Bytes</span>
+                    </div>
+                </div>
+
+                <div class="border border-danger rounded pull-left p-1" style="margin-top: 2em;" th:if="${stuckBags} != null">
+                    <h3 style="margin-bottom: 0" th:text="${stuckBags}"></h3>
+                    <span class="subheading">Stuck Bags</span>
+
+                    <a class="badge badge-primary" th:href="@{/bags/stuck}">View</a>
+                </div>
             </div>
 
+            <div class="ml-auto mr-auto w-50">
+                <canvas id="status-summary" style="display: block"></canvas>
+            </div>
+        </div>
+
+        <div class="hr-sect">Usage Stats</div>
+        <div class="card-body mt-1 p-2 d-flex">
             <div class="flex-column" style="width: 45% !important">
-                <h6>Bag to Node Distribution</h6>
-            <table class="table table-bordered table-hover">
-                <thead>
-                    <tr>
-                        <th>Node</th>
-                        <th>Num Bags</th>
-                        <th>Total Size</th>
-                    </tr>
-                </thead>
-                <tr th:each="summary: ${nodeSummaries}">
-                    <td th:text="${summary.depositor}">Depositor-1</td>
-                    <td th:text="${summary.count}">Bag-1</td>
-                    <td th:text="${summary.sum}">Bag-1</td>
-                </tr>
-            </table>
+                <ul class="list-group">
+                    <li class="list-group-item">Node Totals</li>
+                    <li class="list-group-item" style="padding: 0">
+                        <table class="table table-bordered table-hover" style="margin-bottom: 0">
+                            <thead>
+                            <tr>
+                                <th>Node</th>
+                                <th>Num Bags</th>
+                                <th>Total Size</th>
+                            </tr>
+                            </thead>
+                            <tr th:each="summary: ${nodeSummaries}">
+                                <td th:text="${summary.depositor}">Depositor-1</td>
+                                <td th:text="${summary.count}">Bag-1</td>
+                                <td th:text="${summary.sum}">Bag-1</td>
+                            </tr>
+                        </table>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="flex-column ml-auto" style="width: 45% !important">
+                <ul class="list-group">
+                    <li class="list-group-item">Depositor Totals</li>
+                    <li class="list-group-item" style="padding: 0">
+                        <table class="table table-bordered table-hover" style="margin-bottom: 0">
+                            <thead>
+                            <tr>
+                                <th>Node</th>
+                                <th>Num Bags</th>
+                                <th>Total Size</th>
+                            </tr>
+                            </thead>
+                            <tr th:each="summary: ${depositorSummaries}">
+                                <td th:text="${summary.depositor}">Depositor-1</td>
+                                <td th:text="${summary.count}">Bag-1</td>
+                                <td th:text="${summary.sum}">Bag-1</td>
+                            </tr>
+                        </table>
+                    </li>
+                </ul>
             </div>
         </div>
 
@@ -147,7 +196,7 @@
 
 <!-- this is used in a few places - should make our own js file ye -->
 <script type="application/javascript">
-    $(".table-clickable").click(function() {
+    $(".table-clickable").click(function () {
         window.location = $(this).data("href");
     });
 </script>
@@ -162,27 +211,12 @@
     var statusLabels = [];
     var statusSizes = [];
 
-    [[${statusSummaries}]].forEach(function(item, index, array) {
+    [[${statusSummaries}]].forEach(function (item, index, array) {
         console.log(item, index);
         statusDataset.push(item.count);
         statusLabels.push(item.status);
         statusSizes.push(item.formattedSum);
     });
-
-    var statusData = {
-        datasets: [{
-            data: statusDataset,
-            backgroundColor: [
-                'rgb(255, 99, 132)',
-                'rgb(255, 159, 64)',
-                'rgb(255, 205, 86)',
-                'rgb(75, 192, 192)',
-                'rgb(54, 162, 235)'
-            ],
-            label: 'Status Dataset'
-        }],
-        labels: statusLabels
-    };
 
     var cfg = {
         type: 'pie',
@@ -203,14 +237,15 @@
         options: {
             title: {
                 display: true,
-                text: 'Status Distribution'
+                text: 'Bags By Status',
+                fontSize: 13
             },
             tooltips: {
                 enabled: true,
                 callbacks: {
-                    footer: function(tooltipItem, chart) {
+                    footer: function (tooltipItem, chart) {
                         return 'Total Size: ' + statusSizes[tooltipItem[0].index];
-                    } 
+                    }
                 }
             }
         }
