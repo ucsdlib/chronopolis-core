@@ -22,7 +22,9 @@
         <div class="card-body p-2">
             <table class="c-table">
                 <div th:replace="fragments/storage :: list-item(head='Id', content=${bag.id})"></div>
-                <div th:replace="fragments/storage :: list-item(head='Num Tokens', content=${tokens})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Total Files', content=${bag.totalFiles})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Total Size', content=${formatter.format(bag.size)})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Registered Tokens', content=${tokens})"></div>
                 <div th:replace="fragments/storage :: list-item(head='Status', content=${bag.status})"></div>
                 <div th:replace="fragments/storage :: list-item(head='Created By', content=${bag.creator})"></div>
                 <div th:replace="fragments/storage :: list-item(head='Created At', content=${bag.createdAt})"></div>
