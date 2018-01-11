@@ -530,7 +530,7 @@ public class BagUIController extends IngestController {
         model.addAttribute("statuses", ReplicationStatus.statusByGroup());
         model.addAttribute("pages", new PageWrapper<>(replications, "/replications", filter.getParameters()));
 
-        return "replications";
+        return "replications/replications";
     }
 
     @RequestMapping(value = "/replications/{id}", method = RequestMethod.GET)
@@ -543,7 +543,7 @@ public class BagUIController extends IngestController {
         log.info("Found replication {}::{}", replication.getId(), replication.getNode().getUsername());
         model.addAttribute("replication", replication);
 
-        return "replication";
+        return "replications/replication";
     }
 
     /**
@@ -560,7 +560,7 @@ public class BagUIController extends IngestController {
         access.info("[GET /replications/add] - {}", principal.getName());
         model.addAttribute("bags", bagService.findAll(new BagSearchCriteria(), new PageRequest(0, 100)));
         model.addAttribute("nodes", nodeRepository.findAll());
-        return "addreplication";
+        return "replications/add";
     }
 
     /**
