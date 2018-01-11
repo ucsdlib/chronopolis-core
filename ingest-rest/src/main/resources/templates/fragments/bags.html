@@ -6,62 +6,64 @@
 </head>
 <body>
 <div class="card w-75 filterable" th:fragment="simple-table">
-    <div class="card-header">
-        <div class="d-flex justify-content-start">
-            <h3 class="card-title p-2">Bags</h3>
-            <button data-toggle="collapse" data-target="#filter-body" id="dropdown"
-                    class="btn btn-default btn-xs btn-filter ml-auto p-2"
-                    aria-expanded="false" aria-controls="filter-body">
+    <nav aria-label="breadcrumb" role="naviation">
+        <ol class="breadcrumb" style="margin-bottom: 0 !important;">
+            <li class="breadcrumb-item"><a th:href="@{/bags/overview}">Bags Overview</a></li>
+            <li class="breadcrumb-item active">List Bags</li>
+
+            <a data-toggle="collapse" data-target="#filter-body" id="dropdown" class="ml-auto"
+               style="padding: 0 !important" aria-expanded="false" aria-controls="filter-body">
                 <i class="fa fa-search"></i> Search
-            </button>
-        </div>
-    </div>
-    <div id="filter-body" class="collapse p-2">
-        <form th:action="@{/bags}" method="GET">
-            <div class="form-group row">
-                <label for="depositor-table-filter" class="col-form-label col-2">Depositor</label>
-                <input class="form-control col-9" id="depositor-table-filter" name="depositor"
-                       placeholder="Search Depositor"/>
-            </div>
-            <div class="form-group row">
-                <label for="name-table-filter" class="col-form-label col-2">Bag Name</label>
-                <input class="form-control col-9" id="name-table-filter" name="name"
-                       placeholder="Search Name"/>
-            </div>
-            <div class="form-group row">
-                <label for="status-table-filter" class="col-form-label col-2">Status</label>
-                <select multiple="multiple" name="status" id="status-table-filter" class="form-control col-9">
-                    <!--/*@thymesVar id="statuses" type="com.google.common.collect.ImmutableListMultimap<String, BagStatus>"*/-->
-                    <optgroup th:each="group : ${statuses.keySet()}" th:label="${group}">
-                        <option th:each="status : ${statuses.get(group)}" th:value="${status}"
-                                th:text="${status}"></option>
-                    </optgroup>
-                </select>
-            </div>
-            <div class="form-group row">
-                <label class="col-form-label col-2" for="direction-filter">Order By</label>
-                <div class="form-check col-2">
-                    <label class="form-check-label">
-                        <input class="form-check-input" type="radio" name="orderBy" id="optionUpdatedAt"
-                               value="updatedAt"/> UpdatedAt
-                    </label>
+            </a>
+        </ol>
+
+        <div id="filter-body" class="collapse p-2">
+            <form th:action="@{/bags}" method="GET">
+                <div class="form-group row">
+                    <label for="depositor-table-filter" class="col-form-label col-2">Depositor</label>
+                    <input class="form-control col-9" id="depositor-table-filter" name="depositor"
+                           placeholder="Search Depositor"/>
                 </div>
-                <div class="form-check col-2">
-                    <label class="form-check-label">
-                        <input class="form-check-input" type="radio" name="orderBy" id="optionCreatedAt"
-                               value="createdAt"/> CreatedAt
-                    </label>
+                <div class="form-group row">
+                    <label for="name-table-filter" class="col-form-label col-2">Bag Name</label>
+                    <input class="form-control col-9" id="name-table-filter" name="name"
+                           placeholder="Search Name"/>
                 </div>
-                <div class="col-3">
-                    <select name="dir" id="direction-filter" class="form-control">
-                        <option value="ASC">Ascending</option>
-                        <option value="DESC">Descending</option>
+                <div class="form-group row">
+                    <label for="status-table-filter" class="col-form-label col-2">Status</label>
+                    <select multiple="multiple" name="status" id="status-table-filter" class="form-control col-9">
+                        <!--/*@thymesVar id="statuses" type="com.google.common.collect.ImmutableListMultimap<String, BagStatus>"*/-->
+                        <optgroup th:each="group : ${statuses.keySet()}" th:label="${group}">
+                            <option th:each="status : ${statuses.get(group)}" th:value="${status}"
+                                    th:text="${status}"></option>
+                        </optgroup>
                     </select>
                 </div>
-            </div>
-            <button th:type="submit" class="btn btn-primary">Search</button>
-        </form>
-    </div>
+                <div class="form-group row">
+                    <label class="col-form-label col-2" for="direction-filter">Order By</label>
+                    <div class="form-check col-2 align-self-center">
+                        <label class="form-check-label">
+                            <input class="form-check-input" type="radio" name="orderBy" id="optionUpdatedAt"
+                                   value="updatedAt"/> Updated At
+                        </label>
+                    </div>
+                    <div class="form-check col-2 align-self-center">
+                        <label class="form-check-label">
+                            <input class="form-check-input" type="radio" name="orderBy" id="optionCreatedAt"
+                                   value="createdAt"/> Created At
+                        </label>
+                    </div>
+                    <div class="col-3">
+                        <select name="dir" id="direction-filter" class="form-control">
+                            <option value="ASC">Ascending</option>
+                            <option value="DESC">Descending</option>
+                        </select>
+                    </div>
+                </div>
+                <button th:type="submit" class="btn btn-primary">Search</button>
+            </form>
+        </div>
+    </nav>
 
     <table class="table table-hover">
         <thead>
