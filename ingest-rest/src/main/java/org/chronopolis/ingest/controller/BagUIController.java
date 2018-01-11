@@ -124,7 +124,7 @@ public class BagUIController extends IngestController {
         model.addAttribute("pages", pages);
         model.addAttribute("statuses", BagStatus.statusByGroup());
 
-        return "bags";
+        return "bags/bags";
     }
 
     /**
@@ -159,7 +159,7 @@ public class BagUIController extends IngestController {
         activeBagStorage.ifPresent(s -> model.addAttribute("activeBagStorage", s));
         activeTokenStorage.ifPresent(s -> model.addAttribute("activeTokenStorage", s));
 
-        return "bag";
+        return "bags/bag";
     }
 
     /**
@@ -187,7 +187,7 @@ public class BagUIController extends IngestController {
         model.addAttribute("statuses", Arrays.asList(BagStatus.values()));
         model.addAttribute("tokens", tokenRepository.countByBagId(id));
 
-        return "bag";
+        return "bags/bag";
     }
 
     /**
@@ -452,7 +452,7 @@ public class BagUIController extends IngestController {
         access.info("[GET /bags/add] - {}", principal.getName());
         model.addAttribute("nodes", nodeRepository.findAll());
         model.addAttribute("regions", regions.findAll());
-        return "addbag";
+        return "bags/add";
     }
 
     /**
