@@ -7,7 +7,7 @@
 <body>
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column m-3 align-items-center">
-    <div class="card w-50">
+    <div class="card w-75">
         <!--/*@thymesVar id="region" type="org.chronopolis.rest.entities.storage.StorageRegion"*/-->
         <!--/*@thymesVar id="percent" type="java.lang.Integer"*/-->
         <!--/*@thymesVar id="capacity" type="java.lang.String"*/-->
@@ -21,7 +21,7 @@
                 <li class="breadcrumb-item active" aria-current="page" th:text="${region.id}">Region Id</li>
 
                 <!-- trying to determine the best way to display this... hmmm -->
-                <a class="pull-right" th:href="@{|/regions/${region.id}/edit|}"><i class="fa fa-pencil"></i></a>
+                <a class="ml-auto" th:href="@{|/regions/${region.id}/edit|}"><i class="fa fa-pencil"></i></a>
             </ol>
         </nav>
 
