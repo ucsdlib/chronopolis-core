@@ -7,75 +7,7 @@
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column align-items-center m-3">
     <div class="card w-75 filterable">
-
-        <nav aria-label="breadcrumb" role="navigation">
-            <ol class="breadcrumb" style="margin-bottom: 0 !important">
-                <li class="breadcrumb-item active">Repairs</li>
-
-                <a data-toggle="collapse" data-target="#filter-body" id="dropdown" class="ml-auto"
-                   style="padding: 0 !important" aria-expanded="false" aria-controls="filter-body">
-                    <i class="fa fa-search"></i> Search
-                </a>
-            </ol>
-        </nav>
-
-        <div id="filter-body" class="collapse p-2">
-            <form class="form-horizontal" th:action="@{/repairs}" method="GET">
-                <div class="form-group row">
-                    <label for="node-table-filter" class="col-form-label col-2">Node</label>
-                    <input class="form-control col-9" id="node-table-filter" name="node"
-                           placeholder="Search Node"/>
-                </div>
-                <div class="form-group row">
-                    <label for="fulfilling-table-filter" class="col-form-label col-2">Fulfilling Node</label>
-                    <input class="form-control col-9" id="fulfilling-table-filter" name="fulfillingNode"
-                           placeholder="Search Fulfilling Node"/>
-                </div>
-                <div class="form-group row">
-                    <label for="status-table-filter" class="col-form-label col-2">Status</label>
-                    <select multiple="multiple" name="status" id="status-table-filter" class="form-control col-9">
-                        <!--/*@thymesVar id="repairStatus" type="com.google.common.collect.ImmutableListMultimap<String, RepairStatus>"*/-->
-                        <optgroup th:each="group : ${repairStatus.keySet()}" th:label="${group}">
-                            <option th:each="status : ${repairStatus.get(group)}" th:value="${status}"
-                                    th:text="${status}"></option>
-                        </optgroup>
-                    </select>
-                </div>
-                <div class="form-group row">
-                    <label for="audit-status-table-filter" class="col-form-label col-2">Audit Status</label>
-                    <select multiple="multiple" name="auditStatus" id="audit-status-table-filter"
-                            class="form-control col-9">
-                        <!--/*@thymesVar id="auditStatus" type="com.google.common.collect.ImmutableListMultimap<String, AuditStatus>"*/-->
-                        <optgroup th:each="group : ${auditStatus.keySet()}" th:label="${group}">
-                            <option th:each="status : ${auditStatus.get(group)}" th:value="${status}"
-                                    th:text="${status}"></option>
-                        </optgroup>
-                    </select>
-                </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-2" for="direction-filter">Order By</label>
-                    <div class="form-check col-2 align-self-center">
-                        <label class="form-check-label">
-                            <input class="form-check-input" type="radio" name="orderBy" id="optionUpdatedAt"
-                                   value="updatedAt"/> Updated At
-                        </label>
-                    </div>
-                    <div class="form-check col-2 align-self-center">
-                        <label class="form-check-label">
-                            <input class="form-check-input" type="radio" name="orderBy" id="optionCreatedAt"
-                                   value="createdAt"/> Created At
-                        </label>
-                    </div>
-                    <div class="col-3">
-                        <select name="dir" id="direction-filter" class="form-control">
-                            <option value="ASC">Ascending</option>
-                            <option value="DESC">Descending</option>
-                        </select>
-                    </div>
-                </div>
-                <button th:type="submit" class="btn btn-primary">Search</button>
-            </form>
-        </div>
+        <nav th:replace="fragments/crumbs/repair :: list"></nav>
 
         <table class="table table-hover">
             <thead>

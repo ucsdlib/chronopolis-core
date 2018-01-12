@@ -8,15 +8,7 @@
 <div class="d-flex flex-column align-items-center m-3">
     <div class="card w-75" th:fragment="element">
         <!--/*@thymesVar id="replication" type="org.chronopolis.rest.entities.Replication"*/-->
-        <nav aria-label="breadcrumb" role="navigation">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a th:href="@{/replications}">Replications</a></li>
-                <li class="breadcrumb-item"><a th:href="@{/replications(bag=${replication.bag.name})}"
-                                               th:text="${replication.bag.name}">Bag</a>
-                </li>
-                <li class="breadcrumb-item active" aria-current="page" th:text="${replication.id}">Replication Id</li>
-            </ol>
-        </nav>
+        <nav th:replace="fragments/crumbs/repl :: single"></nav>
         <div class="card-body p-2">
             <table class="c-table">
                 <div th:replace="fragments/storage :: list-item(head='Bag DL Link', content=${replication.bagLink})"></div>

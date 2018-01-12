@@ -12,18 +12,7 @@
         <!--/*@thymesVar id="percent" type="java.lang.Integer"*/-->
         <!--/*@thymesVar id="capacity" type="java.lang.String"*/-->
         <!--/*@thymesVar id="used" type="java.lang.String"*/-->
-        <nav aria-label="breadcrumb" role="navigation">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a th:href="@{/regions}">Storage Regions</a></li>
-                <li class="breadcrumb-item"><a th:href="@{/regions(node=${region.node.username})}"
-                                               th:text="${region.node.username}">Node</a>
-                </li>
-                <li class="breadcrumb-item active" aria-current="page" th:text="${region.id}">Region Id</li>
-
-                <!-- trying to determine the best way to display this... hmmm -->
-                <a class="ml-auto" th:href="@{|/regions/${region.id}/edit|}"><i class="fa fa-pencil"></i></a>
-            </ol>
-        </nav>
+        <nav th:replace="fragments/crumbs/region :: single"></nav>
 
         <div class="card-body p-2">
             <table class="c-table">
