@@ -7,15 +7,7 @@
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column align-items-center m-3">
     <div class="card w-75" th:fragment="info">
-        <nav aria-label="breadcrumb" role="navigation">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a th:href="@{/bags}">Bags</a></li>
-                <li class="breadcrumb-item"><a th:href="@{/bags(depositor=${bag.depositor})}"
-                                               th:text="${bag.depositor}">Depositor</a>
-                </li>
-                <li class="breadcrumb-item active" aria-current="page" th:text="${bag.name}">Bag Name</li>
-            </ol>
-        </nav>
+        <nav th:replace="fragments/crumbs/bag :: single"></nav>
 
         <!--@thymesVar id="tokens" type="Long"-->
         <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
