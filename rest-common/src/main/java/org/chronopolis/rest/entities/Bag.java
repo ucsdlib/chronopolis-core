@@ -49,13 +49,13 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
     @OneToMany(mappedBy = "bag", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<BagDistribution> distributions = new HashSet<>();
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(name = "bag_storage",
             joinColumns = @JoinColumn(name = "bag_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "staging_id", referencedColumnName = "id"))
     private Set<StagingStorage> bagStorage;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(name = "token_storage",
             joinColumns = @JoinColumn(name = "bag_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "staging_id", referencedColumnName = "id"))
@@ -203,7 +203,7 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
         if (tokenStorage == null) {
             tokenStorage = new HashSet<>();
         }
-        this.tokenStorage.add(storage);
+        tokenStorage.add(storage);
         return this;
     }
 
