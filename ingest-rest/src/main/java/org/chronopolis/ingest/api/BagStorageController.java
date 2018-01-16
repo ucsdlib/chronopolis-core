@@ -12,6 +12,7 @@ import org.chronopolis.rest.models.storage.FixityCreate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,6 +36,7 @@ import java.util.Set;
 @RequestMapping("/api/bags/{id}")
 public class BagStorageController {
 
+    private final Logger log = LoggerFactory.getLogger(BagStorageController.class);
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private static final String BAG_TYPE = "bag";
@@ -61,7 +63,7 @@ public class BagStorageController {
     private ResponseEntity<StagingStorage> getBagStorage(@PathVariable("id") Long id, @PathVariable("type") String type) {
         access.info("[GET /api/bags/{}/storage/{}]", id, type);
         return storageFor(id, type)
-                .map(storage -> ResponseEntity.ok(storage))
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -83,7 +85,7 @@ public class BagStorageController {
             s.setActive(toggle.isActive());
             stagingService.save(s);
         });
-        return stagingStorage.map(storage -> ResponseEntity.ok(storage))
+        return stagingStorage.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.badRequest().build());
     }
 
@@ -100,7 +102,7 @@ public class BagStorageController {
         access.info("[GET /api/bags/{}/storage/{}/fixity]", id, type);
         Optional<StagingStorage> storage = storageFor(id, type);
         return storage.map(StagingStorage::getFixities)
-                .map(fixities -> ResponseEntity.ok(fixities))
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.ok(ImmutableSet.of())); // no 404, just an empty set
     }
 
@@ -127,15 +129,22 @@ public class BagStorageController {
         Optional<StagingStorage> stagingStorage = storageFor(id, type);
 
         return stagingStorage.map(s -> saveFixity(s, fixity))
-                .map(f -> ResponseEntity.status(HttpStatus.CREATED).body(fixity))
                 .orElse(ResponseEntity.badRequest().build());
     }
 
-    private Fixity saveFixity(StagingStorage storage, Fixity fixity) {
+    private ResponseEntity<Fixity> saveFixity(StagingStorage storage, Fixity fixity) {
+        ResponseEntity<Fixity> response;
         storage.addFixity(fixity);
         fixity.setStorage(storage);
-        stagingService.save(storage);
-        return fixity;
+        try {
+            stagingService.save(storage);
+            response = ResponseEntity.status(HttpStatus.CREATED).body(fixity);
+        } catch (DataIntegrityViolationException ex) {
+            log.warn("[{}] Fixity({}) already exists for storage", storage.getId(), fixity.getAlgorithm());
+            response = ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+
+        return response;
     }
 
     /**
@@ -159,7 +168,7 @@ public class BagStorageController {
                 .flatMap(fixities -> fixities.stream()
                         .filter(f -> f.getAlgorithm().equalsIgnoreCase(algorithm))
                         .findFirst())
-                .map(fixity -> ResponseEntity.ok(fixity))
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
