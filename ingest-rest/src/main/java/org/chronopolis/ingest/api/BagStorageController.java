@@ -53,7 +53,7 @@ public class BagStorageController {
 
 
     /**
-     * Retrieve the storage area a bag resides in
+     * Retrieve the active storage area a bag resides in
      *
      * @param id   The id of the bag
      * @param type The type of storage to retrieve

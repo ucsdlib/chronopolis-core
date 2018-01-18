@@ -1,5 +1,6 @@
 package org.chronopolis.rest.api;
 
+import org.chronopolis.rest.models.storage.ActiveToggle;
 import org.chronopolis.rest.models.storage.Fixity;
 import org.chronopolis.rest.models.storage.FixityCreate;
 import org.chronopolis.rest.models.storage.StagingStorageModel;
@@ -38,7 +39,7 @@ public interface StagingService {
      * @return the StagingStorage entity
      */
     @PUT(STAGING_ROOT + "/storage/{type}")
-    Call<StagingStorageModel> toggleStorage(@Path("id") Long bag, @Path("type") String type);
+    Call<StagingStorageModel> toggleStorage(@Path("id") Long bag, @Path("type") String type, @Body ActiveToggle toggle);
 
     /**
      * Get all fixity information associated with a StagingStorage entity
