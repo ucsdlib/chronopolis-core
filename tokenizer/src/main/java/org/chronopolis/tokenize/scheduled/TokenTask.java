@@ -12,6 +12,7 @@ import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.tokenize.BagProcessor;
 import org.chronopolis.tokenize.batch.ChronopolisTokenRequestBatch;
+import org.chronopolis.tokenize.config.TokenTaskConfiguration;
 import org.chronopolis.tokenize.filter.HttpFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +36,7 @@ import java.io.IOException;
 @EnableScheduling
 @EnableConfigurationProperties(BagStagingProperties.class)
 public class TokenTask {
-    private final Logger log = LoggerFactory.getLogger(TokenTask.class);
+    private final Logger log = LoggerFactory.getLogger(TokenTaskConfiguration.TOKENIZER_LOG_NAME);
 
     private final BagService service;
     private final TokenService tokens;

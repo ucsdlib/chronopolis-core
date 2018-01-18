@@ -6,7 +6,6 @@ import org.chronopolis.common.storage.BagStagingPropertiesValidator;
 import org.chronopolis.rest.api.IngestAPIProperties;
 import org.chronopolis.rest.api.IngestGenerator;
 import org.chronopolis.rest.api.ServiceGenerator;
-import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.tokenize.batch.ChronopolisTokenRequestBatch;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -27,6 +26,8 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 @EnableConfigurationProperties({IngestAPIProperties.class, AceConfiguration.class})
 public class TokenTaskConfiguration {
+
+    public static final String TOKENIZER_LOG_NAME = "tokenizer-log";
 
     @Bean
     public ServiceGenerator generator(IngestAPIProperties properties) {

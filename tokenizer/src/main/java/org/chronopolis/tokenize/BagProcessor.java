@@ -7,6 +7,7 @@ import org.chronopolis.common.storage.BagStagingProperties;
 import org.chronopolis.common.util.Filter;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.tokenize.batch.ChronopolisTokenRequestBatch;
+import org.chronopolis.tokenize.config.TokenTaskConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +30,7 @@ import static com.google.common.io.Files.asByteSource;
  * @author shake
  */
 public class BagProcessor implements Runnable {
-    private static final Logger log = LoggerFactory.getLogger(BagProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(TokenTaskConfiguration.TOKENIZER_LOG_NAME);
 
     private final Bag bag;
     private final Digester digester;
