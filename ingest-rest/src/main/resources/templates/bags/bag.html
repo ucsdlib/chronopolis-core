@@ -60,34 +60,40 @@
                 </th:block>
 
                 <div class="btn-group p-2" role="group">
-                    <a class="btn btn-primary" th:href="@{|${bag.id}/storage/all|}">See Inactive Staging</a>
+                    <a class="btn btn-primary" th:href="@{|${bag.id}/storage/all|}">See Inactive
+                        Staging</a>
                 </div>
             </div>
         </div>
 
-        <div class="card-header">
+        <div class="card-header" data-toggle="collapse" href="#replCollapse"
+             aria-expanded="false" aria-controls="replCollapse">
             <h4>Associated Replications</h4>
         </div>
-        <div class="card-body p-2">
-            <table class="table table-bordered">
-                <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Node</th>
-                    <th>Status</th>
-                </tr>
-                </thead>
-                <!--/*@thymesVar id="replications" type="List<Replication>"*/-->
-                <!--/*@thymesVar id="repl" type="org.chronopolis.rest.entities.Replication"*/-->
-                <tbody>
-                <tr th:each="repl : ${replications}">
-                    <td><a th:text="${repl.id}" th:href="@{|/replications/${repl.id}|}"></a></td>
-                    <td th:text="${repl.node.username}"></td>
-                    <td th:text="${repl.status}"></td>
-                </tr>
-                </tbody>
-            </table>
-            <a class="btn btn-primary" th:href="@{/replications/create(bag=${bag.id})}">Create Replication</a>
+        <div class="collapse" id="replCollapse">
+            <div class="card-body p-2">
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Node</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <!--/*@thymesVar id="replications" type="List<Replication>"*/-->
+                    <!--/*@thymesVar id="repl" type="org.chronopolis.rest.entities.Replication"*/-->
+                    <tbody>
+                    <tr th:each="repl : ${replications}">
+                        <td><a th:text="${repl.id}" th:href="@{|/replications/${repl.id}|}"></a>
+                        </td>
+                        <td th:text="${repl.node.username}"></td>
+                        <td th:text="${repl.status}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <a class="btn btn-primary" th:href="@{/replications/create(bag=${bag.id})}">Create
+                    Replication</a>
+            </div>
         </div>
     </div>
 </div>
