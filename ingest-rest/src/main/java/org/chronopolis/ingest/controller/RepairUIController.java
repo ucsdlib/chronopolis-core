@@ -86,7 +86,7 @@ public class RepairUIController extends IngestController {
      */
     @GetMapping("/repairs/add")
     public String newRepairRequest() {
-        log.info("[GET /repairs/add]");
+        access.info("[GET /repairs/add]");
         return "repair/add";
     }
 
@@ -100,7 +100,7 @@ public class RepairUIController extends IngestController {
      */
     @PostMapping("/repairs/ace")
     public String getCollections(Model model, HttpSession session, AceCredentials credentials) {
-        log.info("[POST /repairs/ace]");
+        access.info("[POST /repairs/ace]");
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Date.class,
                         (JsonDeserializer<Date>)
