@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: head">
+    <meta charset="UTF-8">
+    <title>Bags Overview</title>
+</head>
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column align-items-center m-3">
+    <div class="card w-75">
+        <nav th:replace="fragments/crumbs/bag :: index"></nav>
+
+        <!--/*@thymesVar id="totalBags" type="java.lang.Long"*/-->
+        <!--/*@thymesVar id="totalSize" type="java.lang.Long"*/-->
+        <!--/*@thymesVar id="stuckBags" type="java.lang.Long"*/-->
+        <div class="card-body p-2 d-flex">
+            <div class="w-50 p-2">
+                <div class="d-flex justify-content-between">
+                    <div class="p-1">
+                        <h3 style="margin-bottom: 0" th:text="${totalBags}"></h3>
+                        <span class="subheading">Total Active Bags</span>
+                    </div>
+
+                    <div class="p-1">
+                        <h3 style="margin-bottom: 0" th:text="${formatter.format(totalSize)}"></h3>
+                        <span class="subheading">Total Active Bytes</span>
+                    </div>
+                </div>
+
+                <div class="border border-danger rounded pull-left p-1" style="margin-top: 2em;"
+                     th:if="${stuckBags} != null">
+                    <h3 style="margin-bottom: 0" th:text="${stuckBags}"></h3>
+                    <span class="subheading">Stuck Bags</span>
+
+                    <!-- Not ready yet
+                    <a class="badge badge-primary" th:href="@{/bags/stuck}">View</a>
+                    -->
+                </div>
+            </div>
+
+            <div class="ml-auto mr-auto w-50">
+                <canvas id="status-summary" style="display: block"></canvas>
+            </div>
+        </div>
+
+        <!--/*@thymesVar id="formatter" type="org.chronopolis.ingest.support.FileSizeFormatter"*/-->
+        <div class="hr-sect">Usage Stats</div>
+        <div class="card-body mt-1 p-2 d-flex">
+            <div class="flex-column" style="width: 45% !important">
+                <ul class="list-group">
+                    <li class="list-group-item">Node Totals</li>
+                    <li class="list-group-item" style="padding: 0">
+                        <table class="table table-bordered table-hover" style="margin-bottom: 0">
+                            <thead>
+                            <tr>
+                                <th>Node</th>
+                                <th>Num Bags</th>
+                                <th>Total Size</th>
+                            </tr>
+                            </thead>
+                            <!--/*@thymesVar id="nodeSummaries" type="List<org.chronopolis.ingest.models.DepositorSummary>"*/-->
+                            <!--/*@thymesVar id="summary" type="org.chronopolis.ingest.models.DepositorSummary"*/-->
+                            <tr th:each="summary: ${nodeSummaries}">
+                                <td th:text="${summary.depositor}">Depositor-1</td>
+                                <td th:text="${summary.count}">Bag-1</td>
+                                <td th:text="${formatter.format(summary.sum)}">Bag-1</td>
+                            </tr>
+                        </table>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="flex-column ml-auto" style="width: 45% !important">
+                <ul class="list-group">
+                    <li class="list-group-item">Depositor Totals</li>
+                    <li class="list-group-item" style="padding: 0">
+                        <table class="table table-bordered table-hover" style="margin-bottom: 0">
+                            <thead>
+                            <tr>
+                                <th>Node</th>
+                                <th>Num Bags</th>
+                                <th>Total Size</th>
+                            </tr>
+                            </thead>
+                            <!--/*@thymesVar id="depositorSummaries" type="List<org.chronopolis.ingest.models.DepositorSummary>"*/-->
+                            <!--/*@thymesVar id="summary" type="org.chronopolis.ingest.models.DepositorSummary"*/-->
+                            <tr th:each="summary: ${depositorSummaries}">
+                                <td th:text="${summary.depositor}">Depositor-1</td>
+                                <td th:text="${summary.count}">Bag-1</td>
+                                <td th:text="${formatter.format(summary.sum)}">Bag-1</td>
+                            </tr>
+                        </table>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="hr-sect mx-auto w-100">Recent Bags</div>
+        <div class="card-body p-2">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Depositor</th>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                    <th>Updated At</th>
+                </tr>
+                </thead>
+                <!--/*@thymesVar id="recentBags" type="List<org.chronopolis.rest.entities.Bag>"*/-->
+                <!--/*@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"*/-->
+                <tr th:each="bag : ${recentBags}" th:attr="data-href=@{|/bags/${bag.id}|}" class="table-clickable">
+                    <td th:text="${bag.id}"></td>
+                    <td th:text="${bag.depositor}"></td>
+                    <td th:text="${bag.name}"></td>
+                    <td th:text="${bag.status}"></td>
+                    <td th:text="${bag.createdAt.toLocalDate()}"></td>
+                    <td th:text="${bag.updatedAt.toLocalDate()}"></td>
+                </tr>
+            </table>
+
+            <a class="btn btn-primary text-white" th:href="@{/bags}">View All Bags</a>
+            <a class="btn btn-primary text-white" th:href="@{/bags/add}">Deposit Bag</a>
+        </div>
+
+    </div>
+
+    <div th:replace="layout :: foot"></div>
+</div>
+
+<!-- this is used in a few places - should make our own js file ye -->
+<script type="application/javascript">
+    $(".table-clickable").click(function () {
+        window.location = $(this).data("href");
+    });
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.min.js"
+        integrity="sha256-N4u5BjTLNwmGul6RgLoESPNqDFVUibVuOYhP4gJgrew=" crossorigin="anonymous"></script>
+<script type="application/javascript" th:inline="javascript">
+    Chart.defaults.global.legend.display = false;
+
+    // setup up our dataset, labels, and extra tooltip info
+    var statusDataset = [];
+    var statusLabels = [];
+    var statusSizes = [];
+
+    [[${statusSummaries}]].forEach(function (item, index, array) {
+        console.log(item, index);
+        statusDataset.push(item.count);
+        statusLabels.push(item.status);
+        statusSizes.push(item.formattedSum);
+    });
+
+    var cfg = {
+        type: 'pie',
+        data: {
+            datasets: [{
+                data: statusDataset,
+                backgroundColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)',
+                ],
+                label: 'Status Dataset'
+            }],
+            labels: statusLabels
+        },
+        options: {
+            title: {
+                display: true,
+                text: 'Bags By Status',
+                fontSize: 13
+            },
+            tooltips: {
+                enabled: true,
+                callbacks: {
+                    footer: function (tooltipItem, chart) {
+                        return 'Total Size: ' + statusSizes[tooltipItem[0].index];
+                    }
+                }
+            }
+        }
+    };
+
+    var canvas = $("#status-summary");
+    var sumChart = new Chart(canvas, cfg);
+</script>
+</body>
+</html>

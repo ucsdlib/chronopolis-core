@@ -7,25 +7,14 @@
 <body>
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column m-3 align-items-center">
-    <div class="card w-50">
+    <div class="card w-75">
         <!--/*@thymesVar id="region" type="org.chronopolis.rest.entities.storage.StorageRegion"*/-->
         <!--/*@thymesVar id="percent" type="java.lang.Integer"*/-->
         <!--/*@thymesVar id="capacity" type="java.lang.String"*/-->
         <!--/*@thymesVar id="used" type="java.lang.String"*/-->
-        <nav aria-label="breadcrumb" role="navigation">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a th:href="@{/regions}">Storage Regions</a></li>
-                <li class="breadcrumb-item"><a th:href="@{/regions(node=${region.node.username})}"
-                                               th:text="${region.node.username}">Node</a>
-                </li>
-                <li class="breadcrumb-item active" aria-current="page" th:text="${region.id}">Region Id</li>
+        <nav th:replace="fragments/crumbs/region :: single"></nav>
 
-                <!-- trying to determine the best way to display this... hmmm -->
-                <a class="pull-right" th:href="@{|/regions/${region.id}/edit|}"><i class="fa fa-pencil"></i></a>
-            </ol>
-        </nav>
-
-        <div class="card-block p-2">
+        <div class="card-body p-2">
             <table class="c-table">
                 <div th:replace="fragments/storage :: list-item(head='Owner',content=${region.node.username})"></div>
                 <div th:replace="fragments/storage :: list-item(head='Storage Type',content=${region.storageType})"></div>
@@ -64,7 +53,7 @@
         <div class="card-header">
             <h4>Replication Configuration</h4>
         </div>
-        <div class="card-block p-2">
+        <div class="card-body p-2">
             <!-- this will need constraint satisfaction so that we do not errantly update the wrong storage region -->
             <form method="post" th:action="@{|/regions/${region.id}/config|}">
                 <div class="form-group row">

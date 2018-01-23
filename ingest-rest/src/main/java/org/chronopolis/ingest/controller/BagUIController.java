@@ -105,7 +105,7 @@ public class BagUIController extends IngestController {
      * @param principal authentication information
      * @return page listing all bags
      */
-    @RequestMapping(value = "/bags", method = RequestMethod.GET)
+    @GetMapping("/bags")
     public String getBags(Model model, Principal principal,
                           @ModelAttribute(value = "filter") BagFilter filter) {
         access.info("[GET /bags] - {}", principal.getName());
@@ -124,7 +124,7 @@ public class BagUIController extends IngestController {
         model.addAttribute("pages", pages);
         model.addAttribute("statuses", BagStatus.statusByGroup());
 
-        return "bags";
+        return "bags/bags";
     }
 
     /**
@@ -137,7 +137,7 @@ public class BagUIController extends IngestController {
      * @param id    the id of the bag
      * @return page showing the individual bag
      */
-    @RequestMapping(value = "/bags/{id}", method = RequestMethod.GET)
+    @GetMapping("/bags/{id}")
     public String getBag(Model model, Principal principal, @PathVariable("id") Long id) {
         access.info("[GET /bags/{}] - {}", id, principal.getName());
 
@@ -159,7 +159,7 @@ public class BagUIController extends IngestController {
         activeBagStorage.ifPresent(s -> model.addAttribute("activeBagStorage", s));
         activeTokenStorage.ifPresent(s -> model.addAttribute("activeTokenStorage", s));
 
-        return "bag";
+        return "bags/bag";
     }
 
     /**
@@ -173,7 +173,7 @@ public class BagUIController extends IngestController {
      * @param update the updated information
      * @return page showing the individual bag
      */
-    @RequestMapping(value = "/bags/{id}", method = RequestMethod.POST)
+    @PostMapping("/bags/{id}")
     public String updateBag(Model model, Principal principal, @PathVariable("id") Long id, BagUpdate update) {
         access.info("[POST /bags/{}] - {}", id, principal.getName());
         access.info("POST parameters - {};{}", update.getLocation(), update.getStatus());
@@ -187,7 +187,7 @@ public class BagUIController extends IngestController {
         model.addAttribute("statuses", Arrays.asList(BagStatus.values()));
         model.addAttribute("tokens", tokenRepository.countByBagId(id));
 
-        return "bag";
+        return "bags/bag";
     }
 
     /**
@@ -452,7 +452,7 @@ public class BagUIController extends IngestController {
         access.info("[GET /bags/add] - {}", principal.getName());
         model.addAttribute("nodes", nodeRepository.findAll());
         model.addAttribute("regions", regions.findAll());
-        return "addbag";
+        return "bags/add";
     }
 
     /**
@@ -530,7 +530,7 @@ public class BagUIController extends IngestController {
         model.addAttribute("statuses", ReplicationStatus.statusByGroup());
         model.addAttribute("pages", new PageWrapper<>(replications, "/replications", filter.getParameters()));
 
-        return "replications";
+        return "replications/replications";
     }
 
     @RequestMapping(value = "/replications/{id}", method = RequestMethod.GET)
@@ -543,7 +543,7 @@ public class BagUIController extends IngestController {
         log.info("Found replication {}::{}", replication.getId(), replication.getNode().getUsername());
         model.addAttribute("replication", replication);
 
-        return "replication";
+        return "replications/replication";
     }
 
     /**
@@ -560,7 +560,7 @@ public class BagUIController extends IngestController {
         access.info("[GET /replications/add] - {}", principal.getName());
         model.addAttribute("bags", bagService.findAll(new BagSearchCriteria(), new PageRequest(0, 100)));
         model.addAttribute("nodes", nodeRepository.findAll());
-        return "addreplication";
+        return "replications/add";
     }
 
     /**

@@ -7,7 +7,7 @@
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column align-items-center m-3">
     <!--/*@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"*/-->
-    <div class="card w-50 filterable">
+    <div class="card w-75 filterable">
         <nav aria-label="breadcrumb" role="navigation">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a th:href="@{/bags}">Bags</a></li>
@@ -21,7 +21,7 @@
             </ol>
         </nav>
 
-        <div class="hr-sect mx-auto">Bag Staging</div>
+        <div class="hr-sect mx-auto w-100">Bag Staging</div>
         <div th:each="storage: ${bag.bagStorage}">
             <div class="card-header" data-toggle="collapse" th:href="@{|#${storage.id}-collapse|}"
                  aria-expanded="false" th:aria-controls="|${storage.id}-collapse|" th:text="|Bag-${storage.id}|">
@@ -31,7 +31,7 @@
             </div>
         </div>
 
-        <div class="hr-sect mx-auto">Token Staging</div>
+        <div class="hr-sect mx-auto w-100">Token Staging</div>
         <div th:each="storage: ${bag.tokenStorage}">
             <div class="card-header" data-toggle="collapse" th:href="@{|#${storage.id}-collapse|}"
                  aria-expanded="false" th:aria-controls="|${storage.id}-collapse|" th:text="|Token-${storage.id}|">

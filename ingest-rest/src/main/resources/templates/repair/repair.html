@@ -7,21 +7,13 @@
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column m-3 align-items-center">
     <!--@thymesVar id="repair" type="org.chronopolis.rest.entities.Repair"-->
-    <div class="card w-50 ">
-        <nav aria-label="breadcrumb" role="navigation">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a th:href="@{/repairs}">Storage Regions</a></li>
-                <li class="breadcrumb-item"><a th:href="@{/repairs(node=${repair.to.username})}"
-                                               th:text="${repair.to.username}">To Node</a>
-                </li>
-                <li class="breadcrumb-item active" aria-current="page" th:text="${repair.id}">Repair Id</li>
-            </ol>
-        </nav>
+    <div class="card w-75">
+        <nav th:replace="fragments/crumbs/repair :: single"></nav>
 
         <div class="card-header">
             <h3>Repair Overview</h3>
         </div>
-        <div class="card-block p-2">
+        <div class="card-body p-2">
             <table class="c-table">
                 <div th:replace="fragments/storage :: list-item(head='Requested By',content=${repair.requester})"></div>
                 <div th:replace="fragments/storage :: list-item(head='Node',content=${repair.to.username})"></div>
@@ -37,7 +29,7 @@
         <div class="card-header" th:if="${repair.from} != null">
             <h4>Fulfilling Information</h4>
         </div>
-        <div class="card-block p-2" th:if="${repair.from} != null">
+        <div class="card-body p-2" th:if="${repair.from} != null">
             <table class="c-table">
                 <!--@thymesVar id="node_to_node" type="org.chronopolis.rest.entities.fulfillment.Rsync"-->
                 <!--@thymesVar id="ace" type="org.chronopolis.rest.entities.fulfillment.Ace"-->

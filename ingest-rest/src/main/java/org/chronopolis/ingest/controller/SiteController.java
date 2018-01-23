@@ -2,15 +2,22 @@ package org.chronopolis.ingest.controller;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.models.BagSummary;
+import org.chronopolis.ingest.models.DepositorSummary;
 import org.chronopolis.ingest.models.UserRequest;
 import org.chronopolis.ingest.repository.Authority;
 import org.chronopolis.ingest.repository.dao.UserService;
+import org.chronopolis.ingest.support.FileSizeFormatter;
+import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.BagDistribution;
 import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.QBagDistribution;
 import org.chronopolis.rest.entities.QReplication;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.PasswordUpdate;
@@ -27,6 +34,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.persistence.EntityManager;
 import java.security.Principal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -99,9 +109,88 @@ public class SiteController extends IngestController {
         model.addAttribute("replicating", replicating);
         model.addAttribute("activeReplications", active);
         model.addAttribute("oneWeekReplications", oneWeek);
-        model.addAttribute("twoWeeksReplications", twoWeeks);
+        model.addAttribute("twoWeekReplications", twoWeeks);
 
         return "index";
+    }
+
+    /**
+     * Return information about all bags in Chronopolis
+     * - depositor totals + distribution stats
+     * - status totals
+     *
+     * @param model     the view model
+     * @param principal the security principal of the user
+     * @return the bags/overview template for display
+     */
+    @GetMapping("/bags/overview")
+    public String getBagsOverview(Model model, Principal principal) {
+        // access.info("[GET /bags/overview] - {}", principal.getName());
+
+        LocalDate before = LocalDate.now().minusWeeks(1);
+
+        QBag bag = QBag.bag;
+        QBagDistribution distribution = QBagDistribution.bagDistribution;
+        JPAQueryFactory factory = new JPAQueryFactory(entityManager);
+
+        // retrieve recent bags
+        List<Bag> recentBags = factory.selectFrom(QBag.bag)
+                .orderBy(bag.createdAt.desc())
+                .limit(5)
+                .fetch();
+
+        // retrieve BagStatusSummary
+        NumberExpression<Long> sumExpr = bag.size.sum();
+        NumberExpression<Long> countExpr = bag.countDistinct();
+        EnumPath<BagStatus> statusExpr = bag.status;
+        List<BagSummary> summaries = factory.selectFrom(QBag.bag)
+                .select(Projections.constructor(BagSummary.class, sumExpr, countExpr, statusExpr))
+                .groupBy(statusExpr)
+                .fetch();
+
+        Long totalBags = 0L;
+        Long totalSize = 0L;
+
+        // we only have a few status types so do this here instead of another db call
+        for (BagSummary summary : summaries) {
+            totalBags += summary.getCount();
+            totalSize += summary.getSum();
+        }
+
+        // retrieve DepositorSummary
+        StringPath depositorExpr = bag.depositor;
+        List<DepositorSummary> depositorSummaries = factory.selectFrom(QBag.bag)
+                .select(Projections.constructor(DepositorSummary.class, sumExpr, countExpr, depositorExpr))
+                .groupBy(depositorExpr)
+                .limit(10)
+                .fetch();
+
+        // retrieve stuck Bags?
+        ZonedDateTime beforeDateTime = ZonedDateTime.of(before, LocalTime.of(0, 0), ZoneOffset.UTC);
+        Long stuck = factory.selectFrom(bag)
+                .select(bag.countDistinct())
+                .where(bag.status.in(BagStatus.processingStates()).and(bag.updatedAt.before(beforeDateTime)))
+                .fetchOne();
+
+        // Node totals
+        List<DepositorSummary> nodeTotals = factory.from(QBagDistribution.bagDistribution)
+                .innerJoin(QBagDistribution.bagDistribution.bag, bag)
+                .select(Projections.constructor(DepositorSummary.class, sumExpr, countExpr, QBagDistribution.bagDistribution.node.username))
+                .where(QBagDistribution.bagDistribution.status.eq(BagDistribution.BagDistributionStatus.REPLICATE))
+                .groupBy(QBagDistribution.bagDistribution.node.username)
+                .fetch();
+
+        model.addAttribute("before", before);
+        model.addAttribute("stuckBags", stuck);
+        model.addAttribute("recentBags", recentBags);
+        model.addAttribute("totalBags", totalBags);
+        model.addAttribute("totalSize", totalSize);
+        model.addAttribute("nodeSummaries", nodeTotals);
+        model.addAttribute("statusSummaries", summaries);
+        model.addAttribute("depositorSummaries", depositorSummaries);
+        model.addAttribute("formatter", new FileSizeFormatter());
+
+        return "bags/index";
     }
 
     private Long replications(JPAQueryFactory factory, Predicate... predicates) {

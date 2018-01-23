@@ -7,63 +7,8 @@
 <body>
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column align-items-center m-3">
-    <div class="card w-50 filterable">
-        <div class="card-header">
-            <div class="d-flex justify-content-start">
-                <h3 class="card-title p-2">Storage Regions</h3>
-                <button data-toggle="collapse" data-target="#filter-body" id="dropdown" class="btn btn-default btn-xs btn-filter ml-auto p-2"
-                        aria-expanded="false" aria-controls="filter-body">
-                    <i class="fa fa-search"></i> Search
-                </button>
-            </div>
-        </div>
-        <div id="filter-body" class="collapse p-2">
-            <form class="form-horizontal card-block" th:action="@{/regions}" method="GET">
-                <!-- should be a select -->
-                <div class="form-group row">
-                    <label for="node-table-filter" class="col-form-label col-3">Node</label>
-                    <input class="form-control col" id="node-table-filter" name="name"
-                           placeholder="Search Node"/>
-                </div>
-                <div class="form-group row">
-                    <label for="status-table-filter" class="col-form-label col-3">Storage Type</label>
-                    <select name="status" id="status-table-filter" class="form-control col-3">
-                        <!--/*@thymesVar id="storageTypes" type="List<org.chronopolis.rest.models.storage.StorageType>"*/-->
-                        <option th:each="type : ${storageTypes}" th:value="${type}" th:text="${type}"></option>
-                    </select>
-                </div>
-                <div class="form-group row">
-                    <label for="capacityLessThan" class="col-form-label col-3">Capacity Less Than</label>
-                    <input class="form-control col" id="capacityLessThan" name="capacityLess"
-                           placeholder="Capacity Less Than"/>
-                </div>
-                <div class="form-group row">
-                    <label for="capacityGreaterThan" class="col-form-label col-3">Capacity Greater Than</label>
-                    <input class="form-control col" id="capacityGreaterThan" name="capacityGreater"
-                           placeholder="Capacity Greater Than"/>
-                </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-2" for="direction-filter">Order By</label>
-                    <div class="form-check col-2">
-                        <label class="form-check-label">
-                            <input class="form-check-input" type="radio" name="orderBy" id="optionUpdatedAt" value="updatedAt"/> UpdatedAt
-                        </label>
-                    </div>
-                    <div class="form-check col-2">
-                        <label class="form-check-label">
-                            <input class="form-check-input" type="radio" name="orderBy" id="optionCreatedAt" value="createdAt"/> CreatedAt
-                        </label>
-                    </div>
-                    <div class="col-3">
-                        <select name="dir" id="direction-filter" class="form-control">
-                            <option value="ASC">Ascending</option>
-                            <option value="DESC">Descending</option>
-                        </select>
-                    </div>
-                </div>
-                <button th:type="submit" class="btn btn-primary">Search</button>
-            </form>
-        </div>
+    <div class="card w-75 filterable">
+        <nav th:replace="fragments/crumbs/region :: list"></nav>
 
         <table class="table table-hover">
             <thead>
@@ -95,7 +40,7 @@
 </div>
 <div th:replace="layout :: foot"></div>
 <script type="text/javascript">
-    $(".table-clickable").click(function() {
+    $(".table-clickable").click(function () {
         window.location = $(this).data("href");
     });
 </script>
