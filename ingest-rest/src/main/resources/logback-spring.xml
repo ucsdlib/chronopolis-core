@@ -18,7 +18,7 @@
                 <MaxFileSize>20MB</MaxFileSize>
             </triggeringPolicy>
         </appender>
-        <logger name="access-log" level="INFO">
+        <logger name="access-log" level="INFO" additivity="false">
             <appender-ref ref="ACCESS_LOG"/>
         </logger>
     </springProfile>
