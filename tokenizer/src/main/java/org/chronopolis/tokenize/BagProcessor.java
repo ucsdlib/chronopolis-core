@@ -78,6 +78,7 @@ public class BagProcessor implements Runnable {
         long errors = 0;
         for (String name : ImmutableList.of(manifestName, tagmanifestName)) {
             errors = process(bag, root, relative, name);
+            log.info("[{}] Finished processing. {} Errors", errors);
 
             // is there a better way to handle this?
             if (errors > 0) {
@@ -123,6 +124,8 @@ public class BagProcessor implements Runnable {
         try (Stream<String> lines = Files.lines(manifest)) {
             // todo: could filter on entry.length == 2 just in case something happens
             //       otherwise we probably want to increment the error counter but idk
+            // maybe instead of errors being a long, it could be a set which contains all
+            // error'd entries
             errors = lines.map(line -> line.split("\\s", 2))
                     .map(entry -> new ManifestTuple(entry[PATH_IDX], entry[DIGEST_IDX]))
                     .filter(entry -> !filter.contains(entry.getPath()))
