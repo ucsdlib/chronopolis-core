@@ -78,7 +78,7 @@ public class BagProcessor implements Runnable {
         long errors = 0;
         for (String name : ImmutableList.of(manifestName, tagmanifestName)) {
             errors = process(bag, root, relative, name);
-            log.info("[{}] Finished processing. {} Errors", errors);
+            log.info("[{}] Finished processing. {} Errors", bag.getName() + "/" + name, errors);
 
             // is there a better way to handle this?
             if (errors > 0) {
