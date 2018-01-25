@@ -88,6 +88,8 @@ public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable
             if (put == null) {
                 offer = requests.offer(createRequest(entry));
             }
+        } else {
+            log.warn("Tokenizer has shutdown, unable to add {}", entry.getPath());
         }
 
         return offer;
@@ -146,6 +148,8 @@ public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable
                 }
             } catch (InterruptedException ex) {
                 log.error("[Tokenizer] Error draining BlockingQueue during tokenization", ex);
+            } catch (Exception e) {
+                log.error("[Tokenizer] Uncaught exception!", e);
             }
         }
 
