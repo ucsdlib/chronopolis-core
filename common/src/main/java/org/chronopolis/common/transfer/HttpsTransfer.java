@@ -66,11 +66,11 @@ public class HttpsTransfer implements FileTransfer {
 
     @Override
     public Path get() throws FileTransferException {
-        return null;
+        throw new UnsupportedOperationException("get not yet supported for HTTP transfer");
     }
 
     public void put(final Path localFile, final String uri) throws FileTransferException {
-        // TBD
+        throw new UnsupportedOperationException("put not yet supported for HTTP transfer");
     }
 
     @Override
@@ -80,11 +80,11 @@ public class HttpsTransfer implements FileTransfer {
 
     @Override
     public InputStream getOutput() {
-        return null;
+        throw new UnsupportedOperationException("getOutput not yet supported for HTTP transfer");
     }
 
     @Override
     public InputStream getErrors() {
-        return null;
+        throw new UnsupportedOperationException("getErrors not yet supported for HTTP transfer");
     }
 }
