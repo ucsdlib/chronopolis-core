@@ -106,7 +106,6 @@ public class Fixity {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(value, algorithm);
     }
 }

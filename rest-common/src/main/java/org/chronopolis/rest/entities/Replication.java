@@ -80,18 +80,18 @@ public class Replication extends UpdatableEntity {
     public void checkTransferred() {
         // this is... not ideal...
         // we could pass the active storage objects in? honestly I'm not sure what to do
+        // we should also look into this after the 2.1.0-RELEASE, as we check fixity values
+        // in the ReplicationController and then again here.
         Set<StagingStorage> bagFixities = bag.getBagStorage();
         Set<StagingStorage> tokenFixities = bag.getTokenStorage();
 
         boolean tagMatch = bagFixities.stream()
-                .map(b -> b.getFixities())
-                .map(f -> fixityEquals(f, receivedTagFixity))
-                .anyMatch(Boolean::booleanValue);
+                .map(StagingStorage::getFixities)
+                .anyMatch(f -> fixityEquals(f, receivedTagFixity));
 
         boolean tokenMatch = tokenFixities.stream()
-                .map(b -> b.getFixities())
-                .map(f -> fixityEquals(f, receivedTokenFixity))
-                .anyMatch(Boolean::booleanValue);
+                .map(StagingStorage::getFixities)
+                .anyMatch(f -> fixityEquals(f, receivedTokenFixity));
 
         // Contains in fixities set
         if (status.isOngoing() && tagMatch && tokenMatch) {
