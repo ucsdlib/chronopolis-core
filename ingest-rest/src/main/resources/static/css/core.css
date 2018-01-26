@@ -21,6 +21,7 @@ ul.pagination li {
     text-transform: uppercase;
     font-size: 90%;
 }
+
 .hr-sect::before,
 .hr-sect::after {
     content: "";
@@ -30,4 +31,71 @@ ul.pagination li {
     font-size: 0px;
     line-height: 0px;
     margin: 0px 8px;
+}
+
+/* Basically a mix of table/button from bootstrap */
+.c-table {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 1rem;
+}
+
+.c-table td {
+    text-align: center;
+    vertical-align: middle;
+    line-height: 1.25;
+    font-size: 1rem;
+    padding: 0.5rem 0.75rem;
+}
+
+.c-table-secondary {
+    color: #fff;
+    background-color: #868e96;
+    border-color: #868e96;
+}
+
+.c-table-secondary:hover {
+    color: #fff;
+    background-color: #727b84;
+    border-color: #6c757d;
+}
+
+.c-table-light {
+    color: #111;
+    background-color: #f8f9fa;
+    border-color: #f8f9fa;
+}
+
+.c-table-light:hover {
+    color: #111;
+    background-color: #e2e6ea;
+    border-color: #dae0e5;
+}
+
+.c-table-danger {
+    color: #fff;
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.c-table-danger:hover {
+    color: #fff;
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+c-table:focus, .c-table:hover {
+    text-decoration: none;
+}
+
+c-table.focus, .c-table.hover {
+    outline: 0;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+.subheading {
+    font-size: 75%;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: rgba(0, 0, 0, 0.65);
 }

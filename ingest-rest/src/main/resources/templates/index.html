@@ -9,44 +9,44 @@
 <div class="w-75 mx-auto">
     <div class="d-flex justify-content-center m-3">
         <div class="w-25">
-            <span style="font-size: 85%; letter-spacing: .1em; color: #828a9f; text-transform: uppercase;">preserved bags</span>
             <!--/*@thymesVar id="preserved" type="org.chronopolis.ingest.models.BagSummary"*/-->
-            <h3 th:inline="text">
+            <h3 style="margin-bottom: 0">
                 [[${preserved.count}]]
                 <span th:text="${preserved.getFormattedSum()}"
                       class="badge badge-info"
                       style="font-size: 12px; vertical-align: middle">0 B
                 </span>
             </h3>
+            <span style="font-size: 85%; letter-spacing: .1em; color: #828a9f; text-transform: uppercase;">preserved bags</span>
         </div>
         <div class="w-25">
-            <span style="font-size: 85%; letter-spacing: .1em; color: #828a9f; text-transform: uppercase;">replicating bags</span>
             <!--/*@thymesVar id="replicating" type="org.chronopolis.ingest.models.BagSummary"*/-->
-            <h3 th:inline="text">
+            <h3 style="margin-bottom: 0">
                 [[${replicating.count}]]
                 <span th:text="${replicating.formattedSum}"
                       class="badge badge-info"
                       style="font-size: 12px; vertical-align: middle">55 GB
                 </span></h3>
+            <span style="font-size: 85%; letter-spacing: .1em; color: #828a9f; text-transform: uppercase;">replicating bags</span>
         </div>
         <div class="w-25">
-            <span style="font-size: 85%; letter-spacing: .1em; color: #828a9f; text-transform: uppercase;">active replications</span>
             <!--/*@thymesVar id="activeReplications" type="java.lang.Long"*/-->
-            <h3 th:text="${activeReplications}">0</h3>
+            <h3 style="margin-bottom: 0" th:text="${activeReplications}">0</h3>
+            <span style="font-size: 85%; letter-spacing: .1em; color: #828a9f; text-transform: uppercase;">active replications</span>
         </div>
         <div class="w-25">
-            <span style="font-size: 85%; letter-spacing: .1em; color: #828a9f; text-transform: uppercase;">stuck replications</span>
             <!--/*@thymesVar id="oneWeekReplications" type="java.lang.Long"*/-->
-            <h3 th:if="${oneWeekReplications} != null" th:inline="text">
+            <!-- might want to make these a list so we can have the last item have a mb of 0 -->
+            <h3 style="margin-bottom: 0" th:if="${oneWeekReplications} != null">
                 [[${oneWeekReplications}]]
                 <small class="badge badge-warning" style="font-size: 12px; vertical-align: middle">&ge; 1 week</small>
             </h3>
             <!--/*@thymesVar id="twoWeekReplications" type="java.lang.Long"*/-->
-            <h3 th:if="${twoWeekReplications} != null" th:inline="text">
+            <h3 style="margin-bottom: 0" th:if="${twoWeekReplications} != null">
                 [[${twoWeekReplications}]]
-                <small class="badge badge-warning" style="font-size: 12px; vertical-align: middle">&ge; 1 week</small>
-                <small class="badge badge-warning" style="font-size: 12px; vertical-align: middle">&ge; 2 weeks</small>
+                <small class="badge badge-danger" style="font-size: 12px; vertical-align: middle">&ge; 2 weeks</small>
             </h3>
+            <span style="font-size: 85%; letter-spacing: .1em; color: #828a9f; text-transform: uppercase;">stuck replications</span>
         </div>
     </div>
 </div>

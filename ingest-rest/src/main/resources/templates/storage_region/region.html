@@ -7,58 +7,44 @@
 <body>
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column m-3 align-items-center">
-    <div class="card w-50">
+    <div class="card w-75">
         <!--/*@thymesVar id="region" type="org.chronopolis.rest.entities.storage.StorageRegion"*/-->
-        <div class="card-header">
-            <h3>Storage Region Overview</h3>
-            <!-- by using both btn and badge we get a little bit more room to breathe from the badge
-                 with something smaller than a btn-sm. 'snice -->
-            <a class="btn badge badge-primary" th:href="@{|/regions/${region.id}/edit|}">Edit</a>
-        </div>
-        <div class="card-block">
-            <table class="table table-bordered w-50">
-                <tbody>
+        <!--/*@thymesVar id="percent" type="java.lang.Integer"*/-->
+        <!--/*@thymesVar id="capacity" type="java.lang.String"*/-->
+        <!--/*@thymesVar id="used" type="java.lang.String"*/-->
+        <nav th:replace="fragments/crumbs/region :: single"></nav>
+
+        <div class="card-body p-2">
+            <table class="c-table">
+                <div th:replace="fragments/storage :: list-item(head='Owner',content=${region.node.username})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Storage Type',content=${region.storageType})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Data Type',content=${region.dataType})"></div>
                 <tr>
-                    <td>Id</td>
-                    <td th:text="${region.id}"></td>
+                    <td class="c-table-secondary col-2" style="border-right: 1px solid rgba(0,0,0,0.125); z-index: 1;">
+                        Capacity
+                    </td>
+                    <td class="c-table-light col-10">
+                        <div class="progress">
+                            <span th:text="|${used} / ${capacity}|" style="position: absolute; padding-left: 0.25em;"></span>
+                            <div class="progress-bar" role="progressbar" aria-valuemax="100" aria-valuemin="0"
+                                 th:if="${percent} < 80" th:style="|width: ${percent}%;|" th:aria-valuenow="${percent}"></div>
+                            <div class="progress-bar bg-warning" role="progressbar" aria-valuemax="100" aria-valuemin="0"
+                                 th:if="${percent} >= 80 and ${percent} < 90" th:style="|width: ${percent}%;|" th:aria-valuenow="${percent}"></div>
+                            <div class="progress-bar bg-danger" role="progressbar" aria-valuemax="100" aria-valuemin="0"
+                                 th:if="${percent} >= 90" th:style="|width: ${percent}%;|" th:aria-valuenow="${percent}"></div>
+                        </div>
+                    </td>
                 </tr>
-                <tr>
-                    <td>Storage Type</td>
-                    <td th:text="${region.storageType}"></td>
-                </tr>
-                <tr>
-                    <td>Data Type</td>
-                    <td th:text="${region.dataType}"></td>
-                </tr>
-                <tr>
-                    <td>Total Capacity</td>
-                    <!--/*@thymesVar id="capacity" type="java.lang.String"*/-->
-                    <td th:text="${capacity}"></td>
-                </tr>
-                <tr>
-                    <td>Amount Used</td>
-                    <!--/*@thymesVar id="used" type="java.lang.String"*/-->
-                    <td th:text="${used}"></td>
-                </tr>
-                <tr>
-                    <td>Owner</td>
-                    <td th:text="${region.node.username}"></td>
-                </tr>
-                <tr>
-                    <td>Created At</td>
-                    <td th:text="${region.createdAt.toLocalDateTime()}"></td>
-                </tr>
-                <tr>
-                    <td>Updated At</td>
-                    <td th:text="${region.updatedAt.toLocalDateTime()}"></td>
-                </tr>
-                <tr>
-                    <td>Storage Region Information</td>
-                    <td th:text="${region.note}"></td>
-                </tr>
-                </tbody>
+                <!--
+                <div th:replace="fragments/storage :: list-item(head='Total Capacity',content=${capacity})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Used Capacity',content=${used})"></div>
+                -->
+                <div th:replace="fragments/storage :: list-item(head='Created At',content=${region.createdAt.toLocalDateTime()})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Updated At',content=${region.updatedAt.toLocalDateTime()})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Information',content=${region.note})"></div>
             </table>
         </div>
+
         <!--
             Instead of checking if the config is not null, always have these options be mutable
             with a form for updating wrapping everything. If the values are null, they shouldn't be displayed
@@ -67,7 +53,7 @@
         <div class="card-header">
             <h4>Replication Configuration</h4>
         </div>
-        <div class="card-block p-2">
+        <div class="card-body p-2">
             <!-- this will need constraint satisfaction so that we do not errantly update the wrong storage region -->
             <form method="post" th:action="@{|/regions/${region.id}/config|}">
                 <div class="form-group row">

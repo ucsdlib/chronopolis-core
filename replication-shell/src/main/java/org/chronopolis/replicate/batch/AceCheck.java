@@ -3,7 +3,8 @@ package org.chronopolis.replicate.batch;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
-import org.chronopolis.rest.api.IngestAPI;
+import org.chronopolis.rest.api.ReplicationService;
+import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.Replication;
@@ -27,14 +28,14 @@ import java.util.function.Supplier;
 public class AceCheck implements Supplier<ReplicationStatus> {
     private final Logger log = LoggerFactory.getLogger("ace-log");
 
-    final AceService ace;
-    final IngestAPI ingest;
-    final Replication replication;
+    private final AceService ace;
+    private final Replication replication;
+    private final ReplicationService replications;
 
-    public AceCheck(AceService ace, IngestAPI ingest, Replication replication) {
+    public AceCheck(AceService ace, ServiceGenerator generator, Replication replication) {
         this.ace = ace;
-        this.ingest = ingest;
         this.replication = replication;
+        this.replications = generator.replications();
     }
 
     @Override
@@ -55,17 +56,11 @@ public class AceCheck implements Supplier<ReplicationStatus> {
         // TODO: Check for errors as well
         if (gsonCollection.getState().equals("A")) {
             current = ReplicationStatus.SUCCESS;
-            Call<Replication> call = ingest.updateReplicationStatus(replication.getId(), new RStatusUpdate(current));
+            Call<Replication> call = replications.updateStatus(replication.getId(), new RStatusUpdate(current));
             call.enqueue(new UpdateCallback());
         }
 
         return current;
-    }
-
-    private void sendSuccess(Replication replication) {
-        String subject = "Successful replication of" + replication.getBag().getName();
-        // SimpleMailMessage message = mail.createMessage(settings.getNode(), subject, body);
-        // mail.send(message);
     }
 
     class GetCallback implements Callback<GsonCollection> {

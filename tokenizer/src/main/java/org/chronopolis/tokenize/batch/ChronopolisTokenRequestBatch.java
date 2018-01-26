@@ -10,6 +10,7 @@ import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.TokenRegistrar;
+import org.chronopolis.tokenize.config.TokenTaskConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +33,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable {
 
-    private final Logger log = LoggerFactory.getLogger(ChronopolisTokenRequestBatch.class);
+    private final Logger log = LoggerFactory.getLogger(TokenTaskConfiguration.TOKENIZER_LOG_NAME);
 
     private final AtomicBoolean running;
     private final LinkedBlockingQueue<TokenRequest> requests;
@@ -87,6 +88,8 @@ public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable
             if (put == null) {
                 offer = requests.offer(createRequest(entry));
             }
+        } else {
+            log.warn("Tokenizer has shutdown, unable to add {}", entry.getPath());
         }
 
         return offer;
@@ -145,6 +148,8 @@ public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable
                 }
             } catch (InterruptedException ex) {
                 log.error("[Tokenizer] Error draining BlockingQueue during tokenization", ex);
+            } catch (Exception e) {
+                log.error("[Tokenizer] Uncaught exception!", e);
             }
         }
 

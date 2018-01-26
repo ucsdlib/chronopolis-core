@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout :: head">
+    <title>Chronopolis Ingestion Service</title>
+</head>
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column align-items-center m-3">
+    <div class="card w-75" th:fragment="info">
+        <nav th:replace="fragments/crumbs/bag :: single"></nav>
+
+        <!--@thymesVar id="tokens" type="Long"-->
+        <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
+        <div class="card-body p-2">
+            <table class="c-table">
+                <div th:replace="fragments/storage :: list-item(head='Id', content=${bag.id})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Total Files', content=${bag.totalFiles})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Total Size', content=${formatter.format(bag.size)})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Registered Tokens', content=${tokens})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Status', content=${bag.status})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Created By', content=${bag.creator})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Created At', content=${bag.createdAt})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Updated At', content=${bag.updatedAt})"></div>
+            </table>
+        </div>
+
+        <div class="card-header" data-toggle="collapse" href="#stagingCollapse"
+             aria-expanded="false" aria-controls="stagingCollapse">
+            <h4>Active Staging</h4>
+        </div>
+        <div class="collapse" id="stagingCollapse">
+            <!--/*@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"*/-->
+            <!--/*@thymesVar id="activeBagStorage" type="org.chronopolis.rest.entities.storage.StagingStorage"*/-->
+            <!--/*@thymesVar id="activeTokenStorage" type="org.chronopolis.rest.entities.storage.StagingStorage"*/-->
+            <!-- add pill for link to all? -->
+            <div class="card-body p-2">
+                <div class="hr-sect mx-auto">Bag Staging</div>
+                <th:block th:if="${activeBagStorage} != null">
+                    <div th:replace="fragments/storage :: card-display (storage=${activeBagStorage},storageName='bag',rw=true)"></div>
+                </th:block>
+                <th:block th:if="${activeBagStorage} == null">
+                    <div class="btn-group p-2" role="group">
+                        <a class="btn btn-outline-primary"
+                           th:href="@{|${bag.id}/storage/add|}">
+                            Add Bag Staging
+                        </a>
+                    </div>
+                </th:block>
+                <div class="hr-sect mx-auto">Token Staging</div>
+                <th:block th:if="${activeTokenStorage} != null">
+                    <div th:replace="fragments/storage :: card-display (storage=${activeTokenStorage},storageName='token',rw=true)"></div>
+                </th:block>
+                <th:block th:if="${activeTokenStorage} == null">
+                    <div class="btn-group p-2" role="group">
+                        <a class="btn btn-outline-primary"
+                           th:href="@{|${bag.id}/storage/add|}">
+                            Write Tokens
+                        </a>
+                    </div>
+                </th:block>
+
+                <div class="btn-group p-2" role="group">
+                    <a class="btn btn-primary" th:href="@{|${bag.id}/storage/all|}">See Inactive
+                        Staging</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-header" data-toggle="collapse" href="#replCollapse"
+             aria-expanded="false" aria-controls="replCollapse">
+            <h4>Associated Replications</h4>
+        </div>
+        <div class="collapse" id="replCollapse">
+            <div class="card-body p-2">
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Node</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <!--/*@thymesVar id="replications" type="List<Replication>"*/-->
+                    <!--/*@thymesVar id="repl" type="org.chronopolis.rest.entities.Replication"*/-->
+                    <tbody>
+                    <tr th:each="repl : ${replications}">
+                        <td><a th:text="${repl.id}" th:href="@{|/replications/${repl.id}|}"></a>
+                        </td>
+                        <td th:text="${repl.node.username}"></td>
+                        <td th:text="${repl.status}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <a class="btn btn-primary" th:href="@{/replications/create(bag=${bag.id})}">Create
+                    Replication</a>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="layout :: foot"></div>
+</body>
+</html>

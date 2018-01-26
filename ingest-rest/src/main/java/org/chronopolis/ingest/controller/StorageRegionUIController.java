@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.Principal;
 import java.util.Optional;
 
@@ -251,13 +252,21 @@ public class StorageRegionUIController extends IngestController {
 
         StorageRegionSearchCriteria criteria = new StorageRegionSearchCriteria().withId(id);
         StorageRegion region = service.find(criteria);
+        BigDecimal bdCapacity = new BigDecimal(region.getCapacity());
+
         Optional<Long> usedRaw = service.getUsedSpace(region);
         FileSizeFormatter formatter = new FileSizeFormatter();
-        String capacity = formatter.format(new BigDecimal(region.getCapacity()));
+        String capacity = formatter.format(bdCapacity);
         String used = formatter.format(usedRaw.orElse(0L));
+        int percent = usedRaw.map(BigDecimal::new)
+                .map(ur -> ur.divide(bdCapacity, 4, RoundingMode.HALF_UP)
+                        .multiply(new BigDecimal(100))
+                        .intValue())
+                .orElse(0);
         model.addAttribute("region", region);
         model.addAttribute("capacity", capacity);
         model.addAttribute("used", used);
+        model.addAttribute("percent", percent);
         return "storage_region/region";
     }
 

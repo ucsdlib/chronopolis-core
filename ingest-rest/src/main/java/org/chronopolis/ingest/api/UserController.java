@@ -16,8 +16,8 @@ import java.security.Principal;
 
 /**
  * REST Controller for interacting with users
- *
- *
+ * <p>
+ * <p>
  * Created by shake on 1/7/15.
  */
 @RestController
@@ -35,8 +35,8 @@ public class UserController {
     /**
      * Update a password for a user
      *
-     * @param principal - authentication information
-     * @param update - request containing the old/new passwords
+     * @param principal authentication information
+     * @param update    request containing the old/new passwords
      */
     @RequestMapping(value = "password", method = RequestMethod.POST)
     public void updatePassword(Principal principal, @RequestBody PasswordUpdate update) {
@@ -47,7 +47,7 @@ public class UserController {
     /**
      * Retrieve the user details for a user
      *
-     * @param principal - authentication information
+     * @param principal authentication information
      * @return
      */
     @RequestMapping(value = "details", method = RequestMethod.GET)

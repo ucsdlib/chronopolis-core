@@ -6,6 +6,7 @@ import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.AceTokenModel;
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.tokenize.config.TokenTaskConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Call;
@@ -22,7 +23,7 @@ import java.util.regex.Pattern;
  * @author shake
  */
 public class TokenRegistrar implements Supplier<TokenResponse> {
-    private final Logger log = LoggerFactory.getLogger(TokenRegistrar.class);
+    private final Logger log = LoggerFactory.getLogger(TokenTaskConfiguration.TOKENIZER_LOG_NAME);
 
     /**
      * A regex Pattern to match the TokenResponse's name on

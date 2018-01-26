@@ -34,23 +34,24 @@ import java.util.concurrent.TimeUnit;
         exclude = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
 @EnableConfigurationProperties({AceConfiguration.class, IngestAPIProperties.class, BagStagingProperties.class})
 public class TokenApplication implements CommandLineRunner {
-    private final Logger log = LoggerFactory.getLogger(TokenApplication.class);
+    private final Logger log = LoggerFactory.getLogger(TokenTaskConfiguration.TOKENIZER_LOG_NAME);
 
     private final TokenService tokens;
     private final BagService bagService;
     private final BagStagingProperties properties;
+    private final IngestAPIProperties ingestProperties;
     private final ChronopolisTokenRequestBatch batch;
     private final TrackingThreadPoolExecutor<Bag> executor;
 
     @Autowired
-    public TokenApplication(TokenService tokens,
-                            ServiceGenerator generator,
+    public TokenApplication(ServiceGenerator generator,
                             BagStagingProperties properties,
-                            ChronopolisTokenRequestBatch batch,
+                            IngestAPIProperties ingestProperties, ChronopolisTokenRequestBatch batch,
                             TrackingThreadPoolExecutor<Bag> executor) {
-        this.tokens = tokens;
+        this.tokens = generator.tokens();
         this.bagService = generator.bags();
         this.properties = properties;
+        this.ingestProperties = ingestProperties;
         this.batch = batch;
         this.executor = executor;
     }
@@ -63,24 +64,42 @@ public class TokenApplication implements CommandLineRunner {
     @Override
     @SuppressWarnings("Duplicates")
     public void run(String... strings) throws Exception {
-        Call<PageImpl<Bag>> bags = bagService.get(ImmutableMap.of(
+        ImmutableMap<String, Object> DEFAULT_QUERY = ImmutableMap.of("creator", ingestProperties.getUsername(),
                 "status", BagStatus.DEPOSITED,
-                "region_id", properties.getPosix().getId()));
+                "region_id", properties.getPosix().getId());
+
+        Call<PageImpl<Bag>> bags = bagService.get(DEFAULT_QUERY);
         try {
             Response<PageImpl<Bag>> response = bags.execute();
-            if (response.isSuccessful()) {
+
+            while (response.isSuccessful() && response.body().getNumberOfElements() > 0) {
                 log.debug("Found {} bags for tokenization", response.body().getSize());
-                for (Bag bag : response.body()) {
-                    Filter<String> filter = new HttpFilter(bag.getId(), tokens);
-                    executor.submitIfAvailable(new BagProcessor(bag, filter, properties, batch), bag);
-                }
+                executeBatch(response.body());
+
+                // polling updated pages can be a problem if bag states are updated as we go on
+                // maybe some changes to the ingest api can help alleviate some of the changes here
+                bags = bagService.get(DEFAULT_QUERY);
+                response = bags.execute();
             }
         } catch (IOException e) {
             log.error("Error communicating with the ingest server", e);
         }
 
-        while(executor.getActiveCount() > 0 || batch.activeCount() > 0) {
-            TimeUnit.SECONDS.sleep(5);
+    }
+
+    /**
+     * Process a batch, waiting for all bags in the current batch to finish tokenizing
+     *
+     * @param body the response body
+     * @throws InterruptedException if an interruption occurs
+     */
+    private void executeBatch(PageImpl<Bag> body) throws InterruptedException {
+        for (Bag bag : body) {
+            Filter<String> filter = new HttpFilter(bag.getId(), tokens);
+            executor.submitIfAvailable(new BagProcessor(bag, filter, properties, batch), bag);
+        }
+        while (executor.getActiveCount() > 0 || batch.activeCount() > 0) {
+            TimeUnit.SECONDS.sleep(1);
         }
     }
 }

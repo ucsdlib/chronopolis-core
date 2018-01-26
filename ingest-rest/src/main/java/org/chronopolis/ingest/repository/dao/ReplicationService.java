@@ -1,7 +1,9 @@
 package org.chronopolis.ingest.repository.dao;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
+import com.querydsl.core.types.dsl.SetPath;
+import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
@@ -11,8 +13,9 @@ import org.chronopolis.ingest.support.ReplicationCreateResult;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagDistribution;
 import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.Replication;
-import org.chronopolis.rest.entities.storage.Fixity;
+import org.chronopolis.rest.entities.storage.QStagingStorage;
 import org.chronopolis.rest.entities.storage.ReplicationConfig;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.models.ReplicationRequest;
@@ -24,9 +27,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatus.DISTRIBUTE;
@@ -43,14 +48,18 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
     private static final String DEFAULT_USER = "chronopolis";
     private final Logger log = LoggerFactory.getLogger(ReplicationService.class);
 
+    private final EntityManager manager;
+
     private final BagRepository bagRepository;
     private final NodeRepository nodeRepository;
 
     @Autowired
-    public ReplicationService(ReplicationRepository replicationRepository,
+    public ReplicationService(EntityManager manager,
+                              ReplicationRepository replicationRepository,
                               BagRepository bagRepository,
                               NodeRepository nodeRepository) {
         super(replicationRepository);
+        this.manager = manager;
         this.bagRepository = bagRepository;
         this.nodeRepository = nodeRepository;
     }
@@ -93,92 +102,140 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
     }
 
     /**
-     * Create a replication with a Bag and Node which have already been
-     * pulled from the DB
+     * Create a replication with a Bag and Node which have already been pulled from the DB.
+     * If parameters are met for bag staging storage, continue on by passing along information to
+     * a function which will query for token staging storage and continue the replication create process.
+     * If active bag storage does not exist or does not have any associated fixity values, return
+     * a ReplicationCreateResult with errors outlining the problems.
      *
      * @param bag  The bag to create a replication for
      * @param node The node to send the replication to
-     * @return the newly created replication
+     * @return the result of creating the replication
      */
     public ReplicationCreateResult create(final Bag bag, final Node node) {
-        ReplicationCreateResult result;
-        StagingStorage bagStorage = bag.getBagStorage();
-        StagingStorage tokenStorage = bag.getTokenStorage();
+        Optional<StagingStorage> bagStorage = queryStorage(bag.getId(), QBag.bag.bagStorage);
+        return bagStorage.filter(staging -> !staging.getFixities().isEmpty())
+                .map(staging -> createReplicationString(staging, true))
+                .map(staging -> withBagStorage(bag, node, staging))
+                .orElseGet(() -> new ReplicationCreateResult(ImmutableList.of("Problem with BagStorage. Either no active storage or fixities.")));
+    }
 
-        // conditions to meet for creating replications
-        // todo: ensure these are for the most recent storage entities
-        boolean active = bagStorage.isActive() && tokenStorage.isActive();
-        ImmutableSet<Fixity> fixities = ImmutableSet.<Fixity>builder()
-                .addAll(bagStorage.getFixities())
-                .addAll(tokenStorage.getFixities())
-                .build();
+    /**
+     * Complete creation of a Replication with active Bag storage. If active token storage
+     * does not exist or does not have an associated fixity values, return a ReplicationCreateResult
+     * with errors outlining the problems.
+     *
+     * @param bag     the bag being replicated
+     * @param node    the node receiving the replication
+     * @param bagLink the link for replicating the bag
+     * @return the result of creating the replication
+     */
+    private ReplicationCreateResult withBagStorage(Bag bag, Node node, String bagLink) {
+        return queryStorage(bag.getId(), QBag.bag.tokenStorage)
+                .filter(staging -> !staging.getFixities().isEmpty())
+                .map(staging -> createReplicationString(staging, false))
+                .map(tokenLink -> withTokenStorage(bag, node, bagLink, tokenLink))
+                .orElseGet(() -> new ReplicationCreateResult(ImmutableList.of("Problem with TokenStorage. Either no active storage or fixities.")));
+    }
 
-        if (active && !fixities.isEmpty()) {
-            // create a dist object if it's missing
-            // todo: move this out of the replication create
-            createDist(bag, node);
+    /**
+     * Complete creation of a Replication, with active Bag and Token storage
+     *
+     * @param bag       the bag being replicated
+     * @param node      the node receiving the replication
+     * @param bagLink   the link for replicating the bag
+     * @param tokenLink the link for replicating the token store
+     * @return the result of creating the replication
+     */
+    private ReplicationCreateResult withTokenStorage(Bag bag, Node node, String bagLink, String tokenLink) {
+        createDist(bag, node);
 
-            String tokenLink = createReplicationString(bag.getTokenStorage());
-            String bagLink = createReplicationString(bag.getBagStorage());
+        ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
+                .withBagId(bag.getId())
+                .withNodeUsername(node.getUsername())
+                .withStatuses(ReplicationStatus.active());
 
-            ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
-                    .withBagId(bag.getId())
-                    .withNodeUsername(node.getUsername())
-                    .withStatuses(ReplicationStatus.active());
+        Page<Replication> ongoing = findAll(criteria, new PageRequest(0, 10));
+        Replication action = new Replication(node, bag, bagLink, tokenLink);
 
-            Page<Replication> ongoing = findAll(criteria, new PageRequest(0, 10));
-            Replication action = new Replication(node, bag, bagLink, tokenLink);
+        // So... the protocol field needs to be looked at during the next update
+        // basically we have a field which is authoritative for both links, even though the
+        // bag and token are likely in different staging areas. Either we'll want separate
+        // protocol fields, separate replications, or some other way of doing this. Needs thinking.
+        action.setProtocol("rsync");
 
-            // So... the protocol field needs to be looked at during the next update
-            // basically we have a field which is authoritative for both links, even though the
-            // bag and token are likely in different staging areas. Either we'll want separate
-            // protocol fields, separate replications, or some other way of doing this. Needs thinking.
-            action.setProtocol("rsync");
-
-            // iterate through our ongoing replications and search for a non terminal replication
-            // Partial index this instead?
-            //       create unique index "one_repl" on replications(node_id) where status == ''...
-            if (ongoing.getTotalElements() != 0) {
-                for (Replication replication : ongoing.getContent()) {
-                    ReplicationStatus status = replication.getStatus();
-                    if (status.isOngoing()) {
-                        log.info("Found ongoing replication for {} to {}, ignoring create request",
-                                bag.getName(), node.getUsername());
-                        action = replication;
-                    }
+        // iterate through our ongoing replications and search for a non terminal replication
+        // Partial index this instead?
+        //       create unique index "one_repl" on replications(node_id) where status == ''...
+        if (ongoing.getTotalElements() != 0) {
+            for (Replication replication : ongoing.getContent()) {
+                ReplicationStatus status = replication.getStatus();
+                if (status.isOngoing()) {
+                    log.info("Found ongoing replication for {} to {}, ignoring create request",
+                            bag.getName(), node.getUsername());
+                    action = replication;
                 }
-            } else {
-                log.info("Created new replication request for {} to {}",
-                        bag.getName(), node.getUsername());
             }
-
-            save(action);
-            result = new ReplicationCreateResult(action);
         } else {
-            String resource = bag.getDepositor() + "::" + bag.getName();
-            String error = "Conditions not met for " + resource
-                    + ": active staging storage = " + active
-                    + "; registered fixities for storage = " + fixities.size();
-            result = new ReplicationCreateResult(ImmutableList.of(error));
+            log.info("Created new replication request for {} to {}",
+                    bag.getName(), node.getUsername());
         }
 
-        return result;
+        save(action);
+        return new ReplicationCreateResult(action);
+    }
+
+
+    /**
+     * Retrieve a StagingStorage entity for a bag
+     *
+     * @param bagId       the id of the bag
+     * @param storageJoin the table to join on (either bag_staging or token_staging)
+     * @return the StagingStorage entity, wrapped in an Optional in the event none exist
+     */
+    private Optional<StagingStorage> queryStorage(Long bagId, SetPath<StagingStorage, QStagingStorage> storageJoin) {
+        QBag b = QBag.bag;
+        QStagingStorage storage = QStagingStorage.stagingStorage;
+
+        /*
+         * The query we want to mimic
+         * SELECT s.id, s.path, s.size, ...
+         * FROM staging_storage s
+         *   JOIN bag_storage AS bs
+         *   ON bs.staging_id = s.id AND bs.bag_id = 12
+         * WHERE s.active = 't';
+         *
+         * Maybe there's a way to do it without the join? All we're doing is getting the staging_storage...
+         * SELECT s.id, s.path, s.size, ...
+         * FROM staging_storage s
+         * WHERE s.active = 't' AND s.id = (SELECT staging_id FROM bag_storage AS b WHERE b.bag_id = ?1);
+         *
+         * what we end up with seems like a pretty suboptimal query; if needed we can look into it
+         * might be easier to execute native sql than fiddle with querydsl in that case
+         */
+        JPAQueryFactory factory = new JPAQueryFactory(manager);
+        JPAQuery<StagingStorage> query = factory.from(b)
+                .innerJoin(storageJoin, storage)
+                .where(storage.active.isTrue().and(b.id.eq(bagId)))
+                .select(storage);
+
+        return Optional.ofNullable(query.fetchFirst());
     }
 
     /**
      * Build a string for replication based off the storage for the object
      * <p>
      * todo: determine who the default user should be
+     * todo: might want this to be created by a subclass for the ReplicationConfig (RsyncReplConfig, HttpReplConfig, etc)
      *
      * @param storage The storage to replication from
      * @return The string for the replication
      */
-    private String createReplicationString(StagingStorage storage) {
+    private String createReplicationString(StagingStorage storage, Boolean trailingSlash) {
         ReplicationConfig config;
 
         if (storage.getRegion() != null && storage.getRegion().getReplicationConfig() != null) {
-            config = storage.getRegion()
-                    .getReplicationConfig();
+            config = storage.getRegion().getReplicationConfig();
         } else {
             // Probably want something different from a RuntimeException, but for now this should suffice
             throw new RuntimeException("Unable to create replication for storage object " + storage.getId());
@@ -190,7 +247,7 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
 
         Path path = Paths.get(root, storage.getPath());
         // inline this?
-        return buildLink(user, server, path);
+        return buildLink(user, server, path, trailingSlash);
     }
 
     /**
@@ -216,10 +273,10 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
         }
     }
 
-    private String buildLink(String user, String server, Path file) {
+    private String buildLink(String user, String server, Path file, Boolean trailingSlash) {
         return user +
                 "@" + server +
-                ":" + file.toString();
+                ":" + file.toString() + (trailingSlash ? "/" : "");
     }
 
 }

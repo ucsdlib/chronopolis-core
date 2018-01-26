@@ -5,12 +5,14 @@ import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.storage.BagStagingProperties;
 import org.chronopolis.common.util.Filter;
 import org.chronopolis.rest.api.BagService;
+import org.chronopolis.rest.api.IngestAPIProperties;
 import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.tokenize.BagProcessor;
 import org.chronopolis.tokenize.batch.ChronopolisTokenRequestBatch;
+import org.chronopolis.tokenize.config.TokenTaskConfiguration;
 import org.chronopolis.tokenize.filter.HttpFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,22 +36,25 @@ import java.io.IOException;
 @EnableScheduling
 @EnableConfigurationProperties(BagStagingProperties.class)
 public class TokenTask {
-    private final Logger log = LoggerFactory.getLogger(TokenTask.class);
+    private final Logger log = LoggerFactory.getLogger(TokenTaskConfiguration.TOKENIZER_LOG_NAME);
 
     private final BagService service;
     private final TokenService tokens;
     private final BagStagingProperties properties;
+    private final IngestAPIProperties ingestProperties;
     private final ChronopolisTokenRequestBatch batch;
     private final TrackingThreadPoolExecutor<Bag> executor;
 
     @Autowired
     public TokenTask(ServiceGenerator generator,
                      BagStagingProperties properties,
+                     IngestAPIProperties ingestProperties,
                      ChronopolisTokenRequestBatch batch,
                      TrackingThreadPoolExecutor<Bag> executor) {
         this.tokens = generator.tokens();
         this.service = generator.bags();
         this.properties = properties;
+        this.ingestProperties = ingestProperties;
         this.batch = batch;
         this.executor = executor;
     }
@@ -62,6 +67,7 @@ public class TokenTask {
         // Maybe getMyBags? Can work this out later
         Call<PageImpl<Bag>> bags = service.get(
                 ImmutableMap.of("status", BagStatus.DEPOSITED,
+                        "creator", ingestProperties.getUsername(),
                         "region_id", properties.getPosix().getId()));
         try {
             Response<PageImpl<Bag>> response = bags.execute();

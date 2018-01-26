@@ -39,10 +39,10 @@ import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
 
 /**
  * RestController for our repair/fulfillment api
- *
+ * <p>
  * todo: might be able to have a method which queries for a fulfillment/repair
- *       and throws exceptions as needed (NotFound // Unauthorized)
- *
+ * and throws exceptions as needed (NotFound // Unauthorized)
+ * <p>
  * Created by shake on 1/24/17.
  */
 @RestController
@@ -106,14 +106,14 @@ public class RepairController {
 
     /**
      * Create a repair request for a given thing
-     *
+     * <p>
      * todo: a way to validate that the files exist
      * todo: Check for active repairs
      *
      * @param principal the security principal of the user
-     * @param request the repair request to process
+     * @param request   the repair request to process
      * @return the newly created repair
-     * @throws BadRequestException if the requested bag does not exist
+     * @throws BadRequestException   if the requested bag does not exist
      * @throws UnauthorizedException if the user is not part of the node requesting the repair
      */
     @SuppressWarnings("ConstantConditions")
@@ -159,14 +159,14 @@ public class RepairController {
 
     /**
      * Offer to fulfill a repair request
-     *
+     * <p>
      * todo: create lock for creation of fulfillment on a repair?
-     *       maybe an atomic reference would be better... guava might have something actually
+     * maybe an atomic reference would be better... guava might have something actually
      *
      * @param principal the security principal of the fulfilling user
-     * @param id the id of the repair request
+     * @param id        the id of the repair request
      * @return the newly general fulfillment
-     * @throws BadRequestException if the request does not exist or if a user tries to fulfill their own request
+     * @throws BadRequestException   if the request does not exist or if a user tries to fulfill their own request
      * @throws UnauthorizedException if the principal is not associated with a node
      */
     @RequestMapping(value = "/{id}/fulfill", method = RequestMethod.POST)
@@ -195,18 +195,15 @@ public class RepairController {
         return repair;
     }
 
-    /*
-    */
-
     /**
      * Update a repair with the information for downloading files provided by
      * the fulfilling node
      *
      * @param principal the security principal of the user
-     * @param strategy the fulfillment strategy to be used
-     * @param id the id of the fulfillment to update
+     * @param strategy  the fulfillment strategy to be used
+     * @param id        the id of the fulfillment to update
      * @return the updated fulfillment
-     * @throws BadRequestException if the fulfillment does not exist
+     * @throws BadRequestException   if the fulfillment does not exist
      * @throws UnauthorizedException if the user is not authorized to ready the fulfillment
      */
     @RequestMapping(value = "/{id}/ready", method = RequestMethod.PUT)
@@ -243,9 +240,9 @@ public class RepairController {
      * Mark that a repair has been completed
      *
      * @param principal the security principal of the user
-     * @param id the id of the fulfillment
+     * @param id        the id of the fulfillment
      * @return the updated fulfillment
-     * @throws BadRequestException if the fulfillment does not exist
+     * @throws BadRequestException   if the fulfillment does not exist
      * @throws UnauthorizedException if the user is not authorized to complete the fulfillment
      */
     @RequestMapping(value = "/{id}/complete", method = RequestMethod.PUT)
@@ -273,12 +270,12 @@ public class RepairController {
 
     /**
      * This is a placeholder atm, might need to update the request body
-     *
+     * <p>
      * TODO: Should this trigger the completion of a fulfillment + repair if the audit succeeded?
      *
      * @param principal the principal of the authenticated user
-     * @param id the id of the repair
-     * @param status the status to update to
+     * @param id        the id of the repair
+     * @param status    the status to update to
      * @return the updated repair
      */
     @RequestMapping(path = "/{id}/audit", method = RequestMethod.PUT)
@@ -301,7 +298,7 @@ public class RepairController {
      * Note that a repair backup has been cleaned
      *
      * @param principal the principal of the authenticated user
-     * @param id the id of the repair
+     * @param id        the id of the repair
      * @return the updated repair
      */
     @RequestMapping(path = "/{id}/cleaned", method = RequestMethod.PUT)
@@ -324,7 +321,7 @@ public class RepairController {
      * Note that a repair has been backed up
      *
      * @param principal the principal of the authenticated user
-     * @param id the id of the repair
+     * @param id        the id of the repair
      * @return the updated repair
      */
     @RequestMapping(path = "/{id}/replaced", method = RequestMethod.PUT)
@@ -371,7 +368,7 @@ public class RepairController {
      * TODO: Not sure about this...
      *
      * @param principal the principal of the authenticated user
-     * @param id the id of the fulfillment
+     * @param id        the id of the fulfillment
      * @return the updated fulfillment
      */
     @RequestMapping(path = "/{id}/status", method = RequestMethod.PUT)
@@ -400,7 +397,7 @@ public class RepairController {
      * Mark a fulfillment as validated according to the repairing node
      *
      * @param principal the security principal of the node validating
-     * @param id the id of the fulfillment
+     * @param id        the id of the fulfillment
      * @return the updated fulfillment
      */
     @RequestMapping(path = "/{id}/validated", method = RequestMethod.PUT)
@@ -426,9 +423,9 @@ public class RepairController {
      * Check a variable t to ensure it is not null, and if so throw a
      * BadRequestException
      *
-     * @param t the t to check
+     * @param t       the t to check
      * @param message the message to include with the message
-     * @param <T> the type
+     * @param <T>     the type
      */
     private <T> void check(T t, String message) {
         if (t == null) {
@@ -441,9 +438,9 @@ public class RepairController {
      * Check a variable t to ensure it is not null, and if so throw a
      * NotFoundException
      *
-     * @param t the t to check
+     * @param t       the t to check
      * @param message the message to include
-     * @param <T> the type
+     * @param <T>     the type
      */
     private <T> void checkNotFound(T t, String message) {
         if (t == null) {

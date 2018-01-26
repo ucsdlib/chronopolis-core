@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import org.chronopolis.common.util.Filter;
 import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.AceTokenModel;
+import org.chronopolis.tokenize.config.TokenTaskConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageImpl;
@@ -17,7 +18,7 @@ import retrofit2.Response;
  */
 public class HttpFilter implements Filter<String> {
 
-    private final Logger log = LoggerFactory.getLogger(HttpFilter.class);
+    private final Logger log = LoggerFactory.getLogger(TokenTaskConfiguration.TOKENIZER_LOG_NAME);
 
     private Long bagId;
     private TokenService api;

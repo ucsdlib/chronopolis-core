@@ -10,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 
 /**
  * Track fixity values for objects in Chronopolis
@@ -92,5 +93,19 @@ public class Fixity {
     public Fixity setAlgorithm(String algorithm) {
         this.algorithm = algorithm;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Fixity fixity = (Fixity) o;
+        return Objects.equals(value, fixity.value) &&
+                Objects.equals(algorithm, fixity.algorithm);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value, algorithm);
     }
 }

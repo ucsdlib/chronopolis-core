@@ -17,6 +17,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.persistence.EntityManager;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
@@ -39,13 +40,14 @@ public class ReplicationTaskTest extends IngestTest {
 
     private ReplicationTask task;
 
+    @Autowired EntityManager manager;
     @Autowired ReplicationRepository repository;
     @Autowired BagRepository bags;
     @Autowired NodeRepository nodes;
 
     @Before
     public void setup() {
-        ReplicationService service = new ReplicationService(repository, bags, nodes);
+        ReplicationService service = new ReplicationService(manager, repository,  bags, nodes);
         task = new ReplicationTask(bags, service);
     }
 

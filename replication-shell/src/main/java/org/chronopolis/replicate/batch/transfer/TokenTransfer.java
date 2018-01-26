@@ -1,97 +1,66 @@
 package org.chronopolis.replicate.batch.transfer;
 
 import com.google.common.hash.HashCode;
-import org.chronopolis.common.exception.FileTransferException;
-import org.chronopolis.common.storage.Posix;
-import org.chronopolis.common.storage.PreservationProperties;
-import org.chronopolis.common.transfer.RSyncTransfer;
+import org.chronopolis.common.storage.Bucket;
+import org.chronopolis.common.storage.SingleFileOperation;
+import org.chronopolis.common.transfer.FileTransfer;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
-import org.chronopolis.rest.api.IngestAPI;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.api.ReplicationService;
 import org.chronopolis.rest.models.FixityUpdate;
 import org.chronopolis.rest.models.Replication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Call;
+import retrofit2.Callback;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.Optional;
 
 /**
- * Class to transfer token stores via rsync
+ * Class to transfer token stores to a given bucket
  *
  * Created by shake on 10/11/16.
  */
 public class TokenTransfer implements Transfer, Runnable {
 
+    // todo: something other than rsync-log
     private final Logger log = LoggerFactory.getLogger("rsync-log");
 
-    // Set in our constructor
-    private final Bag bag;
-    private final IngestAPI ingest;
-    private final PreservationProperties properties;
-
-    // These could all be local
     private final Long id;
-    private final String location;
-    private final String depositor;
+    private final Bucket bucket;
+    private final SingleFileOperation operation;
+    private final ReplicationService replications;
 
-    public TokenTransfer(Replication r, IngestAPI ingest, PreservationProperties properties) {
-        this.bag = r.getBag();
-        this.ingest = ingest;
-        this.properties = properties;
-
-        this.id = r.getId();
-        this.location = r.getTokenLink();
-        this.depositor = r.getBag().getDepositor();
+    public TokenTransfer(Bucket bucket, SingleFileOperation operation, Replication replication, ReplicationService replications) {
+        this.bucket = bucket;
+        this.operation = operation;
+        this.replications = replications;
+        this.id = replication.getId();
     }
 
     @Override
     public void run() {
-        Posix posix;
-        if (properties.getPosix().isEmpty()) {
-            log.error("No Preservation Storage Areas defined! Aborting!");
-            throw new RuntimeException("No Preservation Storage Areas defined! Aborting!");
-        } else {
-            // todo: logic to pick which area to get
-            posix = properties.getPosix().get(0); // just get the head for now
-        }
-        String name = bag.getName();
-        log.info("{} Downloading Token Store from {}", name, location);
+        log.info("{} Downloading Token Store from {}", operation.getIdentifier(), operation.getLink());
 
-        Path tokenStore;
+        Optional<FileTransfer> transfer = bucket.transfer(operation);
 
-        // Make sure the directory for the depositor exists before pulling
-        Path stage = Paths.get(posix.getPath(), depositor);
-        checkDirExists(stage);
-
-        RSyncTransfer transfer = new RSyncTransfer(location);
-
-        try {
-            tokenStore = transfer.getFile(location, stage);
-            log(bag, transfer.getOutput());
-            hash(bag, tokenStore);
-        } catch (FileTransferException e) {
-            log(bag, transfer.getErrors());
-            log.error("{} File transfer exception", name, e);
-            fail(e);
-        }
-    }
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private void checkDirExists(Path stage) {
-        if (!stage.toFile().exists()) {
-            stage.toFile().mkdirs();
-        }
+        transfer.flatMap(xfer -> transfer(xfer, operation.getIdentifier()))
+                // For a Token Operation, the operation run is a SingleFileOperation, so we
+                // can  use the path given from the operation to get the hash of the token store
+                .flatMap(ignored -> bucket.hash(operation, operation.getFile()))
+                .map(this::update)
+                .orElseThrow(() -> new RuntimeException("Unable to update token store fixity value. Check that the file exists or that the Ingest API is available."));
     }
 
     @Override
-    public void update(HashCode hash) {
+    public Callback<Replication> update(HashCode hash) {
+        UpdateCallback cb = new UpdateCallback();
         String calculatedDigest = hash.toString();
-        log.info("{} Calculated digest {} for token store", bag.getName(), calculatedDigest);
+        log.info("{} Calculated digest {} for token store", operation.getIdentifier(), calculatedDigest);
 
-        Call<Replication> call = ingest.updateTokenStore(id, new FixityUpdate(calculatedDigest));
-        call.enqueue(new UpdateCallback());
+        // could probably extend call and do our own enqueue which returns a callback
+        Call<Replication> call = replications.updateTokenStoreFixity(id, new FixityUpdate(calculatedDigest));
+        call.enqueue(cb);
+        return cb;
     }
 
 }

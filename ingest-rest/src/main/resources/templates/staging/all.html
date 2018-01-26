@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: head">
+    <title>Chronopolis - Repair Request</title>
+</head>
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column align-items-center m-3">
+    <!--/*@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"*/-->
+    <div class="card w-75 filterable">
+        <nav aria-label="breadcrumb" role="navigation">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/bags}">Bags</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/bags(depositor=${bag.depositor})}"
+                                               th:text="${bag.depositor}">Depositor</a>
+                </li>
+                <li class="breadcrumb-item"><a th:href="@{|/bags/${bag.id}|}"
+                                               th:text="${bag.name}">Bag</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">All Storage</li>
+            </ol>
+        </nav>
+
+        <div class="hr-sect mx-auto w-100">Bag Staging</div>
+        <div th:each="storage: ${bag.bagStorage}">
+            <div class="card-header" data-toggle="collapse" th:href="@{|#${storage.id}-collapse|}"
+                 aria-expanded="false" th:aria-controls="|${storage.id}-collapse|" th:text="|Bag-${storage.id}|">
+            </div>
+            <div class="collapse" th:id="|${storage.id}-collapse|">
+                <div th:replace="fragments/storage :: card-display (storage=${storage},storageName=${storage.id},rw=false)"></div>
+            </div>
+        </div>
+
+        <div class="hr-sect mx-auto w-100">Token Staging</div>
+        <div th:each="storage: ${bag.tokenStorage}">
+            <div class="card-header" data-toggle="collapse" th:href="@{|#${storage.id}-collapse|}"
+                 aria-expanded="false" th:aria-controls="|${storage.id}-collapse|" th:text="|Token-${storage.id}|">
+            </div>
+            <div class="collapse" th:id="|${storage.id}-collapse|">
+                <div th:replace="fragments/storage :: card-display (storage=${storage},storageName=${storage.id},rw=false)"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="layout :: foot"></div>
+<script type="text/javascript">
+    $(".table-clickable").click(function () {
+        window.location = $(this).data("href");
+    });
+</script>
+</body>
+</html>

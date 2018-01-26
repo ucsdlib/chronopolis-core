@@ -1,69 +1,133 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 
-<div th:fragment="card-display (storage,storageName)">
+<div th:fragment="card-display (storage,storageName,rw)">
+    <!--/*@thymesVar id="formatter" type="org.chronopolis.ingest.support.FileSizeFormatter"*/-->
     <!--/*@thymesVar id="storage" type="org.chronopolis.rest.entities.storage.StagingStorage"*/-->
-    <div class="card-header">
-        <h4 th:text="|Storage Information:  ${storageName}|">Storage Information</h4>
-    </div>
-    <div class="card-block p-2">
-        <table class="table table-bordered">
-            <thead>
-            <tr>
-                <th>Relative Path</th>
-                <th>Size on Disk</th>
-                <th>Total Files</th>
-                <th>Active</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-                <td th:text="${storage.path}"></td>
-                <!--/*@thymesVar id="formatter" type="org.chronopolis.ingest.support.FileSizeFormatter"*/-->
-                <td th:text="${formatter.format(storage.size)}"></td>
-                <td th:text="${storage.totalFiles}"></td>
-                <td th:text="${storage.active}"></td>
-            </tr>
-            </tbody>
-        </table>
-        <table class="table table-bordered">
-            <thead>
-            <tr>
-                <th/>
-                <th>Fixity Algorithm</th>
-                <th>Fixity Value</th>
-                <th>Created At</th>
-            </tr>
-            </thead>
-            <tbody>
-            <!--/*@thymesVar id="fixity" type="org.chronopolis.rest.entities.storage.Fixity"*/-->
-            <tr th:each="fixity : ${storage.fixities}">
-                <td class="text-center">
-                    <a class="badge badge-danger"
-                       th:href="@{|${bag.id}/storage/${storage.id}/fixity/${fixity.id}|}">
-                        <i class="fa fa-remove" aria-hidden="true"></i>
+    <!--/*@thymesVar id="fixity" type="org.chronopolis.rest.entities.storage.Fixity"*/-->
+    <div class="card-text p-2">
+
+        <!-- list for showing storage/fixity/etc -->
+        <div class="row">
+            <div class="col-3">
+                <div th:id="|v-tab-${storageName}|" class="nav flex-column nav-pills" role="tablist"
+                     aria-orientation="vertical">
+
+                    <a th:id="|v-storage-tab-${storageName}|"
+                       th:href="@{|#v-storage-${storageName}|}"
+                       th:aria-controls="|v-storage-${storageName}|"
+                       class="nav-link active" data-toggle="pill" role="tab" aria-selected="true">Storage</a>
+
+                    <!-- for each fixity -->
+                    <a th:each="fixity : ${storage.fixities}"
+                       th:id="|v-${fixity.algorithm}-tag-${storageName}|"
+                       th:href="@{|#v-${fixity.algorithm}-${storageName}|}"
+                       th:aria-controls="|v-${fixity.algorithm}-${storageName}|"
+                       th:text="${fixity.algorithm}"
+                       class="nav-link" data-toggle="pill" role="tab" aria-selected="false">
                     </a>
-                </td>
-                <td th:text="${fixity.algorithm}"/>
-                <td th:text="${fixity.value}"></td>
-                <td th:text="${fixity.createdAt}"></td>
-            </tr>
-            </tbody>
-        </table>
 
-        <!--/*@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"*/-->
-        <div class="btn-group" role="group">
+                    <a th:if="${rw}"
+                       th:id="|v-add-fixity-tab-${storageName}|"
+                       th:href="@{|${bag.id}/storage/${storage.id}/fixity|}"
+                       th:aria-controls="|v-add-fixity-${storageName}|"
+                       class="nav-link" data-toggle="pill" role="tab" aria-selected="false">Add
+                        Fixity</a>
+                </div>
+            </div>
 
-            <!--/* use an outline so that we can see the split in the ui */-->
-            <a class="btn btn-outline-primary"
-               th:href="@{|${bag.id}/storage/${storage.id}/activate|}"
-               th:text="${storage.isActive()} ? 'Set Inactive' : 'Set Active'"/>
+            <!-- content to display -->
+            <div class="col-9">
+                <div class="tab-content" th:id="|v-content-${storageName}|">
+                    <div class="tab-pane fade show active" th:id="|v-storage-${storageName}|"
+                         role="tabpanel"
+                         th:aria-labelledby="|v-storage-tab-${storageName}|">
+                        <!-- look into replacing this with a grid setup so we don't get complainsts about divs-->
+                        <table class="c-table">
+                            <div th:replace="fragments/storage :: list-item(head='Path', content=${storage.path})"></div>
+                            <div th:replace="fragments/storage :: list-item(head='Files', content=${storage.totalFiles})"></div>
+                            <div th:replace="fragments/storage :: list-item(head='Size', content=${formatter.format(storage.size)})"></div>
 
-            <a class="btn btn-outline-primary"
-               th:href="@{|${bag.id}/storage/${storage.id}/fixity|}">
-                Add Fixity
-            </a>
+                            <!-- inactive + modal -->
+                            <!-- can see about making this a fragment as well -->
+                            <tr th:replace="fragments/storage :: set-inactive"></tr>
+                        </table>
+                    </div>
+
+                    <div th:each="fixity: ${storage.fixities}" class="tab-pane fade"
+                         th:id="|v-${fixity.algorithm}-${storageName}|" role="tabpanel"
+                         th:aria-labelledby="|v-${fixity.algorithm}-tab-${storageName}|">
+                        <table class="c-table">
+                            <div th:replace="fragments/storage :: list-item(head='Value', content=${fixity.value})"></div>
+                            <div th:replace="fragments/storage :: list-item(head='Created', content=${fixity.createdAt})"></div>
+                            <!-- remove + modal -->
+                            <tr th:replace="fragments/storage :: remove-fixity"></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- should move into a separate file -->
+<tr th:fragment="list-item (head, content)">
+    <td class="c-table-secondary col-2" style="border-right: 1px solid rgba(0,0,0,0.125)"
+        th:text="${head}"></td>
+    <td class="c-table-light text-left col-10" th:text="${content}"></td>
+</tr>
+
+<tr th:fragment="set-inactive" th:if="${rw}">
+    <td class="c-table-danger col-2" data-toggle="modal"
+        th:data-target="|#${storageName}-remove|">
+        Set Inactive
+    </td>
+    <div class="modal fade" th:id="|${storageName}-remove|"
+         tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    Warning: Proceeding will remove the active storage
+                    object.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                            data-dismiss="modal">
+                        Close
+                    </button>
+                    <a th:href="@{|${bag.id}/storage/${storage.id}/activate|}"
+                       type="submit" class="btn btn-danger">Set Inactive
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</tr>
+
+<tr th:fragment="remove-fixity" th:if="${rw}">
+    <td class="c-table-danger col-2" data-toggle="modal"
+        th:data-target="|#${fixity.algorithm}-${storageName}-remove|">
+        Remove
+    </td>
+
+    <div class="modal fade" th:id="|${fixity.algorithm}-${storageName}-remove|"
+         tabindex="-1"
+         role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    Warning: Proceeding will remove the fixity object.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        Close
+                    </button>
+                    <a th:href="@{|${bag.id}/storage/${storage.id}/fixity/${fixity.id}|}"
+                       class="btn btn-danger">Remove Fixity
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</tr>
 </html>

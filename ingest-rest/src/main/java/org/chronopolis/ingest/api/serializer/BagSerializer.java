@@ -1,7 +1,6 @@
 package org.chronopolis.ingest.api.serializer;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import org.chronopolis.rest.entities.Bag;
@@ -16,7 +15,7 @@ import java.io.IOException;
  */
 public class BagSerializer extends JsonSerializer<Bag> {
     @Override
-    public void serialize(Bag bag, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
+    public void serialize(Bag bag, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         jsonGenerator.writeObject(BagConverter.toBagModel(bag));
     }
 }

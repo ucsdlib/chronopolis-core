@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -27,6 +28,7 @@ public class RSyncTransfer implements FileTransfer {
     private final Logger log = LoggerFactory.getLogger("rsync-log");
     private final ExecutorService threadPool = Executors.newSingleThreadExecutor();
     private final String link;
+    private final Path storage;
 
     // Set during the execution of our process
     private InputStream stream;
@@ -34,6 +36,12 @@ public class RSyncTransfer implements FileTransfer {
 
     public RSyncTransfer(String link) {
         this.link = link;
+        this.storage = null;
+    }
+
+    public RSyncTransfer(final String uri, final Path local) {
+        this.link = uri;
+        this.storage = local;
     }
 
     @Override
@@ -43,6 +51,12 @@ public class RSyncTransfer implements FileTransfer {
         // Currently uses passwordless SSH keys to login
 
         Callable<Path> download = () -> {
+            Path parent = local.getParent();
+            if (!parent.toFile().exists()) {
+                log.debug("Creating parent directory {}", parent);
+                Files.createDirectories(parent);
+            }
+
             String[] cmd = new String[]{"rsync",
                     "-aL",
                     "-e ssh -o 'PasswordAuthentication no'",
@@ -83,7 +97,7 @@ public class RSyncTransfer implements FileTransfer {
         threadPool.execute(timedTask);
 
         try {
-            // TODO: Timeout based on collection size
+            // TODO: Timeout based on collection size?
             // return timedTask.get(1, TimeUnit.DAYS);
             return timedTask.get();
         } catch (InterruptedException | ExecutionException e) {
@@ -95,6 +109,10 @@ public class RSyncTransfer implements FileTransfer {
     }
 
     @Override
+    public Path get() throws FileTransferException {
+        return getFile(link, storage);
+    }
+
     public void put(final Path localFile, final String uri) throws FileTransferException {
         Callable<Boolean> upload = () -> {
             // Ensure that we don't include the directory
@@ -143,8 +161,6 @@ public class RSyncTransfer implements FileTransfer {
     /**
      * Return the input stream from the output of the rsync
      *
-     * // TODO: 2/17/17 optional?
-     *
      * @return InputStream
      */
     public InputStream getOutput() {
@@ -171,7 +187,7 @@ public class RSyncTransfer implements FileTransfer {
      * @return the last directory
      */
     @VisibleForTesting
-    protected String last() {
+    String last() {
         if (link == null) {
             throw new IllegalArgumentException("Cannot retrieve directory of null link");
         }

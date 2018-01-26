@@ -2,8 +2,10 @@ package org.chronopolis.ingest.api;
 
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
+import org.chronopolis.ingest.repository.dao.StagingService;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
@@ -22,8 +24,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.time.ZonedDateTime;
+import java.util.Optional;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -51,12 +55,12 @@ public class ReplicationControllerTest extends ControllerTest {
 
     private ReplicationController controller;
 
-    @MockBean
-    private ReplicationService service;
+    @MockBean private StagingService staging;
+    @MockBean private ReplicationService service;
 
     @Before
     public void setup() {
-        controller = new ReplicationController(service);
+        controller = new ReplicationController(staging, service);
         setupMvc(controller);
     }
 
@@ -80,6 +84,8 @@ public class ReplicationControllerTest extends ControllerTest {
 
     @Test
     public void testCorrectUpdate() throws Exception {
+        when(staging.activeStorageForBag(any(Bag.class), eq(QBag.bag.tokenStorage)))
+                .thenReturn(Optional.of(stagingStorage(CORRECT_TOKEN_FIXITY)));
         setupPut("/api/replications/{id}/tokenstore", 4L, new FixityUpdate(CORRECT_TOKEN_FIXITY))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.status").value("PENDING"))
@@ -94,7 +100,9 @@ public class ReplicationControllerTest extends ControllerTest {
     }
 
     @Test
-    public void testInvalidFixity() throws Exception {
+    public void testInvalidTokenFixity() throws Exception {
+        when(staging.activeStorageForBag(any(Bag.class), eq(QBag.bag.tokenStorage)))
+                .thenReturn(Optional.of(stagingStorage(CORRECT_TAG_FIXITY)));
         setupPut("/api/replications/{id}/tokenstore", 4L, new FixityUpdate(INVALID_FIXITY))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.status").value("FAILURE_TOKEN_STORE"))
@@ -102,7 +110,9 @@ public class ReplicationControllerTest extends ControllerTest {
     }
 
     @Test
-    public void testInvalidTokenFixity() throws Exception {
+    public void testInvalidTagFixity() throws Exception {
+        when(staging.activeStorageForBag(any(Bag.class), eq(QBag.bag.bagStorage)))
+                .thenReturn(Optional.of(stagingStorage(CORRECT_TOKEN_FIXITY)));
         setupPut("/api/replications/{id}/tagmanifest", 4L, new FixityUpdate(INVALID_FIXITY))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.status").value("FAILURE_TAG_MANIFEST"))
@@ -137,6 +147,14 @@ public class ReplicationControllerTest extends ControllerTest {
                         .setCreatedAt(ZonedDateTime.now()))
                 .setRegion(region));
         return bag;
+    }
+
+    private StagingStorage stagingStorage(String value) {
+        return new StagingStorage().addFixity(
+                new Fixity().setAlgorithm("test-algorithm")
+                .setValue(value)
+                .setCreatedAt(ZonedDateTime.now()))
+        ;
     }
 
 

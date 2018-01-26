@@ -2,6 +2,7 @@ package org.chronopolis.common.transfer;
 
 import org.chronopolis.common.exception.FileTransferException;
 
+import java.io.InputStream;
 import java.nio.file.Path;
 
 /**
@@ -20,13 +21,21 @@ public interface FileTransfer {
     Path getFile(String uri, Path localStorage) throws FileTransferException;
 
     /**
+     * Execute this FileTransfer
+     *
+     * @return The path of the file on disk, or the root directory if the transfer involves multiple files
+     * @throws FileTransferException
+     */
+    Path get() throws FileTransferException;
+
+    /**
      * Put a local file to a remote uri
      *
      * @param localFile
      * @param uri
      * @throws FileTransferException
-     */
     void put(Path localFile, String uri) throws FileTransferException;
+     */
 
     /**
      * Return the statistics for the given transfer (ie: transfer speed, amount, etc)
@@ -34,4 +43,7 @@ public interface FileTransfer {
      * @return
      */
     String getStats();
+
+    InputStream getOutput();
+    InputStream getErrors();
 }
