@@ -22,9 +22,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.Set;
+
+import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
 
 /**
  * REST controller for interacting with the Storage fields in a Bag
@@ -70,23 +73,47 @@ public class BagStorageController {
     /**
      * Update the activity of a bag storage area
      *
-     * @param id     The id of the bag
-     * @param type   The type of storage to retrieve
-     * @param toggle The active flag to set
-     * @return The updated Storage information
+     * @param principal The security principal of the user
+     * @param id        The id of the bag
+     * @param type      The type of storage to retrieve
+     * @param toggle    The active flag to set
+     * @return 200 if the operation was successful
+     *         400 if no active StagingStorage is available
+     *         403 if the user is not allowed to update this resource
      */
     @PutMapping("/storage/{type}")
-    private ResponseEntity<StagingStorage> updateStorage(@PathVariable("id") Long id, @PathVariable("type") String type, @RequestBody ActiveToggle toggle) {
+    private ResponseEntity<StagingStorage> updateStorage(Principal principal,
+                                                         @PathVariable("id") Long id,
+                                                         @PathVariable("type") String type,
+                                                         @RequestBody ActiveToggle toggle) {
         access.info("[PUT /api/bags/{}/storage/{}]", id, type);
         access.info("PUT parameters - {}", toggle.isActive());
 
         Optional<StagingStorage> stagingStorage = storageFor(id, type);
-        stagingStorage.ifPresent(s -> {
-            s.setActive(toggle.isActive());
-            stagingService.save(s);
-        });
-        return stagingStorage.map(ResponseEntity::ok)
+        return stagingStorage.map(storage -> toggleStorage(storage, toggle, principal))
                 .orElse(ResponseEntity.badRequest().build());
+    }
+
+    /**
+     * Toggle the active storage for a given StagingStorage entity based on an ActiveToggle
+     *
+     * @param storage   the StagingStorage entity to toggle
+     * @param toggle    the toggle
+     * @param principal the security principal of the user
+     * @return a ResponseEntity corresponding to the status of the operation
+     */
+    private ResponseEntity<StagingStorage> toggleStorage(StagingStorage storage, ActiveToggle toggle, Principal principal) {
+        ResponseEntity<StagingStorage> response;
+        String username = storage.getRegion().getNode().getUsername();
+        if (hasRoleAdmin() || username.equalsIgnoreCase(principal.getName())) {
+            storage.setActive(toggle.isActive());
+            stagingService.save(storage);
+            response = ResponseEntity.ok(storage);
+        } else {
+            response = ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        return response;
     }
 
     /**
@@ -109,15 +136,17 @@ public class BagStorageController {
     /**
      * Add a fixity to a Bag
      *
-     * @param id     the id of the bag
-     * @param type   The type of storage to retrieve
-     * @param create the fixity to create
+     * @param principal the security principal of the user
+     * @param id        the id of the bag
+     * @param type      The type of storage to retrieve
+     * @param create    the fixity to create
      * @return 201 with the newly created fixity,
+     *         403 if the user does not have permission to edit the resource,
      *         404 if no Bag/Storage exists with the given id,
      *         409 if a Fixity value already exists for the given StagingStorage
      */
     @PutMapping("/storage/{type}/fixity")
-    private ResponseEntity<Fixity> addFixity(@PathVariable("id") Long id, @PathVariable("type") String type, @RequestBody FixityCreate create) {
+    private ResponseEntity<Fixity> addFixity(Principal principal, @PathVariable("id") Long id, @PathVariable("type") String type, @RequestBody FixityCreate create) {
         access.info("[PUT /api/bags/{}/storage/{}/fixity]", id, type);
         access.info("Put parameters - {};{}", create.getAlgorithm(), create.getValue());
 
@@ -128,17 +157,30 @@ public class BagStorageController {
 
         Optional<StagingStorage> stagingStorage = storageFor(id, type);
 
-        return stagingStorage.map(s -> saveFixity(s, fixity))
+        return stagingStorage.map(s -> saveFixity(s, fixity, principal))
                 .orElse(ResponseEntity.badRequest().build());
     }
 
-    private ResponseEntity<Fixity> saveFixity(StagingStorage storage, Fixity fixity) {
+    /**
+     * Attempt to add the fixity value to a given StagingStorage entity
+     *
+     * @param storage   the StagingStorage Entity
+     * @param fixity    the fixity value to add
+     * @param principal the security principal of the user
+     * @return the ResponseEntity corresponding to the status of the operation
+     */
+    private ResponseEntity<Fixity> saveFixity(StagingStorage storage, Fixity fixity, Principal principal) {
         ResponseEntity<Fixity> response;
-        storage.addFixity(fixity);
-        fixity.setStorage(storage);
         try {
-            stagingService.save(storage);
-            response = ResponseEntity.status(HttpStatus.CREATED).body(fixity);
+            String owner = storage.getRegion().getNode().getUsername();
+            if (hasRoleAdmin() || owner.equalsIgnoreCase(principal.getName())) {
+                storage.addFixity(fixity);
+                fixity.setStorage(storage);
+                stagingService.save(storage);
+                response = ResponseEntity.status(HttpStatus.CREATED).body(fixity);
+            } else {
+                response = ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
         } catch (DataIntegrityViolationException ex) {
             log.warn("[{}] Fixity({}) already exists for storage", storage.getId(), fixity.getAlgorithm());
             response = ResponseEntity.status(HttpStatus.CONFLICT).build();
