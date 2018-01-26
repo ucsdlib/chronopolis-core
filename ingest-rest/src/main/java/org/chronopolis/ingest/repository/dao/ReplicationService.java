@@ -235,8 +235,7 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
         ReplicationConfig config;
 
         if (storage.getRegion() != null && storage.getRegion().getReplicationConfig() != null) {
-            config = storage.getRegion()
-                    .getReplicationConfig();
+            config = storage.getRegion().getReplicationConfig();
         } else {
             // Probably want something different from a RuntimeException, but for now this should suffice
             throw new RuntimeException("Unable to create replication for storage object " + storage.getId());

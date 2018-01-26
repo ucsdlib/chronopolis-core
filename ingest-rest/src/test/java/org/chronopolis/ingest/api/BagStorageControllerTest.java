@@ -4,6 +4,7 @@ import com.querydsl.core.types.dsl.SetPath;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.StagingService;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.QStagingStorage;
@@ -53,6 +54,7 @@ public class BagStorageControllerTest extends ControllerTest {
         StorageRegion region = new StorageRegion();
         region.setId(ID);
         region.setCapacity(100000L);
+        region.setNode(new Node(AUTHORIZED, AUTHORIZED));
 
         Fixity fixity = new Fixity();
         fixity.setAlgorithm("test-algorithm")
@@ -89,10 +91,11 @@ public class BagStorageControllerTest extends ControllerTest {
 
     @Test
     public void testUpdateStorage() throws Exception {
+        authenticateUser();
         when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin))).thenReturn(Optional.of(storage));
         mvc.perform(put("/api/bags/{id}/storage/{type}", ID, TYPE)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"active\": false}"))
+                        .content("{\"active\": false}").principal(authorizedPrincipal))
                 .andDo(print())
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andExpect(jsonPath("$.active").value(false));
@@ -116,10 +119,12 @@ public class BagStorageControllerTest extends ControllerTest {
 
     @Test
     public void testAddFixity() throws Exception {
+        authenticateUser();
         when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin))).thenReturn(Optional.of(storage));
         mvc.perform(put("/api/bags/{id}/storage/{type}/fixity", ID, TYPE)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"algorithm\": \"test-put\", \"value\": \"success\"}"))
+                        .content("{\"algorithm\": \"test-put\", \"value\": \"success\"}")
+                .principal(authorizedPrincipal))
                 .andDo(print())
                 .andExpect(status().is(HttpStatus.CREATED.value()));
     }

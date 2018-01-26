@@ -44,8 +44,8 @@ public class TokenTransfer implements Transfer, Runnable {
         Optional<FileTransfer> transfer = bucket.transfer(operation);
 
         transfer.flatMap(xfer -> transfer(xfer, operation.getIdentifier()))
-                // For a a Token Operation, the operation path contains the
-                // full path to the token store so we join it with an empty path
+                // For a Token Operation, the operation run is a SingleFileOperation, so we
+                // can  use the path given from the operation to get the hash of the token store
                 .flatMap(ignored -> bucket.hash(operation, operation.getFile()))
                 .map(this::update)
                 .orElseThrow(() -> new RuntimeException("Unable to update token store fixity value. Check that the file exists or that the Ingest API is available."));
