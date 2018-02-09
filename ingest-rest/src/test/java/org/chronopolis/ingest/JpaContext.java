@@ -1,5 +1,7 @@
 package org.chronopolis.ingest;
 
+import com.opentable.db.postgres.embedded.FlywayPreparer;
+import com.opentable.db.postgres.embedded.PreparedDbProvider;
 import org.chronopolis.ingest.repository.Authority;
 import org.chronopolis.rest.entities.Node;
 import org.springframework.boot.SpringApplication;
@@ -9,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 
 import javax.sql.DataSource;
+import java.sql.SQLException;
 
 /**
  * Context for our JPA Stuff
@@ -18,12 +21,19 @@ import javax.sql.DataSource;
  *
  * Created by shake on 6/29/17.
  */
-@EntityScan(basePackageClasses = {Authority.class, Node.class})
 @SpringBootApplication
+@EntityScan(basePackageClasses = {Authority.class, Node.class})
 public class JpaContext {
 
     public static void main(String[] args) {
         SpringApplication.run(JpaContext.class);
+    }
+
+    @Bean
+    public DataSource dataSource() throws SQLException {
+        FlywayPreparer preparer = FlywayPreparer.forClasspathLocation("db/schema");
+        PreparedDbProvider provider = PreparedDbProvider.forPreparer(preparer);
+        return provider.createDataSource();
     }
 
     @Bean
