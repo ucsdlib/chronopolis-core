@@ -14,14 +14,14 @@ public class IngestTest {
 
     @BeforeClass
     public static void init() {
-        System.setProperty("spring.datasource.url", "jdbc:hsqldb:mem:memdb");
-        System.setProperty("spring.datasource.initialize", "true");
-        System.setProperty("spring.datasource.data", "classpath:/data.sql");
-        System.setProperty("spring.datasource.schema", "classpath:/schema.sql");
-        System.setProperty("spring.jpa.hibernate.ddl-auto", "validate");
+        // System.setProperty("spring.datasource.url", "jdbc:hsqldb:mem:memdb");
+        System.setProperty("spring.datasource.initialize", "false");
+        // System.setProperty("spring.datasource.data", "classpath:/data.sql");
+        // System.setProperty("spring.datasource.schema", "classpath:/schema.sql");
+        // System.setProperty("spring.jpa.hibernate.ddl-auto", "validate");
         System.setProperty("flyway.enabled", "false");
         System.setProperty("ingest.ajp.enabled", "false");
-        System.setProperty("ace.am.validate", "false");
+        // System.setProperty("ace.am.validate", "false");
 
         // Get the test resources root
         URL bags = ClassLoader.getSystemClassLoader().getResource("bags");
