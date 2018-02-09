@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
@@ -30,6 +31,7 @@ import static junit.framework.Assert.assertEquals;
 @RunWith(SpringJUnit4ClassRunner.class)
 @DataJpaTest
 @ContextConfiguration(classes = JpaContext.class)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SqlGroup({
         // We only want bags to be inserted for these tests
         // but when tearing down remove the replications as well
