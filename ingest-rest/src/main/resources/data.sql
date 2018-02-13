@@ -14,3 +14,6 @@ insert into authorities (username, authority) values ('umiacs', 'ROLE_USER');
 insert into authorities (username, authority) values ('ncar', 'ROLE_USER');
 insert into authorities (username, authority) values ('sdsc', 'ROLE_USER');
 insert into authorities (username, authority) values ('ucsd', 'ROLE_USER');
+
+INSERT INTO storage_region VALUES(DEFAULT, 1, 'BAG', 'LOCAL', 1000000, '', CURRENT_DATE, CURRENT_DATE);
+INSERT INTO storage_region VALUES(DEFAULT, 1, 'TOKEN', 'LOCAL', 1000000, '', CURRENT_DATE, CURRENT_DATE);
