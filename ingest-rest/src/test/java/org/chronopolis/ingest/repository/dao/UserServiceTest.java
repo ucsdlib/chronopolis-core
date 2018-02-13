@@ -44,7 +44,7 @@ public class UserServiceTest extends IngestTest {
     @Autowired AuthoritiesRepository authorities;
     @MockBean PasswordEncoder encoder;
 
-    UserService service;
+    private UserService service;
 
     @Before
     public void setup() {

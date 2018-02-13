@@ -1,5 +1,6 @@
 package org.chronopolis.ingest;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 import java.net.URL;
@@ -12,21 +13,31 @@ import java.net.URL;
  */
 public class IngestTest {
 
+    private static final String BAG_STAGE = "chron.stage.bags";
+    private static final String TOKEN_STAGE = "chron.stage.tokens";
+    private static final String AJP_ENABLED = "ingest.ajp.enabled";
+    private static final String FLYWAY_ENABLED = "flyway.enabled";
+    private static final String DATASOURCE_INITIALIZE = "spring.datasource.initialize";
+
     @BeforeClass
     public static void init() {
-        // System.setProperty("spring.datasource.url", "jdbc:hsqldb:mem:memdb");
-        System.setProperty("spring.datasource.initialize", "false");
-        // System.setProperty("spring.datasource.data", "classpath:/data.sql");
-        // System.setProperty("spring.datasource.schema", "classpath:/schema.sql");
-        // System.setProperty("spring.jpa.hibernate.ddl-auto", "validate");
-        System.setProperty("flyway.enabled", "false");
-        System.setProperty("ingest.ajp.enabled", "false");
-        // System.setProperty("ace.am.validate", "false");
+        System.setProperty(AJP_ENABLED, "false");
+        System.setProperty(FLYWAY_ENABLED, "false");
+        System.setProperty(DATASOURCE_INITIALIZE, "true");
 
         // Get the test resources root
         URL bags = ClassLoader.getSystemClassLoader().getResource("bags");
-        System.setProperty("chron.stage.bags", bags.getFile());
-        System.setProperty("chron.stage.tokens", bags.getFile());
+        System.setProperty(BAG_STAGE, bags.getFile());
+        System.setProperty(TOKEN_STAGE, bags.getFile());
+    }
+
+    @AfterClass
+    public static void clearProperties() {
+        System.clearProperty(BAG_STAGE);
+        System.clearProperty(TOKEN_STAGE);
+        System.clearProperty(AJP_ENABLED);
+        System.clearProperty(FLYWAY_ENABLED);
+        System.clearProperty(DATASOURCE_INITIALIZE);
     }
 
 }
