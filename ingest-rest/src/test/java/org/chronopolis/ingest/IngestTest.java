@@ -23,7 +23,7 @@ public class IngestTest {
     public static void init() {
         System.setProperty(AJP_ENABLED, "false");
         System.setProperty(FLYWAY_ENABLED, "false");
-        System.setProperty(DATASOURCE_INITIALIZE, "true");
+        System.setProperty(DATASOURCE_INITIALIZE, "false");
 
         // Get the test resources root
         URL bags = ClassLoader.getSystemClassLoader().getResource("bags");

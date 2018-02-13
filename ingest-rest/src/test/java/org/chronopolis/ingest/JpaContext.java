@@ -4,6 +4,7 @@ import com.opentable.db.postgres.embedded.FlywayPreparer;
 import com.opentable.db.postgres.embedded.PreparedDbProvider;
 import org.chronopolis.ingest.repository.Authority;
 import org.chronopolis.rest.entities.Node;
+import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -29,6 +30,8 @@ import java.sql.SQLException;
 @EntityScan(basePackageClasses = {Authority.class, Node.class})
 public class JpaContext {
 
+    private static final String SCHEMA_LOCATION = "db/schema";
+
     public static void main(String[] args) {
         SpringApplication.run(JpaContext.class);
     }
@@ -36,7 +39,7 @@ public class JpaContext {
     @Bean
     @Profile("!gitlab")
     public DataSource embeddedDataSource() throws SQLException {
-        FlywayPreparer preparer = FlywayPreparer.forClasspathLocation("db/schema");
+        FlywayPreparer preparer = FlywayPreparer.forClasspathLocation(SCHEMA_LOCATION);
         PreparedDbProvider provider = PreparedDbProvider.forPreparer(preparer);
         return provider.createDataSource();
     }
@@ -44,11 +47,26 @@ public class JpaContext {
     @Bean
     @Profile("gitlab")
     public DataSource serviceDataSource() {
+        String driver = "org.postgresql.Driver";
+        String url = "jdbc:postgresql://postgres/ingest-test";
+        String username = "runner";
+
         return DataSourceBuilder.create()
-                .url("jdbc:postgresql://postgres/ingest-test")
-                .username("runner")
-                .driverClassName("org.postgresql.Driver")
+                .url(url)
+                .username(username)
+                .driverClassName(driver)
                 .build();
+    }
+
+    @Bean
+    @Profile("gitlab")
+    public Flyway flyway(DataSource dataSource) {
+        Flyway fly = new Flyway();
+        fly.setDataSource(dataSource);
+        fly.setLocations(SCHEMA_LOCATION);
+        fly.clean();
+        fly.migrate();
+        return fly;
     }
 
     @Bean
