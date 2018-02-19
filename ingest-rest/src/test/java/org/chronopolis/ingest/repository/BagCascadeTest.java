@@ -6,12 +6,14 @@ import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.storage.StagingStorage;
+import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.BagStatus;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
@@ -26,6 +28,7 @@ import javax.persistence.EntityManager;
 @RunWith(SpringRunner.class)
 @DataJpaTest
 @ContextConfiguration(classes = JpaContext.class)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SqlGroup(
         @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:sql/createDefaultStorageRegions.sql")
 )
@@ -65,8 +68,9 @@ public class BagCascadeTest extends IngestTest {
     @Test
     public void testTokenStagingPersist() {
         Bag bag = createBag(TOKEN_PERSIST);
+        StorageRegion region = regions.findOne(1L);
         bag.setTokenStorage(new StagingStorage().setActive(true)
-                .setRegion(regions.findOne(1L))
+                .setRegion(region)
                 .setPath(TEST)
                 .setSize(1L)
                 .setTotalFiles(1L));

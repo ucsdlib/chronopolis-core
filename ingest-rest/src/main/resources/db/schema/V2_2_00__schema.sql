@@ -1,5 +1,4 @@
 -- POSTGRESQL schema
--- todo: take a look a reorganizing this
 
 -- tables used by spring security
 DROP TABLE IF EXISTS users;
@@ -89,9 +88,9 @@ CREATE TABLE ace_token (
     bag bigint
 );
 
-DROP TABLE IF EXISTS bag_distribution;
 DROP SEQUENCE IF EXISTS bag_distribution_id_seq;
 CREATE SEQUENCE bag_distribution_id_seq;
+DROP TABLE IF EXISTS bag_distribution;
 CREATE TABLE bag_distribution (
     id bigint PRIMARY KEY DEFAULT nextval('bag_distribution_id_seq'),
     bag_id bigint,
@@ -100,15 +99,6 @@ CREATE TABLE bag_distribution (
 );
 
 -- repair and associated tables
-DROP TABLE IF EXISTS repair_file;
-DROP SEQUENCE IF EXISTS repair_file_id_seq;
-CREATE SEQUENCE repair_file_id_seq;
-CREATE TABLE repair_file (
-    id bigint PRIMARY KEY DEFAULT nextval('repair_file_id_seq'),
-    path text,
-    repair_id bigint
-);
-
 DROP TABLE IF EXISTS repair;
 DROP SEQUENCE IF EXISTS repair_id_seq;
 CREATE SEQUENCE repair_id_seq;
@@ -128,6 +118,15 @@ CREATE TABLE repair (
     validated BOOLEAN DEFAULT FALSE,
     type VARCHAR(255),
     strategy_id BIGINT
+);
+
+DROP TABLE IF EXISTS repair_file;
+DROP SEQUENCE IF EXISTS repair_file_id_seq;
+CREATE SEQUENCE repair_file_id_seq;
+CREATE TABLE repair_file (
+    id bigint PRIMARY KEY DEFAULT nextval('repair_file_id_seq'),
+    path text,
+    repair_id bigint
 );
 
 DROP TABLE IF EXISTS strategy;
@@ -175,7 +174,7 @@ ALTER TABLE repair
     ADD CONSTRAINT FK_repair_strat FOREIGN KEY (strategy_id) REFERENCES strategy ON DELETE CASCADE;
 
 -- storage
-DROP TABLE IF EXISTS storage_region CASCADE;
+DROP TABLE IF EXISTS storage_region;
 DROP SEQUENCE IF EXISTS storage_region_id_seq;
 CREATE SEQUENCE storage_region_id_seq;
 CREATE TABLE storage_region (
@@ -191,7 +190,7 @@ CREATE TABLE storage_region (
 
 -- storage
 -- note the size/total_files might still live in the bag, but are here for now as their usage emerges
-DROP TABLE IF EXISTS staging_storage CASCADE;
+DROP TABLE IF EXISTS staging_storage;
 DROP SEQUENCE IF EXISTS staging_storage_id_seq;
 CREATE SEQUENCE staging_storage_id_seq;
 CREATE TABLE staging_storage (
@@ -220,7 +219,7 @@ CREATE TABLE token_storage (
     staging_id BIGINT NOT NULL
 );
 
-DROP TABLE IF EXISTS fixity CASCADE;
+DROP TABLE IF EXISTS fixity;
 DROP SEQUENCE IF EXISTS fixity_id_seq;
 CREATE SEQUENCE fixity_id_seq;
 CREATE TABLE fixity (
@@ -268,8 +267,3 @@ ALTER TABLE bag_storage
 
 ALTER TABLE token_storage
     ADD CONSTRAINT FK_ts_storage FOREIGN KEY (staging_id) REFERENCES staging_storage;
-
--- Indices
-CREATE INDEX CONCURRENTLY idx_filename ON ace_token (bag, filename);
-CREATE INDEX CONCURRENTLY idx_bag_storage ON bag_storage (bag_id, staging_id);
-CREATE INDEX CONCURRENTLY idx_token_storage ON token_storage (bag_id, staging_id);
