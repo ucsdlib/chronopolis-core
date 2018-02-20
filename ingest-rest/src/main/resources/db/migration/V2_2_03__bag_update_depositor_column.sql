@@ -1,7 +1,6 @@
 ALTER TABLE bag ADD COLUMN depositor_id BIGINT;
 
-INSERT INTO bag (depositor_id) SELECT d.id FROM bag
-    JOIN depositor d ON bag.depositor = d.namespace;
+UPDATE bag SET depositor_id = d.id FROM depositor d WHERE bag.depositor = d.namespace;
 
 ALTER TABLE bag DROP COLUMN depositor;
 
