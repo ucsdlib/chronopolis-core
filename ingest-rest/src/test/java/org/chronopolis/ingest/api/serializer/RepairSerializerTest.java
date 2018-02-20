@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
 import org.chronopolis.ingest.WebContext;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Depositor;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Repair;
 import org.chronopolis.rest.entities.fulfillment.Ace;
@@ -38,9 +39,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration(classes = WebContext.class)
 public class RepairSerializerTest {
 
-    private final String dateTimeString = "2017-06-30T20:05:19.634Z";
+    private final Depositor depositor = new Depositor().setNamespace("depositor");
     private final DateTimeFormatter fmt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC);
 
+    @SuppressWarnings("unused")
     private JacksonTester<Repair> json;
 
     @Before
@@ -60,6 +62,7 @@ public class RepairSerializerTest {
         String from = "from";
 
         // geez
+        String dateTimeString = "2017-06-30T20:05:19.634Z";
         ZonedDateTime dateTime = ZonedDateTime.from(fmt.parse(dateTimeString));
         Repair repair = new Repair();
         repair.setId(1L);
@@ -75,7 +78,7 @@ public class RepairSerializerTest {
                 .setRequester("requester")
                 .setType(FulfillmentType.ACE)
                 .setStrategy(new Ace().setApiKey("api-key").setUrl("url"))
-                .setBag(new Bag("bag", "depositor"))
+                .setBag(new Bag("bag", depositor))
                 .setFilesFromRequest(ImmutableSet.of("file-1", "file-2"));
 
         assertThat(json.write(repair)).isEqualToJson("repair.json");

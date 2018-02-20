@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.chronopolis.ingest.WebContext;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagDistribution;
+import org.chronopolis.rest.entities.Depositor;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
@@ -38,7 +39,10 @@ public class BagSerializerTest {
 
     private final DateTimeFormatter fmt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC);
     private final String dateTimeString = "2017-06-30T19:49:12.37Z";
-    // init is done in the setup
+    private final String NAMESPACE = "depositor";
+    private final Depositor depositor = new Depositor().setNamespace(NAMESPACE);
+
+    @SuppressWarnings("unused")
     private JacksonTester<Bag> json;
 
     @Before
@@ -57,14 +61,13 @@ public class BagSerializerTest {
         final Node node = new Node("node", "node");
         ZonedDateTime dateTime = ZonedDateTime.from(fmt.parse(dateTimeString));
 
-        Bag b = new Bag("bag", "depositor");
+        Bag b = new Bag("bag", depositor);
         b.setId(1L);
         b.setSize(1L);
         b.setTotalFiles(1L);
         b.setBagStorage(createStorage());
         b.setRequiredReplications(1);
         b.setCreator("creator");
-        b.setDepositor("depositor");
         b.setStatus(BagStatus.REPLICATING);
         b.setCreatedAt(dateTime);
         b.setUpdatedAt(dateTime);

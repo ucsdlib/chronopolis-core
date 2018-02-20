@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.chronopolis.ingest.WebContext;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Depositor;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,9 +25,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @JsonTest
 @ContextConfiguration(classes = WebContext.class)
 public class AceTokenSerializerTest {
+
+    private final Depositor depositor = new Depositor().setNamespace("depositor");
     // I'll have to make a note of this elsewhere but when reading in Tokens we don't
     // want to impose any type of Zone on the String and instead use what the token offers
     private final DateTimeFormatter fmt = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+
+    @SuppressWarnings("unused")
     private JacksonTester<AceToken> json;
 
     @Before
@@ -57,7 +62,7 @@ public class AceTokenSerializerTest {
     }
 
     private Bag genBag() {
-        Bag bag = new Bag("test-name", "test-depositor");
+        Bag bag = new Bag("test-name", depositor);
         bag.setId(1L);
         return bag;
     }
