@@ -17,3 +17,5 @@ insert into authorities (username, authority) values ('ucsd', 'ROLE_USER');
 
 INSERT INTO storage_region VALUES(DEFAULT, 1, 'BAG', 'LOCAL', 1000000, '', CURRENT_DATE, CURRENT_DATE);
 INSERT INTO storage_region VALUES(DEFAULT, 1, 'TOKEN', 'LOCAL', 1000000, '', CURRENT_DATE, CURRENT_DATE);
+
+INSERT INTO depositor VALUES(DEFAULT, 'test-depositor', 'Test-Depositor', 'localhost');
