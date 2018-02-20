@@ -15,6 +15,7 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
 import java.util.HashSet;
@@ -36,7 +37,6 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
 
     private String name;
     private String creator;
-    private String depositor;
 
     private long size;
     private long totalFiles;
@@ -44,6 +44,10 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
 
     @Enumerated(EnumType.STRING)
     private BagStatus status;
+
+    @ManyToOne
+    @JoinColumn(name = "depositor_id")
+    private Depositor depositor;
 
     // Might want to lazy fetch this if possible
     @OneToMany(mappedBy = "bag", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
@@ -64,7 +68,15 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
     protected Bag() { // JPA
     }
 
-    public Bag(String name, String depositor) {
+    @Deprecated
+    public Bag(String name) { // , String depositor) {
+        this.name = name;
+        // this.depositor = depositor;
+        this.status = BagStatus.DEPOSITED;
+        this.requiredReplications = DEFAULT_REPLICATIONS;
+    }
+
+    public Bag(String name, Depositor depositor) {
         this.name = name;
         this.depositor = depositor;
         this.status = BagStatus.DEPOSITED;
@@ -88,11 +100,11 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
         return this;
     }
 
-    public String getDepositor() {
+    public Depositor getDepositor() {
         return depositor;
     }
 
-    public void setDepositor(final String depositor) {
+    public void setDepositor(final Depositor depositor) {
         this.depositor = depositor;
     }
 
