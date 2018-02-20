@@ -21,13 +21,11 @@ DROP SEQUENCE IF EXISTS bag_id_seq;
 CREATE SEQUENCE bag_id_seq;
 CREATE TABLE bag (
     id bigint PRIMARY KEY DEFAULT nextval('bag_id_seq'),
-    -- bag_storage_id BIGINT,
-    -- token_storage_id BIGINT,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     name varchar(255) UNIQUE,
     creator VARCHAR(255),
-    depositor varchar(255),
+    depositor_id BIGINT NOT NULL,
     status varchar(255),
     size bigint NOT NULL,
     total_files bigint NOT NULL,
@@ -273,3 +271,50 @@ ALTER TABLE token_storage
 CREATE INDEX CONCURRENTLY idx_filename ON ace_token (bag, filename);
 CREATE INDEX CONCURRENTLY idx_bag_storage ON bag_storage (bag_id, staging_id);
 CREATE INDEX CONCURRENTLY idx_token_storage ON token_storage (bag_id, staging_id);
+
+-- V2_2 Depositor
+DROP SEQUENCE IF EXISTS depositor_id_seq;
+DROP TABLE IF EXISTS depositor;
+CREATE SEQUENCE depositor_id_seq;
+CREATE TABLE depositor (
+    id BIGINT PRIMARY KEY DEFAULT nextval('depositor_id_seq'),
+    namespace VARCHAR(255) NOT NULL UNIQUE,
+    source_organization TEXT,
+    organization_address TEXT,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
+
+DROP SEQUENCE IF EXISTS depositor_contact_id_seq;
+DROP TABLE IF EXISTS depositor_contact;
+CREATE SEQUENCE depositor_contact_id_seq;
+CREATE TABLE depositor_contact (
+    id BIGINT PRIMARY KEY DEFAULT nextval('depositor_contact_id_seq'),
+    depositor_id BIGINT NOT NULL,
+    contact_name TEXT,
+    contact_phone VARCHAR(42), -- the max size could be 21, but some extra space just in case
+    contact_email VARCHAR(255)
+);
+
+DROP TABLE IF EXISTS depositor_distribution;
+CREATE TABLE depositor_distribution (
+    depositor_id BIGINT NOT NULL,
+    node_id BIGINT NOT NULL
+);
+
+ALTER TABLE depositor_distribution
+    ADD CONSTRAINT FK_dd_depositor FOREIGN KEY (depositor_id) REFERENCES depositor;
+
+ALTER TABLE depositor_distribution
+    ADD CONSTRAINT FK_dd_node FOREIGN KEY (node_id) REFERENCES node;
+
+ALTER TABLE depositor_contact
+    ADD CONSTRAINT FK_dc_depositor FOREIGN KEY (depositor_id) REFERENCES depositor;
+
+ALTER TABLE bag
+    ADD CONSTRAINT FK_bag_depositor FOREIGN KEY (depositor_id) REFERENCES depositor;
+
+CREATE INDEX idx_dd_dn ON depositor_distribution (depositor_id, node_id);
+
+CREATE INDEX idx_depositor_ns ON depositor (namespace);
+CREATE INDEX idx_depositor_contact ON depositor_contact (id, depositor_id);
