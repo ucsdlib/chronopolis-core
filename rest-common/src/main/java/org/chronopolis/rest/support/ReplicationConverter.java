@@ -7,6 +7,7 @@ import org.chronopolis.rest.entities.Replication;
  *
  * Created by shake on 12/16/16.
  */
+@Deprecated
 public class ReplicationConverter {
 
     public org.chronopolis.rest.models.Replication toReplicationModel(Replication replication) {

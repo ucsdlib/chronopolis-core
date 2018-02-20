@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 /**
  * Created by shake on 8/1/16.
  */
+@Deprecated
 public class BagConverter {
 
     /**
@@ -29,7 +30,7 @@ public class BagConverter {
                 .setTotalFiles(be.getTotalFiles())
                 .setUpdatedAt(be.getUpdatedAt())
                 .setCreator(be.getCreator())
-                .setDepositor(be.getDepositor())
+                .setDepositor(be.getDepositor().getNamespace())
                 .setName(be.getName())
                 .setReplicatingNodes(be.getReplicatingNodes())
                 .setRequiredReplications(be.getRequiredReplications())
@@ -39,7 +40,7 @@ public class BagConverter {
 
     // todo Should we remove this??
     public static org.chronopolis.rest.entities.Bag toBagEntity(org.chronopolis.rest.models.Bag bm) {
-        org.chronopolis.rest.entities.Bag be = new org.chronopolis.rest.entities.Bag(bm.getName(), bm.getDepositor());
+        org.chronopolis.rest.entities.Bag be = new org.chronopolis.rest.entities.Bag(bm.getName()); //, bm.getDepositor());
         be.setCreator(bm.getCreator());
         be.setStatus(bm.getStatus());
         return be;
