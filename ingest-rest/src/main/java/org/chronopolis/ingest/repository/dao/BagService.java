@@ -5,9 +5,11 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Depositor;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QAceToken;
 import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.QDepositor;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.BagStatus;
@@ -57,18 +59,22 @@ public class BagService extends SearchService<Bag, Long, BagRepository> {
                       StorageRegion region,
                       Set<Node> replicatingNodes) {
         String name = request.getName();
-        String depositor = request.getDepositor();
+        String namespace = request.getDepositor();
 
         BagSearchCriteria criteria = new BagSearchCriteria()
                 .withName(name)
-                .withDepositor(depositor);
+                .withDepositor(namespace);
 
         Bag bag = find(criteria);
         if (bag != null) {
             // return a 409 instead?
-            log.debug("Bag {} exists from depositor {}, skipping creation", name, depositor);
+            log.debug("Bag {} exists from depositor {}, skipping creation", name, namespace);
             return bag;
         }
+        JPAQueryFactory factory = new JPAQueryFactory(entityManager);
+        Depositor depositor = factory.selectFrom(QDepositor.depositor)
+                .where(QDepositor.depositor.namespace.eq(namespace))
+                .fetchOne();
 
         log.debug("Received ingest request {}", request);
         Long size = request.getSize();
