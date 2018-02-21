@@ -12,6 +12,7 @@ import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Depositor;
 import org.chronopolis.rest.models.AceTokenModel;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,6 +55,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = WebContext.class)
 public class BagTokenControllerTest extends ControllerTest {
 
+    private final Depositor depositor = new Depositor();
     private static final String AUTHORIZED = "authorized";
     private static UserDetails admin = new User(AUTHORIZED, AUTHORIZED, ImmutableList.of(() -> "ROLE_ADMIN"));
 
@@ -85,7 +87,7 @@ public class BagTokenControllerTest extends ControllerTest {
 
     @Test
     public void testCreateTokenSuccess() throws Exception {
-        Bag bag = new Bag("test-name", "test-depositor");
+        Bag bag = new Bag("test-name", depositor);
         bag.setId(1L);
         runCreateToken(generateModel(), bag, HttpStatus.CREATED);
 
@@ -102,7 +104,7 @@ public class BagTokenControllerTest extends ControllerTest {
 
     @Test
     public void testCreateTokenBadRequest() throws Exception {
-        Bag bag = new Bag("test-name", "test-depositor");
+        Bag bag = new Bag("test-name", depositor);
         bag.setId(1L);
         AceTokenModel model = generateModel();
         model.setFilename(null);
@@ -157,7 +159,7 @@ public class BagTokenControllerTest extends ControllerTest {
     // but we'll probably want a better way to do this
     @SuppressWarnings("Duplicates")
     private AceToken generateToken() {
-        Bag bag = new Bag("test-name", "test-depositor");
+        Bag bag = new Bag("test-name", depositor);
         bag.setId(1L);
         AceToken token = new AceToken(bag,
                 new Date(),

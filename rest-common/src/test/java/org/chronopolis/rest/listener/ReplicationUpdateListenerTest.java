@@ -1,9 +1,10 @@
 package org.chronopolis.rest.listener;
 
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.models.BagStatus;
+import org.chronopolis.rest.entities.Depositor;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.junit.Assert;
 import org.junit.Before;
@@ -23,24 +24,26 @@ public class ReplicationUpdateListenerTest {
 
     private final String TEST_DIGEST = "test-digest";
 
-    Bag b;
-    Node n;
+    private Bag bag;
+    private Node node;
+    private Depositor depositor;
 
-    ReplicationUpdateListener listener;
+    private ReplicationUpdateListener listener;
 
     @Before
     public void setup() {
-        n = new Node("test-node", "test-password");
+        node = new Node("test-node", "test-password");
+        depositor = new Depositor();
 
-        b = new Bag("test-bag", "test-depositor");
-        b.setStatus(BagStatus.REPLICATING);
-        b.addDistribution(n, DISTRIBUTE);
+        bag = new Bag("test-bag", depositor);
+        bag.setStatus(BagStatus.REPLICATING);
+        bag.addDistribution(node, DISTRIBUTE);
 
         listener = new ReplicationUpdateListener();
     }
 
     public Replication createReplication(String tagDigest, String tokenDigest) {
-        Replication r = new Replication(n, b);
+        Replication r = new Replication(node, bag);
         r.setProtocol("test-protocol");
         r.setReceivedTagFixity(tagDigest);
         r.setReceivedTokenFixity(tokenDigest);

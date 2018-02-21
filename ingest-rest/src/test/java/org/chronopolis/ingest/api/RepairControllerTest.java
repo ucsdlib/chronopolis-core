@@ -14,6 +14,7 @@ import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.ingest.support.PageImpl;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Depositor;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Repair;
 import org.chronopolis.rest.entities.fulfillment.Ace;
@@ -56,6 +57,7 @@ public class RepairControllerTest extends ControllerTest {
 
     private MockMvc mvc;
     private RepairController controller;
+    private final Depositor depositor = new Depositor();
 
     // Beans for the RepairController
     @MockBean private NodeRepository nodes;
@@ -115,7 +117,7 @@ public class RepairControllerTest extends ControllerTest {
         authenticateUser();
         // requester instead of authorized?
         when(nodes.findByUsername(AUTHORIZED)).thenReturn(new Node(AUTHORIZED, AUTHORIZED));
-        when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", "test-depositor"));
+        when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", depositor));
 
         String json = "{\"depositor\":\"test-depositor\",\"collection\":\"bag-0\",\"files\":[\"test-file-1\"]}";
         mvc.perform(
@@ -134,7 +136,7 @@ public class RepairControllerTest extends ControllerTest {
     public void createRepairAdmin() throws Exception {
         authenticateAdmin();
         when(nodes.findByUsername(REQUESTER)).thenReturn(new Node(REQUESTER, REQUESTER));
-        when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", "test-depositor"));
+        when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", depositor));
 
         String json = "{\"to\":\"requester\",\"depositor\":\"test-depositor\",\"collection\":\"bag-0\",\"files\":[\"test-file-1\"]}";
 
@@ -153,7 +155,7 @@ public class RepairControllerTest extends ControllerTest {
     @Test
     public void createRepairUnauthorized() throws Exception {
         authenticateUser();
-        when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", "test-depositor"));
+        when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", depositor));
 
         // For some reason the ObjectMapper isn't creating proper json for the RepairRequest class, so we'll just hard code it for now
         String json = "{\"to\":\"requester\",\"depositor\":\"test-depositor\",\"collection\":\"bag-0\",\"files\":[\"test-file-1\"]}";
@@ -437,7 +439,7 @@ public class RepairControllerTest extends ControllerTest {
 
     private Repair baseRepair() {
         Repair repair = new Repair();
-        repair.setBag(new Bag("test-bag", "test-depositor"));
+        repair.setBag(new Bag("test-bag", depositor));
         repair.setId(1L);
         repair.setRequester(REQUESTER);
         repair.setFiles(ImmutableSet.of());

@@ -7,6 +7,7 @@ import org.chronopolis.ingest.repository.criteria.SearchCriteria;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Depositor;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +75,8 @@ public class TokenControllerTest {
     }
 
     private AceToken generateToken() {
-        Bag bag = new Bag("test-name", "test-depositor");
+        final Depositor depositor = new Depositor();
+        Bag bag = new Bag("test-name", depositor);
         bag.setId(1L);
         AceToken token = new AceToken(bag,
                 new Date(),

@@ -6,6 +6,7 @@ import org.chronopolis.ingest.repository.criteria.SearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.StorageRegionService;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Depositor;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.IngestRequest;
@@ -41,10 +42,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(controllers = BagController.class)
 public class BagControllerTest extends ControllerTest {
 
-    private final String DEPOSITOR = "test-depositor";
+    private final String NAMESPACE = "test-depositor";
     private final String BAG = "test-bag";
     private final String LOCATION = "bags/test-bag-0";
     private final String NODE = "test-node";
+    private final Depositor DEPOSITOR = new Depositor().setNamespace(NAMESPACE);
 
     private BagController controller;
 
@@ -102,7 +104,7 @@ public class BagControllerTest extends ControllerTest {
     public void testStageBag() throws Exception {
         // Bag Ingest Request
         IngestRequest request = new IngestRequest();
-        request.setDepositor(DEPOSITOR);
+        request.setDepositor(NAMESPACE);
         request.setSize(1L);
         request.setTotalFiles(1L);
         request.setStorageRegion(1L);
@@ -112,8 +114,6 @@ public class BagControllerTest extends ControllerTest {
 
         // created bag to return
         Bag bag = bag();
-        bag.setName(BAG);
-        bag.setDepositor(DEPOSITOR);
 
         when(regions.find(any(SearchCriteria.class))).thenReturn(new StorageRegion());
         when(nodes.findByUsername(eq(NODE))).thenReturn(new Node(NODE, "password"));
@@ -126,7 +126,7 @@ public class BagControllerTest extends ControllerTest {
                     .content(asJson(request)))
                 .andDo(print())
                 .andExpect(status().is(200))
-                .andExpect(jsonPath("$.depositor").value(DEPOSITOR))
+                .andExpect(jsonPath("$.depositor").value(NAMESPACE))
                 .andExpect(jsonPath("$.name").value(BAG));
 
         // verify(bagService, times(1)).find(any(SearchCriteria.class));

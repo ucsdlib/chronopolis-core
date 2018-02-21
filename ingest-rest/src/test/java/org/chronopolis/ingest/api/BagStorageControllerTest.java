@@ -4,6 +4,7 @@ import com.querydsl.core.types.dsl.SetPath;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.StagingService;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Depositor;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.storage.Fixity;
@@ -44,6 +45,7 @@ public class BagStorageControllerTest extends ControllerTest {
     private StagingStorage storage;
     private BagStorageController controller;
     private SetPath<StagingStorage, QStagingStorage> storageJoin;
+    private final Depositor depositor = new Depositor();
 
     @MockBean private BagService bagService;
     @MockBean private StagingService stagingService;
@@ -72,7 +74,7 @@ public class BagStorageControllerTest extends ControllerTest {
         storage.setCreatedAt(ZonedDateTime.now());
         storage.setUpdatedAt(ZonedDateTime.now());
 
-        bag = new Bag("test-bag", "test-depositor");
+        bag = new Bag("test-bag", depositor);
         bag.setBagStorage(storage);
 
         controller = new BagStorageController(bagService, stagingService);
