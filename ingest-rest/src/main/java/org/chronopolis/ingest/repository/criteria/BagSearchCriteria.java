@@ -57,7 +57,7 @@ public class BagSearchCriteria implements SearchCriteria {
 
     public BagSearchCriteria withDepositor(String depositor) {
         if (depositor != null && !depositor.isEmpty()) {
-            criteria.put(Params.DEPOSITOR, bag.depositor.eq(depositor));
+            criteria.put(Params.DEPOSITOR, bag.depositor.namespace.eq(depositor));
         }
         return this;
     }
@@ -80,7 +80,7 @@ public class BagSearchCriteria implements SearchCriteria {
 
     public BagSearchCriteria depositorLike(String depositor) {
         if (depositor != null && !depositor.isEmpty()) {
-            criteria.put(Params.DEPOSITOR, bag.depositor.like("%" + depositor + "%"));
+            criteria.put(Params.DEPOSITOR, bag.depositor.namespace.like("%" + depositor + "%"));
         }
         return this;
     }

@@ -67,7 +67,7 @@ public class TokenStoreWriter implements Runnable {
     public void run() {
         Long bagId = bag.getId();
         String name = bag.getName();
-        String depositor = bag.getDepositor();
+        String depositor = bag.getDepositor().getNamespace();
 
         StagingStorage storage = new StagingStorage();
         storage.setRegion(region);

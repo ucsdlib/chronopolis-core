@@ -159,7 +159,7 @@ public class SiteController extends IngestController {
         }
 
         // retrieve DepositorSummary
-        StringPath depositorExpr = bag.depositor;
+        StringPath depositorExpr = bag.depositor.namespace;
         List<DepositorSummary> depositorSummaries = factory.selectFrom(QBag.bag)
                 .select(Projections.constructor(DepositorSummary.class, sumExpr, countExpr, depositorExpr))
                 .groupBy(depositorExpr)
