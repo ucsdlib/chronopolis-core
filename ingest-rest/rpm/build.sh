@@ -37,7 +37,8 @@ jarfile=target/ingest-rest-$version-$release_type.jar
 
 if [ ! -e $jarfile ]; then
     echo "Building latest jar..."
-    mvn -q -Dmaven.test.redirectTestOutputToFile=true clean install # > /dev/null
+    # todo: profile should be an env var
+    mvn -q -Dmaven.test.redirectTestOutputToFile=true -Dspring.profiles.active=gitlab clean install # > /dev/null
     if [ $? -ne 0 ]; then
         echo "Error building ingest-server"
         exit 99
