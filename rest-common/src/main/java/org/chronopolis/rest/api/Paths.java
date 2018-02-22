@@ -10,6 +10,7 @@ public class Paths {
     protected static final String REPAIR_ROOT = "api/repairs";
     protected static final String STORAGE_ROOT = "api/storage";
     protected static final String STAGING_ROOT = "api/bags/{id}";
+    protected static final String DEPOSITOR_ROOT = "api/depositors";
     protected static final String REPLICATION_ROOT = "api/replications";
 
 }
