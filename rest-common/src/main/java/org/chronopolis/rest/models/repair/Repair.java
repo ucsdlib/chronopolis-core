@@ -211,7 +211,6 @@ public class Repair implements Comparable<Repair> {
         result = 31 * result + (requester != null ? requester.hashCode() : 0);
         result = 31 * result + (depositor != null ? depositor.hashCode() : 0);
         result = 31 * result + (collection != null ? collection.hashCode() : 0);
-        result = 31 * result + (files != null ? files.hashCode() : 0);
-        return result;
+        return 31 * result + (files != null ? files.hashCode() : 0);
     }
 }

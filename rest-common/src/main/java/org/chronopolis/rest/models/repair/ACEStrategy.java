@@ -76,7 +76,6 @@ public class ACEStrategy extends FulfillmentStrategy {
     @Override
     public int hashCode() {
         int result = apiKey != null ? apiKey.hashCode() : 0;
-        result = 31 * result + (url != null ? url.hashCode() : 0);
-        return result;
+        return 31 * result + (url != null ? url.hashCode() : 0);
     }
 }
