@@ -20,6 +20,7 @@ public class Depositor extends UpdatableEntity implements Comparable<Depositor> 
     private String namespace;
 
     private String sourceOrganization;
+    private String organizationAddress;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<DepositorContact> contacts = new HashSet<>();
@@ -39,6 +40,15 @@ public class Depositor extends UpdatableEntity implements Comparable<Depositor> 
         return sourceOrganization;
     }
 
+    public String getOrganizationAddress() {
+        return organizationAddress;
+    }
+
+    public Depositor setOrganizationAddress(String organizationAddress) {
+        this.organizationAddress = organizationAddress;
+        return this;
+    }
+
     public Depositor setSourceOrganization(String sourceOrganization) {
         this.sourceOrganization = sourceOrganization;
         return this;
@@ -55,6 +65,7 @@ public class Depositor extends UpdatableEntity implements Comparable<Depositor> 
                 .compare(id, depositor.id)
                 .compare(namespace, depositor.namespace)
                 .compare(sourceOrganization, depositor.sourceOrganization)
+                .compare(organizationAddress, depositor.organizationAddress)
                 .result();
     }
 
@@ -65,7 +76,8 @@ public class Depositor extends UpdatableEntity implements Comparable<Depositor> 
         Depositor depositor = (Depositor) o;
         return Objects.equals(id, depositor.id) &&
                 Objects.equals(namespace, depositor.namespace) &&
-                Objects.equals(sourceOrganization, depositor.sourceOrganization);
+                Objects.equals(sourceOrganization, depositor.sourceOrganization) &&
+                Objects.equals(organizationAddress, depositor.organizationAddress);
     }
 
     @Override
