@@ -21,10 +21,10 @@ import java.util.stream.Stream;
 /**
  * Class to gather metadata about a bag and supply an IngestRequest for creating
  * the bag in the Ingest Server
- *
+ * <p>
  * todo: passing in the path of the bag feels a bit clunky. maybe we could have it so we
- *       only need the stage, depositor, and name
- *
+ * only need the stage, depositor, and name
+ * <p>
  * Created by shake on 7/18/17.
  */
 public class IngestRequestSupplier implements Supplier<Optional<IngestRequest>> {
@@ -45,7 +45,7 @@ public class IngestRequestSupplier implements Supplier<Optional<IngestRequest>> 
 
     /**
      * Gather data about a bag and return it in the form of an IngestRequest
-     *
+     * <p>
      * Todo: Optional or let it throw an exception which can be handled downstream?
      *
      * @return The IngestRequest to push to the Ingest Server
@@ -74,11 +74,11 @@ public class IngestRequestSupplier implements Supplier<Optional<IngestRequest>> 
 
         try (Stream<Path> files = Files.walk(bag)) {
             files.map(this::fromPath)
-                 .reduce(this::combineCount)
-                 .ifPresent(count -> {
-                     request.setSize(count.size);
-                     request.setTotalFiles(count.files);
-                 });
+                    .reduce(this::combineCount)
+                    .ifPresent(count -> {
+                        request.setSize(count.size);
+                        request.setTotalFiles(count.files);
+                    });
         } catch (IOException e) {
             log.error("Error accumulating size of bag", e);
             return Optional.empty();
@@ -89,55 +89,54 @@ public class IngestRequestSupplier implements Supplier<Optional<IngestRequest>> 
 
     /**
      * Explode a tarball for a given transfer
-     *
+     * <p>
      * TODO: Do we want a separate process for this?
-     *       i.e. keep this class for creating requests; move untarring to a class for... untarring
-     *       could have a check that says if (!bag.exists) { untar } else { init }
+     * i.e. keep this class for creating requests; move untarring to a class for... untarring
+     * could have a check that says if (!bag.exists) { untar } else { init }
      *
      * @param tarball the tarball'd bag to extract
      */
     private Path untar(Path tarball) throws IOException {
         // Set up our tar stream and channel
-        TarArchiveInputStream tais = new TarArchiveInputStream(java.nio.file.Files.newInputStream(tarball));
-        TarArchiveEntry entry = tais.getNextTarEntry();
-        ReadableByteChannel inChannel = Channels.newChannel(tais);
+        try (TarArchiveInputStream tais = new TarArchiveInputStream(java.nio.file.Files.newInputStream(tarball));
+             ReadableByteChannel inChannel = Channels.newChannel(tais)) {
+            TarArchiveEntry entry = tais.getNextTarEntry();
 
-        // Get our root path (just the staging area), and create an updated bag path
-        Path root = stage.resolve(depositor);
-        Path bag = root.resolve(entry.getName());
+            // Get our root path (just the staging area), and create an updated bag path
+            Path root = stage.resolve(depositor);
+            Path bag = root.resolve(entry.getName());
+            while (entry != null) {
+                Path entryPath = root.resolve(entry.getName());
 
-        while (entry != null) {
-            Path entryPath = root.resolve(entry.getName());
+                if (entry.isDirectory()) {
+                    log.trace("Creating directory {}", entry.getName());
+                    java.nio.file.Files.createDirectories(entryPath);
+                } else {
+                    log.trace("Creating file {}", entry.getName());
 
-            if (entry.isDirectory()) {
-                log.trace("Creating directory {}", entry.getName());
-                java.nio.file.Files.createDirectories(entryPath);
-            } else //noinspection Duplicates
-            {
-                log.trace("Creating file {}", entry.getName());
+                    entryPath.getParent().toFile().mkdirs();
 
-                entryPath.getParent().toFile().mkdirs();
+                    // In case files are greater than 2^32 bytes, we need to use a
+                    // RandomAccessFile and FileChannel to write them
+                    RandomAccessFile file = new RandomAccessFile(entryPath.toFile(), "rw");
+                    FileChannel out = file.getChannel();
 
-                // In case files are greater than 2^32 bytes, we need to use a
-                // RandomAccessFile and FileChannel to write them
-                RandomAccessFile file = new RandomAccessFile(entryPath.toFile(), "rw");
-                FileChannel out = file.getChannel();
+                    // The TarArchiveInputStream automatically updates its offset as
+                    // it is read, so we don't need to worry about it
+                    out.transferFrom(inChannel, 0, entry.getSize());
+                    out.close();
+                }
 
-                // The TarArchiveInputStream automatically updates its offset as
-                // it is read, so we don't need to worry about it
-                out.transferFrom(inChannel, 0, entry.getSize());
-                out.close();
+                entry = tais.getNextTarEntry();
             }
 
-            entry = tais.getNextTarEntry();
+            // get the directory name of the bag
+            //        0       1           2
+            // root = stage + depositor
+            // bag  = stage + depositor + bag-name
+            // root.namecount = 2
+            return root.resolve(bag.getName(root.getNameCount()));
         }
-
-        // get the directory name of the bag
-        //        0       1           2
-        // root = stage + depositor
-        // bag  = stage + depositor + bag-name
-        // root.namecount = 2
-        return root.resolve(bag.getName(root.getNameCount()));
     }
 
     /**
@@ -158,10 +157,10 @@ public class IngestRequestSupplier implements Supplier<Optional<IngestRequest>> 
 
     /**
      * Combine two Count classes
-     *
+     * <p>
      * todo: do we really want to create a new Count instance?
      *
-     * @param left The left count argument
+     * @param left  The left count argument
      * @param right The right count argument
      * @return A new Count which has combined both arguments
      */
@@ -175,7 +174,7 @@ public class IngestRequestSupplier implements Supplier<Optional<IngestRequest>> 
     /**
      * A simple class to count the total size and number of files
      */
-    private class Count {
+    private static class Count {
         private long size = 0;
         private long files = 0;
     }
