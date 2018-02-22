@@ -38,14 +38,6 @@ public class BagConverter {
         return bm;
     }
 
-    // todo Should we remove this??
-    public static org.chronopolis.rest.entities.Bag toBagEntity(org.chronopolis.rest.models.Bag bm) {
-        org.chronopolis.rest.entities.Bag be = new org.chronopolis.rest.entities.Bag(bm.getName()); //, bm.getDepositor());
-        be.setCreator(bm.getCreator());
-        be.setStatus(bm.getStatus());
-        return be;
-    }
-
     private static StagingStorageModel toStorageModel(Set<StagingStorage> storage) {
         if (storage == null || storage.isEmpty()) {
             return null;

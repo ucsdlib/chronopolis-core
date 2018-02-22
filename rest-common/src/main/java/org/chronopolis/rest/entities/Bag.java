@@ -68,14 +68,6 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
     protected Bag() { // JPA
     }
 
-    @Deprecated
-    public Bag(String name) { // , String depositor) {
-        this.name = name;
-        // this.depositor = depositor;
-        this.status = BagStatus.DEPOSITED;
-        this.requiredReplications = DEFAULT_REPLICATIONS;
-    }
-
     public Bag(String name, Depositor depositor) {
         this.name = name;
         this.depositor = depositor;
@@ -134,8 +126,7 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
         // Objects.hash(id, name, depositor);
         int result = id.hashCode();
         result = 31 * result + name.hashCode();
-        result = 31 * result + depositor.hashCode();
-        return result;
+        return 31 * result + depositor.hashCode();
     }
 
     @Override

@@ -131,9 +131,7 @@ public class BagCascadeTest extends IngestTest {
         bag.setStatus(BagStatus.DEPOSITED);
         bag.setTotalFiles(1L);
         bag.setRequiredReplications(1);
-        // bag.setDepositor(TEST);
         return bag;
     }
-
 
 }
