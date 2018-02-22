@@ -40,6 +40,8 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
 
     private long size;
     private long totalFiles;
+
+    @Deprecated
     private int requiredReplications;
 
     @Enumerated(EnumType.STRING)
@@ -144,6 +146,12 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
         return depositor + "::" + name;
     }
 
+    /**
+     * Retrieve the number of required replications for this bag
+     *
+     * @return the required replications
+     * @deprecated will be removed in 3.0.0
+     */
     public int getRequiredReplications() {
         return requiredReplications;
     }
@@ -181,6 +189,13 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
         distributions.add(dist);
     }
 
+    /**
+     * Set the number of required replications for a bag
+     *
+     * @param requiredReplications the number of required replications
+     * @return the bag
+     * @deprecated will be removed in 3.0.0
+     */
     public Bag setRequiredReplications(int requiredReplications) {
         this.requiredReplications = requiredReplications;
         return this;
