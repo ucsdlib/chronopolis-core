@@ -122,7 +122,6 @@ public class IngestRequest {
         result = 31 * result + (location != null ? location.hashCode() : 0);
         result = 31 * result + (depositor != null ? depositor.hashCode() : 0);
         result = 31 * result + requiredReplications;
-        result = 31 * result + (replicatingNodes != null ? replicatingNodes.hashCode() : 0);
-        return result;
+        return 31 * result + (replicatingNodes != null ? replicatingNodes.hashCode() : 0);
     }
 }

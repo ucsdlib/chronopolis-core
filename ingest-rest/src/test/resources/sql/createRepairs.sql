@@ -1,5 +1,5 @@
 -- create a bag
-INSERT INTO bag VALUES(1, CURRENT_DATE, CURRENT_DATE, 'bag-0', 'admin', 'test-depositor', 'bags/test-bag-0', 'tokens/test-bag-0', 'token-fixity', 'tag-fixity', 'STAGED', 'SHA-256', 1500, 5, 3);
+INSERT INTO bag VALUES(1, CURRENT_DATE, CURRENT_DATE, 'bag-0', 'admin', 1, 'bags/test-bag-0', 'tokens/test-bag-0', 'token-fixity', 'tag-fixity', 'STAGED', 'SHA-256', 1500, 5, 3);
 
 -- create a fulfillment strategy for one of our fulfillments
 --                          id, api-key,        url,                        link, type

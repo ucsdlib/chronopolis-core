@@ -4,6 +4,7 @@ import org.chronopolis.ingest.repository.criteria.SearchCriteria;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
 import org.chronopolis.ingest.repository.dao.StagingService;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Depositor;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.Replication;
@@ -52,6 +53,7 @@ public class ReplicationControllerTest extends ControllerTest {
     private final String CORRECT_TAG_FIXITY = "tag-fixity";
     private final String CORRECT_TOKEN_FIXITY = "token-fixity";
     private final String INVALID_FIXITY = "fxity";
+    private final Depositor depositor = new Depositor();
 
     private ReplicationController controller;
 
@@ -134,7 +136,7 @@ public class ReplicationControllerTest extends ControllerTest {
     private Bag bag() {
         StorageRegion region = new StorageRegion();
         region.setId(1L);
-        Bag bag = new Bag("test-bag", "test-depositor");
+        Bag bag = new Bag("test-bag", depositor);
         bag.setId(1L);
         bag.setBagStorage(new StagingStorage().addFixity(
                 new Fixity().setAlgorithm("test-algorithm")

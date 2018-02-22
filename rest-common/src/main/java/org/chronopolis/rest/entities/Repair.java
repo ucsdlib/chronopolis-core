@@ -58,9 +58,9 @@ public class Repair extends UpdatableEntity {
 
 
     public Repair() {
-        cleaned = false;
-        replaced = false;
-        validated = false;
+        cleaned = Boolean.FALSE;
+        replaced = Boolean.FALSE;
+        validated = Boolean.FALSE;
         audit = AuditStatus.PRE;
     }
 

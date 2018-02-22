@@ -32,8 +32,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class StagingStorageSerializerTest {
 
     private final DateTimeFormatter fmt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC);
+
+    @SuppressWarnings("unused")
     private JacksonTester<StagingStorage> json;
-    private String datetime = "2017-03-16T01:53:28Z";
 
     @Before
     public void setup() {
@@ -46,6 +47,7 @@ public class StagingStorageSerializerTest {
 
     @Test
     public void serializer() throws IOException {
+        String datetime = "2017-03-16T01:53:28Z";
         ZonedDateTime zdt = ZonedDateTime.from(fmt.parse(datetime));
         StagingStorage storage = new StagingStorage();
         storage.setId(1L);

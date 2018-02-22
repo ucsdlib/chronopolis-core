@@ -1,13 +1,13 @@
-INSERT INTO bag(id, created_at, updated_at, name, creator, depositor, status, size, total_files, required_replications) VALUES (DEFAULT, CURRENT_DATE, CURRENT_DATE, 'bag-0', 'admin', 'test-depositor', 'STAGED', 1, 1, 3);
-INSERT INTO bag(id, created_at, updated_at, name, creator, depositor, status, size, total_files, required_replications) VALUES (DEFAULT, CURRENT_DATE, CURRENT_DATE, 'bag-1', 'admin', 'test-depositor', 'STAGED', 1, 1, 3);
-INSERT INTO bag(id, created_at, updated_at, name, creator, depositor, status, size, total_files, required_replications) VALUES (DEFAULT, CURRENT_DATE, CURRENT_DATE, 'bag-2', 'admin', 'test-depositor', 'STAGED', 1, 1, 3);
-INSERT INTO bag(id, created_at, updated_at, name, creator, depositor, status, size, total_files, required_replications) VALUES (DEFAULT, CURRENT_DATE, CURRENT_DATE, 'bag-3', 'admin', 'test-depositor', 'STAGED', 1, 1, 3);
-INSERT INTO bag(id, created_at, updated_at, name, creator, depositor, status, size, total_files, required_replications) VALUES (DEFAULT, CURRENT_DATE, CURRENT_DATE, 'bag-4', 'admin', 'test-depositor', 'STAGED', 1, 1, 3);
-INSERT INTO bag(id, created_at, updated_at, name, creator, depositor, status, size, total_files, required_replications) VALUES (DEFAULT, CURRENT_DATE, CURRENT_DATE, 'bag-5', 'admin', 'test-depositor', 'STAGED', 1, 1, 3);
-INSERT INTO bag(id, created_at, updated_at, name, creator, depositor, status, size, total_files, required_replications) VALUES (DEFAULT, CURRENT_DATE, CURRENT_DATE, 'bag-6', 'admin', 'test-depositor', 'STAGED', 1, 1, 3);
-INSERT INTO bag(id, created_at, updated_at, name, creator, depositor, status, size, total_files, required_replications) VALUES (DEFAULT, CURRENT_DATE, CURRENT_DATE, 'bag-7', 'admin', 'test-depositor', 'STAGED', 1, 1, 3);
-INSERT INTO bag(id, created_at, updated_at, name, creator, depositor, status, size, total_files, required_replications) VALUES (DEFAULT, CURRENT_DATE, CURRENT_DATE, 'bag-8', 'admin', 'test-depositor', 'STAGED', 1, 1, 3);
-INSERT INTO bag(id, created_at, updated_at, name, creator, depositor, status, size, total_files, required_replications) VALUES (DEFAULT, CURRENT_DATE, CURRENT_DATE, 'bag-9', 'admin', 'test-depositor', 'TOKENIZED', 1, 1, 3);
+INSERT INTO bag(id, created_at, updated_at, name, creator, depositor_id, status, size, total_files, required_replications) VALUES (DEFAULT, CURRENT_DATE, CURRENT_DATE, 'bag-0', 'admin', 1, 'STAGED', 1, 1, 3);
+INSERT INTO bag(id, created_at, updated_at, name, creator, depositor_id, status, size, total_files, required_replications) VALUES (DEFAULT, CURRENT_DATE, CURRENT_DATE, 'bag-1', 'admin', 1, 'STAGED', 1, 1, 3);
+INSERT INTO bag(id, created_at, updated_at, name, creator, depositor_id, status, size, total_files, required_replications) VALUES (DEFAULT, CURRENT_DATE, CURRENT_DATE, 'bag-2', 'admin', 1, 'STAGED', 1, 1, 3);
+INSERT INTO bag(id, created_at, updated_at, name, creator, depositor_id, status, size, total_files, required_replications) VALUES (DEFAULT, CURRENT_DATE, CURRENT_DATE, 'bag-3', 'admin', 1, 'STAGED', 1, 1, 3);
+INSERT INTO bag(id, created_at, updated_at, name, creator, depositor_id, status, size, total_files, required_replications) VALUES (DEFAULT, CURRENT_DATE, CURRENT_DATE, 'bag-4', 'admin', 1, 'STAGED', 1, 1, 3);
+INSERT INTO bag(id, created_at, updated_at, name, creator, depositor_id, status, size, total_files, required_replications) VALUES (DEFAULT, CURRENT_DATE, CURRENT_DATE, 'bag-5', 'admin', 1, 'STAGED', 1, 1, 3);
+INSERT INTO bag(id, created_at, updated_at, name, creator, depositor_id, status, size, total_files, required_replications) VALUES (DEFAULT, CURRENT_DATE, CURRENT_DATE, 'bag-6', 'admin', 1, 'STAGED', 1, 1, 3);
+INSERT INTO bag(id, created_at, updated_at, name, creator, depositor_id, status, size, total_files, required_replications) VALUES (DEFAULT, CURRENT_DATE, CURRENT_DATE, 'bag-7', 'admin', 1, 'STAGED', 1, 1, 3);
+INSERT INTO bag(id, created_at, updated_at, name, creator, depositor_id, status, size, total_files, required_replications) VALUES (DEFAULT, CURRENT_DATE, CURRENT_DATE, 'bag-8', 'admin', 1, 'STAGED', 1, 1, 3);
+INSERT INTO bag(id, created_at, updated_at, name, creator, depositor_id, status, size, total_files, required_replications) VALUES (DEFAULT, CURRENT_DATE, CURRENT_DATE, 'bag-9', 'admin', 1, 'TOKENIZED', 1, 1, 3);
 
 INSERT INTO storage_region VALUES(DEFAULT, 1, 'BAG', 'LOCAL', 1000000, '', CURRENT_DATE, CURRENT_DATE);
 INSERT INTO storage_region VALUES(DEFAULT, 1, 'TOKEN', 'LOCAL', 1000000, '', CURRENT_DATE, CURRENT_DATE);

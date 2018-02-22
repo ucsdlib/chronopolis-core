@@ -15,6 +15,7 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
 import java.util.HashSet;
@@ -36,14 +37,19 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
 
     private String name;
     private String creator;
-    private String depositor;
 
     private long size;
     private long totalFiles;
+
+    @Deprecated
     private int requiredReplications;
 
     @Enumerated(EnumType.STRING)
     private BagStatus status;
+
+    @ManyToOne
+    @JoinColumn(name = "depositor_id")
+    private Depositor depositor;
 
     // Might want to lazy fetch this if possible
     @OneToMany(mappedBy = "bag", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
@@ -64,7 +70,7 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
     protected Bag() { // JPA
     }
 
-    public Bag(String name, String depositor) {
+    public Bag(String name, Depositor depositor) {
         this.name = name;
         this.depositor = depositor;
         this.status = BagStatus.DEPOSITED;
@@ -88,11 +94,11 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
         return this;
     }
 
-    public String getDepositor() {
+    public Depositor getDepositor() {
         return depositor;
     }
 
-    public void setDepositor(final String depositor) {
+    public void setDepositor(final Depositor depositor) {
         this.depositor = depositor;
     }
 
@@ -122,8 +128,7 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
         // Objects.hash(id, name, depositor);
         int result = id.hashCode();
         result = 31 * result + name.hashCode();
-        result = 31 * result + depositor.hashCode();
-        return result;
+        return 31 * result + depositor.hashCode();
     }
 
     @Override
@@ -141,6 +146,12 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
         return depositor + "::" + name;
     }
 
+    /**
+     * Retrieve the number of required replications for this bag
+     *
+     * @return the required replications
+     * @deprecated will be removed in 3.0.0
+     */
     public int getRequiredReplications() {
         return requiredReplications;
     }
@@ -178,6 +189,13 @@ public class Bag extends UpdatableEntity implements Comparable<Bag> {
         distributions.add(dist);
     }
 
+    /**
+     * Set the number of required replications for a bag
+     *
+     * @param requiredReplications the number of required replications
+     * @return the bag
+     * @deprecated will be removed in 3.0.0
+     */
     public Bag setRequiredReplications(int requiredReplications) {
         this.requiredReplications = requiredReplications;
         return this;

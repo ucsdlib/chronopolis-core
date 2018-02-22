@@ -20,13 +20,11 @@ DROP SEQUENCE IF EXISTS bag_id_seq;
 CREATE SEQUENCE bag_id_seq;
 CREATE TABLE bag (
     id bigint PRIMARY KEY DEFAULT nextval('bag_id_seq'),
-    -- bag_storage_id BIGINT,
-    -- token_storage_id BIGINT,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     name varchar(255) UNIQUE,
     creator VARCHAR(255),
-    depositor varchar(255),
+    depositor_id bigint NOT NULL,
     status varchar(255),
     size bigint NOT NULL,
     total_files bigint NOT NULL,
@@ -267,3 +265,40 @@ ALTER TABLE bag_storage
 
 ALTER TABLE token_storage
     ADD CONSTRAINT FK_ts_storage FOREIGN KEY (staging_id) REFERENCES staging_storage;
+
+-- V2_2_00 - Depositor
+CREATE SEQUENCE depositor_id_seq;
+CREATE TABLE depositor (
+    id BIGINT PRIMARY KEY DEFAULT nextval('depositor_id_seq'),
+    namespace VARCHAR(255) NOT NULL UNIQUE,
+    source_organization TEXT,
+    organization_address TEXT,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
+
+CREATE SEQUENCE depositor_contact_id_seq;
+CREATE TABLE depositor_contact (
+    id BIGINT PRIMARY KEY DEFAULT nextval('depositor_contact_id_seq'),
+    depositor_id BIGINT NOT NULL,
+    contact_name TEXT,
+    contact_phone VARCHAR(42), -- the max size could be 21, but some extra space just in case
+    contact_email VARCHAR(255)
+);
+
+CREATE TABLE depositor_distribution (
+    depositor_id BIGINT NOT NULL,
+    node_id BIGINT NOT NULL
+);
+
+ALTER TABLE depositor_distribution
+    ADD CONSTRAINT FK_dd_depositor FOREIGN KEY (depositor_id) REFERENCES depositor;
+
+ALTER TABLE depositor_distribution
+    ADD CONSTRAINT FK_dd_node FOREIGN KEY (node_id) REFERENCES node;
+
+ALTER TABLE depositor_contact
+    ADD CONSTRAINT FK_dc_depositor FOREIGN KEY (depositor_id) REFERENCES depositor;
+
+ALTER TABLE bag
+    ADD CONSTRAINT FK_bag_depositor FOREIGN KEY (depositor_id) REFERENCES depositor;
