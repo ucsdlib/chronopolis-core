@@ -7,6 +7,7 @@ import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -55,5 +56,20 @@ public class Depositor extends UpdatableEntity implements Comparable<Depositor> 
                 .compare(namespace, depositor.namespace)
                 .compare(sourceOrganization, depositor.sourceOrganization)
                 .result();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Depositor depositor = (Depositor) o;
+        return Objects.equals(id, depositor.id) &&
+                Objects.equals(namespace, depositor.namespace) &&
+                Objects.equals(sourceOrganization, depositor.sourceOrganization);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, namespace, sourceOrganization);
     }
 }

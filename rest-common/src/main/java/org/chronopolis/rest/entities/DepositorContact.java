@@ -1,5 +1,7 @@
 package org.chronopolis.rest.entities;
 
+import com.google.common.collect.ComparisonChain;
+
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -7,6 +9,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import java.util.Objects;
 
 /**
  * yarp
@@ -14,7 +17,7 @@ import javax.persistence.ManyToOne;
  * @author shake
  */
 @Entity
-public class DepositorContact {
+public class DepositorContact implements Comparable<DepositorContact> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -64,5 +67,32 @@ public class DepositorContact {
     public DepositorContact setDepositor(Depositor depositor) {
         this.depositor = depositor;
         return this;
+    }
+
+    @Override
+    public int compareTo(DepositorContact depositorContact) {
+        return ComparisonChain.start()
+                .compare(id, depositorContact.id) // should we use the id?
+                .compare(contactName, depositorContact.contactName)
+                .compare(contactEmail, depositorContact.contactEmail)
+                .compare(contactPhone, depositorContact.contactPhone)
+                .result();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DepositorContact that = (DepositorContact) o;
+        return Objects.equals(id, that.id) &&
+                Objects.equals(contactName, that.contactName) &&
+                Objects.equals(contactPhone, that.contactPhone) &&
+                Objects.equals(contactEmail, that.contactEmail);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(id, contactName, contactPhone, contactEmail);
     }
 }
