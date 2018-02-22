@@ -1,15 +1,13 @@
 package org.chronopolis.rest.models;
 
 /**
+ * Input for updating a fixity
  *
- * Created by shake on 12/1/15.
+ * @author shake
  */
 public class FixityUpdate {
 
     private String fixity;
-
-    public FixityUpdate() {
-    }
 
     public FixityUpdate(String fixity) {
         this.fixity = fixity;

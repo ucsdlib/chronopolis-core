@@ -39,8 +39,8 @@ public interface StorageService {
      * - capacityLess
      * - capacityGreater
      *
-     * @param parameters
-     * @return
+     * @param parameters the query parameters
+     * @return all storage regions
      */
     @GET(STORAGE_ROOT)
     Call<PageImpl<StorageRegion>> get(@QueryMap Map<String, String> parameters);
