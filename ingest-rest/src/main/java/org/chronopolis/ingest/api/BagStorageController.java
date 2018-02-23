@@ -1,7 +1,6 @@
 package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableSet;
-import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.StagingService;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.QBag;
@@ -31,9 +30,8 @@ import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
 
 /**
  * REST controller for interacting with the Storage fields in a Bag
- * todos
- * - Constraints on PUTs (only the node/admin may alter its own resources)
- * - BadRequest on invalid type?
+ *
+ * todo: BadRequest on invalid type?
  */
 @RestController
 @RequestMapping("/api/bags/{id}")
@@ -45,12 +43,10 @@ public class BagStorageController {
     private static final String BAG_TYPE = "bag";
     private static final String TOKEN_TYPE = "token";
 
-    private final BagService bagService;
     private final StagingService stagingService;
 
     @Autowired
-    public BagStorageController(BagService bagService, StagingService stagingService) {
-        this.bagService = bagService;
+    public BagStorageController(StagingService stagingService) {
         this.stagingService = stagingService;
     }
 
