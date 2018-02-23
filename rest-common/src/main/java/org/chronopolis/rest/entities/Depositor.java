@@ -58,6 +58,11 @@ public class Depositor extends UpdatableEntity implements Comparable<Depositor> 
         return contacts;
     }
 
+    public Depositor setContacts(Set<DepositorContact> contacts) {
+        this.contacts = contacts;
+        return this;
+    }
+
     @Override
     public int compareTo(Depositor depositor) {
         // todo: ...reliably compare (+contacts?)
