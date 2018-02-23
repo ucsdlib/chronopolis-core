@@ -1,11 +1,12 @@
 package org.chronopolis.rest.api;
 
-import com.google.gson.Gson;
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import okhttp3.OkHttpClient;
 import org.chronopolis.rest.models.AceTokenModel;
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.DepositorModel;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.repair.Repair;
 import org.chronopolis.rest.models.storage.StagingStorageModel;
@@ -18,9 +19,9 @@ import org.springframework.data.domain.PageImpl;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-import java.lang.reflect.Type;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Generate retrofit things for all chronopolis ingest services
@@ -37,69 +38,88 @@ public class IngestGenerator implements ServiceGenerator {
 
     @Override
     public BagService bags() {
-        return retrofit(new TypeToken<PageImpl<Bag>>() {}.getType(),
-                        new TypeToken<List<Bag>>() {}.getType())
+        return retrofit(ImmutableMap.of(
+                new TypeToken<PageImpl<Bag>>() {},
+                new TypeToken<List<Bag>>() {}))
                 .create(BagService.class);
     }
 
     @Override
     public TokenService tokens() {
-        return retrofit(new TypeToken<PageImpl<AceTokenModel>>() {}.getType(),
-                        new TypeToken<List<AceTokenModel>>() {}.getType())
+        return retrofit(ImmutableMap.of(
+                new TypeToken<PageImpl<AceTokenModel>>() {},
+                new TypeToken<List<AceTokenModel>>() {}))
                 .create(TokenService.class);
     }
 
     @Override
     public RepairService repairs() {
-        return retrofit(new TypeToken<PageImpl<Repair>>() {}.getType(),
-                        new TypeToken<List<Repair>>() {}.getType())
+        return retrofit(ImmutableMap.of(
+                new TypeToken<PageImpl<Repair>>() {},
+                new TypeToken<List<Repair>>() {}))
                 .create(RepairService.class);
     }
 
     @Override
     public StagingService staging() {
-        return retrofit(new TypeToken<PageImpl<StagingStorageModel>>() {}.getType(),
-                        new TypeToken<List<StagingStorageModel>>() {}.getType())
+        return retrofit(ImmutableMap.of(
+                new TypeToken<PageImpl<StagingStorageModel>>() {},
+                new TypeToken<List<StagingStorageModel>>() {}))
                 .create(StagingService.class);
     }
 
     @Override
+    public DepositorAPI depositorAPI() {
+        return retrofit(ImmutableMap.of(
+                new TypeToken<PageImpl<DepositorModel>>() {},
+                new TypeToken<List<DepositorModel>>() {},
+                new TypeToken<PageImpl<Bag>>() {},
+                new TypeToken<List<Bag>>() {}))
+                .create(DepositorAPI.class);
+    }
+
+    @Override
     public StorageService storage() {
-        return retrofit(new TypeToken<PageImpl<StorageRegion>>() {}.getType(),
-                        new TypeToken<List<StorageRegion>>() {}.getType())
+        return retrofit(ImmutableMap.of(
+                new TypeToken<PageImpl<StorageRegion>>() {},
+                new TypeToken<List<StorageRegion>>() {}))
                 .create(StorageService.class);
     }
 
     @Override
     public ReplicationService replications() {
-        return retrofit(new TypeToken<PageImpl<Replication>>() {}.getType(),
-                        new TypeToken<List<Replication>>() {}.getType())
+        return retrofit(ImmutableMap.of(
+                new TypeToken<PageImpl<Replication>>() {},
+                new TypeToken<List<Replication>>() {}))
                 .create(ReplicationService.class);
     }
 
     /**
      * Build the retrofit base class for a service
      *
-     * @param page the type to capture for PageImpl[T]
-     * @param list type type to capture for List[T]
+     * @param types Map holding the relationship for a Page -> List type conversion
      * @return the retrofit builder...class... thing
      */
-    private Retrofit retrofit(Type page, Type list) {
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(page, new PageDeserializer(list))
+    private Retrofit retrofit(Map<TypeToken<? extends PageImpl<?>>,
+                                  TypeToken<? extends List<?>>> types) {
+        GsonBuilder gson = new GsonBuilder()
                 .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeSerializer())
-                .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeDeserializer())
-                .create();
+                .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeDeserializer());
 
+        types.forEach((page, list) ->
+                gson.registerTypeAdapter(page.getType(), new PageDeserializer(list.getType())));
+
+        final String username = properties.getUsername();
+        final String password = properties.getPassword();
         OkHttpClient client = new OkHttpClient.Builder()
-                .addInterceptor(new OkBasicInterceptor(properties.getUsername(), properties.getPassword()))
+                .addInterceptor(new OkBasicInterceptor(username, password))
                 .build();
 
         return new Retrofit.Builder()
-                .addConverterFactory(GsonConverterFactory.create(gson))
+                .addConverterFactory(GsonConverterFactory.create(gson.create()))
                 .baseUrl(properties.getEndpoint())
                 .client(client)
                 .build();
     }
 
- }
+}
