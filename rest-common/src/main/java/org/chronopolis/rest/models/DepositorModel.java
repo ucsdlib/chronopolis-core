@@ -3,6 +3,7 @@ package org.chronopolis.rest.models;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.time.ZonedDateTime;
 import java.util.Set;
 
 /**
@@ -16,6 +17,8 @@ public class DepositorModel {
     private final String namespace;
     private final String sourceOrganization;
     private final String organizationAddress;
+    private final ZonedDateTime createdAt;
+    private final ZonedDateTime updatedAt;
     private final Set<DepositorContactModel> contacts;
 
     @JsonCreator
@@ -23,11 +26,15 @@ public class DepositorModel {
                           @JsonProperty("namespace") String namespace,
                           @JsonProperty("sourceOrganization") String sourceOrganization,
                           @JsonProperty("organizationAddress") String organizationAddress,
+                          @JsonProperty("createdAt") ZonedDateTime createdAt,
+                          @JsonProperty("updatedAt") ZonedDateTime updatedAt,
                           @JsonProperty("contacts") Set<DepositorContactModel> contacts) {
         this.id = id;
         this.namespace = namespace;
         this.sourceOrganization = sourceOrganization;
         this.organizationAddress = organizationAddress;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
         this.contacts = contacts;
     }
 
@@ -49,5 +56,13 @@ public class DepositorModel {
 
     public Set<DepositorContactModel> getContacts() {
         return contacts;
+    }
+
+    public ZonedDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public ZonedDateTime getUpdatedAt() {
+        return updatedAt;
     }
 }

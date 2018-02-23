@@ -29,6 +29,8 @@ public class DepositorSerializer extends JsonSerializer<Depositor> {
                 depositor.getNamespace(),
                 depositor.getSourceOrganization(),
                 depositor.getOrganizationAddress(),
+                depositor.getCreatedAt(),
+                depositor.getUpdatedAt(),
                 contacts);
         gen.writeObject(model);
     }
