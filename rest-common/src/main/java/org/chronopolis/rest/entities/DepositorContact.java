@@ -31,7 +31,7 @@ public class DepositorContact implements Comparable<DepositorContact> {
     @JoinColumn(name = "depositor_id")
     private Depositor depositor;
 
-    protected DepositorContact() {} // jpa
+    public DepositorContact() {} // jpa
 
     public String getContactName() {
         return contactName;
