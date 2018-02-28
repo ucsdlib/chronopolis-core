@@ -74,7 +74,7 @@ public class IngestController {
         String[] pList = properties.toArray(new String[properties.size()]);
 
         // Sort direction
-        String order = params.containsKey(SORT_DIRECTION) ? params.get(SORT_DIRECTION) : "asc";
+        String order = params.getOrDefault(SORT_DIRECTION, "asc");
         Sort.Direction direction = Sort.Direction.fromString(order);
 
         return new PageRequest(pageNum, pageSize, direction, pList);
