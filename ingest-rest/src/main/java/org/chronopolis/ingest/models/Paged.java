@@ -61,7 +61,7 @@ public abstract class Paged {
      *
      * @return the QueryModifier with the limit and offset applied
      */
-    public QueryModifiers getOrder() {
+    public QueryModifiers getRestriction() {
         long offset = page * DEFAULT_PAGE_SIZE;
         return new QueryModifiers(DEFAULT_PAGE_SIZE, offset);
     }
