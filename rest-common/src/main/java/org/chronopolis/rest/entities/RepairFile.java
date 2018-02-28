@@ -1,9 +1,6 @@
 package org.chronopolis.rest.entities;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
 /**
@@ -12,27 +9,14 @@ import javax.persistence.ManyToOne;
  * Created by shake on 11/10/16.
  */
 @Entity
-public class RepairFile {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+public class RepairFile extends PersistableEntity {
 
     @ManyToOne
-    Repair repair;
+    private Repair repair;
 
-    String path;
+    private String path;
 
     public RepairFile() {
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public RepairFile setId(Long id) {
-        this.id = id;
-        return this;
     }
 
     public Repair getRepair() {

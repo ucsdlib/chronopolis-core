@@ -3,9 +3,6 @@ package org.chronopolis.rest.entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import java.util.HashSet;
 import java.util.Set;
@@ -18,11 +15,7 @@ import java.util.Set;
  * Created by shake on 11/17/14.
  */
 @Entity
-public class Node {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Node extends PersistableEntity {
 
     @JsonIgnore
     @OneToMany(mappedBy = "node")
@@ -48,10 +41,6 @@ public class Node {
         this.enabled = true;
     }
 
-    public Long getId() {
-        return id;
-    }
-
     public Set<Replication> getReplications() {
         return replications;
     }
@@ -62,10 +51,6 @@ public class Node {
 
     public String getUsername() {
         return username;
-    }
-
-    public String resourceID() {
-        return "node/" + id;
     }
 
     public boolean isEnabled() {

@@ -4,9 +4,6 @@ import com.google.common.collect.ComparisonChain;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import java.util.Objects;
@@ -17,11 +14,7 @@ import java.util.Objects;
  * @author shake
  */
 @Entity
-public class DepositorContact implements Comparable<DepositorContact> {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class DepositorContact extends PersistableEntity implements Comparable<DepositorContact> {
 
     private String contactName;
     private String contactPhone;
@@ -72,7 +65,7 @@ public class DepositorContact implements Comparable<DepositorContact> {
     @Override
     public int compareTo(DepositorContact depositorContact) {
         return ComparisonChain.start()
-                .compare(id, depositorContact.id) // should we use the id?
+                .compare(getId(), depositorContact.getId()) // should we use the id?
                 .compare(contactName, depositorContact.contactName)
                 .compare(contactEmail, depositorContact.contactEmail)
                 .compare(contactPhone, depositorContact.contactPhone)
@@ -84,7 +77,7 @@ public class DepositorContact implements Comparable<DepositorContact> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         DepositorContact that = (DepositorContact) o;
-        return Objects.equals(id, that.id) &&
+        return Objects.equals(getId(), that.getId()) &&
                 Objects.equals(contactName, that.contactName) &&
                 Objects.equals(contactPhone, that.contactPhone) &&
                 Objects.equals(contactEmail, that.contactEmail);
@@ -92,7 +85,6 @@ public class DepositorContact implements Comparable<DepositorContact> {
 
     @Override
     public int hashCode() {
-
-        return Objects.hash(id, contactName, contactPhone, contactEmail);
+        return Objects.hash(getId(), contactName, contactPhone, contactEmail);
     }
 }

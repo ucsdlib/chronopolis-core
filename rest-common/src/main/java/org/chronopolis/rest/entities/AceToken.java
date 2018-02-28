@@ -2,9 +2,6 @@ package org.chronopolis.rest.entities;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import java.util.Date;
@@ -15,11 +12,7 @@ import java.util.Date;
  * Created by shake on 2/4/15.
  */
 @Entity
-public class AceToken {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class AceToken extends PersistableEntity {
 
     @JoinColumn(name = "bag")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -52,14 +45,6 @@ public class AceToken {
         this.imsService = imsService;
         this.algorithm = algorithm;
         this.round = round;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(final Long id) {
-        this.id = id;
     }
 
     public Bag getBag() {
