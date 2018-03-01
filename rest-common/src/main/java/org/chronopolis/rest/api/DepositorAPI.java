@@ -1,6 +1,7 @@
 package org.chronopolis.rest.api;
 
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.DepositorCreate;
 import org.chronopolis.rest.models.DepositorModel;
 import org.springframework.data.domain.PageImpl;
 import retrofit2.Call;
@@ -33,7 +34,7 @@ public interface DepositorAPI {
      * @return the created depositor
      */
     @POST(DEPOSITOR_ROOT)
-    Call<DepositorModel> createDepositor(@Body DepositorModel depositor);
+    Call<DepositorModel> createDepositor(@Body DepositorCreate depositor);
 
     /**
      * Get a depositor identified by their namespace
