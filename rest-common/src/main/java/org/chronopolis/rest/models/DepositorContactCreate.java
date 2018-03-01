@@ -1,5 +1,6 @@
 package org.chronopolis.rest.models;
 
+import org.chronopolis.rest.constraints.E123;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotBlank;
 
@@ -16,7 +17,7 @@ public class DepositorContactCreate {
     @Email
     private String email;
 
-    // @E123 // Removed while this is still being developed
+    @E123
     private PhoneNumber phoneNumber;
 
     public String getName() {
@@ -46,6 +47,11 @@ public class DepositorContactCreate {
         return this;
     }
 
+    /**
+     * Basic encapsulation for a PhoneNumber - a national number and a country code
+     *
+     * Note that this class will not parse the phone number, that needs to be done externally
+     */
     public static class PhoneNumber {
         private String number;
         private String countryCode;
@@ -66,6 +72,14 @@ public class DepositorContactCreate {
         public PhoneNumber setCountryCode(String countryCode) {
             this.countryCode = countryCode;
             return this;
+        }
+
+        @Override
+        public String toString() {
+            return "PhoneNumber{" +
+                    "number='" + number + '\'' +
+                    ", countryCode='" + countryCode + '\'' +
+                    '}';
         }
     }
 
