@@ -65,9 +65,7 @@ public class Depositor extends UpdatableEntity implements Comparable<Depositor> 
 
     @Override
     public int compareTo(Depositor depositor) {
-        // todo: ...reliably compare (+contacts?)
         return ComparisonChain.start()
-                .compare(id, depositor.id)
                 .compare(namespace, depositor.namespace)
                 .compare(sourceOrganization, depositor.sourceOrganization)
                 .compare(organizationAddress, depositor.organizationAddress)
@@ -79,14 +77,13 @@ public class Depositor extends UpdatableEntity implements Comparable<Depositor> 
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Depositor depositor = (Depositor) o;
-        return Objects.equals(id, depositor.id) &&
-                Objects.equals(namespace, depositor.namespace) &&
+        return Objects.equals(namespace, depositor.namespace) &&
                 Objects.equals(sourceOrganization, depositor.sourceOrganization) &&
                 Objects.equals(organizationAddress, depositor.organizationAddress);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, namespace, sourceOrganization);
+        return Objects.hash(namespace, sourceOrganization, organizationAddress);
     }
 }
