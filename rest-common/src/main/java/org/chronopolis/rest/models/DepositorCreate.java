@@ -2,6 +2,7 @@ package org.chronopolis.rest.models;
 
 import org.hibernate.validator.constraints.NotBlank;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -20,6 +21,7 @@ public class DepositorCreate {
     @NotBlank
     private String organizationAddress;
 
+    @Valid
     private List<DepositorContactCreate> contacts;
 
     public String getNamespace() {
