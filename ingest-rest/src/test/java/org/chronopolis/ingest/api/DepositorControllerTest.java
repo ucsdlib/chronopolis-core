@@ -8,10 +8,13 @@ import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Depositor;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.QDepositor;
+import org.chronopolis.rest.models.DepositorContactCreate;
 import org.chronopolis.rest.models.DepositorCreate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
@@ -27,19 +30,20 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Tests for the DepositorController
  * <p>
- * todo: create - 400
  * todo: create - 403
  * todo: create - 409
  */
 @RunWith(SpringRunner.class)
 @WebMvcTest(DepositorController.class)
 public class DepositorControllerTest extends ControllerTest {
+    private final Logger log = LoggerFactory.getLogger(DepositorControllerTest.class);
 
     // Immutable fields used for testing
     private static final String ADDRESS = "test-address";
@@ -86,11 +90,18 @@ public class DepositorControllerTest extends ControllerTest {
 
     @Test
     public void testCreate() throws Exception {
+        DepositorContactCreate contact = new DepositorContactCreate()
+                .setEmail("fake-account@umiacs.umd.edu")
+                .setName("test-name")
+                .setPhoneNumber(new DepositorContactCreate.PhoneNumber()
+                        // from libphonenumber doc - swiss google number
+                        .setCountryCode("CH")
+                        .setNumber("446681800"));
         DepositorCreate model = new DepositorCreate()
                 .setNamespace(NAMESPACE)
                 .setSourceOrganization(ORGANIZATION)
                 .setOrganizationAddress(ADDRESS)
-                .setContacts(ImmutableList.of());
+                .setContacts(ImmutableList.of(contact));
 
         mvc.perform(
                 post(DEPOSITOR_ROOT_PATH)
@@ -100,6 +111,32 @@ public class DepositorControllerTest extends ControllerTest {
                 .andExpect(status().is(201));
 
         verify(dao, times(1)).save(eq(depositor));
+    }
+
+    @Test
+    public void testCreateInvalidPhoneNumber() throws Exception {
+        DepositorContactCreate contact = new DepositorContactCreate()
+                .setEmail("fake-account@umiacs.umd.edu")
+                .setName("test-name")
+                .setPhoneNumber(new DepositorContactCreate.PhoneNumber()
+                        .setCountryCode("US")
+                        .setNumber("0"));
+
+        DepositorCreate model = new DepositorCreate()
+                .setNamespace(NAMESPACE)
+                .setSourceOrganization(ORGANIZATION)
+                .setOrganizationAddress(ADDRESS)
+                .setContacts(ImmutableList.of(contact));
+
+        mvc.perform(
+                post(DEPOSITOR_ROOT_PATH)
+                    .principal(() -> "user")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(asJson(model)))
+                .andDo(print())
+                .andExpect(status().is(400));
+
+        verify(dao, times(0)).save(eq(depositor));
     }
 
     @Test

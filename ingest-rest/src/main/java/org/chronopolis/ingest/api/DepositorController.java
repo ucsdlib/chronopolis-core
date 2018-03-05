@@ -1,5 +1,8 @@
 package org.chronopolis.ingest.api;
 
+import com.google.i18n.phonenumbers.NumberParseException;
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.google.i18n.phonenumbers.Phonenumber;
 import org.chronopolis.ingest.models.filter.BagFilter;
 import org.chronopolis.ingest.models.filter.DepositorFilter;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
@@ -9,6 +12,7 @@ import org.chronopolis.rest.entities.Depositor;
 import org.chronopolis.rest.entities.DepositorContact;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.QDepositor;
+import org.chronopolis.rest.models.DepositorContactCreate;
 import org.chronopolis.rest.models.DepositorCreate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,8 +28,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.security.Principal;
-import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import static com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat.INTERNATIONAL;
 
 /**
  * API implementation for Depositors
@@ -72,21 +82,56 @@ public class DepositorController {
      */
     @PostMapping
     public ResponseEntity<Depositor> createDepositor(Principal principal,
-                                                     @RequestBody DepositorCreate depositor) {
+                                                     @Valid @RequestBody
+                                                     DepositorCreate depositor) {
         access.info("[POST /api/depositors] - {}", principal.getName());
-        Depositor entity = new Depositor()
+
+        Optional<Set<DepositorContact>> parsed = parseContacts(depositor.getContacts());
+        Optional<Depositor> depositorOptional = parsed.map(contacts -> new Depositor()
                 .setNamespace(depositor.getNamespace())
-                .setOrganizationAddress(depositor.getOrganizationAddress())
                 .setSourceOrganization(depositor.getSourceOrganization())
-                .setContacts(depositor.getContacts().stream().map(contact -> new DepositorContact()
-                        .setContactName(contact.getName())
-                        .setContactEmail(contact.getEmail() )
-                        .setContactPhone(contact.getPhoneNumber().toString()))
-                        .collect(Collectors.toSet()));
+                .setOrganizationAddress(depositor.getOrganizationAddress())
+                .setContacts(contacts));
 
-        dao.save(entity);
+        // hmmm
+        // might want to do some work on the dao to better understand failure conditions
+        depositorOptional.ifPresent(dao::save);
+        return depositorOptional.map(entity ->
+                ResponseEntity.status(HttpStatus.CREATED).body(entity))
+                .orElse(ResponseEntity.badRequest().build());
+    }
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    /**
+     * Read through DepositorContactCreate requests and return a Set of DepositorContacts if
+     * the requests are valid. If a Contact is invalid, return an empty Optional. This way if
+     * no Contacts were requested to be made, we can still return an empty Set.
+     *
+     * Note: We might want to move this somewhere else as this will likely be something we
+     * need to do in multiple places
+     *
+     * @param creates the DepositorContactCreate requests
+     * @return The DepositorContacts
+     */
+    private Optional<Set<DepositorContact>> parseContacts(List<DepositorContactCreate> creates) {
+        PhoneNumberUtil numberUtil = PhoneNumberUtil.getInstance();
+        Set<DepositorContact> contacts = new HashSet<>(creates.size());
+        Optional<Set<DepositorContact>> safe = Optional.of(contacts);
+        try {
+            for (DepositorContactCreate create : creates) {
+                DepositorContactCreate.PhoneNumber proto = create.getPhoneNumber();
+                Phonenumber.PhoneNumber phoneNumber =
+                        numberUtil.parse(proto.getNumber(), proto.getCountryCode());
+                contacts.add(new DepositorContact().setContactName(create.getName())
+                        .setContactEmail(create.getEmail())
+                        .setContactPhone(numberUtil.format(phoneNumber, INTERNATIONAL)));
+            }
+        } catch (NumberParseException exception) {
+            // This shouldn't happen, but in case we're trying an unvalidated DCC
+            log.error("Unable to parse number", exception);
+            safe = Optional.empty();
+        }
+
+        return safe;
     }
 
     /**
