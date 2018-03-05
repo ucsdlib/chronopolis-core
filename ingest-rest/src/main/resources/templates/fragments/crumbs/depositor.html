@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title></title>
+    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet"/>
+</head>
+<body>
+<nav th:fragment="index" aria-label="breadcrumb" role="navigation">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item active">Depositors</li>
+    </ol>
+</nav>
+
+<nav th:fragment="single" aria-label="breadcrumb" role="navigation">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/depositors}">Depositors</a></li>
+        <li class="breadcrumb-item"><a th:href="@{/depositors/list}">All</a></li>
+        <li class="breadcrumb-item active" aria-current="page"
+            th:text="${depositor.namespace}">Depositor</li>
+    </ol>
+</nav>
+
+<nav th:fragment="list" aria-label="breadcrumb" role="navigation">
+    <ol class="breadcrumb" style="margin-bottom: 0 !important;">
+        <li class="breadcrumb-item"><a th:href="@{/depositors}">Depositors</a></li>
+        <li class="breadcrumb-item active">All</li>
+
+        <!-- kind of janky but it works -->
+        <a data-toggle="collapse" data-target="#filter-body" id="dropdown" class="ml-auto"
+           style="padding: 0 !important" aria-expanded="false" aria-controls="filter-body">
+            <i class="fa fa-search"></i> Search
+        </a>
+    </ol>
+
+    <div id="filter-body" class="collapse p-2">
+        <form th:action="@{/depositors/list}" method="GET">
+            <div class="form-group row">
+                <label for="namespace-table-filter" class="col-form-label col-2">Namespace</label>
+                <input class="form-control col-9" id="namespace-table-filter" name="namespace"
+                       placeholder="Search Namespace"/>
+            </div>
+            <div class="form-group row">
+                <label for="org-table-filter" class="col-form-label col-2">Organization</label>
+                <input class="form-control col-9" id="org-table-filter" name="sourceOrganization"
+                       placeholder="Search Organization"/>
+            </div>
+            <div class="form-group row">
+                <label for="addr-table-filter" class="col-form-label col-2">Address</label>
+                <input class="form-control col-9" id="addr-table-filter" name="organizationAddress"
+                       placeholder="Search Address"/>
+            </div>
+            <div class="form-group row">
+                <label class="col-form-label col-2" for="direction-filter">Order By</label>
+                <div class="form-check col-2 align-self-center">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="radio" name="orderBy" id="optionUpdatedAt"
+                               value="updatedAt"/> Updated At
+                    </label>
+                </div>
+                <div class="form-check col-2 align-self-center">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="radio" name="orderBy" id="optionCreatedAt"
+                               value="createdAt"/> Created At
+                    </label>
+                </div>
+                <div class="col-3">
+                    <select name="dir" id="direction-filter" class="form-control">
+                        <option value="ASC">Ascending</option>
+                        <option value="DESC">Descending</option>
+                    </select>
+                </div>
+            </div>
+            <button th:type="submit" class="btn btn-primary">Search</button>
+        </form>
+    </div>
+</nav>
+</body>
+</html>

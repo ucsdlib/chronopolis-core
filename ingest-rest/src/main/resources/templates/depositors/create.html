@@ -1,0 +1,42 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: head">
+    <meta charset="UTF-8">
+    <title>Depositors Overview</title>
+</head>
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column align-items-center m-3">
+    <div class="card w-50">
+        <h4>Add Depositor</h4>
+        <h6 class="text-muted">Register a depositor for ingestion of content into Chronopolis</h6>
+        <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem">
+            <form method="post" name="depositor">
+                <div class="form-group row">
+                    <label for="org-name" class="col-4 col-form-label">Organization Name</label>
+                    <div class="col-8">
+                        <input class="form-control" type="text" name="sourceOrganization"
+                               placeholder="org-name" id="org-name"/>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="org-address"
+                           class="col-4 col-form-label">Organization Address</label>
+                    <div class="col-8">
+                        <input class="form-control" type="text" name="organizationAddress"
+                               placeholder="org-address" id="org-address"/>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="namespace" class="col-4 col-form-label">Namespace</label>
+                    <div class="col-8">
+                        <input class="form-control" type="text" name="namespace"
+                               placeholder="namespace" id="namespace"/>
+                    </div>
+                </div>
+                <input class="btn btn-primary" type="submit" value="Add Depositor"/>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: head">
+    <meta charset="UTF-8">
+    <title>Depositors Overview</title>
+</head>
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column align-items-center m-3">
+    <div class="card w-50">
+        <h4>Add Depositor Contact</h4>
+        <h6 class="text-muted">Add Contact for Depositor</h6>
+        <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem">
+            <form method="post" name="contact">
+                <div class="form-group row"
+                     th:with="nameError=${#fields.hasErrors('contactName')}"
+                     th:classappend="${nameError}? 'has-warning'">
+                    <label for="contact-name" class="col-4 col-form-label">Contact Name</label>
+                    <div class="col-8">
+                        <input th:field="*{contactName}"
+                               th:classappend="${nameError}? 'form-control-warning'"
+                               class="form-control" type="text" name="contactName"
+                               placeholder="contact-name" id="contact-name"/>
+                        <div class="form-control-feedback" th:if="${nameError}"
+                             th:errorclass="*{contactName}"></div>
+                    </div>
+                </div>
+                <div class="form-group row"
+                     th:with="emailError=${#fields.hasErrors('contactName')}"
+                     th:classappend="${emailError}? 'has-warning'">
+                    <label for="contact-email" class="col-4 col-form-label">Contact Email</label>
+                    <div class="col-8">
+                        <input th:field="*{contactEmail}"
+                               th:classappend="${emailError}? 'form-control-warning'"
+                               class="form-control" type="text" name="contactEmail"
+                               placeholder="contact-email" id="contact-email"/>
+                        <div class="form-control-feedback" th:if="${emailError}"
+                             th:errorclass="*{contactEmail}"></div>
+                    </div>
+                </div>
+                <div class="form-group row"
+                     th:with="phoneError=${#fields.hasErrors('contactName')}"
+                     th:classappend="${phoneError}? 'has-warning'">
+                    <label for="contact-phone" class="col-4 col-form-label">Contact Phone</label>
+                    <div class="col-8">
+                        <input th:field="*{contactPhone}"
+                               th:classappend="${phoneError}? 'form-control-warning'"
+                               class="form-control" type="text" name="contactPhone"
+                               placeholder="contact-phone" id="contact-phone"/>
+                        <div class="form-control-feedback" th:if="${phoneError}"
+                             th:errorclass="*{contactPhone}"></div>
+                    </div>
+                </div>
+                <input class="btn btn-primary" type="submit" value="Add Contact"/>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

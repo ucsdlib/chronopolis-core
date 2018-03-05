@@ -1,0 +1,43 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: head">
+    <meta charset="UTF-8">
+    <title>Depositors Overview</title>
+</head>
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column align-items-center m-3">
+    <div class="card w-75">
+        <nav th:replace="fragments/crumbs/depositor :: single"></nav>
+
+        <!--@thymesVar id="tokens" type="Long"-->
+        <!--@thymesVar id="depositor" type="org.chronopolis.rest.entities.Depositor"-->
+        <div class="card-body p-2">
+            <table class="c-table">
+                <div th:replace="fragments/storage :: list-item(head='Id', content=${depositor.id})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Source Organization', content=${depositor.sourceOrganization})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Organization Address', content=${depositor.organizationAddress})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Created At', content=${depositor.createdAt})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Updated At', content=${depositor.updatedAt})"></div>
+            </table>
+        </div>
+
+        <div class="card-header" data-toggle="collapse" href="#contactCollapse"
+             aria-expanded="false" aria-controls="contactCollapse">
+            <h4>Contact Information</h4>
+        </div>
+        <div class="collapse" id="contactCollapse">
+            <!--/*@thymesVar id="depositor" type="org.chronopolis.rest.entities.Depositor"*/-->
+            <div class="card-body p-2">
+
+            </div>
+            <div class="btn-group p-2" role="group">
+                <a class="btn btn-primary" th:href="@{|${depositor.namespace}/addContact|}">Add
+                    Depositor</a>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+</body>
+</html>
