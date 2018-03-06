@@ -27,17 +27,44 @@
         </div>
         <div class="collapse" id="contactCollapse">
             <!--/*@thymesVar id="depositor" type="org.chronopolis.rest.entities.Depositor"*/-->
-            <div class="card-body p-2">
-
+            <div class="card-body p-2" th:each="contact: ${depositor.contacts}">
+                <table class="c-table">
+                    <div th:replace="fragments/storage :: list-item(head='Contact Name', content=${contact.contactName})"></div>
+                    <div th:replace="fragments/storage :: list-item(head='Contact Email', content=${contact.contactEmail})"></div>
+                    <div th:replace="fragments/storage :: list-item(head='Contact Phone', content=${contact.contactPhone})"></div>
+                </table>
             </div>
             <div class="btn-group p-2" role="group">
-                <a class="btn btn-primary" th:href="@{|${depositor.namespace}/addContact|}">Add
-                    Depositor</a>
+                <a class="btn btn-primary" th:href="@{|${depositor.namespace}/addContact|}">
+                    Add Contact
+                </a>
             </div>
         </div>
 
+         <div class="card-header" data-toggle="collapse" href="#distCollapse"
+             aria-expanded="false" aria-controls="distCollapse">
+            <h4>Node Distribution</h4>
+        </div>
+        <div class="collapse" id="distCollapse">
+            <!--/*@thymesVar id="depositor" type="org.chronopolis.rest.entities.Depositor"*/-->
+            <div class="card-body p-2">
+                <table class="c-table">
+                    <tbody>
+                        <tr th:each="dist : ${depositor.nodeDistributions}">
+                            <td th:text="${dist.node.username}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="btn-group p-2" role="group">
+                <a class="btn btn-primary" th:href="@{|${depositor.namespace}/addNode|}">
+                    Add Node
+                </a>
+            </div>
+        </div>
 
     </div>
+    <div th:replace="layout :: foot"></div>
 </div>
 </body>
 </html>
