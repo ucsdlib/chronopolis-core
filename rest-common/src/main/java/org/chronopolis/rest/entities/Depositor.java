@@ -22,7 +22,7 @@ public class Depositor extends UpdatableEntity implements Comparable<Depositor> 
     private String sourceOrganization;
     private String organizationAddress;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "depositor", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<DepositorContact> contacts = new HashSet<>();
 
     public Depositor() {} // JPA
@@ -52,6 +52,17 @@ public class Depositor extends UpdatableEntity implements Comparable<Depositor> 
     public Depositor setSourceOrganization(String sourceOrganization) {
         this.sourceOrganization = sourceOrganization;
         return this;
+    }
+
+    public Depositor addContact(DepositorContact contact) {
+        contacts.add(contact);
+        contact.setDepositor(this);
+        return this;
+    }
+
+    public void removeContact(DepositorContact contact) {
+        contacts.remove(contact);
+        contact.setDepositor(null);
     }
 
     public Set<DepositorContact> getContacts() {
