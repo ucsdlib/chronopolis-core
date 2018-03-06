@@ -17,7 +17,15 @@
         <li class="breadcrumb-item"><a th:href="@{/depositors}">Depositors</a></li>
         <li class="breadcrumb-item"><a th:href="@{/depositors/list}">All</a></li>
         <li class="breadcrumb-item active" aria-current="page"
-            th:text="${depositor.namespace}">Depositor</li>
+            th:text="${depositor.namespace}">Depositor
+        </li>
+
+        <!-- copied from storage_region, still not sure if this is the best -->
+        <li class="ml-auto">
+            <a class="ml-auto" th:href="@{|/depositors/list/${depositor.namespace}/edit|}">
+                <i class="fa fa-pencil"></i>
+            </a>
+        </li>
     </ol>
 </nav>
 
@@ -54,13 +62,15 @@
                 <label class="col-form-label col-2" for="direction-filter">Order By</label>
                 <div class="form-check col-2 align-self-center">
                     <label class="form-check-label">
-                        <input class="form-check-input" type="radio" name="orderBy" id="optionUpdatedAt"
+                        <input class="form-check-input" type="radio" name="orderBy"
+                               id="optionUpdatedAt"
                                value="updatedAt"/> Updated At
                     </label>
                 </div>
                 <div class="form-check col-2 align-self-center">
                     <label class="form-check-label">
-                        <input class="form-check-input" type="radio" name="orderBy" id="optionCreatedAt"
+                        <input class="form-check-input" type="radio" name="orderBy"
+                               id="optionCreatedAt"
                                value="createdAt"/> Created At
                     </label>
                 </div>
