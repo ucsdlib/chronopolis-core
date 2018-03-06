@@ -20,6 +20,7 @@ import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.StorageRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.dao.BagService;
+import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.ingest.repository.dao.StagingService;
 import org.chronopolis.ingest.repository.dao.StorageRegionService;
@@ -57,6 +58,11 @@ public class IngestConfig {
     private final int MAX_SIZE = 6;
     private final int CORE_SIZE = 4;
     private final int KEEP_ALIVE = 30;
+
+    @Bean
+    public PagedDAO pagedDAO(EntityManager entityManager) {
+        return new PagedDAO(entityManager);
+    }
 
     @Bean(name = "tokenExecutor", destroyMethod = "destroy")
     public TrackingThreadPoolExecutor<Bag> tokenizingThreadPoolExecutor() {
