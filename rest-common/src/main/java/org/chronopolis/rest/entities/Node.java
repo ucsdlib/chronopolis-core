@@ -2,6 +2,7 @@ package org.chronopolis.rest.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import java.util.HashSet;
@@ -24,6 +25,9 @@ public class Node extends PersistableEntity {
     @JsonIgnore
     @OneToMany(mappedBy = "node")
     private Set<Restoration> restorations = new HashSet<>();
+
+    @OneToMany(mappedBy = "node", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<DepositorNode> depositorDistributions = new HashSet<>();
 
     @JsonIgnore
     @Deprecated
@@ -60,4 +64,9 @@ public class Node extends PersistableEntity {
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
+
+    public Set<DepositorNode> getDepositorDistributions() {
+        return depositorDistributions;
+    }
+
 }

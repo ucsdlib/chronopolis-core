@@ -25,6 +25,9 @@ public class Depositor extends UpdatableEntity implements Comparable<Depositor> 
     @OneToMany(mappedBy = "depositor", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<DepositorContact> contacts = new HashSet<>();
 
+    @OneToMany(mappedBy = "depositor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<DepositorNode> nodeDistributions = new HashSet<>();
+
     public Depositor() {} // JPA
 
     public String getNamespace() {
@@ -72,6 +75,24 @@ public class Depositor extends UpdatableEntity implements Comparable<Depositor> 
     public Depositor setContacts(Set<DepositorContact> contacts) {
         this.contacts = contacts;
         return this;
+    }
+
+    public Set<DepositorNode> getNodeDistributions() {
+        return nodeDistributions;
+    }
+
+    public void addNodeDistribution(Node node) {
+        DepositorNode depositorNode = new DepositorNode(this, node);
+        nodeDistributions.add(depositorNode);
+        node.getDepositorDistributions().add(depositorNode);
+    }
+
+    public void removeNodeDistribution(Node node) {
+        DepositorNode depositorNode = new DepositorNode(this, node);
+        nodeDistributions.remove(depositorNode);
+        node.getDepositorDistributions().remove(depositorNode);
+        depositorNode.setNode(null);
+        depositorNode.setDepositor(null);
     }
 
     @Override
