@@ -2,11 +2,19 @@ package org.chronopolis.ingest.controller;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.PageWrapper;
+import org.chronopolis.ingest.models.DepositorSummary;
 import org.chronopolis.ingest.models.filter.DepositorFilter;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.ingest.support.FileSizeFormatter;
 import org.chronopolis.rest.entities.Depositor;
+import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.QDepositor;
 import org.chronopolis.rest.models.DepositorContactCreate;
 import org.chronopolis.rest.models.DepositorCreate;
@@ -24,7 +32,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.persistence.EntityManager;
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -53,11 +63,69 @@ public class DepositorUIController extends IngestController {
 
     @GetMapping("/depositors")
     public String index(Model model, Principal principal) {
+        QBag bag = QBag.bag;
+        QDepositor depositor = QDepositor.depositor;
+        FileSizeFormatter formatter = new FileSizeFormatter();
+        JPAQueryFactory factory = new JPAQueryFactory(entityManager);
+
+        NumberExpression<Long> sumExpr = bag.size.sum();
+        NumberExpression<Long> countExpr = bag.countDistinct();
+
+        // retrieve DepositorSummary
+        StringPath depositorExpr = bag.depositor.namespace;
+        List<DepositorSummary> summaries = factory.selectFrom(QBag.bag)
+                .select(Projections.constructor(DepositorSummary.class, sumExpr, countExpr, depositorExpr))
+                .orderBy(sumExpr.desc())
+                .groupBy(depositorExpr)
+                .limit(10)
+                .fetch();
+
+        long numDepositors = factory.selectFrom(depositor)
+                .fetchCount();
+
+        List<Depositor> recent = factory.selectFrom(depositor)
+                .orderBy(depositor.createdAt.desc())
+                .limit(5)
+                .fetch();
+
+        /* The actual query we want to emulate is fairly simple, but I'm not quite sure how to
+           map it to a QueryDSL query:
+           select avg(count) as count, avg(size) as size from
+             (select count(id) as count, avg(size) as size, depositor_id
+               from bag group by depositor_id) as q;
+
+            at any rate, we can do the averaging after as it shouldn't be too heavy of an operation
+            anyways
+         */
+        List<Tuple> fetch = factory.selectFrom(bag)
+                .select(bag.size.avg(), countExpr, bag.depositor.id)
+                .groupBy(bag.depositor.id)
+                .fetch();
+
+        BigDecimal sizeAvgPerDepositor = new BigDecimal(0);
+        Double countAvgPerDepositor = 0d;
+        for (Tuple tuple : fetch) {
+            Double sizeAvg = tuple.get(bag.size.avg());
+            countAvgPerDepositor += tuple.get(countExpr);
+            sizeAvgPerDepositor = sizeAvgPerDepositor.add(new BigDecimal(sizeAvg));
+        }
+        if (numDepositors > 0) {
+            sizeAvgPerDepositor = sizeAvgPerDepositor.divide(new BigDecimal(numDepositors));
+            countAvgPerDepositor = countAvgPerDepositor / numDepositors;
+        }
+
+        model.addAttribute("recent", recent);
+        model.addAttribute("summaries", summaries);
+        model.addAttribute("formatter", formatter);
+        model.addAttribute("numDepositors", numDepositors);
+        model.addAttribute("sizeAvg", sizeAvgPerDepositor);
+        model.addAttribute("countAvg", countAvgPerDepositor);
         return "depositors/index";
     }
 
     @GetMapping("/depositors/create")
     public String create(Model model, Principal principal) {
+
         // todo: add nodes
         // model.addAttribute("nodes", dao.findPage(QNode.class, new NodeFil))
         return "depositors/create";

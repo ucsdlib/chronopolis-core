@@ -8,7 +8,89 @@
 <div class="d-flex flex-column align-items-center m-3">
     <div class="card w-75">
         <nav th:replace="fragments/crumbs/depositor :: index"></nav>
+
+        <!--/*@thymesVar id="formatter" type="org.chronopolis.ingest.support.FileSizeFormatter"*/-->
+        <div class="card-body p0 d-flex">
+            <div class="w-50 p-2">
+                <div class="d-flex justify-content-between">
+                    <div class="p-1">
+                        <!--/*@thymesVar id="numDepositors" type="java.lang.Long"*/-->
+                        <h3 style="margin-bottom: 0" th:text="${numDepositors}"></h3>
+                        <span class="subheading">Total Depositors</span>
+
+                    </div>
+
+                    <div class="p-1">
+                        <!--/*@thymesVar id="countAvg" type="java.lang.Double"*/-->
+                        <h3 style="margin-bottom: 0"
+                            th:text="${#numbers.formatDecimal(countAvg, 0, 'DEFAULT', 2, 'DEFAULT')}"></h3>
+                        <span class="subheading">Average Bags Per Depositor</span>
+                    </div>
+
+                    <div class="p-1">
+                        <!--/*@thymesVar id="sizeAvg" type="java.math.BigDecimal"*/-->
+                        <h3 style="margin-bottom: 0" th:text="${formatter.format(sizeAvg)}"></h3>
+                        <span class="subheading">Average Deposited Bag Size</span>
+                    </div>
+                </div>
+
+                <div class="pull-left p-1" style="margin-top: 2em;">
+                    <a class="btn btn-primary text-white" th:href="@{/depositors/add}">Add
+                        Depositor</a>
+                </div>
+            </div>
+
+            <div class="ml-auto mr-auto w-50">
+                <ul class="list-group">
+                    <li class="list-group-item">Depositor Totals</li>
+                    <li class="list-group-item" style="padding: 0">
+                        <table class="table table-bordered table-hover" style="margin-bottom: 0;">
+                            <thead>
+                            <tr>
+                                <th>Depositor</th>
+                                <th>Number of Bags</th>
+                                <th>Total Bytes Deposited</th>
+                            </tr>
+                            </thead>
+
+                            <!--/*@thymesVar id="summaries" type="java.util.List<org.chronopolis.ingest.models.DepositorSummary>"*/-->
+                            <tr th:each="summary: ${summaries}">
+                                <td th:text="${summary.depositor}">Depositor-1</td>
+                                <td th:text="${summary.count}">Depositor-1</td>
+                                <td th:text="${formatter.format(summary.sum)}">Depositor-1</td>
+                            </tr>
+                        </table>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="hr-sect mx-auto w-100">New Depositors</div>
+        <div class="card-body p-2">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Namespace</th>
+                    <th>Source Organization</th>
+                    <th>Created At</th>
+                </tr>
+                </thead>
+                <!--/*@thymesVar id="recent" type="java.util.List<org.chronopolis.rest.entities.Depositor>"*/-->
+                <tr class="table-clickable" th:each="depositor: ${recent}"
+                    th:attr="data-href=@{|/depositors/list/${depositor.namespace}|}">
+                    <td th:text="${depositor.id}"></td>
+                    <td th:text="${depositor.namespace}"></td>
+                    <td th:text="${depositor.sourceOrganization}"></td>
+                    <td th:text="${depositor.createdAt.toLocalDate()}"></td>
+                </tr>
+            </table>
+
+            <a class="btn btn-primary text-white" th:href="@{/depositors/list}">View All
+                Depositors</a>
+        </div>
     </div>
+    <div th:replace="layout :: foot"></div>
 </div>
 </body>
 </html>
