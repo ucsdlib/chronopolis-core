@@ -141,6 +141,7 @@
 <script type="application/javascript" th:inline="javascript">
     Chart.defaults.global.legend.display = false;
 
+    const active = new Set(["DEPOSITED", "INITIALIZED", "TOKENIZED", "REPLICATING"]);
     // setup up our dataset, labels, and extra tooltip info
     var statusDataset = [];
     var statusLabels = [];
@@ -148,9 +149,11 @@
 
     [[${statusSummaries}]].forEach(function (item, index, array) {
         console.log(item, index);
-        statusDataset.push(item.count);
-        statusLabels.push(item.status);
-        statusSizes.push(item.formattedSum);
+        if (active.has(item.status)) {
+            statusDataset.push(item.count);
+            statusLabels.push(item.status);
+            statusSizes.push(item.formattedSum);
+        }
     });
 
     var cfg = {
@@ -172,7 +175,7 @@
         options: {
             title: {
                 display: true,
-                text: 'Bags By Status',
+                text: 'Active Bags',
                 fontSize: 13
             },
             tooltips: {
