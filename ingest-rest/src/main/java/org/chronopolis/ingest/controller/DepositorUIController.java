@@ -16,6 +16,7 @@ import org.chronopolis.ingest.support.FileSizeFormatter;
 import org.chronopolis.rest.entities.Depositor;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.QDepositor;
+import org.chronopolis.rest.entities.QNode;
 import org.chronopolis.rest.models.DepositorContactCreate;
 import org.chronopolis.rest.models.DepositorCreate;
 import org.slf4j.Logger;
@@ -123,12 +124,10 @@ public class DepositorUIController extends IngestController {
         return "depositors/index";
     }
 
-    @GetMapping("/depositors/create")
+    @GetMapping("/depositors/add")
     public String create(Model model, Principal principal) {
-
-        // todo: add nodes
-        // model.addAttribute("nodes", dao.findPage(QNode.class, new NodeFil))
-        return "depositors/create";
+        model.addAttribute("nodes", dao.findAll(QNode.node));
+        return "depositors/add";
     }
 
     @PostMapping("/depositors/create")
