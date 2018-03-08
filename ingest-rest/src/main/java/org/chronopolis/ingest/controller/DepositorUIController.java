@@ -1,7 +1,10 @@
 package org.chronopolis.ingest.controller;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.google.i18n.phonenumbers.Phonenumber;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.NumberExpression;
@@ -14,6 +17,7 @@ import org.chronopolis.ingest.models.filter.DepositorFilter;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.ingest.support.FileSizeFormatter;
 import org.chronopolis.rest.entities.Depositor;
+import org.chronopolis.rest.entities.DepositorContact;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.QDepositor;
 import org.chronopolis.rest.entities.QNode;
@@ -36,7 +40,10 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import static com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat.INTERNATIONAL;
 
 /**
  * Controller to handle Depositor requests and things
@@ -130,7 +137,7 @@ public class DepositorUIController extends IngestController {
         return "depositors/add";
     }
 
-    @PostMapping("/depositors/create")
+    @PostMapping("/depositors/")
     public String createAction(Model model,
                                Principal principal,
                                @Valid DepositorCreate depositorCreate,
@@ -163,13 +170,7 @@ public class DepositorUIController extends IngestController {
                              Principal principal,
                              @PathVariable("namespace") String namespace,
                              DepositorContactCreate depositorContactCreate) {
-        PhoneNumberUtil util = PhoneNumberUtil.getInstance();
-        Set<String> regions = util.getSupportedRegions();
-        ImmutableSortedSet<String> supportedRegions = ImmutableSortedSet.copyOf(regions);
-        DepositorFilter filter = new DepositorFilter().setNamespace(namespace);
-        model.addAttribute("regions", supportedRegions);
-        model.addAttribute("depositor", dao.findOne(QDepositor.depositor, filter));
-        model.addAttribute("depositorContactCreate", depositorContactCreate);
+        model.addAllAttributes(addContactAttributes(depositorContactCreate));
         return "depositors/add_contact";
     }
 
@@ -178,7 +179,37 @@ public class DepositorUIController extends IngestController {
                                    Principal principal,
                                    @PathVariable("namespace") String namespace,
                                    @Valid DepositorContactCreate depositorContactCreate,
-                                   BindingResult result) {
-        return "depositors/depositor";
+                                   BindingResult result) throws NumberParseException {
+        if (result.hasErrors()) {
+            log.warn("Invalid contact added: {} errors", result.getErrorCount());
+            result.getFieldErrors().forEach(error ->
+                    log.error("{}:{}", error.getField(), error.getDefaultMessage()));
+
+            model.addAllAttributes(addContactAttributes(depositorContactCreate));
+            return "depositors/add_contact";
+        }
+
+        PhoneNumberUtil util = PhoneNumberUtil.getInstance();
+        Phonenumber.PhoneNumber number = util.parse(
+                depositorContactCreate.getPhoneNumber().getNumber(),
+                depositorContactCreate.getPhoneNumber().getCountryCode());
+
+        Depositor depositor = dao.findOne(QDepositor.depositor,
+                new DepositorFilter().setNamespace(namespace));
+        DepositorContact contact = new DepositorContact()
+                .setContactEmail(depositorContactCreate.getEmail())
+                .setContactName(depositorContactCreate.getName())
+                .setContactPhone(util.format(number, INTERNATIONAL));
+        depositor.addContact(contact);
+        dao.save(depositor);
+        return "redirect:/depositors/list/" + namespace;
+    }
+
+    private Map<String, ?> addContactAttributes(DepositorContactCreate depositorContactCreate) {
+        PhoneNumberUtil util = PhoneNumberUtil.getInstance();
+        Set<String> regions = util.getSupportedRegions();
+        ImmutableSortedSet<String> supportedRegions = ImmutableSortedSet.copyOf(regions);
+        return ImmutableMap.of("regions", supportedRegions,
+                "depositorContactCreate", depositorContactCreate);
     }
 }
