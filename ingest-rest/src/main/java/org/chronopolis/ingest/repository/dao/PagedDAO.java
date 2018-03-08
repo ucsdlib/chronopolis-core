@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 
 import javax.persistence.EntityManager;
+import java.util.List;
 
 /**
  * DAO to support basic fetching, saving, and removal from an EntityManager. Can be extended to
@@ -38,6 +39,11 @@ public class PagedDAO {
         return factory.selectFrom(path)
                 .where(filter.getQuery())
                 .fetchOne();
+    }
+
+    public <T extends PersistableEntity> List<T> findAll(EntityPath<T> path) {
+        JPAQueryFactory factory = new JPAQueryFactory(em);
+        return factory.selectFrom(path).fetch();
     }
 
     public <T extends PersistableEntity> Page<T> findPage(EntityPath<T> path, Paged filter) {
