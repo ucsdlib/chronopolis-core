@@ -23,6 +23,10 @@ public class CheckPhoneNumber implements
     @Override
     public boolean isValid(DepositorContactCreate.PhoneNumber number,
                            ConstraintValidatorContext context) {
+        if (number == null || number.getNumber() == null || number.getCountryCode() == null) {
+            return false;
+        }
+
         boolean valid;
         PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
         try {
