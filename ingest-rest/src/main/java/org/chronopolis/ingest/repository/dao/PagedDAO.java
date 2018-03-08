@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 
 import javax.persistence.EntityManager;
+import javax.transaction.Transactional;
 import java.util.List;
 
 /**
@@ -65,32 +66,38 @@ public class PagedDAO {
      * This combines em.persist and em.merge into one method. If the entity does not have an ID,
      * it will be persisted; otherwise it will be merged.
      *
+     * Note that for the moment, transaction management is handled by Spring
+     *
      * @param t The entity to merge
      * @param <T> The type of the entity. Must extend PersistableEntity in order to get the id
      */
+    @Transactional
     public <T extends PersistableEntity> void save(T t) {
-        em.getTransaction().begin();
+        // em.getTransaction().begin();
         if (t.getId() == null) {
             em.persist(t);
         } else {
             em.merge(t);
         }
-        em.getTransaction().commit();
+        // em.getTransaction().commit();
     }
 
     /**
      * Remove an entity from the database using the EntityManager
      *
+     * Note that for the moment, transaction management is handled by Spring
+     *
      * @param t the entity to remove
      * @param <T> the type of the entity
      */
+    @Transactional
     public <T extends PersistableEntity> void delete(T t) {
         if (t.getId() == null) {
-
+            // warn? something?
         } else {
-            em.getTransaction().begin();
+            // em.getTransaction().begin();
             em.remove(t);
-            em.getTransaction().commit();
+            // em.getTransaction().commit();
         }
     }
 
