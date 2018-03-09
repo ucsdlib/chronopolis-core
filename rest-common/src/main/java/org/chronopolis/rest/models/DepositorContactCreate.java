@@ -15,6 +15,7 @@ public class DepositorContactCreate {
     private String name;
 
     @Email
+    @NotBlank
     private String email;
 
     @E123
