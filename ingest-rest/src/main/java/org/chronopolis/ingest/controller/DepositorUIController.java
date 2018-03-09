@@ -16,8 +16,10 @@ import org.chronopolis.ingest.models.DepositorSummary;
 import org.chronopolis.ingest.models.filter.DepositorFilter;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.ingest.support.FileSizeFormatter;
+import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Depositor;
 import org.chronopolis.rest.entities.DepositorContact;
+import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.QDepositor;
 import org.chronopolis.rest.entities.QNode;
@@ -30,6 +32,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,6 +61,7 @@ import static com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat.INT
 @Controller
 public class DepositorUIController extends IngestController {
 
+    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
     private final Logger log = LoggerFactory.getLogger(DepositorUIController.class);
 
     private final PagedDAO dao;
@@ -132,17 +136,44 @@ public class DepositorUIController extends IngestController {
     }
 
     @GetMapping("/depositors/add")
-    public String create(Model model, Principal principal) {
+    public String create(Model model, Principal principal, DepositorCreate depositorCreate) {
         model.addAttribute("nodes", dao.findAll(QNode.node));
+        model.addAttribute("depositorCreate", depositorCreate);
         return "depositors/add";
     }
 
-    @PostMapping("/depositors/")
+    @PostMapping("/depositors")
     public String createAction(Model model,
                                Principal principal,
                                @Valid DepositorCreate depositorCreate,
                                BindingResult bindingResult) {
-        return "depositors/depositor";
+        access.info("[POST /depositors] - {}", principal.getName());
+        List<Node> nodes = dao.findAll(QNode.node,
+                QNode.node.username.in(depositorCreate.getReplicatingNodes()));
+
+        if (nodes.size() != depositorCreate.getReplicatingNodes().size()) {
+            bindingResult.addError(new ObjectError("replicatingNodes", "Invalid Node Detected"));
+        }
+
+        if (bindingResult.hasErrors()) {
+            log.warn("Invalid Depositor added: {} errors", bindingResult.getErrorCount());
+            bindingResult.getFieldErrors().forEach(error ->
+                log.error("{}:{}", error.getField(), error.getDefaultMessage()));
+
+            model.addAttribute("nodes", dao.findAll(QNode.node));
+            model.addAttribute("depositorCreate", depositorCreate);
+            return "depositors/add";
+        }
+
+        log.info("Adding depositor");
+        Depositor depositor = new Depositor();
+        depositor.setNamespace(depositorCreate.getNamespace());
+        depositor.setSourceOrganization(depositorCreate.getSourceOrganization());
+        depositor.setOrganizationAddress(depositorCreate.getOrganizationAddress());
+        nodes.forEach(depositor::addNodeDistribution);
+        dao.save(depositor);
+
+        return "redirect:depositors/list/" + depositor.getNamespace();
     }
 
     @GetMapping("/depositors/list/{namespace}")
@@ -180,6 +211,7 @@ public class DepositorUIController extends IngestController {
                                    @PathVariable("namespace") String namespace,
                                    @Valid DepositorContactCreate depositorContactCreate,
                                    BindingResult result) throws NumberParseException {
+        access.info("[POST /depositors/list/{}/addContact] - {}", namespace, principal.getName());
         if (result.hasErrors()) {
             log.warn("Invalid contact added: {} errors", result.getErrorCount());
             result.getFieldErrors().forEach(error ->
