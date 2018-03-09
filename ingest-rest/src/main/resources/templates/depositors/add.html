@@ -10,34 +10,40 @@
         <h4>Add Depositor</h4>
         <h6 class="text-muted">Register a depositor for ingestion of content into Chronopolis</h6>
         <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem">
-            <form method="post" name="depositor">
+            <!--/*@thymesVar id="depositorCreate" type="org.chronopolis.rest.models.DepositorCreate"*/-->
+            <form th:action="@{/depositors}" th:object="${depositorCreate}" method="post" name="depositor">
                 <div class="form-group row">
                     <label for="org-name" class="col-4 col-form-label">Organization Name</label>
                     <div class="col-8">
-                        <input class="form-control" type="text" name="sourceOrganization"
-                               placeholder="org-name" id="org-name"/>
+                        <input th:field="*{sourceOrganization}" name="sourceOrganization"
+                               class="form-control" type="text" placeholder="org-name"
+                               id="org-name"/>
                     </div>
                 </div>
                 <div class="form-group row">
                     <label for="org-address"
                            class="col-4 col-form-label">Organization Address</label>
                     <div class="col-8">
-                        <input class="form-control" type="text" name="organizationAddress"
+                        <input th:field="*{organizationAddress}" name="organizationAddress"
+                               class="form-control" type="text"
                                placeholder="org-address" id="org-address"/>
                     </div>
                 </div>
                 <div class="form-group row">
                     <label for="namespace" class="col-4 col-form-label">Namespace</label>
                     <div class="col-8">
-                        <input class="form-control" type="text" name="namespace"
+                        <input th:field="*{namespace}" name="namespace"
+                               class="form-control" type="text"
                                placeholder="namespace" id="namespace"/>
                     </div>
                 </div>
+
                  <div class="form-group row">
                     <label for="nodes" class="col-4 col-form-label">Replicating Nodes</label>
                     <div class="col-8">
-                        <select multiple="multiple" name="nodes" id="nodes" class="form-control">
-                            <!--/*@thymesVar id="nodes" type="org.chronopolis.rest.entities.Node"*/-->
+                        <select th:field="*{replicatingNodes}" name="replicatingNodes"
+                                multiple="multiple" id="nodes" class="form-control">
+                            <!--/*@thymesVar id="nodes" type="java.util.List<org.chronopolis.rest.entities.Node>"*/-->
                             <option th:each="node: ${nodes}"
                                     th:value="${node.username}" th:text="${node.username}"></option>
                         </select>
