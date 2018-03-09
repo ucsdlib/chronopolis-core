@@ -24,6 +24,8 @@ public class DepositorCreate {
     @Valid
     private List<DepositorContactCreate> contacts;
 
+    private List<String> replicatingNodes;
+
     public String getNamespace() {
         return namespace;
     }
@@ -57,6 +59,15 @@ public class DepositorCreate {
 
     public DepositorCreate setContacts(List<DepositorContactCreate> contacts) {
         this.contacts = contacts;
+        return this;
+    }
+
+    public List<String> getReplicatingNodes() {
+        return replicatingNodes;
+    }
+
+    public DepositorCreate setReplicatingNodes(List<String> replicatingNodes) {
+        this.replicatingNodes = replicatingNodes;
         return this;
     }
 }
