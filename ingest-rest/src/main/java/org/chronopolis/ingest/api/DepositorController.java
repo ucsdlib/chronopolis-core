@@ -10,9 +10,13 @@ import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Depositor;
 import org.chronopolis.rest.entities.DepositorContact;
+import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.QDepositor;
+import org.chronopolis.rest.entities.QDepositorContact;
+import org.chronopolis.rest.entities.QNode;
 import org.chronopolis.rest.models.DepositorContactCreate;
+import org.chronopolis.rest.models.DepositorContactRemove;
 import org.chronopolis.rest.models.DepositorCreate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,10 +46,6 @@ import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
 /**
  * API implementation for Depositors
  * <p>
- * todo: POST /api/depositors/{ns}/nodes
- * todo: DELETE /api/depositors/{ns}/nodes
- * todo: POST /api/depositors/{ns}/contacts
- * todo: DELETE /api/depositors/{ns}/contacts
  *
  * @author shake
  */
@@ -125,7 +126,7 @@ public class DepositorController {
      * Read through DepositorContactCreate requests and return a Set of DepositorContacts if
      * the requests are valid. If a Contact is invalid, return an empty Optional. This way if
      * no Contacts were requested to be made, we can still return an empty Set.
-     *
+     * <p>
      * Note: We might want to move this somewhere else as this will likely be something we
      * need to do in multiple places
      *
@@ -137,6 +138,7 @@ public class DepositorController {
         Set<DepositorContact> contacts = new HashSet<>(creates.size());
         Optional<Set<DepositorContact>> safe = Optional.of(contacts);
         try {
+            // todo: DepositorContact.fromCreateRequest()
             for (DepositorContactCreate create : creates) {
                 DepositorContactCreate.PhoneNumber proto = create.getPhoneNumber();
                 Phonenumber.PhoneNumber phoneNumber =
@@ -221,6 +223,166 @@ public class DepositorController {
         if (bag != null) {
             response = ResponseEntity.ok(bag);
         }
+        return response;
+    }
+
+    /**
+     * Create a DepositorContact for a Depositor
+     *
+     * @param principal the principal of the user making the request
+     * @param namespace the namespace of the Depositor
+     * @param create    the RequestBody, a {@link DepositorContactCreate}
+     * @return HTTP 201 with the DepositorContact if successful
+     *         HTTP 400 if the DepositorContactModel is not valid
+     *         HTTP 403 if the user is not authorized
+     *         HTTP 404 if a Depositor does not exist with the given namespace
+     *         TBD: HTTP 409 if the DepositorContact already exists
+     */
+    @PostMapping("/{namespace}/contacts")
+    public ResponseEntity<DepositorContact> addContact(Principal principal,
+                                                       @PathVariable("namespace") String namespace,
+                                                       @Valid @RequestBody
+                                                       DepositorContactCreate create) {
+        access.info("[POST /api/depositors/{}/contacts] - {}", namespace, principal.getName());
+        ResponseEntity<DepositorContact> response = ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .build();
+
+        if (hasRoleAdmin()) {
+            QDepositor qDepositor = QDepositor.depositor;
+            Depositor depositor = dao.findOne(qDepositor, qDepositor.namespace.eq(namespace));
+            if (depositor != null) {
+                Optional<DepositorContact> contact = DepositorContact.fromCreateRequest(create);
+                // if valid...
+                response = contact.map(entity -> {
+                    depositor.addContact(entity);
+                    dao.save(depositor);
+                    return ResponseEntity.status(HttpStatus.CREATED).body(entity);
+                }).orElse(ResponseEntity.badRequest().build());
+            } else {
+                response = ResponseEntity.notFound().build();
+            }
+        }
+
+        return response;
+    }
+
+    /**
+     * Remove a DepositorContact from a Depositor
+     *
+     * @param principal the principal of the user making the request
+     * @param namespace the namespace identifying the Depositor
+     * @param body      the RequestBody identifying the DepositorContact to Remove
+     * @return HTTP 200 if the DepositorContact is removed
+     *         HTTP 400 if the DepositorContact can not be found
+     *         HTTP 403 if the user is not authorized to remove content
+     *         HTTP 404 if the Depositor can not be found
+     */
+    @DeleteMapping("/{namespace}/contacts")
+    public ResponseEntity<Depositor> removeContact(Principal principal,
+                                                   @PathVariable("namespace") String namespace,
+                                                   @RequestBody DepositorContactRemove body) {
+        access.info("[DELETE /api/depositors/{}/contacts] - {}", namespace, principal.getName());
+        ResponseEntity<Depositor> response = ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        if (hasRoleAdmin()) {
+            QDepositor qDepositor = QDepositor.depositor;
+            QDepositorContact qContact = QDepositorContact.depositorContact;
+            Depositor depositor = dao.findOne(qDepositor, qDepositor.namespace.eq(namespace));
+            DepositorContact contact = dao.findOne(qContact,
+                    qContact.depositor.namespace.eq(namespace)
+                            .and(qContact.contactEmail.eq(body.getEmail())));
+
+            // I wonder if this is the best way to handle these...
+            if (depositor == null) {
+                response = ResponseEntity.notFound().build();
+            } else if (contact == null) {
+                response = ResponseEntity.badRequest().build();
+            } else {
+                depositor.removeContact(contact);
+                dao.save(depositor);
+                response = ResponseEntity.ok(depositor);
+            }
+        }
+
+        return response;
+    }
+
+    /**
+     * Add a node to the set of DepositorNode for a Depositor, reflecting that a Node will receive
+     * Replications for Bags ingested by the Depositor.
+     *
+     * @param principal the principal of the user making the request
+     * @param namespace the namespace of the Depositor
+     * @param nodeName  the name of the Node
+     * @return HTTP 200 - the node was added as a replicating node
+     *         HTTP 400 if the nodeName does not map to any known Node
+     *         HTTP 403 if the user does not have authorization to update this resource
+     *         HTTP 404 if the namespace does not map to any known Depositor
+     */
+    @PostMapping("/{namespace}/nodes/{nodeName}")
+    public ResponseEntity<Depositor> addNode(Principal principal,
+                                             @PathVariable("namespace") String namespace,
+                                             @PathVariable("nodeName") String nodeName) {
+        access.info("[POST /api/depositors/{}/nodes/{}] - {}",
+                namespace, nodeName, principal.getName());
+        ResponseEntity<Depositor> response = ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+
+        if (hasRoleAdmin()) {
+            QNode qNode = QNode.node;
+            QDepositor qDepositor = QDepositor.depositor;
+            Node node = dao.findOne(qNode, qNode.username.eq(nodeName));
+            Depositor depositor = dao.findOne(qDepositor, qDepositor.namespace.eq(namespace));
+
+            if (depositor == null) {
+                response = ResponseEntity.notFound().build();
+            } else if (node == null) {
+                response = ResponseEntity.badRequest().build();
+            } else {
+                depositor.addNodeDistribution(node);
+                dao.save(depositor);
+                response = ResponseEntity.ok(depositor);
+            }
+        }
+
+        return response;
+    }
+
+    /**
+     * Remove a node, identified by its name, from the Set of DepositorNodes of a Depositor. This
+     * restricts the Replications for a Depositor to no longer be sent to the identified Node.
+     *
+     * @param principal the principal of the user making the request
+     * @param namespace the namespace identifying the Depositor
+     * @param nodeName  the name identifying the Node
+     * @return HTTP 200 if the request completed successfully
+     *         HTTP 400 if the Node does not exist
+     *         HTTP 403 if the user does not have authorization to perform the action
+     *         HTTP 404 if the Depositor does not exist
+     */
+    @DeleteMapping("/{namespace}/nodes/{nodeName}")
+    public ResponseEntity<Depositor> removeNode(Principal principal,
+                                                @PathVariable("namespace") String namespace,
+                                                @PathVariable("nodeName") String nodeName) {
+        access.info("[DELETE /api/depositors/{}/nodes/{}] - {}",
+                namespace, nodeName, principal.getName());
+        ResponseEntity<Depositor> response = ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        if (hasRoleAdmin()) {
+            QNode qNode = QNode.node;
+            QDepositor qDepositor = QDepositor.depositor;
+            Node node = dao.findOne(qNode, qNode.username.eq(nodeName));
+            Depositor depositor = dao.findOne(qDepositor, qDepositor.namespace.eq(namespace));
+
+            if (depositor == null) {
+                response = ResponseEntity.notFound().build();
+            } else if (node == null) {
+                response = ResponseEntity.badRequest().build();
+            } else {
+                depositor.removeNodeDistribution(node);
+                dao.save(depositor);
+                response = ResponseEntity.ok(depositor);
+            }
+        }
+
         return response;
     }
 
