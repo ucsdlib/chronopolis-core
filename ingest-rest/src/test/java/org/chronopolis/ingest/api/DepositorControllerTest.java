@@ -1,6 +1,7 @@
 package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableList;
+import com.querydsl.core.types.Predicate;
 import org.chronopolis.ingest.models.filter.BagFilter;
 import org.chronopolis.ingest.models.filter.DepositorFilter;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
@@ -20,7 +21,9 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.ResultActions;
 
+import java.security.Principal;
 import java.time.ZonedDateTime;
 
 import static org.mockito.Matchers.any;
@@ -30,7 +33,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -90,52 +92,38 @@ public class DepositorControllerTest extends ControllerTest {
 
     @Test
     public void testCreate() throws Exception {
-        DepositorContactCreate contact = new DepositorContactCreate()
-                .setEmail("fake-account@umiacs.umd.edu")
-                .setName("test-name")
-                .setPhoneNumber(new DepositorContactCreate.PhoneNumber()
-                        // from libphonenumber doc - swiss google number
-                        .setCountryCode("CH")
-                        .setNumber("446681800"));
-        DepositorCreate model = new DepositorCreate()
-                .setNamespace(NAMESPACE)
-                .setSourceOrganization(ORGANIZATION)
-                .setOrganizationAddress(ADDRESS)
-                .setContacts(ImmutableList.of(contact));
-
-        mvc.perform(
-                post(DEPOSITOR_ROOT_PATH)
-                    .principal(() -> "user")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(asJson(model)))
-                .andExpect(status().is(201));
-
+        DepositorCreate model = createModel(true);
+        authenticateAdmin();
+        runPost(DEPOSITOR_ROOT_PATH, () -> "user", model)
+                .andExpect(status().isCreated());
         verify(dao, times(1)).save(eq(depositor));
     }
 
     @Test
     public void testCreateInvalidPhoneNumber() throws Exception {
-        DepositorContactCreate contact = new DepositorContactCreate()
-                .setEmail("fake-account@umiacs.umd.edu")
-                .setName("test-name")
-                .setPhoneNumber(new DepositorContactCreate.PhoneNumber()
-                        .setCountryCode("US")
-                        .setNumber("0"));
+        DepositorCreate model = createModel(false);
+        runPost(DEPOSITOR_ROOT_PATH, () -> "user", model)
+                .andExpect(status().isBadRequest());
+        verify(dao, times(0)).save(eq(depositor));
+    }
 
-        DepositorCreate model = new DepositorCreate()
-                .setNamespace(NAMESPACE)
-                .setSourceOrganization(ORGANIZATION)
-                .setOrganizationAddress(ADDRESS)
-                .setContacts(ImmutableList.of(contact));
+    @Test
+    public void testCreateForbidden() throws Exception {
+        DepositorCreate model = createModel(true);
+        authenticateUser();
+        runPost(DEPOSITOR_ROOT_PATH, () -> "user", model)
+                .andExpect(status().isForbidden());
+        verify(dao, times(0)).save(eq(depositor));
+    }
 
-        mvc.perform(
-                post(DEPOSITOR_ROOT_PATH)
-                    .principal(() -> "user")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(asJson(model)))
-                .andDo(print())
-                .andExpect(status().is(400));
-
+    @Test
+    public void testCreateConflict() throws Exception {
+        DepositorCreate model = createModel(true);
+        authenticateAdmin();
+        when(dao.findOne(eq(Q_DEPOSITOR), eq(Q_DEPOSITOR.namespace.eq(NAMESPACE))))
+                .thenReturn(depositor);
+        runPost(DEPOSITOR_ROOT_PATH, () -> "user", model)
+                .andExpect(status().isConflict());
         verify(dao, times(0)).save(eq(depositor));
     }
 
@@ -178,6 +166,8 @@ public class DepositorControllerTest extends ControllerTest {
 
     @Test
     public void testGetBags() throws Exception {
+        when(dao.findOne(eq(Q_DEPOSITOR), any(Predicate.class)))
+                .thenReturn(depositor);
         when(dao.findPage(eq(Q_BAG), any(BagFilter.class)))
                 .thenReturn(new PageImpl<>(ImmutableList.of(bag)));
         mvc.perform(get(DEPOSITOR_BAGS_PATH, NAMESPACE)
@@ -185,6 +175,15 @@ public class DepositorControllerTest extends ControllerTest {
                 .andExpect(status().is(200));
 
         verify(dao, times(1)).findPage(eq(Q_BAG), any(BagFilter.class));
+    }
+
+    @Test
+    public void testGetBagsNotFound() throws Exception {
+        mvc.perform(get(DEPOSITOR_BAGS_PATH, NAMESPACE)
+                .principal(() -> "user"))
+                .andExpect(status().isNotFound());
+
+        verify(dao, times(0)).findPage(eq(Q_BAG), any(BagFilter.class));
     }
 
     @Test
@@ -211,6 +210,46 @@ public class DepositorControllerTest extends ControllerTest {
                 .principal(() -> "user"))
                 .andExpect(status().is(404));
         verify(dao, times(1)).findOne(eq(Q_BAG), any(BagFilter.class));
+    }
+
+
+    // Helpers
+    private DepositorCreate createModel(boolean valid) {
+        return new DepositorCreate()
+                .setNamespace(NAMESPACE)
+                .setSourceOrganization(ORGANIZATION)
+                .setOrganizationAddress(ADDRESS)
+                .setContacts(ImmutableList.of(contactModel(valid)));
+    }
+
+    private DepositorContactCreate contactModel(boolean valid) {
+        if (valid) {
+           return new DepositorContactCreate()
+                .setEmail("fake-account@umiacs.umd.edu")
+                .setName("test-name")
+                .setPhoneNumber(new DepositorContactCreate.PhoneNumber()
+                        // from libphonenumber doc - swiss google number
+                        .setCountryCode("CH")
+                        .setNumber("446681800"));
+        } else {
+            return new DepositorContactCreate()
+                .setEmail("fake-account@umiacs.umd.edu")
+                .setName("test-name")
+                .setPhoneNumber(new DepositorContactCreate.PhoneNumber()
+                        .setCountryCode("US")
+                        .setNumber("0"));
+        }
+    }
+
+    // could possible push this into ControllerTest, not strictly needed though and may simply
+    // obfuscate the boilerplate we use for testing
+    private <T> ResultActions runPost(String path,
+                                      Principal principal,
+                                      T content) throws Exception {
+        return mvc.perform(post(path)
+                .principal(principal)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJson(content)));
     }
 
 }

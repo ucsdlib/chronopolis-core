@@ -36,11 +36,15 @@ import java.util.Optional;
 import java.util.Set;
 
 import static com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat.INTERNATIONAL;
+import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
 
 /**
  * API implementation for Depositors
  * <p>
- * todo: Validate DepositorModel
+ * todo: POST /api/depositors/{ns}/nodes
+ * todo: DELETE /api/depositors/{ns}/nodes
+ * todo: POST /api/depositors/{ns}/contacts
+ * todo: DELETE /api/depositors/{ns}/contacts
  *
  * @author shake
  */
@@ -85,20 +89,36 @@ public class DepositorController {
                                                      @Valid @RequestBody
                                                      DepositorCreate depositor) {
         access.info("[POST /api/depositors] - {}", principal.getName());
+        QDepositor qDepositor = QDepositor.depositor;
 
-        Optional<Set<DepositorContact>> parsed = parseContacts(depositor.getContacts());
-        Optional<Depositor> depositorOptional = parsed.map(contacts -> new Depositor()
-                .setNamespace(depositor.getNamespace())
-                .setSourceOrganization(depositor.getSourceOrganization())
-                .setOrganizationAddress(depositor.getOrganizationAddress())
-                .setContacts(contacts));
+        // Default response of Forbidden if a user is not authorized to create Depositors
+        ResponseEntity<Depositor> response = ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        if (hasRoleAdmin()) {
+            // check collision
+            Depositor exists = dao.findOne(qDepositor,
+                    qDepositor.namespace.eq(depositor.getNamespace()));
 
-        // hmmm
-        // might want to do some work on the dao to better understand failure conditions
-        depositorOptional.ifPresent(dao::save);
-        return depositorOptional.map(entity ->
-                ResponseEntity.status(HttpStatus.CREATED).body(entity))
-                .orElse(ResponseEntity.badRequest().build());
+            if (exists == null) {
+                Optional<Set<DepositorContact>> parsed = parseContacts(depositor.getContacts());
+                Optional<Depositor> depositorOptional = parsed.map(contacts -> new Depositor()
+                        .setNamespace(depositor.getNamespace())
+                        .setSourceOrganization(depositor.getSourceOrganization())
+                        .setOrganizationAddress(depositor.getOrganizationAddress())
+                        .setContacts(contacts));
+                depositorOptional.ifPresent(dao::save);
+
+                // Even though the BadRequest is handled by Spring, we do an additional check here
+                // as a sanity check. This is because a PhoneNumberException can be thrown so it
+                // gives a way to handle the exception gracefully.
+                response = depositorOptional.map(entity ->
+                        ResponseEntity.status(HttpStatus.CREATED).body(entity))
+                        .orElse(ResponseEntity.badRequest().build());
+            } else {
+                response = ResponseEntity.status(HttpStatus.CONFLICT).build();
+            }
+        }
+
+        return response;
     }
 
     /**
@@ -167,9 +187,18 @@ public class DepositorController {
     @GetMapping("/{namespace}/bags")
     public ResponseEntity<Iterable<Bag>> depositorBags(@PathVariable("namespace") String namespace,
                                                        @ModelAttribute BagFilter filter) {
-        filter.setDepositor(namespace);
-        Page<Bag> bags = dao.findPage(QBag.bag, filter);
-        return ResponseEntity.ok(bags);
+        // Default response if the namespace does not match a known Depositor
+        ResponseEntity<Iterable<Bag>> entity = ResponseEntity.notFound().build();
+
+        QDepositor qDepositor = QDepositor.depositor;
+        Depositor depositor = dao.findOne(qDepositor, qDepositor.namespace.eq(namespace));
+        if (depositor != null) {
+            filter.setDepositor(namespace);
+            Page<Bag> bags = dao.findPage(QBag.bag, filter);
+            entity = ResponseEntity.ok(bags);
+        }
+
+        return entity;
     }
 
     /**
