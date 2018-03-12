@@ -1,8 +1,13 @@
 package org.chronopolis.rest.models;
 
+import com.google.i18n.phonenumbers.NumberParseException;
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.google.i18n.phonenumbers.Phonenumber;
 import org.chronopolis.rest.constraints.E123;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotBlank;
+
+import static com.google.i18n.phonenumbers.NumberParseException.ErrorType.NOT_A_NUMBER;
 
 /**
  * Depositor Contact fields + validation
@@ -37,6 +42,22 @@ public class DepositorContactCreate {
     public DepositorContactCreate setEmail(String email) {
         this.email = email;
         return this;
+    }
+
+    public String getFormattedNumber() throws NumberParseException {
+        String number;
+        PhoneNumberUtil util = PhoneNumberUtil.getInstance();
+        if (phoneNumber != null &&
+                phoneNumber.number != null &&
+                phoneNumber.countryCode != null) {
+            Phonenumber.PhoneNumber parsed =
+                    util.parse(phoneNumber.number, phoneNumber.countryCode);
+            number = util.format(parsed, PhoneNumberUtil.PhoneNumberFormat.INTERNATIONAL);
+        } else {
+            throw new NumberParseException(NOT_A_NUMBER, "Null PhoneNumber");
+        }
+
+        return number;
     }
 
     public PhoneNumber getPhoneNumber() {

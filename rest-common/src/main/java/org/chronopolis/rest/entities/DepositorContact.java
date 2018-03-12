@@ -1,12 +1,15 @@
 package org.chronopolis.rest.entities;
 
 import com.google.common.collect.ComparisonChain;
+import com.google.i18n.phonenumbers.NumberParseException;
+import org.chronopolis.rest.models.DepositorContactCreate;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * yarp
@@ -25,6 +28,20 @@ public class DepositorContact extends PersistableEntity implements Comparable<De
     private Depositor depositor;
 
     public DepositorContact() {} // jpa
+
+    public static Optional<DepositorContact> fromCreateRequest(DepositorContactCreate create) {
+        DepositorContact contact = new DepositorContact();
+        Optional<DepositorContact> created = Optional.of(contact);
+        contact.setContactName(create.getName());
+        contact.setContactEmail(create.getEmail());
+        try {
+            contact.setContactPhone(create.getFormattedNumber());
+        } catch (NumberParseException e) {
+            created = Optional.empty();
+        }
+
+        return created;
+    }
 
     public String getContactName() {
         return contactName;
