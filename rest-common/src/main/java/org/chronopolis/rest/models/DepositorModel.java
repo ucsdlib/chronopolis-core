@@ -19,6 +19,7 @@ public class DepositorModel {
     private final String organizationAddress;
     private final ZonedDateTime createdAt;
     private final ZonedDateTime updatedAt;
+    private final Set<String> replicatingNodes;
     private final Set<DepositorContactModel> contacts;
 
     @JsonCreator
@@ -28,6 +29,7 @@ public class DepositorModel {
                           @JsonProperty("organizationAddress") String organizationAddress,
                           @JsonProperty("createdAt") ZonedDateTime createdAt,
                           @JsonProperty("updatedAt") ZonedDateTime updatedAt,
+                          @JsonProperty("replicatingNodes") Set<String> replicatingNodes,
                           @JsonProperty("contacts") Set<DepositorContactModel> contacts) {
         this.id = id;
         this.namespace = namespace;
@@ -35,6 +37,7 @@ public class DepositorModel {
         this.organizationAddress = organizationAddress;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.replicatingNodes = replicatingNodes;
         this.contacts = contacts;
     }
 
@@ -52,6 +55,10 @@ public class DepositorModel {
 
     public String getOrganizationAddress() {
         return organizationAddress;
+    }
+
+    public Set<String> getReplicatingNodes() {
+        return replicatingNodes;
     }
 
     public Set<DepositorContactModel> getContacts() {

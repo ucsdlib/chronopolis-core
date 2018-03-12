@@ -20,6 +20,9 @@ public class DepositorSerializer extends JsonSerializer<Depositor> {
     @Override
     public void serialize(Depositor depositor, JsonGenerator gen, SerializerProvider serializers)
             throws IOException {
+        Set<String> replicatingNodes = depositor.getNodeDistributions().stream()
+                .map(dn -> dn.getNode().getUsername())
+                .collect(Collectors.toSet());
         Set<DepositorContactModel> contacts = depositor.getContacts().stream()
                 .map(contact -> new DepositorContactModel(contact.getContactName(),
                         contact.getContactEmail(),
@@ -31,6 +34,7 @@ public class DepositorSerializer extends JsonSerializer<Depositor> {
                 depositor.getOrganizationAddress(),
                 depositor.getCreatedAt(),
                 depositor.getUpdatedAt(),
+                replicatingNodes,
                 contacts);
         gen.writeObject(model);
     }
