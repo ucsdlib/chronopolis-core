@@ -1,11 +1,15 @@
 package org.chronopolis.rest.api;
 
+import org.chronopolis.rest.entities.DepositorContact;
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.DepositorContactCreate;
+import org.chronopolis.rest.models.DepositorContactRemove;
 import org.chronopolis.rest.models.DepositorCreate;
 import org.chronopolis.rest.models.DepositorModel;
 import org.springframework.data.domain.PageImpl;
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
@@ -65,5 +69,47 @@ public interface DepositorAPI {
     Call<Bag> getDepositorBag(@Path("namespace") String namespace,
                               @Path("bagName") String bagName);
 
+    /**
+     * Add a DepositorContact to a Depositor
+     *
+     * @param namespace the namespace of the Depositor
+     * @param create    the DepositorContact to add
+     * @return the created DepositorContact
+     */
+    @POST(DEPOSITOR_ROOT + "/{namespace}/contacts")
+    Call<DepositorContact> createContact(@Path("namespace") String namespace,
+                                         @Body DepositorContactCreate create);
 
+    /**
+     * Remove a DepositorContact from a Depositor
+     *
+     * @param namespace the namespace of the Depositor
+     * @param remove    the DepositorContact to remove, identified by their email
+     * @return the updated DepositorModel
+     */
+    @DELETE(DEPOSITOR_ROOT + "/{namespace}/contacts/{contactEmail}")
+    Call<DepositorModel> deleteContact(@Path("namespace") String namespace,
+                                       @Body DepositorContactRemove remove);
+
+    /**
+     * Add a Node as a ReplicatingNode for a Depositor
+     *
+     * @param namespace the namespace of the Depositor
+     * @param nodeName  the name of the Node
+     * @return the updated DepositorModel
+     */
+    @POST(DEPOSITOR_ROOT + "/{namespace}/nodes/{nodeName}")
+    Call<DepositorModel> addNode(@Path("namespace") String namespace,
+                                 @Path("nodeName") String nodeName);
+
+    /**
+     * Remove a Node from the ReplicatingNodes for a Depositor
+     *
+     * @param namespace the namespace of the Depositor
+     * @param nodeName  the name of the Node
+     * @return the updated DepositorModel
+     */
+    @DELETE(DEPOSITOR_ROOT + "/{namespace}/nodes/{nodeName}")
+    Call<DepositorModel> removeNode(@Path("namespace") String namespace,
+                                    @Path("nodeName") String nodeName);
 }
