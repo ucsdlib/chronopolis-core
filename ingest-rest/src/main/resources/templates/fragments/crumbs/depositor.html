@@ -29,6 +29,16 @@
     </ol>
 </nav>
 
+<nav th:fragment="edit" aria-label="breadcrumb" role="navigation">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/depositors}">Depositors</a></li>
+        <li class="breadcrumb-item"><a th:href="@{/depositors/list}">All</a></li>
+        <li class="breadcrumb-item"><a th:href="@{|/depositors/list/${depositor.namespace}|}"
+                                       th:text="${depositor.namespace}">Depositor</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Edit</li>
+    </ol>
+</nav>
+
 <nav th:fragment="list" aria-label="breadcrumb" role="navigation">
     <ol class="breadcrumb" style="margin-bottom: 0 !important;">
         <li class="breadcrumb-item"><a th:href="@{/depositors}">Depositors</a></li>
