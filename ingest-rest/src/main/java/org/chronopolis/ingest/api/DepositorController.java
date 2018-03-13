@@ -250,8 +250,12 @@ public class DepositorController {
 
         if (hasRoleAdmin()) {
             QDepositor qDepositor = QDepositor.depositor;
+            QDepositorContact qDepositorContact = QDepositorContact.depositorContact;
             Depositor depositor = dao.findOne(qDepositor, qDepositor.namespace.eq(namespace));
-            if (depositor != null) {
+            DepositorContact depositorContact = dao.findOne(qDepositorContact,
+                    qDepositorContact.depositor.namespace.eq(namespace)
+                            .and(qDepositorContact.contactEmail.eq(create.getEmail())));
+            if (depositor != null && depositorContact == null) {
                 Optional<DepositorContact> contact = DepositorContact.fromCreateRequest(create);
                 // if valid...
                 response = contact.map(entity -> {
@@ -259,6 +263,8 @@ public class DepositorController {
                     dao.save(depositor);
                     return ResponseEntity.status(HttpStatus.CREATED).body(entity);
                 }).orElse(ResponseEntity.badRequest().build());
+            } else if (depositorContact != null) {
+                response = ResponseEntity.status(HttpStatus.CONFLICT).build();
             } else {
                 response = ResponseEntity.notFound().build();
             }

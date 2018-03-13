@@ -240,6 +240,7 @@ public class DepositorControllerTest extends ControllerTest {
                 .andExpect(jsonPath("$.contactName").value("test-name"));
 
         verify(dao, times(1)).findOne(eq(Q_DEPOSITOR), eq(namespaceEq));
+        verify(dao, times(1)).findOne(eq(Q_CONTACT), eq(contactEq));
         verify(dao, times(1)).save(any(Depositor.class));
     }
 
@@ -251,6 +252,7 @@ public class DepositorControllerTest extends ControllerTest {
         runPost(CONTACT_PATH, authorizedPrincipal, contactCreate, NAMESPACE)
                 .andExpect(status().isBadRequest());
         verify(dao, times(0)).findOne(eq(Q_DEPOSITOR), eq(namespaceEq));
+        verify(dao, times(1)).findOne(eq(Q_CONTACT), eq(contactEq));
         verify(dao, times(0)).save(any(Depositor.class));
     }
 
@@ -277,8 +279,28 @@ public class DepositorControllerTest extends ControllerTest {
                 .andExpect(status().isNotFound());
 
         verify(dao, times(1)).findOne(eq(Q_DEPOSITOR), eq(namespaceEq));
+        verify(dao, times(1)).findOne(eq(Q_CONTACT), eq(contactEq));
         verify(dao, times(0)).save(any(Depositor.class));
     }
+
+    @Test
+    public void testAddContactConflict() throws Exception {
+        DepositorContactCreate contactCreate = contactModel(true);
+
+        when(dao.findOne(eq(Q_DEPOSITOR), eq(namespaceEq)))
+                .thenReturn(null);
+        when(dao.findOne(eq(Q_CONTACT), eq(contactEq)))
+                .thenReturn(contact);
+
+        authenticateAdmin();
+        runPost(CONTACT_PATH, authorizedPrincipal, contactCreate, NAMESPACE)
+                .andExpect(status().isConflict());
+
+        verify(dao, times(1)).findOne(eq(Q_DEPOSITOR), eq(namespaceEq));
+        verify(dao, times(1)).findOne(eq(Q_CONTACT), eq(contactEq));
+        verify(dao, times(0)).save(any(Depositor.class));
+    }
+
 
     @Test
     public void testRemoveContact() throws Exception {
