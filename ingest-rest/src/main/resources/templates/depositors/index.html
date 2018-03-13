@@ -17,7 +17,6 @@
                         <!--/*@thymesVar id="numDepositors" type="java.lang.Long"*/-->
                         <h3 style="margin-bottom: 0" th:text="${numDepositors}"></h3>
                         <span class="subheading">Total Depositors</span>
-
                     </div>
 
                     <div class="p-1">
@@ -91,6 +90,12 @@
         </div>
     </div>
     <div th:replace="layout :: foot"></div>
+
 </div>
+<script type="text/javascript">
+    $(".table-clickable").click(function () {
+        window.location = $(this).data("href");
+    });
+</script>
 </body>
 </html>

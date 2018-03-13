@@ -13,12 +13,23 @@
         <!--@thymesVar id="depositor" type="org.chronopolis.rest.entities.Depositor"-->
         <div class="card-body p-2">
             <table class="c-table">
-                <div th:replace="fragments/storage :: list-item(head='Id', content=${depositor.id})"></div>
-                <div th:replace="fragments/storage :: list-item(head='Source Organization', content=${depositor.sourceOrganization})"></div>
-                <div th:replace="fragments/storage :: list-item(head='Organization Address', content=${depositor.organizationAddress})"></div>
-                <div th:replace="fragments/storage :: list-item(head='Created At', content=${depositor.createdAt})"></div>
-                <div th:replace="fragments/storage :: list-item(head='Updated At', content=${depositor.updatedAt})"></div>
+                <tr th:replace="fragments/storage :: list-item(head='Id', content=${depositor.id})"></tr>
+                <tr th:replace="fragments/storage :: list-item(head='Source Organization', content=${depositor.sourceOrganization})"></tr>
+                <tr th:replace="fragments/storage :: list-item(head='Organization Address', content=${depositor.organizationAddress})"></tr>
+                <tr th:replace="fragments/storage :: list-item(head='Created At', content=${depositor.createdAt})"></tr>
+                <tr th:replace="fragments/storage :: list-item(head='Updated At', content=${depositor.updatedAt})"></tr>
             </table>
+        </div>
+
+        <div class="card-header" data-toggle="collapse" href="#distCollapse"
+             aria-expanded="false" aria-controls="distCollapse">
+            <h4>Node Distribution</h4>
+        </div>
+        <div class="collapse" id="distCollapse">
+            <!--/*@thymesVar id="depositor" type="org.chronopolis.rest.entities.Depositor"*/-->
+            <div class="card-body p-2">
+                <table th:replace="fragments/depositor :: display-nodes(${depositor}, ${depositor.nodeDistributions})"></table>
+            </div>
         </div>
 
         <div class="card-header" data-toggle="collapse" href="#contactCollapse"
@@ -32,20 +43,6 @@
             <!--/*@thymesVar id="depositor" type="org.chronopolis.rest.entities.Depositor"*/-->
             <div class="card-body p-2">
                 <table th:replace="fragments/depositor :: display-contacts(${depositor}, ${depositor.contacts})"></table>
-            </div>
-        </div>
-
-        <div class="card-header" data-toggle="collapse" href="#distCollapse"
-             aria-expanded="false" aria-controls="distCollapse">
-            <a class="btn btn-primary pull-right" th:href="@{|${depositor.namespace}/addNode|}">
-                Add Node
-            </a>
-            <h4>Node Distribution</h4>
-        </div>
-        <div class="collapse" id="distCollapse">
-            <!--/*@thymesVar id="depositor" type="org.chronopolis.rest.entities.Depositor"*/-->
-            <div class="card-body p-2">
-                <table th:replace="fragments/depositor :: display-nodes(${depositor}, ${depositor.nodeDistributions})"></table>
             </div>
         </div>
     </div>
