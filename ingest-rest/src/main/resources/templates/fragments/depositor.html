@@ -81,7 +81,7 @@
                         data-dismiss="modal">
                     Dismiss
                 </button>
-                <a th:href="@{|${depositor.namespace}/removeNode(name=${nodeName})|}"
+                <a th:href="@{|${depositor.namespace}/removeNode|(name=${nodeName})}"
                    type="submit" class="btn btn-danger">
                     Remove
                 </a>
