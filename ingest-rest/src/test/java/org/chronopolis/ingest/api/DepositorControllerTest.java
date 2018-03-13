@@ -252,7 +252,7 @@ public class DepositorControllerTest extends ControllerTest {
         runPost(CONTACT_PATH, authorizedPrincipal, contactCreate, NAMESPACE)
                 .andExpect(status().isBadRequest());
         verify(dao, times(0)).findOne(eq(Q_DEPOSITOR), eq(namespaceEq));
-        verify(dao, times(1)).findOne(eq(Q_CONTACT), eq(contactEq));
+        verify(dao, times(0)).findOne(eq(Q_CONTACT), eq(contactEq));
         verify(dao, times(0)).save(any(Depositor.class));
     }
 
