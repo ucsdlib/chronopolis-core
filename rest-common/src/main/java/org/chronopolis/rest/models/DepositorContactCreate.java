@@ -44,7 +44,7 @@ public class DepositorContactCreate {
         return this;
     }
 
-    public String getFormattedNumber() throws NumberParseException {
+    public String formattedPhoneNumber() throws NumberParseException {
         String number;
         PhoneNumberUtil util = PhoneNumberUtil.getInstance();
         if (phoneNumber != null &&

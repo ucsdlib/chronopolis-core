@@ -35,7 +35,7 @@ public class DepositorContact extends PersistableEntity implements Comparable<De
         contact.setContactName(create.getName());
         contact.setContactEmail(create.getEmail());
         try {
-            contact.setContactPhone(create.getFormattedNumber());
+            contact.setContactPhone(create.formattedPhoneNumber());
         } catch (NumberParseException e) {
             created = Optional.empty();
         }
