@@ -39,7 +39,7 @@
                         data-dismiss="modal">
                     Dismiss
                 </button>
-                <a th:href="@{|${depositor.namespace}/removeContact(name=${contact.contactName})|}"
+                <a th:href="@{|${depositor.namespace}/removeContact|(email=${contact.contactEmail})}"
                    type="submit" class="btn btn-danger">
                     Remove Contact
                 </a>
