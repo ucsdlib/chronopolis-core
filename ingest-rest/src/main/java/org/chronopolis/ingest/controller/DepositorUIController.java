@@ -14,6 +14,8 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.PageWrapper;
+import org.chronopolis.ingest.exception.BadRequestException;
+import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.models.DepositorSummary;
 import org.chronopolis.ingest.models.filter.DepositorFilter;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
@@ -80,7 +82,7 @@ public class DepositorUIController extends IngestController {
     }
 
     @GetMapping("/depositors")
-    public String index(Model model, Principal principal) {
+    public String index(Model model) {
         QBag bag = QBag.bag;
         QDepositor depositor = QDepositor.depositor;
         FileSizeFormatter formatter = new FileSizeFormatter();
@@ -141,7 +143,7 @@ public class DepositorUIController extends IngestController {
     }
 
     @GetMapping("/depositors/add")
-    public String create(Model model, Principal principal, DepositorCreate depositorCreate) {
+    public String create(Model model, DepositorCreate depositorCreate) {
         model.addAttribute("nodes", dao.findAll(QNode.node));
         model.addAttribute("depositorCreate", depositorCreate);
         return "depositors/add";
@@ -183,11 +185,9 @@ public class DepositorUIController extends IngestController {
 
     @GetMapping("/depositors/list/{namespace}/edit")
     public String editDepositor(Model model,
-                                Principal principal,
                                 @PathVariable("namespace") String namespace,
                                 DepositorEdit depositorEdit) {
-        Depositor existing = dao.findOne(QDepositor.depositor,
-                QDepositor.depositor.namespace.eq(namespace));
+        Depositor existing = getOrThrowNotFound(namespace);
 
         QDepositorNode qdn = QDepositorNode.depositorNode;
         BooleanExpression availableNodes = QNode.node.id.notIn(JPAExpressions.select(qdn.node.id)
@@ -195,6 +195,7 @@ public class DepositorUIController extends IngestController {
                 .where(qdn.depositor.id.eq(existing.getId())));
 
         model.addAttribute("nodes", dao.findAll(QNode.node, availableNodes));
+        model.addAttribute("depositor", existing);
         model.addAttribute("depositorEdit", depositorEdit);
         return "depositors/edit";
     }
@@ -206,12 +207,7 @@ public class DepositorUIController extends IngestController {
                                     @Valid DepositorEdit depositorEdit,
                                     BindingResult bindingResult) {
         access.info("[POST /depositors/list/{}/edit] - {}", namespace, principal.getName());
-        Depositor depositor = dao.findOne(QDepositor.depositor,
-                QDepositor.depositor.namespace.eq(namespace));
-        if (depositor == null) {
-            // how to return this??
-            bindingResult.addError(new ObjectError("namespace", "Invalid Depositor"));
-        }
+        Depositor depositor = getOrThrowNotFound(namespace);
 
         // pretty much the same as the above
         // might want to combine DepositorEdit and DepositorCreate then have something to do the
@@ -240,19 +236,18 @@ public class DepositorUIController extends IngestController {
 
     @GetMapping("/depositors/list/{namespace}")
     public String getDepositor(Model model,
-                               Principal principal,
                                @PathVariable("namespace") String namespace) {
-        DepositorFilter filter = new DepositorFilter().setNamespace(namespace);
-        model.addAttribute("depositor", dao.findOne(QDepositor.depositor, filter));
+        Depositor depositor = getOrThrowNotFound(namespace);
+        model.addAttribute("depositor", depositor);
         return "depositors/depositor";
     }
 
     @GetMapping("/depositors/list")
     public String list(Model model,
-                       Principal principal,
                        @ModelAttribute(value = "filter") DepositorFilter filter) {
         Page<Depositor> depositors = dao.findPage(QDepositor.depositor, filter);
-        PageWrapper<Depositor> pages = new PageWrapper<>(depositors, "/depositors/list", filter.getParameters());
+        PageWrapper<Depositor> pages = new PageWrapper<>(depositors,
+                "/depositors/list", filter.getParameters());
         model.addAttribute("depositors", depositors);
         model.addAttribute("pages", pages);
         return "depositors/list";
@@ -260,9 +255,10 @@ public class DepositorUIController extends IngestController {
 
     @GetMapping("/depositors/list/{namespace}/addContact")
     public String addContact(Model model,
-                             Principal principal,
                              @PathVariable("namespace") String namespace,
                              DepositorContactCreate depositorContactCreate) {
+        Depositor depositor = getOrThrowNotFound(namespace);
+        model.addAttribute(depositor);
         model.addAllAttributes(addContactAttributes(depositorContactCreate));
         return "depositors/add_contact";
     }
@@ -272,24 +268,30 @@ public class DepositorUIController extends IngestController {
                                    Principal principal,
                                    @PathVariable("namespace") String namespace,
                                    @Valid DepositorContactCreate depositorContactCreate,
-                                   BindingResult result) throws NumberParseException {
+                                   BindingResult result) throws BadRequestException {
         access.info("[POST /depositors/list/{}/addContact] - {}", namespace, principal.getName());
+        Depositor depositor = getOrThrowNotFound(namespace);
+
         if (result.hasErrors()) {
             log.warn("Invalid contact added: {} errors", result.getErrorCount());
             result.getFieldErrors().forEach(error ->
                     log.error("{}:{}", error.getField(), error.getDefaultMessage()));
 
+            model.addAttribute(depositor);
             model.addAllAttributes(addContactAttributes(depositorContactCreate));
             return "depositors/add_contact";
         }
 
         PhoneNumberUtil util = PhoneNumberUtil.getInstance();
-        Phonenumber.PhoneNumber number = util.parse(
-                depositorContactCreate.getPhoneNumber().getNumber(),
-                depositorContactCreate.getPhoneNumber().getCountryCode());
+        Phonenumber.PhoneNumber number;
+        try {
+            number = util.parse(
+                    depositorContactCreate.getPhoneNumber().getNumber(),
+                    depositorContactCreate.getPhoneNumber().getCountryCode());
+        } catch (NumberParseException e) {
+            throw new BadRequestException(e.getErrorType().name());
+        }
 
-        Depositor depositor = dao.findOne(QDepositor.depositor,
-                new DepositorFilter().setNamespace(namespace));
         DepositorContact contact = new DepositorContact()
                 .setContactEmail(depositorContactCreate.getEmail())
                 .setContactName(depositorContactCreate.getName())
@@ -299,11 +301,42 @@ public class DepositorUIController extends IngestController {
         return "redirect:/depositors/list/" + namespace;
     }
 
+    @GetMapping("/depositors/list/{namespace}/removeNode")
+    public String removeNode(Model model,
+                             Principal principal,
+                             @PathVariable("namespace") String namespace,
+                             @ModelAttribute("name") String name) {
+        access.info("[POST /depositors/list/{}/addContact] - {}", namespace, principal.getName());
+
+        Depositor depositor = getOrThrowNotFound(namespace);
+
+        Node node = dao.findOne(QNode.node, QNode.node.username.eq(name));
+        if (node == null) {
+            throw new BadRequestException("Invalid node given");
+        }
+
+        depositor.removeNodeDistribution(node);
+        dao.save(depositor);
+
+        model.addAttribute("depositor", depositor);
+        return "redirect:/depositors/list/" + namespace;
+    }
+
     private Map<String, ?> addContactAttributes(DepositorContactCreate depositorContactCreate) {
         PhoneNumberUtil util = PhoneNumberUtil.getInstance();
         Set<String> regions = util.getSupportedRegions();
         ImmutableSortedSet<String> supportedRegions = ImmutableSortedSet.copyOf(regions);
         return ImmutableMap.of("regions", supportedRegions,
                 "depositorContactCreate", depositorContactCreate);
+    }
+
+    private Depositor getOrThrowNotFound(String namespace) {
+        Depositor depositor = dao.findOne(QDepositor.depositor,
+                QDepositor.depositor.namespace.eq(namespace));
+        if (depositor == null) {
+            throw new NotFoundException(namespace + " does not exist");
+        }
+
+        return depositor;
     }
 }
