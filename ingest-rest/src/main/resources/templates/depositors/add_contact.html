@@ -11,44 +11,29 @@
         <div class="card-body p-2">
             <h4>Add Depositor Contact</h4>
             <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem">
-                <!--
-                todo: get error handling back in
-                th:with="nameError=${#fields.hasErrors('name')}"
-                th:classappend="${nameError}? 'has-warning'"
-                                   th:classappend="${nameError}? 'form-control-warning'"
-                            <div class="form-control-feedback" th:if="${nameError}"
-                                 th:errorclass="*{name}"></div>
-
-                         th:with="emailError=${#fields.hasErrors('email')}"
-                         th:classappend="${emailError}? 'has-warning'"
-                                   th:classappend="${emailError}? 'form-control-warning'"
-                            <div class="form-control-feedback" th:if="${emailError}"
-                                 th:errorclass="*{email}"></div>
-
-                            <div class="form-control-feedback" th:if="${phoneError}"
-                                 th:errorclass="*{phoneNumber}"></div>
-                -->
                 <!--/*@thymesVar id="depositorContactCreate" type="org.chronopolis.rest.models.DepositorContactCreate"*/-->
                 <form method="post" name="contact" th:object="${depositorContactCreate}">
                     <div class="form-group row">
                         <label for="contact-name" class="col-4 col-form-label">Contact Name</label>
-                        <div class="col-8">
+                        <div class="col-8" th:with="nameError=${#fields.hasErrors('name')}">
                             <input th:field="*{name}"
+                                   th:classappend="${nameError} ? 'is-invalid'"
                                    class="form-control" type="text" name="name"
                                    placeholder="contact-name" id="contact-name"/>
+                            <div class="invalid-feedback" th:if="${nameError}" th:errors="*{name}"></div>
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="contact-email" class="col-4 col-form-label">Contact
-                            Email</label>
-                        <div class="col-8">
+                        <label for="contact-email" class="col-4 col-form-label">Contact Email</label>
+                        <div class="col-8" th:with="emailError=${#fields.hasErrors('email')}">
                             <input th:field="*{email}"
+                                   th:classappend="${emailError} ? 'is-invalid'"
                                    class="form-control" type="text" name="email"
                                    placeholder="contact-email" id="contact-email"/>
+                            <div class="invalid-feedback" th:if="${emailError}" th:errors="*{email}"></div>
                         </div>
                     </div>
 
-                    <!-- todo: need to map to DepositorContactCreate.PhoneNumber -->
                     <div class="form-group row"
                          th:with="phoneError=${#fields.hasErrors('phoneNumber')}"
                          th:classappend="${phoneError}? 'has-warning'">
@@ -63,10 +48,12 @@
                                         th:selected="${region.equals('US')}"></option>
                             </select>
                         </div>
-                        <div class="col-6">
+                        <div class="col-6" th:with="numError=${#fields.hasErrors('phoneNumber')}">
                             <input th:field="*{phoneNumber.number}"
+                                   th:classappend="${numError} ? 'is-invalid'"
                                    class="form-control" type="text" name="phoneNumber.number"
                                    placeholder="contact-phone" id="contact-phone"/>
+                            <div class="invalid-feedback" th:if="${numError}" th:errors="*{phoneNumber}"></div>
                         </div>
                     </div>
                     <input class="btn btn-primary" type="submit" value="Add Contact"/>
