@@ -84,6 +84,7 @@ public abstract class Paged {
      * @return the page request
      * @deprecated being phased out in favor of handling pagination through QueryDSL
      */
+    @Deprecated
     public PageRequest createPageRequest() {
         Sort.Direction direction = (dir == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(dir);
         Sort s = new Sort(direction, orderBy);
