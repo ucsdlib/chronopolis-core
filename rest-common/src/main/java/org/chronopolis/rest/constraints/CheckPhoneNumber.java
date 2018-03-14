@@ -24,6 +24,9 @@ public class CheckPhoneNumber implements
     public boolean isValid(DepositorContactCreate.PhoneNumber number,
                            ConstraintValidatorContext context) {
         if (number == null || number.getNumber() == null || number.getCountryCode() == null) {
+            context.disableDefaultConstraintViolation();
+            context.buildConstraintViolationWithTemplate("Unable to parse number " +
+                    "- not fully instantiated").addConstraintViolation();
             return false;
         }
 
@@ -35,6 +38,9 @@ public class CheckPhoneNumber implements
             valid = phoneUtil.isValidNumber(parsed);
         } catch (NumberParseException e) {
             valid = false;
+            context.disableDefaultConstraintViolation();
+            context.buildConstraintViolationWithTemplate(e.getMessage())
+                    .addConstraintViolation();
         }
         return valid;
     }
