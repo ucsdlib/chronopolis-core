@@ -26,6 +26,7 @@ import org.chronopolis.rest.entities.DepositorContact;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.QDepositor;
+import org.chronopolis.rest.entities.QDepositorContact;
 import org.chronopolis.rest.entities.QDepositorNode;
 import org.chronopolis.rest.entities.QNode;
 import org.chronopolis.rest.models.DepositorContactCreate;
@@ -38,7 +39,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -155,11 +155,21 @@ public class DepositorUIController extends IngestController {
                                @Valid DepositorCreate depositorCreate,
                                BindingResult bindingResult) {
         access.info("[POST /depositors] - {}", principal.getName());
+
+        // Additional constraints
         List<Node> nodes = dao.findAll(QNode.node,
                 QNode.node.username.in(depositorCreate.getReplicatingNodes()));
+        Depositor depositor = dao.findOne(QDepositor.depositor,
+                QDepositor.depositor.namespace.eq(depositorCreate.getNamespace()));
 
         if (nodes.size() != depositorCreate.getReplicatingNodes().size()) {
-            bindingResult.addError(new ObjectError("replicatingNodes", "Invalid Node Detected"));
+            bindingResult.rejectValue("replicatingNode", "node.invalid", "Invalid node detected");
+        }
+
+        if (depositor != null) {
+            bindingResult.rejectValue("namespace",
+                    "namespace.duplicate",
+                    "Namespace already in use");
         }
 
         if (bindingResult.hasErrors()) {
@@ -173,7 +183,7 @@ public class DepositorUIController extends IngestController {
         }
 
         log.info("Adding depositor");
-        Depositor depositor = new Depositor();
+        depositor = new Depositor();
         depositor.setNamespace(depositorCreate.getNamespace());
         depositor.setSourceOrganization(depositorCreate.getSourceOrganization());
         depositor.setOrganizationAddress(depositorCreate.getOrganizationAddress());
@@ -216,7 +226,7 @@ public class DepositorUIController extends IngestController {
                 QNode.node.username.in(depositorEdit.getReplicatingNodes()));
 
         if (nodes.size() != depositorEdit.getReplicatingNodes().size()) {
-            bindingResult.addError(new ObjectError("replicatingNodes", "Invalid Node Detected"));
+            bindingResult.rejectValue("replicatingNodes", "node.invalid", "Invalid node detected");
         }
 
 
@@ -270,7 +280,19 @@ public class DepositorUIController extends IngestController {
                                    @Valid DepositorContactCreate depositorContactCreate,
                                    BindingResult result) throws BadRequestException {
         access.info("[POST /depositors/list/{}/addContact] - {}", namespace, principal.getName());
+
+        // Additional constraints
         Depositor depositor = getOrThrowNotFound(namespace);
+        DepositorContact contact = dao.findOne(QDepositorContact.depositorContact,
+                QDepositorContact.depositorContact.contactEmail
+                        .eq(depositorContactCreate.getEmail())
+                        .and(QDepositorContact.depositorContact.depositor.eq(depositor)));
+
+        if (contact != null) {
+            result.rejectValue("email",
+                    "email.conflict",
+                    "Email already in use for depositor");
+        }
 
         if (result.hasErrors()) {
             log.warn("Invalid contact added: {} errors", result.getErrorCount());
@@ -292,7 +314,7 @@ public class DepositorUIController extends IngestController {
             throw new BadRequestException(e.getErrorType().name());
         }
 
-        DepositorContact contact = new DepositorContact()
+        contact = new DepositorContact()
                 .setContactEmail(depositorContactCreate.getEmail())
                 .setContactName(depositorContactCreate.getName())
                 .setContactPhone(util.format(number, INTERNATIONAL));
@@ -306,7 +328,7 @@ public class DepositorUIController extends IngestController {
                              Principal principal,
                              @PathVariable("namespace") String namespace,
                              @ModelAttribute("name") String name) {
-        access.info("[POST /depositors/list/{}/addContact] - {}", namespace, principal.getName());
+        access.info("[POST /depositors/list/{}/removeNode] - {}", namespace, principal.getName());
 
         Depositor depositor = getOrThrowNotFound(namespace);
 
@@ -316,6 +338,29 @@ public class DepositorUIController extends IngestController {
         }
 
         depositor.removeNodeDistribution(node);
+        dao.save(depositor);
+
+        model.addAttribute("depositor", depositor);
+        return "redirect:/depositors/list/" + namespace;
+    }
+
+    @GetMapping("/depositors/list/{namespace}/removeContact")
+    public String removeContact(Model model,
+                                Principal principal,
+                                @PathVariable("namespace") String namespace,
+                                @ModelAttribute("email") String email) {
+        access.info("[POST /depositors/list/{}/removeContact] - {}", namespace, principal.getName());
+
+        Depositor depositor = getOrThrowNotFound(namespace);
+        DepositorContact contact = dao.findOne(QDepositorContact.depositorContact,
+                QDepositorContact.depositorContact.contactEmail.eq(email)
+                        .and(QDepositorContact.depositorContact.depositor.eq(depositor)));
+
+        if (contact == null) {
+            throw new BadRequestException("Invalid node given");
+        }
+
+        depositor.removeContact(contact);
         dao.save(depositor);
 
         model.addAttribute("depositor", depositor);
