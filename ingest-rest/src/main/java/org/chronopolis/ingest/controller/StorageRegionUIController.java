@@ -68,7 +68,9 @@ public class StorageRegionUIController extends IngestController {
      * @return the template for listing StorageRegions
      */
     @GetMapping("/regions")
-    public String getRegions(Model model, Principal principal, @ModelAttribute(value = "filter") StorageRegionFilter filter) {
+    public String getRegions(Model model,
+                             Principal principal,
+                             @ModelAttribute(value = "filter") StorageRegionFilter filter) {
         access.info("[GET /regions] - {}", principal.getName());
 
         StorageRegionSearchCriteria criteria = new StorageRegionSearchCriteria()
@@ -77,10 +79,14 @@ public class StorageRegionUIController extends IngestController {
                 .withStorageType(filter.getType())
                 .withNodeName(filter.getName());
 
-        Sort.Direction direction = (filter.getDir() == null) ? Sort.DEFAULT_DIRECTION : Sort.Direction.fromString(filter.getDir());
+        Sort.Direction direction = (filter.getDir() == null)
+                ? Sort.DEFAULT_DIRECTION
+                : Sort.Direction.fromString(filter.getDir());
         Sort sort = new Sort(direction, filter.getOrderBy());
-        Page<StorageRegion> regions = service.findAll(criteria, new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, sort));
-        PageWrapper<StorageRegion> pages = new PageWrapper<>(regions, "/regions", filter.getParameters());
+        Page<StorageRegion> regions = service.findAll(criteria,
+                new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, sort));
+        PageWrapper<StorageRegion> pages = new PageWrapper<>(regions,
+                "/regions", filter.getParameters());
 
         model.addAttribute("regions", regions);
         model.addAttribute("pages", pages);
@@ -164,7 +170,10 @@ public class StorageRegionUIController extends IngestController {
      * @return the template for editing
      */
     @GetMapping("/regions/{id}/edit")
-    public String editRegionForm(Model model, Principal principal, @PathVariable("id") Long id, RegionEdit regionEdit) {
+    public String editRegionForm(Model model,
+                                 Principal principal,
+                                 @PathVariable("id") Long id,
+                                 RegionEdit regionEdit) {
         access.info("[GET /regions/{}/edit] - {}", id, principal.getName());
         model.addAttribute("dataTypes", DataType.values());
         model.addAttribute("storageTypes", StorageType.values());
@@ -194,7 +203,8 @@ public class StorageRegionUIController extends IngestController {
         if (bindingResult.hasErrors()) {
 
             bindingResult.getFieldErrors()
-                    .forEach(error -> log.info("{}:{}", error.getField(), error.getDefaultMessage()));
+                    .forEach(error -> log.info("{}:{}",
+                            error.getField(), error.getDefaultMessage()));
 
             model.addAttribute("dataTypes", DataType.values());
             model.addAttribute("storageTypes", StorageType.values());
@@ -210,14 +220,16 @@ public class StorageRegionUIController extends IngestController {
 
         StorageRegion region = service.find(new StorageRegionSearchCriteria().withId(id));
 
-        if (!hasRoleAdmin() && !principal.getName().equalsIgnoreCase(region.getNode().getUsername())) {
+        if (!hasRoleAdmin() && !principal.getName()
+                .equalsIgnoreCase(region.getNode().getUsername())) {
             throw new ForbiddenException("User does not have permissions to create this resource");
         }
 
+        int exponent = regionEdit.getStorageUnit().getPower();
         region.setNote(regionEdit.getNote());
         region.setDataType(regionEdit.getDataType());
         region.setStorageType(regionEdit.getStorageType());
-        Double capacity = regionEdit.getCapacity() * Math.pow(1000, regionEdit.getStorageUnit().getPower());
+        Double capacity = regionEdit.getCapacity() * Math.pow(1000, exponent);
         region.setCapacity(capacity.longValue());
 
         service.save(region);
@@ -283,7 +295,10 @@ public class StorageRegionUIController extends IngestController {
      * @return the template for displaying a StorageRegion
      */
     @PostMapping("/regions/{id}/config")
-    public String updateRegionConfig(Model model, Principal principal, @PathVariable("id") Long id, ReplicationConfigUpdate update) throws ForbiddenException {
+    public String updateRegionConfig(Model model,
+                                     Principal principal,
+                                     @PathVariable("id") Long id,
+                                     ReplicationConfigUpdate update) throws ForbiddenException {
         access.info("[POST /regions/{}/config] - {}", id, principal.getName());
         StorageRegionSearchCriteria criteria = new StorageRegionSearchCriteria().withId(id);
         StorageRegion region = service.find(criteria);

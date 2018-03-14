@@ -59,7 +59,8 @@ public class BagStorageController {
      * @return The bag's storage information
      */
     @GetMapping("/storage/{type}")
-    private ResponseEntity<StagingStorage> getBagStorage(@PathVariable("id") Long id, @PathVariable("type") String type) {
+    private ResponseEntity<StagingStorage> getBagStorage(@PathVariable("id") Long id,
+                                                         @PathVariable("type") String type) {
         access.info("[GET /api/bags/{}/storage/{}]", id, type);
         return storageFor(id, type)
                 .map(ResponseEntity::ok)
@@ -142,7 +143,10 @@ public class BagStorageController {
      *         409 if a Fixity value already exists for the given StagingStorage
      */
     @PutMapping("/storage/{type}/fixity")
-    private ResponseEntity<Fixity> addFixity(Principal principal, @PathVariable("id") Long id, @PathVariable("type") String type, @RequestBody FixityCreate create) {
+    private ResponseEntity<Fixity> addFixity(Principal principal,
+                                             @PathVariable("id") Long id,
+                                             @PathVariable("type") String type,
+                                             @RequestBody FixityCreate create) {
         access.info("[PUT /api/bags/{}/storage/{}/fixity]", id, type);
         access.info("Put parameters - {};{}", create.getAlgorithm(), create.getValue());
 
@@ -197,7 +201,9 @@ public class BagStorageController {
      * @return The fixity value for the algorithm, if it exists
      */
     @GetMapping("/storage/{type}/fixity/{alg}")
-    private ResponseEntity<Fixity> getFixity(@PathVariable("id") Long id, @PathVariable("type") String type, @PathVariable("alg") String algorithm) {
+    private ResponseEntity<Fixity> getFixity(@PathVariable("id") Long id,
+                                             @PathVariable("type") String type,
+                                             @PathVariable("alg") String algorithm) {
         access.info("[GET /api/bags/{}/storage/{}/fixity/{alg}]", id, type, algorithm);
 
         Optional<StagingStorage> storage = storageFor(id, type);
