@@ -112,7 +112,7 @@
                 <!--/*@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"*/-->
                 <tr th:each="bag : ${recentBags}" th:attr="data-href=@{|/bags/${bag.id}|}" class="table-clickable">
                     <td th:text="${bag.id}"></td>
-                    <td th:text="${bag.depositor}"></td>
+                    <td th:text="${bag.depositor.namespace}"></td>
                     <td th:text="${bag.name}"></td>
                     <td th:text="${bag.status}"></td>
                     <td th:text="${bag.createdAt.toLocalDate()}"></td>

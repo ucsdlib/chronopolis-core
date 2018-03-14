@@ -45,7 +45,7 @@
                         <td th:text="${repair.createdAt.toLocalDate()}"></td>
                         <td th:text="${repair.to.username}"></td>
                         <td th:text="${repair.status}"></td>
-                        <td th:text="|${repair.bag.depositor} :: ${repair.bag.name}|"></td>
+                        <td th:text="|${repair.bag.depositor.namespace} :: ${repair.bag.name}|"></td>
                     </tr>
                     </tbody>
                 </table>
