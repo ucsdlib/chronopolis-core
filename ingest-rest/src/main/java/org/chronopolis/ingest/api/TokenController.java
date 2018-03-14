@@ -1,6 +1,5 @@
 package org.chronopolis.ingest.api;
 
-import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.models.filter.AceTokenFilter;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.criteria.AceTokenSearchCriteria;
@@ -11,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -62,14 +62,16 @@ public class TokenController {
      * @return the ACE Token
      */
     @GetMapping("/{id}")
-    public AceToken getToken(Principal principal, @PathVariable("id") Long id) {
+    public ResponseEntity<AceToken> getToken(Principal principal, @PathVariable("id") Long id) {
         access.info("[GET /api/tokens/{}] - ", id, principal.getName());
         AceTokenSearchCriteria criteria = new AceTokenSearchCriteria().withId(id);
         AceToken token = tokens.find(criteria);
+        ResponseEntity<AceToken> response = ResponseEntity.ok(token);
         if (token == null) {
-            throw new NotFoundException("AceToken with id " + id + " could not be located");
+            response = ResponseEntity.notFound().build();
         }
-        return token;
+
+        return response;
     }
 
 }
