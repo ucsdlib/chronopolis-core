@@ -1,8 +1,5 @@
 package org.chronopolis.ingest.api;
 
-import com.google.i18n.phonenumbers.NumberParseException;
-import com.google.i18n.phonenumbers.PhoneNumberUtil;
-import com.google.i18n.phonenumbers.Phonenumber;
 import org.chronopolis.ingest.models.filter.BagFilter;
 import org.chronopolis.ingest.models.filter.DepositorFilter;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
@@ -35,12 +32,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.security.Principal;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import static com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat.INTERNATIONAL;
 import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
 
 /**
@@ -77,8 +72,8 @@ public class DepositorController {
     /**
      * Create a Depositor in the Ingest Server
      *
-     * @param principal the security principal of the user
-     * @param depositor the Depositor to create
+     * @param principal       the security principal of the user
+     * @param depositorCreate the Depositor to create
      * @return HTTP 201 if the Depositor was created successfully with the Depositor as the response
      *         HTTP 400 if the DepositorCreate is not valid (bad phone number, missing fields, etc)
      *         HTTP 401 if the user is not authenticated
@@ -88,72 +83,38 @@ public class DepositorController {
     @PostMapping
     public ResponseEntity<Depositor> createDepositor(Principal principal,
                                                      @Valid @RequestBody
-                                                     DepositorCreate depositor) {
+                                                     DepositorCreate depositorCreate) {
         access.info("[POST /api/depositors] - {}", principal.getName());
         QDepositor qDepositor = QDepositor.depositor;
 
+        Depositor exists = dao.findOne(qDepositor,
+                qDepositor.namespace.eq(depositorCreate.getNamespace()));
+
         // Default response of Forbidden if a user is not authorized to create Depositors
-        ResponseEntity<Depositor> response = ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        if (hasRoleAdmin()) {
-            // check collision
-            Depositor exists = dao.findOne(qDepositor,
-                    qDepositor.namespace.eq(depositor.getNamespace()));
+        ResponseEntity<Depositor> response = ResponseEntity.badRequest().build();
+        if (!hasRoleAdmin()) {
+            response = ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } else if (exists != null) {
+            response = ResponseEntity.status(HttpStatus.CONFLICT).build();
+        } else {
+            Set<DepositorContact> contacts = depositorCreate.getContacts().stream()
+                    .map(DepositorContact::fromCreateRequest)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .collect(Collectors.toSet());
 
-            if (exists == null) {
-                Optional<Set<DepositorContact>> parsed = parseContacts(depositor.getContacts());
-                Optional<Depositor> depositorOptional = parsed.map(contacts -> new Depositor()
-                        .setNamespace(depositor.getNamespace())
-                        .setSourceOrganization(depositor.getSourceOrganization())
-                        .setOrganizationAddress(depositor.getOrganizationAddress())
-                        .setContacts(contacts));
-                depositorOptional.ifPresent(dao::save);
-
-                // Even though the BadRequest is handled by Spring, we do an additional check here
-                // as a sanity check. This is because a PhoneNumberException can be thrown so it
-                // gives a way to handle the exception gracefully.
-                response = depositorOptional.map(entity ->
-                        ResponseEntity.status(HttpStatus.CREATED).body(entity))
-                        .orElse(ResponseEntity.badRequest().build());
-            } else {
-                response = ResponseEntity.status(HttpStatus.CONFLICT).build();
+            if (contacts.size() == depositorCreate.getContacts().size()) {
+                Depositor dep = new Depositor()
+                        .setNamespace(depositorCreate.getNamespace())
+                        .setSourceOrganization(depositorCreate.getSourceOrganization())
+                        .setOrganizationAddress(depositorCreate.getOrganizationAddress())
+                        .setContacts(contacts);
+                dao.save(dep);
+                response = ResponseEntity.status(HttpStatus.CREATED).body(dep);
             }
         }
 
         return response;
-    }
-
-    /**
-     * Read through DepositorContactCreate requests and return a Set of DepositorContacts if
-     * the requests are valid. If a Contact is invalid, return an empty Optional. This way if
-     * no Contacts were requested to be made, we can still return an empty Set.
-     * <p>
-     * Note: We might want to move this somewhere else as this will likely be something we
-     * need to do in multiple places
-     *
-     * @param creates the DepositorContactCreate requests
-     * @return The DepositorContacts
-     */
-    private Optional<Set<DepositorContact>> parseContacts(List<DepositorContactCreate> creates) {
-        PhoneNumberUtil numberUtil = PhoneNumberUtil.getInstance();
-        Set<DepositorContact> contacts = new HashSet<>(creates.size());
-        Optional<Set<DepositorContact>> safe = Optional.of(contacts);
-        try {
-            // todo: DepositorContact.fromCreateRequest()
-            for (DepositorContactCreate create : creates) {
-                DepositorContactCreate.PhoneNumber proto = create.getPhoneNumber();
-                Phonenumber.PhoneNumber phoneNumber =
-                        numberUtil.parse(proto.getNumber(), proto.getCountryCode());
-                contacts.add(new DepositorContact().setContactName(create.getName())
-                        .setContactEmail(create.getEmail())
-                        .setContactPhone(numberUtil.format(phoneNumber, INTERNATIONAL)));
-            }
-        } catch (NumberParseException exception) {
-            // This shouldn't happen, but in case we're trying an unvalidated DCC
-            log.error("Unable to parse number", exception);
-            safe = Optional.empty();
-        }
-
-        return safe;
     }
 
     /**
@@ -236,13 +197,13 @@ public class DepositorController {
      *         HTTP 400 if the DepositorContactModel is not valid
      *         HTTP 403 if the user is not authorized
      *         HTTP 404 if a Depositor does not exist with the given namespace
-     *         TBD: HTTP 409 if the DepositorContact already exists
+     *         HTTP 409 if the DepositorContact already exists
      */
     @PostMapping("/{namespace}/contacts")
     public ResponseEntity<DepositorContact> addContact(Principal principal,
                                                        @PathVariable("namespace") String namespace,
                                                        @Valid @RequestBody
-                                                       DepositorContactCreate create) {
+                                                               DepositorContactCreate create) {
         access.info("[POST /api/depositors/{}/contacts] - {}", namespace, principal.getName());
         ResponseEntity<DepositorContact> response = ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
