@@ -39,12 +39,12 @@
 
                 <div class="form-group row"
                      th:with="capacityError=${#fields.hasErrors('capacity')}"
-                     th:classappend="${capacityError}? 'has-warning'">
+                     th:classappend="${capacityError}? 'is-invalid'">
                     <label for="capacity" class="col-3 col-form-label">Total Capacity</label>
                     <div class="col-sm">
-                        <input th:field="*{capacity}" th:classappend="${capacityError}? 'form-control-warning'"
+                        <input th:field="*{capacity}" th:classappend="${capacityError}? 'is-invalid'"
                                class="form-control" id="capacity" name="capacity"/>
-                        <div class="form-control-feedback" th:if="${capacityError}" th:errors="*{capacity}"></div>
+                        <div class="invalid-feedback" th:if="${capacityError}" th:errors="*{capacity}"></div>
                     </div>
                 </div>
 
@@ -61,7 +61,7 @@
                 <div class="form-group row">
                     <label for="note" class="col-3 col-form-label">Storage Region Information</label>
                     <div class="col-sm">
-                        <textarea class="form-control" name="note" id="note" rows="2"/>
+                        <textarea class="form-control" name="note" id="note" rows="2"></textarea>
                     </div>
                 </div>
                 <input type="submit" class="btn btn-primary" value="Submit"/>

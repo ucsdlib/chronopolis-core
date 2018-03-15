@@ -36,7 +36,7 @@
 
                     <div class="form-group row"
                          th:with="phoneError=${#fields.hasErrors('phoneNumber')}"
-                         th:classappend="${phoneError}? 'has-warning'">
+                         th:classappend="${phoneError}? 'is-invalid'">
                         <label for="contact-phone" class="col-4 col-form-label">Contact
                             Phone</label>
                         <div class="col-2">
