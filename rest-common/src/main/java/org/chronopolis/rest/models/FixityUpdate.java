@@ -1,27 +1,24 @@
 package org.chronopolis.rest.models;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
+ * Input for updating a fixity
  *
- * Created by shake on 12/1/15.
+ * @author shake
  */
 public class FixityUpdate {
 
-    private String fixity;
+    private final String fixity;
 
-    public FixityUpdate() {
-    }
-
-    public FixityUpdate(String fixity) {
+    @JsonCreator
+    public FixityUpdate(@JsonProperty("fixity") String fixity) {
         this.fixity = fixity;
     }
 
     public String getFixity() {
         return fixity;
-    }
-
-    public FixityUpdate setFixity(String fixity) {
-        this.fixity = fixity;
-        return this;
     }
 
     @Override

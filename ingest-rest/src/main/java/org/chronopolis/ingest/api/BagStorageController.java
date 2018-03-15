@@ -1,7 +1,6 @@
 package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableSet;
-import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.StagingService;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.QBag;
@@ -31,9 +30,8 @@ import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
 
 /**
  * REST controller for interacting with the Storage fields in a Bag
- * todos
- * - Constraints on PUTs (only the node/admin may alter its own resources)
- * - BadRequest on invalid type?
+ *
+ * todo: BadRequest on invalid type?
  */
 @RestController
 @RequestMapping("/api/bags/{id}")
@@ -45,12 +43,10 @@ public class BagStorageController {
     private static final String BAG_TYPE = "bag";
     private static final String TOKEN_TYPE = "token";
 
-    private final BagService bagService;
     private final StagingService stagingService;
 
     @Autowired
-    public BagStorageController(BagService bagService, StagingService stagingService) {
-        this.bagService = bagService;
+    public BagStorageController(StagingService stagingService) {
         this.stagingService = stagingService;
     }
 
@@ -63,7 +59,8 @@ public class BagStorageController {
      * @return The bag's storage information
      */
     @GetMapping("/storage/{type}")
-    private ResponseEntity<StagingStorage> getBagStorage(@PathVariable("id") Long id, @PathVariable("type") String type) {
+    private ResponseEntity<StagingStorage> getBagStorage(@PathVariable("id") Long id,
+                                                         @PathVariable("type") String type) {
         access.info("[GET /api/bags/{}/storage/{}]", id, type);
         return storageFor(id, type)
                 .map(ResponseEntity::ok)
@@ -146,7 +143,10 @@ public class BagStorageController {
      *         409 if a Fixity value already exists for the given StagingStorage
      */
     @PutMapping("/storage/{type}/fixity")
-    private ResponseEntity<Fixity> addFixity(Principal principal, @PathVariable("id") Long id, @PathVariable("type") String type, @RequestBody FixityCreate create) {
+    private ResponseEntity<Fixity> addFixity(Principal principal,
+                                             @PathVariable("id") Long id,
+                                             @PathVariable("type") String type,
+                                             @RequestBody FixityCreate create) {
         access.info("[PUT /api/bags/{}/storage/{}/fixity]", id, type);
         access.info("Put parameters - {};{}", create.getAlgorithm(), create.getValue());
 
@@ -201,7 +201,9 @@ public class BagStorageController {
      * @return The fixity value for the algorithm, if it exists
      */
     @GetMapping("/storage/{type}/fixity/{alg}")
-    private ResponseEntity<Fixity> getFixity(@PathVariable("id") Long id, @PathVariable("type") String type, @PathVariable("alg") String algorithm) {
+    private ResponseEntity<Fixity> getFixity(@PathVariable("id") Long id,
+                                             @PathVariable("type") String type,
+                                             @PathVariable("alg") String algorithm) {
         access.info("[GET /api/bags/{}/storage/{}/fixity/{alg}]", id, type, algorithm);
 
         Optional<StagingStorage> storage = storageFor(id, type);

@@ -5,9 +5,6 @@ import org.chronopolis.rest.listener.UpdatableEntityListener;
 
 import javax.persistence.Convert;
 import javax.persistence.EntityListeners;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 import java.time.ZonedDateTime;
 
@@ -18,17 +15,13 @@ import java.time.ZonedDateTime;
  */
 @MappedSuperclass
 @EntityListeners(UpdatableEntityListener.class)
-public class UpdatableEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+public class UpdatableEntity extends PersistableEntity {
 
     @Convert(converter = ZonedDateTimeConverter.class)
-    ZonedDateTime createdAt;
+    private ZonedDateTime createdAt;
 
     @Convert(converter = ZonedDateTimeConverter.class)
-    ZonedDateTime updatedAt;
+    private ZonedDateTime updatedAt;
 
 
     public ZonedDateTime getCreatedAt() {
@@ -49,12 +42,5 @@ public class UpdatableEntity {
         return this;
     }
 
-    public Long getId() {
-        return id;
-    }
 
-    public UpdatableEntity setId(Long id) {
-        this.id = id;
-        return this;
-    }
 }

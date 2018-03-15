@@ -8,6 +8,8 @@ import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.WebContext;
 import org.chronopolis.ingest.api.serializer.AceTokenSerializer;
 import org.chronopolis.ingest.api.serializer.BagSerializer;
+import org.chronopolis.ingest.api.serializer.DepositorContactSerializer;
+import org.chronopolis.ingest.api.serializer.DepositorSerializer;
 import org.chronopolis.ingest.api.serializer.RepairSerializer;
 import org.chronopolis.ingest.api.serializer.ReplicationSerializer;
 import org.chronopolis.ingest.api.serializer.StagingStorageSerializer;
@@ -16,6 +18,8 @@ import org.chronopolis.ingest.api.serializer.ZonedDateTimeDeserializer;
 import org.chronopolis.ingest.api.serializer.ZonedDateTimeSerializer;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Depositor;
+import org.chronopolis.rest.entities.DepositorContact;
 import org.chronopolis.rest.entities.Repair;
 import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.entities.storage.StagingStorage;
@@ -49,6 +53,7 @@ import static org.mockito.Mockito.when;
 public class ControllerTest extends IngestTest {
 
     protected MockMvc mvc;
+    private ObjectMapper mapper;
 
     protected static final String REQUESTER = "requester";
     protected static final String AUTHORIZED = "authorized";
@@ -77,13 +82,16 @@ public class ControllerTest extends IngestTest {
         builder.serializerByType(AceToken.class, new AceTokenSerializer());
         builder.serializerByType(Bag.class, new BagSerializer());
         builder.serializerByType(Repair.class, new RepairSerializer());
+        builder.serializerByType(Depositor.class, new DepositorSerializer());
+        builder.serializerByType(DepositorContact.class, new DepositorContactSerializer());
         builder.serializerByType(Replication.class, new ReplicationSerializer());
         builder.serializerByType(StagingStorage.class, new StagingStorageSerializer());
         builder.serializerByType(StorageRegion.class, new StorageRegionSerializer());
         builder.serializerByType(ZonedDateTime.class, new ZonedDateTimeSerializer());
         builder.deserializerByType(ZonedDateTime.class, new ZonedDateTimeDeserializer());
+        mapper = builder.build();
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(builder.build());
+        converter.setObjectMapper(mapper);
         converter.setSupportedMediaTypes(ImmutableList.of(MediaType.APPLICATION_JSON));
 
         // we could do all the controllers here which would just mean creating a few more mocks
@@ -112,7 +120,6 @@ public class ControllerTest extends IngestTest {
     }
 
     public <T> String asJson(T request) {
-        ObjectMapper mapper = new ObjectMapper();
         try {
             return mapper.writeValueAsString(request);
         } catch (JsonProcessingException e) {

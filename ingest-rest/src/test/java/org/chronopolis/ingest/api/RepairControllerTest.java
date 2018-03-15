@@ -1,12 +1,6 @@
 package org.chronopolis.ingest.api;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.chronopolis.ingest.api.serializer.BagSerializer;
-import org.chronopolis.ingest.api.serializer.RepairSerializer;
-import org.chronopolis.ingest.api.serializer.ZonedDateTimeDeserializer;
-import org.chronopolis.ingest.api.serializer.ZonedDateTimeSerializer;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;
@@ -29,13 +23,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import java.time.ZonedDateTime;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
@@ -55,7 +43,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(RepairController.class)
 public class RepairControllerTest extends ControllerTest {
 
-    private MockMvc mvc;
     private RepairController controller;
     private final Depositor depositor = new Depositor();
 
@@ -66,21 +53,8 @@ public class RepairControllerTest extends ControllerTest {
 
     @Before
     public void setup() {
-        // move to helper?
-        Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
-        builder.serializationInclusion(JsonInclude.Include.NON_NULL);
-        builder.serializerByType(Bag.class, new BagSerializer());
-        builder.serializerByType(Repair.class, new RepairSerializer());
-        builder.serializerByType(ZonedDateTime.class, new ZonedDateTimeSerializer());
-        builder.deserializerByType(ZonedDateTime.class, new ZonedDateTimeDeserializer());
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(builder.build());
-        converter.setSupportedMediaTypes(ImmutableList.of(MediaType.APPLICATION_JSON));
-
         controller = new RepairController(bags, nodes, repairs);
-        mvc = MockMvcBuilders.standaloneSetup(controller)
-                .setMessageConverters(converter)
-                .build();
+        setupMvc(controller);
     }
 
     @Test

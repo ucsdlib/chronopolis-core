@@ -30,7 +30,8 @@ public class TokenThreadPoolExecutorTest extends IngestTest {
 
     private final Depositor depositor = new Depositor()
             .setNamespace("test-depositor")
-            .setSourceOrganization("test-org");
+            .setSourceOrganization("test-org")
+            .setOrganizationAddress("test-address");
 
     private Bag b0 = new Bag("test-name-0", depositor);
     private Bag b1 = new Bag("test-name-1", depositor);

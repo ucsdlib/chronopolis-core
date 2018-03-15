@@ -16,14 +16,14 @@
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a th:href="@{/bags/overview}">Bags</a></li>
         <li class="breadcrumb-item"><a th:href="@{/bags}">All</a></li>
-        <li class="breadcrumb-item"><a th:href="@{/bags(depositor=${bag.depositor})}"
-                                       th:text="${bag.depositor}">Depositor</a>
+        <li class="breadcrumb-item"><a th:href="@{/bags(depositor=${bag.depositor.namespace})}"
+                                       th:text="${bag.depositor.namespace}">Depositor</a>
         </li>
         <li class="breadcrumb-item active" aria-current="page" th:text="${bag.name}">Bag Name</li>
     </ol>
 </nav>
 
-<nav th:fragment="list" aria-label="breadcrumb" role="naviation">
+<nav th:fragment="list" aria-label="breadcrumb" role="navigation">
     <ol class="breadcrumb" style="margin-bottom: 0 !important;">
         <li class="breadcrumb-item"><a th:href="@{/bags/overview}">Bags</a></li>
         <li class="breadcrumb-item active">All</li>

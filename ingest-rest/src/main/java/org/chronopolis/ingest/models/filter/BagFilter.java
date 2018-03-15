@@ -3,7 +3,11 @@ package org.chronopolis.ingest.models.filter;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import org.chronopolis.ingest.models.Paged;
+import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.models.BagStatus;
 
 import java.util.List;
@@ -14,6 +18,9 @@ import java.util.List;
  * Created by shake on 6/15/17.
  */
 public class BagFilter extends Paged {
+
+    private final QBag bag = QBag.bag;
+    private final BooleanBuilder builder = new BooleanBuilder();
 
     private String name;
     private String depositor;
@@ -26,8 +33,11 @@ public class BagFilter extends Paged {
     }
 
     public BagFilter setName(String name) {
-        this.name = name;
-        parameters.put("name", name);
+        if (name != null && !name.isEmpty()) {
+            this.name = name;
+            parameters.put("name", name);
+            builder.and(bag.name.eq(name));
+        }
         return this;
     }
 
@@ -36,8 +46,11 @@ public class BagFilter extends Paged {
     }
 
     public BagFilter setDepositor(String depositor) {
-        this.depositor = depositor;
-        parameters.put("depositor", depositor);
+        if (depositor != null && !depositor.isEmpty()) {
+            this.depositor = depositor;
+            parameters.put("depositor", depositor);
+            builder.and(bag.depositor.namespace.eq(depositor));
+        }
         return this;
     }
 
@@ -46,8 +59,11 @@ public class BagFilter extends Paged {
     }
 
     public BagFilter setStatus(List<BagStatus> status) {
-        this.status = status;
-        status.forEach(bagStatus -> parameters.put("status", bagStatus.name()));
+        if (status != null && !status.isEmpty()) {
+            this.status = status;
+            status.forEach(bagStatus -> parameters.put("status", bagStatus.name()));
+            builder.and(bag.status.in(status));
+        }
         return this;
     }
 
@@ -55,5 +71,33 @@ public class BagFilter extends Paged {
     public Multimap<String, String> getParameters() {
         parameters.putAll(super.getParameters());
         return Multimaps.filterValues(parameters, (value) -> (value != null && !value.isEmpty()));
+    }
+
+    @Override
+    public BooleanBuilder getQuery() {
+        return builder;
+    }
+
+    @Override
+    public OrderSpecifier getOrderSpecifier() {
+        Order dir = getDirection();
+        OrderSpecifier orderSpecifier;
+
+        switch (getOrderBy()) {
+            case "createdAt":
+                orderSpecifier = new OrderSpecifier<>(dir, bag.createdAt);
+                break;
+            case "updatedAt":
+                orderSpecifier = new OrderSpecifier<>(dir, bag.updatedAt);
+                break;
+            case "size":
+                orderSpecifier = new OrderSpecifier<>(dir, bag.size);
+                break;
+            default:
+                orderSpecifier = new OrderSpecifier<>(dir, bag.id);
+                break;
+        }
+
+        return orderSpecifier;
     }
 }

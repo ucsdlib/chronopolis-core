@@ -9,8 +9,8 @@ package org.chronopolis.rest.models;
  */
 public class PasswordUpdate {
 
-    String oldPassword;
-    String newPassword;
+    private String oldPassword;
+    private String newPassword;
 
     public String getOldPassword() {
         return oldPassword;

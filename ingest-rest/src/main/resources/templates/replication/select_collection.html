@@ -11,12 +11,12 @@
     <!--/*@thymesVar id="depositor" type="java.lang.String"*/-->
     <h6 class="text-muted" th:text="|Create a new replication for ${depositor}|" text="Create a new replication"></h6>
     <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem;">
-        <form enctype="application/json" method="post" name="replication">
+        <form method="post" name="replication">
             <!--@thymesVar id="bags" type="List<Bag>"-->
             <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
             <select name="bagId" id="bagId">
                 <option th:each="bag: ${bags}"
-                        th:value="${bag.id}" th:text="|${bag.depositor} / ${bag.name}|">
+                        th:value="${bag.id}" th:text="|${bag.depositor.namespace} / ${bag.name}|">
                 </option>
             </select>
 

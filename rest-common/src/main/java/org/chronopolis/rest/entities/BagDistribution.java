@@ -4,9 +4,6 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
 /**
@@ -15,11 +12,7 @@ import javax.persistence.ManyToOne;
  * Created by shake on 7/17/15.
  */
 @Entity
-public class BagDistribution {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class BagDistribution extends PersistableEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Bag bag;
@@ -29,10 +22,6 @@ public class BagDistribution {
 
     @Enumerated(EnumType.STRING)
     private BagDistributionStatus status;
-
-    public Long getId() {
-        return id;
-    }
 
     public Bag getBag() {
         return bag;

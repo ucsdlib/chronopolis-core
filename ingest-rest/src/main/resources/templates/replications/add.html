@@ -18,7 +18,7 @@
                     <div class="col-8">
                         <select class="form-control" name="bagId" id="bagId">
                             <option th:each="bag: ${bags}"
-                                    th:value="${bag.id}" th:text="${bag.depositor} + '/' + ${bag.name}">
+                                    th:value="${bag.id}" th:text="|${bag.depositor.namespace}/${bag.name}|">
                             </option>
                         </select>
                     </div>
