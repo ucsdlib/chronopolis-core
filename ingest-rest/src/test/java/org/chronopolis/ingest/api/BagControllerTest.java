@@ -63,7 +63,7 @@ public class BagControllerTest extends ControllerTest {
                 get("/api/bags/")
                         .principal(() -> "user"))
                 .andDo(print())
-                .andExpect(status().is(200));
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -76,7 +76,7 @@ public class BagControllerTest extends ControllerTest {
                 get("/api/bags/{id}", 1L)
                         .principal(() -> "user"))
                 .andDo(print())
-                .andExpect(status().is(200))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.depositor").value("test-depositor"))
                 .andExpect(jsonPath("$.name").value("test-bag"));
@@ -89,7 +89,7 @@ public class BagControllerTest extends ControllerTest {
                 get("/api/bags/{id}", 100L)
                         .principal(() -> "user"))
                 .andDo(print())
-                .andExpect(status().is(404));
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -116,7 +116,7 @@ public class BagControllerTest extends ControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(asJson(request)))
                 .andDo(print())
-                .andExpect(status().is(200))
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.depositor").value(NAMESPACE))
                 .andExpect(jsonPath("$.name").value(BAG));
 
