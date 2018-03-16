@@ -1,6 +1,7 @@
 package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableList;
+import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.support.BagCreateResult;
@@ -12,6 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -43,9 +45,7 @@ public class BagControllerTest extends ControllerTest {
     private final Depositor DEPOSITOR = new Depositor().setNamespace(NAMESPACE);
 
     // Mocks for the StagingController
-    // @MockBean private NodeRepository nodes;
     @MockBean private BagService bagService;
-    // @MockBean private StorageRegionService regions;
 
     @Before
     public void setup() {
@@ -55,9 +55,8 @@ public class BagControllerTest extends ControllerTest {
 
     @Test
     public void testGetBags() throws Exception {
-        // todo actual return value
-        // todo correct search criteria
-        when(bagService.findAll(any(SearchCriteria.class), any(Pageable.class))).thenReturn(null);
+        when(bagService.findAll(eq(new BagSearchCriteria()), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(ImmutableList.of(bag())));
 
         mvc.perform(
                 get("/api/bags/")
@@ -68,9 +67,7 @@ public class BagControllerTest extends ControllerTest {
 
     @Test
     public void testGetBag() throws Exception {
-        // todo actual return value
-        // todo correct search criteria
-        when(bagService.find(any(SearchCriteria.class))).thenReturn(bag());
+        when(bagService.find(eq(new BagSearchCriteria().withId(1L)))).thenReturn(bag());
 
         mvc.perform(
                 get("/api/bags/{id}", 1L)
@@ -102,7 +99,6 @@ public class BagControllerTest extends ControllerTest {
         request.setStorageRegion(1L);
         request.setName(BAG);
         request.setLocation(LOCATION);
-        request.setReplicatingNodes(ImmutableList.of(NODE));
 
         // created bag to return
         Bag bag = bag();
