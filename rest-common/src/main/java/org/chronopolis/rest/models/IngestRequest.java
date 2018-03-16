@@ -17,31 +17,44 @@ public class IngestRequest {
     private Long storageRegion;
     private String location;
     private String depositor;
+
+    /**
+     * @deprecated will be removed in next major release
+     */
+    @Deprecated
     private int requiredReplications;
+
+    /**
+     * @deprecated will be removed in next major release
+     */
+    @Deprecated
     private List<String> replicatingNodes;
 
     public String getName() {
         return name;
     }
 
-    public void setName(final String name) {
+    public IngestRequest setName(final String name) {
         this.name = name;
+        return this;
     }
 
     public String getDepositor() {
         return depositor;
     }
 
-    public void setDepositor(final String depositor) {
+    public IngestRequest setDepositor(final String depositor) {
         this.depositor = depositor;
+        return this;
     }
 
     public String getLocation() {
         return location;
     }
 
-    public void setLocation(final String location) {
+    public IngestRequest setLocation(final String location) {
         this.location = location;
+        return this;
     }
 
     public int getRequiredReplications() {
