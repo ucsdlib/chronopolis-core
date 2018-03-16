@@ -4,12 +4,10 @@ import com.google.common.collect.ImmutableList;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.repository.BagRepository;
-import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Depositor;
 import org.chronopolis.rest.entities.DepositorNode;
-import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QAceToken;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.QDepositor;
@@ -25,7 +23,6 @@ import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatus.DISTRIBUTE;
 
@@ -189,57 +186,6 @@ public class BagService extends SearchService<Bag, Long, BagRepository> {
         return result;
     }
 
-    @Deprecated
-    public Bag create(String creator,
-                      IngestRequest request,
-                      StorageRegion region,
-                      Set<Node> replicatingNodes) {
-        String name = request.getName();
-        String namespace = request.getDepositor();
-
-        BagSearchCriteria criteria = new BagSearchCriteria()
-                .withName(name)
-                .withDepositor(namespace);
-
-        Bag bag = find(criteria);
-        if (bag != null) {
-            // return a 409 instead?
-            log.debug("Bag {} exists from depositor {}, skipping creation", name, namespace);
-            return bag;
-        }
-        JPAQueryFactory factory = new JPAQueryFactory(entityManager);
-        Depositor depositor = factory.selectFrom(QDepositor.depositor)
-                .where(QDepositor.depositor.namespace.eq(namespace))
-                .fetchOne();
-
-        log.debug("Received ingest request {}", request);
-        Long size = request.getSize();
-        Long totalFiles = request.getTotalFiles();
-
-        bag = new Bag(name, depositor);
-        bag.setSize(size);
-        bag.setTotalFiles(totalFiles);
-        bag.setCreator(creator);
-
-        // do we want fixity information on create? (or done later?)
-        StagingStorage storage = new StagingStorage();
-        storage.setRegion(region);
-        storage.setActive(true);
-        storage.setSize(size);
-        storage.setTotalFiles(totalFiles);
-        storage.setPath(request.getLocation());
-        bag.setBagStorage(storage);
-
-        if (request.getRequiredReplications() > 0) {
-            bag.setRequiredReplications(request.getRequiredReplications());
-        }
-
-        createDistributions(bag, replicatingNodes);
-        save(bag);
-
-        return bag;
-    }
-
     /**
      * Create BagDistributions based on the DepositorNode distributions from a Depositor
      *
@@ -250,17 +196,6 @@ public class BagService extends SearchService<Bag, Long, BagRepository> {
         for (DepositorNode node : depositor.getNodeDistributions()) {
             log.debug("Creating requested dist record for {}", node.getNode().username);
             bag.addDistribution(node.getNode(), DISTRIBUTE);
-        }
-    }
-
-    @Deprecated
-    private void createDistributions(Bag bag, Set<Node> replicatingNodes) {
-        // how to log errant nodes?
-        for (Node node : replicatingNodes) {
-            if (node != null) {
-                log.debug("Creating requested dist record for {}", node.username);
-                bag.addDistribution(node, DISTRIBUTE);
-            }
         }
     }
 

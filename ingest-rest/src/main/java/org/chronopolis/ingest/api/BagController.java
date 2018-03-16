@@ -2,22 +2,18 @@ package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableMap;
 import org.chronopolis.ingest.IngestController;
-import org.chronopolis.ingest.exception.BadRequestException;
 import org.chronopolis.ingest.exception.NotFoundException;
-import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
-import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
-import org.chronopolis.ingest.repository.dao.StorageRegionService;
+import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.rest.models.IngestRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,15 +23,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import static org.chronopolis.ingest.api.Params.*;
+import static org.chronopolis.ingest.api.Params.ACTIVE;
 import static org.chronopolis.ingest.api.Params.CREATED_AFTER;
 import static org.chronopolis.ingest.api.Params.CREATED_BEFORE;
+import static org.chronopolis.ingest.api.Params.CREATOR;
 import static org.chronopolis.ingest.api.Params.DEPOSITOR;
 import static org.chronopolis.ingest.api.Params.NAME;
 import static org.chronopolis.ingest.api.Params.REGION;
@@ -60,16 +53,10 @@ public class BagController extends IngestController {
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private final BagService bagService;
-    private final NodeRepository nodeRepository;
-    private final StorageRegionService regions;
 
     @Autowired
-    public BagController(NodeRepository nodeRepository,
-                         BagService bagService,
-                         StorageRegionService regions) {
-        this.nodeRepository = nodeRepository;
+    public BagController(BagService bagService) {
         this.bagService = bagService;
-        this.regions = regions;
     }
 
     /**
@@ -120,45 +107,17 @@ public class BagController extends IngestController {
      *
      * @param principal authentication information
      * @param request   the request containing the bag name, depositor, and location of the bag
-     * @return the bag created from the IngestRequest
+     * @return HTTP 201 with the created Bag
+     *         HTTP 400 if the request is not valid (depositor, region)
+     *         HTTP 401 if the user is not authenticated
+     *         HTTP 403 if the user is not authorized to create
      */
     @PostMapping
-    public Bag stageBag(Principal principal, @RequestBody IngestRequest request) {
+    public ResponseEntity<Bag> stageBag(Principal principal, @RequestBody IngestRequest request) {
         access.info("[POST /api/bags/] - {}", principal.getName());
         access.info("POST parameters - {}", request.getDepositor(), request.getName(), request.getStorageRegion());
-        Long regionId = request.getStorageRegion();
-        StorageRegion region = regions.find(new StorageRegionSearchCriteria().withId(regionId));
-        if (region == null) {
-            throw new BadRequestException("Invalid StorageRegion");
-        }
-
-        Set<Node> replicatingNodes = replicatingNodes(request.getReplicatingNodes());
-        return bagService.create(principal.getName(), request, region, replicatingNodes);
-    }
-
-    /**
-     * Helper to get Nodes from a list of node names. Eventually we'll want to do this
-     * in the DB through a NodeService.
-     *
-     * @param nodeNames the node usernames to query
-     * @return the set of Node entities found
-     */
-    private Set<Node> replicatingNodes(List<String> nodeNames) {
-        Set<Node> replicatingNodes = new HashSet<>();
-        if (nodeNames == null) {
-            nodeNames = new ArrayList<>();
-        }
-
-        for (String name : nodeNames) {
-            Node node = nodeRepository.findByUsername(name);
-            if (node != null) {
-                replicatingNodes.add(node);
-            } else {
-                log.debug("Node {} not found for distribution of bag!", name);
-            }
-        }
-
-        return replicatingNodes;
+        BagCreateResult result = bagService.processRequest(principal.getName(), request);
+        return result.getResponseEntity();
     }
 
 

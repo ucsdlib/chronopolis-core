@@ -1,14 +1,11 @@
 package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableList;
-import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
-import org.chronopolis.ingest.repository.dao.StorageRegionService;
+import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Depositor;
-import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.IngestRequest;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,10 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.Set;
-
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anySet;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -48,16 +42,14 @@ public class BagControllerTest extends ControllerTest {
     private final String NODE = "test-node";
     private final Depositor DEPOSITOR = new Depositor().setNamespace(NAMESPACE);
 
-    private BagController controller;
-
     // Mocks for the StagingController
-    @MockBean private NodeRepository nodes;
+    // @MockBean private NodeRepository nodes;
     @MockBean private BagService bagService;
-    @MockBean private StorageRegionService regions;
+    // @MockBean private StorageRegionService regions;
 
     @Before
     public void setup() {
-        controller = new BagController(nodes, bagService, regions);
+        BagController controller = new BagController(bagService);
         setupMvc(controller);
     }
 
@@ -114,10 +106,9 @@ public class BagControllerTest extends ControllerTest {
 
         // created bag to return
         Bag bag = bag();
+        BagCreateResult result = new BagCreateResult(bag);
 
-        when(regions.find(any(SearchCriteria.class))).thenReturn(new StorageRegion());
-        when(nodes.findByUsername(eq(NODE))).thenReturn(new Node(NODE, "password"));
-        when(bagService.create(eq("user"), eq(request), any(StorageRegion.class), any(Set.class))).thenReturn(bag);
+        when(bagService.processRequest(eq("user"), eq(request))).thenReturn(result);
 
         mvc.perform(
                 post("/api/bags")
@@ -129,9 +120,7 @@ public class BagControllerTest extends ControllerTest {
                 .andExpect(jsonPath("$.depositor").value(NAMESPACE))
                 .andExpect(jsonPath("$.name").value(BAG));
 
-        // verify(bagService, times(1)).find(any(SearchCriteria.class));
-        verify(bagService, times(1)).create(eq("user"), eq(request), any(StorageRegion.class), anySet());
-        verify(nodes, times(1)).findByUsername(eq(NODE));
+        verify(bagService, times(1)).processRequest(eq("user"), eq(request));
     }
 
     private Bag bag() {

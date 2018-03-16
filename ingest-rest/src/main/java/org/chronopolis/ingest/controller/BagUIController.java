@@ -2,7 +2,6 @@ package org.chronopolis.ingest.controller;
 
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.PageWrapper;
-import org.chronopolis.ingest.exception.BadRequestException;
 import org.chronopolis.ingest.exception.ConflictException;
 import org.chronopolis.ingest.exception.ForbiddenException;
 import org.chronopolis.ingest.exception.NotFoundException;
@@ -20,6 +19,7 @@ import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
 import org.chronopolis.ingest.repository.dao.StagingService;
 import org.chronopolis.ingest.repository.dao.StorageRegionService;
+import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.ingest.support.FileSizeFormatter;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.ingest.support.ReplicationCreateResult;
@@ -465,20 +465,11 @@ public class BagUIController extends IngestController {
     public String addBag(Principal principal, IngestRequest request) {
         access.info("[POST /bags/add] - {}", principal.getName());
         access.info("Post parameters: {};{}", request.getDepositor(), request.getName());
-        Long regionId = request.getStorageRegion();
 
-        StorageRegion region = regions.find(new StorageRegionSearchCriteria()
-                .withId(regionId));
-        if (region == null) {
-            throw new BadRequestException("Bad Request: StorageRegion "
-                    + regionId
-                    + " not found!");
-        }
-
-        Set<Node> replicatingNodes = replicatingNodes(request.getReplicatingNodes());
-        Bag bag = bagService.create(principal.getName(), request, region, replicatingNodes);
-
-        return "redirect:/bags/" + bag.getId();
+        BagCreateResult result = bagService.processRequest(principal.getName(), request);
+        return result.getBag()
+                .map(bag -> "redirect:/bags/" + bag.getId())
+                .orElse("redirect:/bags/add");
     }
 
     private Set<Node> replicatingNodes(List<String> nodeNames) {
