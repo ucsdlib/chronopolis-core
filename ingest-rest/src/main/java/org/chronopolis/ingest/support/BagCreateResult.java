@@ -46,7 +46,7 @@ public class BagCreateResult {
     }
 
     public enum Status {
-        CREATED(ResponseEntity.ok()),
+        CREATED(ResponseEntity.status(HttpStatus.CREATED)),
         CONFLICT(ResponseEntity.status(HttpStatus.CONFLICT)),
         BAD_REQUEST(ResponseEntity.badRequest());
 
