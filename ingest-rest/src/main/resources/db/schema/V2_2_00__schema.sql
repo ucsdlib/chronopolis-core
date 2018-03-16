@@ -283,7 +283,8 @@ CREATE TABLE depositor_contact (
     depositor_id BIGINT NOT NULL,
     contact_name TEXT,
     contact_phone VARCHAR(42), -- the max size could be 21, but some extra space just in case
-    contact_email VARCHAR(255)
+    contact_email VARCHAR(255),
+    UNIQUE (depositor_id, contact_email)
 );
 
 CREATE TABLE depositor_distribution (
