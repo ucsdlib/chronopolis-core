@@ -36,6 +36,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     // Paths
     private static final String UI_BAG = "/bags/**";
     private static final String UI_REPAIR = "/repairs/**";
+    private static final String UI_STORAGE = "/regions/**";
+    private static final String UI_DEPOSITOR = "/depositors/**";
     private static final String UI_REPLICATION = "/replications/**";
     private static final String UI_USER = "/users/**";
     private static final String UI_USER_ADD = "/users/add";
@@ -43,11 +45,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private static final String API_ROOT = "/api/**";
     private static final String API_BAG_ROOT = "/api/bags/**";
-    private static final String API_REPLICATION_ROOT = "/api/replications/**";
     private static final String API_REPAIR_ROOT = "/api/repairs/**";
-
-    @Autowired
-    DataSource dataSource;
+    private static final String API_STORAGE_ROOT = "/api/storage/**";
+    private static final String API_DEPOSITOR_ROOT = "/api/depositors/**";
+    private static final String API_REPLICATION_ROOT = "/api/replications/**";
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -55,26 +56,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.jdbcAuthentication()
-                .passwordEncoder(passwordEncoder())
-                .dataSource(this.dataSource);
-
+    public void configureGlobal(AuthenticationManagerBuilder auth, DataSource dataSource) throws Exception {
         // We're going to keep our user and node domain objects split for now
         // ie: let the spring security stuff worry about authentication
         // otherwise we could do something like this to use our node domain object
         // .usersByUsernameQuery("select username, password, enabled from node where username=?");
+
+        auth.jdbcAuthentication()
+                .passwordEncoder(passwordEncoder())
+                .dataSource(dataSource);
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        /*
-         * <http pattern="/restful/**" create-session="stateless">
-         * <intercept-url pattern='/**' access='ROLE_REMOTE' />
-         * <http-basic />
-         * </http>
-         */
-
         /*
          * Most of the time the client only interacts through GETs and POSTs,
          * whereas the admin user will also PUT in order to create bags or
@@ -90,16 +84,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, API_ROOT).hasRole("SERVICE")
                 .antMatchers(HttpMethod.PUT, API_ROOT).hasRole("USER")
                 .antMatchers(HttpMethod.POST, API_REPAIR_ROOT).hasRole("USER")
-                .antMatchers(HttpMethod.POST, API_BAG_ROOT, API_REPLICATION_ROOT).hasRole("ADMIN")
+                .antMatchers(HttpMethod.POST, API_BAG_ROOT, API_REPLICATION_ROOT, API_STORAGE_ROOT, API_DEPOSITOR_ROOT).hasRole("ADMIN")
                 .antMatchers(HttpMethod.DELETE, API_ROOT).hasRole("ADMIN")
                 // Webapp paths
                 // resources
                 .antMatchers("/css/**").permitAll()
                 .antMatchers("/js/**").permitAll()
                 // controllers
-                .antMatchers(HttpMethod.GET, UI_BAG, UI_REPLICATION, UI_USER, UI_REPAIR).hasRole("USER")
+                .antMatchers(HttpMethod.GET, UI_BAG, UI_REPLICATION, UI_USER, UI_REPAIR, UI_DEPOSITOR, UI_STORAGE).hasRole("USER")
                 .antMatchers(HttpMethod.POST, UI_REPAIR, UI_USER_UPDATE).hasRole("USER")
-                .antMatchers(HttpMethod.POST, UI_BAG, UI_REPLICATION, UI_USER_ADD).hasRole("ADMIN")
+                .antMatchers(HttpMethod.POST, UI_BAG, UI_REPLICATION, UI_USER_ADD, UI_DEPOSITOR, UI_STORAGE).hasRole("ADMIN")
                 .antMatchers("/").permitAll()
                     .anyRequest().permitAll()
                 .and()
@@ -111,12 +105,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .permitAll()
                 .and()
             .httpBasic();
-
     }
 
     @Bean
     // This is for accessing and updating our users
-    public JdbcUserDetailsManager jdbcUserDetailsManager(AuthenticationManager authenticationManager) {
+    public JdbcUserDetailsManager jdbcUserDetailsManager(AuthenticationManager authenticationManager, DataSource dataSource) {
         JdbcUserDetailsManager manager = new JdbcUserDetailsManager();
         manager.setDataSource(dataSource);
         manager.setAuthenticationManager(authenticationManager);
