@@ -26,7 +26,7 @@ import static java.lang.annotation.ElementType.TYPE_USE;
 @Repeatable(E123.List.class)
 public @interface E123 {
 
-    String message() default "{org.chronopolis.rest.constraint.E123.message}";
+    String message() default "Invalid PhoneNumber";
 
     Class<?>[] groups() default {};
 
