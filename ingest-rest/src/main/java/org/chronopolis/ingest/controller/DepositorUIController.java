@@ -50,6 +50,7 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat.INTERNATIONAL;
@@ -304,16 +305,14 @@ public class DepositorUIController extends IngestController {
             return "depositors/add_contact";
         }
 
-        PhoneNumberUtil util = PhoneNumberUtil.getInstance();
-        Phonenumber.PhoneNumber number;
-        try {
-            number = util.parse(
-                    depositorContactCreate.getPhoneNumber().getNumber(),
-                    depositorContactCreate.getPhoneNumber().getCountryCode());
-        } catch (NumberParseException e) {
-            throw new BadRequestException(e.getErrorType().name());
-        }
+        Optional<DepositorContact> depositorContact = DepositorContact.fromCreateRequest(depositorContactCreate);
+        return depositorContact.map(contact1 -> {
+            depositor.addContact(contact1);
+            dao.save(contact1);
+            return "redirect:/depositors/list/" + namespace;
+        }).orElse("exceptions/bad_request");
 
+        /*
         contact = new DepositorContact()
                 .setContactEmail(depositorContactCreate.getEmail())
                 .setContactName(depositorContactCreate.getName())
@@ -321,6 +320,7 @@ public class DepositorUIController extends IngestController {
         depositor.addContact(contact);
         dao.save(depositor);
         return "redirect:/depositors/list/" + namespace;
+        */
     }
 
     @GetMapping("/depositors/list/{namespace}/removeNode")
