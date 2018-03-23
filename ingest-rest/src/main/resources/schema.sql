@@ -299,7 +299,8 @@ CREATE TABLE depositor_contact (
 DROP TABLE IF EXISTS depositor_distribution;
 CREATE TABLE depositor_distribution (
     depositor_id BIGINT NOT NULL,
-    node_id BIGINT NOT NULL
+    node_id BIGINT NOT NULL,
+    UNIQUE (depositor_id, node_id)
 );
 
 ALTER TABLE depositor_distribution

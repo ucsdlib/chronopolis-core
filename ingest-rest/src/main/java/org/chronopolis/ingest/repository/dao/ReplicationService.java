@@ -117,7 +117,8 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
         return bagStorage.filter(staging -> !staging.getFixities().isEmpty())
                 .map(staging -> createReplicationString(staging, true))
                 .map(staging -> withBagStorage(bag, node, staging))
-                .orElseGet(() -> new ReplicationCreateResult(ImmutableList.of("Problem with BagStorage. Either no active storage or fixities.")));
+                .orElseGet(() -> new ReplicationCreateResult(ImmutableList
+                        .of("Problem with BagStorage. Either no active storage or fixities.")));
     }
 
     /**
@@ -135,7 +136,8 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
                 .filter(staging -> !staging.getFixities().isEmpty())
                 .map(staging -> createReplicationString(staging, false))
                 .map(tokenLink -> withTokenStorage(bag, node, bagLink, tokenLink))
-                .orElseGet(() -> new ReplicationCreateResult(ImmutableList.of("Problem with TokenStorage. Either no active storage or fixities.")));
+                .orElseGet(() -> new ReplicationCreateResult(ImmutableList
+                        .of("Problem with TokenStorage. Either no active storage or fixities.")));
     }
 
     /**
@@ -147,7 +149,10 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
      * @param tokenLink the link for replicating the token store
      * @return the result of creating the replication
      */
-    private ReplicationCreateResult withTokenStorage(Bag bag, Node node, String bagLink, String tokenLink) {
+    private ReplicationCreateResult withTokenStorage(Bag bag,
+                                                     Node node,
+                                                     String bagLink,
+                                                     String tokenLink) {
         createDist(bag, node);
 
         ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
@@ -193,7 +198,9 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
      * @param storageJoin the table to join on (either bag_staging or token_staging)
      * @return the StagingStorage entity, wrapped in an Optional in the event none exist
      */
-    private Optional<StagingStorage> queryStorage(Long bagId, SetPath<StagingStorage, QStagingStorage> storageJoin) {
+    private Optional<StagingStorage> queryStorage(Long bagId,
+                                                  SetPath<StagingStorage,
+                                                          QStagingStorage> storageJoin) {
         QBag b = QBag.bag;
         QStagingStorage storage = QStagingStorage.stagingStorage;
 
@@ -238,7 +245,8 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
             config = storage.getRegion().getReplicationConfig();
         } else {
             // Probably want something different from a RuntimeException, but for now this should suffice
-            throw new RuntimeException("Unable to create replication for storage object " + storage.getId());
+            throw new RuntimeException("Unable to create replication for storage object "
+                    + storage.getId());
         }
 
         final String user = config.getUsername() != null ? config.getUsername() : DEFAULT_USER;

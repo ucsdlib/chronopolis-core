@@ -19,3 +19,7 @@ INSERT INTO storage_region VALUES(DEFAULT, 1, 'BAG', 'LOCAL', 1000000, '', CURRE
 INSERT INTO storage_region VALUES(DEFAULT, 1, 'TOKEN', 'LOCAL', 1000000, '', CURRENT_DATE, CURRENT_DATE);
 
 INSERT INTO depositor VALUES(DEFAULT, 'test-depositor', 'Test-Depositor', 'localhost');
+
+INSERT INTO depositor_distribution VALUES (1, 1);
+INSERT INTO depositor_distribution VALUES (1, 2);
+INSERT INTO depositor_distribution VALUES (1, 3);

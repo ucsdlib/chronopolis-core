@@ -1,6 +1,7 @@
 package org.chronopolis.rest.listener;
 
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Depositor;
 import org.chronopolis.rest.models.BagStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +21,8 @@ public class BagUpdateListener {
     public void updateBagStatus(Bag bag) {
         // Then check to see if the bag has been fully replicated
         Set<String> nodes = bag.getReplicatingNodes();
-        if (nodes.size() >= bag.getRequiredReplications()) {
+        Depositor depositor = bag.getDepositor();
+        if (nodes.size() >= depositor.getNodeDistributions().size()) {
             log.debug("Setting bag {}::{} as replicated",
                     bag.getDepositor(),
                     bag.getName());
