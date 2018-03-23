@@ -59,10 +59,8 @@ import java.security.Principal;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Controller for handling bag/replication related requests
@@ -472,31 +470,12 @@ public class BagUIController extends IngestController {
                 .orElse("redirect:/bags/add");
     }
 
-    private Set<Node> replicatingNodes(List<String> nodeNames) {
-        Set<Node> replicatingNodes = new HashSet<>();
-        if (nodeNames == null) {
-            nodeNames = new ArrayList<>();
-        }
-
-        for (String name : nodeNames) {
-            Node node = nodeRepository.findByUsername(name);
-            if (node != null) {
-                replicatingNodes.add(node);
-            } else {
-                log.warn("Node {} not found for distribution of bag!", name);
-            }
-        }
-
-        return replicatingNodes;
-    }
-
     //
     // Replication stuff
+    //
 
     /**
      * Get all replications
-     * If admin, return a list of all replications
-     * else return a list for the given user
      *
      * @param model     the viewmodel
      * @param principal authentication information
@@ -531,7 +510,7 @@ public class BagUIController extends IngestController {
                 .withId(id);
 
         Replication replication = replicationService.find(criteria);
-        log.info("Found replication {}::{}", replication.getId(), replication.getNode().getUsername());
+        // Not found if null
         model.addAttribute("replication", replication);
 
         return "replications/replication";
@@ -544,7 +523,7 @@ public class BagUIController extends IngestController {
      *
      * @param model     the viewmodel
      * @param principal authentication information
-     * @return the addreplication page
+     * @return the replications/add page
      */
     @RequestMapping(value = "/replications/add", method = RequestMethod.GET)
     public String addReplications(Model model, Principal principal) {
@@ -597,11 +576,10 @@ public class BagUIController extends IngestController {
         access.info("[POST /replications/add] - {}", principal.getName());
         ReplicationCreateResult result = replicationService.create(request);
 
-        // todo: find a way to display errors backwards
-        String template = result.getResult()
+        // todo: display errors if ReplicationRequest is not valid
+        return result.getResult()
                 .map(repl -> "redirect:/replications/" + repl.getId())
                 .orElse("redirect:/replications/create");
-        return template;
     }
 
 }
