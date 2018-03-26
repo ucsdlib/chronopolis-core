@@ -62,8 +62,8 @@
         <td class="c-table-danger col-2" data-toggle="modal"
             th:data-target="'#' + ${dist.node.username + '-remove'}">
             Remove
+            <div th:replace="fragments/depositor :: rm-node (${depositor}, ${dist.node.username})"></div>
         </td>
-        <div th:replace="fragments/depositor :: rm-node (${depositor}, ${dist.node.username})"></div>
     </tr>
     </tbody>
 </table>
@@ -73,7 +73,7 @@
      class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-            <div class="modal-body">
+            <div class="modal-body text-dark">
                 Warning: Proceeding will remove this Node from all future replications
             </div>
             <div class="modal-footer">
