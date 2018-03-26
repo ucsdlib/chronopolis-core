@@ -1,0 +1,37 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: head">
+    <meta charset="UTF-8">
+    <title>Depositors Overview</title>
+</head>
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column align-items-center m-3">
+    <div class="card w-75">
+        <!--/*@thymesVar id="depositor" type="org.chronopolis.rest.entities.Depositor"*/-->
+        <nav th:replace="fragments/crumbs/depositor :: edit (${depositor}, 'add_replicating_node')"></nav>
+        <div class="card-body p-2">
+            <h4>Add Replicating Node</h4>
+            <h6>Select Nodes to receive Replications for [[${depositor.namespace}]]</h6>
+            <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem">
+                <form method="post" name="node">
+                    <div class="form-group row">
+                        <label for="nodes" class="col-4 col-form-label">Replicating Nodes</label>
+                        <div class="col-8">
+                            <select name="nodes" id="nodes"
+                                    multiple="multiple" class="form-control">
+                                <!--/*@thymesVar id="nodes" type="java.util.List<org.chronopolis.rest.entities.Node>"*/-->
+                                <option th:each="node: ${nodes}"
+                                        th:value="${node.username}"
+                                        th:text="${node.username}"></option>
+                            </select>
+                        </div>
+                    </div>
+                    <input class="btn btn-primary" type="submit" value="Add Node(s)"/>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div th:replace="layout :: foot"></div>
+</div>
+</body>
+</html>
