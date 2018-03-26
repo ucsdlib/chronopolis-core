@@ -12,11 +12,13 @@
     </ol>
 </nav>
 
+<!--/*@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"*/-->
 <nav th:fragment="single" aria-label="breadcrumb" role="navigation">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a th:href="@{/bags/overview}">Bags</a></li>
         <li class="breadcrumb-item"><a th:href="@{/bags}">All</a></li>
-        <li class="breadcrumb-item"><a th:href="@{/bags(depositor=${bag.depositor.namespace})}"
+        <li class="breadcrumb-item">
+        <a th:href="@{/bags(depositor=${bag.depositor.namespace})}"
                                        th:text="${bag.depositor.namespace}">Depositor</a>
         </li>
         <li class="breadcrumb-item active" aria-current="page" th:text="${bag.name}">Bag Name</li>
@@ -51,7 +53,7 @@
                 <label for="status-table-filter" class="col-form-label col-2">Status</label>
                 <select multiple="multiple" name="status" id="status-table-filter" class="form-control col-9">
                     <!--/*@thymesVar id="statuses" type="com.google.common.collect.ImmutableListMultimap<String, BagStatus>"*/-->
-                    <optgroup th:each="group : ${statuses.keySet()}" th:label="${group}">
+                    <optgroup th:each="group : ${statuses.keySet()}" th:label="${group}" label="group">
                         <option th:each="status : ${statuses.get(group)}" th:value="${status}"
                                 th:text="${status}"></option>
                     </optgroup>
