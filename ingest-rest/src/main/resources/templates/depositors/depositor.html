@@ -21,37 +21,19 @@
             </table>
         </div>
 
-        <div class="card-header" data-toggle="collapse" href="#distCollapse"
-             aria-expanded="false" aria-controls="distCollapse">
-            <h4>Node Distribution</h4>
-        </div>
-        <div class="collapse" id="distCollapse">
-            <!--/*@thymesVar id="depositor" type="org.chronopolis.rest.entities.Depositor"*/-->
-            <div class="card-body p-2">
-                <table th:replace="fragments/depositor :: display-nodes(${depositor}, ${depositor.nodeDistributions})"></table>
-            </div>
+        <div class="hr-sect mx-auto w-100">Contact Information</div>
+        <div class="card-body p-2">
+            <table th:replace="fragments/depositor :: display-contacts(${depositor}, ${depositor.contacts})"></table>
+            <a class="btn btn-primary pull-left" th:href="@{|${depositor.namespace}/addContact|}">Add Contact</a>
         </div>
 
-        <div class="card-header" data-toggle="collapse" href="#contactCollapse"
-             aria-expanded="false" aria-controls="contactCollapse">
-            <a class="btn btn-primary pull-right" th:href="@{|${depositor.namespace}/addContact|}">
-                Add Contact
-            </a>
-            <h4>Contact Information</h4>
-        </div>
-        <div class="collapse" id="contactCollapse">
-            <!--/*@thymesVar id="depositor" type="org.chronopolis.rest.entities.Depositor"*/-->
-            <div class="card-body p-2">
-                <table th:replace="fragments/depositor :: display-contacts(${depositor}, ${depositor.contacts})"></table>
-            </div>
+        <div class="hr-sect mx-auto w-100">Replicating Nodes</div>
+        <div class="card-body p-2">
+            <table th:replace="fragments/depositor :: display-nodes(${depositor}, ${depositor.nodeDistributions})"></table>
+            <a class="btn btn-primary pull-left" th:href="@{|${depositor.namespace}/addNode|}">Add Replicating Node</a>
         </div>
     </div>
     <div th:replace="layout :: foot"></div>
-    <script type="text/javascript">
-        $(".table-clickable").click(function () {
-            window.location = $(this).data("href");
-        });
-    </script>
 </div>
 </body>
 </html>
