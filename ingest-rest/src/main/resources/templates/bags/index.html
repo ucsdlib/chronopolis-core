@@ -43,58 +43,6 @@
             </div>
         </div>
 
-        <!--/*@thymesVar id="formatter" type="org.chronopolis.ingest.support.FileSizeFormatter"*/-->
-        <div class="hr-sect">Usage Stats</div>
-        <div class="card-body mt-1 p-2 d-flex">
-            <div class="flex-column" style="width: 45% !important">
-                <ul class="list-group">
-                    <li class="list-group-item">Node Totals</li>
-                    <li class="list-group-item" style="padding: 0">
-                        <table class="table table-bordered table-hover" style="margin-bottom: 0">
-                            <thead>
-                            <tr>
-                                <th>Node</th>
-                                <th>Num Bags</th>
-                                <th>Total Size</th>
-                            </tr>
-                            </thead>
-                            <!--/*@thymesVar id="nodeSummaries" type="List<org.chronopolis.ingest.models.DepositorSummary>"*/-->
-                            <!--/*@thymesVar id="summary" type="org.chronopolis.ingest.models.DepositorSummary"*/-->
-                            <tr th:each="summary: ${nodeSummaries}">
-                                <td th:text="${summary.depositor}">Depositor-1</td>
-                                <td th:text="${summary.count}">Bag-1</td>
-                                <td th:text="${formatter.format(summary.sum)}">Bag-1</td>
-                            </tr>
-                        </table>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="flex-column ml-auto" style="width: 45% !important">
-                <ul class="list-group">
-                    <li class="list-group-item">Depositor Totals</li>
-                    <li class="list-group-item" style="padding: 0">
-                        <table class="table table-bordered table-hover" style="margin-bottom: 0">
-                            <thead>
-                            <tr>
-                                <th>Node</th>
-                                <th>Num Bags</th>
-                                <th>Total Size</th>
-                            </tr>
-                            </thead>
-                            <!--/*@thymesVar id="depositorSummaries" type="List<org.chronopolis.ingest.models.DepositorSummary>"*/-->
-                            <!--/*@thymesVar id="summary" type="org.chronopolis.ingest.models.DepositorSummary"*/-->
-                            <tr th:each="summary: ${depositorSummaries}">
-                                <td th:text="${summary.depositor}">Depositor-1</td>
-                                <td th:text="${summary.count}">Bag-1</td>
-                                <td th:text="${formatter.format(summary.sum)}">Bag-1</td>
-                            </tr>
-                        </table>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
         <div class="hr-sect mx-auto w-100">Recent Bags</div>
         <div class="card-body p-2">
             <table class="table table-hover">
@@ -123,9 +71,35 @@
             <a class="btn btn-primary text-white" th:href="@{/bags}">View All Bags</a>
             <a class="btn btn-primary text-white" th:href="@{/bags/add}">Deposit Bag</a>
         </div>
-
     </div>
 
+    <!--/*@thymesVar id="formatter" type="org.chronopolis.ingest.support.FileSizeFormatter"*/-->
+    <div class="hr-sect">Usage Stats</div>
+    <div class="card-body mt-1 p-2 d-flex">
+        <div class="flex-column" style="width: 45% !important">
+            <ul class="list-group">
+                <li class="list-group-item">Node Totals</li>
+                <li class="list-group-item" style="padding: 0">
+                    <table class="table table-bordered table-hover" style="margin-bottom: 0">
+                        <thead>
+                        <tr>
+                            <th>Node</th>
+                            <th>Num Bags</th>
+                            <th>Total Size</th>
+                        </tr>
+                        </thead>
+                        <!--/*@thymesVar id="nodeSummaries" type="List<org.chronopolis.ingest.models.DepositorSummary>"*/-->
+                        <!--/*@thymesVar id="summary" type="org.chronopolis.ingest.models.DepositorSummary"*/-->
+                        <tr th:each="summary: ${nodeSummaries}">
+                            <td th:text="${summary.depositor}">Depositor-1</td>
+                            <td th:text="${summary.count}">Bag-1</td>
+                            <td th:text="${formatter.format(summary.sum)}">Bag-1</td>
+                        </tr>
+                    </table>
+                </li>
+            </ul>
+        </div>
+    </div>
     <div th:replace="layout :: foot"></div>
 </div>
 
