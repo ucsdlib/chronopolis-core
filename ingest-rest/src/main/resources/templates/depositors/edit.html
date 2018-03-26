@@ -6,9 +6,10 @@
 </head>
 <body>
 <nav th:replace="layout :: navbar"></nav>
+<!--/*@thymesVar id="depositor" type="org.chronopolis.rest.entities.Depositor"*/-->
 <div class="d-flex flex-column align-items-center m-3">
     <div class="card w-75">
-        <nav th:replace="fragments/crumbs/depositor :: edit"></nav>
+        <nav th:replace="fragments/crumbs/depositor :: edit(${depositor}, 'edit')"></nav>
         <div class="card-body p-2">
             <h4>Edit Depositor Information</h4>
             <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem">

@@ -7,7 +7,8 @@
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column align-items-center m-3">
     <div class="card w-75">
-        <nav th:replace="fragments/crumbs/depositor :: edit"></nav>
+        <!--/*@thymesVar id="depositor" type="org.chronopolis.rest.entities.Depositor"*/-->
+        <nav th:replace="fragments/crumbs/depositor :: edit(${depositor}, 'add_contact')"></nav>
         <div class="card-body p-2">
             <h4>Add Depositor Contact</h4>
             <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem">
