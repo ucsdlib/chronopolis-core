@@ -82,7 +82,6 @@ public class DepositorContact extends PersistableEntity implements Comparable<De
     @Override
     public int compareTo(DepositorContact depositorContact) {
         return ComparisonChain.start()
-                .compare(getId(), depositorContact.getId()) // should we use the id?
                 .compare(contactName, depositorContact.contactName)
                 .compare(contactEmail, depositorContact.contactEmail)
                 .compare(contactPhone, depositorContact.contactPhone)
@@ -94,14 +93,13 @@ public class DepositorContact extends PersistableEntity implements Comparable<De
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         DepositorContact that = (DepositorContact) o;
-        return Objects.equals(getId(), that.getId()) &&
-                Objects.equals(contactName, that.contactName) &&
+        return Objects.equals(contactName, that.contactName) &&
                 Objects.equals(contactPhone, that.contactPhone) &&
                 Objects.equals(contactEmail, that.contactEmail);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), contactName, contactPhone, contactEmail);
+        return Objects.hash(contactName, contactPhone, contactEmail);
     }
 }
