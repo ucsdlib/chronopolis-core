@@ -14,14 +14,16 @@ CREATE TABLE depositor_contact (
     depositor_id BIGINT NOT NULL,
     contact_name TEXT,
     contact_phone VARCHAR(42), -- the max size could be 21, but some extra space just in case
-    contact_email VARCHAR(255)
+    contact_email VARCHAR(255),
+    UNIQUE (depositor_id, contact_email)
 );
 
 CREATE SEQUENCE depositor_distribution_id_seq;
 CREATE TABLE depositor_distribution (
     id BIGINT PRIMARY KEY DEFAULT nextval('depositor_distribution_id_seq'),
     depositor_id BIGINT NOT NULL,
-    node_id BIGINT NOT NULL
+    node_id BIGINT NOT NULL,
+    UNIQUE (depositor_id, node_id)
 );
 
 ALTER TABLE depositor_distribution
