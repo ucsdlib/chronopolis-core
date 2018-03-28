@@ -41,13 +41,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.persistence.EntityManager;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -210,38 +208,29 @@ public class DepositorUIController extends IngestController {
     }
 
     @PostMapping("/depositors/list/{namespace}/edit")
-    public String postEditDepositor(Model model,
-                                    Principal principal,
+    public String postEditDepositor(Principal principal,
                                     @PathVariable("namespace") String namespace,
-                                    @Valid DepositorEdit depositorEdit,
-                                    BindingResult bindingResult) {
+                                    DepositorEdit depositorEdit) {
         access.info("[POST /depositors/list/{}/edit] - {}", namespace, principal.getName());
         Depositor depositor = getOrThrowNotFound(namespace);
 
-        // pretty much the same as the above
-        // might want to combine DepositorEdit and DepositorCreate then have something to do the
-        // validation
-        List<Node> nodes = dao.findAll(QNode.node,
-                QNode.node.username.in(depositorEdit.getReplicatingNodes()));
+        String address = depositorEdit.getOrganizationAddress();
+        String organization = depositorEdit.getSourceOrganization();
 
-        if (nodes.size() != depositorEdit.getReplicatingNodes().size()) {
-            bindingResult.rejectValue("replicatingNodes", "node.invalid", "Invalid node detected");
+        if (address != null && !address.isEmpty()) {
+            depositor.setOrganizationAddress(address);
         }
 
-
-        if (bindingResult.hasErrors()) {
-            log.warn("Invalid Depositor added: {} errors", bindingResult.getErrorCount());
-            bindingResult.getFieldErrors().forEach(error ->
-                    log.error("{}:{}", error.getField(), error.getDefaultMessage()));
-
-            model.addAttribute("depositor", depositor);
-            model.addAttribute("nodes", dao.findAll(QNode.node));
-            model.addAttribute("depositorEdit", depositorEdit);
-            return "depositors/edit";
+        if (organization != null && !organization.isEmpty()) {
+            depositor.setSourceOrganization(organization);
         }
 
+        dao.findAll(QNode.node, QNode.node.username.in(depositorEdit.getReplicatingNodes()))
+                .forEach(depositor::addNodeDistribution);
 
-        return "redirect:depositors/list/" + namespace;
+        dao.save(depositor);
+
+        return "redirect:/depositors/list/" + namespace;
     }
 
     @GetMapping("/depositors/list/{namespace}")
@@ -313,7 +302,9 @@ public class DepositorUIController extends IngestController {
     }
 
     @GetMapping("/depositors/list/{namespace}/addNode")
-    public String addNode(Model model, @PathVariable("namespace") String namespace) {
+    public String addNode(Model model,
+                          @PathVariable("namespace") String namespace,
+                          DepositorEdit depositorEdit) {
         Depositor depositor = getOrThrowNotFound(namespace);
 
         QDepositorNode qdn = QDepositorNode.depositorNode;
@@ -321,6 +312,7 @@ public class DepositorUIController extends IngestController {
                 .from(qdn)
                 .where(qdn.depositor.id.eq(depositor.getId())));
 
+        model.addAttribute("depositorEdit", depositorEdit);
         model.addAttribute("nodes", dao.findAll(QNode.node, availableNodes));
         model.addAttribute("depositor", depositor);
         return "depositors/add_node";
@@ -328,8 +320,9 @@ public class DepositorUIController extends IngestController {
 
     @PostMapping("/depositors/list/{namespace}/addNode")
     public String addNodeAction(@PathVariable("namespace") String namespace,
-                                @RequestParam("nodes") ArrayList<String> nodes) {
+                                DepositorEdit depositorEdit) {
         Depositor depositor = dao.findOne(QDepositor.depositor, QDepositor.depositor.namespace.eq(namespace));
+        List<String> nodes = depositorEdit.getReplicatingNodes();
         List<Node> requested = dao.findAll(QNode.node,
                 QNode.node.username.in(nodes));
         log.info("Requested nodes: {}", nodes.size());
