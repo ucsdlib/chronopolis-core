@@ -2,9 +2,7 @@ package org.chronopolis.ingest.controller;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
-import com.google.i18n.phonenumbers.Phonenumber;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -43,17 +41,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.persistence.EntityManager;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
-import static com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat.INTERNATIONAL;
 
 /**
  * Controller to handle Depositor requests and things
@@ -236,9 +234,10 @@ public class DepositorUIController extends IngestController {
             bindingResult.getFieldErrors().forEach(error ->
                     log.error("{}:{}", error.getField(), error.getDefaultMessage()));
 
+            model.addAttribute("depositor", depositor);
             model.addAttribute("nodes", dao.findAll(QNode.node));
             model.addAttribute("depositorEdit", depositorEdit);
-            return "depositors/add";
+            return "depositors/edit";
         }
 
 
@@ -311,16 +310,39 @@ public class DepositorUIController extends IngestController {
             dao.save(contact1);
             return "redirect:/depositors/list/" + namespace;
         }).orElse("exceptions/bad_request");
+    }
 
-        /*
-        contact = new DepositorContact()
-                .setContactEmail(depositorContactCreate.getEmail())
-                .setContactName(depositorContactCreate.getName())
-                .setContactPhone(util.format(number, INTERNATIONAL));
-        depositor.addContact(contact);
-        dao.save(depositor);
+    @GetMapping("/depositors/list/{namespace}/addNode")
+    public String addNode(Model model, @PathVariable("namespace") String namespace) {
+        Depositor depositor = getOrThrowNotFound(namespace);
+
+        QDepositorNode qdn = QDepositorNode.depositorNode;
+        BooleanExpression availableNodes = QNode.node.id.notIn(JPAExpressions.select(qdn.node.id)
+                .from(qdn)
+                .where(qdn.depositor.id.eq(depositor.getId())));
+
+        model.addAttribute("nodes", dao.findAll(QNode.node, availableNodes));
+        model.addAttribute("depositor", depositor);
+        return "depositors/add_node";
+    }
+
+    @PostMapping("/depositors/list/{namespace}/addNode")
+    public String addNodeAction(@PathVariable("namespace") String namespace,
+                                @RequestParam("nodes") ArrayList<String> nodes) {
+        Depositor depositor = dao.findOne(QDepositor.depositor, QDepositor.depositor.namespace.eq(namespace));
+        List<Node> requested = dao.findAll(QNode.node,
+                QNode.node.username.in(nodes));
+        log.info("Requested nodes: {}", nodes.size());
+
+        if (requested.size() != nodes.size()) {
+            log.error("Unable to process request");
+        } else {
+            log.info("Depositor: {}", depositor.getId());
+            requested.forEach(depositor::addNodeDistribution);
+            dao.save(depositor);
+        }
+
         return "redirect:/depositors/list/" + namespace;
-        */
     }
 
     @GetMapping("/depositors/list/{namespace}/removeNode")
