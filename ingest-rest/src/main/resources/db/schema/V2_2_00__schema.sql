@@ -287,9 +287,12 @@ CREATE TABLE depositor_contact (
     UNIQUE (depositor_id, contact_email)
 );
 
+CREATE SEQUENCE depositor_distribution_id_seq;
 CREATE TABLE depositor_distribution (
+    id BIGINT PRIMARY KEY DEFAULT nextval('depositor_distribution_id_seq'),
     depositor_id BIGINT NOT NULL,
-    node_id BIGINT NOT NULL
+    node_id BIGINT NOT NULL,
+    UNIQUE (depositor_id, node_id)
 );
 
 ALTER TABLE depositor_distribution

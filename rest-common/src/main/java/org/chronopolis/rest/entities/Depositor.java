@@ -84,7 +84,6 @@ public class Depositor extends UpdatableEntity implements Comparable<Depositor> 
     public void addNodeDistribution(Node node) {
         DepositorNode depositorNode = new DepositorNode(this, node);
         nodeDistributions.add(depositorNode);
-        node.getDepositorDistributions().add(depositorNode);
     }
 
     public void removeNodeDistribution(Node node) {

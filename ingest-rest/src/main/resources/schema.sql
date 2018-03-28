@@ -296,8 +296,11 @@ CREATE TABLE depositor_contact (
     contact_email VARCHAR(255)
 );
 
+DROP SEQUENCE IF EXISTS depositor_distribution_id_seq;
 DROP TABLE IF EXISTS depositor_distribution;
+CREATE SEQUENCE depositor_distribution_id_seq;
 CREATE TABLE depositor_distribution (
+    id BIGINT PRIMARY KEY DEFAULT nextval('depositor_distribution_id_seq'),
     depositor_id BIGINT NOT NULL,
     node_id BIGINT NOT NULL,
     UNIQUE (depositor_id, node_id)

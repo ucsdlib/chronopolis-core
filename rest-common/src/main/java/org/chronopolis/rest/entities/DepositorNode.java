@@ -1,7 +1,6 @@
 package org.chronopolis.rest.entities;
 
 import javax.persistence.Entity;
-import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.io.Serializable;
@@ -14,13 +13,11 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "depositor_distribution")
-public class DepositorNode implements Serializable {
+public class DepositorNode extends PersistableEntity implements Serializable {
 
-    @Id
     @ManyToOne
     private Depositor depositor;
 
-    @Id
     @ManyToOne
     private Node node;
 
@@ -62,5 +59,13 @@ public class DepositorNode implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(depositor, node);
+    }
+
+    @Override
+    public String toString() {
+        return "DepositorNode{" +
+                "depositor=" + (depositor == null ? "null" : depositor.getNamespace()) +
+                ", node=" + (node == null? "null" : node.username) +
+                '}';
     }
 }

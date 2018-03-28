@@ -17,7 +17,9 @@ CREATE TABLE depositor_contact (
     contact_email VARCHAR(255)
 );
 
+CREATE SEQUENCE depositor_distribution_id_seq;
 CREATE TABLE depositor_distribution (
+    id BIGINT PRIMARY KEY DEFAULT nextval('depositor_distribution_id_seq'),
     depositor_id BIGINT NOT NULL,
     node_id BIGINT NOT NULL
 );
