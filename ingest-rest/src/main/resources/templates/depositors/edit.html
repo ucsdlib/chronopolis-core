@@ -6,9 +6,10 @@
 </head>
 <body>
 <nav th:replace="layout :: navbar"></nav>
+<!--/*@thymesVar id="depositor" type="org.chronopolis.rest.entities.Depositor"*/-->
 <div class="d-flex flex-column align-items-center m-3">
     <div class="card w-75">
-        <nav th:replace="fragments/crumbs/depositor :: edit"></nav>
+        <nav th:replace="fragments/crumbs/depositor :: edit(${depositor}, 'edit')"></nav>
         <div class="card-body p-2">
             <h4>Edit Depositor Information</h4>
             <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem">
@@ -16,27 +17,19 @@
                 <form method="post" name="contact" th:object="${depositorEdit}">
                     <div class="form-group row">
                         <label for="org-name" class="col-4 col-form-label">Organization Name</label>
-                        <div class="col-8"
-                             th:with="orgError=${#fields.hasErrors('sourceOrganization')}">
+                        <div class="col-8">
                             <input th:field="*{sourceOrganization}"
-                                   th:classappend="${orgError} ? 'is-invalid'"
                                    name="sourceOrganization" id="org-name"
                                    class="form-control" type="text" placeholder="org-name"/>
-                            <div class="invalid-feedback"
-                                 th:if="${orgError}" th:errors="*{sourceOrganization}"></div>
                         </div>
                     </div>
                     <div class="form-group row">
                         <label for="org-address"
                                class="col-4 col-form-label">Organization Address</label>
-                        <div class="col-8"
-                             th:with="addressError=${#fields.hasErrors('organizationAddress')}">
+                        <div class="col-8">
                             <input th:field="*{organizationAddress}"
-                                   th:classappend="${addressError} ? 'is-invalid'"
                                    name="organizationAddress" id="org-address"
                                    class="form-control" type="text" placeholder="org-address"/>
-                            <div class="invalid-feedback"
-                                 th:if="${addressError}" th:errors="*{organizationAddress}"></div>
                         </div>
                     </div>
 

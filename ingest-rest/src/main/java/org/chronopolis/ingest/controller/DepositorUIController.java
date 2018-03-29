@@ -2,9 +2,7 @@ package org.chronopolis.ingest.controller;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
-import com.google.i18n.phonenumbers.Phonenumber;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -52,8 +50,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
-import static com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat.INTERNATIONAL;
 
 /**
  * Controller to handle Depositor requests and things
@@ -212,37 +208,29 @@ public class DepositorUIController extends IngestController {
     }
 
     @PostMapping("/depositors/list/{namespace}/edit")
-    public String postEditDepositor(Model model,
-                                    Principal principal,
+    public String postEditDepositor(Principal principal,
                                     @PathVariable("namespace") String namespace,
-                                    @Valid DepositorEdit depositorEdit,
-                                    BindingResult bindingResult) {
+                                    DepositorEdit depositorEdit) {
         access.info("[POST /depositors/list/{}/edit] - {}", namespace, principal.getName());
         Depositor depositor = getOrThrowNotFound(namespace);
 
-        // pretty much the same as the above
-        // might want to combine DepositorEdit and DepositorCreate then have something to do the
-        // validation
-        List<Node> nodes = dao.findAll(QNode.node,
-                QNode.node.username.in(depositorEdit.getReplicatingNodes()));
+        String address = depositorEdit.getOrganizationAddress();
+        String organization = depositorEdit.getSourceOrganization();
 
-        if (nodes.size() != depositorEdit.getReplicatingNodes().size()) {
-            bindingResult.rejectValue("replicatingNodes", "node.invalid", "Invalid node detected");
+        if (address != null && !address.isEmpty()) {
+            depositor.setOrganizationAddress(address);
         }
 
-
-        if (bindingResult.hasErrors()) {
-            log.warn("Invalid Depositor added: {} errors", bindingResult.getErrorCount());
-            bindingResult.getFieldErrors().forEach(error ->
-                    log.error("{}:{}", error.getField(), error.getDefaultMessage()));
-
-            model.addAttribute("nodes", dao.findAll(QNode.node));
-            model.addAttribute("depositorEdit", depositorEdit);
-            return "depositors/add";
+        if (organization != null && !organization.isEmpty()) {
+            depositor.setSourceOrganization(organization);
         }
 
+        dao.findAll(QNode.node, QNode.node.username.in(depositorEdit.getReplicatingNodes()))
+                .forEach(depositor::addNodeDistribution);
 
-        return "redirect:depositors/list/" + namespace;
+        dao.save(depositor);
+
+        return "redirect:/depositors/list/" + namespace;
     }
 
     @GetMapping("/depositors/list/{namespace}")
@@ -311,16 +299,43 @@ public class DepositorUIController extends IngestController {
             dao.save(contact1);
             return "redirect:/depositors/list/" + namespace;
         }).orElse("exceptions/bad_request");
+    }
 
-        /*
-        contact = new DepositorContact()
-                .setContactEmail(depositorContactCreate.getEmail())
-                .setContactName(depositorContactCreate.getName())
-                .setContactPhone(util.format(number, INTERNATIONAL));
-        depositor.addContact(contact);
-        dao.save(depositor);
+    @GetMapping("/depositors/list/{namespace}/addNode")
+    public String addNode(Model model,
+                          @PathVariable("namespace") String namespace,
+                          DepositorEdit depositorEdit) {
+        Depositor depositor = getOrThrowNotFound(namespace);
+
+        QDepositorNode qdn = QDepositorNode.depositorNode;
+        BooleanExpression availableNodes = QNode.node.id.notIn(JPAExpressions.select(qdn.node.id)
+                .from(qdn)
+                .where(qdn.depositor.id.eq(depositor.getId())));
+
+        model.addAttribute("depositorEdit", depositorEdit);
+        model.addAttribute("nodes", dao.findAll(QNode.node, availableNodes));
+        model.addAttribute("depositor", depositor);
+        return "depositors/add_node";
+    }
+
+    @PostMapping("/depositors/list/{namespace}/addNode")
+    public String addNodeAction(@PathVariable("namespace") String namespace,
+                                DepositorEdit depositorEdit) {
+        Depositor depositor = dao.findOne(QDepositor.depositor, QDepositor.depositor.namespace.eq(namespace));
+        List<String> nodes = depositorEdit.getReplicatingNodes();
+        List<Node> requested = dao.findAll(QNode.node,
+                QNode.node.username.in(nodes));
+        log.info("Requested nodes: {}", nodes.size());
+
+        if (requested.size() != nodes.size()) {
+            log.error("Unable to process request");
+        } else {
+            log.info("Depositor: {}", depositor.getId());
+            requested.forEach(depositor::addNodeDistribution);
+            dao.save(depositor);
+        }
+
         return "redirect:/depositors/list/" + namespace;
-        */
     }
 
     @GetMapping("/depositors/list/{namespace}/removeNode")

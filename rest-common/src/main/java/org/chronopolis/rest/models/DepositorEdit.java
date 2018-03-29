@@ -1,22 +1,16 @@
 package org.chronopolis.rest.models;
 
-import org.hibernate.validator.constraints.NotBlank;
-
 import java.util.List;
 
 /**
- * Beep beep model for editing a Depositor. Only 2 mutable fields.
+ * Beep beep model for editing a Depositor.
  *
  * @author shake
  */
 public class DepositorEdit {
 
-    @NotBlank
     private String sourceOrganization;
-
-    @NotBlank
     private String organizationAddress;
-
     private List<String> replicatingNodes;
 
     public String getSourceOrganization() {

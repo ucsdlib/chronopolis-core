@@ -161,6 +161,7 @@ public class PagedDAO {
         } else {
             em.merge(t);
         }
+        em.flush();
         // em.getTransaction().commit();
     }
 
@@ -179,6 +180,7 @@ public class PagedDAO {
         } else {
             // em.getTransaction().begin();
             em.remove(t);
+            em.flush();
             // em.getTransaction().commit();
         }
     }

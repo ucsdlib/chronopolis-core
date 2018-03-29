@@ -20,6 +20,6 @@ INSERT INTO storage_region VALUES(DEFAULT, 1, 'TOKEN', 'LOCAL', 1000000, '', CUR
 
 INSERT INTO depositor VALUES(DEFAULT, 'test-depositor', 'Test-Depositor', 'localhost');
 
-INSERT INTO depositor_distribution VALUES (1, 1);
-INSERT INTO depositor_distribution VALUES (1, 2);
-INSERT INTO depositor_distribution VALUES (1, 3);
+INSERT INTO depositor_distribution VALUES (DEFAULT, 1, 1);
+INSERT INTO depositor_distribution VALUES (DEFAULT, 1, 2);
+INSERT INTO depositor_distribution VALUES (DEFAULT, 1, 3);

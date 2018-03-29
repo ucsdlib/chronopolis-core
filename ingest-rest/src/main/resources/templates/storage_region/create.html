@@ -51,12 +51,14 @@
 
                 <div class="form-group row"
                      th:with="capacityError=${#fields.hasErrors('capacity')}"
-                     th:classappend="${capacityError}? 'has-warning'">
+                     th:classappend="${capacityError}? 'is-invalid'">
                     <label for="capacity" class="col-3 col-form-label">Total Capacity</label>
                     <div class="col-sm">
-                        <input th:field="*{capacity}" th:classappend="${capacityError}? 'form-control-warning'"
+                        <input th:field="*{capacity}"
+                               th:classappend="${capacityError}? 'is-invalid'"
                                class="form-control" id="capacity" name="capacity"/>
-                        <div class="form-control-feedback" th:if="${capacityError}" th:errors="*{capacity}"></div>
+                        <div class="invalid-feedback"
+                             th:if="${capacityError}" th:errors="*{capacity}"></div>
                     </div>
                 </div>
 
@@ -79,35 +81,41 @@
 
                 <div class="form-group row"
                      th:with="serverError=${#fields.hasErrors('replicationServer')}"
-                     th:classappend="${serverError}? 'has-warning'">
-                    <label for="replication-server" class="col-3 col-form-label">Replication Server</label>
+                     th:classappend="${serverError}? 'is-invalid'">
+                    <label for="replication-server"
+                           class="col-3 col-form-label">Replication Server</label>
                     <div class="col-sm">
-                        <input th:field="*{replicationServer}" th:classappend="${serverError}? 'form-control-warning'"
+                        <input th:field="*{replicationServer}"
+                               th:classappend="${serverError}? 'is-invalid'"
                                class="form-control" id="replication-server" name="replicationServer"/>
-                        <div class="form-control-feedback" th:if="${serverError}"
+                        <div class="invalid-feedback" th:if="${serverError}"
                              th:errors="*{replicationServer}"></div>
                     </div>
                 </div>
 
                 <div class="form-group row"
                      th:with="pathError=${#fields.hasErrors('replicationPath')}"
-                     th:classappend="${pathError}? 'has-warning'">
+                     th:classappend="${pathError}? 'is-invalid'">
                     <label for="replication-path" class="col-3 col-form-label">Replication Path</label>
                     <div class="col-sm">
-                        <input th:field="*{replicationPath}" th:classappend="${pathError}? 'form-control-error'"
+                        <input th:field="*{replicationPath}"
+                               th:classappend="${pathError}? 'form-control-error'"
                                class="form-control" id="replication-path" name="replicationPath"/>
-                        <div class="form-control-feedback" th:if="${pathError}" th:errors="*{replicationPath}"></div>
+                        <div class="invalid-feedback"
+                             th:if="${pathError}" th:errors="*{replicationPath}"></div>
                     </div>
                 </div>
 
                 <!-- This can be null -->
                 <div class="form-group row" th:with="userError=${#fields.hasErrors('replicationUser')}"
-                     th:classappend="${userError}? 'has-warning'">
+                     th:classappend="${userError}? 'is-invalid'">
                     <label for="replication-username" class="col-3 col-form-label">Replication Username</label>
                     <div class="col-sm">
-                        <input th:field="*{replicationUser}" th:classappend="${userError}? 'form-control-error'"
+                        <input th:field="*{replicationUser}"
+                               th:classappend="${userError}? 'form-control-error'"
                                class="form-control" id="replication-username" name="replicationUser"/>
-                        <div class="form-control-feedback" th:if="${userError}" th:errors="*{replicationUser}"></div>
+                        <div class="invalid-feedback"
+                             th:if="${userError}" th:errors="*{replicationUser}"></div>
                     </div>
                 </div>
                 <input type="submit" class="btn btn-primary" value="Submit"/>

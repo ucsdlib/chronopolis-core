@@ -175,6 +175,8 @@ public class StorageRegionUIController extends IngestController {
                                  @PathVariable("id") Long id,
                                  RegionEdit regionEdit) {
         access.info("[GET /regions/{}/edit] - {}", id, principal.getName());
+        StorageRegion region = service.find(new StorageRegionSearchCriteria().withId(id));
+        model.addAttribute("region", region);
         model.addAttribute("dataTypes", DataType.values());
         model.addAttribute("storageTypes", StorageType.values());
         model.addAttribute("storageUnits", StorageUnit.values());
@@ -200,12 +202,15 @@ public class StorageRegionUIController extends IngestController {
                              @Valid RegionEdit regionEdit,
                              BindingResult bindingResult) throws ForbiddenException {
         access.info("[POST /regions/{}/edit] - {}", id, principal.getName());
+        StorageRegion region = service.find(new StorageRegionSearchCriteria().withId(id));
+
         if (bindingResult.hasErrors()) {
 
             bindingResult.getFieldErrors()
                     .forEach(error -> log.info("{}:{}",
                             error.getField(), error.getDefaultMessage()));
 
+            model.addAttribute("region", region);
             model.addAttribute("dataTypes", DataType.values());
             model.addAttribute("storageTypes", StorageType.values());
             model.addAttribute("storageUnits", StorageUnit.values());
@@ -218,7 +223,6 @@ public class StorageRegionUIController extends IngestController {
                 regionEdit.getDataType(),
                 regionEdit.getStorageType());
 
-        StorageRegion region = service.find(new StorageRegionSearchCriteria().withId(id));
 
         if (!hasRoleAdmin() && !principal.getName()
                 .equalsIgnoreCase(region.getNode().getUsername())) {

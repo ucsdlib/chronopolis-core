@@ -21,7 +21,7 @@
                 <form method="post" th:action="@{add}" th:object="${stagingCreate}">
                     <div class="form-group row"
                         th:with="locError=${#fields.hasErrors('location')}"
-                        th:classappend="${locError}? 'has-warning'">
+                        th:classappend="${locError}? 'is-invalid'">
                         <label for="location" class="col-3 col-form-label">Location</label>
                         <div class="col-8">
                             <input th:field="*{location}" th:classappend="${locError} ? 'is-invalid'"
@@ -44,7 +44,7 @@
 
                     <div class="form-group row"
                         th:with="numError=${#fields.hasErrors('totalFiles')}"
-                        th:classappend="${numError}? 'has-warning'">
+                        th:classappend="${numError}? 'is-invalid'">
                         <label for="totalFiles" class="col-3 col-form-label">Number of Files</label>
                         <div class="col-sm">
                             <input th:field="*{totalFiles}" th:classappend="${numError} ? 'is-invalid'"
@@ -55,7 +55,7 @@
 
                     <div class="form-group row"
                          th:with="sizeError=${#fields.hasErrors('size')}"
-                         th:classappend="${sizeError}? 'has-warning'">
+                         th:classappend="${sizeError}? 'is-invalid'">
                         <label for="size" class="col-3 col-form-label">Size</label>
                         <div class="col-sm">
                             <input th:field="*{size}" th:classappend="${sizeError}? 'is-invalid'"
