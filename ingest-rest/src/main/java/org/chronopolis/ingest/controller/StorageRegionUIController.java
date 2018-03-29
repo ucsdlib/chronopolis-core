@@ -233,7 +233,7 @@ public class StorageRegionUIController extends IngestController {
         region.setNote(regionEdit.getNote());
         region.setDataType(regionEdit.getDataType());
         region.setStorageType(regionEdit.getStorageType());
-    Double capacity = regionEdit.getCapacity() * Math.pow(1000, exponent);
+        Double capacity = regionEdit.getCapacity() * Math.pow(1000, exponent);
         region.setCapacity(capacity.longValue());
 
         service.save(region);
