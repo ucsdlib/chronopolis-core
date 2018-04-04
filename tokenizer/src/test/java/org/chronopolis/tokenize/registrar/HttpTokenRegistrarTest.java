@@ -1,4 +1,4 @@
-package org.chronopolis.tokenize;
+package org.chronopolis.tokenize.registrar;
 
 import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.chronopolis.rest.api.TokenService;
@@ -7,6 +7,7 @@ import org.chronopolis.rest.models.Bag;
 import org.chronopolis.test.support.CallWrapper;
 import org.chronopolis.test.support.ErrorCallWrapper;
 import org.chronopolis.test.support.ExceptingCallWrapper;
+import org.chronopolis.tokenize.ManifestEntry;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,8 +30,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class TokenRegistrarTest {
-    private final Logger log = LoggerFactory.getLogger(TokenRegistrarTest.class);
+public class HttpTokenRegistrarTest {
+    private final Logger log = LoggerFactory.getLogger(HttpTokenRegistrarTest.class);
 
     // include extraneous characters?
     private final String path = "data/path/to/file.txt";
@@ -48,7 +49,7 @@ public class TokenRegistrarTest {
     private ManifestEntry entry;
     private AceTokenModel model;
     private TokenResponse response;
-    private TokenRegistrar registrar;
+    private HttpTokenRegistrar registrar;
 
     @Mock private TokenService tokens;
 
@@ -75,7 +76,7 @@ public class TokenRegistrarTest {
         response.setTimestamp(calendar);
         response.setTokenClassName(tokenClass);
 
-        registrar = new TokenRegistrar(tokens, entry, response, host);
+        registrar = new HttpTokenRegistrar(tokens, entry, response, host);
 
         model = new AceTokenModel()
                 .setCreateDate(ZonedDateTime.now())

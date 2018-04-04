@@ -1,4 +1,4 @@
-package org.chronopolis.tokenize;
+package org.chronopolis.tokenize.registrar;
 
 import com.google.common.annotations.VisibleForTesting;
 import edu.umiacs.ace.ims.api.IMSUtil;
@@ -6,6 +6,7 @@ import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.AceTokenModel;
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.config.TokenTaskConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,7 @@ import java.util.regex.Pattern;
  *
  * @author shake
  */
-public class TokenRegistrar implements Supplier<TokenResponse> {
+public class HttpTokenRegistrar implements Supplier<TokenResponse> {
     private final Logger log = LoggerFactory.getLogger(TokenTaskConfiguration.TOKENIZER_LOG_NAME);
 
     /**
@@ -38,7 +39,7 @@ public class TokenRegistrar implements Supplier<TokenResponse> {
     private final ManifestEntry entry;
     private final TokenResponse response;
 
-    public TokenRegistrar(TokenService tokens, ManifestEntry entry, TokenResponse response, String imsHost) {
+    public HttpTokenRegistrar(TokenService tokens, ManifestEntry entry, TokenResponse response, String imsHost) {
         this.tokens = tokens;
         this.entry = entry;
         this.response = response;
