@@ -53,4 +53,27 @@ public class ManifestEntry implements Validatable {
         return Objects.equals(registeredDigest, calculatedDigest);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ManifestEntry that = (ManifestEntry) o;
+        return Objects.equals(bag, that.bag) &&
+                Objects.equals(path, that.path) &&
+                Objects.equals(registeredDigest, that.registeredDigest);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(bag, path, registeredDigest);
+    }
+
+    @Override
+    public String toString() {
+        return "ManifestEntry{" +
+                "bag=" + bag +
+                ", path='" + path + '\'' +
+                ", registeredDigest='" + registeredDigest + '\'' +
+                '}';
+    }
 }
