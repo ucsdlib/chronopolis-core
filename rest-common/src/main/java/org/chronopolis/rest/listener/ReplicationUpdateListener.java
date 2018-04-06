@@ -48,7 +48,7 @@ public class ReplicationUpdateListener {
 
             // TODO: Break out?
             Set<String> nodes = bag.getReplicatingNodes();
-            if (nodes.size() >= bag.getRequiredReplications()) {
+            if (nodes.size() >= bag.getDepositor().getNodeDistributions().size()) {
                 log.debug("Setting bag {}::{} as replicated",
                         bag.getDepositor(),
                         bag.getName());

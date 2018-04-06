@@ -1,9 +1,8 @@
 package org.chronopolis.rest.entities.storage;
 
+import org.chronopolis.rest.entities.PersistableEntity;
+
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.OneToOne;
 
 /**
@@ -12,11 +11,7 @@ import javax.persistence.OneToOne;
  * Created by shake on 7/10/17.
  */
 @Entity
-public class ReplicationConfig {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+public class ReplicationConfig extends PersistableEntity {
 
     @OneToOne
     private StorageRegion region;
@@ -27,15 +22,6 @@ public class ReplicationConfig {
 
     public ReplicationConfig() {
         // jpyay
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public ReplicationConfig setId(long id) {
-        this.id = id;
-        return this;
     }
 
     public String getPath() {

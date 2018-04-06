@@ -8,6 +8,8 @@ import org.chronopolis.common.storage.TokenStagingPropertiesValidator;
 import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.ingest.api.serializer.AceTokenSerializer;
 import org.chronopolis.ingest.api.serializer.BagSerializer;
+import org.chronopolis.ingest.api.serializer.DepositorContactSerializer;
+import org.chronopolis.ingest.api.serializer.DepositorSerializer;
 import org.chronopolis.ingest.api.serializer.RepairSerializer;
 import org.chronopolis.ingest.api.serializer.ReplicationSerializer;
 import org.chronopolis.ingest.api.serializer.StagingStorageSerializer;
@@ -20,11 +22,14 @@ import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.StorageRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.dao.BagService;
+import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.ingest.repository.dao.StagingService;
 import org.chronopolis.ingest.repository.dao.StorageRegionService;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Depositor;
+import org.chronopolis.rest.entities.DepositorContact;
 import org.chronopolis.rest.entities.Repair;
 import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.entities.storage.StagingStorage;
@@ -57,6 +62,11 @@ public class IngestConfig {
     private final int MAX_SIZE = 6;
     private final int CORE_SIZE = 4;
     private final int KEEP_ALIVE = 30;
+
+    @Bean
+    public PagedDAO pagedDAO(EntityManager entityManager) {
+        return new PagedDAO(entityManager);
+    }
 
     @Bean(name = "tokenExecutor", destroyMethod = "destroy")
     public TrackingThreadPoolExecutor<Bag> tokenizingThreadPoolExecutor() {
@@ -121,10 +131,12 @@ public class IngestConfig {
         builder.serializerByType(Bag.class, new BagSerializer());
         builder.serializerByType(Repair.class, new RepairSerializer());
         builder.serializerByType(AceToken.class, new AceTokenSerializer());
+        builder.serializerByType(Depositor.class, new DepositorSerializer());
         builder.serializerByType(Replication.class, new ReplicationSerializer());
         builder.serializerByType(StorageRegion.class, new StorageRegionSerializer());
         builder.serializerByType(ZonedDateTime.class, new ZonedDateTimeSerializer());
         builder.serializerByType(StagingStorage.class, new StagingStorageSerializer());
+        builder.serializerByType(DepositorContact.class, new DepositorContactSerializer());
         builder.deserializerByType(ZonedDateTime.class, new ZonedDateTimeDeserializer());
         return builder;
     }

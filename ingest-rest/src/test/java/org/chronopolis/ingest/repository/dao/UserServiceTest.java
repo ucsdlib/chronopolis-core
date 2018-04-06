@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.when;
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = JpaContext.class)
 @DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class UserServiceTest extends IngestTest {
 
     private final String EXISTING = "umiacs";
@@ -42,7 +44,7 @@ public class UserServiceTest extends IngestTest {
     @Autowired AuthoritiesRepository authorities;
     @MockBean PasswordEncoder encoder;
 
-    UserService service;
+    private UserService service;
 
     @Before
     public void setup() {

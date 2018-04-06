@@ -47,7 +47,7 @@ public class SearchService<T, I extends Serializable, E extends JpaRepository<T,
         return e.findAll(predicate, pageable);
     }
 
-    public Predicate buildPredicate(SearchCriteria sc) {
+    private Predicate buildPredicate(SearchCriteria sc) {
         Map<Object, BooleanExpression> criteria = sc.getCriteria();
         BooleanBuilder builder = new BooleanBuilder();
         for (Object o : criteria.keySet()) {

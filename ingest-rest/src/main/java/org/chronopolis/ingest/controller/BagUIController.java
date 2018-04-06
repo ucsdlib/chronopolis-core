@@ -2,7 +2,6 @@ package org.chronopolis.ingest.controller;
 
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.PageWrapper;
-import org.chronopolis.ingest.exception.BadRequestException;
 import org.chronopolis.ingest.exception.ConflictException;
 import org.chronopolis.ingest.exception.ForbiddenException;
 import org.chronopolis.ingest.exception.NotFoundException;
@@ -20,6 +19,7 @@ import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
 import org.chronopolis.ingest.repository.dao.StagingService;
 import org.chronopolis.ingest.repository.dao.StorageRegionService;
+import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.ingest.support.FileSizeFormatter;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.ingest.support.ReplicationCreateResult;
@@ -59,10 +59,8 @@ import java.security.Principal;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Controller for handling bag/replication related requests
@@ -465,47 +463,19 @@ public class BagUIController extends IngestController {
     public String addBag(Principal principal, IngestRequest request) {
         access.info("[POST /bags/add] - {}", principal.getName());
         access.info("Post parameters: {};{}", request.getDepositor(), request.getName());
-        Long regionId = request.getStorageRegion();
 
-        StorageRegion region = regions.find(new StorageRegionSearchCriteria()
-                .withId(regionId));
-        if (region == null) {
-            throw new BadRequestException("Bad Request: StorageRegion "
-                    + regionId
-                    + " not found!");
-        }
-
-        Set<Node> replicatingNodes = replicatingNodes(request.getReplicatingNodes());
-        Bag bag = bagService.create(principal.getName(), request, region, replicatingNodes);
-
-        return "redirect:/bags/" + bag.getId();
-    }
-
-    private Set<Node> replicatingNodes(List<String> nodeNames) {
-        Set<Node> replicatingNodes = new HashSet<>();
-        if (nodeNames == null) {
-            nodeNames = new ArrayList<>();
-        }
-
-        for (String name : nodeNames) {
-            Node node = nodeRepository.findByUsername(name);
-            if (node != null) {
-                replicatingNodes.add(node);
-            } else {
-                log.warn("Node {} not found for distribution of bag!", name);
-            }
-        }
-
-        return replicatingNodes;
+        BagCreateResult result = bagService.processRequest(principal.getName(), request);
+        return result.getBag()
+                .map(bag -> "redirect:/bags/" + bag.getId())
+                .orElse("redirect:/bags/add");
     }
 
     //
     // Replication stuff
+    //
 
     /**
      * Get all replications
-     * If admin, return a list of all replications
-     * else return a list for the given user
      *
      * @param model     the viewmodel
      * @param principal authentication information
@@ -540,7 +510,7 @@ public class BagUIController extends IngestController {
                 .withId(id);
 
         Replication replication = replicationService.find(criteria);
-        log.info("Found replication {}::{}", replication.getId(), replication.getNode().getUsername());
+        // Not found if null
         model.addAttribute("replication", replication);
 
         return "replications/replication";
@@ -553,7 +523,7 @@ public class BagUIController extends IngestController {
      *
      * @param model     the viewmodel
      * @param principal authentication information
-     * @return the addreplication page
+     * @return the replications/add page
      */
     @RequestMapping(value = "/replications/add", method = RequestMethod.GET)
     public String addReplications(Model model, Principal principal) {
@@ -606,11 +576,10 @@ public class BagUIController extends IngestController {
         access.info("[POST /replications/add] - {}", principal.getName());
         ReplicationCreateResult result = replicationService.create(request);
 
-        // todo: find a way to display errors backwards
-        String template = result.getResult()
+        // todo: display errors if ReplicationRequest is not valid
+        return result.getResult()
                 .map(repl -> "redirect:/replications/" + repl.getId())
                 .orElse("redirect:/replications/create");
-        return template;
     }
 
 }

@@ -7,6 +7,7 @@
 <body>
 
 <nav th:fragment="single" aria-label="breadcrumb" role="navigation">
+    <!--/*@thymesVar id="region" type="org.chronopolis.rest.entities.storage.StorageRegion"*/-->
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a th:href="@{/regions}">Storage Regions</a></li>
         <li class="breadcrumb-item"><a th:href="@{/regions(node=${region.node.username})}"
@@ -19,7 +20,21 @@
     </ol>
 </nav>
 
+<nav th:fragment="edit" aria-label="breadcrumb" role="navigation">
+    <!--/*@thymesVar id="region" type="org.chronopolis.rest.entities.storage.StorageRegion"*/-->
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/regions}">Storage Regions</a></li>
+        <li class="breadcrumb-item"><a th:href="@{/regions(node=${region.node.username})}"
+                                       th:text="${region.node.username}">Node</a>
+        </li>
+        <li class="breadcrumb-item"><a th:href="@{|/regions/${region.id}|}"
+                                       th:text="${region.id}">Region Id</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Edit</li>
+    </ol>
+</nav>
+
 <nav th:fragment="list" aria-label="breadcrumb" role="navigation">
+    <!--/*@thymesVar id="region" type="org.chronopolis.rest.entities.storage.StorageRegion"*/-->
     <ol class="breadcrumb" style="margin-bottom: 0 !important">
         <li class="breadcrumb-item active">Storage Regions</li>
 

@@ -82,7 +82,6 @@ public class PosixBucket implements Bucket {
         return pendingOperations.contains(operation) || path.toFile().exists();
     }
 
-
     @Override
     public boolean writeable(StorageOperation operation) {
         boolean writeable = false;
@@ -94,7 +93,7 @@ public class PosixBucket implements Bucket {
         Long size = operation.getSize();
         // not sure if there will be overflow issues on the other side... we're testing with
         // Long.MAX so we should be ok
-        Double remainder = new Double(usable - size);
+        Double remainder = (double) (usable - size);
 
         log.trace("[{}] Total {}; Remainder {} ({} %(UL))", operation.getIdentifier(), total, remainder, remainder / total);
         if (remainder > 0 && remainder / total >= 0.1) {
@@ -156,7 +155,7 @@ public class PosixBucket implements Bucket {
         Path resolved = Paths.get(posix.getPath())
                 .resolve(operation.getRoot())
                 .resolve(file);
-        return Optional.ofNullable(Files.asByteSource(resolved.toFile()));
+        return Optional.of(Files.asByteSource(resolved.toFile()));
     }
 
     @Override

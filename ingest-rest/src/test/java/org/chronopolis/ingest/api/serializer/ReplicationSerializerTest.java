@@ -4,14 +4,13 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.chronopolis.ingest.WebContext;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Depositor;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
@@ -36,10 +35,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration(classes = WebContext.class)
 public class ReplicationSerializerTest {
 
-    private final Logger log = LoggerFactory.getLogger(ReplicationSerializerTest.class);
+    private final Depositor depositor = new Depositor().setNamespace("depositor");
     private final DateTimeFormatter fmt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC);
-    private final String datetime = "2017-06-30T20:24:01.311Z";
 
+    @SuppressWarnings("unused")
     private JacksonTester<Replication> json;
 
     @Before
@@ -58,10 +57,11 @@ public class ReplicationSerializerTest {
         String node = "node";
         String link = "link";
         String fixity = "fixity";
+        String datetime = "2017-06-30T20:24:01.311Z";
         ZonedDateTime time = ZonedDateTime.from(fmt.parse(datetime));
 
         Replication replication = new Replication(new Node(node, node),
-                new Bag("bag", "depositor"),
+                new Bag("bag", depositor),
                 link,
                 link);
         replication.setId(1L);

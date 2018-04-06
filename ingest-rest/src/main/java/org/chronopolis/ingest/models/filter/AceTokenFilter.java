@@ -1,7 +1,11 @@
 package org.chronopolis.ingest.models.filter;
 
 import com.google.common.collect.LinkedListMultimap;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import org.chronopolis.ingest.models.Paged;
+import org.chronopolis.rest.entities.QAceToken;
 
 import java.util.List;
 
@@ -11,6 +15,9 @@ import java.util.List;
  * @author shake
  */
 public class AceTokenFilter extends Paged {
+
+    private QAceToken aceToken = QAceToken.aceToken;
+    private final BooleanBuilder builder = new BooleanBuilder();
 
     private Long bagId;
     private String algorithm;
@@ -23,8 +30,11 @@ public class AceTokenFilter extends Paged {
     }
 
     public AceTokenFilter setBagId(Long bagId) {
-        this.bagId = bagId;
-        parameters.put("bagId", bagId.toString());
+        if (bagId != null) {
+            this.bagId = bagId;
+            parameters.put("bagId", bagId.toString());
+            builder.and(aceToken.bag.id.eq(bagId));
+        }
         return this;
     }
 
@@ -33,8 +43,11 @@ public class AceTokenFilter extends Paged {
     }
 
     public AceTokenFilter setAlgorithm(String algorithm) {
-        this.algorithm = algorithm;
-        parameters.put("algorithm", algorithm);
+        if (algorithm != null && !algorithm.isEmpty()) {
+            this.algorithm = algorithm;
+            parameters.put("algorithm", algorithm);
+            builder.and(aceToken.algorithm.eq(algorithm));
+        }
         return this;
     }
 
@@ -43,15 +56,46 @@ public class AceTokenFilter extends Paged {
     }
 
     public AceTokenFilter setFilename(List<String> filename) {
-        this.filename = filename;
-        // need to test putAll
-        parameters.putAll("filename", filename);
+        // might be good to check each filename for emptiness
+        if (filename != null && ! filename.isEmpty()) {
+            this.filename = filename;
+            parameters.putAll("filename", filename);
+            builder.and(aceToken.filename.in(filename));
+        }
         return this;
     }
 
     @Override
     public LinkedListMultimap<String, String> getParameters() {
         return parameters;
+    }
+
+    @Override
+    public BooleanBuilder getQuery() {
+        return builder;
+    }
+
+    @Override
+    public OrderSpecifier getOrderSpecifier() {
+        Order dir = getDirection();
+        OrderSpecifier orderSpecifier;
+
+        switch (getOrderBy()) {
+            case "bagId":
+                orderSpecifier = new OrderSpecifier<>(dir, aceToken.bag.id);
+                break;
+            case "filename":
+                orderSpecifier = new OrderSpecifier<>(dir, aceToken.filename);
+                break;
+            case "createdAt":
+                orderSpecifier = new OrderSpecifier<>(dir, aceToken.createDate);
+                break;
+            default:
+                orderSpecifier = new OrderSpecifier<>(dir, aceToken.id);
+                break;
+        }
+
+        return orderSpecifier;
     }
 
     public AceTokenFilter setParameters(LinkedListMultimap<String, String> parameters) {

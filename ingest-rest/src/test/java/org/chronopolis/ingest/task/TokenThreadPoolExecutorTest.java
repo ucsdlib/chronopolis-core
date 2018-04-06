@@ -3,11 +3,11 @@ package org.chronopolis.ingest.task;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Depositor;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -28,26 +28,30 @@ public class TokenThreadPoolExecutorTest extends IngestTest {
 
     private TrackingThreadPoolExecutor<Bag> trackingExecutor;
 
-    Bag b0 = new Bag("test-name-0", "test-depositor");
-    Bag b1 = new Bag("test-name-1", "test-depositor");
+    private final Depositor depositor = new Depositor()
+            .setNamespace("test-depositor")
+            .setSourceOrganization("test-org")
+            .setOrganizationAddress("test-address");
+
+    private Bag b0 = new Bag("test-name-0", depositor);
+    private Bag b1 = new Bag("test-name-1", depositor);
 
     @Before
-    public void setup() throws NoSuchFieldException, IllegalAccessException {
+    public void setup() {
         trackingExecutor = new TrackingThreadPoolExecutor<>(4,
                 4,
                 4,
                 TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>());
 
-        MockitoAnnotations.initMocks(this);
-
         // ensure the ids are not null
         b0.setId(0L);
         b1.setId(1L);
+        depositor.setId(1L);
     }
 
     @Test
-    public void testTrackingPoolSubmitBag() throws Exception {
+    public void testTrackingPoolSubmitBag() {
         Runnable r = new SleepRunnable();
         log.info("Submitting initial bag");
         Optional<FutureTask<Bag>> future = trackingExecutor.submitIfAvailable(r, b0);

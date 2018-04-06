@@ -1,0 +1,39 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: head">
+    <meta charset="UTF-8">
+    <title>Depositors Overview</title>
+</head>
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column align-items-center m-3">
+    <div class="card w-75">
+        <nav th:replace="fragments/crumbs/depositor :: single"></nav>
+
+        <!--@thymesVar id="tokens" type="Long"-->
+        <!--@thymesVar id="depositor" type="org.chronopolis.rest.entities.Depositor"-->
+        <div class="card-body p-2">
+            <table class="c-table">
+                <tr th:replace="fragments/storage :: list-item(head='Id', content=${depositor.id})"></tr>
+                <tr th:replace="fragments/storage :: list-item(head='Source Organization', content=${depositor.sourceOrganization})"></tr>
+                <tr th:replace="fragments/storage :: list-item(head='Organization Address', content=${depositor.organizationAddress})"></tr>
+                <tr th:replace="fragments/storage :: list-item(head='Created At', content=${depositor.createdAt})"></tr>
+                <tr th:replace="fragments/storage :: list-item(head='Updated At', content=${depositor.updatedAt})"></tr>
+            </table>
+        </div>
+
+        <div class="hr-sect mx-auto w-100">Contact Information</div>
+        <div class="card-body p-2">
+            <table th:replace="fragments/depositor :: display-contacts(${depositor}, ${depositor.contacts})"></table>
+            <a class="btn btn-primary pull-left" th:href="@{|${depositor.namespace}/addContact|}">Add Contact</a>
+        </div>
+
+        <div class="hr-sect mx-auto w-100">Replicating Nodes</div>
+        <div class="card-body p-2">
+            <table th:replace="fragments/depositor :: display-nodes(${depositor}, ${depositor.nodeDistributions})"></table>
+            <a class="btn btn-primary pull-left" th:href="@{|${depositor.namespace}/addNode|}">Add Replicating Node</a>
+        </div>
+    </div>
+    <div th:replace="layout :: foot"></div>
+</div>
+</body>
+</html>

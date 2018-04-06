@@ -6,6 +6,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Basic Auth interceptor for OkHttp
@@ -25,7 +26,8 @@ public class OkBasicInterceptor implements Interceptor {
     @Override
     public Response intercept(Chain chain) throws IOException {
         String credentials = username + ":" + password;
-        String basicAuth = "Basic " + BaseEncoding.base64().encode(credentials.getBytes());
+        String basicAuth = "Basic " + BaseEncoding.base64()
+                .encode(credentials.getBytes(StandardCharsets.UTF_8));
 
         Request request = chain.request().newBuilder().header("Authorization", basicAuth).build();
 

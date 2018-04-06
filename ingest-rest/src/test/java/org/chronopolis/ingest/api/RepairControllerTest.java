@@ -1,12 +1,6 @@
 package org.chronopolis.ingest.api;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.chronopolis.ingest.api.serializer.BagSerializer;
-import org.chronopolis.ingest.api.serializer.RepairSerializer;
-import org.chronopolis.ingest.api.serializer.ZonedDateTimeDeserializer;
-import org.chronopolis.ingest.api.serializer.ZonedDateTimeSerializer;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;
@@ -14,6 +8,7 @@ import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.ingest.support.PageImpl;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Depositor;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Repair;
 import org.chronopolis.rest.entities.fulfillment.Ace;
@@ -28,13 +23,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import java.time.ZonedDateTime;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
@@ -54,8 +43,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(RepairController.class)
 public class RepairControllerTest extends ControllerTest {
 
-    private MockMvc mvc;
     private RepairController controller;
+    private final Depositor depositor = new Depositor();
 
     // Beans for the RepairController
     @MockBean private NodeRepository nodes;
@@ -64,21 +53,8 @@ public class RepairControllerTest extends ControllerTest {
 
     @Before
     public void setup() {
-        // move to helper?
-        Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
-        builder.serializationInclusion(JsonInclude.Include.NON_NULL);
-        builder.serializerByType(Bag.class, new BagSerializer());
-        builder.serializerByType(Repair.class, new RepairSerializer());
-        builder.serializerByType(ZonedDateTime.class, new ZonedDateTimeSerializer());
-        builder.deserializerByType(ZonedDateTime.class, new ZonedDateTimeDeserializer());
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(builder.build());
-        converter.setSupportedMediaTypes(ImmutableList.of(MediaType.APPLICATION_JSON));
-
         controller = new RepairController(bags, nodes, repairs);
-        mvc = MockMvcBuilders.standaloneSetup(controller)
-                .setMessageConverters(converter)
-                .build();
+        setupMvc(controller);
     }
 
     @Test
@@ -115,7 +91,7 @@ public class RepairControllerTest extends ControllerTest {
         authenticateUser();
         // requester instead of authorized?
         when(nodes.findByUsername(AUTHORIZED)).thenReturn(new Node(AUTHORIZED, AUTHORIZED));
-        when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", "test-depositor"));
+        when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", depositor));
 
         String json = "{\"depositor\":\"test-depositor\",\"collection\":\"bag-0\",\"files\":[\"test-file-1\"]}";
         mvc.perform(
@@ -134,7 +110,7 @@ public class RepairControllerTest extends ControllerTest {
     public void createRepairAdmin() throws Exception {
         authenticateAdmin();
         when(nodes.findByUsername(REQUESTER)).thenReturn(new Node(REQUESTER, REQUESTER));
-        when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", "test-depositor"));
+        when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", depositor));
 
         String json = "{\"to\":\"requester\",\"depositor\":\"test-depositor\",\"collection\":\"bag-0\",\"files\":[\"test-file-1\"]}";
 
@@ -153,7 +129,7 @@ public class RepairControllerTest extends ControllerTest {
     @Test
     public void createRepairUnauthorized() throws Exception {
         authenticateUser();
-        when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", "test-depositor"));
+        when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", depositor));
 
         // For some reason the ObjectMapper isn't creating proper json for the RepairRequest class, so we'll just hard code it for now
         String json = "{\"to\":\"requester\",\"depositor\":\"test-depositor\",\"collection\":\"bag-0\",\"files\":[\"test-file-1\"]}";
@@ -437,7 +413,7 @@ public class RepairControllerTest extends ControllerTest {
 
     private Repair baseRepair() {
         Repair repair = new Repair();
-        repair.setBag(new Bag("test-bag", "test-depositor"));
+        repair.setBag(new Bag("test-bag", depositor));
         repair.setId(1L);
         repair.setRequester(REQUESTER);
         repair.setFiles(ImmutableSet.of());

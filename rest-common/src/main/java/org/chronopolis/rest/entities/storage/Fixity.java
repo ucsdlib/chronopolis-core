@@ -1,12 +1,10 @@
 package org.chronopolis.rest.entities.storage;
 
 import org.chronopolis.rest.ZonedDateTimeConverter;
+import org.chronopolis.rest.entities.PersistableEntity;
 
 import javax.persistence.Convert;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import java.time.ZonedDateTime;
@@ -22,12 +20,7 @@ import java.util.Objects;
  * Created by shake on 7/14/17.
  */
 @Entity
-public class Fixity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+public class Fixity extends PersistableEntity {
 
     /**
      * There's the possibility we want to make a M2M relationship in a
@@ -48,15 +41,6 @@ public class Fixity {
 
     public Fixity() {
         // yadda yadda jpa yadda yadda
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public Fixity setId(Long id) {
-        this.id = id;
-        return this;
     }
 
     public StagingStorage getStorage() {

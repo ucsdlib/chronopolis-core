@@ -35,8 +35,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class StorageRegionSerializerTest {
 
     private final DateTimeFormatter fmt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC);
+
+    @SuppressWarnings("unused")
     private JacksonTester<StorageRegion> json;
-    private String datetime = "2017-03-16T01:53:28Z";
 
     @Before
     public void setup() {
@@ -57,6 +58,8 @@ public class StorageRegionSerializerTest {
         region.setCapacity(250L);
         region.setDataType(DataType.BAG);
         region.setStorageType(StorageType.LOCAL);
+
+        String datetime = "2017-03-16T01:53:28Z";
         region.setCreatedAt(ZonedDateTime.from(fmt.parse(datetime)));
         region.setUpdatedAt(ZonedDateTime.from(fmt.parse(datetime)));
 

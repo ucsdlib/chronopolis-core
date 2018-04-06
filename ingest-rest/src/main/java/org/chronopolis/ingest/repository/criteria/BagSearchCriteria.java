@@ -9,6 +9,7 @@ import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Search criteria that map to the query parameters one may pass in when getting bags
@@ -57,7 +58,7 @@ public class BagSearchCriteria implements SearchCriteria {
 
     public BagSearchCriteria withDepositor(String depositor) {
         if (depositor != null && !depositor.isEmpty()) {
-            criteria.put(Params.DEPOSITOR, bag.depositor.eq(depositor));
+            criteria.put(Params.DEPOSITOR, bag.depositor.namespace.eq(depositor));
         }
         return this;
     }
@@ -80,7 +81,7 @@ public class BagSearchCriteria implements SearchCriteria {
 
     public BagSearchCriteria depositorLike(String depositor) {
         if (depositor != null && !depositor.isEmpty()) {
-            criteria.put(Params.DEPOSITOR, bag.depositor.like("%" + depositor + "%"));
+            criteria.put(Params.DEPOSITOR, bag.depositor.namespace.like("%" + depositor + "%"));
         }
         return this;
     }
@@ -130,5 +131,20 @@ public class BagSearchCriteria implements SearchCriteria {
 
     public Map<Object, BooleanExpression> getCriteria() {
         return criteria;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BagSearchCriteria that = (BagSearchCriteria) o;
+        return Objects.equals(bag, that.bag) &&
+                Objects.equals(criteria, that.criteria);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(bag, criteria);
     }
 }

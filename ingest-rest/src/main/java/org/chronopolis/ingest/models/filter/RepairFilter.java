@@ -3,7 +3,11 @@ package org.chronopolis.ingest.models.filter;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import org.chronopolis.ingest.models.Paged;
+import org.chronopolis.rest.entities.QRepair;
 import org.chronopolis.rest.models.repair.AuditStatus;
 import org.chronopolis.rest.models.repair.RepairStatus;
 
@@ -15,6 +19,9 @@ import java.util.List;
  * Created by shake on 6/15/17.
  */
 public class RepairFilter extends Paged {
+
+    private final QRepair repair = QRepair.repair;
+    private final BooleanBuilder builder = new BooleanBuilder();
 
     private String node;
     private String fulfillingNode;
@@ -28,8 +35,11 @@ public class RepairFilter extends Paged {
     }
 
     public RepairFilter setNode(String node) {
-        this.node = node;
-        parameters.put("node", node);
+        if (node != null && !node.isEmpty()) {
+            this.node = node;
+            parameters.put("node", node);
+            builder.and(repair.to.username.eq(node));
+        }
         return this;
     }
 
@@ -38,8 +48,11 @@ public class RepairFilter extends Paged {
     }
 
     public RepairFilter setFulfillingNode(String fulfillingNode) {
-        this.fulfillingNode = fulfillingNode;
-        parameters.put("fulfillingNode", fulfillingNode);
+        if (fulfillingNode != null && !fulfillingNode.isEmpty()) {
+            this.fulfillingNode = fulfillingNode;
+            parameters.put("fulfillingNode", fulfillingNode);
+            builder.and(repair.from.username.eq(fulfillingNode));
+        }
         return this;
     }
 
@@ -48,8 +61,11 @@ public class RepairFilter extends Paged {
     }
 
     public RepairFilter setStatus(List<RepairStatus> status) {
-        this.status = status;
-        status.forEach(repairStatus -> parameters.put("status", repairStatus.name()));
+        if (status != null && !status.isEmpty()) {
+            this.status = status;
+            status.forEach(repairStatus -> parameters.put("status", repairStatus.name()));
+            builder.and(repair.status.in(status));
+        }
         return this;
     }
 
@@ -58,13 +74,42 @@ public class RepairFilter extends Paged {
     }
 
     public RepairFilter setAuditStatus(List<AuditStatus> auditStatus) {
-        this.auditStatus = auditStatus;
-        auditStatus.forEach(status -> parameters.put("auditStatus", status.name()));
+        if (auditStatus != null && !auditStatus.isEmpty()) {
+            this.auditStatus = auditStatus;
+            auditStatus.forEach(status -> parameters.put("auditStatus", status.name()));
+            builder.and(repair.audit.in(auditStatus));
+        }
         return this;
     }
 
     public Multimap<String, String> getParameters() {
         parameters.putAll(super.getParameters());
         return Multimaps.filterValues(parameters, (value) -> (value != null && !value.isEmpty()));
+    }
+
+    @Override
+    public BooleanBuilder getQuery() {
+        return builder;
+    }
+
+    @Override
+    public OrderSpecifier getOrderSpecifier() {
+        Order dir = getDirection();
+        OrderSpecifier orderSpecifier;
+
+        //noinspection Duplicates
+        switch (getOrderBy()) {
+            case "createdAt":
+                orderSpecifier = new OrderSpecifier<>(dir, repair.createdAt);
+                break;
+            case "updatedAt":
+                orderSpecifier = new OrderSpecifier<>(dir, repair.updatedAt);
+                break;
+            default:
+                orderSpecifier = new OrderSpecifier<>(dir, repair.id);
+                break;
+        }
+
+        return orderSpecifier;
     }
 }

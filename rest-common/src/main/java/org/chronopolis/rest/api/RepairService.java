@@ -41,7 +41,7 @@ public interface RepairService {
      * - validated
      * - requester
      *
-     * @return
+     * @return all repairs
      */
     @GET(REPAIR_ROOT)
     Call<PageImpl<Repair>> get(@QueryMap Map<String, String> parameters);
@@ -103,9 +103,9 @@ public interface RepairService {
      * Mark that a repair has successfully replaced corrupt data
      * with the pulled fulfillment data
      *
-     * @param id
-     * @param body
-     * @return
+     * @param id the id of the replications
+     * @param body the status of the audit
+     * @return the updated repair
      */
     Call<Repair> replaced(Long id, AuditStatus body);
 

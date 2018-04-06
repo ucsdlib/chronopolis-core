@@ -1,6 +1,7 @@
 package org.chronopolis.replicate.support;
 
 import org.chronopolis.rest.api.BagService;
+import org.chronopolis.rest.api.DepositorAPI;
 import org.chronopolis.rest.api.RepairService;
 import org.chronopolis.rest.api.ReplicationService;
 import org.chronopolis.rest.api.ServiceGenerator;
@@ -39,6 +40,11 @@ public class ReplGenerator implements ServiceGenerator {
 
     @Override
     public StagingService staging() {
+        return null;
+    }
+
+    @Override
+    public DepositorAPI depositorAPI() {
         return null;
     }
 

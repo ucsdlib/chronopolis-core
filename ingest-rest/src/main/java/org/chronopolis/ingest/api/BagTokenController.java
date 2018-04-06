@@ -61,7 +61,9 @@ public class BagTokenController extends IngestController {
      * @return A paged view of tokens
      */
     @GetMapping("/tokens")
-    public Page<AceToken> getTokensForBag(Principal principal, @PathVariable("id") Long id, @ModelAttribute AceTokenFilter filter) {
+    public Page<AceToken> getTokensForBag(Principal principal,
+                                          @PathVariable("id") Long id,
+                                          @ModelAttribute AceTokenFilter filter) {
         access.info("[GET /api/bags/{}/tokens] - {}", id, principal.getName());
         AceTokenSearchCriteria searchCriteria = new AceTokenSearchCriteria()
                 .withBagId(id)

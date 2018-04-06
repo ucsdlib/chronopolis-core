@@ -1,0 +1,49 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: head">
+    <meta charset="UTF-8">
+    <title>Depositors Overview</title>
+</head>
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column align-items-center m-3">
+    <div class="card w-75 filterable">
+        <nav th:replace="fragments/crumbs/depositor :: list"></nav>
+
+        <table class="table table-hover">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Namespace</th>
+                <th>Source Organization</th>
+                <th>Organization Address</th>
+                <th>Created At</th>
+                <th>Updated At</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!--@thymesVar id="depositors" type="Page<Depositor>"-->
+            <!--@thymesVar id="depositor" type="org.chronopolis.rest.entities.Depositor"-->
+            <tr class="table-clickable"
+                th:each="depositor: ${depositors}"
+                th:attr="data-href=@{|/depositors/list/${depositor.namespace}|}">
+                <td th:text="${depositor.id}"></td>
+                <td th:text="${depositor.namespace}"></td>
+                <td th:text="${depositor.sourceOrganization}"></td>
+                <td th:text="${depositor.organizationAddress}"></td>
+                <td th:text="${depositor.createdAt.toLocalDate()}"></td>
+                <td th:text="${depositor.updatedAt.toLocalDate()}"></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div th:replace="fragments/page :: page"></div>
+    </div>
+</div>
+<div th:replace="layout :: foot"></div>
+<script type="text/javascript">
+    $(".table-clickable").click(function () {
+        window.location = $(this).data("href");
+    });
+</script>
+</body>
+</html>
