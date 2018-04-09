@@ -5,7 +5,6 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import org.chronopolis.common.storage.BagStagingProperties;
 import org.chronopolis.rest.models.Bag;
-import org.chronopolis.tokenize.batch.ChronopolisTokenRequestBatch;
 import org.chronopolis.tokenize.config.TokenTaskConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,13 +34,13 @@ public class BagProcessor implements Runnable {
 
     private final Bag bag;
     private final Digester digester;
+    private final StateMachine stateMachine;
     private final BagStagingProperties properties;
-    private final ChronopolisTokenRequestBatch batch;
     private final Predicate<ManifestEntry> predicate;
-    // private final List<Predicate<ManifestEntry>> predicates;
 
-    // these should come from some source above instead of being defined here
+    // these should come from some source instead of being defined here
     // in the event we no longer use sha256
+    @SuppressWarnings("FieldCanBeLocal")
     private final String manifestName = "manifest-sha256.txt";
     private final String tagmanifestName = "tagmanifest-sha256.txt";
 
@@ -49,20 +48,22 @@ public class BagProcessor implements Runnable {
     public BagProcessor(Bag bag,
                         Collection<Predicate<ManifestEntry>> predicates,
                         BagStagingProperties properties,
-                        ChronopolisTokenRequestBatch batch) {
-        this(bag, predicates, properties, batch,
+                        StateMachine stateMachine) {
+        this(bag, predicates, properties,
                 // eventually this will be cleaned up a bit when we have "storage aware" classes
                 // but for now we just have posix areas sooooo yea
-                Digester.of(properties.getPosix().getPath(), bag.getBagStorage().getPath()));
+                Digester.of(properties.getPosix().getPath(),
+                            bag.getBagStorage().getPath()),
+                stateMachine);
     }
 
     public BagProcessor(Bag bag,
                         Collection<Predicate<ManifestEntry>> predicates,
                         BagStagingProperties properties,
-                        ChronopolisTokenRequestBatch batch,
-                        Digester digester) {
+                        Digester digester,
+                        StateMachine stateMachine) {
         this.bag = bag;
-        this.batch = batch;
+        this.stateMachine = stateMachine;
         this.digester = digester;
         this.properties = properties;
 
@@ -116,11 +117,11 @@ public class BagProcessor implements Runnable {
      * @param digest the digest of the tagmanifest
      */
     private void processTag(String digest) {
-        ManifestEntry tag = new ManifestEntry(bag, tagmanifestName, digest);
-        if (predicate.test(tag)) {
+        ManifestEntry entry = new ManifestEntry(bag, tagmanifestName, digest);
+        if (predicate.test(entry)) {
             // just in case this gets used down the line
-            tag.setCalculatedDigest(digest);
-            batch.add(tag);
+            entry.setCalculatedDigest(digest);
+            stateMachine.start(entry);
         }
     }
 
@@ -150,6 +151,7 @@ public class BagProcessor implements Runnable {
                     .map(entry -> new ManifestEntry(bag,
                             entry[PATH_IDX].trim(),
                             entry[DIGEST_IDX].trim()))
+                    .peek(entry -> log.trace("[{}] Processing", entry.tokenName()))
                     .filter(predicate)
                     .reduce(0, (u, entry) -> validate(entry), (l, r) -> l + r);
         } catch (IOException e) {
@@ -172,13 +174,20 @@ public class BagProcessor implements Runnable {
         Optional<String> digest = digester.digest(entry.getPath());
         digest.ifPresent(entry::setCalculatedDigest);
         if (entry.isValid()) {
+            log.info("[{}] Entry is valid", entry.tokenName());
             error = 0;
-            // machine.start(entry)
-        } // else log?
+            stateMachine.start(entry);
+        } else {
+            log.warn("[{}] Entry is invalid", entry.tokenName());
+        }
 
         return error;
     }
 
+    /**
+     * Class to digest a file for us. Might be turned into a Future which we can submit to a
+     * ThreadPool for long IO operations
+     */
     @SuppressWarnings("WeakerAccess")
     public static class Digester {
         private final Path root;

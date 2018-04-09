@@ -5,7 +5,6 @@ import org.chronopolis.common.storage.BagStagingProperties;
 import org.chronopolis.common.storage.Posix;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.storage.StagingStorageModel;
-import org.chronopolis.tokenize.batch.ChronopolisTokenRequestBatch;
 import org.chronopolis.tokenize.filter.HttpFilter;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,9 +31,9 @@ public class BagProcessorTest {
     private final String collection = "test-bag-1";
 
     @Mock private HttpFilter filter;
+    @Mock private StateMachine stateMachine;
     // if we have the files on disk, is there any reason to mock this?
     @Mock private BagProcessor.Digester digester;
-    @Mock private ChronopolisTokenRequestBatch batch;
 
     private Bag bag;
     private BagProcessor processor;
@@ -64,24 +63,23 @@ public class BagProcessorTest {
 
     @Test
     public void runAll() {
-        processor = new BagProcessor(bag, predicates, properties, batch);
-        ManifestEntry hwEntry = new ManifestEntry(bag, HW_NAME, HW_DIGEST);
-        when(filter.test(eq(hwEntry))).thenReturn(true);
+        processor = new BagProcessor(bag, predicates, properties, stateMachine);
+        when(filter.test(any(ManifestEntry.class))).thenReturn(true);
         processor.run();
         verify(filter, times(3)).test(any(ManifestEntry.class));
-        // verify(batch, times(3)).add(any(ManifestEntry.class));
+        verify(stateMachine, times(3)).start(any(ManifestEntry.class));
     }
 
     @Test
     public void runManifestNotValid() {
-        processor = new BagProcessor(bag, predicates, properties, batch, digester);
+        processor = new BagProcessor(bag, predicates, properties, digester, stateMachine);
         ManifestEntry hwEntry = new ManifestEntry(bag, HW_NAME, HW_DIGEST);
         when(filter.test(eq(hwEntry))).thenReturn(true);
         when(digester.digest(eq(HW_NAME))).thenReturn(Optional.of(HW_DIGEST + "-bad"));
         processor.run();
         verify(filter, times(1)).test(eq(hwEntry));
         verify(digester, times(1)).digest(eq(HW_NAME));
-        // verify(batch, times(0)).add(any(ManifestEntry.class));
+        verify(stateMachine, times(0)).start(any(ManifestEntry.class));
     }
 
 }
