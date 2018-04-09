@@ -76,12 +76,28 @@ public class TokenStateMachine implements StateMachine {
     }
 
     @Override
-    public void retry(ManifestEntry entry) {
+    public void retryTokenize(ManifestEntry entry) {
         boolean offer;
         if (processing.contains(entry)) {
             // at this point we should be guaranteed to have room available, but there's still
             // a chance of failure so capture the return
             offer = queued.offer(entry);
+
+            if (!offer) {
+                processing.remove(entry);
+                tokens.remove(entry);
+                available.release();
+            }
+        }
+    }
+
+    @Override
+    public void retryRegister(ManifestEntry entry) {
+        boolean offer;
+
+        // is it possible to have true && false?
+        if (processing.contains(entry) && tokens.containsKey(entry)) {
+            offer = retrieved.offer(entry);
 
             if (!offer) {
                 processing.remove(entry);

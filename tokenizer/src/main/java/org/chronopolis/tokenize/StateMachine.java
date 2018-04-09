@@ -14,7 +14,10 @@ import java.util.concurrent.TimeUnit;
 public interface StateMachine {
 
     void start(ManifestEntry entry);
-    void retry(ManifestEntry entry);
+
+    void retryTokenize(ManifestEntry entry);
+    void retryRegister(ManifestEntry entry);
+
     void associate(ManifestEntry entry, TokenResponse response);
 
     void complete(ManifestEntry entry);
