@@ -4,6 +4,7 @@ import com.google.common.collect.ComparisonChain;
 import org.chronopolis.rest.models.storage.StagingStorageModel;
 
 import java.time.ZonedDateTime;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -155,4 +156,17 @@ public class Bag implements Comparable<Bag> {
                 .result();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Bag bag = (Bag) o;
+        return Objects.equals(name, bag.name) &&
+                Objects.equals(depositor, bag.depositor);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, depositor);
+    }
 }
