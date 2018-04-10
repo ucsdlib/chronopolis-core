@@ -92,4 +92,18 @@ public interface TokenWorkSupervisor {
      */
     Map<ManifestEntry, TokenResponse> tokenizedEntries(int size, long timeout, TimeUnit timeUnit);
 
+    /**
+     * Return if there are ManifestEntries being tracked
+     *
+     * @return true if there is still work, false otherwise
+     */
+    boolean isProcessing();
+
+    /**
+     * Check if a specific {@link ManifestEntry} is being processed
+     *
+     * @param entry the ManifestEntry to check
+     * @return true if the ManifestEntry is being processed
+     */
+    boolean isProcessing(ManifestEntry entry);
 }

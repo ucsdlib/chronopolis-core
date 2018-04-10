@@ -148,4 +148,14 @@ public class DefaultSupervisor implements TokenWorkSupervisor {
         return entries.stream()
                 .collect(Collectors.toMap((entry) -> entry, tokens::get));
     }
+
+    @Override
+    public boolean isProcessing() {
+        return processing.isEmpty();
+    }
+
+    @Override
+    public boolean isProcessing(ManifestEntry entry) {
+        return entry != null && processing.contains(entry);
+    }
 }
