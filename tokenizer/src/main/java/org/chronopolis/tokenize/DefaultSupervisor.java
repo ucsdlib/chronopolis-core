@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * Implementation of a StateMachine which tracks {@link ManifestEntry}s being processed and puts
+ * Implementation of a Supervisor which tracks {@link ManifestEntry}s being processed and puts
  * them into a {@link BlockingQueue} depending on what processing step they are ready for.
  *
  * This implementation needs to be polled from in order for work to be done; otherwise it will block
@@ -25,9 +25,9 @@ import java.util.stream.Collectors;
  * <p>
  * @author shake
  */
-public class TokenStateMachine implements StateMachine {
+public class DefaultSupervisor implements TokenWorkSupervisor {
 
-    private final Logger log = LoggerFactory.getLogger(TokenStateMachine.class);
+    private final Logger log = LoggerFactory.getLogger(DefaultSupervisor.class);
 
     private static final int MAX_QUEUE = 10000; // idk
 
@@ -52,7 +52,6 @@ public class TokenStateMachine implements StateMachine {
      */
     private final Map<ManifestEntry, TokenResponse> tokens = new ConcurrentHashMap<>();
     private final Semaphore available = new Semaphore(MAX_QUEUE, true);
-
 
     @Override
     public void start(ManifestEntry entry) {

@@ -6,7 +6,7 @@ import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.AceTokenModel;
 import org.chronopolis.tokenize.ManifestEntry;
-import org.chronopolis.tokenize.StateMachine;
+import org.chronopolis.tokenize.TokenWorkSupervisor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Call;
@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * {@link TokenRegistrar} that polls a {@link StateMachine} for {@link ManifestEntry}s which
+ * {@link TokenRegistrar} that polls a {@link TokenWorkSupervisor} for {@link ManifestEntry}s which
  * have {@link TokenResponse}s ready to upload to the Chronopolis Ingest Server
  *
  * @author shake
@@ -30,15 +30,15 @@ public class HttpTokenRegistrar implements TokenRegistrar, Runnable {
 
     private final String imsHost;
     private final TokenService tokens;
-    private final StateMachine stateMachine;
+    private final TokenWorkSupervisor supervisor;
 
     private final AtomicBoolean running = new AtomicBoolean(true);
 
     public HttpTokenRegistrar(TokenService tokens,
-                              StateMachine stateMachine,
+                              TokenWorkSupervisor supervisor,
                               AceConfiguration configuration) {
         this.tokens = tokens;
-        this.stateMachine = stateMachine;
+        this.supervisor = supervisor;
         this.imsHost = configuration.getIms().getEndpoint();
     }
 
@@ -52,7 +52,7 @@ public class HttpTokenRegistrar implements TokenRegistrar, Runnable {
 
         if (running.get()) {
             Map<ManifestEntry, TokenResponse> responses =
-                    stateMachine.tokenizedEntries(size, timeout, timeUnit);
+                    supervisor.tokenizedEntries(size, timeout, timeUnit);
             responses.forEach(this::register);
         }
     }
@@ -105,7 +105,7 @@ public class HttpTokenRegistrar implements TokenRegistrar, Runnable {
                 // do we want to retry here? depending on the code received?
             }
 
-            stateMachine.complete(entry);
+            supervisor.complete(entry);
         }
 
         @Override
@@ -116,7 +116,7 @@ public class HttpTokenRegistrar implements TokenRegistrar, Runnable {
             if (tries.incrementAndGet() < 3) {
                 call.enqueue(this);
             } else {
-                stateMachine.retryRegister(entry);
+                supervisor.retryRegister(entry);
             }
         }
     }

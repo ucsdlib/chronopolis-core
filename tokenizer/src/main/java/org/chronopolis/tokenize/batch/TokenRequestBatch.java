@@ -2,7 +2,7 @@ package org.chronopolis.tokenize.batch;
 
 import edu.umiacs.ace.ims.ws.TokenRequest;
 import org.chronopolis.tokenize.ManifestEntry;
-import org.chronopolis.tokenize.StateMachine;
+import org.chronopolis.tokenize.TokenWorkSupervisor;
 
 import java.util.Set;
 
@@ -11,7 +11,7 @@ import java.util.Set;
  *
  * Initially this was just supposed to be a marker interface for batch operations, but it has a few
  * methods now which all request batches should share. Processing and updating is implementation
- * dependent, and {@link StateMachine}s might not necessarily push requests to the process method.
+ * dependent, and {@link TokenWorkSupervisor}s might not necessarily push requests to the process method.
  *
  * @author shake
  */

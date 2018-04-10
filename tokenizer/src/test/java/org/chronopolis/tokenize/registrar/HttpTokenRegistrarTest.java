@@ -10,7 +10,7 @@ import org.chronopolis.test.support.CallWrapper;
 import org.chronopolis.test.support.ErrorCallWrapper;
 import org.chronopolis.test.support.ExceptingCallWrapper;
 import org.chronopolis.tokenize.ManifestEntry;
-import org.chronopolis.tokenize.StateMachine;
+import org.chronopolis.tokenize.TokenWorkSupervisor;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,12 +57,12 @@ public class HttpTokenRegistrarTest {
     @Mock
     private TokenService tokens;
     @Mock
-    private StateMachine stateMachine;
+    private TokenWorkSupervisor supervisor;
 
     @Before
     public void setup() throws DatatypeConfigurationException {
         tokens = mock(TokenService.class);
-        stateMachine = mock(StateMachine.class);
+        supervisor = mock(TokenWorkSupervisor.class);
 
         Bag bag = new Bag();
         bag.setId(id);
@@ -85,7 +85,7 @@ public class HttpTokenRegistrarTest {
 
         AceConfiguration configuration = new AceConfiguration()
                 .setIms(new AceConfiguration.Ims().setEndpoint("test-ims-endpoint"));
-        registrar = new HttpTokenRegistrar(tokens, stateMachine, configuration);
+        registrar = new HttpTokenRegistrar(tokens, supervisor, configuration);
 
         model = new AceTokenModel()
                 .setCreateDate(ZonedDateTime.now())
@@ -105,7 +105,7 @@ public class HttpTokenRegistrarTest {
 
         registrar.register(ImmutableMap.of(entry, response));
         verify(tokens, times(1)).createToken(eq(id), any(AceTokenModel.class));
-        verify(stateMachine, times(1)).complete(eq(entry));
+        verify(supervisor, times(1)).complete(eq(entry));
     }
 
     @Test
@@ -116,7 +116,7 @@ public class HttpTokenRegistrarTest {
 
         registrar.register(ImmutableMap.of(entry, response));
         verify(tokens, times(1)).createToken(eq(id), any(AceTokenModel.class));
-        verify(stateMachine, times(1)).retryRegister(eq(entry));
+        verify(supervisor, times(1)).retryRegister(eq(entry));
     }
 
     @Test
@@ -126,7 +126,7 @@ public class HttpTokenRegistrarTest {
 
         registrar.register(ImmutableMap.of(entry, response));
         verify(tokens, times(1)).createToken(eq(id), any(AceTokenModel.class));
-        verify(stateMachine, times(1)).complete(eq(entry));
+        verify(supervisor, times(1)).complete(eq(entry));
     }
 
     @Test
@@ -136,7 +136,7 @@ public class HttpTokenRegistrarTest {
 
         registrar.register(ImmutableMap.of(entry, response));
         verify(tokens, times(1)).createToken(eq(id), any(AceTokenModel.class));
-        verify(stateMachine, times(1)).complete(eq(entry));
+        verify(supervisor, times(1)).complete(eq(entry));
     }
 
     @Test

@@ -7,7 +7,7 @@ import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.tokenize.ManifestEntry;
-import org.chronopolis.tokenize.StateMachine;
+import org.chronopolis.tokenize.TokenWorkSupervisor;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -43,7 +43,7 @@ public class ChronopolisTokenRequestBatchTest {
     private final ExecutorService es = Executors.newFixedThreadPool(1);
 
     @Mock private ImsServiceWrapper ims;
-    @Mock private StateMachine stateMachine;
+    @Mock private TokenWorkSupervisor supervisor;
 
     @Before
     public void setup() {
@@ -69,11 +69,11 @@ public class ChronopolisTokenRequestBatchTest {
         }
 
         ims = mock(ImsServiceWrapper.class);
-        stateMachine = mock(StateMachine.class);
+        supervisor = mock(TokenWorkSupervisor.class);
         AceConfiguration configuration = new AceConfiguration()
                 .setIms(new AceConfiguration.Ims().setEndpoint("test-ims-endpoint"));
 
-        batch = new ChronopolisTokenRequestBatch(configuration, ims, stateMachine);
+        batch = new ChronopolisTokenRequestBatch(configuration, ims, supervisor);
     }
 
     // Various add tests
@@ -85,13 +85,13 @@ public class ChronopolisTokenRequestBatchTest {
         es.awaitTermination(10, TimeUnit.MILLISECONDS);
         batch.process(manifestEntries);
 
-        verify(stateMachine, times(0)).queuedEntries(anyInt(), anyLong(), any(TimeUnit.class));
-        verify(stateMachine, times(0)).associate(any(ManifestEntry.class), any(TokenResponse.class));
+        verify(supervisor, times(0)).queuedEntries(anyInt(), anyLong(), any(TimeUnit.class));
+        verify(supervisor, times(0)).associate(any(ManifestEntry.class), any(TokenResponse.class));
     }
 
     @Test
     public void runSuccess() throws InterruptedException {
-        when(stateMachine.queuedEntries(anyInt(), anyLong(), any(TimeUnit.class)))
+        when(supervisor.queuedEntries(anyInt(), anyLong(), any(TimeUnit.class)))
                 .thenReturn(manifestEntries);
 
         when(ims.requestTokensImmediate(anyString(), anyListOf(TokenRequest.class)))
@@ -102,10 +102,10 @@ public class ChronopolisTokenRequestBatchTest {
         batch.close();
         es.awaitTermination(500, TimeUnit.MILLISECONDS);
 
-        verify(stateMachine, atLeastOnce()).queuedEntries(anyInt(), anyLong(), any(TimeUnit.class));
+        verify(supervisor, atLeastOnce()).queuedEntries(anyInt(), anyLong(), any(TimeUnit.class));
         verify(ims, atLeastOnce())
                 .requestTokensImmediate(anyString(), anyListOf(TokenRequest.class));
-        verify(stateMachine, atLeast(10))
+        verify(supervisor, atLeast(10))
                 .associate(any(ManifestEntry.class), any(TokenResponse.class));
     }
 
@@ -114,8 +114,8 @@ public class ChronopolisTokenRequestBatchTest {
         batch.process(ImmutableSet.of());
 
         verify(ims, never()).requestTokensImmediate(anyString(), anyListOf(TokenRequest.class));
-        verify(stateMachine, never()).associate(any(ManifestEntry.class), any(TokenResponse.class));
-        verify(stateMachine, never()).retryTokenize(any(ManifestEntry.class));
+        verify(supervisor, never()).associate(any(ManifestEntry.class), any(TokenResponse.class));
+        verify(supervisor, never()).retryTokenize(any(ManifestEntry.class));
     }
 
     @Test
@@ -127,8 +127,8 @@ public class ChronopolisTokenRequestBatchTest {
         batch.process(manifestEntries);
 
         verify(ims, times(1)).requestTokensImmediate(anyString(), anyListOf(TokenRequest.class));
-        verify(stateMachine, never()).associate(any(ManifestEntry.class), any(TokenResponse.class));
-        verify(stateMachine, times(10)).retryTokenize(any(ManifestEntry.class));
+        verify(supervisor, never()).associate(any(ManifestEntry.class), any(TokenResponse.class));
+        verify(supervisor, times(10)).retryTokenize(any(ManifestEntry.class));
     }
 
 }

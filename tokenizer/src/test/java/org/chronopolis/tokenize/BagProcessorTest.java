@@ -31,7 +31,7 @@ public class BagProcessorTest {
     private final String collection = "test-bag-1";
 
     @Mock private HttpFilter filter;
-    @Mock private StateMachine stateMachine;
+    @Mock private TokenWorkSupervisor supervisor;
     // if we have the files on disk, is there any reason to mock this?
     @Mock private BagProcessor.Digester digester;
 
@@ -63,23 +63,23 @@ public class BagProcessorTest {
 
     @Test
     public void runAll() {
-        processor = new BagProcessor(bag, predicates, properties, stateMachine);
+        processor = new BagProcessor(bag, predicates, properties, supervisor);
         when(filter.test(any(ManifestEntry.class))).thenReturn(true);
         processor.run();
         verify(filter, times(3)).test(any(ManifestEntry.class));
-        verify(stateMachine, times(3)).start(any(ManifestEntry.class));
+        verify(supervisor, times(3)).start(any(ManifestEntry.class));
     }
 
     @Test
     public void runManifestNotValid() {
-        processor = new BagProcessor(bag, predicates, properties, digester, stateMachine);
+        processor = new BagProcessor(bag, predicates, properties, digester, supervisor);
         ManifestEntry hwEntry = new ManifestEntry(bag, HW_NAME, HW_DIGEST);
         when(filter.test(eq(hwEntry))).thenReturn(true);
         when(digester.digest(eq(HW_NAME))).thenReturn(Optional.of(HW_DIGEST + "-bad"));
         processor.run();
         verify(filter, times(1)).test(eq(hwEntry));
         verify(digester, times(1)).digest(eq(HW_NAME));
-        verify(stateMachine, times(0)).start(any(ManifestEntry.class));
+        verify(supervisor, times(0)).start(any(ManifestEntry.class));
     }
 
 }

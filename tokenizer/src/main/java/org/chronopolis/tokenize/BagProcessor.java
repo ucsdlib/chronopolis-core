@@ -34,7 +34,7 @@ public class BagProcessor implements Runnable {
 
     private final Bag bag;
     private final Digester digester;
-    private final StateMachine stateMachine;
+    private final TokenWorkSupervisor supervisor;
     private final BagStagingProperties properties;
     private final Predicate<ManifestEntry> predicate;
 
@@ -48,22 +48,22 @@ public class BagProcessor implements Runnable {
     public BagProcessor(Bag bag,
                         Collection<Predicate<ManifestEntry>> predicates,
                         BagStagingProperties properties,
-                        StateMachine stateMachine) {
+                        TokenWorkSupervisor supervisor) {
         this(bag, predicates, properties,
                 // eventually this will be cleaned up a bit when we have "storage aware" classes
                 // but for now we just have posix areas sooooo yea
                 Digester.of(properties.getPosix().getPath(),
                             bag.getBagStorage().getPath()),
-                stateMachine);
+                supervisor);
     }
 
     public BagProcessor(Bag bag,
                         Collection<Predicate<ManifestEntry>> predicates,
                         BagStagingProperties properties,
                         Digester digester,
-                        StateMachine stateMachine) {
+                        TokenWorkSupervisor supervisor) {
         this.bag = bag;
-        this.stateMachine = stateMachine;
+        this.supervisor = supervisor;
         this.digester = digester;
         this.properties = properties;
 
@@ -121,7 +121,7 @@ public class BagProcessor implements Runnable {
         if (predicate.test(entry)) {
             // just in case this gets used down the line
             entry.setCalculatedDigest(digest);
-            stateMachine.start(entry);
+            supervisor.start(entry);
         }
     }
 
@@ -176,7 +176,7 @@ public class BagProcessor implements Runnable {
         if (entry.isValid()) {
             log.info("[{}] Entry is valid", entry.tokenName());
             error = 0;
-            stateMachine.start(entry);
+            supervisor.start(entry);
         } else {
             log.warn("[{}] Entry is invalid", entry.tokenName());
         }

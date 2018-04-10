@@ -4,7 +4,7 @@ import edu.umiacs.ace.ims.ws.TokenRequest;
 import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.tokenize.ManifestEntry;
-import org.chronopolis.tokenize.StateMachine;
+import org.chronopolis.tokenize.TokenWorkSupervisor;
 import org.chronopolis.tokenize.config.TokenTaskConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,20 +37,20 @@ public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable
     private final int maxWaitTime;
     private final int maxQueueLength;
     private final ImsServiceWrapper ims;
-    private final StateMachine stateMachine;
+    private final TokenWorkSupervisor supervisor;
 
     private AtomicBoolean running = new AtomicBoolean(true);
 
     public ChronopolisTokenRequestBatch(AceConfiguration configuration,
-                                        StateMachine stateMachine) {
-        this(configuration, new ImsServiceWrapper(configuration.getIms()), stateMachine);
+                                        TokenWorkSupervisor supervisor) {
+        this(configuration, new ImsServiceWrapper(configuration.getIms()), supervisor);
     }
 
     public ChronopolisTokenRequestBatch(AceConfiguration configuration,
                                         ImsServiceWrapper wrapper,
-                                        StateMachine stateMachine) {
+                                        TokenWorkSupervisor supervisor) {
         this.ims = wrapper;
-        this.stateMachine = stateMachine;
+        this.supervisor = supervisor;
 
         AceConfiguration.Ims imsConfiguration = configuration.getIms();
         tokenClass = imsConfiguration.getTokenClass();
@@ -62,7 +62,7 @@ public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable
     public void run() {
         log.info("[Tokenizer] Starting");
         while (running.get()) {
-            Set<ManifestEntry> entries = stateMachine.queuedEntries(maxQueueLength,
+            Set<ManifestEntry> entries = supervisor.queuedEntries(maxQueueLength,
                     maxWaitTime,
                     TimeUnit.MILLISECONDS);
             process(entries);
@@ -76,7 +76,7 @@ public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable
      * the ACE Tokens with the Chronopolis Ingest Server
      * <p>
      * If an error occurs communicating with the IMS, each {@link ManifestEntry} is resubmitted
-     * through the {@link StateMachine} retry method.
+     * through the {@link TokenWorkSupervisor} retry method.
      *
      * @param entrySet the {@link ManifestEntry}s to process and create Ace Tokens for
      */
@@ -105,11 +105,11 @@ public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable
             responses.forEach(response -> {
                 log.trace("[{}] Processing response", response.getName());
                 ManifestEntry manifestEntry = entries.get(response.getName());
-                stateMachine.associate(manifestEntry, response);
+                supervisor.associate(manifestEntry, response);
             });
         } catch (Exception e) {
             log.error("[Tokenizer] Exception on send {}", e.getMessage(), e);
-            entries.values().forEach(stateMachine::retryTokenize);
+            entries.values().forEach(supervisor::retryTokenize);
         } finally {
             // Not really necessary...
             requests.clear();
