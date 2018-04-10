@@ -1,10 +1,10 @@
 package org.chronopolis.tokenize;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.storage.BagStagingProperties;
-import org.chronopolis.common.util.Filter;
 import org.chronopolis.rest.api.BagService;
 import org.chronopolis.rest.api.IngestAPIProperties;
 import org.chronopolis.rest.api.ServiceGenerator;
@@ -14,6 +14,8 @@ import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.tokenize.batch.ChronopolisTokenRequestBatch;
 import org.chronopolis.tokenize.config.TokenTaskConfiguration;
 import org.chronopolis.tokenize.filter.HttpFilter;
+import org.chronopolis.tokenize.filter.ProcessingFilter;
+import org.chronopolis.tokenize.registrar.HttpTokenRegistrar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,34 +30,48 @@ import retrofit2.Call;
 import retrofit2.Response;
 
 import java.io.IOException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 @SpringBootApplication(scanBasePackageClasses = TokenTaskConfiguration.class,
         exclude = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
-@EnableConfigurationProperties({AceConfiguration.class, IngestAPIProperties.class, BagStagingProperties.class})
+@EnableConfigurationProperties({AceConfiguration.class,
+        IngestAPIProperties.class,
+        BagStagingProperties.class})
 public class TokenApplication implements CommandLineRunner {
     private final Logger log = LoggerFactory.getLogger(TokenTaskConfiguration.TOKENIZER_LOG_NAME);
 
     private final TokenService tokens;
     private final BagService bagService;
+    private final HttpTokenRegistrar registrar;
+    private final TokenWorkSupervisor supervisor;
     private final BagStagingProperties properties;
     private final IngestAPIProperties ingestProperties;
     private final ChronopolisTokenRequestBatch batch;
+
+    private final Executor executorForBatch;
     private final TrackingThreadPoolExecutor<Bag> executor;
 
     @Autowired
     public TokenApplication(ServiceGenerator generator,
+                            HttpTokenRegistrar registrar,
+                            TokenWorkSupervisor supervisor,
                             BagStagingProperties properties,
-                            IngestAPIProperties ingestProperties, ChronopolisTokenRequestBatch batch,
+                            IngestAPIProperties ingestProperties,
+                            ChronopolisTokenRequestBatch batch,
+                            Executor executorForBatch,
                             TrackingThreadPoolExecutor<Bag> executor) {
         this.tokens = generator.tokens();
         this.bagService = generator.bags();
+        this.registrar = registrar;
+        this.supervisor = supervisor;
         this.properties = properties;
         this.ingestProperties = ingestProperties;
         this.batch = batch;
+        this.executorForBatch = executorForBatch;
         this.executor = executor;
     }
-
 
     public static void main(String[] args) {
         SpringApplication.exit(SpringApplication.run(TokenApplication.class));
@@ -64,7 +80,11 @@ public class TokenApplication implements CommandLineRunner {
     @Override
     @SuppressWarnings("Duplicates")
     public void run(String... strings) throws Exception {
-        ImmutableMap<String, Object> DEFAULT_QUERY = ImmutableMap.of("creator", ingestProperties.getUsername(),
+        executorForBatch.execute(batch);
+        executorForBatch.execute(registrar);
+
+        ImmutableMap<String, Object> DEFAULT_QUERY = ImmutableMap.of(
+                "creator", ingestProperties.getUsername(),
                 "status", BagStatus.DEPOSITED,
                 "region_id", properties.getPosix().getId());
 
@@ -85,6 +105,9 @@ public class TokenApplication implements CommandLineRunner {
             log.error("Error communicating with the ingest server", e);
         }
 
+        batch.close();
+        registrar.close();
+        executor.shutdown();
     }
 
     /**
@@ -95,10 +118,16 @@ public class TokenApplication implements CommandLineRunner {
      */
     private void executeBatch(PageImpl<Bag> body) throws InterruptedException {
         for (Bag bag : body) {
-            Filter<String> filter = new HttpFilter(bag.getId(), tokens);
-            executor.submitIfAvailable(new BagProcessor(bag, filter, properties, batch), bag);
+            ImmutableList<Predicate<ManifestEntry>> predicates =
+                    ImmutableList.of(new ProcessingFilter(supervisor),
+                            new HttpFilter(bag.getId(), tokens));
+
+            executor.submitIfAvailable(
+                    new BagProcessor(bag, predicates, properties, supervisor),
+                    bag);
         }
-        while (executor.getActiveCount() > 0 || batch.activeCount() > 0) {
+
+        while (executor.getActiveCount() > 0 || supervisor.isProcessing()) {
             TimeUnit.SECONDS.sleep(1);
         }
     }
