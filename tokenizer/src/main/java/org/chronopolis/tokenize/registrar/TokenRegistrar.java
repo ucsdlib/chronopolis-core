@@ -16,6 +16,11 @@ import java.util.regex.Pattern;
  */
 public interface TokenRegistrar {
 
+    /**
+     * Register ACE Tokens to a Chronopolis Ingest Service
+     *
+     * @param tokenResponseMap the tokens to register, mapped to ManifestEntries they belong to
+     */
     void register(Map<ManifestEntry, TokenResponse> tokenResponseMap);
 
 
