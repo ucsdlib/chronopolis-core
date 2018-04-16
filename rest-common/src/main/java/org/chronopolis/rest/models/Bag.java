@@ -150,7 +150,6 @@ public class Bag implements Comparable<Bag> {
     @Override
     public int compareTo(Bag bag) {
         return ComparisonChain.start()
-                .compare(id, bag.id)
                 .compare(depositor, bag.depositor)
                 .compare(name, bag.name)
                 .result();
