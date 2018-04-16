@@ -1,12 +1,16 @@
-package org.chronopolis.tokenize;
+package org.chronopolis.tokenize.registrar;
 
+import com.google.common.collect.ImmutableMap;
 import edu.umiacs.ace.ims.ws.TokenResponse;
+import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.AceTokenModel;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.test.support.CallWrapper;
 import org.chronopolis.test.support.ErrorCallWrapper;
 import org.chronopolis.test.support.ExceptingCallWrapper;
+import org.chronopolis.tokenize.ManifestEntry;
+import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,8 +33,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class TokenRegistrarTest {
-    private final Logger log = LoggerFactory.getLogger(TokenRegistrarTest.class);
+public class HttpTokenRegistrarTest {
+    private final Logger log = LoggerFactory.getLogger(HttpTokenRegistrarTest.class);
 
     // include extraneous characters?
     private final String path = "data/path/to/file.txt";
@@ -48,13 +52,17 @@ public class TokenRegistrarTest {
     private ManifestEntry entry;
     private AceTokenModel model;
     private TokenResponse response;
-    private TokenRegistrar registrar;
+    private HttpTokenRegistrar registrar;
 
-    @Mock private TokenService tokens;
+    @Mock
+    private TokenService tokens;
+    @Mock
+    private TokenWorkSupervisor supervisor;
 
     @Before
     public void setup() throws DatatypeConfigurationException {
         tokens = mock(TokenService.class);
+        supervisor = mock(TokenWorkSupervisor.class);
 
         Bag bag = new Bag();
         bag.setId(id);
@@ -75,7 +83,9 @@ public class TokenRegistrarTest {
         response.setTimestamp(calendar);
         response.setTokenClassName(tokenClass);
 
-        registrar = new TokenRegistrar(tokens, entry, response, host);
+        AceConfiguration configuration = new AceConfiguration()
+                .setIms(new AceConfiguration.Ims().setEndpoint("test-ims-endpoint"));
+        registrar = new HttpTokenRegistrar(tokens, supervisor, configuration);
 
         model = new AceTokenModel()
                 .setCreateDate(ZonedDateTime.now())
@@ -89,19 +99,49 @@ public class TokenRegistrarTest {
     }
 
     @Test
-    public void get() throws Exception {
+    public void get() {
         CallWrapper<AceTokenModel> success = new CallWrapper<>(model);
-        ExceptingCallWrapper<AceTokenModel> exception = new ExceptingCallWrapper<>(model);
-        ErrorCallWrapper<AceTokenModel> error = new ErrorCallWrapper<>(model, 404, "Bag not found");
-        when(tokens.createToken(eq(id), any(AceTokenModel.class))).thenReturn(exception, error, success);
+        when(tokens.createToken(eq(id), any(AceTokenModel.class))).thenReturn(success);
 
-        registrar.get();
-        verify(tokens, times(3)).createToken(eq(id), any(AceTokenModel.class));
+        registrar.register(ImmutableMap.of(entry, response));
+        verify(tokens, times(1)).createToken(eq(id), any(AceTokenModel.class));
+        verify(supervisor, times(1)).complete(eq(entry));
     }
 
     @Test
-    public void getFilename() throws Exception {
-        String filename = registrar.getFilename();
+    public void registerFailWithException() {
+        ExceptingCallWrapper<AceTokenModel> exception = new ExceptingCallWrapper<>(model);
+
+        when(tokens.createToken(eq(id), any(AceTokenModel.class))).thenReturn(exception);
+
+        registrar.register(ImmutableMap.of(entry, response));
+        verify(tokens, times(1)).createToken(eq(id), any(AceTokenModel.class));
+        verify(supervisor, times(1)).retryRegister(eq(entry));
+    }
+
+    @Test
+    public void registerFail4xxError() {
+        ErrorCallWrapper<AceTokenModel> error = new ErrorCallWrapper<>(model, 404, "Bag not found");
+        when(tokens.createToken(eq(id), any(AceTokenModel.class))).thenReturn(error);
+
+        registrar.register(ImmutableMap.of(entry, response));
+        verify(tokens, times(1)).createToken(eq(id), any(AceTokenModel.class));
+        verify(supervisor, times(1)).complete(eq(entry));
+    }
+
+    @Test
+    public void register409Success() {
+        ErrorCallWrapper<AceTokenModel> error = new ErrorCallWrapper<>(model, 409, "Token exists");
+        when(tokens.createToken(eq(id), any(AceTokenModel.class))).thenReturn(error);
+
+        registrar.register(ImmutableMap.of(entry, response));
+        verify(tokens, times(1)).createToken(eq(id), any(AceTokenModel.class));
+        verify(supervisor, times(1)).complete(eq(entry));
+    }
+
+    @Test
+    public void getFilename() {
+        String filename = registrar.getFilename(response);
         Assert.assertEquals(path, filename);
     }
 

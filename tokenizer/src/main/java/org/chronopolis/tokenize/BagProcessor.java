@@ -4,10 +4,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import org.chronopolis.common.storage.BagStagingProperties;
-import org.chronopolis.common.util.Filter;
 import org.chronopolis.rest.models.Bag;
-import org.chronopolis.tokenize.batch.ChronopolisTokenRequestBatch;
 import org.chronopolis.tokenize.config.TokenTaskConfiguration;
+import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +14,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static com.google.common.io.Files.asByteSource;
@@ -34,33 +35,52 @@ public class BagProcessor implements Runnable {
 
     private final Bag bag;
     private final Digester digester;
-    private final Filter<String> filter;
+    private final TokenWorkSupervisor supervisor;
     private final BagStagingProperties properties;
-    private final ChronopolisTokenRequestBatch batch;
+    private final Predicate<ManifestEntry> predicate;
 
-    // these should come from some source above instead of being defined here
+    // these should come from some source instead of being defined here
     // in the event we no longer use sha256
+    @SuppressWarnings("FieldCanBeLocal")
     private final String manifestName = "manifest-sha256.txt";
     private final String tagmanifestName = "tagmanifest-sha256.txt";
 
 
-    public BagProcessor(Bag bag, Filter<String> filter, BagStagingProperties properties, ChronopolisTokenRequestBatch batch) {
-        this(bag, filter, properties, batch,
+    public BagProcessor(Bag bag,
+                        Collection<Predicate<ManifestEntry>> predicates,
+                        BagStagingProperties properties,
+                        TokenWorkSupervisor supervisor) {
+        this(bag, predicates, properties,
                 // eventually this will be cleaned up a bit when we have "storage aware" classes
                 // but for now we just have posix areas sooooo yea
-                Digester.of(properties.getPosix().getPath(), bag.getBagStorage().getPath()));
+                Digester.of(properties.getPosix().getPath(),
+                            bag.getBagStorage().getPath()),
+                supervisor);
     }
 
     public BagProcessor(Bag bag,
-                        Filter<String> filter,
+                        Collection<Predicate<ManifestEntry>> predicates,
                         BagStagingProperties properties,
-                        ChronopolisTokenRequestBatch batch,
-                        Digester digester) {
+                        Digester digester,
+                        TokenWorkSupervisor supervisor) {
         this.bag = bag;
+        this.supervisor = supervisor;
         this.digester = digester;
-        this.filter = filter;
         this.properties = properties;
-        this.batch = batch;
+
+        // Just use the HttpFilter for now, soon we'll pass in a list of predicates
+        this.predicate = buildPredicate(predicates);
+    }
+
+    /**
+     * Create a Predicate from combining multiple Predicates together through a reduction
+     *
+     * @param predicates the Predicates to reduce
+     * @return the reduced Predicate, or true if none are present
+     */
+    private <E> Predicate<E> buildPredicate(Collection<Predicate<E>> predicates) {
+        return predicates.stream()
+            .reduce(Predicate::and).orElse(entry -> true);
     }
 
     /**
@@ -86,7 +106,7 @@ public class BagProcessor implements Runnable {
             }
         }
 
-        if (errors == 0 && !filter.contains(tagmanifestName)) {
+        if (errors == 0) {
             Optional<String> digest = digester.digest(tagmanifestName);
             digest.ifPresent(this::processTag);
         }
@@ -98,10 +118,12 @@ public class BagProcessor implements Runnable {
      * @param digest the digest of the tagmanifest
      */
     private void processTag(String digest) {
-        ManifestEntry tag = new ManifestEntry(bag, tagmanifestName, digest);
-        // just in case this gets used down the line
-        tag.setCalculatedDigest(digest);
-        batch.add(tag);
+        ManifestEntry entry = new ManifestEntry(bag, tagmanifestName, digest);
+        if (predicate.test(entry)) {
+            // just in case this gets used down the line
+            entry.setCalculatedDigest(digest);
+            supervisor.start(entry);
+        }
     }
 
     /**
@@ -127,8 +149,11 @@ public class BagProcessor implements Runnable {
             // maybe instead of errors being a long, it could be a set which contains all
             // error'd entries
             errors = lines.map(line -> line.split("\\s", 2))
-                    .map(entry -> new ManifestTuple(entry[PATH_IDX], entry[DIGEST_IDX]))
-                    .filter(entry -> !filter.contains(entry.getPath()))
+                    .map(entry -> new ManifestEntry(bag,
+                            entry[PATH_IDX].trim(),
+                            entry[DIGEST_IDX].trim()))
+                    .peek(entry -> log.trace("[{}] Processing", entry.tokenName()))
+                    .filter(predicate)
                     .reduce(0, (u, entry) -> validate(entry), (l, r) -> l + r);
         } catch (IOException e) {
             log.error("[{}] Error processing {}", bag.getName(), name);
@@ -140,42 +165,31 @@ public class BagProcessor implements Runnable {
     }
 
     /**
-     * Validate an entry in a manifest and add it to the batch processor if valid
+     * Validate an entry in a manifest and add it to processing if it passes validation
      *
-     * @param entry the manifest entry to add, should be of the form "digest  relative/path"
-     * @return the amount of errors occurred (0 or 1)
+     * @param entry the entry to validate
+     * @return the number of errors found (0 or 1)
      */
-    private int validate(ManifestTuple entry) {
-        String identifier = bag.getDepositor() + "::" + bag.getName();
+    private int validate(ManifestEntry entry) {
         int error = 1;
-        ManifestEntry manifestEntry = digester.entryFrom(bag, entry.getPath(), entry.getDigest());
-        log.trace("[{}] Creating entry from {} {}", identifier, entry.getPath(), entry.getDigest());
-        if (manifestEntry.isValid()) {
-            batch.add(manifestEntry);
+        Optional<String> digest = digester.digest(entry.getPath());
+        digest.ifPresent(entry::setCalculatedDigest);
+        if (entry.isValid()) {
+            log.info("[{}] Entry is valid", entry.tokenName());
             error = 0;
+            supervisor.start(entry);
+        } else {
+            log.warn("[{}] Entry is invalid", entry.tokenName());
         }
 
         return error;
     }
 
-    public static class ManifestTuple {
-        private final String path;
-        private final String digest;
-
-        public ManifestTuple(String path, String digest) {
-            this.path = path.trim();
-            this.digest = digest.trim();
-        }
-
-        public String getPath() {
-            return path;
-        }
-
-        public String getDigest() {
-            return digest;
-        }
-    }
-
+    /**
+     * Class to digest a file for us. Might be turned into a Future which we can submit to a
+     * ThreadPool for long IO operations
+     */
+    @SuppressWarnings("WeakerAccess")
     public static class Digester {
         private final Path root;
 
@@ -185,27 +199,6 @@ public class BagProcessor implements Runnable {
 
         public Digester(Path root) {
             this.root = root;
-        }
-
-        /**
-         * Create a ManifestEntry from a given bag, filename, and digest. Attempt
-         * to calculate the digest of the file on disk.
-         *
-         * @param bag    the bag containing the entry
-         * @param name   the filename of the entry
-         * @param digest the digest of the entry
-         * @return a new ManifestEntry
-         */
-        public ManifestEntry entryFrom(Bag bag, String name, String digest) {
-            ManifestEntry entry = new ManifestEntry(bag, name, digest);
-            try {
-                HashCode hash = run(name);
-                entry.setCalculatedDigest(hash.toString());
-            } catch (IOException e) {
-                log.warn("Unable to digest {}", name, e);
-            }
-
-            return entry;
         }
 
         /**

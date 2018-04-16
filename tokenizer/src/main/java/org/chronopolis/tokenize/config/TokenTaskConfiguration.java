@@ -7,7 +7,10 @@ import org.chronopolis.rest.api.IngestAPIProperties;
 import org.chronopolis.rest.api.IngestGenerator;
 import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.tokenize.supervisor.DefaultSupervisor;
+import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.chronopolis.tokenize.batch.ChronopolisTokenRequestBatch;
+import org.chronopolis.tokenize.registrar.HttpTokenRegistrar;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,14 +44,25 @@ public class TokenTaskConfiguration {
 
     @Bean
     public Executor executorForBatch() {
-        return new ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        return new ThreadPoolExecutor(2, 2, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
 
-    @Bean(destroyMethod = "close")
-    public ChronopolisTokenRequestBatch batch(Executor executorForBatch, AceConfiguration configuration, ServiceGenerator generator) {
-        ChronopolisTokenRequestBatch batch = new ChronopolisTokenRequestBatch(configuration, generator.tokens());
-        executorForBatch.execute(batch);
-        return batch;
+    @Bean
+    public TokenWorkSupervisor tokenWorkSupervisor() {
+        return new DefaultSupervisor();
+    }
+
+    @Bean
+    public ChronopolisTokenRequestBatch batch(AceConfiguration configuration,
+                                              TokenWorkSupervisor supervisor) {
+        return new ChronopolisTokenRequestBatch(configuration, supervisor);
+    }
+
+    @Bean
+    public HttpTokenRegistrar tokenRegistrar(ServiceGenerator generator,
+                                             TokenWorkSupervisor supervisor,
+                                             AceConfiguration configuration) {
+        return new HttpTokenRegistrar(generator.tokens(), supervisor, configuration);
     }
 
     @Bean

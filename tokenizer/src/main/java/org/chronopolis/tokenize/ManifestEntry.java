@@ -1,5 +1,6 @@
 package org.chronopolis.tokenize;
 
+import com.google.common.collect.ComparisonChain;
 import org.chronopolis.rest.models.Bag;
 
 import java.util.Objects;
@@ -9,7 +10,7 @@ import java.util.Objects;
  *
  * @author shake
  */
-public class ManifestEntry implements Validatable {
+public class ManifestEntry implements Validatable, Comparable<ManifestEntry> {
 
     private final Bag bag;
     private final String path;
@@ -53,4 +54,35 @@ public class ManifestEntry implements Validatable {
         return Objects.equals(registeredDigest, calculatedDigest);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ManifestEntry that = (ManifestEntry) o;
+        return Objects.equals(bag, that.bag) &&
+                Objects.equals(path, that.path) &&
+                Objects.equals(registeredDigest, that.registeredDigest);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(bag, path, registeredDigest);
+    }
+
+    @Override
+    public String toString() {
+        return "ManifestEntry{" +
+                "bag=" + bag +
+                ", path='" + path + '\'' +
+                ", registeredDigest='" + registeredDigest + '\'' +
+                '}';
+    }
+
+    @Override
+    public int compareTo(ManifestEntry entry) {
+        return ComparisonChain.start()
+                .compare(bag, entry.bag)
+                .compare(path, entry.path)
+                .result();
+    }
 }
