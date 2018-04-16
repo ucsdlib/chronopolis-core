@@ -1,7 +1,7 @@
 package org.chronopolis.tokenize.filter;
 
 import org.chronopolis.tokenize.ManifestEntry;
-import org.chronopolis.tokenize.TokenWorkSupervisor;
+import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 
 import java.util.function.Predicate;
 

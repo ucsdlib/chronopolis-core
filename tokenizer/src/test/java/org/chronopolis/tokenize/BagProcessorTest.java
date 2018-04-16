@@ -6,6 +6,7 @@ import org.chronopolis.common.storage.Posix;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.storage.StagingStorageModel;
 import org.chronopolis.tokenize.filter.HttpFilter;
+import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

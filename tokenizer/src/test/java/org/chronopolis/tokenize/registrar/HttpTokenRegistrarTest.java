@@ -10,7 +10,7 @@ import org.chronopolis.test.support.CallWrapper;
 import org.chronopolis.test.support.ErrorCallWrapper;
 import org.chronopolis.test.support.ExceptingCallWrapper;
 import org.chronopolis.tokenize.ManifestEntry;
-import org.chronopolis.tokenize.TokenWorkSupervisor;
+import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

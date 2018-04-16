@@ -16,6 +16,7 @@ import org.chronopolis.tokenize.config.TokenTaskConfiguration;
 import org.chronopolis.tokenize.filter.HttpFilter;
 import org.chronopolis.tokenize.filter.ProcessingFilter;
 import org.chronopolis.tokenize.registrar.HttpTokenRegistrar;
+import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

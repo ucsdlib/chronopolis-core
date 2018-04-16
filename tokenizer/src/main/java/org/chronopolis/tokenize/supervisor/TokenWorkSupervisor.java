@@ -1,6 +1,7 @@
-package org.chronopolis.tokenize;
+package org.chronopolis.tokenize.supervisor;
 
 import edu.umiacs.ace.ims.ws.TokenResponse;
+import org.chronopolis.tokenize.ManifestEntry;
 
 import java.util.Map;
 import java.util.Set;
@@ -31,14 +32,14 @@ public interface TokenWorkSupervisor {
      *
      * @param entry the ManifestEntry to add
      */
-    void start(ManifestEntry entry);
+    boolean start(ManifestEntry entry);
 
     /**
      * Re-submit a {@link ManifestEntry} to a Supervisor to attempt to create an ACE Token again
      *
      * @param entry the ManifestEntry being resubmitted
      */
-    void retryTokenize(ManifestEntry entry);
+    boolean retryTokenize(ManifestEntry entry);
 
     /**
      * Re-submit a {@link ManifestEntry} to a Supervisor to attempt to register its ACE Token to the
@@ -46,7 +47,7 @@ public interface TokenWorkSupervisor {
      *
      * @param entry the ManifestEntry being resubmitted
      */
-    void retryRegister(ManifestEntry entry);
+    boolean retryRegister(ManifestEntry entry);
 
     /**
      * Attach an ACE {@link TokenResponse} to a {@link ManifestEntry}
@@ -54,7 +55,7 @@ public interface TokenWorkSupervisor {
      * @param entry    the ManifestEntry which was successfully tokenized
      * @param response the TokenResponse being associated
      */
-    void associate(ManifestEntry entry, TokenResponse response);
+    boolean associate(ManifestEntry entry, TokenResponse response);
 
     /**
      * Mark a {@link ManifestEntry} as having completed its lifecycle. At the moment this does not

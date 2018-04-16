@@ -4,7 +4,7 @@ import edu.umiacs.ace.ims.ws.TokenRequest;
 import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.tokenize.ManifestEntry;
-import org.chronopolis.tokenize.TokenWorkSupervisor;
+import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.chronopolis.tokenize.config.TokenTaskConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

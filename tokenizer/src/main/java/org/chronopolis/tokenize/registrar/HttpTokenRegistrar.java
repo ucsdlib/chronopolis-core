@@ -6,7 +6,7 @@ import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.AceTokenModel;
 import org.chronopolis.tokenize.ManifestEntry;
-import org.chronopolis.tokenize.TokenWorkSupervisor;
+import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Call;

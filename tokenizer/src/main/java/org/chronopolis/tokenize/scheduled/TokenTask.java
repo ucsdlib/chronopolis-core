@@ -12,7 +12,7 @@ import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.tokenize.BagProcessor;
 import org.chronopolis.tokenize.ManifestEntry;
-import org.chronopolis.tokenize.TokenWorkSupervisor;
+import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.chronopolis.tokenize.config.TokenTaskConfiguration;
 import org.chronopolis.tokenize.filter.HttpFilter;
 import org.chronopolis.tokenize.filter.ProcessingFilter;

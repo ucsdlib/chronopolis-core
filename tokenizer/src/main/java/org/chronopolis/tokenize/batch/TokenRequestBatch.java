@@ -2,7 +2,7 @@ package org.chronopolis.tokenize.batch;
 
 import edu.umiacs.ace.ims.ws.TokenRequest;
 import org.chronopolis.tokenize.ManifestEntry;
-import org.chronopolis.tokenize.TokenWorkSupervisor;
+import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 
 import java.util.Set;
 

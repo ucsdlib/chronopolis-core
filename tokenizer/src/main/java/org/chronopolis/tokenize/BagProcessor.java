@@ -6,6 +6,7 @@ import com.google.common.hash.Hashing;
 import org.chronopolis.common.storage.BagStagingProperties;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.tokenize.config.TokenTaskConfiguration;
+import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
