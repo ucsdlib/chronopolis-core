@@ -7,7 +7,7 @@ import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.tokenize.ManifestEntry;
-import org.chronopolis.tokenize.TokenWorkSupervisor;
+import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -25,19 +25,18 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.internal.verification.VerificationModeFactory.atLeast;
 
 public class ChronopolisTokenRequestBatchTest {
 
     private ChronopolisTokenRequestBatch batch;
 
-    private final List<TokenRequest> tokenRequests = new ArrayList<>();
     private final Set<ManifestEntry> manifestEntries = new HashSet<>();
     private final List<TokenResponse> tokenResponses = new ArrayList<>();
     private final ExecutorService es = Executors.newFixedThreadPool(1);
@@ -64,7 +63,6 @@ public class ChronopolisTokenRequestBatchTest {
             response.setName(entry.getPath());
 
             manifestEntries.add(entry);
-            tokenRequests.add(request);
             tokenResponses.add(response);
         }
 
@@ -82,7 +80,7 @@ public class ChronopolisTokenRequestBatchTest {
     public void whenShutdownNoProcessing() throws InterruptedException {
         batch.close();
         es.submit(batch);
-        es.awaitTermination(10, TimeUnit.MILLISECONDS);
+        es.awaitTermination(0, TimeUnit.MILLISECONDS);
         batch.process(manifestEntries);
 
         verify(supervisor, times(0)).queuedEntries(anyInt(), anyLong(), any(TimeUnit.class));
@@ -90,19 +88,13 @@ public class ChronopolisTokenRequestBatchTest {
     }
 
     @Test
-    public void runSuccess() throws InterruptedException {
-        when(supervisor.queuedEntries(anyInt(), anyLong(), any(TimeUnit.class)))
-                .thenReturn(manifestEntries);
-
+    public void processRequests() {
         when(ims.requestTokensImmediate(anyString(), anyListOf(TokenRequest.class)))
                 .thenReturn(tokenResponses);
 
-        es.submit(batch);
-        TimeUnit.MILLISECONDS.sleep(50);
-        batch.close();
-        es.awaitTermination(500, TimeUnit.MILLISECONDS);
+        batch.process(manifestEntries);
 
-        verify(supervisor, atLeastOnce()).queuedEntries(anyInt(), anyLong(), any(TimeUnit.class));
+        verify(supervisor, never()).queuedEntries(anyInt(), anyLong(), any(TimeUnit.class));
         verify(ims, atLeastOnce())
                 .requestTokensImmediate(anyString(), anyListOf(TokenRequest.class));
         verify(supervisor, atLeast(10))
