@@ -2,8 +2,9 @@ package org.chronopolis.ingest.tokens;
 
 import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.rest.entities.AceToken;
+import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.QAceToken;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.tokenize.ManifestEntry;
 
 import java.util.function.Predicate;
@@ -23,11 +24,18 @@ public class DatabasePredicate implements Predicate<ManifestEntry> {
 
     @Override
     public boolean test(ManifestEntry entry) {
-        Bag bag = entry.getBag();
+        // null checks
+        if (entry == null || entry.getBag() == null || entry.getBag().getId() == null) {
+            return false;
+        }
+
+        Long bagId = entry.getBag().getId();
+
         // pretty sure this will actually throw an exception if not found
         // should instead just get a boolean value back from the db
-        AceToken exists = dao.findOne(QAceToken.aceToken, QAceToken.aceToken.bag.id.eq(bag.getId())
+        Bag bag = dao.findOne(QBag.bag, QBag.bag.id.eq(bagId));
+        AceToken exists = dao.findOne(QAceToken.aceToken, QAceToken.aceToken.bag.id.eq(bagId)
                 .and(QAceToken.aceToken.filename.eq(entry.getPath())));
-        return exists == null;
+        return bag != null && exists == null;
     }
 }
