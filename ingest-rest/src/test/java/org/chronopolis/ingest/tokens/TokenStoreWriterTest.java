@@ -71,16 +71,23 @@ public class TokenStoreWriterTest extends IngestTest {
     }
 
     @Test
-    public void testWriteTokens() throws Exception {
+    public void testWriteTokens() {
+        final String name = "new-bag-3";
+        final String depositor = "test-depositor";
         // Init the TokenStoreWriter and run it
-        Bag b = bagService.find(new BagSearchCriteria().withId(3L));
-        StorageRegion region = storageRegionService.find(new StorageRegionSearchCriteria().withId(properties.getPosix().getId()));
+        Bag b = bagService.find(new BagSearchCriteria()
+                .withDepositor(depositor)
+                .withName(name));
+        StorageRegion region = storageRegionService.find(
+                new StorageRegionSearchCriteria().withId(properties.getPosix().getId()));
         String stage = properties.getPosix().getPath();
         TokenStoreWriter writer = new TokenStoreWriter(b, region, properties, bagService, tokenService);
         writer.run();
 
         // Refresh the bag from the db
-        Bag updated = bagService.find(new BagSearchCriteria().withId(3L));
+        Bag updated = bagService.find(new BagSearchCriteria()
+                .withDepositor(depositor)
+                .withName(name));
         Assert.assertNotNull(updated.getTokenStorage());
         Assert.assertFalse(updated.getTokenStorage().isEmpty());
         updated.getTokenStorage().forEach(storage -> {
@@ -90,7 +97,7 @@ public class TokenStoreWriterTest extends IngestTest {
 
             // path assert
             Path tokens = Paths.get(stage, storage.getPath());
-            Assert.assertEquals(true, java.nio.file.Files.exists(tokens));
+            Assert.assertTrue(java.nio.file.Files.exists(tokens));
             Assert.assertEquals(tokens.toFile().length(), storage.getSize());
             Assert.assertEquals(1, storage.getTotalFiles());
 
@@ -108,6 +115,5 @@ public class TokenStoreWriterTest extends IngestTest {
         });
 
         Assert.assertEquals(BagStatus.TOKENIZED, updated.getStatus());
-
     }
 }
