@@ -36,8 +36,6 @@ import static org.mockito.Mockito.times;
 @ContextConfiguration(classes = JpaContext.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SqlGroup({
-        // We only want bags to be inserted for these tests
-        // but when tearing down remove the replications as well
         @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
                 scripts = "classpath:sql/createBags.sql"),
         @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,

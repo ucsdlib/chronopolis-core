@@ -175,14 +175,13 @@ public class PagedDAO {
      */
     @Transactional
     public <T extends PersistableEntity> void delete(T t) {
-        if (t.getId() == null) {
-            // warn? something?
-        } else {
+        if (t.getId() != null) {
             // em.getTransaction().begin();
             em.remove(t);
             em.flush();
             // em.getTransaction().commit();
         }
+        // warn if null?
     }
 
 }
