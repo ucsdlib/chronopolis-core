@@ -1,6 +1,6 @@
 -- Create some bags for the foreign keys
-INSERT INTO bag VALUES(1, CURRENT_DATE, CURRENT_DATE, 'bag-0', 'admin', 1, 'bags/test-bag-0', 'tokens/test-bag-0', 'token-fixity', 'tag-fixity', 'STAGED', 'SHA-256', 1500, 5, 3);
-INSERT INTO bag VALUES(2, CURRENT_DATE, CURRENT_DATE, 'bag-1', 'admin', 1, 'bags/test-bag-1', 'tokens/test-bag-1', 'token-fixity', 'tag-fixity', 'STAGED', 'SHA-256', 1500, 5, 3);
+INSERT INTO bag VALUES(1, CURRENT_DATE, CURRENT_DATE, 'bag-0', 'admin', 1, 'bags/test-bag-0', 'tokens/test-bag-0', 'token-fixity', 'tag-fixity', 'DEPOSITED', 'SHA-256', 1500, 5, 3);
+INSERT INTO bag VALUES(2, CURRENT_DATE, CURRENT_DATE, 'bag-1', 'admin', 1, 'bags/test-bag-1', 'tokens/test-bag-1', 'token-fixity', 'tag-fixity', 'DEPOSITED', 'SHA-256', 1500, 5, 3);
 
 -- With distribution records
 -- id, bag_id, node_id, status
