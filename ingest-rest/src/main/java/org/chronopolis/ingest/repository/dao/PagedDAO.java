@@ -184,4 +184,12 @@ public class PagedDAO {
         // warn if null?
     }
 
+    /**
+     * Return a {@link JPAQueryFactory} for use in a more customized query
+     *
+     * @return a new JPAQueryFactory
+     */
+    public JPAQueryFactory getJPAQueryFactory() {
+        return new JPAQueryFactory(em);
+    }
 }
