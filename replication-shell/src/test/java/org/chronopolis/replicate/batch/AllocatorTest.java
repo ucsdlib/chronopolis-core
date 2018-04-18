@@ -64,6 +64,7 @@ public class AllocatorTest {
         URL resources = ClassLoader.getSystemClassLoader().getResource("");
         root = Paths.get(resources.toURI()).resolve("bags");
         Posix posix = new Posix()
+                .setWarn(0.01)
                 .setId(1L)
                 .setPath(root.toString());
         bucket = new PosixBucket(posix);

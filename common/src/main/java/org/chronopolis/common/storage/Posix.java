@@ -13,6 +13,11 @@ public class Posix {
     private Long id = -1L;
 
     /**
+     * The percent at which we reject operations and issue a warning
+     */
+    private Double warn = 0.1;
+
+    /**
      * The local path on disk
      */
     private String path = "/dev/null";
@@ -28,6 +33,15 @@ public class Posix {
 
     public Posix setId(Long id) {
         this.id = id;
+        return this;
+    }
+
+    public Double getWarn() {
+        return warn;
+    }
+
+    public Posix setWarn(Double warn) {
+        this.warn = warn;
         return this;
     }
 
