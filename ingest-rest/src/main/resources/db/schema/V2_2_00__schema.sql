@@ -83,7 +83,8 @@ CREATE TABLE ace_token (
     ims_service varchar(255),
     algorithm varchar(255),
     round bigint,
-    bag bigint
+    bag bigint,
+    UNIQUE (bag, filename)
 );
 
 DROP SEQUENCE IF EXISTS bag_distribution_id_seq;
