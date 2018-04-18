@@ -1,14 +1,16 @@
 package org.chronopolis.ingest.tokens;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import edu.umiacs.ace.ims.api.IMSUtil;
 import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.QAceToken;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.tokenize.ManifestEntry;
-import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.chronopolis.tokenize.registrar.TokenRegistrar;
+import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +26,7 @@ import java.util.Map;
 public class IngestTokenRegistrar implements TokenRegistrar {
 
     private final Logger log = LoggerFactory.getLogger(IngestTokenRegistrar.class);
+
     private static final String IMS_HOST = "ims.umiacs.umd.edu";
 
     private final PagedDAO dao;
@@ -37,7 +40,9 @@ public class IngestTokenRegistrar implements TokenRegistrar {
     @Override
     public void register(Map<ManifestEntry, TokenResponse> tokenResponseMap) {
         tokenResponseMap.forEach((entry, response) -> {
-            Bag bag = dao.findOne(QBag.bag, QBag.bag.id.eq(entry.getBag().getId()));
+            log.trace("[{}] Registering Token", response.getName());
+            Long bagId = entry.getBag().getId();
+            Bag bag = dao.findOne(QBag.bag, QBag.bag.id.eq(bagId));
             Instant responseInstant = response.getTimestamp().toGregorianCalendar().toInstant();
 
             String filename = getFilename(response);
@@ -48,12 +53,21 @@ public class IngestTokenRegistrar implements TokenRegistrar {
                     response.getDigestService(),
                     response.getDigestProvider(),
                     response.getRoundId());
+            JPAQueryFactory qf = dao.getJPAQueryFactory();
+            long count = qf.selectFrom(QAceToken.aceToken)
+                    .where(QAceToken.aceToken.bag.id.eq(bagId)
+                            .and(QAceToken.aceToken.filename.eq(filename)))
+                    .fetchCount();
+
+            // IMO there's a very large problem with this in that if the dao.save throws an
+            // exception, only the single entry will be completed. We probably want to wrap
+            // the entire operation in a try/catch/finally and if there is an exception thrown,
+            // check if a Entry is being processed and if so retry register on it. Maybe marking the
+            // excepted entry for removal.
             try {
-                // probably want a response from our DAO instead to verify that the entity
-                // is persisted
-                dao.save(token);
-            } catch (Exception e) {
-                log.error("[{}] Unexpected exception when saving token!", response.getName(), e);
+                if (bag != null && count == 0) {
+                    dao.save(token);
+                }
             } finally {
                 supervisor.complete(entry);
             }
