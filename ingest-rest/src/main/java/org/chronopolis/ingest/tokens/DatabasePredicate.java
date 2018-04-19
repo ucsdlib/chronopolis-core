@@ -6,6 +6,8 @@ import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.QAceToken;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.tokenize.ManifestEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.function.Predicate;
 
@@ -15,6 +17,8 @@ import java.util.function.Predicate;
  * @author shake
  */
 public class DatabasePredicate implements Predicate<ManifestEntry> {
+
+    private final Logger log = LoggerFactory.getLogger(DatabasePredicate.class);
 
     private final PagedDAO dao;
 
@@ -34,8 +38,9 @@ public class DatabasePredicate implements Predicate<ManifestEntry> {
         // pretty sure this will actually throw an exception if not found
         // should instead just get a boolean value back from the db
         Bag bag = dao.findOne(QBag.bag, QBag.bag.id.eq(bagId));
-        AceToken exists = dao.findOne(QAceToken.aceToken, QAceToken.aceToken.bag.id.eq(bagId)
+        AceToken token = dao.findOne(QAceToken.aceToken, QAceToken.aceToken.bag.id.eq(bagId)
                 .and(QAceToken.aceToken.filename.eq(entry.getPath())));
-        return bag != null && exists == null;
+        log.trace("[{}-{}] Testing: bag not null={};token null={}");
+        return bag != null && token == null;
     }
 }

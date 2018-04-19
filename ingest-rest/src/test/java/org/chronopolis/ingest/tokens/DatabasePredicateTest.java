@@ -3,6 +3,7 @@ package org.chronopolis.ingest.tokens;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.junit.Assert;
@@ -33,20 +34,32 @@ public class DatabasePredicateTest extends IngestTest {
 
     @Autowired
     private EntityManager entityManager;
+
+    private PagedDAO dao;
     private DatabasePredicate predicate;
 
     @Before
     public void setup() {
-        PagedDAO dao = new PagedDAO(entityManager);
+        dao = new PagedDAO(entityManager);
         predicate = new DatabasePredicate(dao);
     }
 
     @Test
     public void test() {
-        Bag bag = new Bag().setId(3L).setDepositor("test-depositor").setName("new-bag-3");
-        ManifestEntry exists = new ManifestEntry(bag, "/data/hello_world", "test-digest");
-        ManifestEntry bagNotExists = new ManifestEntry(new Bag().setId(999L), "/data/hello_other_world", "test-digest");
-        ManifestEntry tokenNotExists = new ManifestEntry(bag, "/data/hello_other_world", "test-digest");
+        final String digest = "test-digest";
+        final String fileExists = "/data/hello_world";
+        final String fileNotExists = "/data/hello_other_world";
+        org.chronopolis.rest.entities.Bag be = dao.findOne(QBag.bag, QBag.bag.name.eq("new-bag-3"));
+
+        final Bag bag = new Bag()
+                .setId(be.getId())
+                .setName(be.getName())
+                .setDepositor(be.getDepositor().getNamespace());
+        final Bag invalidId = new Bag().setId(999L);
+
+        ManifestEntry exists = new ManifestEntry(bag, fileExists, digest);
+        ManifestEntry bagNotExists = new ManifestEntry(invalidId, fileNotExists, digest);
+        ManifestEntry tokenNotExists = new ManifestEntry(bag, fileNotExists, digest);
 
         Assert.assertFalse(predicate.test(exists));
         Assert.assertFalse(predicate.test(bagNotExists));
