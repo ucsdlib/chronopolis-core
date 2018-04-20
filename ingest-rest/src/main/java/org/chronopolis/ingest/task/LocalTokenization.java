@@ -13,6 +13,9 @@ import org.chronopolis.rest.models.storage.StagingStorageModel;
 import org.chronopolis.tokenize.BagProcessor;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -29,27 +32,31 @@ import java.util.function.Predicate;
  */
 @Component
 @EnableScheduling
+@Profile("local-tokenizer")
 public class LocalTokenization {
+
+    private final Logger log = LoggerFactory.getLogger(LocalTokenization.class);
 
     private final PagedDAO dao;
     private final TokenWorkSupervisor tws;
     private final BagStagingProperties properties;
-    private final TrackingThreadPoolExecutor<Bag> bexecutor;
+    private final TrackingThreadPoolExecutor<Bag> executor;
     private final Collection<Predicate<ManifestEntry>> predicates;
 
     public LocalTokenization(PagedDAO dao,
                              TokenWorkSupervisor tws,
                              BagStagingProperties properties,
-                             TrackingThreadPoolExecutor<Bag> bexecutor,
+                             TrackingThreadPoolExecutor<Bag> executor,
                              Collection<Predicate<ManifestEntry>> predicates) {
+        log.info("Creating tokenizer");
         this.dao = dao;
         this.tws = tws;
         this.properties = properties;
-        this.bexecutor = bexecutor;
+        this.executor = executor;
         this.predicates = predicates;
     }
 
-    @Scheduled(cron = "${ingest.cron.tokenize: 0 */30 * * * *}")
+    @Scheduled(cron = "${ingest.cron.tokenize:0 */1 * * * *}")
     public void searchForBags() {
         Posix staging = properties.getPosix();
 
@@ -58,14 +65,16 @@ public class LocalTokenization {
         // Would like to do a paged list but for now this will be ok
         List<Bag> bags = dao.findAll(QBag.bag, ingestStorage.and(
                 QBag.bag.status.eq(BagStatus.DEPOSITED)));
+        log.debug("Found {} bags for tokenization", bags.size());
         for (Bag bag : bags) {
+            log.trace("[{}] Submitting", bag.getName());
             Optional<StagingStorage> storage = bag.getBagStorage().stream()
                     .filter(StagingStorage::isActive)
                     .findFirst();
 
             storage.map(s -> toModel(bag, s))
                     .map(model -> new BagProcessor(model, predicates, properties, tws))
-                    .ifPresent(processor -> bexecutor.submitIfAvailable(processor, bag));
+                    .ifPresent(processor -> executor.submitIfAvailable(processor, bag));
         }
 
     }
