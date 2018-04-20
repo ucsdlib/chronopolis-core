@@ -17,13 +17,15 @@ import org.slf4j.LoggerFactory;
 import java.sql.Date;
 import java.time.Instant;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Registrar which loads Tokens directly into the DB
  *
  * @author shake
  */
-public class IngestTokenRegistrar implements TokenRegistrar {
+public class IngestTokenRegistrar implements TokenRegistrar, Runnable {
 
     private final Logger log = LoggerFactory.getLogger(IngestTokenRegistrar.class);
 
@@ -31,10 +33,29 @@ public class IngestTokenRegistrar implements TokenRegistrar {
 
     private final PagedDAO dao;
     private final TokenWorkSupervisor supervisor;
+    private final AtomicBoolean running = new AtomicBoolean(true);
 
     public IngestTokenRegistrar(PagedDAO dao, TokenWorkSupervisor supervisor) {
         this.dao = dao;
         this.supervisor = supervisor;
+    }
+
+    @Override
+    public void run() {
+        log.info("[TokenRegistrar] Starting");
+        int size = 1000;
+        int timeout = 500;
+        TimeUnit timeUnit = TimeUnit.MILLISECONDS;
+        while (running.get()) {
+            Map<ManifestEntry, TokenResponse> responses
+                    = supervisor.tokenizedEntries(size, timeout, timeUnit);
+            register(responses);
+        }
+        log.info("[TokenRegistrar] Stopping");
+    }
+
+    public void close() {
+        running.set(false);
     }
 
     @Override
