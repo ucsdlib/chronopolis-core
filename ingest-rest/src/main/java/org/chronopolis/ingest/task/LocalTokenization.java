@@ -1,11 +1,13 @@
 package org.chronopolis.ingest.task;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.storage.BagStagingProperties;
 import org.chronopolis.common.storage.Posix;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.QAceToken;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.models.BagStatus;
@@ -66,13 +68,19 @@ public class LocalTokenization {
         List<Bag> bags = dao.findAll(QBag.bag, ingestStorage.and(
                 QBag.bag.status.eq(BagStatus.DEPOSITED)));
         log.debug("Found {} bags for tokenization", bags.size());
+        JPAQueryFactory queryFactory = dao.getJPAQueryFactory();
         for (Bag bag : bags) {
-            log.trace("[{}] Submitting", bag.getName());
+            final Long count = queryFactory.selectFrom(QAceToken.aceToken)
+                    .where(QAceToken.aceToken.bag.id.eq(bag.getId()))
+                    .fetchCount();
+
+            log.trace("[{}] Submitting: {}", bag.getName(), count < bag.getTotalFiles());
             Optional<StagingStorage> storage = bag.getBagStorage().stream()
                     .filter(StagingStorage::isActive)
                     .findFirst();
 
             storage.map(s -> toModel(bag, s))
+                    .filter(s -> count < s.getTotalFiles())
                     .map(model -> new BagProcessor(model, predicates, properties, tws))
                     .ifPresent(processor -> executor.submitIfAvailable(processor, bag));
         }
