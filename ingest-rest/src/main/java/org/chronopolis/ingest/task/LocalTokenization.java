@@ -58,7 +58,7 @@ public class LocalTokenization {
         this.predicates = predicates;
     }
 
-    @Scheduled(cron = "${ingest.cron.tokenize:0 */1 * * * *}")
+    @Scheduled(cron = "${ingest.cron.tokenize:0 */10 * * * *}")
     public void searchForBags() {
         Posix staging = properties.getPosix();
 
