@@ -6,6 +6,7 @@ import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.storage.BagStagingProperties;
 import org.chronopolis.common.storage.Posix;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.QAceToken;
 import org.chronopolis.rest.entities.QBag;
@@ -37,7 +38,7 @@ import java.util.function.Predicate;
 @Profile("local-tokenizer")
 public class LocalTokenization {
 
-    private final Logger log = LoggerFactory.getLogger(LocalTokenization.class);
+    private final Logger log = LoggerFactory.getLogger(Loggers.LOCAL_TOKENIZATION_LOG);
 
     private final PagedDAO dao;
     private final TokenWorkSupervisor tws;

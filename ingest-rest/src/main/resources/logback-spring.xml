@@ -4,6 +4,7 @@
 
     <springProfile name="production">
         <property name="ACCESS_LOG_FILENAME" value="/var/log/chronopolis/ingest-access.log"/>
+        <property name="TOKENIZER_LOG_FILENAME" value="/var/log/chronopolis/tokenizer.log"/>
 
         <appender name="ACCESS_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
             <file>${ACCESS_LOG_FILENAME}</file>
@@ -18,9 +19,27 @@
                 <MaxFileSize>20MB</MaxFileSize>
             </triggeringPolicy>
         </appender>
+
+        <appender name="TOKENIZER_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${TOKENIZER_LOG_FILENAME}</file>
+            <encoder>
+                <pattern>%d{yyyy/MM/dd HH:mm:ss} - %m%n</pattern>
+            </encoder>
+            <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+                <maxIndex>5</maxIndex>
+                <fileNamePattern>${TOKENIZER_LOG_FILENAME}.%i</fileNamePattern>
+            </rollingPolicy>
+            <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+                <MaxFileSize>20MB</MaxFileSize>
+            </triggeringPolicy>
+        </appender>
+
         <logger name="access-log" level="INFO" additivity="false">
             <appender-ref ref="ACCESS_LOG"/>
         </logger>
-    </springProfile>
 
+        <logger name="tokenizer-log" level="DEBUG" additivity="false">
+            <appender-ref ref="TOKENIZER_LOG"/>
+        </logger>
+    </springProfile>
 </configuration>

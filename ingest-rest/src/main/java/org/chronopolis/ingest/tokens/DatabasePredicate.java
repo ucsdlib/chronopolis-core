@@ -1,6 +1,7 @@
 package org.chronopolis.ingest.tokens;
 
 import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.QAceToken;
@@ -18,7 +19,7 @@ import java.util.function.Predicate;
  */
 public class DatabasePredicate implements Predicate<ManifestEntry> {
 
-    private final Logger log = LoggerFactory.getLogger(DatabasePredicate.class);
+    private final Logger log = LoggerFactory.getLogger(Loggers.LOCAL_TOKENIZATION_LOG);
 
     private final PagedDAO dao;
 
