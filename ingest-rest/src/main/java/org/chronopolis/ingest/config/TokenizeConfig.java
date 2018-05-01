@@ -53,7 +53,7 @@ public class TokenizeConfig {
 
     @Bean(destroyMethod = "close")
     public ChronopolisTokenRequestBatch tokenRequestBatch(AceConfiguration configuration,
-                                               TokenWorkSupervisor supervisor) {
+                                                          TokenWorkSupervisor supervisor) {
         return new ChronopolisTokenRequestBatch(configuration, supervisor);
     }
 
@@ -63,8 +63,8 @@ public class TokenizeConfig {
     }
 
     @Bean
-    public ExecutorService lifetimefitness(ChronopolisTokenRequestBatch batch,
-                                           IngestTokenRegistrar registrar) {
+    public ExecutorService batchExecutor(ChronopolisTokenRequestBatch batch,
+                                         IngestTokenRegistrar registrar) {
         ExecutorService service = Executors.newFixedThreadPool(2);
         service.submit(batch);
         service.submit(registrar);
@@ -75,7 +75,6 @@ public class TokenizeConfig {
     public static Validator configurationPropertiesValidator() {
         return new BagStagingPropertiesValidator();
     }
-
 
 
 }
