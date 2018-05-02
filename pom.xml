@@ -154,7 +154,7 @@
 
             <dependency>
                 <groupId>org.chronopolis</groupId>
-                <artifactId>chron-db</artifactId>
+                <artifactId>tokenizer</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

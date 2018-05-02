@@ -12,12 +12,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import retrofit2.Call;
 
 import java.util.List;
 
-import static org.mockito.Matchers.anyMap;
+import static org.mockito.Matchers.anyMapOf;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -42,36 +42,41 @@ public class HttpFilterTest {
 
     @Test
     public void testContains() {
-        when(tokens.getBagTokens(eq(1L), anyMap()))
+        when(tokens.getBagTokens(eq(1L), anyMapOf(String.class, String.class)))
                 .thenReturn(wrap(ImmutableList.of(new AceTokenModel())));
         Assert.assertFalse(filter.test(entry));
     }
 
     @Test
     public void testNotContains() {
-        when(tokens.getBagTokens(eq(1L), anyMap())).thenReturn(wrap(ImmutableList.of()));
+        when(tokens.getBagTokens(eq(1L), anyMapOf(String.class, String.class)))
+                .thenReturn(wrap(ImmutableList.of()));
         Assert.assertTrue(filter.test(entry));
     }
 
     @Test
     public void testHttpError() {
-        when(tokens.getBagTokens(eq(1L), anyMap())).thenReturn(wrapError());
+        when(tokens.getBagTokens(eq(1L), anyMapOf(String.class, String.class))).thenReturn(wrapError());
         Assert.assertFalse(filter.test(entry));
     }
 
     @Test
     public void testThrowsException() {
-        when(tokens.getBagTokens(eq(1L), anyMap())).thenReturn(new ExceptingCallWrapper(new AceTokenModel()));
+        ExceptingCallWrapper<PageImpl<AceTokenModel>> call =
+                new ExceptingCallWrapper<>(new PageImpl<>(ImmutableList.of()));
+        when(tokens.getBagTokens(eq(1L), anyMapOf(String.class, String.class)))
+                .thenReturn(call);
         Assert.assertFalse(filter.test(entry));
     }
 
-    private CallWrapper<Page<AceTokenModel>> wrap(List<AceTokenModel> elements) {
+    private Call<PageImpl<AceTokenModel>> wrap(List<AceTokenModel> elements) {
         PageImpl<AceTokenModel> page = new PageImpl<>(elements);
         return new CallWrapper<>(page);
     }
 
-    private ErrorCallWrapper<Page<AceTokenModel>> wrapError() {
-        return new ErrorCallWrapper<>(new PageImpl<AceTokenModel>(ImmutableList.of()), 404, "Bag Not Found");
+    private ErrorCallWrapper<PageImpl<AceTokenModel>> wrapError() {
+        return new ErrorCallWrapper<>(
+                new PageImpl<>(ImmutableList.of()), 404, "Bag Not Found");
     }
 
 }

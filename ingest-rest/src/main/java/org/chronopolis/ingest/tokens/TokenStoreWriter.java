@@ -47,8 +47,8 @@ public class TokenStoreWriter implements Runnable {
 
     private final Bag bag;
     private final StorageRegion region;
-    private final TokenStagingProperties properties;
     private final BagService bagService;
+    private final TokenStagingProperties properties;
     private final SearchService<AceToken, Long, TokenRepository> tokenService;
 
     public TokenStoreWriter(Bag bag,

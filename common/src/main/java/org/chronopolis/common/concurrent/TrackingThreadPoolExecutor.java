@@ -56,7 +56,6 @@ public class TrackingThreadPoolExecutor<T> extends ThreadPoolExecutor {
             }
         }
 
-        shutdown();
         shutdownNow();
     }
 
@@ -82,7 +81,7 @@ public class TrackingThreadPoolExecutor<T> extends ThreadPoolExecutor {
     public class Task extends FutureTask<T> {
 
         // We want to be able to use this without super.call
-        T result;
+        private T result;
 
         public Task(Runnable runnable, T result) {
             super(runnable, result);

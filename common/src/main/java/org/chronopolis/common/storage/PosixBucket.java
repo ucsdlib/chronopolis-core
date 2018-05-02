@@ -90,13 +90,14 @@ public class PosixBucket implements Bucket {
         // various fields concurrently, but we're operating in a ST manner
         // at the moment so syncing/locking can be handled at a later time
 
+        double warn = posix.getWarn();
         Long size = operation.getSize();
         // not sure if there will be overflow issues on the other side... we're testing with
         // Long.MAX so we should be ok
         Double remainder = (double) (usable - size);
 
         log.trace("[{}] Total {}; Remainder {} ({} %(UL))", operation.getIdentifier(), total, remainder, remainder / total);
-        if (remainder > 0 && remainder / total >= 0.1) {
+        if (remainder > 0 && remainder / total >= warn) {
             writeable = true;
         }
         return writeable;
