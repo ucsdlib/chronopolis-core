@@ -1,9 +1,8 @@
 package org.chronopolis.ingest.tokens;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.ingest.support.Loggers;
-import org.chronopolis.rest.entities.AceToken;
-import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.QAceToken;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.tokenize.ManifestEntry;
@@ -35,13 +34,28 @@ public class DatabasePredicate implements Predicate<ManifestEntry> {
         }
 
         Long bagId = entry.getBag().getId();
+        JPAQueryFactory qf = dao.getJPAQueryFactory();
+        boolean exists = qf.selectFrom(QBag.bag)
+                .where(QBag.bag.id.eq(bagId))
+                .fetchCount() == 1;
 
-        // pretty sure this will actually throw an exception if not found
-        // should instead just get a boolean value back from the db
-        Bag bag = dao.findOne(QBag.bag, QBag.bag.id.eq(bagId));
-        AceToken token = dao.findOne(QAceToken.aceToken, QAceToken.aceToken.bag.id.eq(bagId)
-                .and(QAceToken.aceToken.filename.eq(entry.getPath())));
-        log.trace("[{}-{}] Testing: bag not null={};token null={}");
-        return bag != null && token == null;
+        log.trace("[{}:{}] DbFilter: Bag exists {}", entry.getBag().getName(),
+                entry.getPath(),
+                exists);
+        return exists && testToken(qf, entry);
+    }
+
+    private boolean testToken(JPAQueryFactory qf, ManifestEntry entry) {
+        Long bagId = entry.getBag().getId();
+        String filename = entry.getPath();
+        boolean notExists = qf.selectFrom(QAceToken.aceToken)
+                .where(QAceToken.aceToken.bag.id.eq(bagId)
+                        .and(QAceToken.aceToken.filename.eq(filename)))
+                .fetchCount() == 0;
+
+        log.trace("[{}:{}] DbFilter: Token !exists {}", entry.getBag().getName(),
+            filename,
+            notExists);
+        return notExists;
     }
 }
