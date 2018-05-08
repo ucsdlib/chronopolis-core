@@ -5,17 +5,16 @@ import org.chronopolis.rest.models.Bag;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.junit.Assert;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class DefaultSupervisorTest {
 
-    private final Logger log = LoggerFactory.getLogger(DefaultSupervisorTest.class);
     private final DefaultSupervisor supervisor = new DefaultSupervisor();
 
     private final Bag bag = new Bag()
@@ -33,17 +32,16 @@ public class DefaultSupervisorTest {
             Assert.assertTrue(started);
         }
 
-        // Not really sure about the best way to test this, but basically we'll block forever and we
-        // don't want that so interrupt the current thread
-        // Might be best just to add limits into the Supervisor so we don't block forever idk
-        Thread thread = Executors.defaultThreadFactory()
-                .newThread(new Interrupter(Thread.currentThread()));
-        thread.start();
-        log.info("adding entry with no slots left");
-        boolean start = supervisor.start(new ManifestEntry(bag, "start-fail", "registered-digest"));
-        thread.join();
-        Assert.assertFalse(start);
-        Assert.assertTrue(Thread.currentThread().isInterrupted());
+        boolean interrupted = false;
+        try {
+            CompletableFuture.supplyAsync(() -> supervisor.start(new ManifestEntry(bag,
+                    "start-failure", "registered-digest")))
+                    .get(100, TimeUnit.MILLISECONDS);
+        } catch (ExecutionException | TimeoutException e) {
+            interrupted = true;
+        }
+
+        Assert.assertTrue(interrupted);
     }
 
     @Test
@@ -141,7 +139,7 @@ public class DefaultSupervisorTest {
     @Test
     public void retryRegisterRejectsInvalidEntry() {
         ManifestEntry noResponse = new ManifestEntry(bag, "no-response", "registered-digest");
-        ManifestEntry invalidState=  new ManifestEntry(bag, "invalid-state", "registered-digest");
+        ManifestEntry invalidState = new ManifestEntry(bag, "invalid-state", "registered-digest");
 
         Map<ManifestEntry, WorkUnit> processing = supervisor.getProcessing();
         processing.put(invalidState, new WorkUnit());
@@ -170,24 +168,4 @@ public class DefaultSupervisorTest {
         Assert.assertFalse(supervisor.isProcessing(untracked));
     }
 
-    public class Interrupter implements Runnable {
-
-        private final Thread toInterrupt;
-
-        public Interrupter(Thread toInterrupt) {
-            this.toInterrupt = toInterrupt;
-        }
-
-        @Override
-        public void run() {
-            try {
-                log.info("sleeping before interrupt");
-                TimeUnit.MILLISECONDS.sleep(100);
-                log.info("interrupt");
-                toInterrupt.interrupt();
-            } catch (InterruptedException e) {
-                log.error("We were interrupted!");
-            }
-        }
-    }
 }
