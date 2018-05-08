@@ -69,11 +69,13 @@ public class IngestTokenRegistrar implements TokenRegistrar, Runnable {
 
             String filename = getFilename(response);
             java.util.Date create = Date.from(responseInstant);
+            // The TokenClassName and DigestService don't really map well to what we store
+            // maybe we store it wrong I'm not sure need to look into it further
             AceToken token = new AceToken(bag, create, filename,
                     IMSUtil.formatProof(response),
                     IMS_HOST,
+                    response.getTokenClassName(),
                     response.getDigestService(),
-                    response.getDigestProvider(),
                     response.getRoundId());
             JPAQueryFactory qf = dao.getJPAQueryFactory();
             long count = qf.selectFrom(QAceToken.aceToken)
