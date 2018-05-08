@@ -25,8 +25,9 @@ public class DefaultSupervisorTest {
     // Start
 
     @Test
-    public void startExceedsLimit() {
-        for (int i = 0; i < 10000; i++) {
+    public void startExceedsLimit() throws InterruptedException {
+        // todo: unhardcode this
+        for (int i = 0; i < 5000; i++) {
             boolean started = supervisor.start(
                     new ManifestEntry(bag, "start-success-" + i, "registered-digest"));
             Assert.assertTrue(started);
@@ -40,6 +41,7 @@ public class DefaultSupervisorTest {
         thread.start();
         log.info("adding entry with no slots left");
         boolean start = supervisor.start(new ManifestEntry(bag, "start-fail", "registered-digest"));
+        thread.join();
         Assert.assertFalse(start);
         Assert.assertTrue(Thread.currentThread().isInterrupted());
     }
@@ -51,7 +53,7 @@ public class DefaultSupervisorTest {
         processing.put(exists, new WorkUnit());
 
         Assert.assertFalse(supervisor.start(exists));
-        Assert.assertEquals(10000, supervisor.availablePermits());
+        Assert.assertEquals(5000, supervisor.availablePermits());
     }
 
     // Tokenize
