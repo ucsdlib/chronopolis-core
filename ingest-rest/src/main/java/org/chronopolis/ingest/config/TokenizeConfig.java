@@ -11,6 +11,7 @@ import org.chronopolis.ingest.tokens.IngestTokenRegistrar;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.batch.ChronopolisTokenRequestBatch;
+import org.chronopolis.tokenize.filter.ProcessingFilter;
 import org.chronopolis.tokenize.supervisor.DefaultSupervisor;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -37,7 +38,7 @@ import java.util.function.Predicate;
 public class TokenizeConfig {
 
     @Bean
-    public TokenWorkSupervisor supervisor() {
+    public DefaultSupervisor supervisor() {
         return new DefaultSupervisor();
     }
 
@@ -47,8 +48,9 @@ public class TokenizeConfig {
     }
 
     @Bean
-    public Collection<Predicate<ManifestEntry>> predicates(PagedDAO dao) {
-        return ImmutableList.of(new DatabasePredicate(dao));
+    public Collection<Predicate<ManifestEntry>> predicates(PagedDAO dao,
+                                                           TokenWorkSupervisor supervisor) {
+        return ImmutableList.of(new ProcessingFilter(supervisor), new DatabasePredicate(dao));
     }
 
     @Bean(destroyMethod = "close")
