@@ -9,7 +9,7 @@ import edu.umiacs.ace.ims.ws.TokenResponse;
  *
  * @author shake
  */
-class WorkUnit {
+public class WorkUnit {
     private State state = State.QUEUED_FOR_REGISTRATION;
     private TokenResponse response;
 

@@ -31,7 +31,7 @@ public class DefaultSupervisor implements TokenWorkSupervisor {
 
     private final Logger log = LoggerFactory.getLogger(DefaultSupervisor.class);
 
-    private static final int MAX_QUEUE = 10000; // idk
+    private static final int MAX_QUEUE = 5000; // idk
     private final Semaphore available = new Semaphore(MAX_QUEUE, true);
 
     /**
@@ -76,6 +76,7 @@ public class DefaultSupervisor implements TokenWorkSupervisor {
                 queued.put(entry);
                 add = true;
             } else {
+                log.warn("[{}] Rejected", entry.getPath());
                 // If we already added the ManifestEntry, release the semaphore we just acquired
                 available.release();
             }
@@ -223,6 +224,7 @@ public class DefaultSupervisor implements TokenWorkSupervisor {
     public void complete(ManifestEntry entry) {
         WorkUnit enc = processing.get(entry);
         if (enc != null) {
+            log.trace("[{}] Releasing permit", entry.getPath());
             enc.setResponse(null);
             processing.remove(entry, enc);
             available.release();
@@ -295,12 +297,12 @@ public class DefaultSupervisor implements TokenWorkSupervisor {
     }
 
     @VisibleForTesting
-    protected Map<ManifestEntry, WorkUnit> getProcessing() {
+    public Map<ManifestEntry, WorkUnit> getProcessing() {
         return processing;
     }
 
     @VisibleForTesting
-    int availablePermits() {
+    public int availablePermits() {
         return available.availablePermits();
     }
 
