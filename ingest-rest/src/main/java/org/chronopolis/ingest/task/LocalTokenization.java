@@ -18,7 +18,6 @@ import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -35,7 +34,7 @@ import java.util.function.Predicate;
  */
 @Component
 @EnableScheduling
-@Profile("local-tokenizer")
+// @Profile("local-tokenizer")
 public class LocalTokenization {
 
     private final Logger log = LoggerFactory.getLogger(Loggers.LOCAL_TOKENIZATION_LOG);
