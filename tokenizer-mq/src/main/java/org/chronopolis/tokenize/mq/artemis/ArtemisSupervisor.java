@@ -9,6 +9,7 @@ import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.api.core.client.ClientSessionFactory;
+import org.apache.activemq.artemis.api.core.client.ServerLocator;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.mq.RegisterMessage;
@@ -38,8 +39,10 @@ public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
     private ClientSession clientSession;
     private ClientProducer requestProducer;
     private ClientProducer registerProducer;
+    private ClientSessionFactory sessionFactory;
 
-    public ArtemisSupervisor(ClientSessionFactory sessionFactory) throws ActiveMQException {
+    public ArtemisSupervisor(ServerLocator serverLocator) throws Exception {
+        this.sessionFactory = serverLocator.createSessionFactory();
         this.clientSession = sessionFactory.createSession();
         this.requestProducer = clientSession.createProducer(REQUEST_TOPIC);
         this.registerProducer = clientSession.createProducer(REGISTER_TOPIC);
@@ -70,6 +73,11 @@ public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
                 clientSession.close();
             } catch (ActiveMQException ignored) {
             }
+        }
+
+        if (sessionFactory != null) {
+            sessionFactory.cleanup();
+            sessionFactory.close();
         }
     }
 
