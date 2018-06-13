@@ -122,7 +122,7 @@ public class ArtemisTokenRegistrar implements Runnable, Closeable {
     @Override
     public void run() {
         try (ClientSessionFactory sessionFactory = serverLocator.createSessionFactory();
-             ClientSession session = sessionFactory.createSession();
+             ClientSession session = sessionFactory.createTransactedSession();
              ClientConsumer consumer = session.createConsumer(ArtemisSupervisor.REGISTER_TOPIC)) {
             session.start();
             while (running.get()) {
