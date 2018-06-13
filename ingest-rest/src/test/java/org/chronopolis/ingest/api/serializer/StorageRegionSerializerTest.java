@@ -6,6 +6,7 @@ import org.chronopolis.ingest.WebContext;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.storage.ReplicationConfig;
 import org.chronopolis.rest.entities.storage.StorageRegion;
+import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
 import org.chronopolis.rest.models.storage.DataType;
 import org.chronopolis.rest.models.storage.StorageType;
 import org.junit.Before;

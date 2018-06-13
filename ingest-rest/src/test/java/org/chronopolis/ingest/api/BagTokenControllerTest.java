@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import org.chronopolis.ingest.WebContext;
-import org.chronopolis.ingest.api.serializer.ZonedDateTimeSerializer;
+import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;

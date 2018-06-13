@@ -1,4 +1,4 @@
-package org.chronopolis.ingest.api.serializer;
+package org.chronopolis.rest.models.serializers;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
