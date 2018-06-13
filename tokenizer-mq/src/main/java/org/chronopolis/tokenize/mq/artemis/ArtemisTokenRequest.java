@@ -1,13 +1,7 @@
 package org.chronopolis.tokenize.mq.artemis;
 
 import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.ObjectCodec;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import edu.umiacs.ace.ims.ws.TokenRequest;
 import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.apache.activemq.artemis.api.core.ActiveMQException;
@@ -16,7 +10,6 @@ import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.api.core.client.ClientSessionFactory;
 import org.apache.activemq.artemis.api.core.client.ServerLocator;
-import org.chronopolis.rest.models.Bag;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.batch.ImsServiceWrapper;
 import org.slf4j.Logger;
@@ -44,14 +37,17 @@ public class ArtemisTokenRequest implements Runnable, Closeable {
 
     private final AtomicBoolean running = new AtomicBoolean(true);
 
+    private final ObjectMapper mapper;
     private final ImsServiceWrapper ims;
-    private final ArtemisSupervisor supervisor;
     private final ServerLocator serverLocator;
+    private final ArtemisSupervisor supervisor;
 
     public ArtemisTokenRequest(ImsServiceWrapper ims,
                                ArtemisSupervisor supervisor,
-                               ServerLocator serverLocator) {
+                               ServerLocator serverLocator,
+                               ObjectMapper mapper) {
         this.ims = ims;
+        this.mapper = mapper;
         this.supervisor = supervisor;
         this.serverLocator = serverLocator;
     }
@@ -98,11 +94,6 @@ public class ArtemisTokenRequest implements Runnable, Closeable {
     }
 
     private void processMessages(Map<String, ClientMessage> receivedMessages) {
-        final ObjectMapper mapper = new ObjectMapper();
-        final SimpleModule module = new SimpleModule();
-        module.addDeserializer(ManifestEntry.class, new ManifestEntryDeserializer());
-        mapper.registerModule(module);
-
         final List<TokenRequest> requests = new ArrayList<>();
         final Map<String, ManifestEntry> entries = new HashMap<>();
 
@@ -165,27 +156,4 @@ public class ArtemisTokenRequest implements Runnable, Closeable {
         running.set(false);
     }
 
-    public class ManifestEntryDeserializer extends StdDeserializer<ManifestEntry> {
-
-        ManifestEntryDeserializer() {
-            this(null);
-        }
-
-        ManifestEntryDeserializer(Class<?> clazz) {
-            super(clazz);
-        }
-
-        @Override
-        public ManifestEntry deserialize(JsonParser p, DeserializationContext ctxt)
-                throws IOException {
-            ObjectCodec codec = p.getCodec();
-            JsonNode treeNode = codec.readTree(p);
-
-            JsonNode bagNode = treeNode.get("bag");
-            Bag bag = codec.readValue(bagNode.traverse(), Bag.class);
-            JsonNode pathNode = treeNode.get("path");
-            JsonNode registeredDigest = treeNode.get("registeredDigest");
-            return new ManifestEntry(bag, pathNode.asText(), registeredDigest.asText());
-        }
-    }
 }

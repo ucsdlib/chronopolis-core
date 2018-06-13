@@ -34,13 +34,16 @@ public class ArtemisTokenRegistrar implements Runnable, Closeable {
     private final Logger log = LoggerFactory.getLogger(ArtemisTokenRegistrar.class);
 
     private final TokenService tokens;
+    private final ObjectMapper mapper;
     private final ServerLocator serverLocator;
     private final AtomicBoolean running = new AtomicBoolean(true);
 
     public ArtemisTokenRegistrar(TokenService tokens,
-                                 ServerLocator serverLocator) {
+                                 ServerLocator serverLocator,
+                                 ObjectMapper mapper) {
         this.tokens = tokens;
         this.serverLocator = serverLocator;
+        this.mapper = mapper;
     }
 
     private void consume(ClientConsumer consumer, ClientSession session) {
@@ -68,7 +71,6 @@ public class ArtemisTokenRegistrar implements Runnable, Closeable {
     private boolean registerToken(ClientMessage clientMessage) {
         Bag bag;
         TokenResponse tokenResponse;
-        ObjectMapper mapper = new ObjectMapper();
         try {
             String text = clientMessage.getReadOnlyBodyBuffer().readString();
             RegisterMessage message = mapper.readValue(text, RegisterMessage.class);
@@ -91,7 +93,9 @@ public class ArtemisTokenRegistrar implements Runnable, Closeable {
                 .setRound(tokenResponse.getRoundId())
                 .setAlgorithm(tokenResponse.getDigestService())
                 .setImsService(tokenResponse.getTokenClassName())
-                .setCreateDate(tokenResponse.getTimestamp().toGregorianCalendar().toZonedDateTime()));
+                .setCreateDate(tokenResponse.getTimestamp()
+                        .toGregorianCalendar()
+                        .toZonedDateTime()));
 
         return optModel.map(model -> tokens.createToken(bag.getId(), model))
                 .map(call -> accept(call, tokenResponse))
