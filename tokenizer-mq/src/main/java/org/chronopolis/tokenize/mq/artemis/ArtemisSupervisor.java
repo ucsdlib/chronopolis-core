@@ -35,17 +35,12 @@ public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
     public static final String REQUEST_TOPIC = "request";
     public static final String REGISTER_TOPIC = "register";
 
-    private final ObjectMapper mapper = new ObjectMapper();
-    private ClientSession clientSession;
-    private ClientProducer requestProducer;
-    private ClientProducer registerProducer;
-    private ClientSessionFactory sessionFactory;
+    private final ObjectMapper mapper;
+    private final ClientSessionFactory sessionFactory;
 
-    public ArtemisSupervisor(ServerLocator serverLocator) throws Exception {
+    public ArtemisSupervisor(ServerLocator serverLocator, ObjectMapper mapper) throws Exception {
+        this.mapper = mapper;
         this.sessionFactory = serverLocator.createSessionFactory();
-        this.clientSession = sessionFactory.createSession();
-        this.requestProducer = clientSession.createProducer(REQUEST_TOPIC);
-        this.registerProducer = clientSession.createProducer(REGISTER_TOPIC);
     }
 
     /**
@@ -54,27 +49,6 @@ public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
      */
     @Override
     public void close() {
-        if (requestProducer != null) {
-            try {
-                requestProducer.close();
-            } catch (ActiveMQException ignored) {
-            }
-        }
-
-        if (registerProducer != null) {
-            try {
-                registerProducer.close();
-            } catch (ActiveMQException ignored) {
-            }
-        }
-
-        if (clientSession != null) {
-            try {
-                clientSession.close();
-            } catch (ActiveMQException ignored) {
-            }
-        }
-
         if (sessionFactory != null) {
             sessionFactory.cleanup();
             sessionFactory.close();
@@ -83,16 +57,21 @@ public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
 
     @Override
     public boolean start(ManifestEntry entry) {
-        log.info("[{}] Starting", entry.tokenName());
-        ClientMessage clMessage = clientSession.createMessage(true);
-        // It would be nice to have duplicate detection here but for now we'll leave it out as
-        // the ids are still associated until a limit (default 2k) is reached
-        clMessage.putStringProperty("id", entry.tokenName());
-        clMessage.putLongProperty("bagId", entry.getBag().getId());
-        try {
-            clMessage.writeBodyBufferString(mapper.writeValueAsString(entry));
-            requestProducer.send(clMessage);
-            clientSession.commit();
+        log.info("[{} - {}] Starting", entry.tokenName(), Thread.currentThread().getName());
+        // todo: it would be nice to create a session and producer for each thread so that we don't
+        //       reinit it each time
+        try (ClientSession session = sessionFactory.createSession();
+             ClientProducer producer = session.createProducer(REQUEST_TOPIC)) {
+
+            ClientMessage clMessage = session.createMessage(true);
+            // It would be nice to have duplicate detection here but for now we'll leave it out as
+            // the ids are still associated until a limit (default 2k) is reached
+            clMessage.putStringProperty("id", entry.tokenName());
+            clMessage.putLongProperty("bagId", entry.getBag().getId());
+            String message = mapper.writeValueAsString(entry);
+            clMessage.writeBodyBufferString(message);
+            producer.send(clMessage);
+            session.commit();
         } catch (ActiveMQException | JsonProcessingException e) {
             log.error("Error sending token request message", e);
             return false;
@@ -117,14 +96,17 @@ public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
         final String id = response.getName();
         log.trace("Sending TokenRegister for {}", id);
         RegisterMessage message = new RegisterMessage(entry.getBag(), response);
-        ClientMessage clMessage = clientSession.createMessage(true);
-        clMessage.putStringProperty("id", id);
-        clMessage.putLongProperty("bagId", entry.getBag().getId());
 
-        try {
+        try (ClientSession session = sessionFactory.createSession();
+             ClientProducer producer = session.createProducer(REGISTER_TOPIC)) {
+
+            ClientMessage clMessage = session.createMessage(true);
+            clMessage.putStringProperty("id", id);
+            clMessage.putLongProperty("bagId", entry.getBag().getId());
+
             clMessage.writeBodyBufferString(mapper.writeValueAsString(message));
-            registerProducer.send(clMessage);
-            clientSession.commit();
+            producer.send(clMessage);
+            session.commit();
         } catch (ActiveMQException | JsonProcessingException e) {
             log.error("Unable to send token register message", e);
             return false;
@@ -154,8 +136,9 @@ public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
     public boolean isProcessing() {
         boolean processing = false;
 
-        try (ClientConsumer requestQueue = clientSession.createConsumer(REQUEST_TOPIC, true);
-             ClientConsumer registerQueue = clientSession.createConsumer(REGISTER_TOPIC, true)) {
+        try (ClientSession session = sessionFactory.createSession();
+             ClientConsumer requestQueue = session.createConsumer(REQUEST_TOPIC, true);
+             ClientConsumer registerQueue = session.createConsumer(REGISTER_TOPIC, true)) {
             processing = requestQueue.receiveImmediate() != null
                     || registerQueue.receiveImmediate() != null;
         } catch (ActiveMQException e) {
@@ -179,10 +162,9 @@ public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
     private boolean isProcessing(String filter) {
         boolean processing = false;
 
-        try (ClientConsumer requestQueue = clientSession.createConsumer(
-                REQUEST_TOPIC, filter, true);
-             ClientConsumer registerQueue = clientSession.createConsumer(
-                     REGISTER_TOPIC, filter, true)) {
+        try (ClientSession session = sessionFactory.createSession();
+             ClientConsumer requestQueue = session.createConsumer(REQUEST_TOPIC, filter, true);
+             ClientConsumer registerQueue = session.createConsumer(REGISTER_TOPIC, filter, true)) {
             processing = requestQueue.receiveImmediate() != null
                     || registerQueue.receiveImmediate() != null;
         } catch (ActiveMQException e) {
