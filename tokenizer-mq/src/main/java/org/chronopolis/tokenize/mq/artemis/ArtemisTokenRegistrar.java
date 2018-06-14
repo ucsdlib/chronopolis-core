@@ -21,6 +21,7 @@ import retrofit2.Response;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,14 +34,47 @@ import java.util.regex.Pattern;
 public class ArtemisTokenRegistrar implements Runnable, Closeable {
     private final Logger log = LoggerFactory.getLogger(ArtemisTokenRegistrar.class);
 
+    private int attempts = 0;
+    private final Long timeout;
+    private final TimeUnit unit;
     private final TokenService tokens;
     private final ObjectMapper mapper;
     private final ServerLocator serverLocator;
     private final AtomicBoolean running = new AtomicBoolean(true);
 
-    public ArtemisTokenRegistrar(TokenService tokens,
+    /**
+     * Constructor for a TokenRegistrar
+     *
+     * @param timeout       the timeout (in minutes) to wait if we did not receive any message
+     * @param tokens        the api for connecting to the Ingest Server Token API
+     * @param serverLocator the MQ Server Locator
+     * @param mapper        an ObjectMapper for deserializing messages
+     */
+    public ArtemisTokenRegistrar(long timeout,
+                                 TokenService tokens,
                                  ServerLocator serverLocator,
                                  ObjectMapper mapper) {
+        this(timeout, TimeUnit.MINUTES, tokens, serverLocator, mapper);
+    }
+
+    /**
+     * Constructor for a TokenRegistrar which also takes a TimeUnit. Useful for testing.
+     *
+     *
+     *
+     * @param timeout       the length of time to wait if we did not receive any message
+     * @param unit          the unit of time to wait when executing a timeout
+     * @param tokens        the api for connecting to the Ingest Server Token API
+     * @param serverLocator the MQ Server Locator
+     * @param mapper        an ObjectMapper for deserializing messages
+     */
+    ArtemisTokenRegistrar(long timeout,
+                          TimeUnit unit,
+                          TokenService tokens,
+                          ServerLocator serverLocator,
+                          ObjectMapper mapper) {
+        this.timeout = timeout;
+        this.unit = unit;
         this.tokens = tokens;
         this.serverLocator = serverLocator;
         this.mapper = mapper;
@@ -53,15 +87,22 @@ public class ArtemisTokenRegistrar implements Runnable, Closeable {
         try {
             ClientMessage message = consumer.receive(1000);
             if (message != null) {
+                // reset our counter
+                attempts = 0;
+
                 String id = message.getStringProperty("id");
                 if (id != null && !id.isEmpty()) {
                     message.individualAcknowledge();
                     boolean rollback = registerToken(message);
 
                     if (rollback) {
+                        log.debug("Rolling back session");
                         session.rollback();
                     }
                 }
+                session.commit();
+            } else {
+                attempts++;
             }
         } catch (ActiveMQException e) {
             log.error("Exception communicating to message broker", e);
@@ -81,6 +122,9 @@ public class ArtemisTokenRegistrar implements Runnable, Closeable {
             return false;
         }
 
+        // Eventually we might want to try to pull this from the TokenResponse or from the config
+        String imsHost = "ims.umiacs.umd.edu";
+
         // If this fails, it will look as though the program is hanging here when in fact it's
         // probably a NoClassDef exception because the ace-ims-api package relies on log4j
         String proof = IMSUtil.formatProof(tokenResponse);
@@ -89,7 +133,7 @@ public class ArtemisTokenRegistrar implements Runnable, Closeable {
                 .setProof(proof)
                 .setFilename(name)
                 .setBagId(bag.getId())
-                .setImsHost("ims.umiacs.umd.edu")
+                .setImsHost(imsHost)
                 .setRound(tokenResponse.getRoundId())
                 .setAlgorithm(tokenResponse.getDigestService())
                 .setImsService(tokenResponse.getTokenClassName())
@@ -119,27 +163,6 @@ public class ArtemisTokenRegistrar implements Runnable, Closeable {
         }
     }
 
-    @Override
-    public void run() {
-        try (ClientSessionFactory sessionFactory = serverLocator.createSessionFactory();
-             ClientSession session = sessionFactory.createTransactedSession();
-             ClientConsumer consumer = session.createConsumer(ArtemisSupervisor.REGISTER_TOPIC)) {
-            session.start();
-            while (running.get()) {
-                consume(consumer, session);
-            }
-        } catch (Exception e) {
-            log.warn("Closing consumer", e);
-            running.set(false);
-        }
-    }
-
-    @Override
-    public void close() {
-        log.info("Stopping ArtemisTokenRegistrar");
-        running.set(false);
-    }
-
     /**
      * Execute the http call. If it is successful ack the message.
      * <p>
@@ -155,28 +178,59 @@ public class ArtemisTokenRegistrar implements Runnable, Closeable {
      * @return if the current transaction should be rolled back
      */
     private boolean accept(Call<AceTokenModel> call, TokenResponse tokenResponse) {
-        log.debug("[{}] Attempting to register token at {}",
-                tokenResponse.getName(), call.request().url().toString());
         boolean rollback = false;
+        String tokenName = tokenResponse.getName();
+        log.debug("[{}] Attempting to register token at {}",
+                tokenName, call.request().url().toString());
 
         try {
             Response<AceTokenModel> response = call.execute();
             int responseCode = response.code();
             if (response.isSuccessful() || responseCode == 409) {
-                log.info("AceToken registered with the Ingest Server");
+                log.info("[{}] Registered", tokenName);
             } else {
-                log.warn("Unable to register AceToken! Response Code is {}", responseCode);
+                log.warn("[{}] Unable to register! Response Code is {}", tokenName, responseCode);
             }
 
             if (responseCode >= 500) {
                 rollback = true;
-                log.warn("Server error ({}), session should be rolled back", responseCode);
+                log.warn("[{}] Server error ({})", tokenName, responseCode);
             }
         } catch (IOException e) {
             rollback = true;
-            log.warn("Error communicating with server, session should be rolled back", e);
+            log.warn("[{}] Error communicating with server", tokenName, e);
         }
 
         return rollback;
     }
+
+    @Override
+    public void run() {
+        try (ClientSessionFactory sessionFactory = serverLocator.createSessionFactory();
+             ClientSession session = sessionFactory.createTransactedSession();
+             ClientConsumer consumer = session.createConsumer(ArtemisSupervisor.REGISTER_TOPIC)) {
+            session.start();
+            while (running.get() && attempts <= 5) {
+                consume(consumer, session);
+
+                // if we failed to consume anything, wait for a given amount of time
+                if (attempts > 0 && attempts <= 5) {
+                    log.debug("Unable to poll from broker; sleeping before retry");
+                    unit.sleep(timeout);
+                }
+            }
+        } catch (Exception e) {
+            close();
+            log.warn("Closing consumer", e);
+        }
+
+        log.info("Closing ArtemisTokenRegistrar");
+    }
+
+    @Override
+    public void close() {
+        log.info("Stopping ArtemisTokenRegistrar");
+        running.set(false);
+    }
+
 }
