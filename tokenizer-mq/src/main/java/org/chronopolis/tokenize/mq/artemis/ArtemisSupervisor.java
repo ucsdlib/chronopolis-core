@@ -84,7 +84,7 @@ public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
     public boolean start(ManifestEntry entry) {
         log.info("[{} - {}] Starting", entry.tokenName(), Thread.currentThread().getName());
         // todo: it would be nice to create a session and producer for each thread so that we don't
-        //       reinit it each time
+        //       init it each time
         try (ClientSession session = sessionFactory.createSession();
              ClientProducer producer = session.createProducer(REQUEST_TOPIC)) {
 
@@ -172,16 +172,13 @@ public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
             ClientMessage reqMsg = requestQueue.receiveImmediate();
             ClientMessage regMsg = registerQueue.receiveImmediate();
 
-            log.info("reqMsg != null ? {}", reqMsg != null);
-            log.info("regMsg != null ? {}", regMsg != null);
-            log.info("request active > 0 ? {}", request.getActiveCount() > 0);
-            log.info("register active > 0 ? {}", register.getActiveCount() > 0);
-
             hasMessage = reqMsg != null || regMsg != null;
 
             processing = hasMessage
                     || register.getActiveCount() > 0
                     || request.getActiveCount() > 0;
+            log.debug("isProcessing hasMessage? {}", hasMessage);
+            log.debug("isProcessing ? {}", processing);
         } catch (ActiveMQException e) {
             log.warn("Exception while trying to browse queue!", e);
         }
