@@ -10,8 +10,10 @@ import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.api.core.client.ClientSessionFactory;
 import org.apache.activemq.artemis.api.core.client.ServerLocator;
+import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.tokenize.ManifestEntry;
+import org.chronopolis.tokenize.batch.ImsServiceWrapper;
 import org.chronopolis.tokenize.mq.RegisterMessage;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.slf4j.Logger;
@@ -21,7 +23,11 @@ import java.io.Closeable;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
  * TokenWorkSupervisor which connects to an Artemis Broker to control flow for operations
@@ -36,11 +42,28 @@ public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
     public static final String REGISTER_TOPIC = "register";
 
     private final ObjectMapper mapper;
+    private final TokenService tokens;
+    private final ImsServiceWrapper ims;
+    private final ServerLocator locator;
     private final ClientSessionFactory sessionFactory;
 
-    public ArtemisSupervisor(ServerLocator serverLocator, ObjectMapper mapper) throws Exception {
+    private final ThreadPoolExecutor request;
+    private final ThreadPoolExecutor register;
+
+    public ArtemisSupervisor(ServerLocator serverLocator,
+                             ObjectMapper mapper,
+                             TokenService tokens,
+                             ImsServiceWrapper ims) throws Exception {
+        this.ims = ims;
+        this.tokens = tokens;
         this.mapper = mapper;
+        this.locator = serverLocator;
         this.sessionFactory = serverLocator.createSessionFactory();
+
+        request = new ThreadPoolExecutor(1, 1, 0, MILLISECONDS, new LinkedBlockingQueue<>());
+        register = new ThreadPoolExecutor(4, 4, 0, MILLISECONDS, new LinkedBlockingQueue<>());
+
+        // init consumers here?
     }
 
     /**
@@ -53,6 +76,9 @@ public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
             sessionFactory.cleanup();
             sessionFactory.close();
         }
+
+        request.shutdownNow();
+        register.shutdownNow();
     }
 
     @Override
@@ -77,18 +103,8 @@ public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
             return false;
         }
 
+        checkConsumers();
         return true;
-    }
-
-    @Override
-    public boolean retryTokenize(ManifestEntry entry) {
-        // could do the rollback here but it doesn't make sense imo
-        return false;
-    }
-
-    @Override
-    public boolean retryRegister(ManifestEntry entry) {
-        return false;
     }
 
     @Override
@@ -112,37 +128,67 @@ public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
             return false;
         }
 
+        checkConsumers();
         return true;
     }
 
-    @Override
-    public void complete(ManifestEntry entry) {
-        // no real use for this here
-    }
+    /**
+     * Check if consumers are running for the two queues which we listen on (REQUEST_TOPIC and
+     * REGISTER_TOPIC).
+     *
+     * For the request topic, we only want a single consumer as it is generally pretty quick.
+     * For the register topic, we want up to 4 consumers as there is some overhead when
+     * communicating with the http api so this helps to alleviate some congestion.
+     *
+     */
+    private void checkConsumers() {
+        int timeout = 1;
+        int maxRegisterThreads = 4;
+        synchronized (request) {
+            if (request.getActiveCount() == 0) {
+                log.debug("Starting TokenRequest consumer");
+                request.submit(new ArtemisTokenRequest(timeout, ims, this, locator, mapper));
 
-    @Override
-    public Set<ManifestEntry> queuedEntries(int size, long timeout, TimeUnit timeUnit) {
-        return Collections.emptySet();
-    }
+            }
+        }
 
-    @Override
-    public Map<ManifestEntry, TokenResponse> tokenizedEntries(int size,
-                                                              long timeout,
-                                                              TimeUnit timeUnit) {
-        return Collections.emptyMap();
+        synchronized (register) {
+            int diff = maxRegisterThreads - register.getActiveCount();
+            while (diff > 0) {
+                log.debug("Starting TokenRegistrar consumer");
+                register.submit(new ArtemisTokenRegistrar(timeout, tokens, locator, mapper));
+                diff--;
+            }
+        }
     }
 
     @Override
     public boolean isProcessing() {
+        boolean hasMessage = false;
         boolean processing = false;
 
         try (ClientSession session = sessionFactory.createSession();
              ClientConsumer requestQueue = session.createConsumer(REQUEST_TOPIC, true);
              ClientConsumer registerQueue = session.createConsumer(REGISTER_TOPIC, true)) {
-            processing = requestQueue.receiveImmediate() != null
-                    || registerQueue.receiveImmediate() != null;
+            ClientMessage reqMsg = requestQueue.receiveImmediate();
+            ClientMessage regMsg = registerQueue.receiveImmediate();
+
+            log.info("reqMsg != null ? {}", reqMsg != null);
+            log.info("regMsg != null ? {}", regMsg != null);
+            log.info("request active > 0 ? {}", request.getActiveCount() > 0);
+            log.info("register active > 0 ? {}", register.getActiveCount() > 0);
+
+            hasMessage = reqMsg != null || regMsg != null;
+
+            processing = hasMessage
+                    || register.getActiveCount() > 0
+                    || request.getActiveCount() > 0;
         } catch (ActiveMQException e) {
             log.warn("Exception while trying to browse queue!", e);
+        }
+
+        if (hasMessage) {
+            checkConsumers();
         }
 
         return processing;
@@ -173,4 +219,35 @@ public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
 
         return processing;
     }
+
+    // Unused overrides
+
+    @Override
+    public boolean retryTokenize(ManifestEntry entry) {
+        // could do the rollback here but it doesn't make sense imo
+        return false;
+    }
+
+    @Override
+    public boolean retryRegister(ManifestEntry entry) {
+        return false;
+    }
+
+    @Override
+    public void complete(ManifestEntry entry) {
+        // no real use for this here
+    }
+
+    @Override
+    public Set<ManifestEntry> queuedEntries(int size, long timeout, TimeUnit timeUnit) {
+        return Collections.emptySet();
+    }
+
+    @Override
+    public Map<ManifestEntry, TokenResponse> tokenizedEntries(int size,
+                                                              long timeout,
+                                                              TimeUnit timeUnit) {
+        return Collections.emptyMap();
+    }
+
 }

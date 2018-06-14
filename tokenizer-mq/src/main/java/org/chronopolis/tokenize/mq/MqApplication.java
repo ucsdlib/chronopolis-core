@@ -23,8 +23,6 @@ import org.chronopolis.tokenize.batch.ImsServiceWrapper;
 import org.chronopolis.tokenize.filter.HttpFilter;
 import org.chronopolis.tokenize.filter.ProcessingFilter;
 import org.chronopolis.tokenize.mq.artemis.ArtemisSupervisor;
-import org.chronopolis.tokenize.mq.artemis.ArtemisTokenRegistrar;
-import org.chronopolis.tokenize.mq.artemis.ArtemisTokenRequest;
 import org.chronopolis.tokenize.mq.artemis.config.ArtemisConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +39,6 @@ import retrofit2.Response;
 
 import java.time.ZonedDateTime;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
@@ -67,8 +64,6 @@ public class MqApplication implements CommandLineRunner {
     private final IngestAPIProperties apiProperties;
     private final BagStagingProperties staging;
 
-
-    private final ThreadPoolExecutor consumerExecutor;
     private final TrackingThreadPoolExecutor<Bag> bagExecutor;
 
     @Autowired
@@ -83,8 +78,6 @@ public class MqApplication implements CommandLineRunner {
         this.aceConfiguration = aceConfiguration;
         this.apiProperties = ingestAPIProperties;
         this.staging = bagStagingProperties;
-        this.consumerExecutor =new ThreadPoolExecutor(5, 5, 0,
-                TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
         this.bagExecutor = new TrackingThreadPoolExecutor<>(4, 8, 0,
                 TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
@@ -101,28 +94,17 @@ public class MqApplication implements CommandLineRunner {
         module.addSerializer(ZonedDateTime.class, new ZonedDateTimeSerializer());
         module.addDeserializer(ManifestEntry.class, new ManifestEntryDeserializer());
         module.addDeserializer(ZonedDateTime.class, new ZonedDateTimeDeserializer());
+        mapper.registerModule(module);
+
         ImsServiceWrapper ims = new ImsServiceWrapper(aceConfiguration.getIms());
-
-        ArtemisSupervisor supervisor = new ArtemisSupervisor(locator, mapper);
-
-        // Create consumers (multiple registrars as they are typically slower)
-        ArtemisTokenRequest tokenRequest = new ArtemisTokenRequest(ims, supervisor, locator, mapper);
-        ArtemisTokenRegistrar registrar0 = new ArtemisTokenRegistrar(tokens, locator, mapper);
-        ArtemisTokenRegistrar registrar1 = new ArtemisTokenRegistrar(tokens, locator, mapper);
-        ArtemisTokenRegistrar registrar2 = new ArtemisTokenRegistrar(tokens, locator, mapper);
-        ArtemisTokenRegistrar registrar3 = new ArtemisTokenRegistrar(tokens, locator, mapper);
-        consumerExecutor.execute(tokenRequest);
-        consumerExecutor.execute(registrar0);
-        consumerExecutor.execute(registrar1);
-        consumerExecutor.execute(registrar2);
-        consumerExecutor.execute(registrar3);
-
-        final ProcessingFilter processingFilter = new ProcessingFilter(supervisor);
+        ArtemisSupervisor supervisor = new ArtemisSupervisor(locator, mapper, tokens, ims);
+        ProcessingFilter processingFilter = new ProcessingFilter(supervisor);
 
         ImmutableMap<String, Object> params = ImmutableMap.of(
                 "creator", apiProperties.getUsername(),
                 "status", BagStatus.DEPOSITED,
                 "region_id", staging.getPosix().getId());
+
         Call<PageImpl<Bag>> allBags = bags.get(params);
         Response<PageImpl<Bag>> response = allBags.execute();
         if (response.isSuccessful() && response.body().hasContent()) {
@@ -151,17 +133,9 @@ public class MqApplication implements CommandLineRunner {
             TimeUnit.SECONDS.sleep(5);
         }
 
-        tokenRequest.close();
-        registrar0.close();
-        registrar1.close();
-        registrar2.close();
-        registrar3.close();
         supervisor.close();
 
         bagExecutor.shutdownNow();
-        consumerExecutor.shutdownNow();
-
         bagExecutor.awaitTermination(30, TimeUnit.SECONDS);
-        consumerExecutor.awaitTermination(30, TimeUnit.SECONDS);
     }
 }
