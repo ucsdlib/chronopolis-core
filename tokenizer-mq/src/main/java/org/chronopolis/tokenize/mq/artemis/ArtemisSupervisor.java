@@ -34,12 +34,11 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  *
  * @author shake
  */
-@SuppressWarnings("WeakerAccess")
 public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
     private final Logger log = LoggerFactory.getLogger(ArtemisSupervisor.class);
 
-    public static final String REQUEST_TOPIC = "request";
-    public static final String REGISTER_TOPIC = "register";
+    static final String REQUEST_TOPIC = "request";
+    static final String REGISTER_TOPIC = "register";
 
     private final ObjectMapper mapper;
     private final TokenService tokens;
@@ -89,14 +88,14 @@ public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
         try (ClientSession session = sessionFactory.createSession();
              ClientProducer producer = session.createProducer(REQUEST_TOPIC)) {
 
-            ClientMessage clMessage = session.createMessage(true);
+            ClientMessage message = session.createMessage(false);
             // It would be nice to have duplicate detection here but for now we'll leave it out as
             // the ids are still associated until a limit (default 2k) is reached
-            clMessage.putStringProperty("id", entry.tokenName());
-            clMessage.putLongProperty("bagId", entry.getBag().getId());
-            String message = mapper.writeValueAsString(entry);
-            clMessage.writeBodyBufferString(message);
-            producer.send(clMessage);
+            message.putStringProperty("id", entry.tokenName());
+            message.putLongProperty("bagId", entry.getBag().getId());
+            String json = mapper.writeValueAsString(entry);
+            message.writeBodyBufferString(json);
+            producer.send(message);
             session.commit();
         } catch (ActiveMQException | JsonProcessingException e) {
             log.error("Error sending token request message", e);
