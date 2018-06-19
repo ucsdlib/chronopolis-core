@@ -37,6 +37,9 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
     private final Logger log = LoggerFactory.getLogger(ArtemisSupervisor.class);
 
+    private static final boolean BROWSE_ONLY = true;
+    private static final String ID_PROPERTY = "id";
+    private static final String BAG_ID_PROPERTY = "bagId";
     static final String REQUEST_TOPIC = "request";
     static final String REGISTER_TOPIC = "register";
 
@@ -53,14 +56,24 @@ public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
                              ObjectMapper mapper,
                              TokenService tokens,
                              ImsServiceWrapper ims) throws Exception {
+        this(serverLocator, mapper, tokens, ims,
+                new ThreadPoolExecutor(1, 1, 0, MILLISECONDS, new LinkedBlockingQueue<>()),
+                new ThreadPoolExecutor(4, 4, 0, MILLISECONDS, new LinkedBlockingQueue<>()));
+    }
+
+    ArtemisSupervisor(ServerLocator serverLocator,
+                      ObjectMapper mapper,
+                      TokenService tokens,
+                      ImsServiceWrapper ims,
+                      ThreadPoolExecutor requestExecutor,
+                      ThreadPoolExecutor registerExecutor) throws Exception {
         this.ims = ims;
         this.tokens = tokens;
         this.mapper = mapper;
         this.locator = serverLocator;
+        this.request = requestExecutor;
+        this.register = registerExecutor;
         this.sessionFactory = serverLocator.createSessionFactory();
-
-        request = new ThreadPoolExecutor(1, 1, 0, MILLISECONDS, new LinkedBlockingQueue<>());
-        register = new ThreadPoolExecutor(4, 4, 0, MILLISECONDS, new LinkedBlockingQueue<>());
 
         // init consumers here?
     }
@@ -89,10 +102,7 @@ public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
              ClientProducer producer = session.createProducer(REQUEST_TOPIC)) {
 
             ClientMessage message = session.createMessage(false);
-            // It would be nice to have duplicate detection here but for now we'll leave it out as
-            // the ids are still associated until a limit (default 2k) is reached
-            message.putStringProperty("id", entry.tokenName());
-            message.putLongProperty("bagId", entry.getBag().getId());
+            updateMessage(entry, message);
             String json = mapper.writeValueAsString(entry);
             message.writeBodyBufferString(json);
             producer.send(message);
@@ -116,8 +126,7 @@ public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
              ClientProducer producer = session.createProducer(REGISTER_TOPIC)) {
 
             ClientMessage clMessage = session.createMessage(true);
-            clMessage.putStringProperty("id", id);
-            clMessage.putLongProperty("bagId", entry.getBag().getId());
+            updateMessage(entry, clMessage);
 
             clMessage.writeBodyBufferString(mapper.writeValueAsString(message));
             producer.send(clMessage);
@@ -131,14 +140,20 @@ public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
         return true;
     }
 
+    private void updateMessage(ManifestEntry entry, ClientMessage message) {
+        // It would be nice to have duplicate detection here but for now we'll leave it out as
+        // the ids are still associated until a limit (default 2k) is reached
+        message.putStringProperty(ID_PROPERTY, entry.tokenName());
+        message.putLongProperty(BAG_ID_PROPERTY, entry.getBag().getId());
+    }
+
     /**
      * Check if consumers are running for the two queues which we listen on (REQUEST_TOPIC and
      * REGISTER_TOPIC).
-     *
+     * <p>
      * For the request topic, we only want a single consumer as it is generally pretty quick.
      * For the register topic, we want up to 4 consumers as there is some overhead when
      * communicating with the http api so this helps to alleviate some congestion.
-     *
      */
     private void checkConsumers() {
         int timeout = 1;
@@ -167,8 +182,8 @@ public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
         boolean processing = false;
 
         try (ClientSession session = sessionFactory.createSession();
-             ClientConsumer requestQueue = session.createConsumer(REQUEST_TOPIC, true);
-             ClientConsumer registerQueue = session.createConsumer(REGISTER_TOPIC, true)) {
+             ClientConsumer requestQueue = session.createConsumer(REQUEST_TOPIC, BROWSE_ONLY);
+             ClientConsumer registerQueue = session.createConsumer(REGISTER_TOPIC, BROWSE_ONLY)) {
             ClientMessage reqMsg = requestQueue.receiveImmediate();
             ClientMessage regMsg = registerQueue.receiveImmediate();
 
@@ -191,13 +206,14 @@ public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
     }
 
     public boolean isProcessing(Bag bag) {
-        String filter = "bagId = " + bag.getId();
+        String filter = BAG_ID_PROPERTY + " = " + bag.getId();
         return isProcessing(filter);
     }
 
     @Override
     public boolean isProcessing(ManifestEntry entry) {
-        String filter = "id = '" + entry.getPath() + "'";
+        // id is sufficient as it is unique in chronopolis
+        String filter = ID_PROPERTY + " = '" + entry.tokenName() + "'";
         return isProcessing(filter);
     }
 
@@ -205,8 +221,10 @@ public class ArtemisSupervisor implements TokenWorkSupervisor, Closeable {
         boolean processing = false;
 
         try (ClientSession session = sessionFactory.createSession();
-             ClientConsumer requestQueue = session.createConsumer(REQUEST_TOPIC, filter, true);
-             ClientConsumer registerQueue = session.createConsumer(REGISTER_TOPIC, filter, true)) {
+             ClientConsumer requestQueue =
+                     session.createConsumer(REQUEST_TOPIC, filter, BROWSE_ONLY);
+             ClientConsumer registerQueue =
+                     session.createConsumer(REGISTER_TOPIC, filter, BROWSE_ONLY)) {
             processing = requestQueue.receiveImmediate() != null
                     || registerQueue.receiveImmediate() != null;
         } catch (ActiveMQException e) {
