@@ -53,11 +53,10 @@ public class ChronopolisTokenRequestBatchTest {
         // Setup the ManifestEntries and TokenResponses which will be used during processing
         for (int i = 0; i < 10; i++) {
             ManifestEntry entry = new ManifestEntry(bag, "data/path-" + i, "registered-digest");
-            entry.setCalculatedDigest("registered-digest");
 
             TokenRequest request = new TokenRequest();
             request.setName(entry.tokenName());
-            request.setHashValue(entry.getCalculatedDigest());
+            request.setHashValue(entry.getDigest());
 
             TokenResponse response = new TokenResponse();
             response.setName(entry.getPath());

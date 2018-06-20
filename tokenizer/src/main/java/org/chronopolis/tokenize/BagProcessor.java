@@ -121,7 +121,6 @@ public class BagProcessor implements Runnable {
         ManifestEntry entry = new ManifestEntry(bag, tagmanifestName, digest);
         if (predicate.test(entry)) {
             // just in case this gets used down the line
-            entry.setCalculatedDigest(digest);
             supervisor.start(entry);
         }
     }
@@ -173,8 +172,8 @@ public class BagProcessor implements Runnable {
     private int validate(ManifestEntry entry) {
         int error = 1;
         Optional<String> digest = digester.digest(entry.getPath());
-        digest.ifPresent(entry::setCalculatedDigest);
-        if (entry.isValid()) {
+        Boolean isValid = digest.map(d -> entry.getDigest().equalsIgnoreCase(d)).orElse(false);
+        if (isValid) {
             log.info("[{}] Entry is valid", entry.tokenName());
             error = 0;
             supervisor.start(entry);

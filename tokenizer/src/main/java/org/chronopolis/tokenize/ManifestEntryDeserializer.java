@@ -26,7 +26,7 @@ public class ManifestEntryDeserializer extends JsonDeserializer<ManifestEntry> {
         JsonNode bagNode = treeNode.get("bag");
         Bag bag = codec.readValue(bagNode.traverse(), Bag.class);
         JsonNode pathNode = treeNode.get("path");
-        JsonNode registeredDigest = treeNode.get("registeredDigest");
+        JsonNode registeredDigest = treeNode.get("digest");
         return new ManifestEntry(bag, pathNode.asText(), registeredDigest.asText());
     }
 }

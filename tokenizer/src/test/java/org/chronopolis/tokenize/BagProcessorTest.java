@@ -28,8 +28,8 @@ public class BagProcessorTest {
     private static final String HW_NAME = "data/hello_world";
     private static final String HW_DIGEST = "a948904f2f0f479b8f8197694b30184b0d2ed1c1cd2a1ec0fb85d299a192a447";
 
-    private final String depositor = "test-depositor";
-    private final String collection = "test-bag-1";
+    private static final String DEPOSITOR = "test-depositor";
+    private static final String COLLECTION = "test-bag-1";
 
     @Mock private HttpFilter filter;
     @Mock private TokenWorkSupervisor supervisor;
@@ -53,11 +53,11 @@ public class BagProcessorTest {
                 .setPosix(new Posix().setPath(bags.getPath()));
 
         StagingStorageModel bagStorage = new StagingStorageModel()
-                .setPath(depositor + "/" + collection);
+                .setPath(DEPOSITOR + "/" + COLLECTION);
         bag = new Bag()
                 .setId(1L)
-                .setName(collection)
-                .setDepositor(depositor)
+                .setName(COLLECTION)
+                .setDepositor(DEPOSITOR)
                 .setBagStorage(bagStorage);
 
     }

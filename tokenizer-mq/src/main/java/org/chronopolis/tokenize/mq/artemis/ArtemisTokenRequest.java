@@ -176,7 +176,7 @@ public class ArtemisTokenRequest implements Runnable, Closeable {
 
     private TokenRequest createRequest(ManifestEntry entry) {
         TokenRequest request = new TokenRequest();
-        request.setHashValue(entry.getRegisteredDigest());
+        request.setHashValue(entry.getDigest());
         request.setName(entry.tokenName());
         return request;
     }
