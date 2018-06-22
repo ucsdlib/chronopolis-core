@@ -17,7 +17,7 @@
         <td th:text="${contact.contactName}"></td>
         <td th:text="${contact.contactEmail}"></td>
         <td th:text="${contact.contactPhone}"></td>
-        <td class="c-table-danger col-2" data-toggle="modal"
+        <td class="bg-danger font-weight-normal text-white text-center w-25" data-toggle="modal"
             th:data-target="'#' + ${contact.contactName + '-remove'}">Remove Contact
         </td>
         <div th:replace="fragments/depositor :: rm-contact(${depositor}, ${contact})"></div>
@@ -40,7 +40,7 @@
                     Dismiss
                 </button>
                 <a th:href="@{|${depositor.namespace}/removeContact|(email=${contact.contactEmail})}"
-                   type="submit" class="btn btn-danger">
+                   class="btn btn-danger" role="button">
                     Remove Contact
                 </a>
             </div>
@@ -59,7 +59,7 @@
     <tbody>
     <tr th:each="dist : ${nodes}">
         <td th:text="${dist.node.username}"></td>
-        <td class="c-table-danger col-2" data-toggle="modal"
+        <td class="bg-danger font-weight-normal text-white text-center w-25" data-toggle="modal"
             th:data-target="'#' + ${dist.node.username + '-remove'}">
             Remove
             <div th:replace="fragments/depositor :: rm-node (${depositor}, ${dist.node.username})"></div>
@@ -82,7 +82,7 @@
                     Dismiss
                 </button>
                 <a th:href="@{|${depositor.namespace}/removeNode|(name=${nodeName})}"
-                   type="submit" class="btn btn-danger">
+                   class="btn btn-danger" role="button">
                     Remove
                 </a>
             </div>

@@ -14,10 +14,9 @@ ul.pagination li {
 /* https://stackoverflow.com/a/36159798 */
 .hr-sect {
     display: flex;
-    flex-basis: 100%;
     align-items: center;
     color: #383b41;
-    margin: 8px 0px;
+    margin: 8px 0;
     text-transform: uppercase;
     font-size: 90%;
 }
@@ -28,9 +27,9 @@ ul.pagination li {
     flex-grow: 1;
     background: rgba(0, 0, 0, 0.35);
     height: 1px;
-    font-size: 0px;
-    line-height: 0px;
-    margin: 0px 8px;
+    font-size: 0;
+    line-height: 0;
+    margin: 0 8px;
 }
 
 /* Basically a mix of table/button from bootstrap */
@@ -84,11 +83,11 @@ ul.pagination li {
     border-color: #bd2130;
 }
 
-c-table:focus, .c-table:hover {
+.c-table:focus, .c-table:hover {
     text-decoration: none;
 }
 
-c-table.focus, .c-table.hover {
+.c-table.focus, .c-table.hover {
     outline: 0;
     box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
 }
