@@ -93,8 +93,8 @@ ul.pagination li {
 }
 
 .subheading {
-    font-size: 75%;
+    font-size: 85%;
     letter-spacing: .13em;
     text-transform: uppercase;
-    color: rgba(0, 0, 0, 0.65);
+    color: #828a9f;
 }

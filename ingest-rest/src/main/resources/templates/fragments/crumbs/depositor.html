@@ -9,6 +9,9 @@
 <nav th:fragment="index" aria-label="breadcrumb" role="navigation">
     <ol class="breadcrumb">
         <li class="breadcrumb-item active">Depositors</li>
+        <li class="ml-auto">
+            <a class="btn btn-primary text-white" th:href="@{/depositors/add}">Add Depositor</a>
+        </li>
     </ol>
 </nav>
 
@@ -47,10 +50,12 @@
         <li class="breadcrumb-item active">All</li>
 
         <!-- kind of janky but it works -->
-        <a data-toggle="collapse" data-target="#filter-body" id="dropdown" class="ml-auto"
-           style="padding: 0 !important" aria-expanded="false" aria-controls="filter-body">
-            <i class="fa fa-search"></i> Search
-        </a>
+        <li class="ml-auto">
+            <a data-toggle="collapse" data-target="#filter-body" id="dropdown" class="ml-auto"
+               style="padding: 0 !important" aria-expanded="false" aria-controls="filter-body">
+                <i class="fa fa-search"></i> Search
+            </a>
+        </li>
     </ol>
 
     <div id="filter-body" class="collapse p-2">

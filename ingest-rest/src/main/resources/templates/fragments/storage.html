@@ -74,13 +74,13 @@
 
 <!-- should move into a separate file -->
 <tr th:fragment="list-item (head, content)">
-    <th th:text="${head}" scope="row"
-        class="font-weight-normal text-white text-center bg-secondary w-25"></th>
-    <th th:text="${content}" class="font-weight-normal bg-light"></th>
+    <td th:text="${head}" scope="row"
+        class="text-white text-center bg-secondary w-25"></td>
+    <td th:text="${content}" class="bg-light"></td>
 </tr>
 
 <tr th:fragment="set-inactive" th:if="${rw}">
-    <td class="bg-danger font-weight-normal text-white text-center w-25" data-toggle="modal"
+    <td class="bg-danger text-white text-center w-25" data-toggle="modal" style="cursor: pointer;"
         th:data-target="|#${storageName}-remove|">
         Set Inactive
     </td>
@@ -107,7 +107,7 @@
 </tr>
 
 <tr th:fragment="remove-fixity" th:if="${rw}">
-    <td class="bg-danger font-weight-normal text-white text-center w-25" data-toggle="modal"
+    <td class="bg-danger text-white text-center w-25" data-toggle="modal" style="cursor: pointer;"
         th:data-target="|#${fixity.algorithm}-${storageName}-remove|">
         Remove
     </td>

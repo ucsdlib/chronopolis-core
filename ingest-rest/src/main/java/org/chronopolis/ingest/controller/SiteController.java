@@ -1,11 +1,11 @@
 package org.chronopolis.ingest.controller;
 
+import com.google.common.collect.ImmutableSet;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberExpression;
-import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.models.BagSummary;
@@ -141,30 +141,43 @@ public class SiteController extends IngestController {
                 .fetch();
 
         // retrieve BagStatusSummary
+        BagSummary preservedSummary = new BagSummary(0L, 0L, BagStatus.PRESERVED);
+        ImmutableSet<BagStatus> statuses = new ImmutableSet.Builder<BagStatus>()
+                .addAll(BagStatus.preservedStates())
+                .addAll(BagStatus.processingStates()).build();
+
+        EnumPath<BagStatus> statusExpr = bag.status;
         NumberExpression<Long> sumExpr = bag.size.sum();
         NumberExpression<Long> countExpr = bag.countDistinct();
-        EnumPath<BagStatus> statusExpr = bag.status;
         List<BagSummary> summaries = factory.selectFrom(QBag.bag)
+                .where(statusExpr.in(statuses))
                 .select(Projections.constructor(BagSummary.class, sumExpr, countExpr, statusExpr))
                 .groupBy(statusExpr)
                 .fetch();
 
-        Long totalBags = 0L;
-        Long totalSize = 0L;
+        Long processingBags = 0L;
+        Long processingSize = 0L;
 
         // we only have a few status types so do this here instead of another db call
         for (BagSummary summary : summaries) {
-            totalBags += summary.getCount();
-            totalSize += summary.getSum();
+            if (summary.getStatus() != BagStatus.PRESERVED) {
+                processingBags += summary.getCount();
+                processingSize += summary.getSum();
+            } else {
+                preservedSummary = summary;
+            }
         }
+        summaries.remove(preservedSummary);
 
         // retrieve DepositorSummary
+        /*
         StringPath depositorExpr = bag.depositor.namespace;
         List<DepositorSummary> depositorSummaries = factory.selectFrom(QBag.bag)
                 .select(Projections.constructor(DepositorSummary.class, sumExpr, countExpr, depositorExpr))
                 .groupBy(depositorExpr)
                 .limit(10)
                 .fetch();
+                */
 
         // retrieve stuck Bags?
         ZonedDateTime beforeDateTime = ZonedDateTime.of(before, LocalTime.of(0, 0), ZoneOffset.UTC);
@@ -184,11 +197,12 @@ public class SiteController extends IngestController {
         model.addAttribute("before", before);
         model.addAttribute("stuckBags", stuck);
         model.addAttribute("recentBags", recentBags);
-        model.addAttribute("totalBags", totalBags);
-        model.addAttribute("totalSize", totalSize);
+        model.addAttribute("processingBags", processingBags);
+        model.addAttribute("processingSize", processingSize);
         model.addAttribute("nodeSummaries", nodeTotals);
         model.addAttribute("statusSummaries", summaries);
-        model.addAttribute("depositorSummaries", depositorSummaries);
+        model.addAttribute("preservedSummary", preservedSummary);
+        // model.addAttribute("depositorSummaries", depositorSummaries);
         model.addAttribute("formatter", new FileSizeFormatter());
 
         return "bags/index";

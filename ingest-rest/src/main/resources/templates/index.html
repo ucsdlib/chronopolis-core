@@ -7,8 +7,8 @@
 <nav th:replace="layout :: navbar"></nav>
 <div class="hr-sect w-75 mx-auto">Quick Stats</div>
 <div class="w-75 mx-auto">
-    <div class="d-flex justify-content-center m-3">
-        <div class="w-25">
+    <div class="d-flex justify-content-between m-3">
+        <div>
             <!--/*@thymesVar id="preserved" type="org.chronopolis.ingest.models.BagSummary"*/-->
             <h3 style="margin-bottom: 0">
                 [[${preserved.count}]]
@@ -17,9 +17,9 @@
                       style="font-size: 12px; vertical-align: middle">0 B
                 </span>
             </h3>
-            <span style="font-size: 85%; letter-spacing: .1em; color: #828a9f; text-transform: uppercase;">preserved bags</span>
+            <span class="subheading">preserved bags</span>
         </div>
-        <div class="w-25">
+        <div>
             <!--/*@thymesVar id="replicating" type="org.chronopolis.ingest.models.BagSummary"*/-->
             <h3 style="margin-bottom: 0">
                 [[${replicating.count}]]
@@ -27,16 +27,17 @@
                       class="badge badge-info"
                       style="font-size: 12px; vertical-align: middle">55 GB
                 </span></h3>
-            <span style="font-size: 85%; letter-spacing: .1em; color: #828a9f; text-transform: uppercase;">replicating bags</span>
+            <span class="subheading">replicating bags</span>
         </div>
-        <div class="w-25">
+        <div>
             <!--/*@thymesVar id="activeReplications" type="java.lang.Long"*/-->
             <h3 style="margin-bottom: 0" th:text="${activeReplications}">0</h3>
-            <span style="font-size: 85%; letter-spacing: .1em; color: #828a9f; text-transform: uppercase;">active replications</span>
+            <span class="subheading">active replications</span>
         </div>
-        <div class="w-25">
+        <div>
             <!--/*@thymesVar id="oneWeekReplications" type="java.lang.Long"*/-->
             <!-- might want to make these a list so we can have the last item have a mb of 0 -->
+            <!-- don't like how having two elements here leaves the span slightly lower -->
             <h3 style="margin-bottom: 0" th:if="${oneWeekReplications} != null">
                 [[${oneWeekReplications}]]
                 <small class="badge badge-warning" style="font-size: 12px; vertical-align: middle">&ge; 1 week</small>
@@ -46,7 +47,7 @@
                 [[${twoWeekReplications}]]
                 <small class="badge badge-danger" style="font-size: 12px; vertical-align: middle">&ge; 2 weeks</small>
             </h3>
-            <span style="font-size: 85%; letter-spacing: .1em; color: #828a9f; text-transform: uppercase;">stuck replications</span>
+            <span class="subheading">stuck replications</span>
         </div>
     </div>
 </div>

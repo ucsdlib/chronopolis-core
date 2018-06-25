@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberExpression;
@@ -90,11 +91,20 @@ public class DepositorUIController extends IngestController {
 
         // retrieve DepositorSummary
         StringPath depositorExpr = bag.depositor.namespace;
-        List<DepositorSummary> summaries = factory.selectFrom(QBag.bag)
-                .select(Projections.constructor(DepositorSummary.class, sumExpr, countExpr, depositorExpr))
+        ConstructorExpression<DepositorSummary> constructor =
+                Projections.constructor(DepositorSummary.class, sumExpr, countExpr, depositorExpr);
+        List<DepositorSummary> bySum = factory.selectFrom(QBag.bag)
+                .select(constructor)
                 .orderBy(sumExpr.desc())
                 .groupBy(depositorExpr)
-                .limit(10)
+                .limit(5)
+                .fetch();
+
+        List<DepositorSummary> byCount = factory.selectFrom(QBag.bag)
+                .select(constructor)
+                .orderBy(countExpr.desc())
+                .groupBy(depositorExpr)
+                .limit(5)
                 .fetch();
 
         long numDepositors = factory.selectFrom(depositor)
@@ -131,7 +141,8 @@ public class DepositorUIController extends IngestController {
         }
 
         model.addAttribute("recent", recent);
-        model.addAttribute("summaries", summaries);
+        model.addAttribute("bySum", bySum);
+        model.addAttribute("byCount", byCount);
         model.addAttribute("formatter", formatter);
         model.addAttribute("numDepositors", numDepositors);
         model.addAttribute("sizeAvg", new BigDecimal(sizeAvgPerDepositor));
