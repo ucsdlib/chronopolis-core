@@ -5,7 +5,6 @@ import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
-import org.chronopolis.tokenize.config.TokenTaskConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable {
 
-    private final Logger log = LoggerFactory.getLogger(TokenTaskConfiguration.TOKENIZER_LOG_NAME);
+    private final Logger log = LoggerFactory.getLogger(ChronopolisTokenRequestBatch.class);
 
     private final String tokenClass;
     private final int maxWaitTime;
