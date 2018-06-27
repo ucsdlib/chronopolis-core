@@ -18,22 +18,63 @@
                 <tr th:replace="fragments/storage :: list-item(head='Organization Address', content=${depositor.organizationAddress})"></tr>
                 <tr th:replace="fragments/storage :: list-item(head='Created At', content=${depositor.createdAt})"></tr>
                 <tr th:replace="fragments/storage :: list-item(head='Updated At', content=${depositor.updatedAt})"></tr>
+                <tr>
+                    <td class="bg-secondary text-white text-center w-25">Replicates To</td>
+                    <td class="bg-light">
+                        <a th:each="dist: ${depositor.nodeDistributions}"
+                           th:text="${dist.node.username}"
+                           th:data-href="@{|${depositor.namespace}/removeNode|(name=${dist.node.username})}"
+                           style="margin-right: 0.25rem; cursor: pointer;"
+                           data-toggle="modal" data-target="#node-modal"
+                           class="badge badge-pill badge-success text-white"></a>
+                        <a class="badge badge-pill badge-primary"
+                           th:href="@{|${depositor.namespace}/addNode|}">
+                            +
+                        </a>
+                    </td>
+                </tr>
             </table>
         </div>
 
-        <div class="hr-sect mx-auto w-100">Contact Information</div>
         <div class="card-body p-2">
             <table th:replace="fragments/depositor :: display-contacts(${depositor}, ${depositor.contacts})"></table>
-            <a class="btn btn-primary pull-left" th:href="@{|${depositor.namespace}/addContact|}">Add Contact</a>
+            <a class="btn btn-primary pull-left" th:href="@{|${depositor.namespace}/addContact|}">
+                Add Contact</a>
         </div>
 
-        <div class="hr-sect mx-auto w-100">Replicating Nodes</div>
-        <div class="card-body p-2">
-            <table th:replace="fragments/depositor :: display-nodes(${depositor}, ${depositor.nodeDistributions})"></table>
-            <a class="btn btn-primary pull-left" th:href="@{|${depositor.namespace}/addNode|}">Add Replicating Node</a>
+        <!-- hidden modal -->
+        <div class="modal fade" id="node-modal" tabindex="-1" role="dialog"
+             aria-labelledby="node-modal-label" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="node-modal-label">Confirmation</h5>
+                    </div>
+                    <div class="modal-body text-dark">
+                        Warning: Proceeding will remove this Node from all future replications
+                    </div>
+                    <div class="modal-footer">
+                        <button th:type="button" class="btn btn-secondary"
+                                data-dismiss="modal">
+                            Dismiss
+                        </button>
+                        <a role="button" class="btn btn-danger text-white">Remove</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <div th:replace="layout :: foot"></div>
+    <script type="text/javascript">
+        $('#node-modal').on('show.bs.modal', function (event) {
+            var target = $(event.relatedTarget);
+            var href = target.data('href');
+
+            var modal = $(this);
+            // is this vulnerable to any injection attacks?
+            modal.find('.btn-danger').attr('href', href);
+        });
+    </script>
 </div>
 </body>
 </html>

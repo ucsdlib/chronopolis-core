@@ -4,6 +4,11 @@
 <!--/*@thymesVar id="depositor" type="org.chronopolis.rest.entities.Depositor"*/-->
 <!--/*@thymesVar id="contacts" type="java.util.List<org.chronopolis.rest.entities.DepositorContact>"*/-->
 <table th:fragment="display-contacts (depositor, contacts)" class="table table-hover">
+    <thead class="bg-dark">
+        <tr>
+            <th colspan="4" class="text-white text-center">Contacts</th>
+        </tr>
+    </thead>
     <thead>
     <tr>
         <th>Name</th>
@@ -17,7 +22,8 @@
         <td th:text="${contact.contactName}"></td>
         <td th:text="${contact.contactEmail}"></td>
         <td th:text="${contact.contactPhone}"></td>
-        <td class="bg-danger font-weight-normal text-white text-center w-25" data-toggle="modal"
+        <td class="bg-danger font-weight-normal text-white text-center w-25" 
+            style="cursor: pointer;" data-toggle="modal"
             th:data-target="'#' + ${contact.contactName + '-remove'}">Remove Contact
         </td>
         <div th:replace="fragments/depositor :: rm-contact(${depositor}, ${contact})"></div>
@@ -42,48 +48,6 @@
                 <a th:href="@{|${depositor.namespace}/removeContact|(email=${contact.contactEmail})}"
                    class="btn btn-danger" role="button">
                     Remove Contact
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!--/*@thymesVar id="nodes" type="java.util.List<org.chronopolis.rest.entities.DepositorNode>"*/-->
-<table th:fragment="display-nodes(depositor, nodes)" class="table table-hover">
-    <thead>
-    <tr>
-        <th>Node</th>
-        <th></th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="dist : ${nodes}">
-        <td th:text="${dist.node.username}"></td>
-        <td class="bg-danger font-weight-normal text-white text-center w-25" data-toggle="modal"
-            th:data-target="'#' + ${dist.node.username + '-remove'}">
-            Remove
-            <div th:replace="fragments/depositor :: rm-node (${depositor}, ${dist.node.username})"></div>
-        </td>
-    </tr>
-    </tbody>
-</table>
-
-<div th:fragment="rm-node (depositor, nodeName)"
-     th:id="${nodeName + '-remove'}"
-     class="modal fade" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-body text-dark">
-                Warning: Proceeding will remove this Node from all future replications
-            </div>
-            <div class="modal-footer">
-                <button th:type="button" class="btn btn-secondary"
-                        data-dismiss="modal">
-                    Dismiss
-                </button>
-                <a th:href="@{|${depositor.namespace}/removeNode|(name=${nodeName})}"
-                   class="btn btn-danger" role="button">
-                    Remove
                 </a>
             </div>
         </div>
