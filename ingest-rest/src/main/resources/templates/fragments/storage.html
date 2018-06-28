@@ -16,7 +16,8 @@
                     <a th:id="|v-storage-tab-${storageName}|"
                        th:href="@{|#v-storage-${storageName}|}"
                        th:aria-controls="|v-storage-${storageName}|"
-                       class="nav-link active" data-toggle="pill" role="tab" aria-selected="true">Storage</a>
+                       class="nav-link active" data-toggle="pill" role="tab" aria-selected="true">
+                        Storage</a>
 
                     <!-- for each fixity -->
                     <a th:each="fixity : ${storage.fixities}"
@@ -24,15 +25,14 @@
                        th:href="@{|#v-${fixity.algorithm}-${storageName}|}"
                        th:aria-controls="|v-${fixity.algorithm}-${storageName}|"
                        th:text="${fixity.algorithm}"
-                       class="nav-link" data-toggle="pill" role="tab" aria-selected="false">
-                    </a>
+                       class="nav-link" data-toggle="pill" role="tab" aria-selected="false"></a>
 
                     <a th:if="${rw}"
                        th:id="|v-add-fixity-tab-${storageName}|"
                        th:href="@{|${bag.id}/storage/${storage.id}/fixity|}"
                        th:aria-controls="|v-add-fixity-${storageName}|"
-                       class="nav-link" data-toggle="pill" role="tab" aria-selected="false">Add
-                        Fixity</a>
+                       class="nav-link" data-toggle="pill" role="tab" aria-selected="false">
+                        Add Fixity</a>
                 </div>
             </div>
 
@@ -81,55 +81,19 @@
 
 <tr th:fragment="set-inactive" th:if="${rw}">
     <td class="bg-danger text-white text-center w-25" data-toggle="modal" style="cursor: pointer;"
-        th:data-target="|#${storageName}-remove|">
+        th:data-href="@{|${bag.id}/storage/${storage.id}/activate|}"
+        th:data-message="|Warning: Proceeding will remove the active storage object|"
+        data-target="#rm-modal">
         Set Inactive
     </td>
-    <div class="modal fade" th:id="|${storageName}-remove|"
-         tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-body">
-                    Warning: Proceeding will remove the active storage
-                    object.
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary"
-                            data-dismiss="modal">
-                        Close
-                    </button>
-                    <a th:href="@{|${bag.id}/storage/${storage.id}/activate|}"
-                       role="button" class="btn btn-danger" style="cursor: pointer;">Set Inactive
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
 </tr>
 
 <tr th:fragment="remove-fixity" th:if="${rw}">
     <td class="bg-danger text-white text-center w-25" data-toggle="modal" style="cursor: pointer;"
-        th:data-target="|#${fixity.algorithm}-${storageName}-remove|">
+        data-target="#rm-modal"
+        th:data-href="@{|${bag.id}/storage/${storage.id}/fixity/${fixity.id}|}"
+        th:data-message="|Warning: Proceeding will remove the fixity object|">
         Remove
     </td>
-
-    <div class="modal fade" th:id="|${fixity.algorithm}-${storageName}-remove|"
-         tabindex="-1"
-         role="dialog">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-body">
-                    Warning: Proceeding will remove the fixity object.
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                        Close
-                    </button>
-                    <a th:href="@{|${bag.id}/storage/${storage.id}/fixity/${fixity.id}|}"
-                       role="button" class="btn btn-danger" style="cursor: pointer;">Remove Fixity
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
 </tr>
 </html>
