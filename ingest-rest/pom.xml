@@ -7,11 +7,11 @@
     <parent>
         <groupId>org.chronopolis</groupId>
         <artifactId>chronopolis</artifactId>
-        <version>2.3.0-SNAPSHOT</version>
+        <version>2.3.0-RELEASE</version>
     </parent>
 
     <artifactId>ingest-rest</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>2.3.0-RELEASE</version>
 
     <build>
         <plugins>
@@ -23,6 +23,7 @@
     </build>
 
     <properties>
+        <flyway.version>4.2.0</flyway.version>
         <thymeleaf.version>3.0.9.RELEASE</thymeleaf.version>
         <thymeleaf-layout-dialect.version>2.1.1</thymeleaf-layout-dialect.version>
         <thymeleaf-extras-springsecurity4.version>3.0.2.RELEASE</thymeleaf-extras-springsecurity4.version>
@@ -103,7 +104,7 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>4.2.0</version>
+            <version>${flyway.version}</version>
         </dependency>
 
     </dependencies>

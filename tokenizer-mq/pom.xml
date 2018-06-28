@@ -7,11 +7,11 @@
     <parent>
         <groupId>org.chronopolis</groupId>
         <artifactId>chronopolis</artifactId>
-        <version>2.3.0-SNAPSHOT</version>
+        <version>2.3.0-RELEASE</version>
     </parent>
 
     <artifactId>tokenizer-mq</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>2.3.0-RELEASE</version>
 
     <properties>
         <artemis.version>2.6.0</artemis.version>
@@ -21,13 +21,9 @@
         <dependency>
             <groupId>org.chronopolis</groupId>
             <artifactId>tokenizer</artifactId>
-            <version>2.3.0-SNAPSHOT</version>
+            <version>2.3.0-RELEASE</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>log4j-over-slf4j</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>org.apache.activemq</groupId>
