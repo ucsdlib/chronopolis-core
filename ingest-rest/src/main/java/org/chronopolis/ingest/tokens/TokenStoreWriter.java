@@ -92,7 +92,7 @@ public class TokenStoreWriter implements Runnable {
 
             boolean next = true;
             while (next) {
-                log.debug("Iterating page # {} size {} offset {}",
+                log.debug("[{}] Iterating page # {} size {} offset {}", bag.getName(),
                         pageable.getPageNumber(), pageable.getPageSize(), pageable.getOffset());
                 Page<AceToken> tokens = tokenService.findAll(
                         new AceTokenSearchCriteria().withBagId(bag.getId()),

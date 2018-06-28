@@ -12,7 +12,8 @@
         <!--@thymesVar id="tokens" type="Long"-->
         <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
         <div class="card-body p-2">
-            <table class="c-table">
+            <table class="table table-hover">
+                <tbody>
                 <div th:replace="fragments/storage :: list-item(head='Id', content=${bag.id})"></div>
                 <div th:replace="fragments/storage :: list-item(head='Total Files', content=${bag.totalFiles})"></div>
                 <div th:replace="fragments/storage :: list-item(head='Total Size', content=${formatter.format(bag.size)})"></div>
@@ -21,6 +22,7 @@
                 <div th:replace="fragments/storage :: list-item(head='Created By', content=${bag.creator})"></div>
                 <div th:replace="fragments/storage :: list-item(head='Created At', content=${bag.createdAt})"></div>
                 <div th:replace="fragments/storage :: list-item(head='Updated At', content=${bag.updatedAt})"></div>
+                </tbody>
             </table>
         </div>
 
@@ -36,7 +38,7 @@
             <div class="card-body p-2">
                 <div class="hr-sect mx-auto">Bag Staging</div>
                 <th:block th:if="${activeBagStorage} != null">
-                    <div th:replace="fragments/storage :: card-display (storage=${activeBagStorage},storageName='bag',rw=true)"></div>
+                    <div th:replace="fragments/storage :: card-display (storage=${activeBagStorage}, storageName='bag', rw=true)"></div>
                 </th:block>
                 <th:block th:if="${activeBagStorage} == null">
                     <div class="btn-group p-2" role="group">
@@ -48,7 +50,7 @@
                 </th:block>
                 <div class="hr-sect mx-auto">Token Staging</div>
                 <th:block th:if="${activeTokenStorage} != null">
-                    <div th:replace="fragments/storage :: card-display (storage=${activeTokenStorage},storageName='token',rw=true)"></div>
+                    <div th:replace="fragments/storage :: card-display (storage=${activeTokenStorage}, storageName='token', rw=true)"></div>
                 </th:block>
                 <th:block th:if="${activeTokenStorage} == null">
                     <div class="btn-group p-2" role="group">
@@ -60,7 +62,8 @@
                 </th:block>
 
                 <div class="btn-group p-2" role="group">
-                    <a class="btn btn-primary" th:href="@{|${bag.id}/storage/all|}">See Inactive
+                    <a class="btn btn-outline-primary" th:href="@{|${bag.id}/storage/all|}">See
+                        Inactive
                         Staging</a>
                 </div>
             </div>
@@ -97,6 +100,36 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="rm-modal" tabindex="-1" role="dialog"
+     aria-labelledby="rm-modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rm-modal-label">Confirmation</h5>
+            </div>
+            <div class="modal-body text-dark">
+                Warning: Proceeding will remove this resource
+            </div>
+            <div class="modal-footer">
+                <button th:type="button" class="btn btn-secondary" data-dismiss="modal">
+                    Dismiss
+                </button>
+                <a role="button" class="btn btn-danger text-white">Remove</a>
+            </div>
+        </div>
+    </div>
+</div>
 <div th:replace="layout :: foot"></div>
+<script type="text/javascript">
+    $('#rm-modal').on('show.bs.modal', function (event) {
+        var target = $(event.relatedTarget);
+        var href = target.data('href');
+        var message = target.data('message');
+
+        var modal = $(this);
+        modal.find('.btn-danger').attr('href', href);
+        modal.find('.modal-body').text(message);
+    });
+</script>
 </body>
 </html>

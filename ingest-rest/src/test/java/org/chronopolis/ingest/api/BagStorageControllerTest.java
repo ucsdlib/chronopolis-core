@@ -1,7 +1,6 @@
 package org.chronopolis.ingest.api;
 
 import com.querydsl.core.types.dsl.SetPath;
-import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.StagingService;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QBag;
@@ -43,7 +42,6 @@ public class BagStorageControllerTest extends ControllerTest {
     private BagStorageController controller;
     private SetPath<StagingStorage, QStagingStorage> storageJoin;
 
-    @MockBean private BagService bagService;
     @MockBean private StagingService stagingService;
 
     @Before

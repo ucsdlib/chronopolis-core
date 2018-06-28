@@ -4,16 +4,19 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import com.querydsl.core.types.Predicate;
+import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.WebContext;
-import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
-import org.chronopolis.ingest.repository.TokenRepository;
-import org.chronopolis.ingest.repository.criteria.SearchCriteria;
-import org.chronopolis.ingest.repository.dao.BagService;
-import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.ingest.models.Paged;
+import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Depositor;
+import org.chronopolis.rest.entities.QAceToken;
+import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.models.AceTokenModel;
+import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,7 +26,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
@@ -36,9 +38,11 @@ import java.time.ZonedDateTime;
 import java.util.Date;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.times;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -61,12 +65,12 @@ public class BagTokenControllerTest extends ControllerTest {
 
     private BagTokenController controller;
 
-    @MockBean private BagService bagService;
-    @MockBean private SearchService<AceToken, Long, TokenRepository> tokenService;
+    @MockBean private PagedDAO dao;
+    @MockBean private JPAQueryFactory factory;
 
     @Before
     public void setup() {
-        controller = new BagTokenController(bagService, tokenService);
+        controller = new BagTokenController(dao);
         setupMvc(controller);
     }
 
@@ -76,7 +80,8 @@ public class BagTokenControllerTest extends ControllerTest {
 
     @Test
     public void testGetTokensForBag() throws Exception {
-        when(tokenService.findAll(any(SearchCriteria.class), any(Pageable.class))).thenReturn(wrap(generateToken()));
+        when(dao.findPage(eq(QAceToken.aceToken), any(Paged.class)))
+                .thenReturn(wrap(generateToken()));
 
         mvc.perform(
                 get("/api/bags/{id}/tokens", 1L)
@@ -89,17 +94,15 @@ public class BagTokenControllerTest extends ControllerTest {
     public void testCreateTokenSuccess() throws Exception {
         Bag bag = new Bag("test-name", depositor);
         bag.setId(1L);
-        runCreateToken(generateModel(), bag, HttpStatus.CREATED);
+        runCreateToken(generateModel(), bag, 0L, HttpStatus.CREATED);
 
-        verify(bagService, times(1)).find(any(SearchCriteria.class));
-        verify(tokenService, times(1)).save(any(AceToken.class));
+        verify(dao, times(1)).save(any(AceToken.class));
     }
 
     @Test
     public void testCreateTokenBagNotFound() throws Exception {
-        runCreateToken(generateModel(), null, HttpStatus.NOT_FOUND);
-        verify(bagService, times(1)).find(any(SearchCriteria.class));
-        verify(tokenService, times(0)).save(any(AceToken.class));
+        runCreateToken(generateModel(), null, 0L, HttpStatus.NOT_FOUND);
+        verify(dao, times(0)).save(any(AceToken.class));
     }
 
     @Test
@@ -109,9 +112,8 @@ public class BagTokenControllerTest extends ControllerTest {
         AceTokenModel model = generateModel();
         model.setFilename(null);
 
-        runCreateToken(model, bag, HttpStatus.BAD_REQUEST);
-        verify(bagService, times(0)).find(any(SearchCriteria.class));
-        verify(tokenService, times(0)).save(any(AceToken.class));
+        runCreateToken(model, bag, 1L, HttpStatus.BAD_REQUEST);
+        verify(dao, times(0)).save(any(AceToken.class));
     }
 
 
@@ -119,8 +121,25 @@ public class BagTokenControllerTest extends ControllerTest {
     // Helpers
     //
 
-    private void runCreateToken(AceTokenModel model, Bag bag, HttpStatus responseStatus) throws Exception {
-        when(bagService.find(any(SearchCriteria.class))).thenReturn(bag);
+    private void runCreateToken(AceTokenModel model,
+                                Bag bag,
+                                long tokenCount,
+                                HttpStatus responseStatus) throws Exception {
+        JPAQuery query = mock(JPAQuery.class);
+        when(dao.getJPAQueryFactory()).thenReturn(factory);
+        when(factory.from(QBag.bag)).thenReturn(query);
+
+        // pretty rancid
+        when(query.where(any(Predicate.class))).thenReturn(query);
+        when(query.select(QBag.bag)).thenReturn(query);
+        when(query.fetchOne()).thenReturn(bag);
+
+        when(factory.select(eq(QAceToken.aceToken.id))).thenReturn(query);
+        when(query.from(eq(QAceToken.aceToken))).thenReturn(query);
+        when(query.where(any(Predicate.class))).thenReturn(query);
+        when(query.fetchCount()).thenReturn(tokenCount);
+
+        // when(bagService.find(any(SearchCriteria.class))).thenReturn(bag);
         when(context.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(admin);
 
