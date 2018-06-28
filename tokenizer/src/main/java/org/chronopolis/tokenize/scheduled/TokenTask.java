@@ -12,10 +12,9 @@ import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.BagStatus;
 import org.chronopolis.tokenize.BagProcessor;
 import org.chronopolis.tokenize.ManifestEntry;
-import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
-import org.chronopolis.tokenize.config.TokenTaskConfiguration;
 import org.chronopolis.tokenize.filter.HttpFilter;
 import org.chronopolis.tokenize.filter.ProcessingFilter;
+import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +38,7 @@ import java.util.function.Predicate;
 @EnableScheduling
 @EnableConfigurationProperties(BagStagingProperties.class)
 public class TokenTask {
-    private final Logger log = LoggerFactory.getLogger(TokenTaskConfiguration.TOKENIZER_LOG_NAME);
+    private final Logger log = LoggerFactory.getLogger(TokenTask.class);
 
     private final BagService service;
     private final TokenService tokens;

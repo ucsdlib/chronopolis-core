@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableMap;
 import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.AceTokenModel;
 import org.chronopolis.tokenize.ManifestEntry;
-import org.chronopolis.tokenize.config.TokenTaskConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageImpl;
@@ -20,7 +19,7 @@ import java.util.function.Predicate;
  */
 public class HttpFilter implements Predicate<ManifestEntry> {
 
-    private final Logger log = LoggerFactory.getLogger(TokenTaskConfiguration.TOKENIZER_LOG_NAME);
+    private final Logger log = LoggerFactory.getLogger(HttpFilter.class);
 
     private Long bagId;
     private TokenService api;

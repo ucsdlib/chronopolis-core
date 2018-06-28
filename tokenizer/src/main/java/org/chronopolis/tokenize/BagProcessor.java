@@ -5,7 +5,6 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import org.chronopolis.common.storage.BagStagingProperties;
 import org.chronopolis.rest.models.Bag;
-import org.chronopolis.tokenize.config.TokenTaskConfiguration;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +30,7 @@ import static com.google.common.io.Files.asByteSource;
  * @author shake
  */
 public class BagProcessor implements Runnable {
-    private static final Logger log = LoggerFactory.getLogger(TokenTaskConfiguration.TOKENIZER_LOG_NAME);
+    private static final Logger log = LoggerFactory.getLogger(BagProcessor.class);
 
     private final Bag bag;
     private final Digester digester;
@@ -121,7 +120,6 @@ public class BagProcessor implements Runnable {
         ManifestEntry entry = new ManifestEntry(bag, tagmanifestName, digest);
         if (predicate.test(entry)) {
             // just in case this gets used down the line
-            entry.setCalculatedDigest(digest);
             supervisor.start(entry);
         }
     }
@@ -173,8 +171,8 @@ public class BagProcessor implements Runnable {
     private int validate(ManifestEntry entry) {
         int error = 1;
         Optional<String> digest = digester.digest(entry.getPath());
-        digest.ifPresent(entry::setCalculatedDigest);
-        if (entry.isValid()) {
+        Boolean isValid = digest.map(d -> entry.getDigest().equalsIgnoreCase(d)).orElse(false);
+        if (isValid) {
             log.info("[{}] Entry is valid", entry.tokenName());
             error = 0;
             supervisor.start(entry);

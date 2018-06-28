@@ -8,7 +8,6 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.WebContext;
-import org.chronopolis.ingest.api.serializer.ZonedDateTimeSerializer;
 import org.chronopolis.ingest.models.Paged;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.rest.entities.AceToken;
@@ -17,6 +16,7 @@ import org.chronopolis.rest.entities.Depositor;
 import org.chronopolis.rest.entities.QAceToken;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.models.AceTokenModel;
+import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,8 +67,6 @@ public class BagTokenControllerTest extends ControllerTest {
 
     @MockBean private PagedDAO dao;
     @MockBean private JPAQueryFactory factory;
-    // @MockBean private BagService bagService;
-    // @MockBean private SearchService<AceToken, Long, TokenRepository> tokenService;
 
     @Before
     public void setup() {

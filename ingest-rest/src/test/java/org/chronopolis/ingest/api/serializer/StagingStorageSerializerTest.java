@@ -5,6 +5,7 @@ import org.chronopolis.ingest.WebContext;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
+import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

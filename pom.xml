@@ -21,6 +21,7 @@
         <module>common</module>
         <module>rest-common</module>
         <module>tokenizer</module>
+        <module>tokenizer-mq</module>
     </modules>
 
     <profiles>
@@ -102,10 +103,10 @@
         </plugins>
     </build>
 
-
     <properties>
+        <project.license>BSD 3</project.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.license>umd</project.license>
+        <artemis.version>2.6.0</artemis.version>
     </properties>
 
     <repositories>

@@ -10,27 +10,16 @@ import java.util.Objects;
  *
  * @author shake
  */
-public class ManifestEntry implements Validatable, Comparable<ManifestEntry> {
+public class ManifestEntry implements Comparable<ManifestEntry> {
 
     private final Bag bag;
     private final String path;
-    private final String registeredDigest;
+    private final String digest;
 
-    private String calculatedDigest;
-
-    public ManifestEntry(Bag bag, String path, String registeredDigest) {
+    public ManifestEntry(Bag bag, String path, String digest) {
         this.bag = bag;
         this.path = path;
-        this.registeredDigest = registeredDigest;
-    }
-
-    public String getCalculatedDigest() {
-        return calculatedDigest;
-    }
-
-    public ManifestEntry setCalculatedDigest(String calculatedDigest) {
-        this.calculatedDigest = calculatedDigest;
-        return this;
+        this.digest = digest;
     }
 
     public Bag getBag() {
@@ -41,17 +30,12 @@ public class ManifestEntry implements Validatable, Comparable<ManifestEntry> {
         return path;
     }
 
-    public String getRegisteredDigest() {
-        return registeredDigest;
+    public String getDigest() {
+        return digest;
     }
 
     public String tokenName() {
         return "(" + bag.getDepositor() + "," + bag.getName() + ")::" + path;
-    }
-
-    @Override
-    public boolean isValid() {
-        return Objects.equals(registeredDigest, calculatedDigest);
     }
 
     @Override
@@ -61,12 +45,12 @@ public class ManifestEntry implements Validatable, Comparable<ManifestEntry> {
         ManifestEntry that = (ManifestEntry) o;
         return Objects.equals(bag, that.bag) &&
                 Objects.equals(path, that.path) &&
-                Objects.equals(registeredDigest, that.registeredDigest);
+                Objects.equals(digest, that.digest);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(bag, path, registeredDigest);
+        return Objects.hash(bag, path, digest);
     }
 
     @Override
@@ -74,7 +58,7 @@ public class ManifestEntry implements Validatable, Comparable<ManifestEntry> {
         return "ManifestEntry{" +
                 "bag=" + bag +
                 ", path='" + path + '\'' +
-                ", registeredDigest='" + registeredDigest + '\'' +
+                ", digest='" + digest + '\'' +
                 '}';
     }
 

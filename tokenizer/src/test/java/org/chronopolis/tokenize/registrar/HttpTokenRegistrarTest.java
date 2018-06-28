@@ -37,17 +37,16 @@ public class HttpTokenRegistrarTest {
     private final Logger log = LoggerFactory.getLogger(HttpTokenRegistrarTest.class);
 
     // include extraneous characters?
-    private final String path = "data/path/to/file.txt";
-    private final String host = "test-ims-host";
-    private final String name = "test-name";
-    private final String digest = "digest";
-    private final String service = "test-service";
-    private final String provider = "test-provider";
-    private final String depositor = "test-depositor";
-    private final String tokenClass = "test-token-class";
-    private final Long id = 1L;
-    private final Long round = 1L;
-    private final Integer status = 1;
+    private static final String path = "data/path/to/file.txt";
+    private static final String name = "test-name";
+    private static final String digest = "digest";
+    private static final String service = "test-service";
+    private static final String provider = "test-provider";
+    private static final String depositor = "test-depositor";
+    private static final String tokenClass = "test-token-class";
+    private static final Long id = 1L;
+    private static final Long round = 1L;
+    private static final Integer status = 1;
 
     private ManifestEntry entry;
     private AceTokenModel model;
@@ -69,7 +68,6 @@ public class HttpTokenRegistrarTest {
         bag.setName(name);
         bag.setDepositor(depositor);
         entry = new ManifestEntry(bag, path, digest);
-        entry.setCalculatedDigest(digest);
 
         response = new TokenResponse();
         response.setDigestProvider(provider);

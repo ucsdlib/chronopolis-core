@@ -33,7 +33,7 @@ public interface TokenRequestBatch {
      */
     default TokenRequest createRequest(ManifestEntry entry) {
         TokenRequest request = new TokenRequest();
-        request.setHashValue(entry.getCalculatedDigest());
+        request.setHashValue(entry.getDigest());
         request.setName(entry.tokenName());
         return request;
     }

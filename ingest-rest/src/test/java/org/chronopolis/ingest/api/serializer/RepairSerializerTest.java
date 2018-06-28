@@ -12,6 +12,7 @@ import org.chronopolis.rest.entities.fulfillment.Ace;
 import org.chronopolis.rest.models.repair.AuditStatus;
 import org.chronopolis.rest.models.repair.FulfillmentType;
 import org.chronopolis.rest.models.repair.RepairStatus;
+import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

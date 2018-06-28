@@ -41,7 +41,7 @@ import java.util.function.Predicate;
         IngestAPIProperties.class,
         BagStagingProperties.class})
 public class TokenApplication implements CommandLineRunner {
-    private final Logger log = LoggerFactory.getLogger(TokenTaskConfiguration.TOKENIZER_LOG_NAME);
+    private final Logger log = LoggerFactory.getLogger(TokenApplication.class);
 
     private final TokenService tokens;
     private final BagService bagService;
