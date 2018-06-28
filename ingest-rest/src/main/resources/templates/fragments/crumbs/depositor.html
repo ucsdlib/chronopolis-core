@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
 <head>
     <meta charset="UTF-8"/>
     <title></title>
@@ -9,7 +10,7 @@
 <nav th:fragment="index" aria-label="breadcrumb" role="navigation">
     <ol class="breadcrumb">
         <li class="breadcrumb-item active">Depositors</li>
-        <li class="ml-auto">
+        <li sec:authorize="hasRole('ROLE_ADMIN')" class="ml-auto">
             <a class="btn btn-primary text-white" th:href="@{/depositors/add}">Add Depositor</a>
         </li>
     </ol>
@@ -24,9 +25,8 @@
             th:text="${depositor.namespace}">Depositor
         </li>
 
-        <!-- copied from storage_region, still not sure if this is the best -->
-        <li class="ml-auto">
-            <a class="ml-auto" th:href="@{|/depositors/list/${depositor.namespace}/edit|}">
+        <li sec:authorize="${hasRole('ROLE_ADMIN')}" class="ml-auto">
+            <a th:href="@{|/depositors/list/${depositor.namespace}/edit|}">
                 <i class="fa fa-pencil"></i>
             </a>
         </li>

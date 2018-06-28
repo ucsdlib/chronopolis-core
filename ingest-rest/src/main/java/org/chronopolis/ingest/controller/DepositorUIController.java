@@ -14,6 +14,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.PageWrapper;
 import org.chronopolis.ingest.exception.BadRequestException;
+import org.chronopolis.ingest.exception.ForbiddenException;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.models.DepositorSummary;
 import org.chronopolis.ingest.models.filter.DepositorFilter;
@@ -304,7 +305,8 @@ public class DepositorUIController extends IngestController {
             return "depositors/add_contact";
         }
 
-        Optional<DepositorContact> depositorContact = DepositorContact.fromCreateRequest(depositorContactCreate);
+        Optional<DepositorContact> depositorContact =
+                DepositorContact.fromCreateRequest(depositorContactCreate);
         return depositorContact.map(contact1 -> {
             depositor.addContact(contact1);
             dao.save(contact1);
@@ -332,7 +334,8 @@ public class DepositorUIController extends IngestController {
     @PostMapping("/depositors/list/{namespace}/addNode")
     public String addNodeAction(@PathVariable("namespace") String namespace,
                                 DepositorEdit depositorEdit) {
-        Depositor depositor = dao.findOne(QDepositor.depositor, QDepositor.depositor.namespace.eq(namespace));
+        Depositor depositor = dao.findOne(QDepositor.depositor,
+                QDepositor.depositor.namespace.eq(namespace));
         List<String> nodes = depositorEdit.getReplicatingNodes();
         List<Node> requested = dao.findAll(QNode.node,
                 QNode.node.username.in(nodes));
@@ -353,8 +356,11 @@ public class DepositorUIController extends IngestController {
     public String removeNode(Model model,
                              Principal principal,
                              @PathVariable("namespace") String namespace,
-                             @ModelAttribute("name") String name) {
-        access.info("[POST /depositors/list/{}/removeNode] - {}", namespace, principal.getName());
+                             @ModelAttribute("name") String name) throws ForbiddenException {
+        access.info("[GET /depositors/list/{}/removeNode] - {}", namespace, principal.getName());
+        if (!hasRoleAdmin()) {
+            throw new ForbiddenException("User is not allowed to update a Depositor");
+        }
 
         Depositor depositor = getOrThrowNotFound(namespace);
 
@@ -374,8 +380,13 @@ public class DepositorUIController extends IngestController {
     public String removeContact(Model model,
                                 Principal principal,
                                 @PathVariable("namespace") String namespace,
-                                @ModelAttribute("email") String email) {
-        access.info("[POST /depositors/list/{}/removeContact] - {}", namespace, principal.getName());
+                                @ModelAttribute("email") String email) throws ForbiddenException {
+        access.info("[POST /depositors/list/{}/removeContact] - {}",
+                namespace, principal.getName());
+        if (!hasRoleAdmin()) {
+            throw new ForbiddenException("User is not allowed to update a Depositor");
+        }
+
 
         Depositor depositor = getOrThrowNotFound(namespace);
         DepositorContact contact = dao.findOne(QDepositorContact.depositorContact,

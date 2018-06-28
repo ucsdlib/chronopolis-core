@@ -48,7 +48,6 @@ import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
 @RequestMapping("/api/depositors")
 public class DepositorController {
 
-    private final Logger log = LoggerFactory.getLogger(DepositorController.class);
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private final PagedDAO dao;

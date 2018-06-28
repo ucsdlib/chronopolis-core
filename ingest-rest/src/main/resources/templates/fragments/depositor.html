@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
 
 <!--/*@thymesVar id="depositor" type="org.chronopolis.rest.entities.Depositor"*/-->
 <!--/*@thymesVar id="contacts" type="java.util.List<org.chronopolis.rest.entities.DepositorContact>"*/-->
@@ -14,7 +15,7 @@
         <th>Name</th>
         <th>Email</th>
         <th>Phone Number</th>
-        <th></th>
+        <th sec:authorize="hasRole('ROLE_ADMIN')"></th>
     </tr>
     </thead>
     <tbody>
@@ -22,35 +23,15 @@
         <td th:text="${contact.contactName}"></td>
         <td th:text="${contact.contactEmail}"></td>
         <td th:text="${contact.contactPhone}"></td>
-        <td class="bg-danger font-weight-normal text-white text-center w-25" 
-            style="cursor: pointer;" data-toggle="modal"
-            th:data-target="'#' + ${contact.contactName + '-remove'}">Remove Contact
+        <td sec:authorize="hasRole('ROLE_ADMIN')"
+            class="bg-danger font-weight-normal text-white text-center w-25"
+            style="cursor: pointer;"
+            data-target="#rm-modal" data-toggle="modal"
+            th:data-message="|Warning: Proceeding will remove ${contact.contactName} as a contact|"
+            th:data-href="@{|${depositor.namespace}/removeContact|(email=${contact.contactEmail})}">
+            Remove Contact
         </td>
-        <div th:replace="fragments/depositor :: rm-contact(${depositor}, ${contact})"></div>
     </tr>
     </tbody>
 </table>
-
-<!--/*@thymesVar id="contact" type="org.chronopolis.rest.entities.DepositorContact"*/-->
-<div th:fragment="rm-contact (depositor, contact)"
-     th:id="${contact.contactName + '-remove'}"
-     class="modal fade" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-body">
-                Warning: Proceeding will remove this Contact
-            </div>
-            <div class="modal-footer">
-                <button th:type="button" class="btn btn-secondary"
-                        data-dismiss="modal">
-                    Dismiss
-                </button>
-                <a th:href="@{|${depositor.namespace}/removeContact|(email=${contact.contactEmail})}"
-                   class="btn btn-danger" role="button">
-                    Remove Contact
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
 </html>
