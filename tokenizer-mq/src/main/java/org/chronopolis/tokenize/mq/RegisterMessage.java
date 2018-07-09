@@ -13,17 +13,14 @@ import org.chronopolis.rest.models.Bag;
 public class RegisterMessage {
 
     private Bag bag;
-    // private final ManifestEntry entry;
     private TokenResponse token;
 
     public RegisterMessage() {
     }
 
     public RegisterMessage(Bag bag,
-                           // @JsonProperty("entry") ManifestEntry entry,
                            TokenResponse token) {
         this.bag = bag;
-        // this.entry = entry;
         this.token = token;
     }
 
