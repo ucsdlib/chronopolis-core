@@ -7,6 +7,7 @@ import org.chronopolis.common.storage.Posix;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.rest.api.IngestAPIProperties;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
@@ -43,6 +44,8 @@ import static org.mockito.Mockito.times;
 })
 public class LocalTokenizationTest extends IngestTest {
 
+    private static final Long ID = 1L;
+    private static final String USERNAME = "admin";
     private final Collection<Predicate<ManifestEntry>> predicates = ImmutableList.of();
 
     @Mock private TokenWorkSupervisor tws;
@@ -56,9 +59,10 @@ public class LocalTokenizationTest extends IngestTest {
         MockitoAnnotations.initMocks(this);
         PagedDAO dao = new PagedDAO(entityManager);
         BagStagingProperties properties =
-                new BagStagingProperties().setPosix(new Posix().setId(1L));
+                new BagStagingProperties().setPosix(new Posix().setId(ID));
+        IngestAPIProperties apiProperties = new IngestAPIProperties().setUsername(USERNAME);
 
-        localTokenization = new LocalTokenization(dao, tws, properties, executor, predicates);
+        localTokenization = new LocalTokenization(dao, tws, apiProperties, properties, executor, predicates);
     }
 
     @Test

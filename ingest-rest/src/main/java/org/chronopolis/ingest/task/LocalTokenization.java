@@ -7,6 +7,7 @@ import org.chronopolis.common.storage.BagStagingProperties;
 import org.chronopolis.common.storage.Posix;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.ingest.support.Loggers;
+import org.chronopolis.rest.api.IngestAPIProperties;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.QAceToken;
 import org.chronopolis.rest.entities.QBag;
@@ -41,12 +42,14 @@ public class LocalTokenization {
 
     private final PagedDAO dao;
     private final TokenWorkSupervisor tws;
+    private final IngestAPIProperties apiProperties;
     private final BagStagingProperties properties;
     private final TrackingThreadPoolExecutor<Bag> executor;
     private final Collection<Predicate<ManifestEntry>> predicates;
 
     public LocalTokenization(PagedDAO dao,
                              TokenWorkSupervisor tws,
+                             IngestAPIProperties apiProperties,
                              BagStagingProperties properties,
                              TrackingThreadPoolExecutor<Bag> executor,
                              Collection<Predicate<ManifestEntry>> predicates) {
@@ -54,6 +57,7 @@ public class LocalTokenization {
         this.dao = dao;
         this.tws = tws;
         this.properties = properties;
+        this.apiProperties = apiProperties;
         this.executor = executor;
         this.predicates = predicates;
     }
@@ -62,11 +66,17 @@ public class LocalTokenization {
     public void searchForBags() {
         Posix staging = properties.getPosix();
 
+        String creator = apiProperties.getUsername();
+        if (creator == null) {
+            creator = "admin";
+        }
+
         BooleanExpression ingestStorage = QBag.bag.bagStorage.any().region.id.eq(staging.getId());
 
         // Would like to do a paged list but for now this will be ok
-        List<Bag> bags = dao.findAll(QBag.bag, ingestStorage.and(
-                QBag.bag.status.eq(BagStatus.DEPOSITED)));
+        List<Bag> bags = dao.findAll(QBag.bag, ingestStorage
+                .and(QBag.bag.status.eq(BagStatus.DEPOSITED))
+                .and(QBag.bag.creator.eq(creator)));
         log.debug("Found {} bags for tokenization", bags.size());
         JPAQueryFactory queryFactory = dao.getJPAQueryFactory();
         for (Bag bag : bags) {
