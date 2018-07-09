@@ -17,6 +17,7 @@ import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.validation.Validator;
 
 import java.util.Collection;
@@ -32,8 +33,8 @@ import java.util.function.Predicate;
  * @author shake
  */
 @Configuration
+@Profile("!disable-tokenizer")
 @EnableConfigurationProperties({AceConfiguration.class, BagStagingProperties.class})
-// @Profile("local-tokenizer")
 public class TokenizeConfig {
 
     @Bean

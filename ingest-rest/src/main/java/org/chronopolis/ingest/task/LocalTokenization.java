@@ -18,6 +18,8 @@ import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -34,7 +36,8 @@ import java.util.function.Predicate;
  */
 @Component
 @EnableScheduling
-// @Profile("local-tokenizer")
+@Profile("!disable-tokenizer")
+@EnableConfigurationProperties(IngestAPIProperties.class)
 public class LocalTokenization {
 
     private final Logger log = LoggerFactory.getLogger(LocalTokenization.class);
@@ -61,7 +64,7 @@ public class LocalTokenization {
         this.predicates = predicates;
     }
 
-    @Scheduled(cron = "${ingest.cron.tokenize:0 */10 * * * *}")
+    @Scheduled(cron = "${ingest.cron.tokenize:0 0 * * * *}")
     public void searchForBags() {
         Posix staging = properties.getPosix();
 
