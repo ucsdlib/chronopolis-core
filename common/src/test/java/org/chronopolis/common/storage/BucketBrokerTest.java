@@ -32,9 +32,15 @@ public class BucketBrokerTest {
         URI bucketPath = ClassLoader.getSystemClassLoader().getResource("buckets").toURI();
         Path root = Paths.get(bucketPath);
 
-        Posix posix0 = new Posix().setId(0L).setPath(root.resolve(BUCKET_0).toString());
-        Posix posix1 = new Posix().setId(0L).setPath(root.resolve(BUCKET_1).toString());
-        Posix posix2 = new Posix().setId(0L).setPath(root.resolve(BUCKET_2).toString());
+        Posix posix0 = new Posix().setId(0L)
+                .setWarn(0.01)
+                .setPath(root.resolve(BUCKET_0).toString());
+        Posix posix1 = new Posix().setId(0L)
+                .setWarn(0.01)
+                .setPath(root.resolve(BUCKET_1).toString());
+        Posix posix2 = new Posix().setId(0L)
+                .setWarn(0.01)
+                .setPath(root.resolve(BUCKET_2).toString());
 
         PreservationProperties properties = new PreservationProperties()
                 .setPosix(ImmutableList.of(posix0, posix1, posix2));

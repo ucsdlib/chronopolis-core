@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout :: head">
+    <title>Chronopolis Ingestion Service</title>
+</head>
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<h3>Tokenizer Information</h3>
+<!--/*@thymesVar id="supervisor" type="org.chronopolis.tokenize.supervisor.DefaultSupervisor"*/-->
+<h4 th:text="|Available Permits: ${supervisor.availablePermits()}|">Available Permits</h4>
+
+<h4>Processing Entries</h4>
+<ul>
+    <li th:each="workUnit: ${supervisor.getProcessing()}"
+        th:text="|${workUnit.key.getPath()}, ${workUnit.value.getState()}|"></li>
+</ul>
+
+<div th:replace="layout :: foot"></div>
+</body>
+</html>

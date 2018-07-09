@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableSet;
 import org.chronopolis.ingest.WebContext;
 import org.chronopolis.rest.entities.Depositor;
 import org.chronopolis.rest.entities.DepositorContact;
+import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

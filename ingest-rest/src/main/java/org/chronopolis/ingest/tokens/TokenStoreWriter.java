@@ -21,7 +21,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -47,8 +46,8 @@ public class TokenStoreWriter implements Runnable {
 
     private final Bag bag;
     private final StorageRegion region;
-    private final TokenStagingProperties properties;
     private final BagService bagService;
+    private final TokenStagingProperties properties;
     private final SearchService<AceToken, Long, TokenRepository> tokenService;
 
     public TokenStoreWriter(Bag bag,
@@ -93,13 +92,14 @@ public class TokenStoreWriter implements Runnable {
 
             boolean next = true;
             while (next) {
-                log.debug("Iterating page # {} size {} offset {}",
+                log.debug("[{}] Iterating page # {} size {} offset {}", bag.getName(),
                         pageable.getPageNumber(), pageable.getPageSize(), pageable.getOffset());
-                Page<AceToken> tokens = tokenService.findAll(new AceTokenSearchCriteria().withBagId(bag.getId()),
+                Page<AceToken> tokens = tokenService.findAll(
+                        new AceTokenSearchCriteria().withBagId(bag.getId()),
                         pageable);
 
                 for (AceToken token : tokens) {
-                    log.trace("Writing {}", token.getFilename());
+                    log.trace("[{}:{}] Writing token", bag.getId(), token.getFilename());
                     // Make sure we have a leading /
                     if (!token.getFilename().startsWith("/")) {
                         token.setFilename("/" + token.getFilename());
@@ -135,7 +135,8 @@ public class TokenStoreWriter implements Runnable {
             bag.setTokenStorage(storage);
             bag.setStatus(BagStatus.TOKENIZED);
             bagService.save(bag);
-        } catch (IOException ex) {
+        } catch (Exception ex) { // not to happy about the catch all but there are multiple
+                                 // exceptions which can happen
             log.error("Error writing token store {}", store, ex);
         }
 

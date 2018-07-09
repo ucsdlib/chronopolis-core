@@ -15,30 +15,35 @@
         <nav th:replace="fragments/crumbs/region :: single"></nav>
 
         <div class="card-body p-2">
-            <table class="c-table">
+            <table class="table">
                 <div th:replace="fragments/storage :: list-item(head='Owner',content=${region.node.username})"></div>
                 <div th:replace="fragments/storage :: list-item(head='Storage Type',content=${region.storageType})"></div>
                 <div th:replace="fragments/storage :: list-item(head='Data Type',content=${region.dataType})"></div>
                 <tr>
-                    <td class="c-table-secondary col-2" style="border-right: 1px solid rgba(0,0,0,0.125); z-index: 1;">
+                    <td class="font-weight-normal text-white text-center bg-secondary w-25"
+                        style="border-right: 1px solid rgba(0,0,0,0.125); z-index: 1;">
                         Capacity
                     </td>
-                    <td class="c-table-light col-10">
+                    <td class="font-weight-normal bg-light">
                         <div class="progress">
-                            <span th:text="|${used} / ${capacity}|" style="position: absolute; padding-left: 0.25em;"></span>
-                            <div class="progress-bar" role="progressbar" aria-valuemax="100" aria-valuemin="0"
-                                 th:if="${percent} < 80" th:style="|width: ${percent}%;|" th:aria-valuenow="${percent}"></div>
-                            <div class="progress-bar bg-warning" role="progressbar" aria-valuemax="100" aria-valuemin="0"
-                                 th:if="${percent} >= 80 and ${percent} < 90" th:style="|width: ${percent}%;|" th:aria-valuenow="${percent}"></div>
-                            <div class="progress-bar bg-danger" role="progressbar" aria-valuemax="100" aria-valuemin="0"
-                                 th:if="${percent} >= 90" th:style="|width: ${percent}%;|" th:aria-valuenow="${percent}"></div>
+                            <span th:text="|${used} / ${capacity}|"
+                                  style="position: absolute; padding-left: 0.25em;"></span>
+                            <div class="progress-bar" role="progressbar" aria-valuemax="100"
+                                 aria-valuemin="0"
+                                 th:if="${percent} < 80" th:style="|width: ${percent}%;|"
+                                 th:aria-valuenow="${percent}"></div>
+                            <div class="progress-bar bg-warning" role="progressbar"
+                                 aria-valuemax="100" aria-valuemin="0"
+                                 th:if="${percent} >= 80 and ${percent} < 90"
+                                 th:style="|width: ${percent}%;|"
+                                 th:aria-valuenow="${percent}"></div>
+                            <div class="progress-bar bg-danger" role="progressbar"
+                                 aria-valuemax="100" aria-valuemin="0"
+                                 th:if="${percent} >= 90" th:style="|width: ${percent}%;|"
+                                 th:aria-valuenow="${percent}"></div>
                         </div>
                     </td>
                 </tr>
-                <!--
-                <div th:replace="fragments/storage :: list-item(head='Total Capacity',content=${capacity})"></div>
-                <div th:replace="fragments/storage :: list-item(head='Used Capacity',content=${used})"></div>
-                -->
                 <div th:replace="fragments/storage :: list-item(head='Created At',content=${region.createdAt.toLocalDateTime()})"></div>
                 <div th:replace="fragments/storage :: list-item(head='Updated At',content=${region.updatedAt.toLocalDateTime()})"></div>
                 <div th:replace="fragments/storage :: list-item(head='Information',content=${region.note})"></div>
@@ -57,7 +62,8 @@
             <!-- this will need constraint satisfaction so that we do not errantly update the wrong storage region -->
             <form method="post" th:action="@{|/regions/${region.id}/config|}">
                 <div class="form-group row">
-                    <label for="replication-server" class="col-3 col-form-label">Replication Server</label>
+                    <label for="replication-server" class="col-3 col-form-label">Replication
+                        Server</label>
                     <div class="col">
                         <!-- find a better way to handle this null check -->
                         <input class="form-control" id="replication-server" name="server"
@@ -65,14 +71,16 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="replication-path" class="col-3 col-form-label">Replication Path</label>
+                    <label for="replication-path" class="col-3 col-form-label">Replication
+                        Path</label>
                     <div class="col">
                         <input class="form-control" id="replication-path" name="path"
                                th:value="${region.replicationConfig} != null ? ${region.replicationConfig.path} : ''"/>
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="replication-username" class="col-3 col-form-label">Replication Username</label>
+                    <label for="replication-username" class="col-3 col-form-label">Replication
+                        Username</label>
                     <div class="col">
                         <input class="form-control" id="replication-username" name="username"
                                th:value="${region.replicationConfig} != null ? ${region.replicationConfig.username}"/>

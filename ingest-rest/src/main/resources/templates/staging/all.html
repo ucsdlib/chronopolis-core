@@ -8,18 +8,7 @@
 <div class="d-flex flex-column align-items-center m-3">
     <!--/*@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"*/-->
     <div class="card w-75 filterable">
-        <nav aria-label="breadcrumb" role="navigation">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a th:href="@{/bags}">Bags</a></li>
-                <li class="breadcrumb-item"><a th:href="@{/bags(depositor=${bag.depositor.namespace})}"
-                                               th:text="${bag.depositor.namespace}">Depositor</a>
-                </li>
-                <li class="breadcrumb-item"><a th:href="@{|/bags/${bag.id}|}"
-                                               th:text="${bag.name}">Bag</a>
-                </li>
-                <li class="breadcrumb-item active" aria-current="page">Storage</li>
-            </ol>
-        </nav>
+        <nav th:replace="fragments/crumbs/bag :: storage"></nav>
 
         <div class="hr-sect mx-auto w-100">Bag Staging</div>
         <div th:each="storage: ${bag.bagStorage}">

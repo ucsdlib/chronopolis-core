@@ -1,16 +1,14 @@
 package org.chronopolis.ingest.api;
 
-import com.google.common.collect.ImmutableList;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.models.filter.AceTokenFilter;
-import org.chronopolis.ingest.repository.TokenRepository;
-import org.chronopolis.ingest.repository.criteria.AceTokenSearchCriteria;
-import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
-import org.chronopolis.ingest.repository.dao.BagService;
-import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.QAceToken;
+import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.models.AceTokenModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,14 +40,11 @@ public class BagTokenController extends IngestController {
 
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
-    private final BagService bags;
-    private final SearchService<AceToken, Long, TokenRepository> tokens;
+    private final PagedDAO dao;
 
     @Autowired
-    public BagTokenController(BagService bagService,
-                              SearchService<AceToken, Long, TokenRepository> tokenService) {
-        this.bags = bagService;
-        this.tokens = tokenService;
+    public BagTokenController(PagedDAO dao) {
+        this.dao = dao;
     }
 
     /**
@@ -65,12 +60,7 @@ public class BagTokenController extends IngestController {
                                           @PathVariable("id") Long id,
                                           @ModelAttribute AceTokenFilter filter) {
         access.info("[GET /api/bags/{}/tokens] - {}", id, principal.getName());
-        AceTokenSearchCriteria searchCriteria = new AceTokenSearchCriteria()
-                .withBagId(id)
-                .withFilenames(filter.getFilename())
-                .withAlgorithm(filter.getAlgorithm());
-
-        return tokens.findAll(searchCriteria, filter.createPageRequest());
+        return dao.findPage(QAceToken.aceToken, filter);
     }
 
     /**
@@ -97,21 +87,26 @@ public class BagTokenController extends IngestController {
         access.info("Post parameters - {};{}", model.getBagId(), model.getFilename());
 
         ResponseEntity<AceToken> response;
-        AceTokenSearchCriteria searchCriteria = new AceTokenSearchCriteria()
-                .withBagId(id)
-                .withFilenames(ImmutableList.of(model.getFilename()));
+        JPAQueryFactory queryFactory = dao.getJPAQueryFactory();
+        Bag bag = queryFactory.from(QBag.bag)
+                .where(QBag.bag.id.eq(id))
+                .select(QBag.bag)
+                .fetchOne();
 
-        Bag bag = bags.find(new BagSearchCriteria().withId(id));
-        AceToken token = tokens.find(searchCriteria);
+        Long tokenId = queryFactory.select(QAceToken.aceToken.id)
+                .from(QAceToken.aceToken)
+                .where(QAceToken.aceToken.bag.id.eq(id)
+                        .and(QAceToken.aceToken.filename.eq(model.getFilename())))
+                .fetchCount();
 
         if (bag == null) {
             response = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } else if (!authorized(principal, bag)) {
             response = ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } else if (token != null) {
+        } else if (tokenId > 0) {
             response = ResponseEntity.status(HttpStatus.CONFLICT).build();
         } else {
-            token = new AceToken(bag,
+            AceToken token = new AceToken(bag,
                     Date.from(model.getCreateDate().toInstant()),
                     model.getFilename(),
                     model.getProof(),
@@ -119,7 +114,7 @@ public class BagTokenController extends IngestController {
                     model.getImsService(),
                     model.getAlgorithm(),
                     model.getRound());
-            tokens.save(token);
+            dao.save(token);
             response = ResponseEntity.status(HttpStatus.CREATED)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(token);

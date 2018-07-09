@@ -43,6 +43,7 @@ public class PosixBucketTest {
 
         dir = Paths.get(buckets).resolve(TEST_BUCKET_0);
         Posix posix = new Posix()
+                .setWarn(0.01)
                 .setPath(dir.toString());
         bucket = new PosixBucket(posix);
     }

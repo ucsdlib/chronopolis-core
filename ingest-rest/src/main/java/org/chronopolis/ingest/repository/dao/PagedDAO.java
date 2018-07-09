@@ -175,14 +175,21 @@ public class PagedDAO {
      */
     @Transactional
     public <T extends PersistableEntity> void delete(T t) {
-        if (t.getId() == null) {
-            // warn? something?
-        } else {
+        if (t.getId() != null) {
             // em.getTransaction().begin();
             em.remove(t);
             em.flush();
             // em.getTransaction().commit();
         }
+        // warn if null?
     }
 
+    /**
+     * Return a {@link JPAQueryFactory} for use in a more customized query
+     *
+     * @return a new JPAQueryFactory
+     */
+    public JPAQueryFactory getJPAQueryFactory() {
+        return new JPAQueryFactory(em);
+    }
 }

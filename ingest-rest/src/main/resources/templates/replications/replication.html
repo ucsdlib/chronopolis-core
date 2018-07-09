@@ -10,7 +10,7 @@
         <!--/*@thymesVar id="replication" type="org.chronopolis.rest.entities.Replication"*/-->
         <nav th:replace="fragments/crumbs/repl :: single"></nav>
         <div class="card-body p-2">
-            <table class="c-table">
+            <table class="table table-hover">
                 <div th:replace="fragments/storage :: list-item(head='Bag DL Link', content=${replication.bagLink})"></div>
                 <div th:replace="fragments/storage :: list-item(head='Tagmanifest Fixity', content=${replication.receivedTagFixity})"></div>
                 <div th:replace="fragments/storage :: list-item(head='Token DL Link', content=${replication.tokenLink})"></div>

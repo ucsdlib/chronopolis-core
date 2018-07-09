@@ -1,24 +1,25 @@
 package org.chronopolis.tokenize.filter;
 
 import com.google.common.collect.ImmutableMap;
-import org.chronopolis.common.util.Filter;
 import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.AceTokenModel;
-import org.chronopolis.tokenize.config.TokenTaskConfiguration;
+import org.chronopolis.tokenize.ManifestEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageImpl;
 import retrofit2.Call;
 import retrofit2.Response;
 
+import java.util.function.Predicate;
+
 /**
  * Basic TokenFilter to see if a token exists based on its path
  *
  * @author shake
  */
-public class HttpFilter implements Filter<String> {
+public class HttpFilter implements Predicate<ManifestEntry> {
 
-    private final Logger log = LoggerFactory.getLogger(TokenTaskConfiguration.TOKENIZER_LOG_NAME);
+    private final Logger log = LoggerFactory.getLogger(HttpFilter.class);
 
     private Long bagId;
     private TokenService api;
@@ -28,39 +29,36 @@ public class HttpFilter implements Filter<String> {
         this.api = api;
     }
 
-    @Override
-    public boolean add(String path) {
-        return contains(path);
-    }
-
     /**
-     * Check against a Chronopolis Token API to see if a Bag contains a given token for a path
+     * Check against a Chronopolis Token API to see if a Bag contains a given Token for a
+     * ManifestEntry. This will determine if a ManifestEntry should be processed or not.
+     * <p>
+     * Since the test is to see if the ManifestEntry should be processed, the return values are as
+     * follows:
+     * true -> ResponseCode is 200 (Ok) and ResponseBody size is 0
+     * false -> ResponseCode is not 200 or an Exception is thrown communicating with the API
      *
-     * Returns true if the token exists, or if there are any issues communicating with the server
-     * and creation needs to be skipped
-     * Returns false if the token does not exist
-     *
-     * Note: We might want to update this interface to reflect the multiple causes of filtering,
-     *       either by changing the return value to something more ?monadic?. Like an Either
-     *       interface... but something to convey information about network errors/400/409/etc
-     *
-     * @param path the path to query on
-     * @return existence of the token
+     * @param manifestEntry the ManifestEntry containing the path to check
+     * @return the result of the test
      */
     @Override
-    public boolean contains(String path) {
-        boolean contains;
+    public boolean test(ManifestEntry manifestEntry) {
+        boolean processEntry;
+        String path = manifestEntry.getPath();
         try {
-            Call<PageImpl<AceTokenModel>> tokens = api.getBagTokens(bagId, ImmutableMap.of("filename", path.trim()));
+            Call<PageImpl<AceTokenModel>> tokens = api.getBagTokens(
+                    bagId,
+                    ImmutableMap.of("filename", path.trim()));
             Response<PageImpl<AceTokenModel>> response = tokens.execute();
-            contains = response.isSuccessful() && response.body().getTotalElements() > 0;
-            log.trace("{} token exists? {}", path, contains);
+            processEntry = response.code() == 200 && response.body().getTotalElements() == 0;
+            log.trace("{} token exists? {}", path, !processEntry);
         } catch (Exception e) {
             String identifier = String.valueOf(bagId) + "/" + path;
-            log.error("[{}] error communicating with ingest server, returning contains=true to avoid tokenization", identifier, e);
-            contains = true;
+            log.error("[{}] error communicating with ingest server, avoiding tokenization",
+                    identifier, e);
+            processEntry = false;
         }
 
-        return contains;
+        return processEntry;
     }
 }

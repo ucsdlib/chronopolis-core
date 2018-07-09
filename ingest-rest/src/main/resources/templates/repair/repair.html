@@ -14,7 +14,7 @@
             <h3>Repair Overview</h3>
         </div>
         <div class="card-body p-2">
-            <table class="c-table">
+            <table class="table table-hover">
                 <div th:replace="fragments/storage :: list-item(head='Requested By',content=${repair.requester})"></div>
                 <div th:replace="fragments/storage :: list-item(head='Node',content=${repair.to.username})"></div>
                 <div th:replace="fragments/storage :: list-item(head='Repair Status',content=${repair.status})"></div>
@@ -30,7 +30,7 @@
             <h4>Fulfilling Information</h4>
         </div>
         <div class="card-body p-2" th:if="${repair.from} != null">
-            <table class="c-table">
+            <table class="table table-hover">
                 <!--@thymesVar id="node_to_node" type="org.chronopolis.rest.entities.fulfillment.Rsync"-->
                 <!--@thymesVar id="ace" type="org.chronopolis.rest.entities.fulfillment.Ace"-->
                 <div th:replace="fragments/storage :: list-item(head='Fulfilling Node', content=${repair.from.username})"></div>

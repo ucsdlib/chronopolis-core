@@ -11,6 +11,7 @@ import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
+import retrofit2.http.HEAD;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
 
@@ -48,6 +49,15 @@ public interface DepositorAPI {
      */
     @GET(DEPOSITOR_ROOT + "/{namespace}")
     Call<DepositorModel> getDepositor(@Path("namespace") String namespace);
+
+    /**
+     * Return the headers for the call which identifies a depositor by their namespace
+     *
+     * @param namespace the namespace of the depositor
+     * @return the ResponseHeaders with an empty Response Body
+     */
+    @HEAD(DEPOSITOR_ROOT + "/{namespace}")
+    Call<Void> getDepositorHeaders(@Path("namespace") String namespace);
 
     /**
      * Get all bags for a depositor
