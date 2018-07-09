@@ -4,7 +4,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import edu.umiacs.ace.ims.api.IMSUtil;
 import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
-import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.QAceToken;
@@ -14,6 +13,7 @@ import org.chronopolis.tokenize.registrar.TokenRegistrar;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.thymeleaf.templateresolver.ITemplateResolver;
 
 import java.sql.Date;
 import java.time.Instant;
@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class IngestTokenRegistrar implements TokenRegistrar, Runnable {
 
-    private final Logger log = LoggerFactory.getLogger(Loggers.LOCAL_TOKENIZATION_LOG);
+    private final Logger log = LoggerFactory.getLogger(ITemplateResolver.class);
 
     private static final String IMS_HOST = "ims.umiacs.umd.edu";
 
