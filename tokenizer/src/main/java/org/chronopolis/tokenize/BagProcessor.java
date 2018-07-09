@@ -53,7 +53,7 @@ public class BagProcessor implements Runnable {
                 // eventually this will be cleaned up a bit when we have "storage aware" classes
                 // but for now we just have posix areas sooooo yea
                 Digester.of(properties.getPosix().getPath(),
-                            bag.getBagStorage().getPath()),
+                        bag.getBagStorage().getPath()),
                 supervisor);
     }
 
@@ -79,7 +79,7 @@ public class BagProcessor implements Runnable {
      */
     private <E> Predicate<E> buildPredicate(Collection<Predicate<E>> predicates) {
         return predicates.stream()
-            .reduce(Predicate::and).orElse(entry -> true);
+                .reduce(Predicate::and).orElse(entry -> true);
     }
 
     /**
@@ -171,7 +171,9 @@ public class BagProcessor implements Runnable {
     private int validate(ManifestEntry entry) {
         int error = 1;
         Optional<String> digest = digester.digest(entry.getPath());
-        Boolean isValid = digest.map(d -> entry.getDigest().equalsIgnoreCase(d)).orElse(false);
+        Boolean isValid = digest
+                .map(calculated -> entry.getDigest().equalsIgnoreCase(calculated))
+                .orElse(false);
         if (isValid) {
             log.info("[{}] Entry is valid", entry.tokenName());
             error = 0;

@@ -68,11 +68,11 @@ public class DefaultSupervisor implements TokenWorkSupervisor {
         boolean interrupted = false;
         try {
             available.acquire();
-            WorkUnit put = processing.put(entry, new WorkUnit());
+            WorkUnit unit = processing.put(entry, new WorkUnit());
 
             // basically the above returns null iff no mapping exists
             // so to avoid adding something twice, make sure that is true
-            if (put == null) {
+            if (unit == null) {
                 queued.put(entry);
                 add = true;
             } else {
@@ -113,8 +113,8 @@ public class DefaultSupervisor implements TokenWorkSupervisor {
     public boolean retryTokenize(ManifestEntry entry) {
         boolean offer = false;
         log.debug("[{}] Attempting to requeue for tokenization", entry.getPath());
-        WorkUnit enc = processing.get(entry);
-        if (enc != null && enc.getState() == WorkUnit.State.REQUESTING_TOKEN) {
+        WorkUnit unit = processing.get(entry);
+        if (unit != null && unit.getState() == WorkUnit.State.REQUESTING_TOKEN) {
             // at this point we should be guaranteed to have room available, but there's still
             // a chance of failure so capture the return
             offer = queued.offer(entry);
@@ -150,9 +150,9 @@ public class DefaultSupervisor implements TokenWorkSupervisor {
     public boolean retryRegister(ManifestEntry entry) {
         log.debug("[{}] Attempting to requeue for registration", entry.getPath());
         boolean offer = false;
-        WorkUnit enc = processing.get(entry);
-        if (enc != null && enc.getResponse() != null
-                && enc.getState() == WorkUnit.State.REGISTERING_TOKEN) {
+        WorkUnit unit = processing.get(entry);
+        if (unit != null && unit.getResponse() != null
+                && unit.getState() == WorkUnit.State.REGISTERING_TOKEN) {
             offer = retrieved.offer(entry);
 
             if (!offer) {
@@ -187,12 +187,12 @@ public class DefaultSupervisor implements TokenWorkSupervisor {
         boolean success = false;
         boolean interrupted = false;
 
-        WorkUnit enc = processing.get(entry);
+        WorkUnit unit = processing.get(entry);
 
-        if (enc != null && enc.getResponse() == null
-                && enc.getState() == WorkUnit.State.REQUESTING_TOKEN) {
-            enc.setResponse(response);
-            enc.setState(WorkUnit.State.QUEUED_FOR_REGISTRATION);
+        if (unit != null && unit.getResponse() == null
+                && unit.getState() == WorkUnit.State.REQUESTING_TOKEN) {
+            unit.setResponse(response);
+            unit.setState(WorkUnit.State.QUEUED_FOR_REGISTRATION);
             try {
                 retrieved.put(entry);
                 success = true;
@@ -222,11 +222,11 @@ public class DefaultSupervisor implements TokenWorkSupervisor {
      */
     @Override
     public void complete(ManifestEntry entry) {
-        WorkUnit enc = processing.get(entry);
-        if (enc != null) {
+        WorkUnit unit = processing.get(entry);
+        if (unit != null) {
             log.trace("[{}] Releasing permit", entry.getPath());
-            enc.setResponse(null);
-            processing.remove(entry, enc);
+            unit.setResponse(null);
+            processing.remove(entry, unit);
             available.release();
         }
     }
@@ -289,9 +289,9 @@ public class DefaultSupervisor implements TokenWorkSupervisor {
     }
 
     private void rmAll(ManifestEntry entry) {
-        WorkUnit enc = processing.remove(entry);
-        if (enc != null) {
-            enc.setResponse(null);
+        WorkUnit unit = processing.remove(entry);
+        if (unit != null) {
+            unit.setResponse(null);
             available.release();
         }
     }
