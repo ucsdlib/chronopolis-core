@@ -204,7 +204,7 @@ public class DepositorController {
     public ResponseEntity<DepositorContact> addContact(Principal principal,
                                                        @PathVariable("namespace") String namespace,
                                                        @Valid @RequestBody
-                                                               DepositorContactCreate create) {
+                                                       DepositorContactCreate create) {
         access.info("[POST /api/depositors/{}/contacts] - {}", namespace, principal.getName());
         ResponseEntity<DepositorContact> response = ResponseEntity
                 .status(HttpStatus.FORBIDDEN)

@@ -3,6 +3,7 @@ package org.chronopolis.ingest.api;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import com.google.common.collect.ImmutableList;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.WebContext;
@@ -53,7 +54,7 @@ import static org.mockito.Mockito.when;
 public class ControllerTest extends IngestTest {
 
     protected MockMvc mvc;
-    private ObjectMapper mapper;
+    protected ObjectMapper mapper;
 
     protected static final String REQUESTER = "requester";
     protected static final String AUTHORIZED = "authorized";
@@ -78,6 +79,7 @@ public class ControllerTest extends IngestTest {
     public void setupMvc(Object controller) {
         // serialization for entity -> model
         Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
+        builder.modulesToInstall(new KotlinModule());
         builder.serializationInclusion(JsonInclude.Include.NON_NULL);
         builder.serializerByType(AceToken.class, new AceTokenSerializer());
         builder.serializerByType(Bag.class, new BagSerializer());

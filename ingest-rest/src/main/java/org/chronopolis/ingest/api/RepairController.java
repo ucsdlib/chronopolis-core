@@ -73,7 +73,9 @@ public class RepairController {
     @RequestMapping(method = RequestMethod.GET)
     public Page<Repair> getRequests(@RequestParam Map<String, String> params) {
         access.info("[GET /api/repairs]");
-        RepairStatus status = params.containsKey(Params.STATUS) ? RepairStatus.valueOf(params.get(Params.STATUS)) : null;
+        RepairStatus status = params.containsKey(Params.STATUS)
+                ? RepairStatus.valueOf(params.get(Params.STATUS))
+                : null;
 
         RepairSearchCriteria criteria = new RepairSearchCriteria()
                 .withStatus(status)
@@ -207,7 +209,9 @@ public class RepairController {
      * @throws UnauthorizedException if the user is not authorized to ready the fulfillment
      */
     @RequestMapping(value = "/{id}/ready", method = RequestMethod.PUT)
-    public Repair readyFulfillment(Principal principal, @RequestBody FulfillmentStrategy strategy, @PathVariable("id") Long id) {
+    public Repair readyFulfillment(Principal principal,
+                                   @RequestBody FulfillmentStrategy strategy,
+                                   @PathVariable("id") Long id) {
         access.info("[PUT /api/repairs/{}/ready] - {}", id, principal.getName());
         access.info("PUT parameters - {}", strategy.getType());
         RepairSearchCriteria criteria = new RepairSearchCriteria()
@@ -279,7 +283,9 @@ public class RepairController {
      * @return the updated repair
      */
     @RequestMapping(path = "/{id}/audit", method = RequestMethod.PUT)
-    public Repair repairAuditing(Principal principal, @PathVariable("id") Long id, @RequestBody AuditStatus status) {
+    public Repair repairAuditing(Principal principal,
+                                 @PathVariable("id") Long id,
+                                 @RequestBody AuditStatus status) {
         access.info("[PUT /api/repairs/{}/audit] - {}", id, principal.getName());
         RepairSearchCriteria criteria = new RepairSearchCriteria().withId(id);
         Repair repair = rService.find(criteria);
@@ -372,7 +378,9 @@ public class RepairController {
      * @return the updated fulfillment
      */
     @RequestMapping(path = "/{id}/status", method = RequestMethod.PUT)
-    public Repair fulfillmentUpdated(Principal principal, @PathVariable("id") Long id, @RequestBody RepairStatus status) {
+    public Repair fulfillmentUpdated(Principal principal,
+                                     @PathVariable("id") Long id,
+                                     @RequestBody RepairStatus status) {
         access.info("[PUT /api/repairs/{}/status] - {}", id, principal.getName());
         RepairSearchCriteria criteria = new RepairSearchCriteria().withId(id);
         Repair repair = rService.find(criteria);

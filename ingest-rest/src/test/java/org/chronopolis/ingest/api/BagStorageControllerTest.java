@@ -8,9 +8,12 @@ import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.QStagingStorage;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
+import org.chronopolis.rest.kot.models.update.ActiveToggle;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
@@ -30,11 +33,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Tests for the BagStorageController
- *
  */
 @RunWith(SpringRunner.class)
 @WebMvcTest(controllers = BagStorageController.class)
 public class BagStorageControllerTest extends ControllerTest {
+
+    private final Logger log = LoggerFactory.getLogger(BagStorageControllerTest.class);
+
     private static final long ID = 1L;
     private static final String TYPE = "bag";
 
@@ -42,7 +47,8 @@ public class BagStorageControllerTest extends ControllerTest {
     private BagStorageController controller;
     private SetPath<StagingStorage, QStagingStorage> storageJoin;
 
-    @MockBean private StagingService stagingService;
+    @MockBean
+    private StagingService stagingService;
 
     @Before
     public void setup() {
@@ -54,8 +60,8 @@ public class BagStorageControllerTest extends ControllerTest {
 
         Fixity fixity = new Fixity();
         fixity.setAlgorithm("test-algorithm")
-              .setCreatedAt(ZonedDateTime.now())
-              .setValue("test-value");
+                .setCreatedAt(ZonedDateTime.now())
+                .setValue("test-value");
 
         storage = new StagingStorage();
         storage.setId(ID);
@@ -74,7 +80,8 @@ public class BagStorageControllerTest extends ControllerTest {
 
     @Test
     public void testGetStorage() throws Exception {
-        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin))).thenReturn(Optional.of(storage));
+        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin)))
+                .thenReturn(Optional.of(storage));
         mvc.perform(get("/api/bags/{id}/storage/{type}", ID, TYPE))
                 .andDo(print())
                 .andExpect(status().is(HttpStatus.OK.value()))
@@ -85,10 +92,14 @@ public class BagStorageControllerTest extends ControllerTest {
     @Test
     public void testUpdateStorage() throws Exception {
         authenticateUser();
-        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin))).thenReturn(Optional.of(storage));
-        mvc.perform(put("/api/bags/{id}/storage/{type}", ID, TYPE)
+        ActiveToggle toggle = new ActiveToggle(false);
+        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin)))
+                .thenReturn(Optional.of(storage));
+        mvc.perform(
+                put("/api/bags/{id}/storage/{type}", ID, TYPE)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"active\": false}").principal(authorizedPrincipal))
+                        .content(asJson(toggle))
+                        .principal(authorizedPrincipal))
                 .andDo(print())
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andExpect(jsonPath("$.active").value(false));
@@ -96,7 +107,8 @@ public class BagStorageControllerTest extends ControllerTest {
 
     @Test
     public void testGetFixities() throws Exception {
-        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin))).thenReturn(Optional.of(storage));
+        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin)))
+                .thenReturn(Optional.of(storage));
         mvc.perform(get("/api/bags/{id}/storage/{type}/fixity", ID, TYPE))
                 .andDo(print())
                 .andExpect(status().is(HttpStatus.OK.value()));
@@ -115,8 +127,8 @@ public class BagStorageControllerTest extends ControllerTest {
         authenticateUser();
         when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin))).thenReturn(Optional.of(storage));
         mvc.perform(put("/api/bags/{id}/storage/{type}/fixity", ID, TYPE)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"algorithm\": \"test-put\", \"value\": \"success\"}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"algorithm\": \"test-put\", \"value\": \"success\"}")
                 .principal(authorizedPrincipal))
                 .andDo(print())
                 .andExpect(status().is(HttpStatus.CREATED.value()));

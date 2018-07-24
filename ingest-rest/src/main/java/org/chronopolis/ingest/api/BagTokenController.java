@@ -9,7 +9,7 @@ import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.QAceToken;
 import org.chronopolis.rest.entities.QBag;
-import org.chronopolis.rest.models.AceTokenModel;
+import org.chronopolis.rest.kot.models.create.AceTokenCreate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +83,7 @@ public class BagTokenController extends IngestController {
     @PostMapping("/tokens")
     public ResponseEntity<AceToken> createTokenForBag(Principal principal,
                                                       @PathVariable("id") Long id,
-                                                      @Valid @RequestBody AceTokenModel model) {
+                                                      @Valid @RequestBody AceTokenCreate model) {
         access.info("[POST /api/bags/{}/tokens] - {}", id, principal.getName());
         access.info("Post parameters - {};{}", model.getBagId(), model.getFilename());
 

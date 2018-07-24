@@ -7,7 +7,7 @@ import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Depositor;
-import org.chronopolis.rest.models.IngestRequest;
+import org.chronopolis.rest.kot.models.create.BagCreate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -92,13 +92,7 @@ public class BagControllerTest extends ControllerTest {
     @Test
     public void testStageBag() throws Exception {
         // Bag Ingest Request
-        IngestRequest request = new IngestRequest();
-        request.setDepositor(NAMESPACE);
-        request.setSize(1L);
-        request.setTotalFiles(1L);
-        request.setStorageRegion(1L);
-        request.setName(BAG);
-        request.setLocation(LOCATION);
+        BagCreate request = new BagCreate(BAG, 1L, 1L, 1L, LOCATION, NAMESPACE);
 
         // created bag to return
         Bag bag = bag();

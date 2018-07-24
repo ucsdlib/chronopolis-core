@@ -14,8 +14,8 @@ import org.chronopolis.rest.entities.QDepositor;
 import org.chronopolis.rest.entities.storage.QStorageRegion;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
+import org.chronopolis.rest.kot.models.create.BagCreate;
 import org.chronopolis.rest.models.BagStatus;
-import org.chronopolis.rest.models.IngestRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,7 +76,7 @@ public class BagService extends SearchService<Bag, Long, BagRepository> {
      * @return the result of creating the Bag
      */
     public BagCreateResult processRequest(String creator,
-                                          IngestRequest request) {
+                                          BagCreate request) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         return fetchStorageRegion(creator, request, queryFactory);
     }
@@ -93,7 +93,7 @@ public class BagService extends SearchService<Bag, Long, BagRepository> {
      * @return the result of creating the Bag
      */
     private BagCreateResult fetchStorageRegion(String creator,
-                                               IngestRequest request,
+                                               BagCreate request,
                                                JPAQueryFactory factory) {
         Long id = request.getStorageRegion();
         ImmutableList<String> error = ImmutableList.of("StorageRegion does not exist: " + id);
@@ -118,7 +118,7 @@ public class BagService extends SearchService<Bag, Long, BagRepository> {
      * @return the result of creating the Bag
      */
     private BagCreateResult fetchDepositor(String creator,
-                                           IngestRequest request,
+                                           BagCreate request,
                                            StorageRegion region,
                                            JPAQueryFactory factory) {
         String namespace = request.getDepositor();
@@ -145,7 +145,7 @@ public class BagService extends SearchService<Bag, Long, BagRepository> {
      * @return the result of creating the Bag
      */
     private BagCreateResult create(String creator,
-                                   IngestRequest request,
+                                   BagCreate request,
                                    StorageRegion region,
                                    Depositor depositor,
                                    JPAQueryFactory factory) {
@@ -162,11 +162,6 @@ public class BagService extends SearchService<Bag, Long, BagRepository> {
                     .setCreator(creator)
                     .setSize(request.getSize())
                     .setTotalFiles(request.getTotalFiles());
-
-            // keep updating this until it is removed
-            if (request.getRequiredReplications() > 0) {
-                bag.setRequiredReplications(request.getRequiredReplications());
-            }
 
             StagingStorage storage = new StagingStorage();
             storage.setRegion(region);

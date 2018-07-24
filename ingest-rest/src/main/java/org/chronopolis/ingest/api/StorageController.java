@@ -92,9 +92,11 @@ public class StorageController extends IngestController {
      *         403 if the user does not have permissions to create the StorageRegion
      */
     @PostMapping
-    public ResponseEntity<StorageRegion> createRegion(Principal principal, @RequestBody RegionCreate create) {
+    public ResponseEntity<StorageRegion> createRegion(Principal principal,
+                                                      @RequestBody RegionCreate create) {
         access.info("[POST /api/storage] - ", principal.getName());
-        access.info("POST parameters - {};{};{}", create.getNode(), create.getDataType(), create.getStorageType());
+        access.info("POST parameters - {};{};{}",
+                create.getNode(), create.getDataType(), create.getStorageType());
         ResponseEntity<StorageRegion> entity = ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .build();

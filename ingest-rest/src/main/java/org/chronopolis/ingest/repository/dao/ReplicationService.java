@@ -18,7 +18,7 @@ import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.entities.storage.QStagingStorage;
 import org.chronopolis.rest.entities.storage.ReplicationConfig;
 import org.chronopolis.rest.entities.storage.StagingStorage;
-import org.chronopolis.rest.models.ReplicationRequest;
+import org.chronopolis.rest.kot.models.create.ReplicationCreate;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,7 +97,7 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
      * @return the newly created replication
      * @throws NotFoundException if the bag or node do not exist
      */
-    public ReplicationCreateResult create(ReplicationRequest request) {
+    public ReplicationCreateResult create(ReplicationCreate request) {
         return create(request.getBagId(), request.getNodeId());
     }
 

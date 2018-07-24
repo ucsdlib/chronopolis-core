@@ -30,9 +30,8 @@ import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
+import org.chronopolis.rest.kot.models.create.BagCreate;
 import org.chronopolis.rest.models.BagStatus;
-import org.chronopolis.rest.models.IngestRequest;
-import org.chronopolis.rest.models.ReplicationRequest;
 import org.chronopolis.rest.models.ReplicationStatus;
 import org.chronopolis.rest.models.storage.FixityCreate;
 import org.chronopolis.rest.models.storage.StagingCreate;
@@ -113,9 +112,12 @@ public class BagUIController extends IngestController {
                 .depositorLike(filter.getDepositor())
                 .withStatuses(filter.getStatus());
 
-        Sort.Direction direction = (filter.getDir() == null) ? Sort.Direction.DESC : Sort.Direction.fromStringOrNull(filter.getDir());
+        Sort.Direction direction = (filter.getDir() == null)
+                ? Sort.Direction.DESC
+                : Sort.Direction.fromStringOrNull(filter.getDir());
         Sort s = new Sort(direction, filter.getOrderBy());
-        Page<Bag> bags = bagService.findAll(criteria, new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, s));
+        Page<Bag> bags = bagService.findAll(criteria,
+                new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, s));
 
         PageWrapper<Bag> pages = new PageWrapper<>(bags, "/bags", filter.getParameters());
         model.addAttribute("bags", bags);
@@ -143,8 +145,10 @@ public class BagUIController extends IngestController {
         FileSizeFormatter formatter = new FileSizeFormatter();
         ReplicationSearchCriteria rsc = new ReplicationSearchCriteria().withBagId(id);
         Bag bag = bagService.find(bsc);
-        Optional<StagingStorage> activeBagStorage = stagingService.activeStorageForBag(bag, QBag.bag.bagStorage);
-        Optional<StagingStorage> activeTokenStorage = stagingService.activeStorageForBag(bag, QBag.bag.tokenStorage);
+        Optional<StagingStorage> activeBagStorage =
+                stagingService.activeStorageForBag(bag, QBag.bag.bagStorage);
+        Optional<StagingStorage> activeTokenStorage =
+                stagingService.activeStorageForBag(bag, QBag.bag.tokenStorage);
         log.info("bagStorage {}", activeBagStorage.isPresent());
         log.info("tokenStorage {}", activeTokenStorage.isPresent());
 
@@ -172,7 +176,10 @@ public class BagUIController extends IngestController {
      * @return page showing the individual bag
      */
     @PostMapping("/bags/{id}")
-    public String updateBag(Model model, Principal principal, @PathVariable("id") Long id, BagUpdate update) {
+    public String updateBag(Model model,
+                            Principal principal,
+                            @PathVariable("id") Long id,
+                            BagUpdate update) {
         access.info("[POST /bags/{}] - {}", id, principal.getName());
         access.info("POST parameters - {};{}", update.getLocation(), update.getStatus());
 
@@ -199,7 +206,8 @@ public class BagUIController extends IngestController {
     @GetMapping("/bags/{id}/storage/{storageId}/activate")
     public String updateBagStorage(Principal principal,
                                    @PathVariable("id") Long id,
-                                   @PathVariable("storageId") Long storageId) throws ForbiddenException {
+                                   @PathVariable("storageId") Long storageId)
+            throws ForbiddenException {
         access.info("[GET /bags/{}/storage/{}/activate] - {}", id, storageId, principal.getName());
 
         BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
@@ -228,8 +236,10 @@ public class BagUIController extends IngestController {
     public String removeStorageFixity(Principal principal,
                                       @PathVariable("id") Long id,
                                       @PathVariable("storageId") Long storageId,
-                                      @PathVariable("fixityId") Long fixityId) throws ForbiddenException {
-        access.info("[GET /bags/{}/storage/{}/fixity/{}] - {}", id, storageId, fixityId, principal.getName());
+                                      @PathVariable("fixityId") Long fixityId)
+            throws ForbiddenException {
+        access.info("[GET /bags/{}/storage/{}/fixity/{}] - {}",
+                id, storageId, fixityId, principal.getName());
 
         // check constraints first - existence && permissions
         BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
@@ -261,7 +271,8 @@ public class BagUIController extends IngestController {
     public String updateStorageFixity(Model model,
                                       Principal principal,
                                       @PathVariable("id") Long id,
-                                      @PathVariable("storageId") Long storageId) throws ForbiddenException {
+                                      @PathVariable("storageId") Long storageId)
+            throws ForbiddenException {
         access.info("[GET /bags/{}/storage/{}/fixity] - {}", id, storageId, principal.getName());
         String template = "redirect:/bags/" + id;
 
@@ -330,7 +341,9 @@ public class BagUIController extends IngestController {
      * @return the StagingStorage entity
      * @throws ForbiddenException
      */
-    private StagingStorage findStorageForBag(Principal principal, Bag bag, Long storageId) throws ForbiddenException {
+    private StagingStorage findStorageForBag(Principal principal,
+                                             Bag bag,
+                                             Long storageId) throws ForbiddenException {
         // might be able to make criteria out of this or smth not sure yet
         StagingStorageSearchCriteria ssmc = new StagingStorageSearchCriteria()
                 .withId(storageId);
@@ -372,10 +385,14 @@ public class BagUIController extends IngestController {
      * @return the create form
      */
     @GetMapping("/bags/{id}/storage/add")
-    public String addStagingForm(Model model, Principal principal, @PathVariable("id") Long id, StagingCreate stagingCreate) {
+    public String addStagingForm(Model model,
+                                 Principal principal,
+                                 @PathVariable("id") Long id,
+                                 StagingCreate stagingCreate) {
         access.info("[GET /bags/{}/storage/add] - {}", id, principal.getName());
 
-        Optional<StagingStorage> stagingStorage = stagingService.activeStorageForBag(id, QBag.bag.bagStorage);
+        Optional<StagingStorage> stagingStorage =
+                stagingService.activeStorageForBag(id, QBag.bag.bagStorage);
         model.addAttribute("conflict", stagingStorage.isPresent());
         model.addAttribute("regions", regions.findAll());
         model.addAttribute("storageUnits", StorageUnit.values());
@@ -416,7 +433,8 @@ public class BagUIController extends IngestController {
         // not too crazy about the stream... but... it works
         Boolean activeExists = bag.getBagStorage().stream()
                 .anyMatch(StagingStorage::isActive);
-        StorageRegion region = regions.find(new StorageRegionSearchCriteria().withId(stagingCreate.getStorageRegion()));
+        StorageRegion region = regions.find(new StorageRegionSearchCriteria()
+                .withId(stagingCreate.getStorageRegion()));
         if (!hasRoleAdmin() && !bag.getCreator().equalsIgnoreCase(principal.getName())) {
             throw new ForbiddenException("User is not allowed to update this resource");
         } else if (activeExists) {
@@ -460,7 +478,7 @@ public class BagUIController extends IngestController {
      * @return redirect to the bags page
      */
     @RequestMapping(value = "/bags/add", method = RequestMethod.POST)
-    public String addBag(Principal principal, IngestRequest request) {
+    public String addBag(Principal principal, BagCreate request) {
         access.info("[POST /bags/add] - {}", principal.getName());
         access.info("Post parameters: {};{}", request.getDepositor(), request.getName());
 
@@ -492,13 +510,18 @@ public class BagUIController extends IngestController {
                 .nodeUsernameLike(filter.getNode())
                 .withStatuses(filter.getStatus());
 
-        Sort.Direction direction = (filter.getDir() == null) ? Sort.Direction.DESC : Sort.Direction.fromStringOrNull(filter.getDir());
+        Sort.Direction direction = (filter.getDir() == null)
+                ? Sort.Direction.DESC
+                : Sort.Direction.fromStringOrNull(filter.getDir());
         Sort s = new Sort(direction, filter.getOrderBy());
-        replications = replicationService.findAll(criteria, new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, s));
+        replications = replicationService.findAll(criteria,
+                new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, s));
 
         model.addAttribute("replications", replications);
         model.addAttribute("statuses", ReplicationStatus.statusByGroup());
-        model.addAttribute("pages", new PageWrapper<>(replications, "/replications", filter.getParameters()));
+        model.addAttribute("pages", new PageWrapper<>(replications,
+                "/replications",
+                filter.getParameters()));
 
         return "replications/replications";
     }
@@ -528,7 +551,9 @@ public class BagUIController extends IngestController {
     @RequestMapping(value = "/replications/add", method = RequestMethod.GET)
     public String addReplications(Model model, Principal principal) {
         access.info("[GET /replications/add] - {}", principal.getName());
-        model.addAttribute("bags", bagService.findAll(new BagSearchCriteria(), new PageRequest(0, 100)));
+        model.addAttribute("bags", bagService.findAll(
+                new BagSearchCriteria(),
+                new PageRequest(0, 100)));
         model.addAttribute("nodes", nodeRepository.findAll());
         return "replications/add";
     }
@@ -541,7 +566,9 @@ public class BagUIController extends IngestController {
      * @return the create replication form
      */
     @RequestMapping(value = "/replications/create", method = RequestMethod.GET)
-    public String createReplicationForm(Model model, Principal principal, @RequestParam("bag") Long bag) {
+    public String createReplicationForm(Model model,
+                                        Principal principal,
+                                        @RequestParam("bag") Long bag) {
         access.info("[GET /replications/create] - {}", principal.getName());
         model.addAttribute("bag", bag);
         if (hasRoleAdmin()) {
@@ -557,8 +584,18 @@ public class BagUIController extends IngestController {
         return "replications/create";
     }
 
+    /**
+     * Create multiple repications
+     *
+     * Todo: ReplicationCreate -> ReplicationCreateMultiple
+     *
+     * @param principal
+     * @param form
+     * @return
+     */
     @RequestMapping(value = "/replications/create", method = RequestMethod.POST)
-    public String createReplications(Principal principal, @ModelAttribute("form") ReplicationCreate form) {
+    public String createReplications(Principal principal,
+                                     @ModelAttribute("form") ReplicationCreate form) {
         access.info("[POST /replications/create] - {}", principal.getName());
         final Long bag = form.getBag();
         form.getNodes().forEach(nodeId -> replicationService.create(bag, nodeId));
@@ -572,7 +609,8 @@ public class BagUIController extends IngestController {
      * @return redirect to all replications
      */
     @RequestMapping(value = "/replications/add", method = RequestMethod.POST)
-    public String addReplication(Principal principal, ReplicationRequest request) {
+    public String addReplication(Principal principal,
+                                 org.chronopolis.rest.kot.models.create.ReplicationCreate request) {
         access.info("[POST /replications/add] - {}", principal.getName());
         ReplicationCreateResult result = replicationService.create(request);
 
