@@ -12,8 +12,8 @@ import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.QDepositor;
 import org.chronopolis.rest.entities.QDepositorContact;
 import org.chronopolis.rest.entities.QNode;
+import org.chronopolis.rest.kot.models.delete.DepositorContactDelete;
 import org.chronopolis.rest.models.DepositorContactCreate;
-import org.chronopolis.rest.models.DepositorContactRemove;
 import org.chronopolis.rest.models.DepositorCreate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -249,7 +249,7 @@ public class DepositorController {
     @DeleteMapping("/{namespace}/contacts")
     public ResponseEntity<Depositor> removeContact(Principal principal,
                                                    @PathVariable("namespace") String namespace,
-                                                   @RequestBody DepositorContactRemove body) {
+                                                   @RequestBody DepositorContactDelete body) {
         access.info("[DELETE /api/depositors/{}/contacts] - {}", namespace, principal.getName());
         ResponseEntity<Depositor> response = ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         if (hasRoleAdmin()) {
