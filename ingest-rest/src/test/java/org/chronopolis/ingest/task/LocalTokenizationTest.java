@@ -8,7 +8,7 @@ import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.rest.api.IngestAPIProperties;
-import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.kot.entities.Bag;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.junit.Before;
@@ -32,8 +32,8 @@ import java.util.function.Predicate;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 
-@RunWith(SpringJUnit4ClassRunner.class)
 @DataJpaTest
+@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = JpaContext.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SqlGroup({
@@ -62,7 +62,8 @@ public class LocalTokenizationTest extends IngestTest {
                 new BagStagingProperties().setPosix(new Posix().setId(ID));
         IngestAPIProperties apiProperties = new IngestAPIProperties().setUsername(USERNAME);
 
-        localTokenization = new LocalTokenization(dao, tws, apiProperties, properties, executor, predicates);
+        localTokenization = new LocalTokenization(dao, tws, apiProperties,
+                properties, executor, predicates);
     }
 
     @Test

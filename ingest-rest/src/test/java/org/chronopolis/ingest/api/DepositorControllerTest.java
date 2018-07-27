@@ -6,17 +6,18 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import org.chronopolis.ingest.models.filter.BagFilter;
 import org.chronopolis.ingest.models.filter.DepositorFilter;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
-import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Depositor;
-import org.chronopolis.rest.entities.DepositorContact;
-import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.QBag;
-import org.chronopolis.rest.entities.QDepositor;
-import org.chronopolis.rest.entities.QDepositorContact;
-import org.chronopolis.rest.entities.QNode;
-import org.chronopolis.rest.models.DepositorContactCreate;
+import org.chronopolis.rest.kot.entities.Bag;
+import org.chronopolis.rest.kot.entities.Node;
+import org.chronopolis.rest.kot.entities.QBag;
+import org.chronopolis.rest.kot.entities.QNode;
+import org.chronopolis.rest.kot.entities.depositor.Depositor;
+import org.chronopolis.rest.kot.entities.depositor.DepositorContact;
+import org.chronopolis.rest.kot.entities.depositor.QDepositor;
+import org.chronopolis.rest.kot.entities.depositor.QDepositorContact;
+import org.chronopolis.rest.kot.models.create.DepositorContactCreate;
+import org.chronopolis.rest.kot.models.create.DepositorCreate;
+import org.chronopolis.rest.kot.models.enums.BagStatus;
 import org.chronopolis.rest.models.DepositorContactRemove;
-import org.chronopolis.rest.models.DepositorCreate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,7 +29,9 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.security.Principal;
 import java.time.ZonedDateTime;
+import java.util.HashSet;
 
+import static com.google.common.collect.ImmutableSet.of;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
@@ -84,22 +87,22 @@ public class DepositorControllerTest extends ControllerTest {
 
     @Before
     public void setup() {
-        depositor.setNamespace(NAMESPACE)
-                .setOrganizationAddress(ADDRESS)
-                .setSourceOrganization(ORGANIZATION)
-                .setCreatedAt(NOW)
-                .setUpdatedAt(NOW)
-                .setId(1L);
+        depositor = new Depositor(NAMESPACE, ADDRESS, ORGANIZATION);
+        depositor.setContacts(new HashSet<>());
+        depositor.setNodeDistributions(new HashSet<>());
+        depositor.setCreatedAt(NOW);
+        depositor.setUpdatedAt(NOW);
+        depositor.setId(1L);
 
-        node = new Node(NODE_NAME, NODE_NAME);
+        node = new Node(of(), of(), of(), NODE_NAME, NODE_NAME, true);
 
-        bag = new Bag(BAG_NAME, depositor)
-                .setCreator(NAMESPACE)
-                .setSize(1L)
-                .setTotalFiles(1L);
-        bag.setCreatedAt(NOW)
-                .setUpdatedAt(NOW)
-                .setId(1L);
+        bag = new Bag(BAG_NAME, NAMESPACE, depositor, 1L, 1L, BagStatus.DEPOSITED);
+        bag.setBagStorage(new HashSet<>());
+        bag.setTokenStorage(new HashSet<>());
+        bag.setDistributions(new HashSet<>());
+        bag.setCreatedAt(NOW);
+        bag.setUpdatedAt(NOW);
+        bag.setId(1L);
 
         DepositorController controller = new DepositorController(dao);
         setupMvc(controller);
@@ -219,7 +222,7 @@ public class DepositorControllerTest extends ControllerTest {
 
     @Test
     public void testGetBagNotFound() throws Exception {
-         when(dao.findOne(eq(Q_BAG), any(BagFilter.class)))
+        when(dao.findOne(eq(Q_BAG), any(BagFilter.class)))
                 .thenReturn(null);
         mvc.perform(get(DEPOSITOR_BAG_NAME_PATH, NAMESPACE, BAG_NAME)
                 .principal(authorizedPrincipal))
@@ -316,7 +319,7 @@ public class DepositorControllerTest extends ControllerTest {
                         .principal(authorizedPrincipal)
                         .contentType(APPLICATION_JSON)
                         .content(asJson(remove)))
-        .andExpect(status().isOk());
+                .andExpect(status().isOk());
 
         verify(dao, times(1)).findOne(eq(Q_DEPOSITOR), eq(namespaceEq));
         verify(dao, times(1)).findOne(eq(Q_CONTACT), eq(contactEq));
@@ -331,7 +334,7 @@ public class DepositorControllerTest extends ControllerTest {
                         .principal(authorizedPrincipal)
                         .contentType(APPLICATION_JSON)
                         .content(asJson(remove)))
-        .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound());
 
         verify(dao, times(1)).findOne(eq(Q_DEPOSITOR), eq(namespaceEq));
         verify(dao, times(1)).findOne(eq(Q_CONTACT), eq(contactEq));
@@ -349,7 +352,7 @@ public class DepositorControllerTest extends ControllerTest {
                         .principal(authorizedPrincipal)
                         .contentType(APPLICATION_JSON)
                         .content(asJson(remove)))
-        .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest());
 
         verify(dao, times(1)).findOne(eq(Q_DEPOSITOR), eq(namespaceEq));
         verify(dao, times(1)).findOne(eq(Q_CONTACT), eq(contactEq));
@@ -365,7 +368,7 @@ public class DepositorControllerTest extends ControllerTest {
                         .principal(authorizedPrincipal)
                         .contentType(APPLICATION_JSON)
                         .content(asJson(remove)))
-        .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -463,29 +466,31 @@ public class DepositorControllerTest extends ControllerTest {
 
     // Helpers
     private DepositorCreate createModel(boolean valid) {
-        return new DepositorCreate()
-                .setNamespace(NAMESPACE)
-                .setSourceOrganization(ORGANIZATION)
-                .setOrganizationAddress(ADDRESS)
-                .setContacts(ImmutableList.of(contactModel(valid)));
+        return new DepositorCreate(NAMESPACE, ORGANIZATION, ADDRESS,
+                ImmutableList.of(contactModel(valid)), ImmutableList.of());
     }
 
     private DepositorContactCreate contactModel(boolean valid) {
         if (valid) {
-           return new DepositorContactCreate()
+            // need to get phone number working in kotlin
+            return new DepositorContactCreate("test-name", EMAIL, "phone-number");
+           /*
                 .setEmail(EMAIL)
                 .setName("test-name")
                 .setPhoneNumber(new DepositorContactCreate.PhoneNumber()
                         // from libphonenumber doc - swiss google number
                         .setCountryCode("CH")
                         .setNumber("446681800"));
+                        */
         } else {
-            return new DepositorContactCreate()
+            return new DepositorContactCreate("test-name", EMAIL, "");
+            /*
                 .setEmail(EMAIL)
                 .setName("test-name")
                 .setPhoneNumber(new DepositorContactCreate.PhoneNumber()
                         .setCountryCode("US")
                         .setNumber("0"));
+                        */
         }
     }
 

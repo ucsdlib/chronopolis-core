@@ -1,6 +1,6 @@
 package org.chronopolis.ingest.repository;
 
-import org.chronopolis.rest.entities.storage.StorageRegion;
+import org.chronopolis.rest.kot.entities.storage.StorageRegion;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 

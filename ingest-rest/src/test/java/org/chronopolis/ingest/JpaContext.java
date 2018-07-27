@@ -3,10 +3,8 @@ package org.chronopolis.ingest;
 import com.opentable.db.postgres.embedded.FlywayPreparer;
 import com.opentable.db.postgres.embedded.PreparedDbProvider;
 import org.chronopolis.ingest.repository.Authority;
-import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.kot.entities.AceToken;
 import org.flywaydb.core.Flyway;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -27,7 +25,7 @@ import java.sql.SQLException;
  * Created by shake on 6/29/17.
  */
 @SpringBootApplication
-@EntityScan(basePackageClasses = {Authority.class, Node.class})
+@EntityScan(basePackageClasses = {Authority.class, AceToken.class})
 public class JpaContext {
 
     private static final String SCHEMA_LOCATION = "db/schema";

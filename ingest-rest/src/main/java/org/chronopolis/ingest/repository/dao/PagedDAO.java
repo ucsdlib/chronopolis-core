@@ -7,7 +7,7 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.models.Paged;
-import org.chronopolis.rest.entities.PersistableEntity;
+import org.chronopolis.rest.kot.entities.PersistableEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.support.PageableExecutionUtils;

@@ -10,13 +10,14 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.WebContext;
 import org.chronopolis.ingest.models.Paged;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
-import org.chronopolis.rest.entities.AceToken;
-import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Depositor;
-import org.chronopolis.rest.entities.QAceToken;
-import org.chronopolis.rest.entities.QBag;
-import org.chronopolis.rest.models.AceTokenModel;
-import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
+import org.chronopolis.rest.kot.entities.AceToken;
+import org.chronopolis.rest.kot.entities.Bag;
+import org.chronopolis.rest.kot.entities.QAceToken;
+import org.chronopolis.rest.kot.entities.QBag;
+import org.chronopolis.rest.kot.entities.depositor.Depositor;
+import org.chronopolis.rest.kot.entities.serializers.ZonedDateTimeSerializer;
+import org.chronopolis.rest.kot.models.create.AceTokenCreate;
+import org.chronopolis.rest.kot.models.enums.BagStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,6 +36,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.Date;
 
 import static org.mockito.Matchers.any;
@@ -92,7 +94,7 @@ public class BagTokenControllerTest extends ControllerTest {
 
     @Test
     public void testCreateTokenSuccess() throws Exception {
-        Bag bag = new Bag("test-name", depositor);
+        Bag bag = generateBag();
         bag.setId(1L);
         runCreateToken(generateModel(), bag, 0L, HttpStatus.CREATED);
 
@@ -107,10 +109,9 @@ public class BagTokenControllerTest extends ControllerTest {
 
     @Test
     public void testCreateTokenBadRequest() throws Exception {
-        Bag bag = new Bag("test-name", depositor);
+        Bag bag = generateBag();
         bag.setId(1L);
-        AceTokenModel model = generateModel();
-        model.setFilename(null);
+        AceTokenCreate model = generateModel();
 
         runCreateToken(model, bag, 1L, HttpStatus.BAD_REQUEST);
         verify(dao, times(0)).save(any(AceToken.class));
@@ -121,7 +122,7 @@ public class BagTokenControllerTest extends ControllerTest {
     // Helpers
     //
 
-    private void runCreateToken(AceTokenModel model,
+    private void runCreateToken(AceTokenCreate model,
                                 Bag bag,
                                 long tokenCount,
                                 HttpStatus responseStatus) throws Exception {
@@ -152,7 +153,7 @@ public class BagTokenControllerTest extends ControllerTest {
                 .andExpect(status().is(responseStatus.value()));
     }
 
-    private String json(AceTokenModel model) throws JsonProcessingException {
+    private String json(AceTokenCreate model) throws JsonProcessingException {
         ObjectMapper mapper = new Jackson2ObjectMapperBuilder()
                 .serializerByType(ZonedDateTime.class, new ZonedDateTimeSerializer())
                 .serializationInclusion(JsonInclude.Include.NON_NULL)
@@ -162,33 +163,28 @@ public class BagTokenControllerTest extends ControllerTest {
         return mapper.writeValueAsString(model);
     }
 
-    private AceTokenModel generateModel() {
-        AceTokenModel model = new AceTokenModel();
-        model.setImsHost("test-ims-host");
-        model.setImsService("test-ims-service");
-        model.setAlgorithm("test-algorithm");
-        model.setRound(1L);
-        model.setCreateDate(ZonedDateTime.now());
-        model.setFilename("data/test-file");
-        model.setProof("test-proof");
-        return model;
+    private AceTokenCreate generateModel() {
+        return new AceTokenCreate(1L, 1L, ZonedDateTime.now(), "test-proof", "test-ims-host",
+                "data/test-file", "test-algorithm", "test-ims-service");
+    }
+
+    private Bag generateBag() {
+        Bag bag = new Bag("test-name", "namespace", depositor, 1L, 1L, BagStatus.DEPOSITED);
+        bag.setBagStorage(Collections.emptySet());
+        bag.setTokenStorage(Collections.emptySet());
+        bag.setDistributions(Collections.emptySet());
+        bag.setId(1L);
+        return bag;
     }
 
     // These are pulled from the TokenControllerTest, since we're doing simple operations at the moment that's ok
     // but we'll probably want a better way to do this
     @SuppressWarnings("Duplicates")
     private AceToken generateToken() {
-        Bag bag = new Bag("test-name", depositor);
-        bag.setId(1L);
-        AceToken token = new AceToken(bag,
-                new Date(),
-                "test-filename",
-                "test-proof",
-                "test-ims-host",
-                "test-ims",
-                "test-algorithm",
-                100L);
+        AceToken token = new AceToken("test-filename", "test-proof", 100L, "test-ims-host",
+                "test-ims", "test-algorithm", new Date());
         token.setId(1L);
+        token.setBag(generateBag());
         return token;
     }
 

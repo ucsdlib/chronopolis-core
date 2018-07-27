@@ -1,6 +1,7 @@
 package org.chronopolis.ingest.support;
 
-import org.chronopolis.rest.support.StorageUnit;
+
+import org.chronopolis.rest.kot.models.enums.StorageUnit;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

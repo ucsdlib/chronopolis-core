@@ -7,11 +7,11 @@ import org.chronopolis.common.storage.BagStagingProperties;
 import org.chronopolis.common.storage.Posix;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.rest.api.IngestAPIProperties;
-import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.QAceToken;
-import org.chronopolis.rest.entities.QBag;
-import org.chronopolis.rest.entities.storage.StagingStorage;
-import org.chronopolis.rest.models.BagStatus;
+import org.chronopolis.rest.kot.entities.Bag;
+import org.chronopolis.rest.kot.entities.QAceToken;
+import org.chronopolis.rest.kot.entities.QBag;
+import org.chronopolis.rest.kot.entities.storage.StagingStorage;
+import org.chronopolis.rest.kot.models.enums.BagStatus;
 import org.chronopolis.rest.models.storage.StagingStorageModel;
 import org.chronopolis.tokenize.BagProcessor;
 import org.chronopolis.tokenize.ManifestEntry;
@@ -31,6 +31,8 @@ import java.util.function.Predicate;
 
 /**
  * Task for processing bags in our local staging area which need to be tokenized
+ *
+ * TODO: This needs to be updated when the BagProcessor is updated :(((
  *
  * @author shake
  */
@@ -119,7 +121,7 @@ public class LocalTokenization {
                 .setName(bag.getName())
                 .setSize(bag.getSize())
                 .setBagStorage(storage)
-                .setStatus(bag.getStatus())
+                .setStatus(org.chronopolis.rest.models.BagStatus.DEPOSITED)
                 .setCreator(bag.getCreator())
                 .setCreatedAt(bag.getCreatedAt())
                 .setUpdatedAt(bag.getUpdatedAt())

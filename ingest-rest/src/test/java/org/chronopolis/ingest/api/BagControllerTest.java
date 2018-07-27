@@ -5,9 +5,10 @@ import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.support.BagCreateResult;
-import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Depositor;
+import org.chronopolis.rest.kot.entities.Bag;
+import org.chronopolis.rest.kot.entities.depositor.Depositor;
 import org.chronopolis.rest.kot.models.create.BagCreate;
+import org.chronopolis.rest.kot.models.enums.BagStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,6 +18,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.util.Collections;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -38,11 +41,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(controllers = BagController.class)
 public class BagControllerTest extends ControllerTest {
 
-    private final String NAMESPACE = "test-depositor";
-    private final String BAG = "test-bag";
-    private final String LOCATION = "bags/test-bag-0";
-    private final String NODE = "test-node";
-    private final Depositor DEPOSITOR = new Depositor().setNamespace(NAMESPACE);
+    private static final String BAG = "test-bag";
+    private static final String LOCATION = "bags/test-bag-0";
+    private static final String NAMESPACE = "test-depositor";
+    private final Depositor DEPOSITOR = new Depositor(NAMESPACE, NAMESPACE, NAMESPACE);
 
     // Mocks for the StagingController
     @MockBean private BagService bagService;
@@ -114,8 +116,11 @@ public class BagControllerTest extends ControllerTest {
     }
 
     private Bag bag() {
-        Bag b = new Bag(BAG, DEPOSITOR);
+        Bag b = new Bag(BAG, "namespace", DEPOSITOR, 1L, 1L, BagStatus.DEPOSITED);
         b.setId(1L);
+        b.setBagStorage(Collections.emptySet());
+        b.setTokenStorage(Collections.emptySet());
+        b.setDistributions(Collections.emptySet());
         return b;
     }
 

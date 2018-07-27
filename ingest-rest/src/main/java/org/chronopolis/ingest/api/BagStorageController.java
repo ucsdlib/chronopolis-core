@@ -3,9 +3,9 @@ package org.chronopolis.ingest.api;
 import com.google.common.collect.ImmutableSet;
 import org.chronopolis.ingest.repository.dao.StagingService;
 import org.chronopolis.ingest.support.Loggers;
-import org.chronopolis.rest.entities.QBag;
-import org.chronopolis.rest.entities.storage.Fixity;
-import org.chronopolis.rest.entities.storage.StagingStorage;
+import org.chronopolis.rest.kot.entities.QBag;
+import org.chronopolis.rest.kot.entities.storage.Fixity;
+import org.chronopolis.rest.kot.entities.storage.StagingStorage;
 import org.chronopolis.rest.kot.models.create.FixityCreate;
 import org.chronopolis.rest.kot.models.update.ActiveToggle;
 import org.slf4j.Logger;
@@ -30,7 +30,7 @@ import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
 
 /**
  * REST controller for interacting with the Storage fields in a Bag
- *
+ * <p>
  * todo: BadRequest on invalid type?
  */
 @RestController
@@ -153,10 +153,10 @@ public class BagStorageController {
         access.info("[PUT /api/bags/{}/storage/{}/fixity]", id, type);
         access.info("Put parameters - {};{}", create.getAlgorithm(), create.getValue());
 
-        Fixity fixity = new Fixity()
-                .setValue(create.getValue())
-                .setAlgorithm(create.getAlgorithm())
-                .setCreatedAt(ZonedDateTime.now());
+        Fixity fixity = new Fixity();
+        fixity.setValue(create.getValue());
+        fixity.setAlgorithm(create.getAlgorithm());
+        fixity.setCreatedAt(ZonedDateTime.now());
 
         Optional<StagingStorage> stagingStorage = storageFor(id, type);
 
@@ -179,7 +179,7 @@ public class BagStorageController {
         try {
             String owner = storage.getRegion().getNode().getUsername();
             if (hasRoleAdmin() || owner.equalsIgnoreCase(principal.getName())) {
-                storage.addFixity(fixity);
+                storage.getFixities().add(fixity);
                 fixity.setStorage(storage);
                 stagingService.save(storage);
                 response = ResponseEntity.status(HttpStatus.CREATED).body(fixity);

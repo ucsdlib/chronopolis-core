@@ -15,14 +15,14 @@ import org.chronopolis.ingest.repository.Authority;
 import org.chronopolis.ingest.repository.dao.UserService;
 import org.chronopolis.ingest.support.FileSizeFormatter;
 import org.chronopolis.ingest.support.Loggers;
-import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.BagDistribution;
-import org.chronopolis.rest.entities.QBag;
-import org.chronopolis.rest.entities.QBagDistribution;
-import org.chronopolis.rest.entities.QReplication;
-import org.chronopolis.rest.models.BagStatus;
-import org.chronopolis.rest.models.PasswordUpdate;
-import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.kot.entities.Bag;
+import org.chronopolis.rest.kot.entities.BagDistributionStatus;
+import org.chronopolis.rest.kot.entities.QBag;
+import org.chronopolis.rest.kot.entities.QBagDistribution;
+import org.chronopolis.rest.kot.entities.QReplication;
+import org.chronopolis.rest.kot.models.enums.BagStatus;
+import org.chronopolis.rest.kot.models.update.PasswordUpdate;
+import org.chronopolis.rest.kot.models.enums.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,10 +101,10 @@ public class SiteController extends IngestController {
         }
 
         QReplication replication = QReplication.replication;
-        Long active = replications(factory, replication.status.in(ReplicationStatus.active()));
-        Long oneWeek = replications(factory, replication.status.in(ReplicationStatus.active()),
+        Long active = replications(factory, replication.status.in(ReplicationStatus.Companion.active()));
+        Long oneWeek = replications(factory, replication.status.in(ReplicationStatus.Companion.active()),
                 replication.updatedAt.before(ZonedDateTime.now().minusWeeks(1)));
-        Long twoWeeks = replications(factory, replication.status.in(ReplicationStatus.active()),
+        Long twoWeeks = replications(factory, replication.status.in(ReplicationStatus.Companion.active()),
                 replication.updatedAt.before(ZonedDateTime.now().minusWeeks(2)));
 
         model.addAttribute("preserved", preserved);
@@ -143,8 +143,8 @@ public class SiteController extends IngestController {
         // retrieve BagStatusSummary
         BagSummary preservedSummary = new BagSummary(0L, 0L, BagStatus.PRESERVED);
         ImmutableSet<BagStatus> statuses = new ImmutableSet.Builder<BagStatus>()
-                .addAll(BagStatus.preservedStates())
-                .addAll(BagStatus.processingStates()).build();
+                .addAll(BagStatus.Companion.preservedStates())
+                .addAll(BagStatus.Companion.processingStates()).build();
 
         EnumPath<BagStatus> statusExpr = bag.status;
         NumberExpression<Long> sumExpr = bag.size.sum();
@@ -183,14 +183,14 @@ public class SiteController extends IngestController {
         ZonedDateTime beforeDateTime = ZonedDateTime.of(before, LocalTime.of(0, 0), ZoneOffset.UTC);
         Long stuck = factory.selectFrom(bag)
                 .select(bag.countDistinct())
-                .where(bag.status.in(BagStatus.processingStates()).and(bag.updatedAt.before(beforeDateTime)))
+                .where(bag.status.in(BagStatus.Companion.processingStates()).and(bag.updatedAt.before(beforeDateTime)))
                 .fetchOne();
 
         // Node totals
         List<DepositorSummary> nodeTotals = factory.from(QBagDistribution.bagDistribution)
                 .innerJoin(QBagDistribution.bagDistribution.bag, bag)
                 .select(Projections.constructor(DepositorSummary.class, sumExpr, countExpr, QBagDistribution.bagDistribution.node.username))
-                .where(QBagDistribution.bagDistribution.status.eq(BagDistribution.BagDistributionStatus.REPLICATE))
+                .where(QBagDistribution.bagDistribution.status.eq(BagDistributionStatus.REPLICATE))
                 .groupBy(QBagDistribution.bagDistribution.node.username)
                 .fetch();
 

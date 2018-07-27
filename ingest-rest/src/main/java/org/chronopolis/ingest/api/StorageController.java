@@ -2,15 +2,15 @@ package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableMap;
 import org.chronopolis.ingest.IngestController;
-import org.chronopolis.ingest.repository.dao.StorageRegionService;
-import org.chronopolis.ingest.support.Loggers;
-import org.chronopolis.rest.models.RegionCreate;
 import org.chronopolis.ingest.models.filter.StorageRegionFilter;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
-import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.storage.ReplicationConfig;
-import org.chronopolis.rest.entities.storage.StorageRegion;
+import org.chronopolis.ingest.repository.dao.StorageRegionService;
+import org.chronopolis.ingest.support.Loggers;
+import org.chronopolis.rest.kot.entities.Node;
+import org.chronopolis.rest.kot.entities.storage.ReplicationConfig;
+import org.chronopolis.rest.kot.entities.storage.StorageRegion;
+import org.chronopolis.rest.kot.models.create.RegionCreate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +26,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
+import java.util.Collections;
 import java.util.HashMap;
 
 /**
  * API methods to query StorageRegions
- *
+ * <p>
  * Created by shake on 7/11/17.
  */
 @RestController
@@ -82,9 +83,9 @@ public class StorageController extends IngestController {
 
     /**
      * Create a StorageRegion for a node
-     *
+     * <p>
      * todo: some type of identifier (local??) for storage regions?
-     *       should this be included in the create call?
+     * should this be included in the create call?
      *
      * @param create the request containing the information about the SR
      * @return 201 with the new StorageRegion
@@ -112,16 +113,18 @@ public class StorageController extends IngestController {
                         .build();
             } else {
                 StorageRegion region = new StorageRegion();
-                region.setCapacity(create.getCapacity())
-                        .setNode(node)
-                        .setNote(create.getNote())
-                        .setDataType(create.getDataType())
-                        .setStorageType(create.getStorageType())
-                        .setReplicationConfig(new ReplicationConfig()
-                                .setRegion(region)
-                                .setPath(create.getReplicationPath())
-                                .setServer(create.getReplicationServer())
-                                .setUsername(create.getReplicationUser()));
+                region.setCapacity(create.getCapacity());
+                region.setNode(node);
+                region.setNote(create.getNote());
+                region.setDataType(create.getDataType());
+                region.setStorageType(create.getStorageType());
+
+                ReplicationConfig config = new ReplicationConfig(region,
+                        create.getReplicationPath(),
+                        create.getReplicationServer(),
+                        create.getReplicationUser());
+                region.setReplicationConfig(config);
+                region.setStorage(Collections.emptySet());
                 service.save(region);
                 entity = ResponseEntity
                         .status(HttpStatus.CREATED)

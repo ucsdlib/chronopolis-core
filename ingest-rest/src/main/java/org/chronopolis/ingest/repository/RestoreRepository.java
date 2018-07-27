@@ -1,7 +1,7 @@
 package org.chronopolis.ingest.repository;
 
-import org.chronopolis.rest.models.ReplicationStatus;
-import org.chronopolis.rest.entities.Restoration;
+import org.chronopolis.rest.kot.entities.Restoration;
+import org.chronopolis.rest.kot.models.enums.ReplicationStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

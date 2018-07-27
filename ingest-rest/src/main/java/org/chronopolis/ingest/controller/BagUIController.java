@@ -23,19 +23,19 @@ import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.ingest.support.FileSizeFormatter;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.ingest.support.ReplicationCreateResult;
-import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.QBag;
-import org.chronopolis.rest.entities.Replication;
-import org.chronopolis.rest.entities.storage.Fixity;
-import org.chronopolis.rest.entities.storage.StagingStorage;
-import org.chronopolis.rest.entities.storage.StorageRegion;
+import org.chronopolis.rest.kot.entities.Bag;
+import org.chronopolis.rest.kot.entities.Node;
+import org.chronopolis.rest.kot.entities.QBag;
+import org.chronopolis.rest.kot.entities.Replication;
+import org.chronopolis.rest.kot.entities.storage.Fixity;
+import org.chronopolis.rest.kot.entities.storage.StagingStorage;
+import org.chronopolis.rest.kot.entities.storage.StorageRegion;
 import org.chronopolis.rest.kot.models.create.BagCreate;
-import org.chronopolis.rest.models.BagStatus;
-import org.chronopolis.rest.models.ReplicationStatus;
-import org.chronopolis.rest.models.storage.FixityCreate;
-import org.chronopolis.rest.models.storage.StagingCreate;
-import org.chronopolis.rest.support.StorageUnit;
+import org.chronopolis.rest.kot.models.create.FixityCreate;
+import org.chronopolis.rest.kot.models.create.StagingCreate;
+import org.chronopolis.rest.kot.models.enums.BagStatus;
+import org.chronopolis.rest.kot.models.enums.ReplicationStatus;
+import org.chronopolis.rest.kot.models.enums.StorageUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +58,7 @@ import java.security.Principal;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -122,7 +123,7 @@ public class BagUIController extends IngestController {
         PageWrapper<Bag> pages = new PageWrapper<>(bags, "/bags", filter.getParameters());
         model.addAttribute("bags", bags);
         model.addAttribute("pages", pages);
-        model.addAttribute("statuses", BagStatus.statusByGroup());
+        model.addAttribute("statuses", BagStatus.Companion.statusByGroup());
 
         return "bags/bags";
     }
@@ -441,16 +442,20 @@ public class BagUIController extends IngestController {
             throw new ConflictException("Resource already has active storage!");
         }
 
+        if (bag.getBagStorage() == null) {
+            bag.setBagStorage(new HashSet<>());
+        }
+
         double multiple = Math.pow(1000, stagingCreate.getStorageUnit().getPower());
         long size = Double.valueOf(stagingCreate.getSize() * multiple).longValue();
 
-        StagingStorage storage = new StagingStorage()
-                .setSize(size)
-                .setActive(true)
-                .setRegion(region)
-                .setPath(stagingCreate.getLocation())
-                .setTotalFiles(stagingCreate.getTotalFiles());
-        bag.setBagStorage(storage);
+        StagingStorage storage = new StagingStorage();
+        storage.setSize(size);
+        storage.setActive(true);
+        storage.setRegion(region);
+        storage.setPath(stagingCreate.getLocation());
+        storage.setTotalFiles(stagingCreate.getTotalFiles());
+        bag.getBagStorage().add(storage);
         bagService.save(bag);
 
         return "redirect:/bags/" + id;
@@ -518,7 +523,7 @@ public class BagUIController extends IngestController {
                 new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, s));
 
         model.addAttribute("replications", replications);
-        model.addAttribute("statuses", ReplicationStatus.statusByGroup());
+        model.addAttribute("statuses", ReplicationStatus.Companion.statusByGroup());
         model.addAttribute("pages", new PageWrapper<>(replications,
                 "/replications",
                 filter.getParameters()));
@@ -585,12 +590,12 @@ public class BagUIController extends IngestController {
     }
 
     /**
-     * Create multiple repications
-     *
+     * Create multiple replications
+     * <p>
      * Todo: ReplicationCreate -> ReplicationCreateMultiple
      *
-     * @param principal
-     * @param form
+     * @param principal the security principal of the user
+     * @param form the ReplicationCreate for to create many replications
      * @return
      */
     @RequestMapping(value = "/replications/create", method = RequestMethod.POST)

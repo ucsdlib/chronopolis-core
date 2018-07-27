@@ -5,7 +5,7 @@ import org.chronopolis.ingest.JpaContext;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.support.BagCreateResult;
-import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.kot.entities.Bag;
 import org.chronopolis.rest.kot.models.create.BagCreate;
 import org.junit.Assert;
 import org.junit.Before;

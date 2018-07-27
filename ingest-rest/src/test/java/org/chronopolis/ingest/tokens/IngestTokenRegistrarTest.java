@@ -7,9 +7,9 @@ import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
-import org.chronopolis.rest.entities.AceToken;
-import org.chronopolis.rest.entities.QAceToken;
-import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.kot.entities.AceToken;
+import org.chronopolis.rest.kot.entities.QAceToken;
+import org.chronopolis.rest.kot.entities.QBag;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
@@ -37,8 +37,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+/**
+ * todo: old BagModel -> new Bag when tokenizer is updated
+ *
+ */
 @DataJpaTest
+@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = JpaContext.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SqlGroup({

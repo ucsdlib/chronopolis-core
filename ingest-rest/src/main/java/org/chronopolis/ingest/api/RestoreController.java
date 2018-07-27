@@ -1,16 +1,12 @@
 package org.chronopolis.ingest.api;
 
 import org.chronopolis.ingest.IngestController;
-import org.chronopolis.ingest.exception.BadRequestException;
-import org.chronopolis.ingest.exception.ConflictException;
 import org.chronopolis.ingest.exception.NotFoundException;
-import org.chronopolis.ingest.exception.UnauthorizedException;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.RestoreRepository;
+import org.chronopolis.rest.kot.entities.Restoration;
+import org.chronopolis.rest.kot.models.enums.ReplicationStatus;
 import org.chronopolis.rest.models.IngestRequest;
-import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.models.ReplicationStatus;
-import org.chronopolis.rest.entities.Restoration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +30,7 @@ import static org.chronopolis.ingest.api.Params.PAGE_SIZE;
  *
  * Created by shake on 12/10/14.
  */
+@Deprecated
 @RestController
 @RequestMapping("/api/restorations")
 public class RestoreController extends IngestController {
@@ -75,7 +72,7 @@ public class RestoreController extends IngestController {
                 restoreRepository.findByNameAndDepositor(name, depositor);
 
         if (restoration == null) {
-            restoration = new Restoration(depositor, name, request.getLocation());
+            // restoration = new Restoration(depositor, name, request.getLocation());
         }
 
         return restoration;
@@ -98,6 +95,7 @@ public class RestoreController extends IngestController {
     public Restoration acceptRestoration(Principal principal,
                                          @PathVariable("id") Long id) {
         Restoration restoration = restoreRepository.findOne(id);
+        /*
         Node requestNode = nodeRepository.findByUsername(principal.getName());
 
         if (restoration == null) {
@@ -124,6 +122,7 @@ public class RestoreController extends IngestController {
                 id);
         restoration.setNode(requestNode);
         restoreRepository.save(restoration);
+        */
         return restoration;
     }
 
@@ -132,6 +131,7 @@ public class RestoreController extends IngestController {
                                          @PathVariable("id") Long id,
                                          @RequestBody Restoration updated) {
         Restoration restoration = restoreRepository.findOne(id);
+        /*
 
         // check to make sure someone has accepted the restoration
         if (restoration.getNode() == null) {
@@ -142,6 +142,7 @@ public class RestoreController extends IngestController {
         if (!restoration.getNode().getUsername().equals(principal.getName())) {
             throw new UnauthorizedException(principal.getName());
         }
+        /
 
         ReplicationStatus status = updated.getStatus();
 
@@ -156,6 +157,7 @@ public class RestoreController extends IngestController {
         }
 
         restoreRepository.save(restoration);
+        */
         return restoration;
     }
 

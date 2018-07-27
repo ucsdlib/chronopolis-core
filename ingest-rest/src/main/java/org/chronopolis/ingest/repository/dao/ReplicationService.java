@@ -10,16 +10,17 @@ import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
 import org.chronopolis.ingest.repository.criteria.ReplicationSearchCriteria;
 import org.chronopolis.ingest.support.ReplicationCreateResult;
-import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.BagDistribution;
-import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.QBag;
-import org.chronopolis.rest.entities.Replication;
-import org.chronopolis.rest.entities.storage.QStagingStorage;
-import org.chronopolis.rest.entities.storage.ReplicationConfig;
-import org.chronopolis.rest.entities.storage.StagingStorage;
+import org.chronopolis.rest.kot.entities.Bag;
+import org.chronopolis.rest.kot.entities.BagDistribution;
+import org.chronopolis.rest.kot.entities.BagDistributionStatus;
+import org.chronopolis.rest.kot.entities.Node;
+import org.chronopolis.rest.kot.entities.QBag;
+import org.chronopolis.rest.kot.entities.Replication;
+import org.chronopolis.rest.kot.entities.storage.QStagingStorage;
+import org.chronopolis.rest.kot.entities.storage.ReplicationConfig;
+import org.chronopolis.rest.kot.entities.storage.StagingStorage;
 import org.chronopolis.rest.kot.models.create.ReplicationCreate;
-import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.kot.models.enums.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +35,7 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatus.DISTRIBUTE;
+
 
 /**
  * Class to help querying for replication objects based on various values.
@@ -158,10 +159,11 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
         ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
                 .withBagId(bag.getId())
                 .withNodeUsername(node.getUsername())
-                .withStatuses(ReplicationStatus.active());
+                .withStatuses(ReplicationStatus.Companion.active());
 
         Page<Replication> ongoing = findAll(criteria, new PageRequest(0, 10));
-        Replication action = new Replication(node, bag, bagLink, tokenLink);
+        Replication action = new Replication(ReplicationStatus.PENDING,
+                node, bag, bagLink, tokenLink, "rsync", null, null);
 
         // So... the protocol field needs to be looked at during the next update
         // basically we have a field which is authoritative for both links, even though the
@@ -241,13 +243,8 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
     private String createReplicationString(StagingStorage storage, Boolean trailingSlash) {
         ReplicationConfig config;
 
-        if (storage.getRegion() != null && storage.getRegion().getReplicationConfig() != null) {
-            config = storage.getRegion().getReplicationConfig();
-        } else {
-            // Probably want something different from a RuntimeException, but for now this should suffice
-            throw new RuntimeException("Unable to create replication for storage object "
-                    + storage.getId());
-        }
+        storage.getRegion();
+        config = storage.getRegion().getReplicationConfig();
 
         final String user = config.getUsername() != null ? config.getUsername() : DEFAULT_USER;
         final String server = config.getServer();
@@ -275,7 +272,7 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
         }
 
         if (bagDistribution == null) {
-            bag.addDistribution(node, DISTRIBUTE);
+            bag.addDistribution(node, BagDistributionStatus.DISTRIBUTE);
             // not sure if this is the best place for this...
             bagRepository.save(bag);
         }

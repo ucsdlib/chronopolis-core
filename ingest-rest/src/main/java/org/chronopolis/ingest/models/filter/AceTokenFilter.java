@@ -5,7 +5,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import org.chronopolis.ingest.models.Paged;
-import org.chronopolis.rest.entities.QAceToken;
+import org.chronopolis.rest.kot.entities.QAceToken;
 
 /**
  * Data binding for queries on AceTokens

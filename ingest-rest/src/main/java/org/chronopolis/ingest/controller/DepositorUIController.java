@@ -21,17 +21,17 @@ import org.chronopolis.ingest.models.filter.DepositorFilter;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.ingest.support.FileSizeFormatter;
 import org.chronopolis.ingest.support.Loggers;
-import org.chronopolis.rest.entities.Depositor;
-import org.chronopolis.rest.entities.DepositorContact;
-import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.QBag;
-import org.chronopolis.rest.entities.QDepositor;
-import org.chronopolis.rest.entities.QDepositorContact;
-import org.chronopolis.rest.entities.QDepositorNode;
-import org.chronopolis.rest.entities.QNode;
-import org.chronopolis.rest.models.DepositorContactCreate;
-import org.chronopolis.rest.models.DepositorCreate;
-import org.chronopolis.rest.models.DepositorEdit;
+import org.chronopolis.rest.kot.entities.Node;
+import org.chronopolis.rest.kot.entities.QBag;
+import org.chronopolis.rest.kot.entities.QNode;
+import org.chronopolis.rest.kot.entities.depositor.Depositor;
+import org.chronopolis.rest.kot.entities.depositor.DepositorContact;
+import org.chronopolis.rest.kot.entities.depositor.QDepositor;
+import org.chronopolis.rest.kot.entities.depositor.QDepositorContact;
+import org.chronopolis.rest.kot.entities.depositor.QDepositorNode;
+import org.chronopolis.rest.kot.models.create.DepositorContactCreate;
+import org.chronopolis.rest.kot.models.create.DepositorCreate;
+import org.chronopolis.rest.kot.models.update.DepositorUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -205,7 +205,7 @@ public class DepositorUIController extends IngestController {
     @GetMapping("/depositors/list/{namespace}/edit")
     public String editDepositor(Model model,
                                 @PathVariable("namespace") String namespace,
-                                DepositorEdit depositorEdit) {
+                                DepositorUpdate depositorEdit) {
         Depositor existing = getOrThrowNotFound(namespace);
 
         QDepositorNode qdn = QDepositorNode.depositorNode;
@@ -222,7 +222,7 @@ public class DepositorUIController extends IngestController {
     @PostMapping("/depositors/list/{namespace}/edit")
     public String postEditDepositor(Principal principal,
                                     @PathVariable("namespace") String namespace,
-                                    DepositorEdit depositorEdit) {
+                                    DepositorUpdate depositorEdit) {
         access.info("[POST /depositors/list/{}/edit] - {}", namespace, principal.getName());
         Depositor depositor = getOrThrowNotFound(namespace);
 
@@ -286,7 +286,7 @@ public class DepositorUIController extends IngestController {
         Depositor depositor = getOrThrowNotFound(namespace);
         DepositorContact contact = dao.findOne(QDepositorContact.depositorContact,
                 QDepositorContact.depositorContact.contactEmail
-                        .eq(depositorContactCreate.getEmail())
+                        .eq(depositorContactCreate.getContactEmail())
                         .and(QDepositorContact.depositorContact.depositor.eq(depositor)));
 
         if (contact != null) {
@@ -305,8 +305,10 @@ public class DepositorUIController extends IngestController {
             return "depositors/add_contact";
         }
 
-        Optional<DepositorContact> depositorContact =
-                DepositorContact.fromCreateRequest(depositorContactCreate);
+        Optional<DepositorContact> depositorContact = Optional.of(new DepositorContact(
+                depositorContactCreate.getContactName(),
+                depositorContactCreate.getContactPhone(),
+                depositorContactCreate.getContactEmail()));
         return depositorContact.map(contact1 -> {
             depositor.addContact(contact1);
             dao.save(contact1);
@@ -317,7 +319,7 @@ public class DepositorUIController extends IngestController {
     @GetMapping("/depositors/list/{namespace}/addNode")
     public String addNode(Model model,
                           @PathVariable("namespace") String namespace,
-                          DepositorEdit depositorEdit) {
+                          DepositorUpdate depositorEdit) {
         Depositor depositor = getOrThrowNotFound(namespace);
 
         QDepositorNode qdn = QDepositorNode.depositorNode;
@@ -333,7 +335,7 @@ public class DepositorUIController extends IngestController {
 
     @PostMapping("/depositors/list/{namespace}/addNode")
     public String addNodeAction(@PathVariable("namespace") String namespace,
-                                DepositorEdit depositorEdit) {
+                                DepositorUpdate depositorEdit) {
         Depositor depositor = dao.findOne(QDepositor.depositor,
                 QDepositor.depositor.namespace.eq(namespace));
         List<String> nodes = depositorEdit.getReplicatingNodes();

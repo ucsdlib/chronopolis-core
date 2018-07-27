@@ -5,10 +5,10 @@ import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.models.filter.AceTokenFilter;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.ingest.support.Loggers;
-import org.chronopolis.rest.entities.AceToken;
-import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.QAceToken;
-import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.kot.entities.AceToken;
+import org.chronopolis.rest.kot.entities.Bag;
+import org.chronopolis.rest.kot.entities.QAceToken;
+import org.chronopolis.rest.kot.entities.QBag;
 import org.chronopolis.rest.kot.models.create.AceTokenCreate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,14 +107,14 @@ public class BagTokenController extends IngestController {
         } else if (tokenId > 0) {
             response = ResponseEntity.status(HttpStatus.CONFLICT).build();
         } else {
-            AceToken token = new AceToken(bag,
-                    Date.from(model.getCreateDate().toInstant()),
-                    model.getFilename(),
+            AceToken token = new AceToken(model.getFilename(),
                     model.getProof(),
-                    model.getImsHost(),
+                    model.getRound(),
                     model.getImsService(),
                     model.getAlgorithm(),
-                    model.getRound());
+                    model.getImsHost(),
+                    Date.from(model.getCreateDate().toInstant()));
+            token.setBag(bag);
             dao.save(token);
             response = ResponseEntity.status(HttpStatus.CREATED)
                     .contentType(MediaType.APPLICATION_JSON)

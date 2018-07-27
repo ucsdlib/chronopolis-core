@@ -4,8 +4,9 @@ import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
-import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.kot.entities.Bag;
+import org.chronopolis.rest.kot.entities.BagDistributionStatus;
+import org.chronopolis.rest.kot.entities.Node;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,7 +21,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.persistence.EntityManager;
 
-import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatus.REPLICATE;
 
 /**
  * Test for the ManyToMany relationship between bags and nodes. One is a simple
@@ -64,7 +64,7 @@ public class ReplicatingNodeTest extends IngestTest {
         // Add replicating nodes
         Bag bag = bags.find(new BagSearchCriteria().withName(name).withDepositor(DEPOSITOR));
         for (Node node : nodeRepository.findAll()) {
-            bag.addDistribution(node, REPLICATE);
+            bag.addDistribution(node, BagDistributionStatus.REPLICATE);
         }
         bagRepository.save(bag);
 

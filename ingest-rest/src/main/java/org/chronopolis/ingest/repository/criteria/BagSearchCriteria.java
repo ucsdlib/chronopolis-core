@@ -2,8 +2,8 @@ package org.chronopolis.ingest.repository.criteria;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import org.chronopolis.ingest.api.Params;
-import org.chronopolis.rest.entities.QBag;
-import org.chronopolis.rest.models.BagStatus;
+import org.chronopolis.rest.kot.entities.QBag;
+import org.chronopolis.rest.kot.models.enums.BagStatus;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;

@@ -7,10 +7,9 @@ import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.ingest.support.Loggers;
-import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.kot.entities.Bag;
 import org.chronopolis.rest.kot.models.create.BagCreate;
-import org.chronopolis.rest.models.BagStatus;
-import org.chronopolis.rest.models.IngestRequest;
+import org.chronopolis.rest.kot.models.enums.BagStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +49,6 @@ import static org.chronopolis.ingest.api.Params.UPDATED_BEFORE;
 @RequestMapping("/api/bags")
 public class BagController extends IngestController {
 
-    private final Logger log = LoggerFactory.getLogger(BagController.class);
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private final BagService bagService;

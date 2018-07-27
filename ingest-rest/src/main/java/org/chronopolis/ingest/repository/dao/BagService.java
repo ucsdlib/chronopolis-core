@@ -5,26 +5,26 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.support.BagCreateResult;
-import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Depositor;
-import org.chronopolis.rest.entities.DepositorNode;
-import org.chronopolis.rest.entities.QAceToken;
-import org.chronopolis.rest.entities.QBag;
-import org.chronopolis.rest.entities.QDepositor;
-import org.chronopolis.rest.entities.storage.QStorageRegion;
-import org.chronopolis.rest.entities.storage.StagingStorage;
-import org.chronopolis.rest.entities.storage.StorageRegion;
+import org.chronopolis.rest.kot.entities.Bag;
+import org.chronopolis.rest.kot.entities.BagDistributionStatus;
+import org.chronopolis.rest.kot.entities.QAceToken;
+import org.chronopolis.rest.kot.entities.QBag;
+import org.chronopolis.rest.kot.entities.depositor.Depositor;
+import org.chronopolis.rest.kot.entities.depositor.DepositorNode;
+import org.chronopolis.rest.kot.entities.depositor.QDepositor;
+import org.chronopolis.rest.kot.entities.storage.QStorageRegion;
+import org.chronopolis.rest.kot.entities.storage.StagingStorage;
+import org.chronopolis.rest.kot.entities.storage.StorageRegion;
 import org.chronopolis.rest.kot.models.create.BagCreate;
-import org.chronopolis.rest.models.BagStatus;
+import org.chronopolis.rest.kot.models.enums.BagStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-
-import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatus.DISTRIBUTE;
 
 /**
  * Service to build queries for bags from the search criteria
@@ -158,10 +158,16 @@ public class BagService extends SearchService<Bag, Long, BagRepository> {
                 .fetchOne();
 
         if (existing == null) {
-            Bag bag = new Bag(request.getName(), depositor)
-                    .setCreator(creator)
-                    .setSize(request.getSize())
-                    .setTotalFiles(request.getTotalFiles());
+            Bag bag = new Bag(request.getName(),
+                    creator,
+                    depositor,
+                    request.getSize(),
+                    request.getTotalFiles(),
+                    BagStatus.DEPOSITED);
+            // get the late inits populated
+            bag.setBagStorage(new HashSet<>());
+            bag.setTokenStorage(new HashSet<>());
+            bag.setDistributions(new HashSet<>());
 
             StagingStorage storage = new StagingStorage();
             storage.setRegion(region);
@@ -169,7 +175,7 @@ public class BagService extends SearchService<Bag, Long, BagRepository> {
             storage.setSize(request.getSize());
             storage.setTotalFiles(request.getTotalFiles());
             storage.setPath(request.getLocation());
-            bag.setBagStorage(storage);
+            bag.getBagStorage().add(storage);
             createDistributions(bag, depositor);
 
             save(bag);
@@ -189,8 +195,8 @@ public class BagService extends SearchService<Bag, Long, BagRepository> {
      */
     private void createDistributions(Bag bag, Depositor depositor) {
         for (DepositorNode node : depositor.getNodeDistributions()) {
-            log.debug("Creating requested dist record for {}", node.getNode().username);
-            bag.addDistribution(node.getNode(), DISTRIBUTE);
+            log.debug("Creating requested dist record for {}", node.getNode().getUsername());
+            bag.addDistribution(node.getNode(), BagDistributionStatus.DISTRIBUTE);
         }
     }
 

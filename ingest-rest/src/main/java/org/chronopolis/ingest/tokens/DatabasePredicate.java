@@ -2,8 +2,8 @@ package org.chronopolis.ingest.tokens;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
-import org.chronopolis.rest.entities.QAceToken;
-import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.kot.entities.QAceToken;
+import org.chronopolis.rest.kot.entities.QBag;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

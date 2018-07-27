@@ -8,12 +8,12 @@ import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.criteria.AceTokenSearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
-import org.chronopolis.rest.entities.AceToken;
-import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.storage.Fixity;
-import org.chronopolis.rest.entities.storage.StagingStorage;
-import org.chronopolis.rest.entities.storage.StorageRegion;
-import org.chronopolis.rest.models.BagStatus;
+import org.chronopolis.rest.kot.entities.AceToken;
+import org.chronopolis.rest.kot.entities.Bag;
+import org.chronopolis.rest.kot.entities.storage.Fixity;
+import org.chronopolis.rest.kot.entities.storage.StagingStorage;
+import org.chronopolis.rest.kot.entities.storage.StorageRegion;
+import org.chronopolis.rest.kot.models.enums.BagStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -126,13 +126,9 @@ public class TokenStoreWriter implements Runnable {
             storage.setTotalFiles(1L);
             storage.setPath(root.relativize(store).toString());
 
-            storage.addFixity(new Fixity()
-                    .setStorage(storage)
-                    .setCreatedAt(ZonedDateTime.now())
-                    .setAlgorithm("SHA-256")
-                    .setValue(hash));
+            storage.addFixity(new Fixity(storage, ZonedDateTime.now(), hash, "SHA-256"));
 
-            bag.setTokenStorage(storage);
+            bag.getTokenStorage().add(storage);
             bag.setStatus(BagStatus.TOKENIZED);
             bagService.save(bag);
         } catch (Exception ex) { // not to happy about the catch all but there are multiple

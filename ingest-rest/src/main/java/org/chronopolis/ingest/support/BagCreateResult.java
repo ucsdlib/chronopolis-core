@@ -1,7 +1,7 @@
 package org.chronopolis.ingest.support;
 
 import com.google.common.collect.ImmutableList;
-import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.kot.entities.Bag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseEntity.BodyBuilder;

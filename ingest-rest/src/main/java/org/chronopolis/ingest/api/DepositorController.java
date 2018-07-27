@@ -1,20 +1,21 @@
 package org.chronopolis.ingest.api;
 
+import com.google.common.collect.ImmutableSet;
 import org.chronopolis.ingest.models.filter.BagFilter;
 import org.chronopolis.ingest.models.filter.DepositorFilter;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.ingest.support.Loggers;
-import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Depositor;
-import org.chronopolis.rest.entities.DepositorContact;
-import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.QBag;
-import org.chronopolis.rest.entities.QDepositor;
-import org.chronopolis.rest.entities.QDepositorContact;
-import org.chronopolis.rest.entities.QNode;
+import org.chronopolis.rest.kot.entities.Bag;
+import org.chronopolis.rest.kot.entities.Node;
+import org.chronopolis.rest.kot.entities.QBag;
+import org.chronopolis.rest.kot.entities.QNode;
+import org.chronopolis.rest.kot.entities.depositor.Depositor;
+import org.chronopolis.rest.kot.entities.depositor.DepositorContact;
+import org.chronopolis.rest.kot.entities.depositor.QDepositor;
+import org.chronopolis.rest.kot.entities.depositor.QDepositorContact;
+import org.chronopolis.rest.kot.models.create.DepositorContactCreate;
+import org.chronopolis.rest.kot.models.create.DepositorCreate;
 import org.chronopolis.rest.kot.models.delete.DepositorContactDelete;
-import org.chronopolis.rest.models.DepositorContactCreate;
-import org.chronopolis.rest.models.DepositorCreate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,17 +98,17 @@ public class DepositorController {
             response = ResponseEntity.status(HttpStatus.CONFLICT).build();
         } else {
             Set<DepositorContact> contacts = depositorCreate.getContacts().stream()
-                    .map(DepositorContact::fromCreateRequest)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
+                    .map(create -> new DepositorContact(create.getContactName(),
+                            create.getContactPhone(),
+                            create.getContactEmail()))
                     .collect(Collectors.toSet());
 
             if (contacts.size() == depositorCreate.getContacts().size()) {
-                Depositor dep = new Depositor()
-                        .setNamespace(depositorCreate.getNamespace())
-                        .setSourceOrganization(depositorCreate.getSourceOrganization())
-                        .setOrganizationAddress(depositorCreate.getOrganizationAddress())
-                        .setContacts(contacts);
+                Depositor dep = new Depositor(depositorCreate.getNamespace(),
+                        depositorCreate.getSourceOrganization(),
+                        depositorCreate.getOrganizationAddress());
+                dep.setContacts(contacts);
+                dep.setNodeDistributions(ImmutableSet.of());
                 dao.save(dep);
                 response = ResponseEntity.status(HttpStatus.CREATED).body(dep);
             }
@@ -216,9 +217,13 @@ public class DepositorController {
             Depositor depositor = dao.findOne(qDepositor, qDepositor.namespace.eq(namespace));
             DepositorContact depositorContact = dao.findOne(qDepositorContact,
                     qDepositorContact.depositor.namespace.eq(namespace)
-                            .and(qDepositorContact.contactEmail.eq(create.getEmail())));
+                            .and(qDepositorContact.contactEmail.eq(create.getContactEmail())));
             if (depositor != null && depositorContact == null) {
-                Optional<DepositorContact> contact = DepositorContact.fromCreateRequest(create);
+                Optional<DepositorContact> contact = Optional.of(new DepositorContact(
+                    create.getContactName(),
+                    create.getContactPhone(),
+                    create.getContactEmail()
+                ));
                 // if valid...
                 response = contact.map(entity -> {
                     depositor.addContact(entity);

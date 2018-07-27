@@ -29,7 +29,8 @@ import org.springframework.context.annotation.ComponentScan;
         IngestConfig.class,
         ReplicationService.class
 })
-@EntityScan(basePackages = "org.chronopolis.rest.entities", basePackageClasses = Authority.class)
+@EntityScan(basePackages = "org.chronopolis.rest.kot.entities",
+        basePackageClasses = Authority.class)
 @EnableAutoConfiguration
 public class Application implements CommandLineRunner {
 

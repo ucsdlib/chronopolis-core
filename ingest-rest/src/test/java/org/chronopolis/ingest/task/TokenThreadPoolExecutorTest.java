@@ -38,9 +38,7 @@ public class TokenThreadPoolExecutorTest extends IngestTest {
 
     @Before
     public void setup() {
-        trackingExecutor = new TrackingThreadPoolExecutor<>(4,
-                4,
-                4,
+        trackingExecutor = new TrackingThreadPoolExecutor<>(4, 4, 4,
                 TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>());
 

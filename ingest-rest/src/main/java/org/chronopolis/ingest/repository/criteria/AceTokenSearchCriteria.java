@@ -2,7 +2,7 @@ package org.chronopolis.ingest.repository.criteria;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import org.chronopolis.ingest.api.Params;
-import org.chronopolis.rest.entities.QAceToken;
+import org.chronopolis.rest.kot.entities.QAceToken;
 
 import java.util.HashMap;
 import java.util.Map;

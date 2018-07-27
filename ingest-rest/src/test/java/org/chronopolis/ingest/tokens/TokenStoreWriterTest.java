@@ -15,11 +15,11 @@ import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.ingest.repository.dao.StorageRegionService;
-import org.chronopolis.rest.entities.AceToken;
-import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.storage.Fixity;
-import org.chronopolis.rest.entities.storage.StorageRegion;
-import org.chronopolis.rest.models.BagStatus;
+import org.chronopolis.rest.kot.entities.AceToken;
+import org.chronopolis.rest.kot.entities.Bag;
+import org.chronopolis.rest.kot.entities.storage.Fixity;
+import org.chronopolis.rest.kot.entities.storage.StorageRegion;
+import org.chronopolis.rest.kot.models.enums.BagStatus;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,8 +38,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
 
-@RunWith(SpringRunner.class)
 @DataJpaTest
+@RunWith(SpringRunner.class)
 @ContextConfiguration(classes = JpaContext.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SqlGroup({

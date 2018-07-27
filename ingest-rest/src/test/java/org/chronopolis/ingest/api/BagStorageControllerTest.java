@@ -2,12 +2,12 @@ package org.chronopolis.ingest.api;
 
 import com.querydsl.core.types.dsl.SetPath;
 import org.chronopolis.ingest.repository.dao.StagingService;
-import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.QBag;
-import org.chronopolis.rest.entities.storage.Fixity;
-import org.chronopolis.rest.entities.storage.QStagingStorage;
-import org.chronopolis.rest.entities.storage.StagingStorage;
-import org.chronopolis.rest.entities.storage.StorageRegion;
+import org.chronopolis.rest.kot.entities.Node;
+import org.chronopolis.rest.kot.entities.QBag;
+import org.chronopolis.rest.kot.entities.storage.Fixity;
+import org.chronopolis.rest.kot.entities.storage.QStagingStorage;
+import org.chronopolis.rest.kot.entities.storage.StagingStorage;
+import org.chronopolis.rest.kot.entities.storage.StorageRegion;
 import org.chronopolis.rest.kot.models.update.ActiveToggle;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,8 +21,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.ZonedDateTime;
+import java.util.HashSet;
 import java.util.Optional;
 
+import static java.util.Collections.emptySet;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -56,12 +58,12 @@ public class BagStorageControllerTest extends ControllerTest {
         StorageRegion region = new StorageRegion();
         region.setId(ID);
         region.setCapacity(100000L);
-        region.setNode(new Node(AUTHORIZED, AUTHORIZED));
+        region.setNode(new Node(emptySet(), emptySet(), emptySet(), AUTHORIZED, AUTHORIZED, true));
 
         Fixity fixity = new Fixity();
-        fixity.setAlgorithm("test-algorithm")
-                .setCreatedAt(ZonedDateTime.now())
-                .setValue("test-value");
+        fixity.setAlgorithm("test-algorithm");
+        fixity.setCreatedAt(ZonedDateTime.now());
+        fixity.setValue("test-value");
 
         storage = new StagingStorage();
         storage.setId(ID);
@@ -70,7 +72,8 @@ public class BagStorageControllerTest extends ControllerTest {
         storage.setSize(100L);
         storage.setTotalFiles(10L);
         storage.setRegion(region);
-        storage.addFixity(fixity);
+        storage.setFixities(new HashSet<>());
+        storage.getFixities().add(fixity);
         storage.setCreatedAt(ZonedDateTime.now());
         storage.setUpdatedAt(ZonedDateTime.now());
 

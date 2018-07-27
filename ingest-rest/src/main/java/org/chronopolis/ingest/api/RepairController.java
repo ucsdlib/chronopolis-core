@@ -12,14 +12,15 @@ import org.chronopolis.ingest.repository.criteria.RepairSearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.ingest.support.Loggers;
-import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.Repair;
-import org.chronopolis.rest.entities.fulfillment.Strategy;
-import org.chronopolis.rest.models.repair.AuditStatus;
-import org.chronopolis.rest.models.repair.FulfillmentStrategy;
+import org.chronopolis.rest.kot.entities.Bag;
+import org.chronopolis.rest.kot.entities.Node;
+import org.chronopolis.rest.kot.entities.repair.Repair;
+import org.chronopolis.rest.kot.entities.repair.Strategy;
+import org.chronopolis.rest.kot.entities.serializers.ExtensionsKt;
+import org.chronopolis.rest.kot.models.FulfillmentStrategy;
+import org.chronopolis.rest.kot.models.enums.AuditStatus;
+import org.chronopolis.rest.kot.models.enums.RepairStatus;
 import org.chronopolis.rest.models.repair.RepairRequest;
-import org.chronopolis.rest.models.repair.RepairStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
+import java.util.HashSet;
 import java.util.Map;
 
 import static org.chronopolis.ingest.IngestController.createPageRequest;
@@ -148,12 +150,13 @@ public class RepairController {
         log.info("Creating repair request from user {} for bag {}", principal.getName(), b.getName());
 
         // Create the repair object
-        Repair r = new Repair()
-                .setBag(b)
-                .setTo(node)
-                .setRequester(principal.getName())
-                .setStatus(RepairStatus.REQUESTED)
-                .setFilesFromRequest(request.getFiles());
+        Repair r = new Repair(b, node, null, // from_node -> null at first
+                RepairStatus.REQUESTED, AuditStatus.PRE,
+                null, null,  // vars set by from_node
+                principal.getName(),
+                false, false, false);
+        r.setFiles(new HashSet<>());
+        r.addFilesFromRequest(request.getFiles());
         rService.save(r);
 
         return r;
@@ -231,8 +234,9 @@ public class RepairController {
             }
         }
 
+
+        Strategy entity = ExtensionsKt.toEntity(strategy);
         log.info("Adding strategy of type {} to repair {}", strategy.getType(), repair.getId());
-        Strategy entity = strategy.createEntity(repair);
         repair.setType(strategy.getType());
         repair.setStrategy(entity);
         repair.setStatus(RepairStatus.READY);

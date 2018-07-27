@@ -10,14 +10,15 @@ import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
 import org.chronopolis.ingest.repository.dao.StorageRegionService;
 import org.chronopolis.ingest.support.FileSizeFormatter;
 import org.chronopolis.ingest.support.Loggers;
-import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.storage.ReplicationConfig;
-import org.chronopolis.rest.entities.storage.StorageRegion;
-import org.chronopolis.rest.models.RegionCreate;
+import org.chronopolis.rest.kot.entities.Node;
+import org.chronopolis.rest.kot.entities.storage.ReplicationConfig;
+import org.chronopolis.rest.kot.entities.storage.StorageRegion;
+import org.chronopolis.rest.kot.models.create.RegionCreate;
+import org.chronopolis.rest.kot.models.enums.DataType;
+import org.chronopolis.rest.kot.models.enums.StorageType;
+import org.chronopolis.rest.kot.models.enums.StorageUnit;
+import org.chronopolis.rest.kot.models.update.RegionUpdate;
 import org.chronopolis.rest.models.RegionEdit;
-import org.chronopolis.rest.models.storage.DataType;
-import org.chronopolis.rest.models.storage.StorageType;
-import org.chronopolis.rest.support.StorageUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -136,7 +137,9 @@ public class StorageRegionUIController extends IngestController {
 
         Node owner;
         if (hasRoleAdmin() || principal.getName().equalsIgnoreCase(regionCreate.getNode())) {
-            owner = nodes.findByUsername(regionCreate.getNode());
+            // owner = nodes.findByUsername(regionCreate.getNode());
+            // just so we can compile
+            owner = new Node();
         } else {
             throw new ForbiddenException("User does not have permissions to create this resource");
         }
@@ -199,7 +202,7 @@ public class StorageRegionUIController extends IngestController {
     public String editRegion(Model model,
                              Principal principal,
                              @PathVariable("id") Long id,
-                             @Valid RegionEdit regionEdit,
+                             @Valid RegionUpdate regionEdit,
                              BindingResult bindingResult) throws ForbiddenException {
         access.info("[POST /regions/{}/edit] - {}", id, principal.getName());
         StorageRegion region = service.find(new StorageRegionSearchCriteria().withId(id));

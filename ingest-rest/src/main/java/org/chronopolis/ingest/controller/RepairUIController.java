@@ -20,12 +20,12 @@ import org.chronopolis.ingest.repository.criteria.RepairSearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.ingest.support.Loggers;
-import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.Repair;
-import org.chronopolis.rest.models.repair.AuditStatus;
-import org.chronopolis.rest.models.repair.RepairRequest;
-import org.chronopolis.rest.models.repair.RepairStatus;
+import org.chronopolis.rest.kot.entities.Bag;
+import org.chronopolis.rest.kot.entities.Node;
+import org.chronopolis.rest.kot.entities.repair.Repair;
+import org.chronopolis.rest.kot.models.create.RepairCreate;
+import org.chronopolis.rest.kot.models.enums.AuditStatus;
+import org.chronopolis.rest.kot.models.enums.RepairStatus;
 import org.chronopolis.rest.support.OkBasicInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,8 +50,10 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -205,20 +207,26 @@ public class RepairUIController extends IngestController {
      * @return The newly created repair
      */
     @PostMapping("/repairs")
-    public String requestRepair(Principal principal, RepairRequest request) {
+    public String requestRepair(Principal principal, RepairCreate request) {
         access.info("[POST /repairs] - {}", principal.getName());
         log.info("{} items requested", request.getFiles().size());
         Bag bag = bags.find(new BagSearchCriteria()
                 .withDepositor(request.getDepositor())
                 .withName(request.getCollection()));
-        Node to = nodes.findByUsername(request.getTo().orElse(principal.getName()));
+        Optional<String> of = Optional.ofNullable(request.getTo());
+        Node to = nodes.findByUsername(of.orElse(principal.getName()));
 
-        Repair repair = new Repair();
-        repair.setRequester(principal.getName());
-        repair.setTo(to);
-        repair.setFilesFromRequest(request.getFiles());
-        repair.setBag(bag);
-        repair.setStatus(RepairStatus.REQUESTED);
+        Repair repair = new Repair(bag,
+                to,
+                null, // from_node -> set once we start to fulfill
+                RepairStatus.REQUESTED,
+                AuditStatus.PRE,
+                null,  // fulfillment type -> determined by from_node
+                null,  // fulfillment strategy -> determined by from_node
+                principal.getName(),
+                false, false, false);
+        repair.setFiles(new HashSet<>());
+        repair.addFilesFromRequest(request.getFiles());
         repairs.save(repair);
 
         return "redirect:/repairs/" + repair.getId();
@@ -249,8 +257,8 @@ public class RepairUIController extends IngestController {
 
         model.addAttribute("repairs", results);
         model.addAttribute("pages", pages);
-        model.addAttribute("repairStatus", RepairStatus.statusByGroup());
-        model.addAttribute("auditStatus", AuditStatus.statusByGroup());
+        model.addAttribute("repairStatus", RepairStatus.Companion.statusByGroup());
+        model.addAttribute("auditStatus", AuditStatus.Companion.statusByGroup());
         return "repair/repairs";
     }
 
@@ -325,7 +333,5 @@ public class RepairUIController extends IngestController {
 
         return "redirect:/repairs/" + repair.getId();
     }
-
-
 
 }

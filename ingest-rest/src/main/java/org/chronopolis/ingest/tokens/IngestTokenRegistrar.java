@@ -4,10 +4,10 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import edu.umiacs.ace.ims.api.IMSUtil;
 import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
-import org.chronopolis.rest.entities.AceToken;
-import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.QAceToken;
-import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.kot.entities.AceToken;
+import org.chronopolis.rest.kot.entities.Bag;
+import org.chronopolis.rest.kot.entities.QAceToken;
+import org.chronopolis.rest.kot.entities.QBag;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.registrar.TokenRegistrar;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
@@ -71,12 +71,13 @@ public class IngestTokenRegistrar implements TokenRegistrar, Runnable {
             java.util.Date create = Date.from(responseInstant);
             // The TokenClassName and DigestService don't really map well to what we store
             // maybe we store it wrong I'm not sure need to look into it further
-            AceToken token = new AceToken(bag, create, filename,
+            AceToken token = new AceToken(filename,
                     IMSUtil.formatProof(response),
-                    IMS_HOST,
+                    response.getRoundId(),
                     response.getTokenClassName(),
                     response.getDigestService(),
-                    response.getRoundId());
+                    IMS_HOST,
+                    create);
             JPAQueryFactory qf = dao.getJPAQueryFactory();
             long count = qf.selectFrom(QAceToken.aceToken)
                     .where(QAceToken.aceToken.bag.id.eq(bagId)
@@ -90,6 +91,7 @@ public class IngestTokenRegistrar implements TokenRegistrar, Runnable {
             // excepted entry for removal.
             try {
                 if (bag != null && count == 0) {
+                    token.setBag(bag);
                     dao.save(token);
                 }
             } finally {
