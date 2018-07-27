@@ -1,13 +1,19 @@
 package org.chronopolis.rest.kot.entities.serializers
 
+import org.chronopolis.rest.kot.entities.repair.Ace
+import org.chronopolis.rest.kot.entities.repair.Rsync
+import org.chronopolis.rest.kot.entities.repair.Strategy
+import org.chronopolis.rest.kot.models.AceStrategy
 import org.chronopolis.rest.kot.models.AceToken
 import org.chronopolis.rest.kot.models.Bag
 import org.chronopolis.rest.kot.models.Depositor
 import org.chronopolis.rest.kot.models.DepositorContact
 import org.chronopolis.rest.kot.models.Fixity
+import org.chronopolis.rest.kot.models.FulfillmentStrategy
 import org.chronopolis.rest.kot.models.Repair
 import org.chronopolis.rest.kot.models.Replication
 import org.chronopolis.rest.kot.models.ReplicationConfig
+import org.chronopolis.rest.kot.models.RsyncStrategy
 import org.chronopolis.rest.kot.models.StagingStorage
 import org.chronopolis.rest.kot.models.StorageRegion
 import java.time.ZoneOffset
@@ -103,8 +109,8 @@ fun ReplicationEntity.model(): Replication {
             tokenLink = this.tokenLink,
             node = this.node.username,
             protocol = this.protocol,
-            receivedTagFixity = this.receivedTagFixity,
-            receivedTokenFixity = this.receivedTokenFixity,
+            receivedTagFixity = this.receivedTagFixity ?: "",
+            receivedTokenFixity = this.receivedTokenFixity ?: "",
             status = this.status,
             createdAt = this.createdAt,
             updatedAt = this.updatedAt
@@ -138,4 +144,10 @@ fun StorageRegionEntity.model(): StorageRegion {
                 ReplicationConfig(storageId, it.path, it.server, it.username ?: "chronopolis")
             }
     )
+}
+
+// todo: Move to another... class
+fun FulfillmentStrategy.toEntity(): Strategy = when (this) {
+    is AceStrategy -> Ace(this.apiKey, this.url)
+    is RsyncStrategy -> Rsync(this.link)
 }

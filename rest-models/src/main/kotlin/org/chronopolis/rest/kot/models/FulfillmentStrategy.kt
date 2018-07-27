@@ -9,11 +9,11 @@ import org.chronopolis.rest.kot.models.enums.FulfillmentType
  * serialization and deserialization
  *
  */
-sealed class FulfillmentStrategy
+sealed class FulfillmentStrategy(val type: FulfillmentType)
 
-data class AceStrategy(val fulfillmentType: FulfillmentType,
+data class AceStrategy(val aceType: FulfillmentType,
                        val apiKey: String,
-                       val url: String) : FulfillmentStrategy()
+                       val url: String) : FulfillmentStrategy(aceType)
 
-data class RsyncStrategy(val fulfillmentType: FulfillmentType,
-                         val link: String): FulfillmentStrategy()
+data class RsyncStrategy(val rsyncType: FulfillmentType,
+                         val link: String): FulfillmentStrategy(rsyncType)
