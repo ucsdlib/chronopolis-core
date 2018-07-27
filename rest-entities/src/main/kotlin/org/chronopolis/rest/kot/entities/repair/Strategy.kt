@@ -1,6 +1,7 @@
 package org.chronopolis.rest.kot.entities.repair
 
 import org.chronopolis.rest.kot.entities.PersistableEntity
+import org.chronopolis.rest.kot.models.FulfillmentStrategy
 import javax.persistence.DiscriminatorColumn
 import javax.persistence.Entity
 import javax.persistence.Inheritance
@@ -14,4 +15,6 @@ import javax.persistence.Table
 abstract class Strategy(
         @get:OneToOne(mappedBy = "strategy")
         var repair: Repair = Repair()
-) : PersistableEntity()
+) : PersistableEntity() {
+        abstract fun model(): FulfillmentStrategy
+}

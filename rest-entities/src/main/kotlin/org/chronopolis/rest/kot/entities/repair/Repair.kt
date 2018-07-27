@@ -27,10 +27,7 @@ class Repair(
 
         @get:ManyToOne
         @get:JoinColumn(name = "from_node")
-        var from: Node = Node(),
-
-        @get:OneToMany(mappedBy = "repair", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
-        var files: Set<RepairFile> = emptySet(),
+        var from: Node? = null,
 
         @get:Enumerated(value = EnumType.STRING)
         var status: RepairStatus = RepairStatus.REQUESTED,
@@ -48,4 +45,12 @@ class Repair(
         var cleaned: Boolean = false,
         var replaced: Boolean = false,
         var validated: Boolean = false
-) : UpdatableEntity()
+) : UpdatableEntity() {
+
+        @get:OneToMany(mappedBy = "repair", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+        lateinit var files: MutableSet<RepairFile>
+
+        fun addFilesFromRequest(toAdd: Set<String>) {
+                toAdd.forEach { files.add(RepairFile(this, it)) }
+        }
+}

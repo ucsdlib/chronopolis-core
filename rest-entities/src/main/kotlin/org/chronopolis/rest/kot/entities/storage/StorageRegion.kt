@@ -15,9 +15,6 @@ import javax.persistence.OneToOne
 
 @Entity
 class StorageRegion(
-        @get:ManyToOne
-        var node: Node = Node(),
-
         @get:Enumerated(value = EnumType.STRING)
         var dataType: DataType = DataType.BAG,
 
@@ -27,9 +24,12 @@ class StorageRegion(
         @get:OneToMany(mappedBy = "region", fetch = FetchType.LAZY)
         var storage: Set<StagingStorage> = emptySet(),
 
-        @get:OneToOne(mappedBy = "region", cascade = [CascadeType.ALL])
-        var replicationConfig: ReplicationConfig = ReplicationConfig(),
-
         var capacity: Long = 0,
         var note: String = ""
-) : UpdatableEntity()
+) : UpdatableEntity() {
+        @get:ManyToOne
+        lateinit var node: Node
+
+        @get:OneToOne(mappedBy = "region", cascade = [CascadeType.ALL])
+        lateinit var replicationConfig: ReplicationConfig
+}

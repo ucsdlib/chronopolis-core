@@ -19,9 +19,9 @@ data class Repair(val id: Long,
                   val collection: String,
                   val files: List<String>,
 
-        // Should we have any extra information in the credentials?
-        // like if the fulfilling node has cleaned it yet?
-                  val from: String,
-                  val type: FulfillmentType,
-                  val credentials: FulfillmentStrategy)
+                  // Should we have any extra information in the credentials?
+                  // like if the fulfilling node has cleaned it yet?
+                  val from: String?,
+                  val type: FulfillmentType?,
+                  val credentials: FulfillmentStrategy?)
 
