@@ -22,9 +22,25 @@ class Replication(
         var bagLink: String = "",
         var tokenLink: String = "",
         var protocol: String = "",
-        var receivedTagFixity: String = "",
-        var receivedTokenFixity: String = ""
+        var receivedTagFixity: String? = null,
+        var receivedTokenFixity: String? = null
 ) : UpdatableEntity() {
+
+    fun checkTransferred() = {
+        val bagFixities = bag.bagStorage
+        val tokenFixities = bag.tokenStorage
+
+        val tagMatch = bagFixities.flatMap { it.fixities }
+                .any { it.value.equals(receivedTagFixity, true) }
+
+        val tokenMatch = tokenFixities.flatMap { it.fixities }
+                .any { it.value.equals(receivedTokenFixity, true) }
+
+        if (status.isOngoing() && tagMatch && tokenMatch) {
+            status = ReplicationStatus.TRANSFERRED
+        }
+
+    }
 
     @PreUpdate
     protected fun updateReplication() {

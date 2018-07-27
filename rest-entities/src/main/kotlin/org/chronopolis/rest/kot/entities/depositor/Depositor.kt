@@ -1,5 +1,6 @@
 package org.chronopolis.rest.kot.entities.depositor
 
+import org.chronopolis.rest.kot.entities.Node
 import org.chronopolis.rest.kot.entities.UpdatableEntity
 import org.hibernate.annotations.NaturalId
 import javax.persistence.CascadeType
@@ -21,6 +22,22 @@ class Depositor(
 
     @get:OneToMany(mappedBy = "depositor", cascade = [CascadeType.ALL], orphanRemoval = true)
     lateinit var nodeDistributions: Set<DepositorNode>
+
+    fun addContact(contact: DepositorContact) {
+        TODO()
+    }
+
+    fun removeContact(contact: DepositorContact) {
+        TODO()
+    }
+
+    fun addNodeDistribution(node: Node) {
+        TODO()
+    }
+
+    fun removeNodeDistribution(node: Node) {
+        TODO()
+    }
 
     // Helpers for adding/removing contacts and distributions?
 

@@ -33,6 +33,11 @@ class StagingStorage(
     lateinit var fixities: Set<Fixity>
 
     // Helper function for more fluent verbage
+
+    fun addFixity(fixity: Fixity) {
+        TODO()
+    }
+
     fun isActive() = active
 
 }

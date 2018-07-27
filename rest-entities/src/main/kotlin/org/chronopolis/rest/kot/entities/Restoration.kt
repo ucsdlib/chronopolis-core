@@ -1,4 +1,6 @@
 package org.chronopolis.rest.kot.entities
 
-class Restoration {
-}
+import javax.persistence.Entity
+
+@Entity
+class Restoration : UpdatableEntity()

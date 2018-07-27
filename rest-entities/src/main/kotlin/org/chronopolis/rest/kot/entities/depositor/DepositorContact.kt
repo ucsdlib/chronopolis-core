@@ -18,7 +18,6 @@ class DepositorContact(
     @get:JoinColumn(name = "depositor_id")
     lateinit var depositor: Depositor
 
-
     override fun compareTo(other: DepositorContact): Int {
         return ComparisonChain.start()
                 .compare(contactName, other.contactName)
