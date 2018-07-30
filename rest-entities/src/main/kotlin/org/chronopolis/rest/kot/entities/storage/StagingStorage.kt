@@ -24,13 +24,13 @@ class StagingStorage(
     // storage this is associated with... should probably update the schema to have a better
     // understanding of the world
     @get:ManyToMany(fetch = FetchType.LAZY, mappedBy = "bagStorage")
-    lateinit var bags: Set<Bag>
+    lateinit var bags: MutableSet<Bag>
 
     @get:ManyToMany(fetch = FetchType.LAZY, mappedBy = "tokenStorage")
-    lateinit var tokens: Set<Bag>
+    lateinit var tokens: MutableSet<Bag>
 
     @get:OneToMany(mappedBy = "storage", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
-    lateinit var fixities: Set<Fixity>
+    lateinit var fixities: MutableSet<Fixity>
 
     // Helper function for more fluent verbage
 

@@ -22,7 +22,7 @@ class StorageRegion(
         var storageType: StorageType = StorageType.LOCAL,
 
         @get:OneToMany(mappedBy = "region", fetch = FetchType.LAZY)
-        var storage: Set<StagingStorage> = emptySet(),
+        var storage: MutableSet<StagingStorage> = mutableSetOf(),
 
         var capacity: Long = 0,
         var note: String = ""

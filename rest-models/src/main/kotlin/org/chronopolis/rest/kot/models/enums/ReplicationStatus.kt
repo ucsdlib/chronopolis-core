@@ -1,5 +1,8 @@
 package org.chronopolis.rest.kot.models.enums
 
+import com.google.common.collect.ImmutableListMultimap
+import com.google.common.collect.ImmutableSet
+
 enum class ReplicationStatus {
     PENDING,
     STARTED,
@@ -29,9 +32,19 @@ enum class ReplicationStatus {
     fun isOngoing(): Boolean = !(this.isFailure() || this == SUCCESS)
 
     companion object {
-        fun active(): Set<ReplicationStatus> = TODO()
+        fun active(): Set<ReplicationStatus> = ImmutableSet.of(PENDING, STARTED, TRANSFERRED,
+                ACE_REGISTERED, ACE_AUDITING, ACE_TOKEN_LOADED)
 
-        fun statusByGroup(): Set<ReplicationStatus> = TODO()
+        fun statusByGroup(): ImmutableListMultimap<String, ReplicationStatus> =
+                ImmutableListMultimap.Builder<String, ReplicationStatus>()
+                        .put("Inactive", PENDING)
+                        .putAll("Active", active())
+                        .put("Success", SUCCESS)
+                        .put("Failed", FAILURE)
+                        .put("Failed", FAILURE_ACE_AUDIT)
+                        .put("Failed", FAILURE_TAG_MANIFEST)
+                        .put("Failed", FAILURE_TOKEN_STORE)
+                        .build()
     }
 
 }

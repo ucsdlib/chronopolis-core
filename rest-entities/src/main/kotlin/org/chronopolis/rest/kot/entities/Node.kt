@@ -22,7 +22,7 @@ class Node(
         var restorations: Set<Restoration> = emptySet(),
 
         @get:OneToMany(mappedBy = "node", cascade = [CascadeType.ALL], orphanRemoval = true)
-        var depositorDistributions: Set<DepositorNode> = emptySet(),
+        var depositorDistributions: MutableSet<DepositorNode> = mutableSetOf(),
 
         var username: String = "",
         var password: String = "",

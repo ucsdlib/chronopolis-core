@@ -18,28 +18,33 @@ class Depositor(
 ) : UpdatableEntity(), Comparable<Depositor> {
 
     @get:OneToMany(mappedBy = "depositor", cascade = [CascadeType.ALL], orphanRemoval = true)
-    lateinit var contacts: Set<DepositorContact>
+    lateinit var contacts: MutableSet<DepositorContact>
 
     @get:OneToMany(mappedBy = "depositor", cascade = [CascadeType.ALL], orphanRemoval = true)
-    lateinit var nodeDistributions: Set<DepositorNode>
+    lateinit var nodeDistributions: MutableSet<DepositorNode>
+
+    // Helpers for adding/removing contacts and distributions?
 
     fun addContact(contact: DepositorContact) {
-        TODO()
+        contact.depositor = this
+        contacts.add(contact)
     }
 
     fun removeContact(contact: DepositorContact) {
-        TODO()
+        contacts.remove(contact)
     }
 
     fun addNodeDistribution(node: Node) {
-        TODO()
+        val dn = DepositorNode(this, node)
+        nodeDistributions.add(dn)
     }
 
     fun removeNodeDistribution(node: Node) {
-        TODO()
+        val dn = DepositorNode(this, node)
+        nodeDistributions.remove(dn)
+        node.depositorDistributions.remove(dn)
+        // todo null out dn after?
     }
-
-    // Helpers for adding/removing contacts and distributions?
 
     override fun compareTo(other: Depositor): Int {
         return namespace.compareTo(other.namespace)

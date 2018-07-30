@@ -1,5 +1,13 @@
 package org.chronopolis.rest.kot.models.enums
 
+import com.google.common.collect.ImmutableListMultimap
+import com.google.common.collect.ImmutableSet
+
+/**
+ * Status types for Bags
+ *
+ * @author shake
+ */
 enum class BagStatus {
     DEPOSITED,
     INITIALIZED,
@@ -11,9 +19,18 @@ enum class BagStatus {
     ERROR;
 
     companion object {
-        fun processingStates(): Set<BagStatus> = TODO()
-        fun preservedStates(): Set<BagStatus> = TODO()
-        fun inactiveStates(): Set<BagStatus> = TODO()
-        fun statusByGroup(): Set<BagStatus> = TODO()
+        fun processingStates(): Set<BagStatus> =
+                ImmutableSet.of(DEPOSITED, INITIALIZED, TOKENIZED, REPLICATING)
+
+        fun preservedStates(): Set<BagStatus> = ImmutableSet.of(PRESERVED)
+
+        fun inactiveStates(): Set<BagStatus> = ImmutableSet.of(DEPRECATED, DELETED, ERROR)
+
+        fun statusByGroup(): ImmutableListMultimap<String, BagStatus> =
+                ImmutableListMultimap.Builder<String, BagStatus>()
+                        .putAll("Processing", processingStates())
+                        .putAll("Preserved", preservedStates())
+                        .putAll("Inactive", inactiveStates())
+                        .build()
     }
 }
