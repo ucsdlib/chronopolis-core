@@ -18,27 +18,27 @@ import javax.persistence.OneToOne
 
 @Entity
 class Repair(
-        @get:ManyToOne
+        @ManyToOne
         var bag: Bag = Bag(),
 
-        @get:ManyToOne
-        @get:JoinColumn(name = "to_node")
+        @ManyToOne
+        @JoinColumn(name = "to_node")
         var to: Node = Node(),
 
-        @get:ManyToOne
-        @get:JoinColumn(name = "from_node")
+        @ManyToOne
+        @JoinColumn(name = "from_node")
         var from: Node? = null,
 
-        @get:Enumerated(value = EnumType.STRING)
+        @Enumerated(value = EnumType.STRING)
         var status: RepairStatus = RepairStatus.REQUESTED,
 
-        @get:Enumerated(value = EnumType.STRING)
+        @Enumerated(value = EnumType.STRING)
         var audit: AuditStatus = AuditStatus.PRE,
 
-        @get:Enumerated(value = EnumType.STRING)
+        @Enumerated(value = EnumType.STRING)
         var type: FulfillmentType? = null,
 
-        @get:OneToOne(cascade = [CascadeType.MERGE], fetch = FetchType.EAGER)
+        @OneToOne(cascade = [CascadeType.MERGE], fetch = FetchType.EAGER)
         var strategy: Strategy? = null,
 
         var requester: String = "",
@@ -47,7 +47,7 @@ class Repair(
         var validated: Boolean = false
 ) : UpdatableEntity() {
 
-        @get:OneToMany(mappedBy = "repair", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+        @OneToMany(mappedBy = "repair", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
         lateinit var files: MutableSet<RepairFile>
 
         fun addFilesFromRequest(toAdd: Set<String>) {

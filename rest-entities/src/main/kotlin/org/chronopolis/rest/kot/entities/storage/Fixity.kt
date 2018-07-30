@@ -10,8 +10,8 @@ import javax.persistence.ManyToOne
 
 @Entity
 class Fixity(
-        @get:ManyToOne
-        @get:JoinColumn(name = "storage_id", nullable = false)
+        @ManyToOne
+        @JoinColumn(name = "storage_id", nullable = false)
         var storage: StagingStorage = StagingStorage(),
 
         @Convert(converter = ZonedDateTimeConverter::class)

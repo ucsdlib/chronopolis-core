@@ -13,7 +13,7 @@ import javax.persistence.Table
 @DiscriminatorColumn(name = "TYPE")
 @Table(name = "strategy")
 abstract class Strategy(
-        @get:OneToOne(mappedBy = "strategy")
+        @OneToOne(mappedBy = "strategy")
         var repair: Repair = Repair()
 ) : PersistableEntity() {
         abstract fun model(): FulfillmentStrategy

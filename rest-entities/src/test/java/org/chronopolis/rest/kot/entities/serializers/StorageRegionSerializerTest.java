@@ -59,7 +59,7 @@ public class StorageRegionSerializerTest {
         StorageRegion region = new StorageRegion();
         region.setId(2L);
         region.setNote("note");
-        region.setNode(new Node(emptySet(), emptySet(), emptySet(), "test-node", "test-node", true));
+        region.setNode(new Node(emptySet(), emptySet(), "test-node", "test-node", true));
         region.setStorage(ImmutableSet.of());
         region.setCapacity(250L);
         region.setDataType(DataType.BAG);

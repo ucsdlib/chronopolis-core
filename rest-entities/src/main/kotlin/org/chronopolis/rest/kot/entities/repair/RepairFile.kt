@@ -6,7 +6,7 @@ import javax.persistence.ManyToOne
 
 @Entity
 class RepairFile(
-        @get:ManyToOne
+        @ManyToOne
         var repair: Repair = Repair(),
 
         var path: String = ""

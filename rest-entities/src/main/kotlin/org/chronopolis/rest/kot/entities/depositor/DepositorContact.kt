@@ -14,8 +14,8 @@ class DepositorContact(
         var contactEmail: String = ""
 ) : PersistableEntity(), Comparable<DepositorContact> {
 
-    @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "depositor_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "depositor_id")
     lateinit var depositor: Depositor
 
     override fun compareTo(other: DepositorContact): Int {

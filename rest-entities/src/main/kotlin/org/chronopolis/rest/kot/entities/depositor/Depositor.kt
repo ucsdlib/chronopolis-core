@@ -9,7 +9,7 @@ import javax.persistence.OneToMany
 
 @Entity
 class Depositor(
-        @get:NaturalId
+        @NaturalId
         var namespace: String = "",
 
         var sourceOrganization: String = "",
@@ -17,10 +17,10 @@ class Depositor(
         var organizationAddress: String = ""
 ) : UpdatableEntity(), Comparable<Depositor> {
 
-    @get:OneToMany(mappedBy = "depositor", cascade = [CascadeType.ALL], orphanRemoval = true)
+    @OneToMany(mappedBy = "depositor", cascade = [CascadeType.ALL], orphanRemoval = true)
     lateinit var contacts: MutableSet<DepositorContact>
 
-    @get:OneToMany(mappedBy = "depositor", cascade = [CascadeType.ALL], orphanRemoval = true)
+    @OneToMany(mappedBy = "depositor", cascade = [CascadeType.ALL], orphanRemoval = true)
     lateinit var nodeDistributions: MutableSet<DepositorNode>
 
     // Helpers for adding/removing contacts and distributions?

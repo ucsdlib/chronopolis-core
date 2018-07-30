@@ -17,8 +17,8 @@ class AceToken(
         var createDate: Date = Date()
 ) : PersistableEntity() {
 
-    @get:JoinColumn(name = "bag")
-    @get:ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bag")
+    @ManyToOne(fetch = FetchType.LAZY)
     lateinit var bag: Bag
 
 }

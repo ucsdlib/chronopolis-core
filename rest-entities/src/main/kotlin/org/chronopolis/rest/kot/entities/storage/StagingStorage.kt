@@ -11,7 +11,7 @@ import javax.persistence.OneToMany
 
 @Entity
 class StagingStorage(
-        @get:ManyToOne
+        @ManyToOne
         var region: StorageRegion = StorageRegion(),
 
         var size: Long = 0L,
@@ -23,13 +23,13 @@ class StagingStorage(
     // allegedly only one of the bag_storage or token_storage will be used depending on the type of
     // storage this is associated with... should probably update the schema to have a better
     // understanding of the world
-    @get:ManyToMany(fetch = FetchType.LAZY, mappedBy = "bagStorage")
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "bagStorage")
     lateinit var bags: MutableSet<Bag>
 
-    @get:ManyToMany(fetch = FetchType.LAZY, mappedBy = "tokenStorage")
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "tokenStorage")
     lateinit var tokens: MutableSet<Bag>
 
-    @get:OneToMany(mappedBy = "storage", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "storage", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
     lateinit var fixities: MutableSet<Fixity>
 
     // Helper function for more fluent verbage

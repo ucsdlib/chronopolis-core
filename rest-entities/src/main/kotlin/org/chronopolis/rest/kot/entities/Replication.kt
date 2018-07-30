@@ -10,13 +10,13 @@ import javax.persistence.PreUpdate
 
 @Entity
 class Replication(
-        @get:Enumerated(EnumType.STRING)
+        @Enumerated(EnumType.STRING)
         var status: ReplicationStatus = ReplicationStatus.PENDING,
 
-        @get:ManyToOne
+        @ManyToOne
         var node: Node = Node(),
 
-        @get:ManyToOne(cascade = [CascadeType.MERGE])
+        @ManyToOne(cascade = [CascadeType.MERGE])
         var bag: Bag = Bag(),
 
         var bagLink: String = "",

@@ -8,12 +8,12 @@ import javax.persistence.ManyToOne
 
 @Entity
 class BagDistribution(
-        @get:ManyToOne(fetch = FetchType.LAZY)
+        @ManyToOne(fetch = FetchType.LAZY)
         var bag: Bag = Bag(),
 
-        @get:ManyToOne(fetch = FetchType.LAZY)
+        @ManyToOne(fetch = FetchType.LAZY)
         var node: Node = Node(),
 
-        @get:Enumerated(value = EnumType.STRING)
+        @Enumerated(value = EnumType.STRING)
         var status: BagDistributionStatus = BagDistributionStatus.DISTRIBUTE
 ) : PersistableEntity()

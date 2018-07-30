@@ -15,13 +15,13 @@ import javax.persistence.OneToMany
  */
 @Entity
 class Node(
-        @get:OneToMany(mappedBy = "node")
+        @OneToMany(mappedBy = "node")
         var replications: Set<Replication> = emptySet(),
 
-        @get:OneToMany(mappedBy = "node")
-        var restorations: Set<Restoration> = emptySet(),
+        // @OneToMany(mappedBy = "node")
+        // var restorations: Set<Restoration> = emptySet(),
 
-        @get:OneToMany(mappedBy = "node", cascade = [CascadeType.ALL], orphanRemoval = true)
+        @OneToMany(mappedBy = "node", cascade = [CascadeType.ALL], orphanRemoval = true)
         var depositorDistributions: MutableSet<DepositorNode> = mutableSetOf(),
 
         var username: String = "",

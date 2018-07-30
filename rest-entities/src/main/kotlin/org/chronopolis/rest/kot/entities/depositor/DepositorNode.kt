@@ -18,9 +18,9 @@ import javax.persistence.Table
 @Entity
 @Table(name = "depositor_distribution")
 class DepositorNode(
-        @get:ManyToOne
+        @ManyToOne
         var depositor: Depositor = Depositor(),
 
-        @get:ManyToOne
+        @ManyToOne
         var node: Node = Node()
 ) : PersistableEntity(), Serializable

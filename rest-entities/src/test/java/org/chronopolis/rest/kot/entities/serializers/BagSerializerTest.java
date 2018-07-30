@@ -60,7 +60,7 @@ public class BagSerializerTest {
 
     @Test
     public void testWriteJson() throws IOException {
-        final Node node = new Node(emptySet(), emptySet(), emptySet(), "node", "node", true);
+        final Node node = new Node(emptySet(), emptySet(), "node", "node", true);
         ZonedDateTime dateTime = ZonedDateTime.from(fmt.parse(dateTimeString));
         Bag b = new Bag("bag", "creator", depositor, 1L, 1L, BagStatus.REPLICATING);
         b.setId(1L);

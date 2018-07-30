@@ -64,8 +64,8 @@ public class RepairSerializerTest {
     public void serialize() throws Exception {
         String to = "to";
         String from = "from";
-        Node toNode = new Node(emptySet(), emptySet(), emptySet(), to, to, true);
-        Node fromNode = new Node(emptySet(), emptySet(), emptySet(), from, from, true);
+        Node toNode = new Node(emptySet(), emptySet(), to, to, true);
+        Node fromNode = new Node(emptySet(), emptySet(), from, from, true);
         Bag bag = new Bag("bag", depositor.getNamespace(), depositor, 0L, 0L, DEPOSITED);
         bag.setBagStorage(emptySet());
         bag.setTokenStorage(emptySet());

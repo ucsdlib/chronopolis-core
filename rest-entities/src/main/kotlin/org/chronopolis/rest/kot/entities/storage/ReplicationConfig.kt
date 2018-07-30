@@ -6,7 +6,7 @@ import javax.persistence.OneToOne
 
 @Entity
 class ReplicationConfig(
-        @get:OneToOne
+        @OneToOne
         var region: StorageRegion = StorageRegion(),
 
         var path: String = "",

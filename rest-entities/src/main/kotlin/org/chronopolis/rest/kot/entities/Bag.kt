@@ -22,29 +22,29 @@ class Bag(
 
         var creator: String = "",
 
-        @get:ManyToOne
-        @get:JoinColumn(name = "depositor_id")
+        @ManyToOne
+        @JoinColumn(name = "depositor_id")
         var depositor: Depositor = Depositor(),
 
         var size: Long = 0L,
 
         var totalFiles: Long = 0L,
 
-        @get:Enumerated(EnumType.STRING)
+        @Enumerated(EnumType.STRING)
         var status: BagStatus = BagStatus.DEPOSITED
 ) : UpdatableEntity(), Comparable<Bag> {
 
-    @get:OneToMany(mappedBy = "bag", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "bag", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
     lateinit var distributions: MutableSet<BagDistribution>
 
-    @get:ManyToMany(cascade = [CascadeType.PERSIST, CascadeType.MERGE], fetch = FetchType.EAGER)
-    @get:JoinTable(name = "bag_storage",
+    @ManyToMany(cascade = [CascadeType.PERSIST, CascadeType.MERGE], fetch = FetchType.EAGER)
+    @JoinTable(name = "bag_storage",
             joinColumns = [(JoinColumn(name = "bag_id", referencedColumnName = "id"))],
             inverseJoinColumns = [JoinColumn(name = "staging_id", referencedColumnName = "id")])
     lateinit var bagStorage: MutableSet<StagingStorage>
 
-    @get:ManyToMany(cascade = [CascadeType.PERSIST, CascadeType.MERGE], fetch = FetchType.EAGER)
-    @get:JoinTable(name = "token_storage",
+    @ManyToMany(cascade = [CascadeType.PERSIST, CascadeType.MERGE], fetch = FetchType.EAGER)
+    @JoinTable(name = "token_storage",
             joinColumns = [(JoinColumn(name = "bag_id", referencedColumnName = "id"))],
             inverseJoinColumns = [JoinColumn(name = "staging_id", referencedColumnName = "id")])
     lateinit var tokenStorage: MutableSet<StagingStorage>
