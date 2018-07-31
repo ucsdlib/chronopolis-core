@@ -156,7 +156,7 @@ public class PagedDAO {
     @Transactional
     public <T extends PersistableEntity> void save(T t) {
         // em.getTransaction().begin();
-        if (t.getId() == null) {
+        if (t.getId() == 0L) {
             em.persist(t);
         } else {
             em.merge(t);
@@ -175,7 +175,7 @@ public class PagedDAO {
      */
     @Transactional
     public <T extends PersistableEntity> void delete(T t) {
-        if (t.getId() != null) {
+        if (t.getId() != 0L) {
             // em.getTransaction().begin();
             em.remove(t);
             em.flush();

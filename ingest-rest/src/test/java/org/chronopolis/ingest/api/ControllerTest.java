@@ -67,6 +67,11 @@ public class ControllerTest extends IngestTest {
     public static UserDetails user = new User(AUTHORIZED, AUTHORIZED, ImmutableList.of(() -> "ROLE_USER"));
     public static UserDetails admin = new User(AUTHORIZED, AUTHORIZED, ImmutableList.of(() -> "ROLE_ADMIN"));
 
+    static final String ADDRESS = "test-address";
+    static final String NAMESPACE = "test-depositor";
+    static final String ORGANIZATION = "test-organization";
+    static final Depositor DEPOSITOR = new Depositor(NAMESPACE, ORGANIZATION, ADDRESS);
+
     // Security beans for authorizing http requests
     @MockBean protected SecurityContext context;
     @MockBean protected Authentication authentication;

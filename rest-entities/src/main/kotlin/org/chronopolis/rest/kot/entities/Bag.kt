@@ -73,13 +73,31 @@ class Bag(
     }
 
     @PreUpdate
-    protected fun onUpdateBag() {
+    fun onUpdateBag() {
         val replicated = distributions.stream()
                 .allMatch { it.status == BagDistributionStatus.REPLICATE }
 
         if (replicated) {
             status = BagStatus.PRESERVED
         }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Bag
+
+        if (name != other.name) return false
+        if (creator != other.creator) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + creator.hashCode()
+        return result
     }
 
 }

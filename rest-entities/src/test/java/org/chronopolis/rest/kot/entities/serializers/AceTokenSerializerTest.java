@@ -65,7 +65,6 @@ public class AceTokenSerializerTest {
         AceToken token = new AceToken(filename, proof, round, ims, algorithm, host, date);
         token.setId(id);
         token.setBag(genBag());
-        System.out.println(json.write(token));
         assertThat(json.write(token)).isEqualToJson("token.json");
     }
 

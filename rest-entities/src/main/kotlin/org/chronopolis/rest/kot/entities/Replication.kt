@@ -53,6 +53,8 @@ class Replication(
             bag.distributions
                     .filter { it.node == node }
                     .forEach { it.status = BagDistributionStatus.REPLICATE }
+
+            bag.onUpdateBag()
         }
     }
 }

@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
-import com.google.common.collect.ImmutableSet;
 import org.chronopolis.rest.kot.entities.Bag;
 import org.chronopolis.rest.kot.entities.BagDistribution;
+import org.chronopolis.rest.kot.entities.BagDistributionStatus;
 import org.chronopolis.rest.kot.entities.Node;
 import org.chronopolis.rest.kot.entities.depositor.Depositor;
 import org.chronopolis.rest.kot.entities.storage.Fixity;
@@ -25,10 +25,11 @@ import java.io.IOException;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 
+import static com.google.common.collect.ImmutableSet.of;
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.chronopolis.rest.kot.entities.BagDistributionStatus.DISTRIBUTE;
 
 /**
  * Created by shake on 6/30/17.
@@ -60,20 +61,15 @@ public class BagSerializerTest {
 
     @Test
     public void testWriteJson() throws IOException {
-        final Node node = new Node(emptySet(), emptySet(), "node", "node", true);
+        final Node node = new Node(emptySet(), "node", "node", true);
         ZonedDateTime dateTime = ZonedDateTime.from(fmt.parse(dateTimeString));
         Bag b = new Bag("bag", "creator", depositor, 1L, 1L, BagStatus.REPLICATING);
         b.setId(1L);
-        b.setSize(1L);
-        b.setTotalFiles(1L);
-        b.setBagStorage(ImmutableSet.of(createStorage()));
-        b.setTokenStorage(ImmutableSet.of());
-        b.setCreator("creator");
-        b.setStatus(BagStatus.REPLICATING);
+        b.setBagStorage(of(createStorage()));
+        b.setTokenStorage(new HashSet<>());
+        b.setDistributions(of(new BagDistribution(b, node, BagDistributionStatus.DISTRIBUTE)));
         b.setCreatedAt(dateTime);
         b.setUpdatedAt(dateTime);
-        b.setDistributions(ImmutableSet.of(new BagDistribution(b, node, DISTRIBUTE)));
-        System.out.println(json.write(b));
         assertThat(json.write(b)).isEqualToJson("bag.json");
     }
 
@@ -91,7 +87,7 @@ public class BagSerializerTest {
         Fixity fixity = new Fixity(storage,
                 ZonedDateTime.from(fmt.parse(dateTimeString)),
                 "test-value", "test-algorithm");
-        storage.setFixities(ImmutableSet.of(fixity));
+        storage.setFixities(of(fixity));
 
         return storage;
     }

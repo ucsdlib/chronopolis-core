@@ -71,7 +71,7 @@ public class UserService {
         if (request.isNode()) {
             log.debug("Creating node for {}", username);
             if (repository.findByUsername(username) == null) {
-                Node node = new Node(emptySet(), emptySet(), emptySet(), username, password, true);
+                Node node = new Node(emptySet(), username, password, true);
                 repository.save(node);
             }
         }

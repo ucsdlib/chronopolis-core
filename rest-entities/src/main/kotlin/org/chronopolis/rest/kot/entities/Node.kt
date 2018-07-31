@@ -1,7 +1,5 @@
 package org.chronopolis.rest.kot.entities
 
-import org.chronopolis.rest.kot.entities.depositor.DepositorNode
-import javax.persistence.CascadeType
 import javax.persistence.Entity
 import javax.persistence.OneToMany
 
@@ -17,14 +15,22 @@ import javax.persistence.OneToMany
 class Node(
         @OneToMany(mappedBy = "node")
         var replications: Set<Replication> = emptySet(),
-
-        // @OneToMany(mappedBy = "node")
-        // var restorations: Set<Restoration> = emptySet(),
-
-        @OneToMany(mappedBy = "node", cascade = [CascadeType.ALL], orphanRemoval = true)
-        var depositorDistributions: MutableSet<DepositorNode> = mutableSetOf(),
-
         var username: String = "",
         var password: String = "",
         var enabled: Boolean = true
-) : PersistableEntity()
+) : PersistableEntity() {
+        override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (javaClass != other?.javaClass) return false
+
+                other as Node
+
+                if (username != other.username) return false
+
+                return true
+        }
+
+        override fun hashCode(): Int {
+                return username.hashCode()
+        }
+}

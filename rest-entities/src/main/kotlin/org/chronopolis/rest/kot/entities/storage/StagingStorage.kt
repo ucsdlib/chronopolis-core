@@ -35,7 +35,7 @@ class StagingStorage(
     // Helper function for more fluent verbage
 
     fun addFixity(fixity: Fixity) {
-        TODO()
+        fixities.add(fixity)
     }
 
     fun isActive() = active

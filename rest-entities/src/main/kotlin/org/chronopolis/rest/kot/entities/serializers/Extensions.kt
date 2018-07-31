@@ -29,8 +29,8 @@ import org.chronopolis.rest.kot.entities.storage.StorageRegion as StorageRegionE
 
 fun AceTokenEntity.model(): AceToken {
     return AceToken(
-            this.id ?: -1,
-            this.bag.id ?: -1,
+            this.id,
+            this.bag.id,
             this.round,
             this.proof,
             this.imsHost,
@@ -42,7 +42,7 @@ fun AceTokenEntity.model(): AceToken {
 
 fun BagEntity.model(): Bag {
     return Bag(
-            id = this.id ?: -1,
+            id = this.id,
             size = this.size,
             totalFiles = this.totalFiles,
             name = this.name,
@@ -68,20 +68,20 @@ fun ContactEntity.model(): DepositorContact {
 
 fun DepositorEntity.model(): Depositor {
     return Depositor(
-            id = this.id ?: -1,
+            id = this.id,
             namespace = this.namespace,
             sourceOrganization = this.sourceOrganization,
             organizationAddress = this.organizationAddress,
             createdAt = this.createdAt,
             updatedAt = this.updatedAt,
-            replicatingNodes = this.nodeDistributions.map { it.node.username }.toSet(),
+            replicatingNodes = this.nodeDistributions.map { it.username }.toSet(),
             contacts = this.contacts.map { it.model() }.toSet()
     )
 }
 
 fun RepairEntity.model(): Repair {
     return Repair(
-            id = this.id ?: -1,
+            id = this.id,
             to = this.to.username,
             collection = this.bag.name,
             depositor = this.bag.depositor.namespace,
@@ -103,7 +103,7 @@ fun RepairEntity.model(): Repair {
 
 fun ReplicationEntity.model(): Replication {
     return Replication(
-            id = this.id ?: -1,
+            id = this.id,
             bag = this.bag.model(),
             bagLink = this.bagLink,
             tokenLink = this.tokenLink,
@@ -121,7 +121,7 @@ fun StagingStorageEntity.model(): StagingStorage {
     return StagingStorage(
             active = this.active,
             path = this.path,
-            region = this.region.id ?: -1,
+            region = this.region.id,
             size = this.size,
             totalFiles = this.totalFiles,
             fixities = this.fixities
@@ -131,7 +131,7 @@ fun StagingStorageEntity.model(): StagingStorage {
 }
 
 fun StorageRegionEntity.model(): StorageRegion {
-    val storageId = this.id ?: -1
+    val storageId = this.id
     return StorageRegion(
             id = storageId,
             capacity = this.capacity,
@@ -141,7 +141,11 @@ fun StorageRegionEntity.model(): StorageRegion {
             storageType = this.storageType,
             replicationConfig = this.replicationConfig.let {
                 // need to test username nullability
-                ReplicationConfig(storageId, it.path, it.server, it.username ?: "chronopolis")
+                // I thought let would allow us to avoid elvis...
+                ReplicationConfig(storageId,
+                        it.path,
+                        it.server,
+                        it.username ?: "chronopolis")
             }
     )
 }

@@ -70,7 +70,7 @@ public class ReplicationSerializerTest {
         bag.setTokenStorage(emptySet());
         bag.setDistributions(emptySet());
         Replication replication = new Replication(ReplicationStatus.SUCCESS,
-                new Node(emptySet(), emptySet(), node, node, true),
+                new Node(emptySet(), node, node, true),
                 bag,
                 link, link, protocol, fixity, fixity);
         replication.setId(1L);

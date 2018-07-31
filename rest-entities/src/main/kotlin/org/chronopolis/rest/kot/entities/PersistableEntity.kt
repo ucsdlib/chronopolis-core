@@ -6,7 +6,7 @@ import javax.persistence.Id
 import javax.persistence.MappedSuperclass
 
 @MappedSuperclass
-open class PersistableEntity {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long? = null
-}
+open class PersistableEntity(
+        @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+        var id: Long = 0
+)
