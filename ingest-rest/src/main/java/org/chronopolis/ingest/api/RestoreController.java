@@ -5,13 +5,10 @@ import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.RestoreRepository;
 import org.chronopolis.rest.kot.entities.Restoration;
-import org.chronopolis.rest.kot.models.enums.ReplicationStatus;
 import org.chronopolis.rest.models.IngestRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
+import java.util.Collections;
 import java.util.Map;
 
 import static org.chronopolis.ingest.api.Params.PAGE;
@@ -52,13 +50,15 @@ public class RestoreController extends IngestController {
         Integer page = params.containsKey(PAGE) ? Integer.parseInt(params.get(PAGE)) : -1;
         Integer pageSize = params.containsKey(PAGE_SIZE) ? Integer.parseInt(params.get(PAGE_SIZE)) : 20;
 
-        Iterable<Restoration> restorations;
+        Iterable<Restoration> restorations = Collections.emptySet();
+        /*
         if (page == -1) {
             restorations = restoreRepository.findByStatus(ReplicationStatus.PENDING);
         } else {
             Pageable pageable = new PageRequest(page, pageSize);
             restorations = restoreRepository.findByStatus(ReplicationStatus.PENDING, pageable);
         }
+        */
 
         return restorations;
     }
@@ -68,14 +68,16 @@ public class RestoreController extends IngestController {
                                       @RequestBody IngestRequest request) {
         String name = request.getName();
         String depositor = request.getDepositor();
+        /*
         Restoration restoration =
                 restoreRepository.findByNameAndDepositor(name, depositor);
 
         if (restoration == null) {
             // restoration = new Restoration(depositor, name, request.getLocation());
         }
+        */
 
-        return restoration;
+        return null;
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
