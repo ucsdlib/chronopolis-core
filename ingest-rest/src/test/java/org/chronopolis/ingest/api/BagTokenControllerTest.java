@@ -14,7 +14,6 @@ import org.chronopolis.rest.kot.entities.AceToken;
 import org.chronopolis.rest.kot.entities.Bag;
 import org.chronopolis.rest.kot.entities.QAceToken;
 import org.chronopolis.rest.kot.entities.QBag;
-import org.chronopolis.rest.kot.entities.depositor.Depositor;
 import org.chronopolis.rest.kot.entities.serializers.ZonedDateTimeSerializer;
 import org.chronopolis.rest.kot.models.create.AceTokenCreate;
 import org.chronopolis.rest.kot.models.enums.BagStatus;
@@ -61,7 +60,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = WebContext.class)
 public class BagTokenControllerTest extends ControllerTest {
 
-    private final Depositor depositor = new Depositor();
+    // private final Depositor depositor = new Depositor();
     private static final String AUTHORIZED = "authorized";
     private static UserDetails admin = new User(AUTHORIZED, AUTHORIZED, ImmutableList.of(() -> "ROLE_ADMIN"));
 
@@ -112,6 +111,8 @@ public class BagTokenControllerTest extends ControllerTest {
         Bag bag = generateBag();
         bag.setId(1L);
         AceTokenCreate model = generateModel();
+        model = model.copy(model.getBagId(), model.getRound(), model.getCreateDate(),
+                "", "", "", "", "");
 
         runCreateToken(model, bag, 1L, HttpStatus.BAD_REQUEST);
         verify(dao, times(0)).save(any(AceToken.class));
@@ -169,7 +170,7 @@ public class BagTokenControllerTest extends ControllerTest {
     }
 
     private Bag generateBag() {
-        Bag bag = new Bag("test-name", "namespace", depositor, 1L, 1L, BagStatus.DEPOSITED);
+        Bag bag = new Bag("test-name", "namespace", DEPOSITOR, 1L, 1L, BagStatus.DEPOSITED);
         bag.setBagStorage(Collections.emptySet());
         bag.setTokenStorage(Collections.emptySet());
         bag.setDistributions(Collections.emptySet());

@@ -149,6 +149,7 @@ public class ReplicationControllerTest extends ControllerTest {
         bag.setId(1L);
         bag.setBagStorage(of(stagingStorage(CORRECT_TAG_FIXITY)));
         bag.setTokenStorage(of(stagingStorage(CORRECT_TOKEN_FIXITY)));
+        bag.setDistributions(new HashSet<>());
         return bag;
     }
 
@@ -163,7 +164,7 @@ public class ReplicationControllerTest extends ControllerTest {
 
 
     private Node node() {
-        return new Node(of(), of(), of(), "user", "password", true);
+        return new Node(of(), "user", "password", true);
     }
 
 }

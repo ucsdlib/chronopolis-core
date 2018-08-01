@@ -24,8 +24,11 @@ import org.chronopolis.rest.kot.entities.serializers.StorageRegionSerializer;
 import org.chronopolis.rest.kot.entities.serializers.ZonedDateTimeSerializer;
 import org.chronopolis.rest.kot.entities.storage.StagingStorage;
 import org.chronopolis.rest.kot.entities.storage.StorageRegion;
+import org.chronopolis.rest.kot.models.FulfillmentStrategy;
+import org.chronopolis.rest.kot.models.serializers.FulfillmentStrategyDeserializer;
 import org.chronopolis.rest.models.serializers.ZonedDateTimeDeserializer;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -43,6 +46,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.security.Principal;
 import java.time.ZonedDateTime;
+import java.util.HashSet;
 
 import static org.mockito.Mockito.when;
 
@@ -54,7 +58,7 @@ import static org.mockito.Mockito.when;
 public class ControllerTest extends IngestTest {
 
     protected MockMvc mvc;
-    protected ObjectMapper mapper;
+    private ObjectMapper mapper;
 
     protected static final String REQUESTER = "requester";
     protected static final String AUTHORIZED = "authorized";
@@ -64,8 +68,10 @@ public class ControllerTest extends IngestTest {
     protected static Principal authorizedPrincipal = () -> AUTHORIZED;
     protected static Principal unauthorizedPrincipal = () -> UNAUTHORIZED;
 
-    public static UserDetails user = new User(AUTHORIZED, AUTHORIZED, ImmutableList.of(() -> "ROLE_USER"));
-    public static UserDetails admin = new User(AUTHORIZED, AUTHORIZED, ImmutableList.of(() -> "ROLE_ADMIN"));
+    public static UserDetails user = new User(AUTHORIZED, AUTHORIZED,
+            ImmutableList.of(() -> "ROLE_USER"));
+    public static UserDetails admin = new User(AUTHORIZED, AUTHORIZED,
+            ImmutableList.of(() -> "ROLE_ADMIN"));
 
     static final String ADDRESS = "test-address";
     static final String NAMESPACE = "test-depositor";
@@ -75,6 +81,14 @@ public class ControllerTest extends IngestTest {
     // Security beans for authorizing http requests
     @MockBean protected SecurityContext context;
     @MockBean protected Authentication authentication;
+
+    @BeforeClass
+    public static void completeInit() {
+        // late init vars which need to be set
+        DEPOSITOR.setId(1L);
+        DEPOSITOR.setContacts(new HashSet<>());
+        DEPOSITOR.setNodeDistributions(new HashSet<>());
+    }
 
     @Before
     public void setupSecurityContext() {
@@ -95,6 +109,8 @@ public class ControllerTest extends IngestTest {
         builder.serializerByType(StagingStorage.class, new StagingStorageSerializer());
         builder.serializerByType(StorageRegion.class, new StorageRegionSerializer());
         builder.serializerByType(ZonedDateTime.class, new ZonedDateTimeSerializer());
+        builder.deserializerByType(FulfillmentStrategy.class,
+                new FulfillmentStrategyDeserializer());
         builder.deserializerByType(ZonedDateTime.class, new ZonedDateTimeDeserializer());
         mapper = builder.build();
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
@@ -117,9 +133,6 @@ public class ControllerTest extends IngestTest {
     public void authenticateAdmin() {
         when(context.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(admin);
-    }
-
-    public void unauthenticated () {
     }
 
     public <T> Page<T> asPage(T t) {

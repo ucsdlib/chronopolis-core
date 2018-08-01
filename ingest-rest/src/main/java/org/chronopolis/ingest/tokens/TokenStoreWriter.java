@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 
 import static java.nio.file.StandardOpenOption.CREATE;
 import static org.chronopolis.ingest.api.Params.SORT_ID;
@@ -126,6 +127,7 @@ public class TokenStoreWriter implements Runnable {
             storage.setTotalFiles(1L);
             storage.setPath(root.relativize(store).toString());
 
+            storage.setFixities(new HashSet<>());
             storage.addFixity(new Fixity(storage, ZonedDateTime.now(), hash, "SHA-256"));
 
             bag.getTokenStorage().add(storage);

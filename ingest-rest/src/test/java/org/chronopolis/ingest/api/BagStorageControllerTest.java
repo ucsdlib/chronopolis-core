@@ -58,7 +58,7 @@ public class BagStorageControllerTest extends ControllerTest {
         StorageRegion region = new StorageRegion();
         region.setId(ID);
         region.setCapacity(100000L);
-        region.setNode(new Node(emptySet(), emptySet(), emptySet(), AUTHORIZED, AUTHORIZED, true));
+        region.setNode(new Node(emptySet(), AUTHORIZED, AUTHORIZED, true));
 
         Fixity fixity = new Fixity();
         fixity.setAlgorithm("test-algorithm");
@@ -72,10 +72,13 @@ public class BagStorageControllerTest extends ControllerTest {
         storage.setSize(100L);
         storage.setTotalFiles(10L);
         storage.setRegion(region);
+        storage.setBags(new HashSet<>());
+        storage.setTokens(new HashSet<>());
         storage.setFixities(new HashSet<>());
-        storage.getFixities().add(fixity);
+        storage.addFixity(fixity);
         storage.setCreatedAt(ZonedDateTime.now());
         storage.setUpdatedAt(ZonedDateTime.now());
+        fixity.setStorage(storage);
 
         controller = new BagStorageController(stagingService);
         setupMvc(controller);
@@ -119,7 +122,10 @@ public class BagStorageControllerTest extends ControllerTest {
 
     @Test
     public void testGetFixity() throws Exception {
-        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin))).thenReturn(Optional.of(storage));
+        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin)))
+                .thenReturn(Optional.of(storage));
+        log.info("WTF {}", storage.getFixities());
+
         mvc.perform(get("/api/bags/{id}/storage/{type}/fixity/{alg}", ID, TYPE, "test-algorithm"))
                 .andDo(print())
                 .andExpect(status().is(HttpStatus.OK.value()));
@@ -128,7 +134,8 @@ public class BagStorageControllerTest extends ControllerTest {
     @Test
     public void testAddFixity() throws Exception {
         authenticateUser();
-        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin))).thenReturn(Optional.of(storage));
+        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin)))
+                .thenReturn(Optional.of(storage));
         mvc.perform(put("/api/bags/{id}/storage/{type}/fixity", ID, TYPE)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"algorithm\": \"test-put\", \"value\": \"success\"}")

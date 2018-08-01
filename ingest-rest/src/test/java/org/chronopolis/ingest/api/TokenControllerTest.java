@@ -21,6 +21,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Date;
+import java.util.HashSet;
 
 import static org.chronopolis.rest.kot.models.enums.BagStatus.DEPOSITED;
 import static org.mockito.Matchers.any;
@@ -77,8 +78,13 @@ public class TokenControllerTest {
 
     private AceToken generateToken() {
         Depositor depositor = new Depositor("depositor", "depositor", "depositor");
+        depositor.setContacts(new HashSet<>());
+        depositor.setNodeDistributions(new HashSet<>());
         Bag bag = new Bag("test-name", depositor.getNamespace(), depositor, 1L, 1L, DEPOSITED);
         bag.setId(1L);
+        bag.setBagStorage(new HashSet<>());
+        bag.setTokenStorage(new HashSet<>());
+        bag.setDistributions(new HashSet<>());
         AceToken token = new AceToken("test-filename",
                 "test-proof",
                 100L,

@@ -80,7 +80,7 @@ public class StorageControllerTest extends ControllerTest {
                 "test-user");
 
         when(nodes.findByUsername(eq(AUTHORIZED))).thenReturn(
-                new Node(of(), of(), of(), AUTHORIZED, AUTHORIZED, true));
+                new Node(of(), AUTHORIZED, AUTHORIZED, true));
         mvc.perform(
                 post("/api/storage")
                         .principal(authorizedPrincipal)

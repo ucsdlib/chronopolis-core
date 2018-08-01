@@ -6,7 +6,6 @@ import org.chronopolis.ingest.repository.criteria.SearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.rest.kot.entities.Bag;
-import org.chronopolis.rest.kot.entities.depositor.Depositor;
 import org.chronopolis.rest.kot.models.create.BagCreate;
 import org.chronopolis.rest.kot.models.enums.BagStatus;
 import org.junit.Before;
@@ -43,8 +42,8 @@ public class BagControllerTest extends ControllerTest {
 
     private static final String BAG = "test-bag";
     private static final String LOCATION = "bags/test-bag-0";
-    private static final String NAMESPACE = "test-depositor";
-    private final Depositor DEPOSITOR = new Depositor(NAMESPACE, NAMESPACE, NAMESPACE);
+    // private static final String NAMESPACE = "test-depositor";
+    // private final Depositor DEPOSITOR = new Depositor(NAMESPACE, NAMESPACE, NAMESPACE);
 
     // Mocks for the StagingController
     @MockBean private BagService bagService;

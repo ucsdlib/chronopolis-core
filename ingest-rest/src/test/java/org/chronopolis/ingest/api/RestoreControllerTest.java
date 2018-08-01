@@ -2,7 +2,6 @@ package org.chronopolis.ingest.api;
 
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.RestoreRepository;
-import org.chronopolis.rest.kot.models.enums.ReplicationStatus;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -11,8 +10,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -34,7 +31,7 @@ public class RestoreControllerTest extends ControllerTest {
     @Test
     @Ignore
     public void testGetRestorations() throws Exception {
-        when(restores.findByStatus(any(ReplicationStatus.class))).thenReturn(null);
+        // when(restores.findByStatus(any(ReplicationStatus.class))).thenReturn(null);
         mvc.perform(
                 get("/api/restorations")
                         .principal(authorizedPrincipal))

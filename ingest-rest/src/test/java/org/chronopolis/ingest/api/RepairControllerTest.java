@@ -11,14 +11,16 @@ import org.chronopolis.rest.kot.entities.Node;
 import org.chronopolis.rest.kot.entities.depositor.Depositor;
 import org.chronopolis.rest.kot.entities.repair.Ace;
 import org.chronopolis.rest.kot.entities.repair.Repair;
+import org.chronopolis.rest.kot.models.AceStrategy;
 import org.chronopolis.rest.kot.models.enums.AuditStatus;
 import org.chronopolis.rest.kot.models.enums.BagStatus;
 import org.chronopolis.rest.kot.models.enums.FulfillmentType;
 import org.chronopolis.rest.kot.models.enums.RepairStatus;
-import org.chronopolis.rest.models.repair.ACEStrategy;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Pageable;
@@ -43,6 +45,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @WebMvcTest(RepairController.class)
 public class RepairControllerTest extends ControllerTest {
+
+    private final Logger log = LoggerFactory.getLogger(RepairControllerTest.class);
 
     private RepairController controller;
     private final Depositor depositor = new Depositor();
@@ -91,7 +95,7 @@ public class RepairControllerTest extends ControllerTest {
     public void createRepair() throws Exception {
         authenticateUser();
         // requester instead of authorized?
-        Node node = new Node(of(), of(), of(), AUTHORIZED, AUTHORIZED, true);
+        Node node = new Node(of(), AUTHORIZED, AUTHORIZED, true);
         Bag bag = new Bag("test-bag", "test-creator", depositor, 0L, 0L, BagStatus.DEPOSITED);
         when(nodes.findByUsername(AUTHORIZED)).thenReturn(node);
         when(bags.find(any(SearchCriteria.class))).thenReturn(bag);
@@ -112,7 +116,7 @@ public class RepairControllerTest extends ControllerTest {
     @Test
     public void createRepairAdmin() throws Exception {
         authenticateAdmin();
-        Node node = new Node(of(), of(), of(), REQUESTER, REQUESTER, true);
+        Node node = new Node(of(), REQUESTER, REQUESTER, true);
         Bag bag = new Bag("test-bag", "test-creator", depositor, 0L, 0L, BagStatus.DEPOSITED);
         when(nodes.findByUsername(REQUESTER)).thenReturn(node);
         when(bags.find(any(SearchCriteria.class))).thenReturn(bag);
@@ -148,7 +152,7 @@ public class RepairControllerTest extends ControllerTest {
     @Test
     public void fulfillRequest() throws Exception {
         Repair unfulfilled = baseRepair();
-        Node node = new Node(of(), of(), of(), AUTHORIZED, AUTHORIZED, true);
+        Node node = new Node(of(), AUTHORIZED, AUTHORIZED, true);
         when(nodes.findByUsername(AUTHORIZED)).thenReturn(node);
         when(repairs.find(any(SearchCriteria.class))).thenReturn(unfulfilled);
         mvc.perform(post("/api/repairs/{id}/fulfill", unfulfilled.getId()).principal(authorizedPrincipal))
@@ -162,7 +166,7 @@ public class RepairControllerTest extends ControllerTest {
     @Test
     public void fulfillOwnRequest() throws Exception {
         Repair unfulfilled = baseRepair();
-        Node node = new Node(of(), of(), of(), REQUESTER, REQUESTER, true);
+        Node node = new Node(of(), REQUESTER, REQUESTER, true);
         when(nodes.findByUsername(REQUESTER)).thenReturn(node);
         when(repairs.find(any(SearchCriteria.class))).thenReturn(unfulfilled);
 
@@ -174,7 +178,7 @@ public class RepairControllerTest extends ControllerTest {
     @Test
     public void fulfillRequestConflict() throws Exception {
         Repair fulfilling = fulfilling();
-        Node node = new Node(of(), of(), of(), AUTHORIZED, UNAUTHORIZED, true);
+        Node node = new Node(of(), AUTHORIZED, UNAUTHORIZED, true);
         when(nodes.findByUsername(UNAUTHORIZED)).thenReturn(node);
         when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
 
@@ -190,9 +194,9 @@ public class RepairControllerTest extends ControllerTest {
         when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
         authenticateUser();
 
-        ACEStrategy strategy = new ACEStrategy()
-                .setApiKey("test-api-key")
-                .setUrl("test-url");
+        AceStrategy strategy = new AceStrategy(FulfillmentType.ACE, "test-api-key", "test-url");
+
+        log.info("{}", asJson(strategy));
 
         mvc.perform(
                 put("/api/repairs/{id}/ready", fulfilling.getId())
@@ -210,9 +214,9 @@ public class RepairControllerTest extends ControllerTest {
         when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
         authenticateUser();
 
-        ACEStrategy strategy = new ACEStrategy()
-                .setApiKey("test-api-key")
-                .setUrl("test-url");
+        AceStrategy strategy = new AceStrategy(FulfillmentType.ACE, "test-api-key", "test-url");
+
+        log.info("{}", asJson(strategy));
 
         mvc.perform(
                 put("/api/repairs/{id}/ready", fulfilling.getId())
@@ -422,7 +426,7 @@ public class RepairControllerTest extends ControllerTest {
 
     // maybe look at trimming some of the fat here
     private Repair baseRepair() {
-        Node node = new Node(of(), of(), of(), REQUESTER, REQUESTER, true);
+        Node node = new Node(of(), REQUESTER, REQUESTER, true);
         Bag bag = new Bag("test-bag", "test-creator", depositor, 0L, 0L, BagStatus.DEPOSITED);
         Repair repair = new Repair();
         repair.setBag(bag);
@@ -435,7 +439,7 @@ public class RepairControllerTest extends ControllerTest {
     }
 
     private Repair fulfilling() {
-        Node node = new Node(of(), of(), of(), AUTHORIZED, AUTHORIZED, true);
+        Node node = new Node(of(), AUTHORIZED, AUTHORIZED, true);
         Repair repair = baseRepair();
         repair.setStatus(RepairStatus.STAGING);
         repair.setFrom(node);
@@ -443,7 +447,7 @@ public class RepairControllerTest extends ControllerTest {
     }
 
     private Repair transferred() {
-        Node node = new Node(of(), of(), of(), REQUESTER, REQUESTER, true);
+        Node node = new Node(of(), REQUESTER, REQUESTER, true);
         Repair repair = baseRepair();
         repair.setStatus(RepairStatus.TRANSFERRED);
         repair.setFrom(node);

@@ -25,6 +25,7 @@ import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.persistence.EntityManager;
+import java.util.HashSet;
 
 /**
  * @author shake
@@ -85,7 +86,7 @@ public class BagCascadeTest extends IngestTest {
         Bag bag = bags.find(new BagSearchCriteria().withName(BAG_MERGE));
         Assert.assertNotNull(bag);
 
-        bag.setBagStorage(ImmutableSet.of(new StagingStorage(region, 1L, 1L, TEST, true)));
+        bag.getBagStorage().add(new StagingStorage(region, 1L, 1L, TEST, true));
         bags.save(bag);
 
         Bag merged = bags.find(new BagSearchCriteria().withName(BAG_MERGE));
@@ -99,7 +100,7 @@ public class BagCascadeTest extends IngestTest {
         Bag bag = bags.find(new BagSearchCriteria().withName(TOKEN_MERGE));
         Assert.assertNotNull(bag);
 
-        bag.setTokenStorage(ImmutableSet.of(new StagingStorage(region, 1L, 1L, TEST, true)));
+        bag.getTokenStorage().add(new StagingStorage(region, 1L, 1L, TEST, true));
         bags.save(bag);
 
         Bag merged = bags.find(new BagSearchCriteria().withName(TOKEN_MERGE));
@@ -115,7 +116,11 @@ public class BagCascadeTest extends IngestTest {
 
         assert depositor != null;
         // might need to init regions and what not
-        return new Bag(op, TEST, depositor, 1L, 1L, BagStatus.DEPOSITED);
+        Bag bag = new Bag(op, TEST, depositor, 1L, 1L, BagStatus.DEPOSITED);
+        bag.setBagStorage(new HashSet<>());
+        bag.setTokenStorage(new HashSet<>());
+        bag.setDistributions(new HashSet<>());
+        return bag;
     }
 
 }

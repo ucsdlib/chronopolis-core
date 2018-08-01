@@ -24,6 +24,8 @@ import java.util.List;
 /**
  * Tests for common operations for a Depositor
  *
+ * These are actually duplicated from the rest-entities module
+ *
  * @author shake
  */
 @DataJpaTest
@@ -51,12 +53,7 @@ public class DepositorDAOTest extends IngestTest {
 
     @Test
     public void newDepositor() {
-        // old depositor
-        org.chronopolis.rest.entities.QDepositor old = org.chronopolis.rest.entities.QDepositor.depositor;
         QDepositor nu = QDepositor.depositor;
-
-        // error... but why
-        // depositor doesn't conform to PersistableEntity....
         dao.findAll(nu);
 
         Depositor depositor = new Depositor();
@@ -65,11 +62,12 @@ public class DepositorDAOTest extends IngestTest {
         depositor.setOrganizationAddress("new-organization-address");
 
         depositor.setContacts(new HashSet<>());
-        depositor.getContacts().add(new DepositorContact("new-name", "new-phone", "new-email"));
-        depositor.getContacts().add(new DepositorContact("new-name-2", "new-phone-2", "new-email-2"));
-        // dao.findAll(QNode.node).forEach(depositor::addNodeDistribution);
+        depositor.addContact(new DepositorContact("new-name", "new-phone", "new-email"));
+        depositor.addContact(new DepositorContact("new-name-2", "new-phone-2", "new-email-2"));
+        depositor.setNodeDistributions(new HashSet<>());
+        dao.findAll(QNode.node).forEach(depositor::addNodeDistribution);
 
-        // dao.save(depositor);
+        dao.save(depositor);
 
         Depositor saved = dao.findOne(qDepositor, qDepositor.namespace.eq("new-namespace"));
         Assert.assertNotNull(saved);
@@ -132,10 +130,12 @@ public class DepositorDAOTest extends IngestTest {
 
     @Test
     public void testAddContacts() {
+        Depositor one = dao.findOne(qDepositor, qDepositor.namespace.eq(namespace));
         DepositorContact contact = new DepositorContact("new-name", "new-phone", "new-email");
         DepositorContact contact2 = new DepositorContact("new-name-2", "new-phone-2", "new-email-2");
 
-        Depositor one = dao.findOne(qDepositor, qDepositor.namespace.eq(namespace));
+        contact.setDepositor(one);
+        contact2.setDepositor(one);
         one.getContacts().add(contact);
         one.getContacts().add(contact2);
 

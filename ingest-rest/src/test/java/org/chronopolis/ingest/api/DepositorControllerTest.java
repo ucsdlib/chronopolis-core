@@ -53,11 +53,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class DepositorControllerTest extends ControllerTest {
     // Immutable fields used for testing
     private static final String EMAIL = "fake-account@umiacs.umd.edu";
-    private static final String ADDRESS = "test-address";
+    // private static final String ADDRESS = "test-address";
     private static final String BAG_NAME = "test-bag";
     private static final String NODE_NAME = "node-name";
-    private static final String NAMESPACE = "test-depositor";
-    private static final String ORGANIZATION = "test-organization";
+    // private static final String NAMESPACE = "test-depositor";
+    // private static final String ORGANIZATION = "test-organization";
     private static final String DEPOSITOR_ROOT_PATH = "/api/depositors";
     private static final String DEPOSITOR_BAGS_PATH = "/api/depositors/{namespace}/bags";
     private static final String DEPOSITOR_BAG_NAME_PATH = "/api/depositors/{namespace}/bags/{bagName}";
@@ -75,7 +75,7 @@ public class DepositorControllerTest extends ControllerTest {
     // Fields we set up
     private Bag bag;
     private Node node;
-    private Depositor depositor = new Depositor();
+    // private Depositor DEPOSITOR = new Depositor();
     private DepositorContact contact = new DepositorContact();
     private BooleanExpression namespaceEq = Q_DEPOSITOR.namespace.eq(NAMESPACE);
     private BooleanExpression contactEq = Q_CONTACT.depositor.namespace.eq(NAMESPACE)
@@ -87,16 +87,16 @@ public class DepositorControllerTest extends ControllerTest {
 
     @Before
     public void setup() {
-        depositor = new Depositor(NAMESPACE, ADDRESS, ORGANIZATION);
-        depositor.setContacts(new HashSet<>());
-        depositor.setNodeDistributions(new HashSet<>());
-        depositor.setCreatedAt(NOW);
-        depositor.setUpdatedAt(NOW);
-        depositor.setId(1L);
+        // DEPOSITOR = new Depositor(NAMESPACE, ADDRESS, ORGANIZATION);
+        // DEPOSITOR.setContacts(new HashSet<>());
+        // DEPOSITOR.setNodeDistributions(new HashSet<>());
+        // DEPOSITOR.setCreatedAt(NOW);
+        // DEPOSITOR.setUpdatedAt(NOW);
+        // DEPOSITOR.setId(1L);
 
-        node = new Node(of(), of(), of(), NODE_NAME, NODE_NAME, true);
+        node = new Node(of(), NODE_NAME, NODE_NAME, true);
 
-        bag = new Bag(BAG_NAME, NAMESPACE, depositor, 1L, 1L, BagStatus.DEPOSITED);
+        bag = new Bag(BAG_NAME, NAMESPACE, DEPOSITOR, 1L, 1L, BagStatus.DEPOSITED);
         bag.setBagStorage(new HashSet<>());
         bag.setTokenStorage(new HashSet<>());
         bag.setDistributions(new HashSet<>());
@@ -114,7 +114,7 @@ public class DepositorControllerTest extends ControllerTest {
         authenticateAdmin();
         runPost(DEPOSITOR_ROOT_PATH, authorizedPrincipal, model)
                 .andExpect(status().isCreated());
-        verify(dao, times(1)).save(eq(depositor));
+        verify(dao, times(1)).save(eq(DEPOSITOR));
     }
 
     @Test
@@ -122,7 +122,7 @@ public class DepositorControllerTest extends ControllerTest {
         DepositorCreate model = createModel(false);
         runPost(DEPOSITOR_ROOT_PATH, authorizedPrincipal, model)
                 .andExpect(status().isBadRequest());
-        verify(dao, times(0)).save(eq(depositor));
+        verify(dao, times(0)).save(eq(DEPOSITOR));
     }
 
     @Test
@@ -131,7 +131,7 @@ public class DepositorControllerTest extends ControllerTest {
         authenticateUser();
         runPost(DEPOSITOR_ROOT_PATH, unauthorizedPrincipal, model)
                 .andExpect(status().isForbidden());
-        verify(dao, times(0)).save(eq(depositor));
+        verify(dao, times(0)).save(eq(DEPOSITOR));
     }
 
     @Test
@@ -139,16 +139,16 @@ public class DepositorControllerTest extends ControllerTest {
         DepositorCreate model = createModel(true);
         authenticateAdmin();
         when(dao.findOne(eq(Q_DEPOSITOR), eq(namespaceEq)))
-                .thenReturn(depositor);
+                .thenReturn(DEPOSITOR);
         runPost(DEPOSITOR_ROOT_PATH, authorizedPrincipal, model)
                 .andExpect(status().isConflict());
-        verify(dao, times(0)).save(eq(depositor));
+        verify(dao, times(0)).save(eq(DEPOSITOR));
     }
 
     @Test
     public void testGet() throws Exception {
         when(dao.findPage(eq(Q_DEPOSITOR), any(DepositorFilter.class)))
-                .thenReturn(new PageImpl<>(ImmutableList.of(depositor)));
+                .thenReturn(new PageImpl<>(ImmutableList.of(DEPOSITOR)));
         mvc.perform(get(DEPOSITOR_ROOT_PATH)
                 .principal(authorizedPrincipal))
                 .andExpect(status().isOk());
@@ -159,7 +159,7 @@ public class DepositorControllerTest extends ControllerTest {
     @Test
     public void testGetByNamespace() throws Exception {
         when(dao.findOne(eq(Q_DEPOSITOR), any(DepositorFilter.class)))
-                .thenReturn(depositor);
+                .thenReturn(DEPOSITOR);
         mvc.perform(get(DEPOSITOR_NAMESPACE_PATH, NAMESPACE)
                 .principal(authorizedPrincipal))
                 .andExpect(status().isOk())
@@ -185,7 +185,7 @@ public class DepositorControllerTest extends ControllerTest {
     @Test
     public void testGetBags() throws Exception {
         when(dao.findOne(eq(Q_DEPOSITOR), any(Predicate.class)))
-                .thenReturn(depositor);
+                .thenReturn(DEPOSITOR);
         when(dao.findPage(eq(Q_BAG), any(BagFilter.class)))
                 .thenReturn(new PageImpl<>(ImmutableList.of(bag)));
         mvc.perform(get(DEPOSITOR_BAGS_PATH, NAMESPACE)
@@ -235,7 +235,7 @@ public class DepositorControllerTest extends ControllerTest {
         DepositorContactCreate contactCreate = contactModel(true);
 
         when(dao.findOne(eq(Q_DEPOSITOR), eq(namespaceEq)))
-                .thenReturn(depositor);
+                .thenReturn(DEPOSITOR);
 
         authenticateAdmin();
         runPost(CONTACT_PATH, authorizedPrincipal, contactCreate, NAMESPACE)
@@ -310,7 +310,7 @@ public class DepositorControllerTest extends ControllerTest {
         DepositorContactRemove remove = new DepositorContactRemove(EMAIL);
 
         when(dao.findOne(eq(Q_DEPOSITOR), eq(namespaceEq)))
-                .thenReturn(depositor);
+                .thenReturn(DEPOSITOR);
         when(dao.findOne(eq(Q_CONTACT), eq(contactEq))).thenReturn(contact);
 
         authenticateAdmin();
@@ -344,7 +344,7 @@ public class DepositorControllerTest extends ControllerTest {
         DepositorContactRemove remove = new DepositorContactRemove(EMAIL);
 
         when(dao.findOne(eq(Q_DEPOSITOR), eq(namespaceEq)))
-                .thenReturn(depositor);
+                .thenReturn(DEPOSITOR);
 
         authenticateAdmin();
         mvc.perform(
@@ -374,7 +374,7 @@ public class DepositorControllerTest extends ControllerTest {
     @Test
     public void testAddNode() throws Exception {
         when(dao.findOne(eq(Q_DEPOSITOR), eq(namespaceEq)))
-                .thenReturn(depositor);
+                .thenReturn(DEPOSITOR);
         when(dao.findOne(eq(Q_NODE), eq(nodeEq)))
                 .thenReturn(node);
         authenticateAdmin();
@@ -398,7 +398,7 @@ public class DepositorControllerTest extends ControllerTest {
     @Test
     public void testAddNodeBadRequest() throws Exception {
         when(dao.findOne(eq(Q_DEPOSITOR), eq(namespaceEq)))
-                .thenReturn(depositor);
+                .thenReturn(DEPOSITOR);
         authenticateAdmin();
         mvc.perform(post(NODE_PATH, NAMESPACE, NODE_NAME).principal(authorizedPrincipal))
                 .andExpect(status().isBadRequest());
@@ -421,7 +421,7 @@ public class DepositorControllerTest extends ControllerTest {
     @Test
     public void testRemoveNode() throws Exception {
         when(dao.findOne(eq(Q_DEPOSITOR), eq(namespaceEq)))
-                .thenReturn(depositor);
+                .thenReturn(DEPOSITOR);
         when(dao.findOne(eq(Q_NODE), eq(nodeEq)))
                 .thenReturn(node);
         authenticateAdmin();
@@ -445,7 +445,7 @@ public class DepositorControllerTest extends ControllerTest {
     @Test
     public void testRemoveNodeBadRequest() throws Exception {
         when(dao.findOne(eq(Q_DEPOSITOR), eq(namespaceEq)))
-                .thenReturn(depositor);
+                .thenReturn(DEPOSITOR);
         authenticateAdmin();
         mvc.perform(delete(NODE_PATH, NAMESPACE, NODE_NAME).principal(authorizedPrincipal))
                 .andExpect(status().isBadRequest());

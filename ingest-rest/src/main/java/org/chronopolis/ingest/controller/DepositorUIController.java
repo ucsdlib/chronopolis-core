@@ -28,7 +28,6 @@ import org.chronopolis.rest.kot.entities.depositor.Depositor;
 import org.chronopolis.rest.kot.entities.depositor.DepositorContact;
 import org.chronopolis.rest.kot.entities.depositor.QDepositor;
 import org.chronopolis.rest.kot.entities.depositor.QDepositorContact;
-import org.chronopolis.rest.kot.entities.depositor.QDepositorNode;
 import org.chronopolis.rest.kot.models.create.DepositorContactCreate;
 import org.chronopolis.rest.kot.models.create.DepositorCreate;
 import org.chronopolis.rest.kot.models.update.DepositorUpdate;
@@ -208,10 +207,10 @@ public class DepositorUIController extends IngestController {
                                 DepositorUpdate depositorEdit) {
         Depositor existing = getOrThrowNotFound(namespace);
 
-        QDepositorNode qdn = QDepositorNode.depositorNode;
-        BooleanExpression availableNodes = QNode.node.id.notIn(JPAExpressions.select(qdn.node.id)
-                .from(qdn)
-                .where(qdn.depositor.id.eq(existing.getId())));
+        BooleanExpression availableNodes = QNode.node.notIn(
+                JPAExpressions.select(QDepositor.depositor.nodeDistributions.any())
+                        .from(QDepositor.depositor)
+                        .where(QDepositor.depositor.id.eq(existing.getId())));
 
         model.addAttribute("nodes", dao.findAll(QNode.node, availableNodes));
         model.addAttribute("depositor", existing);
@@ -322,10 +321,10 @@ public class DepositorUIController extends IngestController {
                           DepositorUpdate depositorEdit) {
         Depositor depositor = getOrThrowNotFound(namespace);
 
-        QDepositorNode qdn = QDepositorNode.depositorNode;
-        BooleanExpression availableNodes = QNode.node.id.notIn(JPAExpressions.select(qdn.node.id)
-                .from(qdn)
-                .where(qdn.depositor.id.eq(depositor.getId())));
+        BooleanExpression availableNodes = QNode.node.notIn(
+                JPAExpressions.select(QDepositor.depositor.nodeDistributions.any())
+                        .from(QDepositor.depositor)
+                        .where(QDepositor.depositor.id.eq(depositor.getId())));
 
         model.addAttribute("depositorEdit", depositorEdit);
         model.addAttribute("nodes", dao.findAll(QNode.node, availableNodes));

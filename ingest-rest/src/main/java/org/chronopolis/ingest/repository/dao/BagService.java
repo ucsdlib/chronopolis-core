@@ -6,11 +6,11 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.rest.kot.entities.Bag;
+import org.chronopolis.rest.kot.entities.Node;
 import org.chronopolis.rest.kot.entities.BagDistributionStatus;
 import org.chronopolis.rest.kot.entities.QAceToken;
 import org.chronopolis.rest.kot.entities.QBag;
 import org.chronopolis.rest.kot.entities.depositor.Depositor;
-import org.chronopolis.rest.kot.entities.depositor.DepositorNode;
 import org.chronopolis.rest.kot.entities.depositor.QDepositor;
 import org.chronopolis.rest.kot.entities.storage.QStorageRegion;
 import org.chronopolis.rest.kot.entities.storage.StagingStorage;
@@ -194,9 +194,9 @@ public class BagService extends SearchService<Bag, Long, BagRepository> {
      * @param depositor the depositor of the bag
      */
     private void createDistributions(Bag bag, Depositor depositor) {
-        for (DepositorNode node : depositor.getNodeDistributions()) {
-            log.debug("Creating requested dist record for {}", node.getNode().getUsername());
-            bag.addDistribution(node.getNode(), BagDistributionStatus.DISTRIBUTE);
+        for (Node node : depositor.getNodeDistributions()) {
+            log.debug("Creating requested dist record for {}", node.getUsername());
+            bag.addDistribution(node, BagDistributionStatus.DISTRIBUTE);
         }
     }
 
