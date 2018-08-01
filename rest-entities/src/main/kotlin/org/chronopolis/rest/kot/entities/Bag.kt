@@ -77,7 +77,7 @@ class Bag(
         val replicated = distributions.stream()
                 .allMatch { it.status == BagDistributionStatus.REPLICATE }
 
-        if (replicated) {
+        if (replicated && !distributions.isEmpty()) {
             status = BagStatus.PRESERVED
         }
     }
