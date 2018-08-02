@@ -3,10 +3,10 @@ package org.chronopolis.tokenize.config;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.storage.BagStagingPropertiesValidator;
-import org.chronopolis.rest.api.IngestAPIProperties;
-import org.chronopolis.rest.api.IngestGenerator;
-import org.chronopolis.rest.api.ServiceGenerator;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.kot.api.IngestApiProperties;
+import org.chronopolis.rest.kot.api.IngestGenerator;
+import org.chronopolis.rest.kot.api.ServiceGenerator;
+import org.chronopolis.rest.kot.models.Bag;
 import org.chronopolis.tokenize.batch.ChronopolisTokenRequestBatch;
 import org.chronopolis.tokenize.registrar.HttpTokenRegistrar;
 import org.chronopolis.tokenize.supervisor.DefaultSupervisor;
@@ -29,11 +29,11 @@ import static java.util.concurrent.TimeUnit.MINUTES;
  * @author shake
  */
 @Configuration
-@EnableConfigurationProperties({IngestAPIProperties.class, AceConfiguration.class})
+@EnableConfigurationProperties({IngestApiProperties.class, AceConfiguration.class})
 public class TokenTaskConfiguration {
 
     @Bean
-    public ServiceGenerator generator(IngestAPIProperties properties) {
+    public ServiceGenerator generator(IngestApiProperties properties) {
         return new IngestGenerator(properties);
     }
 

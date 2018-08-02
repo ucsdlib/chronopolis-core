@@ -3,8 +3,9 @@ package org.chronopolis.tokenize.registrar;
 import edu.umiacs.ace.ims.api.IMSUtil;
 import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.chronopolis.common.ace.AceConfiguration;
-import org.chronopolis.rest.api.TokenService;
-import org.chronopolis.rest.models.AceTokenModel;
+import org.chronopolis.rest.kot.api.TokenService;
+import org.chronopolis.rest.kot.models.AceToken;
+import org.chronopolis.rest.kot.models.create.AceTokenCreate;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.slf4j.Logger;
@@ -72,21 +73,21 @@ public class HttpTokenRegistrar implements TokenRegistrar, Runnable {
         }
 
         String filename = getFilename(response);
+        AceTokenCreate model = new AceTokenCreate(entry.getBag().getId(),
+                response.getRoundId(),
+                response.getTimestamp().toGregorianCalendar().toZonedDateTime(),
+                IMSUtil.formatProof(response),
+                imsHost,
+                filename,
+                response.getDigestService(),
+                response.getTokenClassName()
+        );
 
-        AceTokenModel model = new AceTokenModel()
-                .setAlgorithm(response.getDigestService())
-                .setFilename(filename)
-                .setProof(IMSUtil.formatProof(response))
-                .setImsHost(imsHost)
-                .setImsService(response.getTokenClassName())
-                .setRound(response.getRoundId())
-                .setCreateDate(response.getTimestamp().toGregorianCalendar().toZonedDateTime());
-
-        Call<AceTokenModel> call = tokens.createToken(entry.getBag().getId(), model);
+        Call<AceToken> call = tokens.createToken(entry.getBag().getId(), model);
         call.enqueue(new IngestCallback(entry));
     }
 
-    private class IngestCallback implements Callback<AceTokenModel> {
+    private class IngestCallback implements Callback<AceToken> {
 
         private final ManifestEntry entry;
         private final AtomicInteger tries;
@@ -97,7 +98,7 @@ public class HttpTokenRegistrar implements TokenRegistrar, Runnable {
         }
 
         @Override
-        public void onResponse(Call<AceTokenModel> call, Response<AceTokenModel> response) {
+        public void onResponse(Call<AceToken> call, Response<AceToken> response) {
             if (response.isSuccessful() || response.code() == 409) {
                 log.debug("[{}] Token Ingested into Chronopolis", entry.tokenName());
             } else {
@@ -109,7 +110,7 @@ public class HttpTokenRegistrar implements TokenRegistrar, Runnable {
         }
 
         @Override
-        public void onFailure(Call<AceTokenModel> call, Throwable t) {
+        public void onFailure(Call<AceToken> call, Throwable t) {
             log.error("[{}] Error communicating with Chronopolis", entry.tokenName(), t);
 
             // test this

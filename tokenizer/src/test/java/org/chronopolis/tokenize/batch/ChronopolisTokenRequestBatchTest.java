@@ -5,13 +5,15 @@ import edu.umiacs.ace.ims.api.IMSException;
 import edu.umiacs.ace.ims.ws.TokenRequest;
 import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.chronopolis.common.ace.AceConfiguration;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.kot.models.Bag;
+import org.chronopolis.rest.kot.models.enums.BagStatus;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -46,9 +48,8 @@ public class ChronopolisTokenRequestBatchTest {
 
     @Before
     public void setup() {
-        Bag bag = new Bag().setId(1L)
-                .setName("test-name")
-                .setDepositor("test-depositor");
+        Bag bag = new Bag(1L, 1L, 1L, null, null, ZonedDateTime.now(), ZonedDateTime.now(),
+                "test-name", "ctrb-test", "test-depositor", BagStatus.DEPOSITED, new HashSet<>());
 
         // Setup the ManifestEntries and TokenResponses which will be used during processing
         for (int i = 0; i < 10; i++) {

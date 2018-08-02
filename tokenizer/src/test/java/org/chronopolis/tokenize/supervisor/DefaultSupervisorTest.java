@@ -1,11 +1,13 @@
 package org.chronopolis.tokenize.supervisor;
 
 import edu.umiacs.ace.ims.ws.TokenResponse;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.kot.models.Bag;
+import org.chronopolis.rest.kot.models.enums.BagStatus;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -13,13 +15,17 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static java.time.ZonedDateTime.now;
+
 public class DefaultSupervisorTest {
 
     private final DefaultSupervisor supervisor = new DefaultSupervisor();
 
-    private final Bag bag = new Bag()
-            .setName("test-bag")
-            .setDepositor("test-depositor");
+    private final String BAG_NAME = "test-bag";
+    private final String CREATOR_NAME = "default-supervisor-test";
+    private final String DEPOSITOR_NAME = "test-depositor";
+    private final Bag bag = new Bag(1L, 1L, 1L, null, null, now(), now(),
+            BAG_NAME, CREATOR_NAME, DEPOSITOR_NAME, BagStatus.DEPOSITED, new HashSet<>());
 
     // Start
 

@@ -1,8 +1,8 @@
 package org.chronopolis.tokenize.filter;
 
 import com.google.common.collect.ImmutableList;
-import org.chronopolis.rest.api.TokenService;
-import org.chronopolis.rest.models.AceTokenModel;
+import org.chronopolis.rest.kot.api.TokenService;
+import org.chronopolis.rest.kot.models.AceToken;
 import org.chronopolis.test.support.CallWrapper;
 import org.chronopolis.test.support.ErrorCallWrapper;
 import org.chronopolis.test.support.ExceptingCallWrapper;
@@ -12,10 +12,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.data.domain.PageImpl;
-import retrofit2.Call;
 
-import java.util.List;
+import java.time.ZonedDateTime;
 
 import static org.mockito.Matchers.anyMapOf;
 import static org.mockito.Matchers.eq;
@@ -42,41 +40,31 @@ public class HttpFilterTest {
 
     @Test
     public void testContains() {
+        AceToken token = new AceToken(1L, 1L, 1L, "p", "h", "f", "a", "s", ZonedDateTime.now());
         when(tokens.getBagTokens(eq(1L), anyMapOf(String.class, String.class)))
-                .thenReturn(wrap(ImmutableList.of(new AceTokenModel())));
+                .thenReturn(new CallWrapper<>(ImmutableList.of(token)));
         Assert.assertFalse(filter.test(entry));
     }
 
     @Test
     public void testNotContains() {
         when(tokens.getBagTokens(eq(1L), anyMapOf(String.class, String.class)))
-                .thenReturn(wrap(ImmutableList.of()));
+                .thenReturn(new CallWrapper<>(ImmutableList.of()));
         Assert.assertTrue(filter.test(entry));
     }
 
     @Test
     public void testHttpError() {
-        when(tokens.getBagTokens(eq(1L), anyMapOf(String.class, String.class))).thenReturn(wrapError());
+        when(tokens.getBagTokens(eq(1L), anyMapOf(String.class, String.class)))
+                .thenReturn(new ErrorCallWrapper<>(ImmutableList.of(), 404, "Bag Not Found"));
         Assert.assertFalse(filter.test(entry));
     }
 
     @Test
     public void testThrowsException() {
-        ExceptingCallWrapper<PageImpl<AceTokenModel>> call =
-                new ExceptingCallWrapper<>(new PageImpl<>(ImmutableList.of()));
         when(tokens.getBagTokens(eq(1L), anyMapOf(String.class, String.class)))
-                .thenReturn(call);
+                .thenReturn(new ExceptingCallWrapper<>(ImmutableList.of()));
         Assert.assertFalse(filter.test(entry));
-    }
-
-    private Call<PageImpl<AceTokenModel>> wrap(List<AceTokenModel> elements) {
-        PageImpl<AceTokenModel> page = new PageImpl<>(elements);
-        return new CallWrapper<>(page);
-    }
-
-    private ErrorCallWrapper<PageImpl<AceTokenModel>> wrapError() {
-        return new ErrorCallWrapper<>(
-                new PageImpl<>(ImmutableList.of()), 404, "Bag Not Found");
     }
 
 }

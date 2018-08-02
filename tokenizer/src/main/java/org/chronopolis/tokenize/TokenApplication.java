@@ -5,12 +5,12 @@ import com.google.common.collect.ImmutableMap;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.storage.BagStagingProperties;
-import org.chronopolis.rest.api.BagService;
-import org.chronopolis.rest.api.IngestAPIProperties;
-import org.chronopolis.rest.api.ServiceGenerator;
-import org.chronopolis.rest.api.TokenService;
-import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.BagStatus;
+import org.chronopolis.rest.kot.api.BagService;
+import org.chronopolis.rest.kot.api.IngestApiProperties;
+import org.chronopolis.rest.kot.api.ServiceGenerator;
+import org.chronopolis.rest.kot.api.TokenService;
+import org.chronopolis.rest.kot.models.Bag;
+import org.chronopolis.rest.kot.models.enums.BagStatus;
 import org.chronopolis.tokenize.batch.ChronopolisTokenRequestBatch;
 import org.chronopolis.tokenize.config.TokenTaskConfiguration;
 import org.chronopolis.tokenize.filter.HttpFilter;
@@ -26,7 +26,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.data.domain.PageImpl;
 import retrofit2.Call;
 import retrofit2.Response;
 
@@ -38,7 +37,7 @@ import java.util.function.Predicate;
 @SpringBootApplication(scanBasePackageClasses = TokenTaskConfiguration.class,
         exclude = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
 @EnableConfigurationProperties({AceConfiguration.class,
-        IngestAPIProperties.class,
+        IngestApiProperties.class,
         BagStagingProperties.class})
 public class TokenApplication implements CommandLineRunner {
     private final Logger log = LoggerFactory.getLogger(TokenApplication.class);
@@ -48,7 +47,7 @@ public class TokenApplication implements CommandLineRunner {
     private final HttpTokenRegistrar registrar;
     private final TokenWorkSupervisor supervisor;
     private final BagStagingProperties properties;
-    private final IngestAPIProperties ingestProperties;
+    private final IngestApiProperties ingestProperties;
     private final ChronopolisTokenRequestBatch batch;
 
     private final Executor executorForBatch;
@@ -59,7 +58,7 @@ public class TokenApplication implements CommandLineRunner {
                             HttpTokenRegistrar registrar,
                             TokenWorkSupervisor supervisor,
                             BagStagingProperties properties,
-                            IngestAPIProperties ingestProperties,
+                            IngestApiProperties ingestProperties,
                             ChronopolisTokenRequestBatch batch,
                             Executor executorForBatch,
                             TrackingThreadPoolExecutor<Bag> executor) {
@@ -84,17 +83,19 @@ public class TokenApplication implements CommandLineRunner {
         executorForBatch.execute(batch);
         executorForBatch.execute(registrar);
 
-        ImmutableMap<String, Object> DEFAULT_QUERY = ImmutableMap.of(
+        ImmutableMap<String, String> DEFAULT_QUERY = ImmutableMap.of(
                 "creator", ingestProperties.getUsername(),
-                "status", BagStatus.DEPOSITED,
-                "region_id", properties.getPosix().getId());
+                "status", BagStatus.DEPOSITED.toString(),
+                "region_id", properties.getPosix().getId().toString());
 
-        Call<PageImpl<Bag>> bags = bagService.get(DEFAULT_QUERY);
+        Call<Iterable<Bag>> bags = bagService.get(DEFAULT_QUERY);
         try {
-            Response<PageImpl<Bag>> response = bags.execute();
+            Response<Iterable<Bag>> response = bags.execute();
 
-            while (response.isSuccessful() && response.body().getNumberOfElements() > 0) {
-                log.debug("Found {} bags for tokenization", response.body().getSize());
+            while (response.isSuccessful()
+                    && response.body() != null
+                    && response.body().iterator().hasNext()) {
+                // log.debug("Found {} bags for tokenization", response.body().getSize());
                 executeBatch(response.body());
 
                 // polling updated pages can be a problem if bag states are updated as we go on
@@ -117,7 +118,7 @@ public class TokenApplication implements CommandLineRunner {
      * @param body the response body
      * @throws InterruptedException if an interruption occurs
      */
-    private void executeBatch(PageImpl<Bag> body) throws InterruptedException {
+    private void executeBatch(Iterable<Bag> body) throws InterruptedException {
         for (Bag bag : body) {
             ImmutableList<Predicate<ManifestEntry>> predicates =
                     ImmutableList.of(new ProcessingFilter(supervisor),
