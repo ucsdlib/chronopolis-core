@@ -14,31 +14,38 @@
     <version>3.0.0-SNAPSHOT</version>
 
     <dependencies>
-        <!--
-            Still need retrofit and spring but those can be added when we start to migrate the API.
-        -->
-
         <!-- kotlin yey -->
+        <!-- note: since jackson uses reflection, make sure we are on the same major release -->
+        <!-- (curr: 1.2.x) -->
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib-jdk8</artifactId>
         </dependency>
 
-        <!-- todo: the kotlin versions are out of sync between jackson and us...needs resolution -->
+        <!-- our jackson is a little bit out of sync with retrofit -->
+        <!-- 2.9.6 vs 2.9.4 : hopefully since it's a minor version no complications arise -->
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-kotlin</artifactId>
             <version>2.9.6</version>
         </dependency>
 
-        <!-- override jackson kotlin version (nvm bad idea) -->
-        <!--
         <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-reflect</artifactId>
-            <version>${kotlin.version}</version>
+            <groupId>com.squareup.retrofit2</groupId>
+            <artifactId>retrofit</artifactId>
         </dependency>
-        -->
+
+        <dependency>
+            <groupId>com.squareup.retrofit2</groupId>
+            <artifactId>converter-jackson</artifactId>
+            <version>2.4.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
         <dependency>
             <groupId>org.hibernate</groupId>

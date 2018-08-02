@@ -1,5 +1,6 @@
 package org.chronopolis.rest.kot.models
 
+import com.google.common.collect.ComparisonChain
 import org.chronopolis.rest.kot.models.enums.BagStatus
 import java.time.ZonedDateTime
 
@@ -14,4 +15,13 @@ data class Bag(val id: Long,
                val creator: String,
                val depositor: String,
                val status: BagStatus,
-               val replicatingNodes: Set<String>)
+               val replicatingNodes: Set<String>) : Comparable<Bag> {
+
+    override fun compareTo(other: Bag): Int {
+        return ComparisonChain.start()
+                .compare(name, other.name)
+                .compare(depositor, other.depositor)
+                .result()
+    }
+
+}
