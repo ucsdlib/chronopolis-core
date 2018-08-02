@@ -4,6 +4,7 @@ import org.chronopolis.rest.kot.api.Paths.REPLICATION_ROOT
 import org.chronopolis.rest.kot.models.Replication
 import org.chronopolis.rest.kot.models.create.ReplicationCreate
 import org.chronopolis.rest.kot.models.update.FixityUpdate
+import org.chronopolis.rest.kot.models.update.ReplicationStatusUpdate
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -74,5 +75,25 @@ interface ReplicationService {
      */
     @PUT("$REPLICATION_ROOT/{id}/tagmanifest")
     fun updateTagManifestFixity(@Path("id") id: Long, @Body update: FixityUpdate): Call<Replication>
+
+    /**
+     * Update the status of a replication
+     *
+     * @param id the id of the replication
+     * @param update the status to set
+     * @return the updated replication
+     */
+    @PUT("$REPLICATION_ROOT/{id}/status")
+    fun updateStatus(@Path("id") id: Long,
+                     @Body update: ReplicationStatusUpdate): Call<Replication>
+
+    /**
+     * Fail a replication
+     *
+     * @param id the id of the replication
+     * @return the updated replication
+     */
+    @PUT("$REPLICATION_ROOT/{id}/failure")
+    fun fail(@Path("id") id: Long): Call<Replication>
 
 }
