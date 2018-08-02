@@ -9,9 +9,10 @@ import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.api.core.client.ClientSessionFactory;
 import org.apache.activemq.artemis.api.core.client.ServerLocator;
-import org.chronopolis.rest.api.TokenService;
-import org.chronopolis.rest.models.AceTokenModel;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.kot.api.TokenService;
+import org.chronopolis.rest.kot.models.AceToken;
+import org.chronopolis.rest.kot.models.Bag;
+import org.chronopolis.rest.kot.models.create.AceTokenCreate;
 import org.chronopolis.tokenize.mq.RegisterMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,17 +130,14 @@ public class ArtemisTokenRegistrar implements Runnable, Closeable {
         // probably a NoClassDef exception because the ace-ims-api package relies on log4j
         String proof = IMSUtil.formatProof(tokenResponse);
         Optional<String> filename = getFilename(tokenResponse);
-        Optional<AceTokenModel> optModel = filename.map(name -> new AceTokenModel()
-                .setProof(proof)
-                .setFilename(name)
-                .setBagId(bag.getId())
-                .setImsHost(imsHost)
-                .setRound(tokenResponse.getRoundId())
-                .setAlgorithm(tokenResponse.getDigestService())
-                .setImsService(tokenResponse.getTokenClassName())
-                .setCreateDate(tokenResponse.getTimestamp()
-                        .toGregorianCalendar()
-                        .toZonedDateTime()));
+        Optional<AceTokenCreate> optModel = filename.map(name -> new AceTokenCreate(bag.getId(),
+                tokenResponse.getRoundId(),
+                tokenResponse.getTimestamp().toGregorianCalendar().toZonedDateTime(),
+                proof,
+                imsHost,
+                name,
+                tokenResponse.getDigestService(),
+                tokenResponse.getTokenClassName()));
 
         return optModel.map(model -> tokens.createToken(bag.getId(), model))
                 .map(call -> accept(call, tokenResponse))
@@ -177,14 +175,14 @@ public class ArtemisTokenRegistrar implements Runnable, Closeable {
      * @param tokenResponse the ACE Token Response to upload
      * @return if the current transaction should be rolled back
      */
-    private boolean accept(Call<AceTokenModel> call, TokenResponse tokenResponse) {
+    private boolean accept(Call<AceToken> call, TokenResponse tokenResponse) {
         boolean rollback = false;
         String tokenName = tokenResponse.getName();
         log.debug("[{}] Attempting to register token at {}",
                 tokenName, call.request().url().toString());
 
         try {
-            Response<AceTokenModel> response = call.execute();
+            Response<AceToken> response = call.execute();
             int responseCode = response.code();
             if (response.isSuccessful() || responseCode == 409) {
                 log.info("[{}] Registered", tokenName);

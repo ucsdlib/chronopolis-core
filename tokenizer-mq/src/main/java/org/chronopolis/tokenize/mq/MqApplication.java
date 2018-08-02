@@ -8,14 +8,14 @@ import org.apache.activemq.artemis.api.core.client.ServerLocator;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.storage.BagStagingProperties;
-import org.chronopolis.rest.api.BagService;
-import org.chronopolis.rest.api.IngestAPIProperties;
-import org.chronopolis.rest.api.IngestGenerator;
-import org.chronopolis.rest.api.TokenService;
-import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.BagStatus;
-import org.chronopolis.rest.models.serializers.ZonedDateTimeDeserializer;
-import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
+import org.chronopolis.rest.kot.api.BagService;
+import org.chronopolis.rest.kot.api.IngestApiProperties;
+import org.chronopolis.rest.kot.api.IngestGenerator;
+import org.chronopolis.rest.kot.api.TokenService;
+import org.chronopolis.rest.kot.models.Bag;
+import org.chronopolis.rest.kot.models.enums.BagStatus;
+import org.chronopolis.rest.kot.models.serializers.ZonedDateTimeDeserializer;
+import org.chronopolis.rest.kot.models.serializers.ZonedDateTimeSerializer;
 import org.chronopolis.tokenize.BagProcessor;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.ManifestEntryDeserializer;
@@ -33,7 +33,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.data.domain.PageImpl;
 import retrofit2.Call;
 import retrofit2.Response;
 
@@ -51,7 +50,7 @@ import java.util.function.Predicate;
         exclude = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
 @EnableConfigurationProperties({
         AceConfiguration.class,
-        IngestAPIProperties.class,
+        IngestApiProperties.class,
         BagStagingProperties.class})
 public class MqApplication implements CommandLineRunner {
 
@@ -61,7 +60,7 @@ public class MqApplication implements CommandLineRunner {
     private final TokenService tokens;
     private final ServerLocator locator;
     private final AceConfiguration aceConfiguration;
-    private final IngestAPIProperties apiProperties;
+    private final IngestApiProperties apiProperties;
     private final BagStagingProperties staging;
 
     private final TrackingThreadPoolExecutor<Bag> bagExecutor;
@@ -69,7 +68,7 @@ public class MqApplication implements CommandLineRunner {
     @Autowired
     public MqApplication(ServerLocator serverLocator,
                          AceConfiguration aceConfiguration,
-                         IngestAPIProperties ingestAPIProperties,
+                         IngestApiProperties ingestAPIProperties,
                          BagStagingProperties bagStagingProperties) {
         IngestGenerator generator = new IngestGenerator(ingestAPIProperties);
         this.bags = generator.bags();
@@ -100,15 +99,17 @@ public class MqApplication implements CommandLineRunner {
         ArtemisSupervisor supervisor = new ArtemisSupervisor(locator, mapper, tokens, ims);
         ProcessingFilter processingFilter = new ProcessingFilter(supervisor);
 
-        ImmutableMap<String, Object> params = ImmutableMap.of(
+        ImmutableMap<String, String> params = ImmutableMap.of(
                 "creator", apiProperties.getUsername(),
-                "status", BagStatus.DEPOSITED,
-                "region_id", staging.getPosix().getId());
+                "status", BagStatus.DEPOSITED.toString(),
+                "region_id", staging.getPosix().getId().toString());
 
-        Call<PageImpl<Bag>> allBags = bags.get(params);
-        Response<PageImpl<Bag>> response = allBags.execute();
-        if (response.isSuccessful() && response.body().hasContent()) {
-            log.info("Starting tokenization on {} bags", response.body().getNumberOfElements());
+        Call<Iterable<Bag>> allBags = bags.get(params);
+        Response<Iterable<Bag>> response = allBags.execute();
+        if (response.isSuccessful()
+                && response.body() != null
+                && response.body().iterator().hasNext()) {
+            // log.info("Starting tokenization on {} bags", response.body().getNumberOfElements());
             for (Bag bag : response.body()) {
                 HttpFilter httpFilter = new HttpFilter(bag.getId(), tokens);
                 ImmutableList<Predicate<ManifestEntry>> predicates = ImmutableList.of(

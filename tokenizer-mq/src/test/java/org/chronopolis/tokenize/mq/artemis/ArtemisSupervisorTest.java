@@ -1,6 +1,6 @@
 package org.chronopolis.tokenize.mq.artemis;
 
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.kot.models.Bag;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.junit.Assert;
 import org.junit.Test;

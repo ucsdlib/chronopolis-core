@@ -2,6 +2,7 @@ package org.chronopolis.tokenize.mq.artemis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.client.ActiveMQClient;
@@ -11,11 +12,11 @@ import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.api.core.client.ClientSessionFactory;
 import org.apache.activemq.artemis.api.core.client.ServerLocator;
 import org.apache.activemq.artemis.junit.EmbeddedActiveMQResource;
-import org.chronopolis.rest.api.TokenService;
-import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.BagStatus;
-import org.chronopolis.rest.models.serializers.ZonedDateTimeDeserializer;
-import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
+import org.chronopolis.rest.kot.api.TokenService;
+import org.chronopolis.rest.kot.models.Bag;
+import org.chronopolis.rest.kot.models.enums.BagStatus;
+import org.chronopolis.rest.kot.models.serializers.ZonedDateTimeDeserializer;
+import org.chronopolis.rest.kot.models.serializers.ZonedDateTimeSerializer;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.ManifestEntryDeserializer;
 import org.chronopolis.tokenize.batch.ImsServiceWrapper;
@@ -27,10 +28,10 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.time.ZonedDateTime;
-import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import static java.util.Collections.emptySet;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -75,6 +76,7 @@ public class MqTest {
         module.addDeserializer(ZonedDateTime.class, new ZonedDateTimeDeserializer());
         module.addDeserializer(ManifestEntry.class, new ManifestEntryDeserializer());
         mapper.registerModule(module);
+        mapper.registerModule(new KotlinModule());
 
         serverLocator = ActiveMQClient.createServerLocator(activeMQ.getVmURL());
 
@@ -89,17 +91,8 @@ public class MqTest {
     }
 
     Bag createBag() {
-        return new Bag()
-                .setId(ID)
-                .setName(NAME)
-                .setDepositor(DEPOSITOR)
-                .setCreatedAt(NOW)
-                .setUpdatedAt(NOW)
-                .setCreator(DEPOSITOR)
-                .setSize(ID)
-                .setStatus(BagStatus.DEPOSITED)
-                .setTotalFiles(ID)
-                .setReplicatingNodes(Collections.emptySet());
+        return new Bag(ID, ID, ID, null, null, NOW, NOW,
+                NAME, DEPOSITOR, DEPOSITOR, BagStatus.DEPOSITED, emptySet());
     }
 
     ManifestEntry createEntry() {

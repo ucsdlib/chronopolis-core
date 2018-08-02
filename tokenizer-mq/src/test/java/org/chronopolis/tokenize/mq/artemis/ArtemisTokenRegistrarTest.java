@@ -16,7 +16,8 @@ public class ArtemisTokenRegistrarTest extends MqTest {
     public void run() throws Exception {
         sendRegisterMessage();
         when(tokens.createToken(eq(ID), any())).thenReturn(new CallWrapper<>(null));
-        ArtemisTokenRegistrar registrar = new ArtemisTokenRegistrar(0, MILLISECONDS, tokens, serverLocator, mapper);
+        ArtemisTokenRegistrar registrar =
+                new ArtemisTokenRegistrar(0, MILLISECONDS, tokens, serverLocator, mapper);
         registrar.run();
         verify(tokens, times(1)).createToken(eq(ID), any());
     }
