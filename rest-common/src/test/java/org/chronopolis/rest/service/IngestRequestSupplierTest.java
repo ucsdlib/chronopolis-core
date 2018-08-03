@@ -1,6 +1,6 @@
 package org.chronopolis.rest.service;
 
-import org.chronopolis.rest.models.IngestRequest;
+import org.chronopolis.rest.kot.models.create.BagCreate;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,11 +28,11 @@ public class IngestRequestSupplierTest {
         Path bag = root.resolve(DEPOSITOR).resolve(name);
         supplier = new IngestRequestSupplier(bag, root, DEPOSITOR, name);
 
-        Optional<IngestRequest> optional = supplier.get();
+        Optional<BagCreate> optional = supplier.get();
         Assert.assertTrue(optional.isPresent());
-        IngestRequest request = optional.get();
-        Assert.assertEquals(Long.valueOf(181), request.getSize());
-        Assert.assertEquals(Long.valueOf(3), request.getTotalFiles());
+        BagCreate request = optional.get();
+        Assert.assertEquals(181L, request.getSize());
+        Assert.assertEquals(3L, request.getTotalFiles());
     }
 
     @Test
@@ -41,11 +41,11 @@ public class IngestRequestSupplierTest {
         Path bag = root.resolve(DEPOSITOR).resolve(name + ".tar");
         supplier = new IngestRequestSupplier(bag, root, DEPOSITOR, name);
 
-        Optional<IngestRequest> optional = supplier.get();
+        Optional<BagCreate> optional = supplier.get();
         Assert.assertTrue(optional.isPresent());
-        IngestRequest request = optional.get();
-        Assert.assertEquals(Long.valueOf(181), request.getSize());
-        Assert.assertEquals(Long.valueOf(3), request.getTotalFiles());
+        BagCreate request = optional.get();
+        Assert.assertEquals(181L, request.getSize());
+        Assert.assertEquals(3L, request.getTotalFiles());
     }
 
     @Test
@@ -54,7 +54,7 @@ public class IngestRequestSupplierTest {
         Path bag = root.resolve(DEPOSITOR).resolve(name);
         supplier = new IngestRequestSupplier(bag, root, DEPOSITOR, name);
 
-        Optional<IngestRequest> optional = supplier.get();
+        Optional<BagCreate> optional = supplier.get();
         Assert.assertFalse(optional.isPresent());
     }
 

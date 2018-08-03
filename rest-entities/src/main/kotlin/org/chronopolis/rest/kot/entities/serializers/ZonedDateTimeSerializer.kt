@@ -12,6 +12,7 @@ import java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME
  *
  * @author shake
  */
+@Deprecated("already exists")
 class ZonedDateTimeSerializer : JsonSerializer<ZonedDateTime>() {
     override fun serialize(value: ZonedDateTime,
                            gen: JsonGenerator,

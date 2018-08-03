@@ -10,11 +10,10 @@ import org.chronopolis.common.storage.PreservationProperties;
 import org.chronopolis.common.storage.PreservationPropertiesValidator;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.Submitter;
-import org.chronopolis.rest.api.IngestAPIProperties;
 import org.chronopolis.rest.kot.api.IngestApiProperties;
 import org.chronopolis.rest.kot.api.IngestGenerator;
+import org.chronopolis.rest.kot.api.OkBasicInterceptor;
 import org.chronopolis.rest.kot.api.ServiceGenerator;
-import org.chronopolis.rest.support.OkBasicInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,7 +57,9 @@ public class ReplicationConfig {
     @Bean
     public AceService aceService(AceConfiguration configuration) {
         OkHttpClient client = new OkHttpClient.Builder()
-                .addInterceptor(new OkBasicInterceptor(configuration.getUsername(), configuration.getPassword()))
+                .addInterceptor(new OkBasicInterceptor(
+                        configuration.getUsername(),
+                        configuration.getPassword()))
                 .readTimeout(timeout, TimeUnit.MINUTES)
                 .writeTimeout(timeout, TimeUnit.MINUTES)
                 .build();
