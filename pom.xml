@@ -34,7 +34,6 @@
             <!-- Core services -->
             <id>jenkins-main</id>
             <modules>
-                <module>ingest-shell</module>
                 <module>ingest-rest</module>
                 <module>replication-shell</module>
             </modules>
