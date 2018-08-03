@@ -2,8 +2,8 @@ package org.chronopolis.ingest.repository.dao;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.repository.StorageRegionRepository;
-import org.chronopolis.rest.kot.entities.storage.QStagingStorage;
-import org.chronopolis.rest.kot.entities.storage.StorageRegion;
+import org.chronopolis.rest.entities.storage.QStagingStorage;
+import org.chronopolis.rest.entities.storage.StorageRegion;
 
 import javax.persistence.EntityManager;
 import java.util.Optional;

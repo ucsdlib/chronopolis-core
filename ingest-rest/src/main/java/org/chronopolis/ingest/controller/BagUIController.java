@@ -23,19 +23,19 @@ import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.ingest.support.FileSizeFormatter;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.ingest.support.ReplicationCreateResult;
-import org.chronopolis.rest.kot.entities.Bag;
-import org.chronopolis.rest.kot.entities.Node;
-import org.chronopolis.rest.kot.entities.QBag;
-import org.chronopolis.rest.kot.entities.Replication;
-import org.chronopolis.rest.kot.entities.storage.Fixity;
-import org.chronopolis.rest.kot.entities.storage.StagingStorage;
-import org.chronopolis.rest.kot.entities.storage.StorageRegion;
-import org.chronopolis.rest.kot.models.create.BagCreate;
-import org.chronopolis.rest.kot.models.create.FixityCreate;
-import org.chronopolis.rest.kot.models.create.StagingCreate;
-import org.chronopolis.rest.kot.models.enums.BagStatus;
-import org.chronopolis.rest.kot.models.enums.ReplicationStatus;
-import org.chronopolis.rest.kot.models.enums.StorageUnit;
+import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.entities.storage.Fixity;
+import org.chronopolis.rest.entities.storage.StagingStorage;
+import org.chronopolis.rest.entities.storage.StorageRegion;
+import org.chronopolis.rest.models.create.BagCreate;
+import org.chronopolis.rest.models.create.FixityCreate;
+import org.chronopolis.rest.models.create.StagingCreate;
+import org.chronopolis.rest.models.enums.BagStatus;
+import org.chronopolis.rest.models.enums.ReplicationStatus;
+import org.chronopolis.rest.models.enums.StorageUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -615,7 +615,7 @@ public class BagUIController extends IngestController {
      */
     @RequestMapping(value = "/replications/add", method = RequestMethod.POST)
     public String addReplication(Principal principal,
-                                 org.chronopolis.rest.kot.models.create.ReplicationCreate request) {
+                                 org.chronopolis.rest.models.create.ReplicationCreate request) {
         access.info("[POST /replications/add] - {}", principal.getName());
         ReplicationCreateResult result = replicationService.create(request);
 

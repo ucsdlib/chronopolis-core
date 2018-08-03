@@ -2,11 +2,11 @@ package org.chronopolis.ingest.repository.dao;
 
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
-import org.chronopolis.rest.kot.entities.Node;
-import org.chronopolis.rest.kot.entities.QNode;
-import org.chronopolis.rest.kot.entities.depositor.Depositor;
-import org.chronopolis.rest.kot.entities.depositor.DepositorContact;
-import org.chronopolis.rest.kot.entities.depositor.QDepositor;
+import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.entities.QNode;
+import org.chronopolis.rest.entities.depositor.Depositor;
+import org.chronopolis.rest.entities.depositor.DepositorContact;
+import org.chronopolis.rest.entities.depositor.QDepositor;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

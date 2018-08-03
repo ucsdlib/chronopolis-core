@@ -1,6 +1,6 @@
 package org.chronopolis.replicate;
 
-import org.chronopolis.rest.kot.models.Replication;
+import org.chronopolis.rest.models.Replication;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 

@@ -1,8 +1,8 @@
 package org.chronopolis.tokenize.filter;
 
 import com.google.common.collect.ImmutableList;
-import org.chronopolis.rest.kot.api.TokenService;
-import org.chronopolis.rest.kot.models.AceToken;
+import org.chronopolis.rest.api.TokenService;
+import org.chronopolis.rest.models.AceToken;
 import org.chronopolis.test.support.CallWrapper;
 import org.chronopolis.test.support.ErrorCallWrapper;
 import org.chronopolis.test.support.ExceptingCallWrapper;

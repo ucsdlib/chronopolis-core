@@ -3,7 +3,7 @@ package org.chronopolis.ingest;
 import com.opentable.db.postgres.embedded.FlywayPreparer;
 import com.opentable.db.postgres.embedded.PreparedDbProvider;
 import org.chronopolis.ingest.repository.Authority;
-import org.chronopolis.rest.kot.entities.AceToken;
+import org.chronopolis.rest.entities.AceToken;
 import org.flywaydb.core.Flyway;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

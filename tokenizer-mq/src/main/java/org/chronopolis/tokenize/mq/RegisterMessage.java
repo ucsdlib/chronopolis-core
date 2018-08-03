@@ -1,7 +1,7 @@
 package org.chronopolis.tokenize.mq;
 
 import edu.umiacs.ace.ims.ws.TokenResponse;
-import org.chronopolis.rest.kot.models.Bag;
+import org.chronopolis.rest.models.Bag;
 
 /**
  * Simple class to encapsulate fields for registering an ace token to an ingest server

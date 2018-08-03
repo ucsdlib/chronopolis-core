@@ -1,6 +1,6 @@
 package org.chronopolis.ingest.repository;
 
-import org.chronopolis.rest.kot.entities.Restoration;
+import org.chronopolis.rest.entities.Restoration;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**

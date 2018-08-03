@@ -1,11 +1,11 @@
 package org.chronopolis.replicate.scheduled;
 
 import org.chronopolis.replicate.batch.Submitter;
-import org.chronopolis.rest.kot.api.IngestApiProperties;
-import org.chronopolis.rest.kot.api.ReplicationService;
-import org.chronopolis.rest.kot.api.ServiceGenerator;
-import org.chronopolis.rest.kot.models.Replication;
-import org.chronopolis.rest.kot.models.enums.ReplicationStatus;
+import org.chronopolis.rest.api.IngestApiProperties;
+import org.chronopolis.rest.api.ReplicationService;
+import org.chronopolis.rest.api.ServiceGenerator;
+import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.models.enums.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

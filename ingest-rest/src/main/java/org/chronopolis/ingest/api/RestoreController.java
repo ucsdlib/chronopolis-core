@@ -4,7 +4,7 @@ import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.RestoreRepository;
-import org.chronopolis.rest.kot.entities.Restoration;
+import org.chronopolis.rest.entities.Restoration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

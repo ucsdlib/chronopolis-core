@@ -3,11 +3,11 @@ package org.chronopolis.ingest.repository.dao;
 import com.querydsl.core.types.CollectionExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.repository.StorageRepository;
-import org.chronopolis.rest.kot.entities.Bag;
-import org.chronopolis.rest.kot.entities.QBag;
-import org.chronopolis.rest.kot.entities.storage.QFixity;
-import org.chronopolis.rest.kot.entities.storage.QStagingStorage;
-import org.chronopolis.rest.kot.entities.storage.StagingStorage;
+import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.storage.QFixity;
+import org.chronopolis.rest.entities.storage.QStagingStorage;
+import org.chronopolis.rest.entities.storage.StagingStorage;
 
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;

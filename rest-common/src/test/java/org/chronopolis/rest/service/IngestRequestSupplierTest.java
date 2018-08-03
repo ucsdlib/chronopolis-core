@@ -1,6 +1,6 @@
 package org.chronopolis.rest.service;
 
-import org.chronopolis.rest.kot.models.create.BagCreate;
+import org.chronopolis.rest.models.create.BagCreate;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

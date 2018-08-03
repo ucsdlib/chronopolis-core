@@ -1,7 +1,7 @@
 package org.chronopolis.tokenize;
 
 import com.google.common.collect.ComparisonChain;
-import org.chronopolis.rest.kot.models.Bag;
+import org.chronopolis.rest.models.Bag;
 
 import java.util.Objects;
 

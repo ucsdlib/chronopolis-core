@@ -7,11 +7,11 @@ import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
-import org.chronopolis.rest.kot.entities.AceToken;
-import org.chronopolis.rest.kot.entities.Bag;
-import org.chronopolis.rest.kot.entities.QAceToken;
-import org.chronopolis.rest.kot.entities.QBag;
-import org.chronopolis.rest.kot.entities.serializers.ExtensionsKt;
+import org.chronopolis.rest.entities.AceToken;
+import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.QAceToken;
+import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.serializers.ExtensionsKt;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.junit.Assert;
@@ -146,8 +146,8 @@ public class IngestTokenRegistrarTest extends IngestTest {
         long id = -100L;
         Bag bag = getBag(BAG_ONE_NAME);
         // not the prettiest but we can't update the Bag entity or else we get a hibernate exception
-        org.chronopolis.rest.kot.models.Bag model = ExtensionsKt.model(bag);
-        org.chronopolis.rest.kot.models.Bag invalid = model.copy(
+        org.chronopolis.rest.models.Bag model = ExtensionsKt.model(bag);
+        org.chronopolis.rest.models.Bag invalid = model.copy(
                 -100L, model.getSize(), model.getTotalFiles(), model.getBagStorage(),
                 model.getTokenStorage(), model.getCreatedAt(), model.getUpdatedAt(),
                 model.getName(), model.getCreator(), model.getDepositor(), model.getStatus(),

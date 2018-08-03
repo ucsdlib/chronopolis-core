@@ -1,7 +1,7 @@
 package org.chronopolis.ingest.api;
 
 import org.chronopolis.ingest.support.Loggers;
-import org.chronopolis.rest.kot.models.update.PasswordUpdate;
+import org.chronopolis.rest.models.update.PasswordUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

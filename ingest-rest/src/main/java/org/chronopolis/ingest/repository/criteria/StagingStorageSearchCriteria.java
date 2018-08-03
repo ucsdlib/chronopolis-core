@@ -2,7 +2,7 @@ package org.chronopolis.ingest.repository.criteria;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import org.chronopolis.ingest.api.Params;
-import org.chronopolis.rest.kot.entities.storage.QStagingStorage;
+import org.chronopolis.rest.entities.storage.QStagingStorage;
 
 import java.util.HashMap;
 import java.util.Map;

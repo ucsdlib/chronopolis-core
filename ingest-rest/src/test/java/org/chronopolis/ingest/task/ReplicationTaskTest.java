@@ -6,7 +6,7 @@ import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.ReplicationRepository;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
-import org.chronopolis.rest.kot.entities.Replication;
+import org.chronopolis.rest.entities.Replication;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

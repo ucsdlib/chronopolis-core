@@ -2,9 +2,9 @@ package org.chronopolis.ingest.task;
 
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.ingest.IngestTest;
-import org.chronopolis.rest.kot.entities.Bag;
-import org.chronopolis.rest.kot.entities.depositor.Depositor;
-import org.chronopolis.rest.kot.models.enums.BagStatus;
+import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.depositor.Depositor;
+import org.chronopolis.rest.models.enums.BagStatus;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

@@ -3,9 +3,9 @@ package org.chronopolis.ingest.tokens;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
-import org.chronopolis.rest.kot.entities.QBag;
-import org.chronopolis.rest.kot.entities.serializers.ExtensionsKt;
-import org.chronopolis.rest.kot.models.Bag;
+import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.serializers.ExtensionsKt;
+import org.chronopolis.rest.models.Bag;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.junit.Assert;
 import org.junit.Before;
@@ -50,7 +50,7 @@ public class DatabasePredicateTest extends IngestTest {
         final String digest = "test-digest";
         final String fileExists = "/data/hello_world";
         final String fileNotExists = "/data/hello_other_world";
-        org.chronopolis.rest.kot.entities.Bag be = dao.findOne(QBag.bag, QBag.bag.name.eq("new-bag-3"));
+        org.chronopolis.rest.entities.Bag be = dao.findOne(QBag.bag, QBag.bag.name.eq("new-bag-3"));
 
         final Bag bag = ExtensionsKt.model(be);
         // an unfortunate side effect of immutability + java :(

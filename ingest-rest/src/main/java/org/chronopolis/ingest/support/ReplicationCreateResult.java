@@ -1,7 +1,7 @@
 package org.chronopolis.ingest.support;
 
 import com.google.common.collect.ImmutableList;
-import org.chronopolis.rest.kot.entities.Replication;
+import org.chronopolis.rest.entities.Replication;
 
 import java.util.List;
 import java.util.Optional;

@@ -7,8 +7,8 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import org.chronopolis.ingest.models.Paged;
-import org.chronopolis.rest.kot.entities.QBag;
-import org.chronopolis.rest.kot.models.enums.BagStatus;
+import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.models.enums.BagStatus;
 
 import java.util.List;
 

@@ -5,7 +5,7 @@ import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.criteria.AceTokenSearchCriteria;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.ingest.support.Loggers;
-import org.chronopolis.rest.kot.entities.AceToken;
+import org.chronopolis.rest.entities.AceToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

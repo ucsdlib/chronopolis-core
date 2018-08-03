@@ -4,8 +4,8 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import org.chronopolis.ingest.models.Paged;
-import org.chronopolis.rest.kot.entities.storage.QStorageRegion;
-import org.chronopolis.rest.kot.models.enums.StorageType;
+import org.chronopolis.rest.entities.storage.QStorageRegion;
+import org.chronopolis.rest.models.enums.StorageType;
 
 import java.util.List;
 

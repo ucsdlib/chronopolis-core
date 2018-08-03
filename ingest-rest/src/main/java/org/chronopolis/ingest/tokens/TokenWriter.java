@@ -1,7 +1,7 @@
 package org.chronopolis.ingest.tokens;
 
 import edu.umiacs.ace.token.TokenStoreWriter;
-import org.chronopolis.rest.kot.entities.AceToken;
+import org.chronopolis.rest.entities.AceToken;
 
 import java.io.IOException;
 import java.io.OutputStream;

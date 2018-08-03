@@ -1,7 +1,7 @@
 package org.chronopolis.ingest.models;
 
 import org.chronopolis.ingest.support.FileSizeFormatter;
-import org.chronopolis.rest.kot.models.enums.BagStatus;
+import org.chronopolis.rest.models.enums.BagStatus;
 
 import java.math.BigDecimal;
 

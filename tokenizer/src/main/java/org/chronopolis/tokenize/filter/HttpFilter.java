@@ -1,8 +1,8 @@
 package org.chronopolis.tokenize.filter;
 
 import com.google.common.collect.ImmutableMap;
-import org.chronopolis.rest.kot.api.TokenService;
-import org.chronopolis.rest.kot.models.AceToken;
+import org.chronopolis.rest.api.TokenService;
+import org.chronopolis.rest.models.AceToken;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

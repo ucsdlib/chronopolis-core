@@ -2,8 +2,8 @@ package org.chronopolis.ingest.task;
 
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
-import org.chronopolis.rest.kot.entities.Bag;
-import org.chronopolis.rest.kot.models.enums.BagStatus;
+import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.models.enums.BagStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

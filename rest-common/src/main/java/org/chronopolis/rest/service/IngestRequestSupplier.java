@@ -2,7 +2,7 @@ package org.chronopolis.rest.service;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.chronopolis.rest.kot.models.create.BagCreate;
+import org.chronopolis.rest.models.create.BagCreate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

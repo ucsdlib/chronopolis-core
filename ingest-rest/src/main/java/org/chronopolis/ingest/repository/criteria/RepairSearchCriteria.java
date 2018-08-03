@@ -2,9 +2,9 @@ package org.chronopolis.ingest.repository.criteria;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import org.chronopolis.ingest.api.Params;
-import org.chronopolis.rest.kot.entities.repair.QRepair;
-import org.chronopolis.rest.kot.models.enums.AuditStatus;
-import org.chronopolis.rest.kot.models.enums.RepairStatus;
+import org.chronopolis.rest.entities.repair.QRepair;
+import org.chronopolis.rest.models.enums.AuditStatus;
+import org.chronopolis.rest.models.enums.RepairStatus;
 
 import java.util.HashMap;
 import java.util.List;
