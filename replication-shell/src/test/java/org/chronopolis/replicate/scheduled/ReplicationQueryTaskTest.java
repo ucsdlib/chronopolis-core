@@ -1,15 +1,16 @@
 package org.chronopolis.replicate.scheduled;
 
+import com.google.common.collect.ImmutableSet;
 import org.chronopolis.replicate.batch.Submitter;
 import org.chronopolis.replicate.support.CallWrapper;
 import org.chronopolis.replicate.support.ReplGenerator;
-import org.chronopolis.rest.api.IngestAPIProperties;
-import org.chronopolis.rest.api.ReplicationService;
-import org.chronopolis.rest.api.ServiceGenerator;
-import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.Replication;
-import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.kot.api.IngestApiProperties;
+import org.chronopolis.rest.kot.api.ReplicationService;
+import org.chronopolis.rest.kot.api.ServiceGenerator;
+import org.chronopolis.rest.kot.models.Bag;
+import org.chronopolis.rest.kot.models.Replication;
+import org.chronopolis.rest.kot.models.enums.BagStatus;
+import org.chronopolis.rest.kot.models.enums.ReplicationStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -19,6 +20,7 @@ import retrofit2.Call;
 
 import java.util.ArrayList;
 
+import static java.time.ZonedDateTime.now;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.anyMap;
 import static org.mockito.Mockito.times;
@@ -49,32 +51,25 @@ public class ReplicationQueryTaskTest {
     @Mock private ReplicationService replicationService;
 
     private ReplicationQueryTask task;
-    private ServiceGenerator generator;
-    private Call<PageImpl<Replication>> replications;
+    private Call<Iterable<Replication>> replications;
 
     @Before
-    public void init() throws NoSuchFieldException, IllegalAccessException {
+    public void init() {
         MockitoAnnotations.initMocks(this);
-        IngestAPIProperties properties = new IngestAPIProperties();
-        generator = new ReplGenerator(replicationService);
+        IngestApiProperties properties = new IngestApiProperties();
+        ServiceGenerator generator = new ReplGenerator(replicationService);
 
         // Init our RQT
         task = new ReplicationQueryTask(properties, generator, submitter);
 
         // Init our returned objects
         ArrayList<Replication> replicationList = new ArrayList<>();
-        Node n = new Node("test", "test");
-        Bag b = new Bag()
-                .setName("test-name")
-                .setDepositor("test-depositor");
-                // .setSize(0L)
-                // .setTotalFiles(0L);
+        // Node n = new Node("test", "test");
+        Bag bag = new Bag(1L, 1L, 1L, null, null, now(), now(), "test-name", "repl-query-test",
+                "test-depositor", BagStatus.REPLICATING, ImmutableSet.of());
 
-        Replication replication = new Replication()
-                .setStatus(ReplicationStatus.PENDING)
-                .setBag(b)
-                .setNode(n.getUsername());
-        replication.setId(1L);
+        Replication replication = new Replication(1L, now(), now(), ReplicationStatus.PENDING,
+                "bag-link", "token-link", "protocol", "", "", "test", bag);
         for (int i = 0; i < NUM_REPLICATIONS; i++) {
             replicationList.add(replication);
         }
@@ -85,7 +80,7 @@ public class ReplicationQueryTaskTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testCheckForReplications() throws Exception {
+    public void testCheckForReplications() {
         when(replicationService.get(anyMap())).thenReturn(replications);
         task.checkForReplications();
 

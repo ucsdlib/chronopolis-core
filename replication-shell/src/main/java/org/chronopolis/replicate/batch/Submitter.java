@@ -13,11 +13,11 @@ import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.ace.AceRunner;
 import org.chronopolis.replicate.batch.transfer.BagTransfer;
 import org.chronopolis.replicate.batch.transfer.TokenTransfer;
-import org.chronopolis.rest.api.ReplicationService;
-import org.chronopolis.rest.api.ServiceGenerator;
-import org.chronopolis.rest.models.Replication;
-import org.chronopolis.rest.models.ReplicationStatus;
-import org.chronopolis.rest.models.storage.StagingStorageModel;
+import org.chronopolis.rest.kot.api.ReplicationService;
+import org.chronopolis.rest.kot.api.ServiceGenerator;
+import org.chronopolis.rest.kot.models.Replication;
+import org.chronopolis.rest.kot.models.StagingStorage;
+import org.chronopolis.rest.kot.models.enums.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,18 +110,20 @@ public class Submitter {
         if (replicating.add(identifier)) {
             log.info("Submitting replication {}", identifier);
 
-            StagingStorageModel bagStorage = replication.getBag().getBagStorage();
-            StagingStorageModel tokenStorage = replication.getBag().getTokenStorage();
+            StagingStorage bagStorage = replication.getBag().getBagStorage();
+            StagingStorage tokenStorage = replication.getBag().getTokenStorage();
 
             // create storage operations
-            DirectoryStorageOperation bagOp = new DirectoryStorageOperation(Paths.get(bagStorage.getPath()));
+            DirectoryStorageOperation bagOp =
+                    new DirectoryStorageOperation(Paths.get(bagStorage.getPath()));
             bagOp.setIdentifier(identifier);
             bagOp.setSize(bagStorage.getSize());
             bagOp.setLink(replication.getBagLink());
             bagOp.setType(OperationType.from(replication.getProtocol()));
 
 
-            SingleFileOperation tokenOp = new SingleFileOperation(Paths.get(tokenStorage.getPath()));
+            SingleFileOperation tokenOp =
+                    new SingleFileOperation(Paths.get(tokenStorage.getPath()));
             tokenOp.setIdentifier(identifier);
             tokenOp.setSize(tokenStorage.getSize());
             tokenOp.setLink(replication.getTokenLink());
@@ -166,12 +168,15 @@ public class Submitter {
      * then fail.
      *
      * @param replication the replication being processed
-     * @param bagOp the StorageOperation for replicating a Bag
-     * @param tokenOp the StorageOperation for replicating a TokenStore
+     * @param bagOp       the StorageOperation for replicating a Bag
+     * @param tokenOp     the StorageOperation for replicating a TokenStore
      * @return a {@link CompletableFuture} with the updated status of the Replication
      */
-    private CompletableFuture<ReplicationStatus> allocate(Replication replication, DirectoryStorageOperation bagOp, SingleFileOperation tokenOp) {
-        return CompletableFuture.supplyAsync(new Allocator(broker, bagOp, tokenOp, replication, generator));
+    private CompletableFuture<ReplicationStatus> allocate(Replication replication,
+                                                          DirectoryStorageOperation bagOp,
+                                                          SingleFileOperation tokenOp) {
+        return CompletableFuture.supplyAsync(
+                new Allocator(broker, bagOp, tokenOp, replication, generator));
     }
 
     /**
@@ -182,7 +187,9 @@ public class Submitter {
      * @param tokenOp     the StorageOperation for replicating a TokenStore
      * @return a {@link CompletableFuture} which runs both the token and bag transfers tasks
      */
-    private CompletableFuture<ReplicationStatus> fromStarted(Replication replication, DirectoryStorageOperation bagOp, SingleFileOperation tokenOp) {
+    private CompletableFuture<ReplicationStatus> fromStarted(Replication replication,
+                                                             DirectoryStorageOperation bagOp,
+                                                             SingleFileOperation tokenOp) {
         // tf will this do on an exception?
         // really would like a way to do this without throwing an exception...
         Bucket bagBucket = broker.findBucketForOperation(bagOp)
@@ -210,10 +217,11 @@ public class Submitter {
      * @param replication the replication to work on
      * @return a completable future which runs ace registration tasks
      */
-    private CompletableFuture<ReplicationStatus> fromTransferred(@Nullable CompletableFuture<Void> future,
-                                                                 Replication replication,
-                                                                 DirectoryStorageOperation bagOp,
-                                                                 SingleFileOperation tokenOp) {
+    private CompletableFuture<ReplicationStatus> fromTransferred(
+            @Nullable CompletableFuture<Void> future,
+            Replication replication,
+            DirectoryStorageOperation bagOp,
+            SingleFileOperation tokenOp) {
         ReplicationNotifier notifier = new ReplicationNotifier(replication);
 
         // tf will this do on an exception?
@@ -223,7 +231,8 @@ public class Submitter {
         Bucket tokenBucket = broker.findBucketForOperation(tokenOp)
                 .orElseThrow(() -> new IllegalArgumentException("No bucket allocated for token!"));
 
-        AceRunner runner = new AceRunner(ace, generator, replication.getId(), aceConfiguration, bagBucket, tokenBucket, bagOp, tokenOp, notifier);
+        AceRunner runner = new AceRunner(ace, generator, replication.getId(), aceConfiguration,
+                bagBucket, tokenBucket, bagOp, tokenOp, notifier);
         if (future == null) {
             return CompletableFuture.supplyAsync(runner, http);
         }

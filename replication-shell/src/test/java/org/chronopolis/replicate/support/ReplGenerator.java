@@ -1,13 +1,14 @@
 package org.chronopolis.replicate.support;
 
-import org.chronopolis.rest.api.BagService;
-import org.chronopolis.rest.api.DepositorAPI;
-import org.chronopolis.rest.api.RepairService;
-import org.chronopolis.rest.api.ReplicationService;
-import org.chronopolis.rest.api.ServiceGenerator;
-import org.chronopolis.rest.api.StagingService;
-import org.chronopolis.rest.api.StorageService;
-import org.chronopolis.rest.api.TokenService;
+
+import org.chronopolis.rest.kot.api.BagService;
+import org.chronopolis.rest.kot.api.DepositorService;
+import org.chronopolis.rest.kot.api.RepairService;
+import org.chronopolis.rest.kot.api.ReplicationService;
+import org.chronopolis.rest.kot.api.ServiceGenerator;
+import org.chronopolis.rest.kot.api.StagingService;
+import org.chronopolis.rest.kot.api.StorageService;
+import org.chronopolis.rest.kot.api.TokenService;
 
 /**
  * Class so we don't need to mock ServiceGenerators, but instead just mock the
@@ -44,7 +45,7 @@ public class ReplGenerator implements ServiceGenerator {
     }
 
     @Override
-    public DepositorAPI depositorAPI() {
+    public DepositorService depositors() {
         return null;
     }
 

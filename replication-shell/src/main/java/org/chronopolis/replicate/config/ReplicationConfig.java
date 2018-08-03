@@ -10,10 +10,10 @@ import org.chronopolis.common.storage.PreservationProperties;
 import org.chronopolis.common.storage.PreservationPropertiesValidator;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.Submitter;
-import org.chronopolis.rest.api.ErrorLogger;
 import org.chronopolis.rest.api.IngestAPIProperties;
-import org.chronopolis.rest.api.IngestGenerator;
-import org.chronopolis.rest.api.ServiceGenerator;
+import org.chronopolis.rest.kot.api.IngestApiProperties;
+import org.chronopolis.rest.kot.api.IngestGenerator;
+import org.chronopolis.rest.kot.api.ServiceGenerator;
 import org.chronopolis.rest.support.OkBasicInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Configuration
 @EnableConfigurationProperties({SmtpProperties.class,
-        IngestAPIProperties.class,
+        IngestApiProperties.class,
         PreservationProperties.class,
         ReplicationProperties.class,
         AceConfiguration.class})
@@ -48,16 +48,6 @@ public class ReplicationConfig {
 
     @Value("${ace.timeout:5}")
     public Long timeout;
-
-    /**
-     * Logger to capture why errors happened in Retrofit
-     *
-     * @return
-     */
-    @Bean
-    public ErrorLogger logger() {
-        return new ErrorLogger();
-    }
 
     /**
      * Retrofit adapter for interacting with the ACE REST API
@@ -91,7 +81,7 @@ public class ReplicationConfig {
      * @return the ServiceGenerator
      */
     @Bean
-    public ServiceGenerator serviceGenerator(IngestAPIProperties properties) {
+    public ServiceGenerator serviceGenerator(IngestApiProperties properties) {
         return new IngestGenerator(properties);
     }
 
