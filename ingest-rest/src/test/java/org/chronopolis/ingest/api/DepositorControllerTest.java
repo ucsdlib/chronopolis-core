@@ -16,8 +16,8 @@ import org.chronopolis.rest.kot.entities.depositor.QDepositor;
 import org.chronopolis.rest.kot.entities.depositor.QDepositorContact;
 import org.chronopolis.rest.kot.models.create.DepositorContactCreate;
 import org.chronopolis.rest.kot.models.create.DepositorCreate;
+import org.chronopolis.rest.kot.models.delete.DepositorContactDelete;
 import org.chronopolis.rest.kot.models.enums.BagStatus;
-import org.chronopolis.rest.models.DepositorContactRemove;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -307,7 +307,7 @@ public class DepositorControllerTest extends ControllerTest {
 
     @Test
     public void testRemoveContact() throws Exception {
-        DepositorContactRemove remove = new DepositorContactRemove(EMAIL);
+        DepositorContactDelete remove = new DepositorContactDelete(EMAIL);
 
         when(dao.findOne(eq(Q_DEPOSITOR), eq(namespaceEq)))
                 .thenReturn(DEPOSITOR);
@@ -326,7 +326,7 @@ public class DepositorControllerTest extends ControllerTest {
     }
 
     public void testRemoveContactNotFound() throws Exception {
-        DepositorContactRemove remove = new DepositorContactRemove(EMAIL);
+        DepositorContactDelete remove = new DepositorContactDelete(EMAIL);
 
         authenticateAdmin();
         mvc.perform(
@@ -341,7 +341,7 @@ public class DepositorControllerTest extends ControllerTest {
     }
 
     public void testRemoveContactBadRequest() throws Exception {
-        DepositorContactRemove remove = new DepositorContactRemove(EMAIL);
+        DepositorContactDelete remove = new DepositorContactDelete(EMAIL);
 
         when(dao.findOne(eq(Q_DEPOSITOR), eq(namespaceEq)))
                 .thenReturn(DEPOSITOR);
@@ -360,7 +360,7 @@ public class DepositorControllerTest extends ControllerTest {
 
     @Test
     public void testRemoveContactForbidden() throws Exception {
-        DepositorContactRemove remove = new DepositorContactRemove(EMAIL);
+        DepositorContactDelete remove = new DepositorContactDelete(EMAIL);
 
         authenticateUser();
         mvc.perform(

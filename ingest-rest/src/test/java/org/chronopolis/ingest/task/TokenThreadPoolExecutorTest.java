@@ -2,8 +2,9 @@ package org.chronopolis.ingest.task;
 
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.ingest.IngestTest;
-import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Depositor;
+import org.chronopolis.rest.kot.entities.Bag;
+import org.chronopolis.rest.kot.entities.depositor.Depositor;
+import org.chronopolis.rest.kot.models.enums.BagStatus;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -28,13 +30,10 @@ public class TokenThreadPoolExecutorTest extends IngestTest {
 
     private TrackingThreadPoolExecutor<Bag> trackingExecutor;
 
-    private final Depositor depositor = new Depositor()
-            .setNamespace("test-depositor")
-            .setSourceOrganization("test-org")
-            .setOrganizationAddress("test-address");
+    private final Depositor depositor = new Depositor("test-depositor", "test-org", "test-address");
 
-    private Bag b0 = new Bag("test-name-0", depositor);
-    private Bag b1 = new Bag("test-name-1", depositor);
+    private Bag b0;
+    private Bag b1;
 
     @Before
     public void setup() {
@@ -42,10 +41,20 @@ public class TokenThreadPoolExecutorTest extends IngestTest {
                 TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>());
 
+        b0 = new Bag("test-name-0", "thread-pool-test", depositor, 1L, 1L, BagStatus.DEPOSITED);
+        b1 = new Bag("test-name-1", "thread-pool-test", depositor, 1L, 1L, BagStatus.DEPOSITED);
         // ensure the ids are not null
         b0.setId(0L);
         b1.setId(1L);
+        b0.setBagStorage(new HashSet<>());
+        b0.setTokenStorage(new HashSet<>());
+        b0.setDistributions(new HashSet<>());
+        b1.setBagStorage(new HashSet<>());
+        b1.setTokenStorage(new HashSet<>());
+        b1.setDistributions(new HashSet<>());
         depositor.setId(1L);
+        depositor.setContacts(new HashSet<>());
+        depositor.setNodeDistributions(new HashSet<>());
     }
 
     @Test

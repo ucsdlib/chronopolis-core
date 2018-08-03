@@ -6,13 +6,13 @@ import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.storage.BagStagingProperties;
 import org.chronopolis.common.storage.Posix;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
-import org.chronopolis.rest.api.IngestAPIProperties;
+import org.chronopolis.rest.kot.api.IngestApiProperties;
 import org.chronopolis.rest.kot.entities.Bag;
 import org.chronopolis.rest.kot.entities.QAceToken;
 import org.chronopolis.rest.kot.entities.QBag;
+import org.chronopolis.rest.kot.entities.serializers.ExtensionsKt;
 import org.chronopolis.rest.kot.entities.storage.StagingStorage;
 import org.chronopolis.rest.kot.models.enums.BagStatus;
-import org.chronopolis.rest.models.storage.StagingStorageModel;
 import org.chronopolis.tokenize.BagProcessor;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
@@ -39,21 +39,21 @@ import java.util.function.Predicate;
 @Component
 @EnableScheduling
 @Profile("!disable-tokenizer")
-@EnableConfigurationProperties(IngestAPIProperties.class)
+@EnableConfigurationProperties(IngestApiProperties.class)
 public class LocalTokenization {
 
     private final Logger log = LoggerFactory.getLogger(LocalTokenization.class);
 
     private final PagedDAO dao;
     private final TokenWorkSupervisor tws;
-    private final IngestAPIProperties apiProperties;
+    private final IngestApiProperties apiProperties;
     private final BagStagingProperties properties;
     private final TrackingThreadPoolExecutor<Bag> executor;
     private final Collection<Predicate<ManifestEntry>> predicates;
 
     public LocalTokenization(PagedDAO dao,
                              TokenWorkSupervisor tws,
-                             IngestAPIProperties apiProperties,
+                             IngestApiProperties apiProperties,
                              BagStagingProperties properties,
                              TrackingThreadPoolExecutor<Bag> executor,
                              Collection<Predicate<ManifestEntry>> predicates) {
@@ -93,41 +93,12 @@ public class LocalTokenization {
                     .filter(StagingStorage::isActive)
                     .findFirst();
 
-            storage.map(s -> toModel(bag, s))
+            storage.map(s -> ExtensionsKt.model(bag))
                     .filter(s -> count < s.getTotalFiles())
                     .map(model -> new BagProcessor(model, predicates, properties, tws))
                     .ifPresent(processor -> executor.submitIfAvailable(processor, bag));
         }
 
-    }
-
-    /**
-     * Map a Bag + BagStorage to a BagModel
-     *
-     * @param bag        the bag
-     * @param bagStorage the active bag storage
-     * @return the bag model
-     */
-    private org.chronopolis.rest.models.Bag toModel(Bag bag, StagingStorage bagStorage) {
-        StagingStorageModel storage = new StagingStorageModel()
-                .setPath(bagStorage.getPath())
-                .setSize(bagStorage.getSize())
-                .setActive(bagStorage.isActive())
-                .setRegion(bagStorage.getRegion().getId())
-                .setTotalFiles(bagStorage.getTotalFiles());
-
-        return new org.chronopolis.rest.models.Bag()
-                .setId(bag.getId())
-                .setName(bag.getName())
-                .setSize(bag.getSize())
-                .setBagStorage(storage)
-                .setStatus(org.chronopolis.rest.models.BagStatus.DEPOSITED)
-                .setCreator(bag.getCreator())
-                .setCreatedAt(bag.getCreatedAt())
-                .setUpdatedAt(bag.getUpdatedAt())
-                .setTotalFiles(bag.getTotalFiles())
-                .setReplicatingNodes(bag.getReplicatingNodes())
-                .setDepositor(bag.getDepositor().getNamespace());
     }
 
 }

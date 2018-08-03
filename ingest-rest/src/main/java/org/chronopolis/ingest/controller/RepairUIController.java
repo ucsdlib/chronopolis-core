@@ -20,13 +20,13 @@ import org.chronopolis.ingest.repository.criteria.RepairSearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.ingest.support.Loggers;
+import org.chronopolis.rest.kot.api.OkBasicInterceptor;
 import org.chronopolis.rest.kot.entities.Bag;
 import org.chronopolis.rest.kot.entities.Node;
 import org.chronopolis.rest.kot.entities.repair.Repair;
 import org.chronopolis.rest.kot.models.create.RepairCreate;
 import org.chronopolis.rest.kot.models.enums.AuditStatus;
 import org.chronopolis.rest.kot.models.enums.RepairStatus;
-import org.chronopolis.rest.support.OkBasicInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,6 +103,7 @@ public class RepairUIController extends IngestController {
     @PostMapping("/repairs/ace")
     public String getCollections(Model model, HttpSession session, AceCredentials credentials) {
         access.info("[POST /repairs/ace]");
+        // todo: remove gson
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Date.class,
                         (JsonDeserializer<Date>)
@@ -112,7 +113,8 @@ public class RepairUIController extends IngestController {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(credentials.getEndpoint())
                 .client(new OkHttpClient.Builder()
-                        .addInterceptor(new OkBasicInterceptor(credentials.getUsername(),
+                        .addInterceptor(new OkBasicInterceptor(
+                                credentials.getUsername(),
                                 credentials.getPassword()))
                         .build())
                 .addConverterFactory(GsonConverterFactory.create(gson))

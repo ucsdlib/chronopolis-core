@@ -7,7 +7,7 @@ import org.chronopolis.common.storage.Posix;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
-import org.chronopolis.rest.api.IngestAPIProperties;
+import org.chronopolis.rest.kot.api.IngestApiProperties;
 import org.chronopolis.rest.kot.entities.Bag;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
@@ -60,7 +60,7 @@ public class LocalTokenizationTest extends IngestTest {
         PagedDAO dao = new PagedDAO(entityManager);
         BagStagingProperties properties =
                 new BagStagingProperties().setPosix(new Posix().setId(ID));
-        IngestAPIProperties apiProperties = new IngestAPIProperties().setUsername(USERNAME);
+        IngestApiProperties apiProperties = new IngestApiProperties("endpoint", USERNAME, "pass");
 
         localTokenization = new LocalTokenization(dao, tws, apiProperties,
                 properties, executor, predicates);

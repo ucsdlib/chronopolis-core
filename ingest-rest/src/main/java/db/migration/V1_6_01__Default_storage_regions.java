@@ -1,6 +1,6 @@
 package db.migration;
 
-import org.chronopolis.rest.models.storage.DataType;
+import org.chronopolis.rest.kot.models.enums.DataType;
 import org.flywaydb.core.api.migration.jdbc.JdbcMigration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +12,8 @@ import java.sql.ResultSet;
 /**
  * Migration to create a default storage region for bags and tokens
  * in the ingest server
+ *
+ * todo: the updated path for DataType might break previous migrations, need to test
  *
  * Created by shake on 7/12/17.
  */

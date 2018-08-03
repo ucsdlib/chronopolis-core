@@ -7,6 +7,11 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME
 
+/**
+ * Simple serializer for writing [ZonedDateTime] as an ISO-8601 string at UTC-0
+ *
+ * @author shake
+ */
 class ZonedDateTimeSerializer : JsonSerializer<ZonedDateTime>() {
     override fun serialize(dateTime: ZonedDateTime,
                            jsonGenerator: JsonGenerator,

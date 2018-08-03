@@ -18,7 +18,6 @@ import org.chronopolis.rest.kot.models.enums.DataType;
 import org.chronopolis.rest.kot.models.enums.StorageType;
 import org.chronopolis.rest.kot.models.enums.StorageUnit;
 import org.chronopolis.rest.kot.models.update.RegionUpdate;
-import org.chronopolis.rest.models.RegionEdit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -176,7 +175,7 @@ public class StorageRegionUIController extends IngestController {
     public String editRegionForm(Model model,
                                  Principal principal,
                                  @PathVariable("id") Long id,
-                                 RegionEdit regionEdit) {
+                                 RegionUpdate regionEdit) {
         access.info("[GET /regions/{}/edit] - {}", id, principal.getName());
         StorageRegion region = service.find(new StorageRegionSearchCriteria().withId(id));
         model.addAttribute("region", region);

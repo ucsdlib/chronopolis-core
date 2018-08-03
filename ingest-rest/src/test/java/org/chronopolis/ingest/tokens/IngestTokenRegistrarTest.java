@@ -8,9 +8,10 @@ import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.rest.kot.entities.AceToken;
+import org.chronopolis.rest.kot.entities.Bag;
 import org.chronopolis.rest.kot.entities.QAceToken;
 import org.chronopolis.rest.kot.entities.QBag;
-import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.kot.entities.serializers.ExtensionsKt;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.junit.Assert;
@@ -66,8 +67,8 @@ public class IngestTokenRegistrarTest extends IngestTest {
     private final String BAG_ONE_NAME = "new-bag-1";
     private final String BAG_THREE_NAME = "new-bag-3";
     // From sql
-    private Bag bagOne = new Bag().setName(BAG_ONE_NAME).setDepositor(DEPOSITOR);
-    private Bag bagThree = new Bag().setName(BAG_THREE_NAME).setDepositor(DEPOSITOR);
+    // private Bag bagOne = new Bag().setName(BAG_ONE_NAME).setDepositor(DEPOSITOR);
+    // private Bag bagThree = new Bag().setName(BAG_THREE_NAME).setDepositor(DEPOSITOR);
     private XMLGregorianCalendar xmlCal;
 
     @Before
@@ -88,10 +89,17 @@ public class IngestTokenRegistrarTest extends IngestTest {
                 .fetchOne();
     }
 
+    private Bag getBag(final String name) {
+        JPAQueryFactory factory = new JPAQueryFactory(entityManager);
+        return factory.selectFrom(QBag.bag)
+                .where(QBag.bag.depositor.namespace.eq(DEPOSITOR).and(QBag.bag.name.eq(name)))
+                .fetchOne();
+    }
+
     @Test
     public void saveToken() {
-        bagOne.setId(getId(BAG_ONE_NAME));
-        ManifestEntry entry = new ManifestEntry(bagOne, FILENAME, "digest");
+        Bag bag = getBag(BAG_ONE_NAME);
+        ManifestEntry entry = new ManifestEntry(ExtensionsKt.model(bag), FILENAME, "digest");
         TokenResponse response = new TokenResponse();
         response.setRoundId(1L);
         response.setTimestamp(xmlCal);
@@ -104,14 +112,13 @@ public class IngestTokenRegistrarTest extends IngestTest {
         registrar.register(map);
 
         verify(tws, times(1)).complete(eq(entry));
-        Assert.assertEquals(1, tokenCount(bagOne.getId()));
+        Assert.assertEquals(1, tokenCount(bag.getId()));
     }
 
     @Test
     public void saveTokenConflict() {
-        bagThree.setId(getId(BAG_THREE_NAME));
-
-        ManifestEntry entry = new ManifestEntry(bagThree, FILENAME, "digest");
+        Bag bag = getBag(BAG_THREE_NAME);
+        ManifestEntry entry = new ManifestEntry(ExtensionsKt.model(bag), FILENAME, "digest");
         TokenResponse response = new TokenResponse();
         response.setRoundId(1L);
         response.setTimestamp(xmlCal);
@@ -125,9 +132,9 @@ public class IngestTokenRegistrarTest extends IngestTest {
 
         verify(tws, times(1)).complete(eq(entry));
 
-        Assert.assertEquals(1, tokenCount(bagThree.getId()));
+        Assert.assertEquals(1, tokenCount(bag.getId()));
         AceToken token = dao.findOne(QAceToken.aceToken, QAceToken.aceToken.filename.eq(FILENAME)
-                .and(QAceToken.aceToken.bag.id.eq(bagThree.getId())));
+                .and(QAceToken.aceToken.bag.id.eq(bag.getId())));
 
         // check that the token was not overwritten
         Assert.assertNotNull(token);
@@ -137,8 +144,15 @@ public class IngestTokenRegistrarTest extends IngestTest {
     @Test
     public void saveTokenBagNotExists() {
         long id = -100L;
-        bagOne.setId(id);
-        ManifestEntry entry = new ManifestEntry(bagOne, FILENAME, "digest");
+        Bag bag = getBag(BAG_ONE_NAME);
+        // not the prettiest but we can't update the Bag entity or else we get a hibernate exception
+        org.chronopolis.rest.kot.models.Bag model = ExtensionsKt.model(bag);
+        org.chronopolis.rest.kot.models.Bag invalid = model.copy(
+                -100L, model.getSize(), model.getTotalFiles(), model.getBagStorage(),
+                model.getTokenStorage(), model.getCreatedAt(), model.getUpdatedAt(),
+                model.getName(), model.getCreator(), model.getDepositor(), model.getStatus(),
+                model.getReplicatingNodes());
+        ManifestEntry entry = new ManifestEntry(invalid, FILENAME, "digest");
         TokenResponse response = new TokenResponse();
         response.setRoundId(1L);
         response.setTimestamp(xmlCal);

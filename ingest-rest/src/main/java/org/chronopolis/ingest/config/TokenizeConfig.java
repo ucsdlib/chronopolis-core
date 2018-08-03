@@ -8,7 +8,7 @@ import org.chronopolis.common.storage.BagStagingPropertiesValidator;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.ingest.tokens.DatabasePredicate;
 import org.chronopolis.ingest.tokens.IngestTokenRegistrar;
-import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.kot.entities.Bag;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.batch.ChronopolisTokenRequestBatch;
 import org.chronopolis.tokenize.filter.ProcessingFilter;

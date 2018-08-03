@@ -7,6 +7,11 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME
 
+/**
+ * Simple deserializer for reading [ZonedDateTime] from an ISO-8601 string at UTC-0
+ *
+ * @author shake
+ */
 class ZonedDateTimeDeserializer : JsonDeserializer<ZonedDateTime>() {
 
     override fun deserialize(jsonParser: JsonParser,

@@ -26,7 +26,7 @@ import org.chronopolis.rest.kot.entities.storage.StagingStorage;
 import org.chronopolis.rest.kot.entities.storage.StorageRegion;
 import org.chronopolis.rest.kot.models.FulfillmentStrategy;
 import org.chronopolis.rest.kot.models.serializers.FulfillmentStrategyDeserializer;
-import org.chronopolis.rest.models.serializers.ZonedDateTimeDeserializer;
+import org.chronopolis.rest.kot.models.serializers.ZonedDateTimeDeserializer;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.springframework.boot.test.mock.mockito.MockBean;

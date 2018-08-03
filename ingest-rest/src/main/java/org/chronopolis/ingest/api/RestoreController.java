@@ -5,7 +5,6 @@ import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.RestoreRepository;
 import org.chronopolis.rest.kot.entities.Restoration;
-import org.chronopolis.rest.models.IngestRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,11 +63,11 @@ public class RestoreController extends IngestController {
     }
 
     @RequestMapping(method = RequestMethod.PUT)
-    public Restoration putRestoration(Principal principal,
-                                      @RequestBody IngestRequest request) {
+    public Restoration putRestoration(Principal principal) {
+
+        /*
         String name = request.getName();
         String depositor = request.getDepositor();
-        /*
         Restoration restoration =
                 restoreRepository.findByNameAndDepositor(name, depositor);
 
