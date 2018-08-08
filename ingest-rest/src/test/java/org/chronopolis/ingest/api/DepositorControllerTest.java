@@ -14,6 +14,7 @@ import org.chronopolis.rest.entities.depositor.Depositor;
 import org.chronopolis.rest.entities.depositor.DepositorContact;
 import org.chronopolis.rest.entities.depositor.QDepositor;
 import org.chronopolis.rest.entities.depositor.QDepositorContact;
+import org.chronopolis.rest.models.Phone;
 import org.chronopolis.rest.models.create.DepositorContactCreate;
 import org.chronopolis.rest.models.create.DepositorCreate;
 import org.chronopolis.rest.models.delete.DepositorContactDelete;
@@ -472,25 +473,9 @@ public class DepositorControllerTest extends ControllerTest {
 
     private DepositorContactCreate contactModel(boolean valid) {
         if (valid) {
-            // need to get phone number working in kotlin
-            return new DepositorContactCreate("test-name", EMAIL, "phone-number");
-           /*
-                .setEmail(EMAIL)
-                .setName("test-name")
-                .setPhoneNumber(new DepositorContactCreate.PhoneNumber()
-                        // from libphonenumber doc - swiss google number
-                        .setCountryCode("CH")
-                        .setNumber("446681800"));
-                        */
+            return new DepositorContactCreate("test-name", EMAIL, new Phone("446681800", "CH"));
         } else {
-            return new DepositorContactCreate("test-name", EMAIL, "");
-            /*
-                .setEmail(EMAIL)
-                .setName("test-name")
-                .setPhoneNumber(new DepositorContactCreate.PhoneNumber()
-                        .setCountryCode("US")
-                        .setNumber("0"));
-                        */
+            return new DepositorContactCreate("test-name", EMAIL, new Phone("0", "US"));
         }
     }
 

@@ -2,6 +2,8 @@ package org.chronopolis.rest.entities.depositor
 
 import com.google.common.collect.ComparisonChain
 import org.chronopolis.rest.entities.PersistableEntity
+import org.chronopolis.rest.models.create.DepositorContactCreate
+import java.util.Optional
 import javax.persistence.Entity
 import javax.persistence.FetchType
 import javax.persistence.JoinColumn
@@ -58,3 +60,16 @@ class DepositorContact(
 
 }
 
+fun fromRequest(request: DepositorContactCreate): Optional<DepositorContact> {
+    return request.contactPhone.formatNumber()
+            .map { DepositorContact(request.contactName, it, request.contactEmail) }
+}
+
+fun fromRequest(request: Collection<DepositorContactCreate>): Set<DepositorContact> {
+    return request.map { req ->
+        req.contactPhone.formatNumber()
+                .map { DepositorContact(req.contactName, it, req.contactEmail) }
+    }.filter { it.isPresent }
+    .map { it.get() }
+    .toSet()
+}

@@ -11,6 +11,7 @@ import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.QNode;
 import org.chronopolis.rest.entities.depositor.Depositor;
 import org.chronopolis.rest.entities.depositor.DepositorContact;
+import org.chronopolis.rest.entities.depositor.DepositorContactKt;
 import org.chronopolis.rest.entities.depositor.QDepositor;
 import org.chronopolis.rest.entities.depositor.QDepositorContact;
 import org.chronopolis.rest.models.create.DepositorContactCreate;
@@ -33,9 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.security.Principal;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
 
@@ -97,11 +96,8 @@ public class DepositorController {
         } else if (exists != null) {
             response = ResponseEntity.status(HttpStatus.CONFLICT).build();
         } else {
-            Set<DepositorContact> contacts = depositorCreate.getContacts().stream()
-                    .map(create -> new DepositorContact(create.getContactName(),
-                            create.getContactPhone(),
-                            create.getContactEmail()))
-                    .collect(Collectors.toSet());
+            Set<DepositorContact> contacts = DepositorContactKt
+                    .fromRequest(depositorCreate.getContacts());
 
             if (contacts.size() == depositorCreate.getContacts().size()) {
                 Depositor dep = new Depositor(depositorCreate.getNamespace(),
@@ -219,13 +215,7 @@ public class DepositorController {
                     qDepositorContact.depositor.namespace.eq(namespace)
                             .and(qDepositorContact.contactEmail.eq(create.getContactEmail())));
             if (depositor != null && depositorContact == null) {
-                Optional<DepositorContact> contact = Optional.of(new DepositorContact(
-                    create.getContactName(),
-                    create.getContactPhone(),
-                    create.getContactEmail()
-                ));
-                // if valid...
-                response = contact.map(entity -> {
+                response = DepositorContactKt.fromRequest(create).map(entity -> {
                     depositor.addContact(entity);
                     dao.save(depositor);
                     return ResponseEntity.status(HttpStatus.CREATED).body(entity);

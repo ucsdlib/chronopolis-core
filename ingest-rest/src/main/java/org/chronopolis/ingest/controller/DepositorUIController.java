@@ -26,6 +26,7 @@ import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.QNode;
 import org.chronopolis.rest.entities.depositor.Depositor;
 import org.chronopolis.rest.entities.depositor.DepositorContact;
+import org.chronopolis.rest.entities.depositor.DepositorContactKt;
 import org.chronopolis.rest.entities.depositor.QDepositor;
 import org.chronopolis.rest.entities.depositor.QDepositorContact;
 import org.chronopolis.rest.models.create.DepositorContactCreate;
@@ -49,7 +50,6 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -304,15 +304,12 @@ public class DepositorUIController extends IngestController {
             return "depositors/add_contact";
         }
 
-        Optional<DepositorContact> depositorContact = Optional.of(new DepositorContact(
-                depositorContactCreate.getContactName(),
-                depositorContactCreate.getContactPhone(),
-                depositorContactCreate.getContactEmail()));
-        return depositorContact.map(contact1 -> {
-            depositor.addContact(contact1);
-            dao.save(contact1);
-            return "redirect:/depositors/list/" + namespace;
-        }).orElse("exceptions/bad_request");
+        return DepositorContactKt.fromRequest(depositorContactCreate)
+                .map(fromRequest -> {
+                    depositor.addContact(fromRequest);
+                    dao.save(fromRequest);
+                    return "redirect:/depositors/list/" + namespace;
+                }).orElse("exceptions/bad_request");
     }
 
     @GetMapping("/depositors/list/{namespace}/addNode")
