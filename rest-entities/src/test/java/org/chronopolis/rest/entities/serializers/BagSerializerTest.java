@@ -13,6 +13,7 @@ import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.enums.BagStatus;
+import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,6 +29,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 
 import static com.google.common.collect.ImmutableSet.of;
+import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration(classes = SerializerContext.class)
 public class BagSerializerTest {
 
-    private final DateTimeFormatter fmt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC);
+    private final DateTimeFormatter fmt = ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC);
     private final String dateTimeString = "2017-06-30T19:49:12.37Z";
     private final String NAMESPACE = "depositor";
     private final Depositor depositor = new Depositor(NAMESPACE, NAMESPACE, NAMESPACE);

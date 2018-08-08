@@ -9,6 +9,7 @@ import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.entities.depositor.Depositor;
 import org.chronopolis.rest.models.enums.ReplicationStatus;
+import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

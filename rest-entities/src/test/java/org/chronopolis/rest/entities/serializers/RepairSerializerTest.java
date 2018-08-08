@@ -13,6 +13,7 @@ import org.chronopolis.rest.entities.repair.Repair;
 import org.chronopolis.rest.models.enums.AuditStatus;
 import org.chronopolis.rest.models.enums.FulfillmentType;
 import org.chronopolis.rest.models.enums.RepairStatus;
+import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,6 +27,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 
+import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.chronopolis.rest.models.enums.BagStatus.DEPOSITED;
@@ -43,7 +45,7 @@ import static org.chronopolis.rest.models.enums.BagStatus.DEPOSITED;
 public class RepairSerializerTest {
 
     private final Depositor depositor = new Depositor("depositor", "depositor", "depositor");
-    private final DateTimeFormatter fmt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC);
+    private final DateTimeFormatter fmt = ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC);
 
     @SuppressWarnings("unused")
     private JacksonTester<Repair> json;

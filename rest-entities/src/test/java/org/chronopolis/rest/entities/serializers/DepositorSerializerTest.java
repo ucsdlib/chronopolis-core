@@ -7,6 +7,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import com.google.common.collect.ImmutableSet;
 import org.chronopolis.rest.entities.depositor.Depositor;
 import org.chronopolis.rest.entities.depositor.DepositorContact;
+import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
