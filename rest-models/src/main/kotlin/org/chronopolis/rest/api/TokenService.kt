@@ -19,16 +19,16 @@ import retrofit2.http.QueryMap
 interface TokenService {
 
     @GET(TOKEN_ROOT)
-    fun getTokens(): Call<Iterable<AceToken>>
+    fun getTokens(@QueryMap params: Map<String, String>): Call<Iterable<AceToken>>
 
     @GET("$TOKEN_ROOT/{id}")
-    fun getToken(@Path("id") id: Long?): Call<AceToken>
+    fun getToken(@Path("id") id: Long): Call<AceToken>
 
     @GET("$BAG_ROOT/{bagId}/tokens")
-    fun getBagTokens(@Path("bagId") bagId: Long?,
+    fun getBagTokens(@Path("bagId") bagId: Long,
                      @QueryMap params: Map<String, String>): Call<Iterable<AceToken>>
 
     @POST("$BAG_ROOT/{bagId}/tokens")
-    fun createToken(@Path("bagId") bagId: Long?, @Body model: AceTokenCreate): Call<AceToken>
+    fun createToken(@Path("bagId") bagId: Long, @Body model: AceTokenCreate): Call<AceToken>
 
 }
