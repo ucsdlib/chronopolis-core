@@ -14,6 +14,8 @@ import org.apache.activemq.artemis.api.core.client.ServerLocator;
 import org.apache.activemq.artemis.junit.EmbeddedActiveMQResource;
 import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.Fixity;
+import org.chronopolis.rest.models.StagingStorage;
 import org.chronopolis.rest.models.enums.BagStatus;
 import org.chronopolis.rest.models.serializers.ZonedDateTimeDeserializer;
 import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
@@ -31,6 +33,7 @@ import java.time.ZonedDateTime;
 import java.util.GregorianCalendar;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import static com.google.common.collect.ImmutableSet.of;
 import static java.util.Collections.emptySet;
 import static org.mockito.Mockito.mock;
 
@@ -91,7 +94,9 @@ public class MqTest {
     }
 
     Bag createBag() {
-        return new Bag(ID, ID, ID, null, null, NOW, NOW,
+        Fixity fixity = new Fixity("test-algorithm", "test-value", NOW);
+        StagingStorage storage = new StagingStorage(true, ID, ID, ID, FILENAME, of(fixity));
+        return new Bag(ID, ID, ID, storage, storage, NOW, NOW,
                 NAME, DEPOSITOR, DEPOSITOR, BagStatus.DEPOSITED, emptySet());
     }
 
