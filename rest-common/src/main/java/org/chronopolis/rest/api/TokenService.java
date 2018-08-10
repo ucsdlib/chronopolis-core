@@ -22,7 +22,7 @@ import static org.chronopolis.rest.api.Paths.TOKEN_ROOT;
 public interface TokenService {
 
     @GET(TOKEN_ROOT)
-    Call<PageImpl<AceTokenModel>> getTokens();
+    Call<PageImpl<AceTokenModel>> getTokens(@QueryMap Map<String, String> params);
 
     @GET(TOKEN_ROOT + "/{id}")
     Call<AceTokenModel> getToken(@Path("id") Long id);
