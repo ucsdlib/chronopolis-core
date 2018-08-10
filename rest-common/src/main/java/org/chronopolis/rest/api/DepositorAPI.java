@@ -14,6 +14,9 @@ import retrofit2.http.GET;
 import retrofit2.http.HEAD;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
+import retrofit2.http.QueryMap;
+
+import java.util.Map;
 
 import static org.chronopolis.rest.api.Paths.DEPOSITOR_ROOT;
 
@@ -30,7 +33,7 @@ public interface DepositorAPI {
      * @return all depositors
      */
     @GET(DEPOSITOR_ROOT)
-    Call<PageImpl<DepositorModel>> getDepositors();
+    Call<PageImpl<DepositorModel>> getDepositors(@QueryMap Map<String, String> params);
 
     /**
      * Create a depositor
