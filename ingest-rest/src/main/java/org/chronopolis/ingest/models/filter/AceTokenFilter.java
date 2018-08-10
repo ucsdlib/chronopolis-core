@@ -7,8 +7,6 @@ import com.querydsl.core.types.OrderSpecifier;
 import org.chronopolis.ingest.models.Paged;
 import org.chronopolis.rest.entities.QAceToken;
 
-import java.util.List;
-
 /**
  * Data binding for queries on AceTokens
  *
@@ -21,7 +19,7 @@ public class AceTokenFilter extends Paged {
 
     private Long bagId;
     private String algorithm;
-    private List<String> filename;
+    private String filename;
 
     private LinkedListMultimap<String, String> parameters = LinkedListMultimap.create();
 
@@ -51,16 +49,17 @@ public class AceTokenFilter extends Paged {
         return this;
     }
 
-    public List<String> getFilename() {
+    public String getFilename() {
         return filename;
     }
 
-    public AceTokenFilter setFilename(List<String> filename) {
+    public AceTokenFilter setFilename(String filename) {
         // might be good to check each filename for emptiness
         if (filename != null && ! filename.isEmpty()) {
             this.filename = filename;
-            parameters.putAll("filename", filename);
-            builder.and(aceToken.filename.in(filename));
+            // parameters.putAll("filename", filename);
+            parameters.put("filename", filename);
+            builder.and(aceToken.filename.eq(filename));
         }
         return this;
     }

@@ -60,6 +60,7 @@ public class BagTokenController extends IngestController {
                                           @PathVariable("id") Long id,
                                           @ModelAttribute AceTokenFilter filter) {
         access.info("[GET /api/bags/{}/tokens] - {}", id, principal.getName());
+        filter.setBagId(id);
         return dao.findPage(QAceToken.aceToken, filter);
     }
 

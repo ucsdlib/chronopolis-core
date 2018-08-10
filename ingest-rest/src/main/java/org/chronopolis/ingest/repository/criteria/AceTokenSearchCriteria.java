@@ -5,7 +5,6 @@ import org.chronopolis.ingest.api.Params;
 import org.chronopolis.rest.entities.QAceToken;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class AceTokenSearchCriteria implements SearchCriteria {
@@ -34,7 +33,7 @@ public class AceTokenSearchCriteria implements SearchCriteria {
         return this;
     }
 
-    public AceTokenSearchCriteria withFilenames(List<String> filenames) {
+    public AceTokenSearchCriteria withFilenames(String filenames) {
         if (filenames != null && !filenames.isEmpty()) {
             criteria.put("PATHS", aceToken.filename.in(filenames));
         }
