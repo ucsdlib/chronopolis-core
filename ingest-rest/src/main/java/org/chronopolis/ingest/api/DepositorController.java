@@ -166,13 +166,15 @@ public class DepositorController {
     /**
      * Retrieve a Bag which a Depositor has ownership of in Chronopolis
      *
+     * Note: The regex on here is to ignore path
+     *
      * @param namespace the namespace of the Depositor
      * @param bagName   the name of the Bag
      * @return HTTP 200 with the Bag as the response body
      *         HTTP 401 if the user is not authenticated
      *         HTTP 404 if the bag does not exist
      */
-    @GetMapping("/{namespace}/bags/{bagName}")
+    @GetMapping("/{namespace}/bags/{bagName:.+}")
     public ResponseEntity<Bag> depositorBag(@PathVariable("namespace") String namespace,
                                             @PathVariable("bagName") String bagName) {
         ResponseEntity<Bag> response = ResponseEntity.notFound().build();
