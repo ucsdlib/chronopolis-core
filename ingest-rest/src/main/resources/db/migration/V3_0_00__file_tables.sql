@@ -15,8 +15,6 @@ CREATE TABLE file_fixity (
     UNIQUE (file_id, fixity_id)
 );
 
-CREATE index file_bag_id_idx ON file (bag_id);
-
 ALTER TABLE file
   ADD CONSTRAINT fk_file_bag FOREIGN KEY (bag_id) REFERENCES bag;
 
