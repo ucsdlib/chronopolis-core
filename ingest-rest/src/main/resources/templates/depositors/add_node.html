@@ -13,7 +13,8 @@
             <h4>Add Replicating Node</h4>
             <h6>Select Nodes to receive Replications for [[${depositor.namespace}]]</h6>
             <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem">
-                <!--/*@thymesVar id="depositorEdit" type="org.chronopolis.rest.models.DepositorEdit"*/-->
+                <!-- pretty confident this won't work with kotlin -->
+                <!--/*@thymesVar id="depositorEdit" type="org.chronopolis.rest.models.update.DepositorUpdate"*/-->
                 <form method="post" name="node" th:object="${depositorEdit}">
                     <div class="form-group row">
                         <label for="replicatingNodes" class="col-4 col-form-label">Replicating Nodes</label>
