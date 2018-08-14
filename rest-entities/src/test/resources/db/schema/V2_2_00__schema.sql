@@ -20,15 +20,14 @@ DROP SEQUENCE IF EXISTS bag_id_seq;
 CREATE SEQUENCE bag_id_seq;
 CREATE TABLE bag (
     id bigint PRIMARY KEY DEFAULT nextval('bag_id_seq'),
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT current_timestamp,
+    updated_at TIMESTAMP DEFAULT current_timestamp,
     name varchar(255) UNIQUE,
     creator VARCHAR(255),
     depositor_id bigint NOT NULL,
     status varchar(255),
-    size bigint NOT NULL,
-    total_files bigint NOT NULL,
-    required_replications int
+    size bigint NOT NULL CHECK (size > 0),
+    total_files bigint NOT NULL CHECK (total_files > 0)
 );
 
 DROP TABLE IF EXISTS node CASCADE;
@@ -46,8 +45,8 @@ DROP SEQUENCE IF EXISTS replication_replicationid_seq;
 CREATE SEQUENCE replication_replicationid_seq;
 CREATE TABLE replication (
     id bigint PRIMARY KEY DEFAULT nextval('replication_replicationid_seq'),
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT current_timestamp,
+    updated_at TIMESTAMP DEFAULT current_timestamp,
     status varchar(255),
     bag_link varchar(255),
     token_link varchar(255),
@@ -77,14 +76,14 @@ CREATE SEQUENCE ace_token_id_seq;
 CREATE TABLE ace_token (
     id bigint PRIMARY KEY DEFAULT nextval('ace_token_id_seq'),
     create_date timestamp,
-    filename text,
+    file_id BIGINT NOT NULL,
     proof text,
     ims_host varchar(255) NOT NULL,
     ims_service varchar(255),
     algorithm varchar(255),
     round bigint,
-    bag bigint,
-    UNIQUE (bag, filename)
+    bag_id bigint NOT NULL,
+    UNIQUE (bag_id, file_id)
 );
 
 DROP SEQUENCE IF EXISTS bag_distribution_id_seq;
@@ -103,8 +102,8 @@ DROP SEQUENCE IF EXISTS repair_id_seq;
 CREATE SEQUENCE repair_id_seq;
 CREATE TABLE repair (
     id bigint PRIMARY KEY DEFAULT nextval('repair_id_seq'),
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT current_timestamp,
+    updated_at TIMESTAMP DEFAULT current_timestamp,
     audit VARCHAR(255),
     status VARCHAR(255),
     requester VARCHAR(255), -- maybe should be a bigint for the user_id instead? (when we update the user table)
@@ -155,7 +154,7 @@ ALTER TABLE restoration
     ADD CONSTRAINT FL_rest_node FOREIGN KEY (node_id) REFERENCES node;
 
 ALTER TABLE ace_token
-    ADD CONSTRAINT FK_token_bag FOREIGN KEY (bag) REFERENCES bag;
+    ADD CONSTRAINT FK_token_bag FOREIGN KEY (bag_id) REFERENCES bag;
 
 ALTER TABLE repair
     ADD CONSTRAINT FK_repair_bag FOREIGN KEY (bag_id) REFERENCES bag;
@@ -181,10 +180,10 @@ CREATE TABLE storage_region (
     node_id BIGINT NOT NULL,
     data_type VARCHAR(255) NOT NULL,
     storage_type VARCHAR(255) NOT NULL,
-    capacity BIGINT,
+    capacity BIGINT NOT NULL CHECK (capacity > 0),
     note TEXT,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
+    created_at TIMESTAMP DEFAULT current_timestamp,
+    updated_at TIMESTAMP DEFAULT current_timestamp
 );
 
 -- storage
@@ -194,28 +193,15 @@ DROP SEQUENCE IF EXISTS staging_storage_id_seq;
 CREATE SEQUENCE staging_storage_id_seq;
 CREATE TABLE staging_storage (
     id BIGINT PRIMARY KEY DEFAULT nextval('staging_storage_id_seq'),
+    bag_id BIGINT NOT NULL,
+    file_id BIGINT NOT NULL,
     region_id BIGINT NOT NULL,
     active BOOLEAN,
     path VARCHAR(255),
-    size BIGINT,
-    total_files BIGINT,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
-);
-
--- join tables for bag <-> staging relationship
--- bag storage
-DROP TABLE IF EXISTS bag_storage;
-CREATE TABLE bag_storage (
-    bag_id BIGINT NOT NULL,
-    staging_id BIGINT NOT NULL
-);
-
--- token storage
-DROP TABLE IF EXISTS token_storage;
-CREATE TABLE token_storage (
-    bag_id BIGINT NOT NULL,
-    staging_id BIGINT NOT NULL
+    size BIGINT NOT NULL CHECK (size > 0),
+    total_files BIGINT NOT NULL CHECK (total_files > 0),
+    created_at TIMESTAMP DEFAULT current_timestamp,
+    updated_at TIMESTAMP DEFAULT current_timestamp
 );
 
 DROP TABLE IF EXISTS fixity;
@@ -223,11 +209,9 @@ DROP SEQUENCE IF EXISTS fixity_id_seq;
 CREATE SEQUENCE fixity_id_seq;
 CREATE TABLE fixity (
     id BIGINT PRIMARY KEY DEFAULT nextval('fixity_id_seq'),
-    storage_id BIGINT NOT NULL,
     algorithm VARCHAR(255) NOT NULL,
     value VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP,
-    UNIQUE(storage_id, algorithm)
+    created_at TIMESTAMP DEFAULT current_timestamp
 );
 
 -- replication_config
@@ -249,23 +233,8 @@ ALTER TABLE storage_region
 ALTER TABLE staging_storage
     ADD CONSTRAINT FK_storage_sr FOREIGN KEY (region_id) REFERENCES storage_region;
 
-ALTER TABLE fixity
-    ADD CONSTRAINT FK_fixity_storage FOREIGN KEY (storage_id) REFERENCES staging_storage;
-
 ALTER TABLE replication_config
     ADD CONSTRAINT FK_rc_sr FOREIGN KEY (region_id) REFERENCES storage_region;
-
-ALTER TABLE bag_storage
-    ADD CONSTRAINT FK_bs_bag FOREIGN KEY (bag_id) REFERENCES bag;
-
-ALTER TABLE token_storage
-    ADD CONSTRAINT FK_ts_bag FOREIGN KEY (bag_id) REFERENCES bag;
-
-ALTER TABLE bag_storage
-    ADD CONSTRAINT FK_bs_storage FOREIGN KEY (staging_id) REFERENCES staging_storage;
-
-ALTER TABLE token_storage
-    ADD CONSTRAINT FK_ts_storage FOREIGN KEY (staging_id) REFERENCES staging_storage;
 
 -- V2_2_00 - Depositor
 CREATE SEQUENCE depositor_id_seq;
@@ -274,8 +243,8 @@ CREATE TABLE depositor (
     namespace VARCHAR(255) NOT NULL UNIQUE,
     source_organization TEXT,
     organization_address TEXT,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
+    created_at TIMESTAMP DEFAULT current_timestamp,
+    updated_at TIMESTAMP DEFAULT current_timestamp
 );
 
 CREATE SEQUENCE depositor_contact_id_seq;
@@ -288,9 +257,7 @@ CREATE TABLE depositor_contact (
     UNIQUE (depositor_id, contact_email)
 );
 
--- CREATE SEQUENCE depositor_distribution_id_seq;
 CREATE TABLE depositor_distribution (
-    -- id BIGINT PRIMARY KEY DEFAULT nextval('depositor_distribution_id_seq'),
     depositor_id BIGINT NOT NULL,
     node_id BIGINT NOT NULL,
     UNIQUE (depositor_id, node_id)
@@ -307,3 +274,41 @@ ALTER TABLE depositor_contact
 
 ALTER TABLE bag
     ADD CONSTRAINT FK_bag_depositor FOREIGN KEY (depositor_id) REFERENCES depositor;
+
+-- V3_0_00 - File
+DROP TABLE IF EXISTS file;
+DROP SEQUENCE IF EXISTS file_id_seq;
+CREATE SEQUENCE file_id_seq;
+CREATE TABLE file (
+    id BIGINT PRIMARY KEY DEFAULT nextval('file_id_seq'),
+    size BIGINT DEFAULT 0 CHECK (size >= 0),
+    bag_id BIGINT NOT NULL,
+    filename TEXT NOT NULL,
+    dtype varchar(25) NOT NULL,
+    created_at TIMESTAMP DEFAULT current_timestamp,
+    UNIQUE (bag_id, filename)
+);
+
+CREATE TABLE file_fixity (
+    file_id BIGINT NOT NULL,
+    fixity_id BIGINT NOT NULL,
+    UNIQUE (file_id, fixity_id)
+);
+
+ALTER TABLE file
+  ADD CONSTRAINT fk_file_bag FOREIGN KEY (bag_id) REFERENCES bag;
+
+ALTER TABLE file_fixity
+  ADD CONSTRAINT fk_ff_join_file FOREIGN KEY (file_id) REFERENCES file;
+
+ALTER TABLE file_fixity
+  ADD CONSTRAINT fk_ff_join_fixity FOREIGN KEY (fixity_id) REFERENCES fixity;
+
+ALTER TABLE ace_token
+    ADD CONSTRAINT fk_token_file FOREIGN KEY (file_id) REFERENCES file;
+
+ALTER TABLE staging_storage
+    ADD CONSTRAINT fk_storage_file FOREIGN KEY (file_id) REFERENCES file;
+
+ALTER TABLE staging_storage
+    ADD CONSTRAINT fk_storage_bag FOREIGN KEY (bag_id) REFERENCES bag;

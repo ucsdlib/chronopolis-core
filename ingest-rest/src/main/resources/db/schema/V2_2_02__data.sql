@@ -16,10 +16,14 @@ insert into authorities (username, authority) values ('sdsc', 'ROLE_USER');
 insert into authorities (username, authority) values ('ucsd', 'ROLE_USER');
 
 INSERT INTO storage_region VALUES(DEFAULT, 1, 'BAG', 'LOCAL', 1000000, '', CURRENT_DATE, CURRENT_DATE);
+INSERT INTO replication_config (region_id, server, username, path)
+    SELECT id, 'test-server', 'test-user', 'test-path' FROM storage_region WHERE data_type = 'BAG';
 INSERT INTO storage_region VALUES(DEFAULT, 1, 'TOKEN', 'LOCAL', 1000000, '', CURRENT_DATE, CURRENT_DATE);
+INSERT INTO replication_config (region_id, server, username, path)
+    SELECT id, 'test-server', 'test-user', 'test-path' FROM storage_region WHERE data_type = 'TOKEN';
 
 INSERT INTO depositor VALUES(DEFAULT, 'test-depositor', 'Test-Depositor', 'localhost');
 
-INSERT INTO depositor_distribution VALUES (DEFAULT, 1, 1);
-INSERT INTO depositor_distribution VALUES (DEFAULT, 1, 2);
-INSERT INTO depositor_distribution VALUES (DEFAULT, 1, 3);
+INSERT INTO depositor_distribution VALUES (1, 1);
+INSERT INTO depositor_distribution VALUES (1, 2);
+INSERT INTO depositor_distribution VALUES (1, 3);

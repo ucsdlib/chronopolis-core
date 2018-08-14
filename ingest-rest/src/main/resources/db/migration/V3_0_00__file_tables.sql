@@ -4,7 +4,7 @@ CREATE TABLE file (
     size BIGINT DEFAULT 0 CHECK (size >= 0),
     bag_id BIGINT NOT NULL,
     filename TEXT NOT NULL,
-    type varchar(25) NOT NULL,
+    dtype varchar(25) NOT NULL,
     created_at TIMESTAMP DEFAULT current_timestamp,
     UNIQUE (bag_id, filename)
 );
