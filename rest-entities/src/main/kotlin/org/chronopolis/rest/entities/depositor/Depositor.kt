@@ -18,7 +18,7 @@ import javax.persistence.OneToMany
  * @property organizationAddress The address of the source organization.
  * @property contacts A set of [DepositorContact]s which belong to the depositor. Note: This should
  * be updated so that a [Depositor] is the owner of the relationship.
- * @property nodeDistributions A set of [DepositorNode]s which control where data goes to for this
+ * @property nodeDistributions A set of [Node]s which control where data goes to for this
  * depositor. Might be worth looking at how this relationship is setup to make ownership better in
  * Kotlin.
  *
@@ -56,7 +56,6 @@ class Depositor(
     }
 
     fun addNodeDistribution(node: Node) {
-        // val dn = DepositorNode(this, node)
         nodeDistributions.add(node)
     }
 
