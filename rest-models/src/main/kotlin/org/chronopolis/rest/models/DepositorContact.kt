@@ -9,7 +9,7 @@ data class DepositorContact(val contactName: String,
                             val contactEmail: String,
                             val contactPhone: String)
 
-data class Phone(val number: String, val countryCode: String) : PhoneNumber {
+data class Phone(var number: String = "", var countryCode: String = "") : PhoneNumber {
     override fun number() = number
     override fun countryCode() = countryCode
 

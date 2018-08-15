@@ -1,3 +1,3 @@
 package org.chronopolis.rest.models.update
 
-data class FixityUpdate(val fixity: String)
+data class FixityUpdate(var fixity: String)

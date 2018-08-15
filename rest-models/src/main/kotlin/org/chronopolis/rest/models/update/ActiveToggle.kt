@@ -10,6 +10,6 @@ package org.chronopolis.rest.models.update
  *
  * @author shake
  */
-data class ActiveToggle(val active: Boolean) {
+data class ActiveToggle(var active: Boolean) {
     fun isActive() = active
 }

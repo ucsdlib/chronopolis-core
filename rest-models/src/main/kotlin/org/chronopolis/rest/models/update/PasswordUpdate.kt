@@ -1,4 +1,4 @@
 package org.chronopolis.rest.models.update
 
-class PasswordUpdate(val oldPassword: String,
-                     val newPassword: String)
+data class PasswordUpdate(var oldPassword: String,
+                          var newPassword: String)

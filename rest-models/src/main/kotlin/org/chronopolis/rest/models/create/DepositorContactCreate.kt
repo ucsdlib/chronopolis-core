@@ -11,8 +11,11 @@ import org.hibernate.validator.constraints.NotBlank
  * it as a string; maybe not the best idea, could probably just handle the Phone during
  * serialization.
  *
+ * @property contactName The name of the contact
+ * @property contactEmail The email of the contact
+ * @property contactPhone The phone number of the contact
  * @author shake
  */
-data class DepositorContactCreate(@get: NotBlank val contactName: String,
-                                  @get:Email val contactEmail: String,
-                                  @get:E123 val contactPhone: Phone)
+data class DepositorContactCreate(@get:NotBlank var contactName: String = "",
+                                  @get:Email var contactEmail: String = "",
+                                  @get:E123 var contactPhone: Phone = Phone())
