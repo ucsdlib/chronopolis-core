@@ -6,7 +6,7 @@ enum class StorageUnit(val power: Int) {
     fun next() = when (this) {
         B -> KiB
         KiB -> MiB
-        MiB -> MiB
+        MiB -> GiB
         GiB -> TiB
         TiB -> PiB
         PiB -> OOB
