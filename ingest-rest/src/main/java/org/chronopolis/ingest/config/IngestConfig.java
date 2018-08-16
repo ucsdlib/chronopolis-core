@@ -32,6 +32,8 @@ import org.chronopolis.rest.entities.serializers.StagingStorageSerializer;
 import org.chronopolis.rest.entities.serializers.StorageRegionSerializer;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
+import org.chronopolis.rest.models.FulfillmentStrategy;
+import org.chronopolis.rest.models.serializers.FulfillmentStrategyDeserializer;
 import org.chronopolis.rest.models.serializers.ZonedDateTimeDeserializer;
 import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
 import org.slf4j.Logger;
@@ -138,6 +140,8 @@ public class IngestConfig {
         builder.serializerByType(StagingStorage.class, new StagingStorageSerializer());
         builder.serializerByType(DepositorContact.class, new DepositorContactSerializer());
         builder.deserializerByType(ZonedDateTime.class, new ZonedDateTimeDeserializer());
+        builder.deserializerByType(FulfillmentStrategy.class,
+                new FulfillmentStrategyDeserializer());
         return builder;
     }
 

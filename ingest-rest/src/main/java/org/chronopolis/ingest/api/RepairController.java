@@ -239,6 +239,7 @@ public class RepairController {
 
 
         Strategy entity = ExtensionsKt.toEntity(strategy);
+        entity.setRepair(repair);
         log.info("Adding strategy of type {} to repair {}", strategy.getType(), repair.getId());
         repair.setType(strategy.getType());
         repair.setStrategy(entity);
