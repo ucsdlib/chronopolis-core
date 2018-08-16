@@ -1,5 +1,7 @@
 package org.chronopolis.rest.entities.depositor;
 
+import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.rest.entities.JPAContext;
 import org.chronopolis.rest.entities.Node;
@@ -16,6 +18,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.persistence.EntityManager;
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * @author shake
@@ -51,6 +54,44 @@ public class DepositorEntityTest {
 
         Assert.assertNotNull(sdsc);
         Assert.assertNotNull(ncar);
+    }
+
+    @Test
+    public void testAvailableNodes() {
+        final String namespace = "test-depositor";
+        JPAQueryFactory factory = new JPAQueryFactory(entityManager);
+
+        Depositor depositor = factory.selectFrom(QDepositor.depositor)
+                .where(QDepositor.depositor.namespace.eq(namespace))
+                .fetchOne();
+
+        Assert.assertNotNull(depositor);
+        Assert.assertNotNull(depositor.getNodeDistributions());
+        Assert.assertEquals(3, depositor.getNodeDistributions().size());
+
+        QDepositor qd = QDepositor.depositor;
+        QNode qn = QNode.node;
+
+        // first select the nodes which are used (basically validate our subquery)
+        JPAQuery<Node> where = factory.select(qn)
+                .from(qd)
+                .join(qd.nodeDistributions, qn)
+                .where(qd.id.eq(depositor.getId()));
+
+        List<Node> fetch = where.fetch();
+        Assert.assertNotNull(fetch);
+        Assert.assertEquals(3, fetch.size());
+
+        // and finally select the available nodes
+        where = factory.selectFrom(qn)
+                .where(qn.notIn(
+                        JPAExpressions.select(qn)
+                                .from(qd)
+                                .join(qd.nodeDistributions, qn)
+                                .where(qd.id.eq(depositor.getId()))));
+        fetch = where.fetch();
+        Assert.assertNotNull(fetch);
+        Assert.assertEquals(1, fetch.size());
     }
 
     @Test

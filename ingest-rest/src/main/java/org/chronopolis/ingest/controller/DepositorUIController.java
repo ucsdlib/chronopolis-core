@@ -48,6 +48,7 @@ import javax.persistence.EntityManager;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -192,6 +193,9 @@ public class DepositorUIController extends IngestController {
 
         log.info("Adding depositor");
         depositor = new Depositor();
+        // handle lateinits  first
+        depositor.setContacts(new HashSet<>());
+        depositor.setNodeDistributions(new HashSet<>());
         depositor.setNamespace(depositorCreate.getNamespace());
         depositor.setSourceOrganization(depositorCreate.getSourceOrganization());
         depositor.setOrganizationAddress(depositorCreate.getOrganizationAddress());
@@ -208,9 +212,10 @@ public class DepositorUIController extends IngestController {
         Depositor existing = getOrThrowNotFound(namespace);
 
         BooleanExpression availableNodes = QNode.node.notIn(
-                JPAExpressions.select(QDepositor.depositor.nodeDistributions.any())
-                        .from(QDepositor.depositor)
-                        .where(QDepositor.depositor.id.eq(existing.getId())));
+                JPAExpressions.select(QNode.node)
+                    .from(QDepositor.depositor)
+                    .join(QDepositor.depositor.nodeDistributions, QNode.node)
+                    .where(QDepositor.depositor.id.eq(existing.getId())));
 
         model.addAttribute("nodes", dao.findAll(QNode.node, availableNodes));
         model.addAttribute("depositor", existing);
@@ -319,9 +324,10 @@ public class DepositorUIController extends IngestController {
         Depositor depositor = getOrThrowNotFound(namespace);
 
         BooleanExpression availableNodes = QNode.node.notIn(
-                JPAExpressions.select(QDepositor.depositor.nodeDistributions.any())
-                        .from(QDepositor.depositor)
-                        .where(QDepositor.depositor.id.eq(depositor.getId())));
+                JPAExpressions.select(QNode.node)
+                    .from(QDepositor.depositor)
+                    .join(QDepositor.depositor.nodeDistributions, QNode.node)
+                    .where(QDepositor.depositor.id.eq(depositor.getId())));
 
         model.addAttribute("depositorEdit", depositorEdit);
         model.addAttribute("nodes", dao.findAll(QNode.node, availableNodes));
