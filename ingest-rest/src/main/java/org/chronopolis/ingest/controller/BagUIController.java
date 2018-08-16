@@ -58,7 +58,6 @@ import java.security.Principal;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -150,8 +149,6 @@ public class BagUIController extends IngestController {
                 stagingService.activeStorageForBag(bag, QBag.bag.bagStorage);
         Optional<StagingStorage> activeTokenStorage =
                 stagingService.activeStorageForBag(bag, QBag.bag.tokenStorage);
-        log.info("bagStorage {}", activeBagStorage.isPresent());
-        log.info("tokenStorage {}", activeTokenStorage.isPresent());
 
         model.addAttribute("formatter", formatter);
         model.addAttribute("bag", bag);
@@ -217,7 +214,7 @@ public class BagUIController extends IngestController {
             throw new NotFoundException("Bag does not exist");
         }
 
-        StagingStorage storage = findStorageForBag(principal, bag, storageId);
+        StagingStorage storage = findStorageForBag(principal, storageId);
         storage.setActive(!storage.isActive());
         bagService.save(bag);
         return "redirect:/bags/" + id;
@@ -231,7 +228,7 @@ public class BagUIController extends IngestController {
      * @param storageId the id of the StagingStorage
      * @param fixityId  the id of the Fixity entity
      * @return /bags/id
-     * @throws ForbiddenException
+     * @throws ForbiddenException if the user does not have permissions to edit the Bag
      */
     @GetMapping("/bags/{id}/storage/{storageId}/fixity/{fixityId}")
     public String removeStorageFixity(Principal principal,
@@ -249,7 +246,7 @@ public class BagUIController extends IngestController {
             throw new NotFoundException("Bag does not exist");
         }
 
-        StagingStorage storage = findStorageForBag(principal, bag, storageId);
+        StagingStorage storage = findStorageForBag(principal, storageId);
         stagingService.deleteFixity(storage, fixityId);
         return "redirect:/bags/" + id;
     }
@@ -265,8 +262,8 @@ public class BagUIController extends IngestController {
      * @param principal the security principal of the user
      * @param id        the id of the bag
      * @param storageId the id of the storage area
-     * @return
-     * @throws ForbiddenException
+     * @return either the view for creating a fixity for a storage or a redirect to the bag details
+     * @throws ForbiddenException if the user does not have permission to edit the Bag
      */
     @GetMapping("/bags/{id}/storage/{storageId}/fixity")
     public String updateStorageFixity(Model model,
@@ -283,7 +280,7 @@ public class BagUIController extends IngestController {
             throw new NotFoundException("Bag does not exist!");
         }
 
-        StagingStorage storage = findStorageForBag(principal, bag, storageId);
+        StagingStorage storage = findStorageForBag(principal, storageId);
 
         if (storage.getFixities().isEmpty()) {
             model.addAttribute("bag", bag);
@@ -319,7 +316,7 @@ public class BagUIController extends IngestController {
             throw new NotFoundException("Bag does not exist!");
         }
 
-        StagingStorage storage = findStorageForBag(principal, bag, storageId);
+        StagingStorage storage = findStorageForBag(principal, storageId);
 
         Fixity fixity = new Fixity();
         fixity.setStorage(storage);
@@ -337,13 +334,11 @@ public class BagUIController extends IngestController {
      * for the Region it is associated with on the given principal
      *
      * @param principal the user attempting to modify the StagingStorage
-     * @param bag       the bag owning the StagingStorage entity
      * @param storageId the id of the StagingStorage entity
      * @return the StagingStorage entity
-     * @throws ForbiddenException
+     * @throws ForbiddenException if the user does not have permissions to edit the Bag
      */
     private StagingStorage findStorageForBag(Principal principal,
-                                             Bag bag,
                                              Long storageId) throws ForbiddenException {
         // might be able to make criteria out of this or smth not sure yet
         StagingStorageSearchCriteria ssmc = new StagingStorageSearchCriteria()
@@ -404,9 +399,10 @@ public class BagUIController extends IngestController {
     /**
      * Add a StagingStorage entity to a Bag
      * <p>
-     * This requires the StagingCreate form data to be valid (if not, we return the create form again),
-     * and ownership of the Bag/an admin user. We will also require that the StorageRegion used is
-     * part of the same Node as the Bag, but right now we don't exactly have the means of doing that.
+     * This requires the StagingCreate form data to be valid (if not, we return the create form
+     * again), and ownership of the Bag/an admin user. We will also require that the StorageRegion
+     * used is part of the same Node as the Bag, but right now we don't exactly have the means of
+     * doing that
      *
      * @param model         the model to pass to the view
      * @param principal     the principal of the user
@@ -414,7 +410,7 @@ public class BagUIController extends IngestController {
      * @param stagingCreate the form data
      * @param bindingResult the validation data for the form
      * @return redirect to the Bag if successful; the create form if there are errors; or a 4xx page for any other type of errors
-     * @throws ForbiddenException
+     * @throws ForbiddenException if the user is not allowed to modify the Bag
      */
     @PostMapping("/bags/{id}/storage/add")
     public String addStaging(Model model,
@@ -440,10 +436,6 @@ public class BagUIController extends IngestController {
             throw new ForbiddenException("User is not allowed to update this resource");
         } else if (activeExists) {
             throw new ConflictException("Resource already has active storage!");
-        }
-
-        if (bag.getBagStorage() == null) {
-            bag.setBagStorage(new HashSet<>());
         }
 
         double multiple = Math.pow(1000, stagingCreate.getStorageUnit().getPower());
@@ -483,7 +475,7 @@ public class BagUIController extends IngestController {
      * @return redirect to the bags page
      */
     @RequestMapping(value = "/bags/add", method = RequestMethod.POST)
-    public String addBag(Principal principal, BagCreate request) {
+    public String addBag(Principal principal, @Valid BagCreate request) {
         access.info("[POST /bags/add] - {}", principal.getName());
         access.info("Post parameters: {};{}", request.getDepositor(), request.getName());
 
@@ -500,7 +492,7 @@ public class BagUIController extends IngestController {
     /**
      * Get all replications
      *
-     * @param model     the viewmodel
+     * @param model     the view model
      * @param principal authentication information
      * @return the page listing all replications
      */
@@ -596,14 +588,17 @@ public class BagUIController extends IngestController {
      *
      * @param principal the security principal of the user
      * @param form the ReplicationCreate for to create many replications
-     * @return
+     * @return the replications list view
      */
     @RequestMapping(value = "/replications/create", method = RequestMethod.POST)
     public String createReplications(Principal principal,
                                      @ModelAttribute("form") ReplicationCreate form) {
         access.info("[POST /replications/create] - {}", principal.getName());
         final Long bag = form.getBag();
-        form.getNodes().forEach(nodeId -> replicationService.create(bag, nodeId));
+        form.getNodes().forEach(nodeId -> {
+            ReplicationCreateResult result = replicationService.create(bag, nodeId);
+            log.debug("[Bag-{}] ReplicationCreate errors {}", bag, result.getErrors());
+        });
         return "redirect:/replications/";
     }
 

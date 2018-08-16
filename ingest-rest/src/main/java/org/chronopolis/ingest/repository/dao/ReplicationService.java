@@ -203,6 +203,7 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
     private Optional<StagingStorage> queryStorage(Long bagId,
                                                   SetPath<StagingStorage,
                                                           QStagingStorage> storageJoin) {
+        log.trace("[Bag-{}] Querying storage", bagId);
         QBag b = QBag.bag;
         QStagingStorage storage = QStagingStorage.stagingStorage;
 
