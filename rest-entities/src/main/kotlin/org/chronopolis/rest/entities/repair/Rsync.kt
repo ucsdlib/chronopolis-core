@@ -8,7 +8,7 @@ import javax.persistence.Entity
 
 @Entity
 @DiscriminatorValue("RSYNC")
-class Rsync(var link: String) : Strategy() {
+class Rsync(var link: String = "") : Strategy() {
     override fun model(): FulfillmentStrategy {
         return RsyncStrategy(FulfillmentType.NODE_TO_NODE, link)
     }
