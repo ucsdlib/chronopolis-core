@@ -136,18 +136,17 @@ public class StorageRegionUIController extends IngestController {
 
         Node owner;
         if (hasRoleAdmin() || principal.getName().equalsIgnoreCase(regionCreate.getNode())) {
-            // owner = nodes.findByUsername(regionCreate.getNode());
-            // just so we can compile
-            owner = new Node();
+            owner = nodes.findByUsername(regionCreate.getNode());
         } else {
             throw new ForbiddenException("User does not have permissions to create this resource");
         }
 
         StorageRegion region = new StorageRegion();
+        Double capacity = regionCreate.normalizedCapacity();
         region.setNote(regionCreate.getNote());
         region.setDataType(regionCreate.getDataType());
         region.setStorageType(regionCreate.getStorageType());
-        region.setCapacity(regionCreate.getCapacity());
+        region.setCapacity(capacity.longValue());
         region.setNode(owner);
 
         ReplicationConfig config = new ReplicationConfig();
@@ -315,19 +314,13 @@ public class StorageRegionUIController extends IngestController {
         }
 
         ReplicationConfig config = region.getReplicationConfig();
-        if (config == null) {
-            config = new ReplicationConfig();
-            // A better way to do this...?
-            region.setReplicationConfig(config);
-            config.setRegion(region);
-        }
         config.setPath(update.getPath());
         config.setServer(update.getServer());
         config.setUsername(update.getUsername());
         service.save(region);
 
         model.addAttribute("region", region);
-        return "storage_region/region";
+        return "redirect:/regions/" + region.getId();
     }
 
     /**
