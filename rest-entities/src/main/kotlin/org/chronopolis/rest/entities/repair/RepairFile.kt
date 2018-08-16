@@ -10,4 +10,8 @@ class RepairFile(
         var repair: Repair = Repair(),
 
         var path: String = ""
-) : PersistableEntity()
+) : PersistableEntity() {
+        override fun toString(): String {
+                return path
+        }
+}
