@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.security.Principal;
+import java.util.List;
 import java.util.Set;
 
 import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
@@ -86,6 +87,8 @@ public class DepositorController {
         access.info("[POST /api/depositors] - {}", principal.getName());
         QDepositor qDepositor = QDepositor.depositor;
 
+        List<Node> nodes = dao.findAll(QNode.node,
+                QNode.node.username.in(depositorCreate.getReplicatingNodes()));
         Depositor exists = dao.findOne(qDepositor,
                 qDepositor.namespace.eq(depositorCreate.getNamespace()));
 
@@ -104,7 +107,7 @@ public class DepositorController {
                         depositorCreate.getSourceOrganization(),
                         depositorCreate.getOrganizationAddress());
                 dep.setContacts(contacts);
-                dep.setNodeDistributions(ImmutableSet.of());
+                dep.setNodeDistributions(ImmutableSet.copyOf(nodes));
                 dao.save(dep);
                 response = ResponseEntity.status(HttpStatus.CREATED).body(dep);
             }
