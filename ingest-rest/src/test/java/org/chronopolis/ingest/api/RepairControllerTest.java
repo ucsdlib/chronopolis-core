@@ -100,7 +100,10 @@ public class RepairControllerTest extends ControllerTest {
         when(nodes.findByUsername(AUTHORIZED)).thenReturn(node);
         when(bags.find(any(SearchCriteria.class))).thenReturn(bag);
 
-        String json = "{\"depositor\":\"test-depositor\",\"collection\":\"bag-0\",\"files\":[\"test-file-1\"]}";
+        String json = "{\"to\":\"authorized\"," +
+                "\"depositor\":\"test-depositor\"," +
+                "\"collection\":\"bag-0\"," +
+                "\"files\":[\"test-file-1\"]}";
         mvc.perform(
                 post("/api/repairs")
                         .principal(authorizedPrincipal)
