@@ -10,7 +10,7 @@
         <h4>Add Depositor</h4>
         <h6 class="text-muted">Register a depositor for ingestion of content into Chronopolis</h6>
         <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem">
-            <!--/*@thymesVar id="depositorCreate" type="org.chronopolis.rest.models.DepositorCreate"*/-->
+            <!--/*@thymesVar id="depositorCreate" type="org.chronopolis.rest.models.create.DepositorCreate"*/-->
             <form th:action="@{/depositors}" th:object="${depositorCreate}" method="post" name="depositor">
                 <div class="form-group row">
                     <label for="sourceOrganization" class="col-4 col-form-label">Organization Name</label>

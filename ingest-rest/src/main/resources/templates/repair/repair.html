@@ -6,7 +6,7 @@
 <body>
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column m-3 align-items-center">
-    <!--@thymesVar id="repair" type="org.chronopolis.rest.entities.Repair"-->
+    <!--@thymesVar id="repair" type="org.chronopolis.rest.entities.repair.Repair"-->
     <div class="card w-75">
         <nav th:replace="fragments/crumbs/repair :: single"></nav>
 
@@ -31,12 +31,20 @@
         </div>
         <div class="card-body p-2" th:if="${repair.from} != null">
             <table class="table table-hover">
-                <!--@thymesVar id="node_to_node" type="org.chronopolis.rest.entities.fulfillment.Rsync"-->
-                <!--@thymesVar id="ace" type="org.chronopolis.rest.entities.fulfillment.Ace"-->
+                <!--@thymesVar id="ace" type="org.chronopolis.rest.entities.repair.Ace"-->
+                <!--@thymesVar id="node_to_node" type="org.chronopolis.rest.entities.repair.Rsync"-->
                 <div th:replace="fragments/storage :: list-item(head='Fulfilling Node', content=${repair.from.username})"></div>
                 <div th:replace="fragments/storage :: list-item(head='Fulfillment Type', content=${repair.type})"></div>
-                <div th:if="${node_to_node} != null" th:replace="fragments/storage :: list-item(head='Rsync Location', content=${node_to_node.link})"></div>
-                <div th:if="${ace} != null" th:replace="fragments/storage :: list-item(head='ACE URL', content=${ace.url})"></div>
+
+                <div th:if="${node_to_node} != null">
+                    <div th:replace="fragments/storage :: list-item(head='Rsync Location',
+                                                                    content=${node_to_node.link})">
+                    </div>
+                </div>
+                <div th:if="${ace} != null">
+                    <div th:replace="fragments/storage :: list-item(head='ACE URL',
+                                                                    content=${ace.url})"></div>
+                </div>
             </table>
         </div>
     </div>

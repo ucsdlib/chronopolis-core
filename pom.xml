@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                               http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -8,10 +11,10 @@
         <version>1.5.4.RELEASE</version>
     </parent>
 
+    <packaging>pom</packaging>
+    <version>3.0.0-SNAPSHOT</version>
     <groupId>org.chronopolis</groupId>
     <artifactId>chronopolis</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
 
     <name>Core Chronopolis</name>
     <url>https://gitlab.umiacs.umd.edu/chronopolis</url>
@@ -19,23 +22,24 @@
     <!-- Core Modules -->
     <modules>
         <module>common</module>
+        <module>rest-entities</module>
+        <module>rest-models</module>
         <module>rest-common</module>
         <module>tokenizer</module>
         <module>tokenizer-mq</module>
     </modules>
 
     <profiles>
-       <profile>
-           <!-- Core services -->
+        <profile>
+            <!-- Core services -->
             <id>jenkins-main</id>
             <modules>
-                <module>ingest-shell</module>
                 <module>ingest-rest</module>
                 <module>replication-shell</module>
             </modules>
-       </profile>
-       <profile>
-           <!-- All Modules -->
+        </profile>
+        <profile>
+            <!-- All Modules -->
             <id>default</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
@@ -73,7 +77,7 @@
                     <version>3.1</version>
                     <configuration>
                         <compilerArgs>
-                          <arg>-Xlint:deprecation</arg>
+                            <arg>-Xlint:deprecation</arg>
                         </compilerArgs>
                         <source>1.8</source>
                         <target>1.8</target>
@@ -88,7 +92,7 @@
             </plugins>
         </pluginManagement>
         <plugins>
-           <plugin>
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>versions-maven-plugin</artifactId>
                 <version>2.1</version>
@@ -104,9 +108,11 @@
     </build>
 
     <properties>
+        <ace.version>1.13-RELEASE</ace.version>
+        <artemis.version>2.6.0</artemis.version>
+        <kotlin.version>1.2.51</kotlin.version>
         <project.license>BSD 3</project.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <artemis.version>2.6.0</artemis.version>
     </properties>
 
     <repositories>
@@ -141,6 +147,18 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-stdlib-jdk8</artifactId>
+                <version>${kotlin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-test</artifactId>
+                <version>${kotlin.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
                 <groupId>org.chronopolis</groupId>
                 <artifactId>chron-test</artifactId>
                 <version>1.0-SNAPSHOT</version>
@@ -161,20 +179,20 @@
 
             <dependency>
                 <groupId>org.chronopolis</groupId>
-                <artifactId>duracloud-backend</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.chronopolis</groupId>
                 <artifactId>rest-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.chronopolis</groupId>
-                <artifactId>earth-core</artifactId>
-                <version>2.0.0-RELEASE</version>
+                <artifactId>rest-models</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.chronopolis</groupId>
+                <artifactId>rest-entities</artifactId>
+                <version>${project.version}</version>
             </dependency>
 
             <!-- Apache libs -->
@@ -195,13 +213,13 @@
             <dependency>
                 <groupId>edu.umiacs.ace</groupId>
                 <artifactId>ace-common</artifactId>
-                <version>1.12-RELEASE</version>
+                <version>${ace.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>edu.umiacs.ace</groupId>
                 <artifactId>ace-ims-api</artifactId>
-                <version>1.12-RELEASE</version>
+                <version>${ace.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>log4j</groupId>
@@ -256,13 +274,13 @@
             <dependency>
                 <groupId>com.squareup.retrofit2</groupId>
                 <artifactId>retrofit</artifactId>
-                <version>2.1.0</version>
+                <version>2.4.0</version>
             </dependency>
 
             <dependency>
                 <groupId>com.squareup.retrofit2</groupId>
                 <artifactId>converter-gson</artifactId>
-                <version>2.1.0</version>
+                <version>2.4.0</version>
             </dependency>
 
             <dependency>
@@ -276,7 +294,7 @@
                 <artifactId>guava</artifactId>
                 <version>25.1-jre</version>
             </dependency>
-       </dependencies>
+        </dependencies>
     </dependencyManagement>
 
     <!-- Need to get all common dependencies here -->

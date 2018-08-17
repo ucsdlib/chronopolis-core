@@ -7,9 +7,9 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import org.chronopolis.ingest.models.Paged;
-import org.chronopolis.rest.entities.QRepair;
-import org.chronopolis.rest.models.repair.AuditStatus;
-import org.chronopolis.rest.models.repair.RepairStatus;
+import org.chronopolis.rest.entities.repair.QRepair;
+import org.chronopolis.rest.models.enums.AuditStatus;
+import org.chronopolis.rest.models.enums.RepairStatus;
 
 import java.util.List;
 

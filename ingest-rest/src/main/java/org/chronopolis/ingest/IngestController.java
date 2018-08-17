@@ -47,11 +47,12 @@ public class IngestController {
     /**
      * Create a page request for a given set of parameters
      *
-     * @param params
-     * @param valid
-     * @return
+     * @param params the parameters of the request
+     * @param valid the parameters which are valid for this request
+     * @return the PageRequest created
      */
-    public static PageRequest createPageRequest(Map<String, String> params, Map<String, String> valid) {
+    public static PageRequest createPageRequest(Map<String, String> params,
+                                                Map<String, String> valid) {
         // page size stuff
         Integer pageNum = params.containsKey(PAGE)
                 ? Integer.parseInt(params.get(PAGE))

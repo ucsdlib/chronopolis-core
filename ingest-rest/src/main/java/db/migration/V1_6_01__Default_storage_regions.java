@@ -1,6 +1,6 @@
 package db.migration;
 
-import org.chronopolis.rest.models.storage.DataType;
+import org.chronopolis.rest.models.enums.DataType;
 import org.flywaydb.core.api.migration.jdbc.JdbcMigration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

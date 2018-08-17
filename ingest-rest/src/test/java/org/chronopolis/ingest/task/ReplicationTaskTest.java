@@ -28,15 +28,17 @@ import static junit.framework.Assert.assertEquals;
  *
  * Created by shake on 8/6/15.
  */
-@RunWith(SpringJUnit4ClassRunner.class)
 @DataJpaTest
+@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = JpaContext.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SqlGroup({
         // We only want bags to be inserted for these tests
         // but when tearing down remove the replications as well
-        @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:sql/createBags.sql"),
-        @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = "classpath:sql/deleteReplications.sql")
+        @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+             scripts = "classpath:sql/createBags.sql"),
+        @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
+             scripts = "classpath:sql/deleteReplications.sql")
 })
 public class ReplicationTaskTest extends IngestTest {
 

@@ -3,8 +3,8 @@ package org.chronopolis.ingest.repository.criteria;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import org.chronopolis.ingest.api.Params;
 import org.chronopolis.rest.entities.storage.QStorageRegion;
-import org.chronopolis.rest.models.storage.DataType;
-import org.chronopolis.rest.models.storage.StorageType;
+import org.chronopolis.rest.models.enums.DataType;
+import org.chronopolis.rest.models.enums.StorageType;
 
 import java.util.HashMap;
 import java.util.List;

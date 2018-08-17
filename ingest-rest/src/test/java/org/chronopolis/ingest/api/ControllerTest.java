@@ -3,28 +3,32 @@ package org.chronopolis.ingest.api;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import com.google.common.collect.ImmutableList;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.WebContext;
-import org.chronopolis.ingest.api.serializer.AceTokenSerializer;
-import org.chronopolis.ingest.api.serializer.BagSerializer;
-import org.chronopolis.ingest.api.serializer.DepositorContactSerializer;
-import org.chronopolis.ingest.api.serializer.DepositorSerializer;
-import org.chronopolis.ingest.api.serializer.RepairSerializer;
-import org.chronopolis.ingest.api.serializer.ReplicationSerializer;
-import org.chronopolis.ingest.api.serializer.StagingStorageSerializer;
-import org.chronopolis.ingest.api.serializer.StorageRegionSerializer;
-import org.chronopolis.rest.models.serializers.ZonedDateTimeDeserializer;
-import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Depositor;
-import org.chronopolis.rest.entities.DepositorContact;
-import org.chronopolis.rest.entities.Repair;
 import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.entities.depositor.Depositor;
+import org.chronopolis.rest.entities.depositor.DepositorContact;
+import org.chronopolis.rest.entities.repair.Repair;
+import org.chronopolis.rest.entities.serializers.AceTokenSerializer;
+import org.chronopolis.rest.entities.serializers.BagSerializer;
+import org.chronopolis.rest.entities.serializers.DepositorContactSerializer;
+import org.chronopolis.rest.entities.serializers.DepositorSerializer;
+import org.chronopolis.rest.entities.serializers.RepairSerializer;
+import org.chronopolis.rest.entities.serializers.ReplicationSerializer;
+import org.chronopolis.rest.entities.serializers.StagingStorageSerializer;
+import org.chronopolis.rest.entities.serializers.StorageRegionSerializer;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
+import org.chronopolis.rest.models.FulfillmentStrategy;
+import org.chronopolis.rest.models.serializers.FulfillmentStrategyDeserializer;
+import org.chronopolis.rest.models.serializers.ZonedDateTimeDeserializer;
+import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -42,6 +46,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.security.Principal;
 import java.time.ZonedDateTime;
+import java.util.HashSet;
 
 import static org.mockito.Mockito.when;
 
@@ -63,12 +68,27 @@ public class ControllerTest extends IngestTest {
     protected static Principal authorizedPrincipal = () -> AUTHORIZED;
     protected static Principal unauthorizedPrincipal = () -> UNAUTHORIZED;
 
-    public static UserDetails user = new User(AUTHORIZED, AUTHORIZED, ImmutableList.of(() -> "ROLE_USER"));
-    public static UserDetails admin = new User(AUTHORIZED, AUTHORIZED, ImmutableList.of(() -> "ROLE_ADMIN"));
+    public static UserDetails user = new User(AUTHORIZED, AUTHORIZED,
+            ImmutableList.of(() -> "ROLE_USER"));
+    public static UserDetails admin = new User(AUTHORIZED, AUTHORIZED,
+            ImmutableList.of(() -> "ROLE_ADMIN"));
+
+    static final String ADDRESS = "test-address";
+    static final String NAMESPACE = "test-depositor";
+    static final String ORGANIZATION = "test-organization";
+    static final Depositor DEPOSITOR = new Depositor(NAMESPACE, ORGANIZATION, ADDRESS);
 
     // Security beans for authorizing http requests
     @MockBean protected SecurityContext context;
     @MockBean protected Authentication authentication;
+
+    @BeforeClass
+    public static void completeInit() {
+        // late init vars which need to be set
+        DEPOSITOR.setId(1L);
+        DEPOSITOR.setContacts(new HashSet<>());
+        DEPOSITOR.setNodeDistributions(new HashSet<>());
+    }
 
     @Before
     public void setupSecurityContext() {
@@ -78,6 +98,7 @@ public class ControllerTest extends IngestTest {
     public void setupMvc(Object controller) {
         // serialization for entity -> model
         Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
+        builder.modulesToInstall(new KotlinModule());
         builder.serializationInclusion(JsonInclude.Include.NON_NULL);
         builder.serializerByType(AceToken.class, new AceTokenSerializer());
         builder.serializerByType(Bag.class, new BagSerializer());
@@ -88,6 +109,8 @@ public class ControllerTest extends IngestTest {
         builder.serializerByType(StagingStorage.class, new StagingStorageSerializer());
         builder.serializerByType(StorageRegion.class, new StorageRegionSerializer());
         builder.serializerByType(ZonedDateTime.class, new ZonedDateTimeSerializer());
+        builder.deserializerByType(FulfillmentStrategy.class,
+                new FulfillmentStrategyDeserializer());
         builder.deserializerByType(ZonedDateTime.class, new ZonedDateTimeDeserializer());
         mapper = builder.build();
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
@@ -110,9 +133,6 @@ public class ControllerTest extends IngestTest {
     public void authenticateAdmin() {
         when(context.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(admin);
-    }
-
-    public void unauthenticated () {
     }
 
     public <T> Page<T> asPage(T t) {

@@ -8,8 +8,8 @@ import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.models.BagStatus;
-import org.chronopolis.rest.models.IngestRequest;
+import org.chronopolis.rest.models.create.BagCreate;
+import org.chronopolis.rest.models.enums.BagStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +49,6 @@ import static org.chronopolis.ingest.api.Params.UPDATED_BEFORE;
 @RequestMapping("/api/bags")
 public class BagController extends IngestController {
 
-    private final Logger log = LoggerFactory.getLogger(BagController.class);
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private final BagService bagService;
@@ -113,7 +112,7 @@ public class BagController extends IngestController {
      *         HTTP 403 if the user is not authorized to create
      */
     @PostMapping
-    public ResponseEntity<Bag> stageBag(Principal principal, @RequestBody IngestRequest request) {
+    public ResponseEntity<Bag> stageBag(Principal principal, @RequestBody BagCreate request) {
         access.info("[POST /api/bags/] - {}", principal.getName());
         access.info("POST parameters - {}", request.getDepositor(), request.getName(), request.getStorageRegion());
         BagCreateResult result = bagService.processRequest(principal.getName(), request);

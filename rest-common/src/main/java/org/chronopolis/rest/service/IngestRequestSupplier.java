@@ -2,7 +2,7 @@ package org.chronopolis.rest.service;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.chronopolis.rest.models.IngestRequest;
+import org.chronopolis.rest.models.create.BagCreate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +27,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by shake on 7/18/17.
  */
-public class IngestRequestSupplier implements Supplier<Optional<IngestRequest>> {
+public class IngestRequestSupplier implements Supplier<Optional<BagCreate>> {
     private final Logger log = LoggerFactory.getLogger(IngestRequestSupplier.class);
     private final String TAR_TYPE = "application/x-tar";
 
@@ -51,11 +51,8 @@ public class IngestRequestSupplier implements Supplier<Optional<IngestRequest>> 
      * @return The IngestRequest to push to the Ingest Server
      */
     @Override
-    public Optional<IngestRequest> get() {
-        IngestRequest request = new IngestRequest();
-        request.setName(name);
-        request.setDepositor(depositor);
-
+    public Optional<BagCreate> get() {
+        Optional<BagCreate> request = Optional.empty();
         try {
             // check if we should untar the bag
             log.trace("Probing mime type for {}", bag);
@@ -70,21 +67,18 @@ public class IngestRequestSupplier implements Supplier<Optional<IngestRequest>> 
 
         // update the path of the bag to the exploded directory
         Path relBag = stage.relativize(bag);
-        request.setLocation(relBag.toString());
+        // request.setLocation(relBag.toString());
 
         try (Stream<Path> files = Files.walk(bag)) {
-            files.map(this::fromPath)
+            request = files.map(this::fromPath)
                     .reduce(this::combineCount)
-                    .ifPresent(count -> {
-                        request.setSize(count.size);
-                        request.setTotalFiles(count.files);
-                    });
+                    .map(count -> new BagCreate(name, count.size, count.files, 0L,
+                            relBag.toString(), depositor));
         } catch (IOException e) {
             log.error("Error accumulating size of bag", e);
-            return Optional.empty();
         }
 
-        return Optional.of(request);
+        return request;
     }
 
     /**

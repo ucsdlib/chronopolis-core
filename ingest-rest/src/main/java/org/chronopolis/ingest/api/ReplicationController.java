@@ -12,10 +12,10 @@ import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
-import org.chronopolis.rest.models.FixityUpdate;
-import org.chronopolis.rest.models.RStatusUpdate;
-import org.chronopolis.rest.models.ReplicationRequest;
-import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.models.create.ReplicationCreate;
+import org.chronopolis.rest.models.enums.ReplicationStatus;
+import org.chronopolis.rest.models.update.FixityUpdate;
+import org.chronopolis.rest.models.update.ReplicationStatusUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +56,8 @@ public class ReplicationController extends IngestController {
     private final ReplicationService replicationService;
 
     @Autowired
-    public ReplicationController(StagingService stagingService, ReplicationService replicationService) {
+    public ReplicationController(StagingService stagingService,
+                                 ReplicationService replicationService) {
         this.stagingService = stagingService;
         this.replicationService = replicationService;
     }
@@ -70,7 +71,7 @@ public class ReplicationController extends IngestController {
      * 400 if the request is not valid
      */
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<Replication> createReplication(@RequestBody ReplicationRequest request) {
+    public ResponseEntity<Replication> createReplication(@RequestBody ReplicationCreate request) {
         access.info("[POST /api/replications]");
         access.info("Post parameters - ", request.getBagId(), request.getNodeId());
         log.debug("Received replication request {}", request);
@@ -115,11 +116,13 @@ public class ReplicationController extends IngestController {
         Replication r = replicationService.find(criteria);
         Bag bag = r.getBag();
         String fixity = update.getFixity();
+        ReplicationStatus failureStatus = ReplicationStatus.FAILURE_TOKEN_STORE;
 
         // Validate the fixity and update the replication
         // need to get active storage
-        Optional<StagingStorage> storage = stagingService.activeStorageForBag(bag, QBag.bag.tokenStorage);
-        storage.ifPresent(s -> checkFixity(r, s.getFixities(), fixity, ReplicationStatus.FAILURE_TOKEN_STORE));
+        Optional<StagingStorage> storage =
+                stagingService.activeStorageForBag(bag, QBag.bag.tokenStorage);
+        storage.ifPresent(s -> checkFixity(r, s.getFixities(), fixity, failureStatus));
         r.setReceivedTokenFixity(fixity);
         r.checkTransferred();
         replicationService.save(r);
@@ -146,10 +149,12 @@ public class ReplicationController extends IngestController {
         Replication r = replicationService.find(criteria);
         Bag bag = r.getBag();
         String fixity = update.getFixity();
+        ReplicationStatus failureStatus = ReplicationStatus.FAILURE_TAG_MANIFEST;
 
         // Validate the fixity and update the replication
-        Optional<StagingStorage> storage = stagingService.activeStorageForBag(bag, QBag.bag.bagStorage);
-        storage.ifPresent(s -> checkFixity(r, s.getFixities(), fixity, ReplicationStatus.FAILURE_TAG_MANIFEST));
+        Optional<StagingStorage> storage =
+                stagingService.activeStorageForBag(bag, QBag.bag.bagStorage);
+        storage.ifPresent(s -> checkFixity(r, s.getFixities(), fixity, failureStatus));
         r.setReceivedTagFixity(update.getFixity());
         r.checkTransferred();
         replicationService.save(r);
@@ -165,9 +170,13 @@ public class ReplicationController extends IngestController {
      * @param failure  The status to set upon failure
      * @return true if matches, false otherwise
      */
-    private boolean checkFixity(Replication r, Set<Fixity> stored, String received, ReplicationStatus failure) {
+    private boolean checkFixity(Replication r,
+                                Set<Fixity> stored,
+                                String received,
+                                ReplicationStatus failure) {
         boolean match = stored.stream()
-                // getValue _should_ always be non-null, but we might need to validate this or enforce it in the schema
+                // getValue _should_ always be non-null
+                // but we might need to validate this or enforce it in the schema
                 .anyMatch(fixity -> fixity.getValue().equalsIgnoreCase(received));
 
         if (match) {
@@ -175,11 +184,10 @@ public class ReplicationController extends IngestController {
         } else {
             Long bagId = r.getBag().getId();
             String node = r.getNode().getUsername();
-            log.warn("Received invalid fixity (found={},expected={}) for bag {} from {}. Setting {}", received,
-                    stored,
-                    bagId,
-                    node,
-                    failure);
+            // bleh maybe trim down this msg
+            String text = "Received invalid fixity (found={},expected={}) for bag {} from {}." +
+                    " Setting {}";
+            log.warn(text, received, stored, bagId, node, failure);
             r.setStatus(failure);
         }
 
@@ -200,11 +208,12 @@ public class ReplicationController extends IngestController {
     @RequestMapping(value = "/{id}/status", method = RequestMethod.PUT)
     public Replication updateStatus(Principal principal,
                                     @PathVariable("id") Long replicationId,
-                                    @RequestBody RStatusUpdate update) {
+                                    @RequestBody ReplicationStatusUpdate update) {
         access.info("[PUT /api/replications/{}/status] - {}", replicationId, principal.getName());
         access.info("PUT parameters - {}", update.getStatus());
         ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
-        log.info("Received update request for replication {}: {}", replicationId, update.getStatus());
+        log.info("Received update request for replication {}: {}",
+                replicationId, update.getStatus());
         Replication r = replicationService.find(criteria);
         r.setStatus(update.getStatus());
         replicationService.save(r);
@@ -272,7 +281,7 @@ public class ReplicationController extends IngestController {
         // Workaround for giving service accounts a view into all replications
         name = params.getOrDefault(NODE, null);
 
-        // null is handled fine so we can set that as a default
+        // null is handled by the search criteria so we can set use it as a default
         ReplicationStatus status = params.containsKey(STATUS)
                 ? ReplicationStatus.valueOf(params.get(STATUS))
                 : null;

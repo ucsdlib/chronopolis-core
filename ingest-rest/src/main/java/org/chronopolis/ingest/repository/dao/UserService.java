@@ -5,7 +5,7 @@ import org.chronopolis.ingest.repository.AuthoritiesRepository;
 import org.chronopolis.ingest.repository.Authority;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.models.PasswordUpdate;
+import org.chronopolis.rest.models.update.PasswordUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +21,8 @@ import java.security.Principal;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+
+import static java.util.Collections.emptySet;
 
 /**
  * Service to handle things related to user accounts
@@ -69,7 +71,8 @@ public class UserService {
         if (request.isNode()) {
             log.debug("Creating node for {}", username);
             if (repository.findByUsername(username) == null) {
-                repository.save(new Node(username, password));
+                Node node = new Node(emptySet(), username, password, true);
+                repository.save(node);
             }
         }
     }

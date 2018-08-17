@@ -13,9 +13,10 @@ import org.chronopolis.replicate.batch.callback.UpdateCallback;
 import org.chronopolis.rest.api.ReplicationService;
 import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.Replication;
-import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.models.enums.ReplicationStatus;
+import org.chronopolis.rest.models.update.ReplicationStatusUpdate;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Call;
@@ -91,13 +92,16 @@ public class AceTokenTasklet implements Runnable {
         final AtomicBoolean complete = new AtomicBoolean(false);
         call.enqueue(new Callback<Void>() {
             @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
+            public void onResponse(@NotNull Call<Void> call,
+                                   @NotNull Response<Void> response) {
                 if (response.isSuccessful()) {
                     log.info("{} loaded token store", name);
-                    Call<Replication> update = replications.updateStatus(replication.getId(), new RStatusUpdate(ReplicationStatus.ACE_TOKEN_LOADED));
+                    Call<Replication> update = replications.updateStatus(replication.getId(),
+                            new ReplicationStatusUpdate(ReplicationStatus.ACE_TOKEN_LOADED));
                     update.enqueue(new UpdateCallback());
                 } else {
-                    log.error("{} Error loading token store: {} - {}", response.code(), response.message());
+                    log.error("{} Error loading token store: {} - {}",
+                            response.code(), response.message());
                     try {
                         log.debug("{} {}", name, response.errorBody().string());
                     } catch (IOException ignored) {
@@ -110,7 +114,7 @@ public class AceTokenTasklet implements Runnable {
             }
 
             @Override
-            public void onFailure(Call<Void> call, Throwable throwable) {
+            public void onFailure(@NotNull Call<Void> call, @NotNull Throwable throwable) {
                 complete.getAndSet(true);
                 notifier.setSuccess(false);
                 log.error("{} Failure loading token store", name, throwable);
@@ -155,7 +159,7 @@ public class AceTokenTasklet implements Runnable {
         }
 
         @Override
-        public void writeTo(BufferedSink sink) throws IOException {
+        public void writeTo(@NotNull BufferedSink sink) throws IOException {
             // todo test this
             sink.writeAll(Okio.source(source.openBufferedStream()));
         }

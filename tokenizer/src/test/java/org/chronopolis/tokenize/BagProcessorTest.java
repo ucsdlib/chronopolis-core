@@ -4,7 +4,9 @@ import com.google.common.collect.ImmutableList;
 import org.chronopolis.common.storage.BagStagingProperties;
 import org.chronopolis.common.storage.Posix;
 import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.storage.StagingStorageModel;
+import org.chronopolis.rest.models.Fixity;
+import org.chronopolis.rest.models.StagingStorage;
+import org.chronopolis.rest.models.enums.BagStatus;
 import org.chronopolis.tokenize.filter.HttpFilter;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.junit.Before;
@@ -13,7 +15,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.net.URL;
+import java.time.ZonedDateTime;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -52,13 +56,13 @@ public class BagProcessorTest {
         properties = new BagStagingProperties()
                 .setPosix(new Posix().setPath(bags.getPath()));
 
-        StagingStorageModel bagStorage = new StagingStorageModel()
-                .setPath(DEPOSITOR + "/" + COLLECTION);
-        bag = new Bag()
-                .setId(1L)
-                .setName(COLLECTION)
-                .setDepositor(DEPOSITOR)
-                .setBagStorage(bagStorage);
+        Fixity fixity = new Fixity("test-fixity", "test-algorithm", ZonedDateTime.now());
+        HashSet<Fixity> fixities = new HashSet<>();
+        fixities.add(fixity);
+        StagingStorage bagStorage = new StagingStorage(true, 1L, 1L, 1L,
+                DEPOSITOR + "/" + COLLECTION, fixities);
+        bag = new Bag(1L, 1L, 1L, bagStorage, bagStorage, ZonedDateTime.now(), ZonedDateTime.now(),
+                COLLECTION, DEPOSITOR, DEPOSITOR, BagStatus.DEPOSITED, new HashSet<>());
 
     }
 

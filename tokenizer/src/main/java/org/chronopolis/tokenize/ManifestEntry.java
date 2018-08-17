@@ -6,6 +6,8 @@ import org.chronopolis.rest.models.Bag;
 import java.util.Objects;
 
 /**
+ * Any reason why this shouldn't be a kotlin data class?
+ *
  * Information about an entry in a manifest.
  *
  * @author shake

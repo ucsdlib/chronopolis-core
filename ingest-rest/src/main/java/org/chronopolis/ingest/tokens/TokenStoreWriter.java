@@ -13,7 +13,7 @@ import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
-import org.chronopolis.rest.models.BagStatus;
+import org.chronopolis.rest.models.enums.BagStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 
 import static java.nio.file.StandardOpenOption.CREATE;
 import static org.chronopolis.ingest.api.Params.SORT_ID;
@@ -126,13 +127,10 @@ public class TokenStoreWriter implements Runnable {
             storage.setTotalFiles(1L);
             storage.setPath(root.relativize(store).toString());
 
-            storage.addFixity(new Fixity()
-                    .setStorage(storage)
-                    .setCreatedAt(ZonedDateTime.now())
-                    .setAlgorithm("SHA-256")
-                    .setValue(hash));
+            storage.setFixities(new HashSet<>());
+            storage.addFixity(new Fixity(storage, ZonedDateTime.now(), hash, "SHA-256"));
 
-            bag.setTokenStorage(storage);
+            bag.getTokenStorage().add(storage);
             bag.setStatus(BagStatus.TOKENIZED);
             bagService.save(bag);
         } catch (Exception ex) { // not to happy about the catch all but there are multiple

@@ -1,7 +1,7 @@
 package org.chronopolis.ingest.repository;
 
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.models.BagStatus;
+import org.chronopolis.rest.models.enums.BagStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,9 +16,6 @@ import java.util.Collection;
  */
 public interface BagRepository extends JpaRepository<Bag, Long>,
                                        QueryDslPredicateExecutor<Bag> {
-
-    // Bag findById(Long id);
-    Bag findByNameAndDepositor(String name, String depositor);
 
     Collection<Bag> findByStatus(BagStatus status);
     Page<Bag> findByStatus(BagStatus status, Pageable pageable);

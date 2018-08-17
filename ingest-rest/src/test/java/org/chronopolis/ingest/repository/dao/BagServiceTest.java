@@ -6,7 +6,7 @@ import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.models.IngestRequest;
+import org.chronopolis.rest.models.create.BagCreate;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,7 +27,12 @@ import javax.persistence.EntityManager;
 public class BagServiceTest extends IngestTest {
 
     private static final String CREATOR = "creator";
+    private static final String LOCATION = "test-location";
     private static final String DEPOSITOR = "test-depositor";
+    private static final String BAD_DEPOSITOR = "invalid-depositor";
+    private static final String BAG_SUCCESS = "create-success";
+    private static final String BAG_CONFLICT = "create-conflict";
+    private static final String BAG_BAD_REQUEST = "create-bad-request";
 
     @Autowired private BagRepository repository;
     @Autowired private EntityManager entityManager;
@@ -41,12 +46,7 @@ public class BagServiceTest extends IngestTest {
 
     @Test
     public void processRequestNoRegion() {
-        IngestRequest request = new IngestRequest()
-                .setName("create-bad-request")
-                .setDepositor(DEPOSITOR)
-                .setSize(100L)
-                .setTotalFiles(5L)
-                .setStorageRegion(-1L);
+        BagCreate request = new BagCreate(BAG_BAD_REQUEST, 100L, 5L, -1L, LOCATION, DEPOSITOR);
         BagCreateResult result = service.processRequest(CREATOR, request);
         Assert.assertFalse(result.getBag().isPresent());
         Assert.assertEquals(HttpStatus.BAD_REQUEST, result.getResponseEntity().getStatusCode());
@@ -54,12 +54,7 @@ public class BagServiceTest extends IngestTest {
 
     @Test
     public void processRequestNoDepositor() {
-        IngestRequest request = new IngestRequest()
-                .setName("create-bad-request")
-                .setDepositor("invalid-depositor")
-                .setSize(100L)
-                .setTotalFiles(5L)
-                .setStorageRegion(1L);
+        BagCreate request = new BagCreate(BAG_BAD_REQUEST, 100L, 5L, 1L, LOCATION, BAD_DEPOSITOR);
         BagCreateResult result = service.processRequest(CREATOR, request);
         Assert.assertFalse(result.getBag().isPresent());
         Assert.assertEquals(HttpStatus.BAD_REQUEST, result.getResponseEntity().getStatusCode());
@@ -67,12 +62,7 @@ public class BagServiceTest extends IngestTest {
 
     @Test
     public void processRequestConflict() {
-        IngestRequest request = new IngestRequest()
-                .setName("create-conflict")
-                .setDepositor(DEPOSITOR)
-                .setSize(100L)
-                .setTotalFiles(5L)
-                .setStorageRegion(1L);
+        BagCreate request = new BagCreate(BAG_CONFLICT, 100L, 5L, 1L, LOCATION, DEPOSITOR);
         service.processRequest(CREATOR, request);
         BagCreateResult conflict = service.processRequest(CREATOR, request);
         Assert.assertFalse(conflict.getBag().isPresent());
@@ -81,12 +71,7 @@ public class BagServiceTest extends IngestTest {
 
     @Test
     public void processRequestSuccess() {
-        IngestRequest request = new IngestRequest()
-                .setName("create-success")
-                .setDepositor(DEPOSITOR)
-                .setSize(100L)
-                .setTotalFiles(5L)
-                .setStorageRegion(1L);
+        BagCreate request = new BagCreate(BAG_SUCCESS, 100L, 5L, 1L, LOCATION, DEPOSITOR);
         BagCreateResult result = service.processRequest(CREATOR, request);
         Assert.assertTrue(result.getBag().isPresent());
         Assert.assertEquals(HttpStatus.CREATED, result.getResponseEntity().getStatusCode());

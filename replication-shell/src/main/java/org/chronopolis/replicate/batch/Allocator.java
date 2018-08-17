@@ -6,9 +6,9 @@ import org.chronopolis.common.storage.StorageOperation;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
 import org.chronopolis.rest.api.ReplicationService;
 import org.chronopolis.rest.api.ServiceGenerator;
-import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.Replication;
-import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.models.enums.ReplicationStatus;
+import org.chronopolis.rest.models.update.ReplicationStatusUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Call;
@@ -59,7 +59,8 @@ public class Allocator implements Supplier<ReplicationStatus> {
         Optional<Path> tokenDir = tokenBucket.mkdir(tokenOp);
 
         if (bagDir.isPresent() && tokenDir.isPresent()) {
-            Call<Replication> update = replications.updateStatus(replication.getId(), new RStatusUpdate(status));
+            Call<Replication> update = replications.updateStatus(replication.getId(),
+                    new ReplicationStatusUpdate(status));
             update.enqueue(new UpdateCallback());
         } else {
             // this should be unreachable, but just in case

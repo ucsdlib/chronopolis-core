@@ -2,6 +2,7 @@ package org.chronopolis.tokenize.mq.artemis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.client.ActiveMQClient;
@@ -13,7 +14,9 @@ import org.apache.activemq.artemis.api.core.client.ServerLocator;
 import org.apache.activemq.artemis.junit.EmbeddedActiveMQResource;
 import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.BagStatus;
+import org.chronopolis.rest.models.Fixity;
+import org.chronopolis.rest.models.StagingStorage;
+import org.chronopolis.rest.models.enums.BagStatus;
 import org.chronopolis.rest.models.serializers.ZonedDateTimeDeserializer;
 import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
 import org.chronopolis.tokenize.ManifestEntry;
@@ -27,10 +30,11 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.time.ZonedDateTime;
-import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import static com.google.common.collect.ImmutableSet.of;
+import static java.util.Collections.emptySet;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -75,6 +79,7 @@ public class MqTest {
         module.addDeserializer(ZonedDateTime.class, new ZonedDateTimeDeserializer());
         module.addDeserializer(ManifestEntry.class, new ManifestEntryDeserializer());
         mapper.registerModule(module);
+        mapper.registerModule(new KotlinModule());
 
         serverLocator = ActiveMQClient.createServerLocator(activeMQ.getVmURL());
 
@@ -89,17 +94,10 @@ public class MqTest {
     }
 
     Bag createBag() {
-        return new Bag()
-                .setId(ID)
-                .setName(NAME)
-                .setDepositor(DEPOSITOR)
-                .setCreatedAt(NOW)
-                .setUpdatedAt(NOW)
-                .setCreator(DEPOSITOR)
-                .setSize(ID)
-                .setStatus(BagStatus.DEPOSITED)
-                .setTotalFiles(ID)
-                .setReplicatingNodes(Collections.emptySet());
+        Fixity fixity = new Fixity("test-algorithm", "test-value", NOW);
+        StagingStorage storage = new StagingStorage(true, ID, ID, ID, FILENAME, of(fixity));
+        return new Bag(ID, ID, ID, storage, storage, NOW, NOW,
+                NAME, DEPOSITOR, DEPOSITOR, BagStatus.DEPOSITED, emptySet());
     }
 
     ManifestEntry createEntry() {

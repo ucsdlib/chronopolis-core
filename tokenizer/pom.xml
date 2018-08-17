@@ -35,7 +35,7 @@
 
         <dependency>
             <groupId>org.chronopolis</groupId>
-            <artifactId>rest-common</artifactId>
+            <artifactId>rest-models</artifactId>
         </dependency>
 
         <dependency>

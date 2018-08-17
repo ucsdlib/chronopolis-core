@@ -83,7 +83,7 @@
                     <th>Created At</th>
                 </tr>
                 </thead>
-                <!--/*@thymesVar id="recent" type="java.util.List<org.chronopolis.rest.entities.Depositor>"*/-->
+                <!--/*@thymesVar id="recent" type="java.util.List<org.chronopolis.rest.entities.depositor.Depositor>"*/-->
                 <tr class="table-clickable" th:each="depositor: ${recent}"
                     th:attr="data-href=@{|/depositors/list/${depositor.namespace}|}">
                     <td th:text="${depositor.id}"></td>

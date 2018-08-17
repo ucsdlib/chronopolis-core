@@ -11,7 +11,7 @@
         <nav th:replace="fragments/crumbs/depositor :: single"></nav>
 
         <!--@thymesVar id="tokens" type="Long"-->
-        <!--@thymesVar id="depositor" type="org.chronopolis.rest.entities.Depositor"-->
+        <!--@thymesVar id="depositor" type="org.chronopolis.rest.entities.depositor.Depositor"-->
         <div class="card-body p-2">
             <table class="table table-hover">
                 <tr th:replace="fragments/storage :: list-item(head='Id', content=${depositor.id})"></tr>
@@ -22,17 +22,17 @@
                 <tr>
                     <td class="bg-secondary text-white text-center w-25">Replicates To</td>
                     <td sec:authorize="hasRole('ROLE_USER')" class="bg-light">
-                        <a th:each="dist: ${depositor.nodeDistributions}"
-                           th:text="${dist.node.username}"
+                        <a th:each="node: ${depositor.nodeDistributions}"
+                           th:text="${node.username}"
                            style="margin-right: 0.25rem;"
                            class="badge badge-pill badge-success text-white">
                         </a>
                     </td>
                     <td sec:authorize="hasRole('ROLE_ADMIN')" class="bg-light">
-                        <a th:each="dist: ${depositor.nodeDistributions}"
-                           th:text="${dist.node.username}"
-                           th:data-href="@{|${depositor.namespace}/removeNode|(name=${dist.node.username})}"
-                           th:data-message="|Warning: Proceeding will remove ${dist.node.username} from all future replications|"
+                        <a th:each="node: ${depositor.nodeDistributions}"
+                           th:text="${node.username}"
+                           th:data-href="@{|${depositor.namespace}/removeNode|(name=${node.username})}"
+                           th:data-message="|Warning: Proceeding will remove ${node.username} from all future replications|"
                            style="margin-right: 0.25rem; cursor: pointer;"
                            data-toggle="modal" data-target="#rm-modal"
                            class="badge badge-pill badge-success text-white"></a>

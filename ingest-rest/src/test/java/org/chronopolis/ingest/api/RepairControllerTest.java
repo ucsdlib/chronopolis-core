@@ -1,6 +1,5 @@
 package org.chronopolis.ingest.api;
 
-import com.google.common.collect.ImmutableSet;
 import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;
@@ -8,23 +7,27 @@ import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.ingest.support.PageImpl;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Depositor;
 import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.Repair;
-import org.chronopolis.rest.entities.fulfillment.Ace;
-import org.chronopolis.rest.models.repair.ACEStrategy;
-import org.chronopolis.rest.models.repair.AuditStatus;
-import org.chronopolis.rest.models.repair.FulfillmentType;
-import org.chronopolis.rest.models.repair.RepairStatus;
+import org.chronopolis.rest.entities.depositor.Depositor;
+import org.chronopolis.rest.entities.repair.Ace;
+import org.chronopolis.rest.entities.repair.Repair;
+import org.chronopolis.rest.models.AceStrategy;
+import org.chronopolis.rest.models.enums.AuditStatus;
+import org.chronopolis.rest.models.enums.BagStatus;
+import org.chronopolis.rest.models.enums.FulfillmentType;
+import org.chronopolis.rest.models.enums.RepairStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import static com.google.common.collect.ImmutableSet.of;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -42,6 +45,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @WebMvcTest(RepairController.class)
 public class RepairControllerTest extends ControllerTest {
+
+    private final Logger log = LoggerFactory.getLogger(RepairControllerTest.class);
 
     private RepairController controller;
     private final Depositor depositor = new Depositor();
@@ -90,10 +95,15 @@ public class RepairControllerTest extends ControllerTest {
     public void createRepair() throws Exception {
         authenticateUser();
         // requester instead of authorized?
-        when(nodes.findByUsername(AUTHORIZED)).thenReturn(new Node(AUTHORIZED, AUTHORIZED));
-        when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", depositor));
+        Node node = new Node(of(), AUTHORIZED, AUTHORIZED, true);
+        Bag bag = new Bag("test-bag", "test-creator", depositor, 0L, 0L, BagStatus.DEPOSITED);
+        when(nodes.findByUsername(AUTHORIZED)).thenReturn(node);
+        when(bags.find(any(SearchCriteria.class))).thenReturn(bag);
 
-        String json = "{\"depositor\":\"test-depositor\",\"collection\":\"bag-0\",\"files\":[\"test-file-1\"]}";
+        String json = "{\"to\":\"authorized\"," +
+                "\"depositor\":\"test-depositor\"," +
+                "\"collection\":\"bag-0\"," +
+                "\"files\":[\"test-file-1\"]}";
         mvc.perform(
                 post("/api/repairs")
                         .principal(authorizedPrincipal)
@@ -109,8 +119,10 @@ public class RepairControllerTest extends ControllerTest {
     @Test
     public void createRepairAdmin() throws Exception {
         authenticateAdmin();
-        when(nodes.findByUsername(REQUESTER)).thenReturn(new Node(REQUESTER, REQUESTER));
-        when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", depositor));
+        Node node = new Node(of(), REQUESTER, REQUESTER, true);
+        Bag bag = new Bag("test-bag", "test-creator", depositor, 0L, 0L, BagStatus.DEPOSITED);
+        when(nodes.findByUsername(REQUESTER)).thenReturn(node);
+        when(bags.find(any(SearchCriteria.class))).thenReturn(bag);
 
         String json = "{\"to\":\"requester\",\"depositor\":\"test-depositor\",\"collection\":\"bag-0\",\"files\":[\"test-file-1\"]}";
 
@@ -129,7 +141,8 @@ public class RepairControllerTest extends ControllerTest {
     @Test
     public void createRepairUnauthorized() throws Exception {
         authenticateUser();
-        when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", depositor));
+        Bag bag = new Bag("test-bag", "test-creator", depositor, 0L, 0L, BagStatus.DEPOSITED);
+        when(bags.find(any(SearchCriteria.class))).thenReturn(bag);
 
         // For some reason the ObjectMapper isn't creating proper json for the RepairRequest class, so we'll just hard code it for now
         String json = "{\"to\":\"requester\",\"depositor\":\"test-depositor\",\"collection\":\"bag-0\",\"files\":[\"test-file-1\"]}";
@@ -142,7 +155,8 @@ public class RepairControllerTest extends ControllerTest {
     @Test
     public void fulfillRequest() throws Exception {
         Repair unfulfilled = baseRepair();
-        when(nodes.findByUsername(AUTHORIZED)).thenReturn(new Node(AUTHORIZED, AUTHORIZED));
+        Node node = new Node(of(), AUTHORIZED, AUTHORIZED, true);
+        when(nodes.findByUsername(AUTHORIZED)).thenReturn(node);
         when(repairs.find(any(SearchCriteria.class))).thenReturn(unfulfilled);
         mvc.perform(post("/api/repairs/{id}/fulfill", unfulfilled.getId()).principal(authorizedPrincipal))
                 .andDo(print())
@@ -155,7 +169,8 @@ public class RepairControllerTest extends ControllerTest {
     @Test
     public void fulfillOwnRequest() throws Exception {
         Repair unfulfilled = baseRepair();
-        when(nodes.findByUsername(REQUESTER)).thenReturn(new Node(REQUESTER, REQUESTER));
+        Node node = new Node(of(), REQUESTER, REQUESTER, true);
+        when(nodes.findByUsername(REQUESTER)).thenReturn(node);
         when(repairs.find(any(SearchCriteria.class))).thenReturn(unfulfilled);
 
         mvc.perform(post("/api/repairs/{id}/fulfill", unfulfilled.getId()).principal(requesterPrincipal))
@@ -166,7 +181,8 @@ public class RepairControllerTest extends ControllerTest {
     @Test
     public void fulfillRequestConflict() throws Exception {
         Repair fulfilling = fulfilling();
-        when(nodes.findByUsername(UNAUTHORIZED)).thenReturn(new Node(UNAUTHORIZED, UNAUTHORIZED));
+        Node node = new Node(of(), AUTHORIZED, UNAUTHORIZED, true);
+        when(nodes.findByUsername(UNAUTHORIZED)).thenReturn(node);
         when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
 
         mvc.perform(post("/api/repairs/{id}/fulfill", fulfilling.getId()).principal(unauthorizedPrincipal))
@@ -181,9 +197,9 @@ public class RepairControllerTest extends ControllerTest {
         when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
         authenticateUser();
 
-        ACEStrategy strategy = new ACEStrategy()
-                .setApiKey("test-api-key")
-                .setUrl("test-url");
+        AceStrategy strategy = new AceStrategy("test-api-key", "test-url");
+
+        log.info("{}", asJson(strategy));
 
         mvc.perform(
                 put("/api/repairs/{id}/ready", fulfilling.getId())
@@ -201,9 +217,9 @@ public class RepairControllerTest extends ControllerTest {
         when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
         authenticateUser();
 
-        ACEStrategy strategy = new ACEStrategy()
-                .setApiKey("test-api-key")
-                .setUrl("test-url");
+        AceStrategy strategy = new AceStrategy("test-api-key", "test-url");
+
+        log.info("{}", asJson(strategy));
 
         mvc.perform(
                 put("/api/repairs/{id}/ready", fulfilling.getId())
@@ -411,48 +427,59 @@ public class RepairControllerTest extends ControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    // maybe look at trimming some of the fat here
     private Repair baseRepair() {
+        Node node = new Node(of(), REQUESTER, REQUESTER, true);
+        Bag bag = new Bag("test-bag", "test-creator", depositor, 0L, 0L, BagStatus.DEPOSITED);
         Repair repair = new Repair();
-        repair.setBag(new Bag("test-bag", depositor));
+        repair.setBag(bag);
         repair.setId(1L);
         repair.setRequester(REQUESTER);
-        repair.setFiles(ImmutableSet.of());
+        repair.setFiles(of());
         repair.setStatus(RepairStatus.READY);
-        repair.setTo(new Node(REQUESTER, REQUESTER));
+        repair.setTo(node);
         return repair;
     }
 
     private Repair fulfilling() {
-        return baseRepair()
-                .setStatus(RepairStatus.STAGING)
-                .setFrom(new Node(AUTHORIZED, AUTHORIZED));
+        Node node = new Node(of(), AUTHORIZED, AUTHORIZED, true);
+        Repair repair = baseRepair();
+        repair.setStatus(RepairStatus.STAGING);
+        repair.setFrom(node);
+        return repair;
     }
 
     private Repair transferred() {
-        return baseRepair()
-                .setStatus(RepairStatus.TRANSFERRED)
-                .setFrom(new Node(AUTHORIZED, AUTHORIZED))
-                .setStrategy(new Ace());
+        Node node = new Node(of(), REQUESTER, REQUESTER, true);
+        Repair repair = baseRepair();
+        repair.setStatus(RepairStatus.TRANSFERRED);
+        repair.setFrom(node);
+        repair.setStrategy(new Ace());
+        return repair;
     }
 
     private Repair auditing () {
-        return transferred()
-                .setValidated(true);
+        Repair repair = transferred();
+        repair.setValidated(true);
+        return repair;
     }
 
     private Repair replacing() {
-        return auditing()
-                .setAudit(AuditStatus.SUCCESS);
+        Repair repair = auditing();
+        repair.setAudit(AuditStatus.SUCCESS);
+        return repair;
     }
 
     private Repair completing() {
-        return replacing()
-                .setReplaced(true);
+        Repair repair = replacing();
+        repair.setReplaced(true);
+        return repair;
     }
 
     private Repair cleaning() {
-        return completing()
-                .setStatus(RepairStatus.REPAIRED);
+        Repair repair = completing();
+        repair.setStatus(RepairStatus.REPAIRED);
+        return repair;
     }
 
 }

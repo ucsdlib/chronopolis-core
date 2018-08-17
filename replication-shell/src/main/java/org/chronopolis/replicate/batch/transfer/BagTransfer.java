@@ -6,8 +6,8 @@ import org.chronopolis.common.storage.StorageOperation;
 import org.chronopolis.common.transfer.FileTransfer;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
 import org.chronopolis.rest.api.ReplicationService;
-import org.chronopolis.rest.models.FixityUpdate;
 import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.models.update.FixityUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Call;
@@ -32,7 +32,10 @@ public class BagTransfer implements Transfer, Runnable {
     // These could all be local
     private final Long id;
 
-    public BagTransfer(Bucket bucket, StorageOperation operation, Replication replication, ReplicationService replications) {
+    public BagTransfer(Bucket bucket,
+                       StorageOperation operation,
+                       Replication replication,
+                       ReplicationService replications) {
         this.bucket = bucket;
         this.operation = operation;
         this.replications = replications;
@@ -50,7 +53,8 @@ public class BagTransfer implements Transfer, Runnable {
         transfer.flatMap(xfer -> transfer(xfer, operation.getIdentifier()))
                 .flatMap(ignored -> bucket.hash(operation, Paths.get("tagmanifest-sha256.txt")))
                 .map(this::update)
-                .orElseThrow(() -> new RuntimeException("Unable to update bag tagmanifest value. Check that the file exists or that the Ingest API is available."));
+                .orElseThrow(() -> new RuntimeException("Unable to update bag tagmanifest value." +
+                        " Check that the file exists or that the Ingest API is available."));
     }
 
     @Override

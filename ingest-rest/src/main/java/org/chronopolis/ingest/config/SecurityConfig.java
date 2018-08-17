@@ -109,7 +109,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     // This is for accessing and updating our users
-    public JdbcUserDetailsManager jdbcUserDetailsManager(AuthenticationManager authenticationManager, DataSource dataSource) {
+    public JdbcUserDetailsManager jdbcUserDetailsManager(
+            AuthenticationManager authenticationManager,
+            DataSource dataSource) {
         JdbcUserDetailsManager manager = new JdbcUserDetailsManager();
         manager.setDataSource(dataSource);
         manager.setAuthenticationManager(authenticationManager);

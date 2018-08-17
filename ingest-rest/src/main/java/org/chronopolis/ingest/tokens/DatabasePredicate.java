@@ -28,7 +28,7 @@ public class DatabasePredicate implements Predicate<ManifestEntry> {
     @Override
     public boolean test(ManifestEntry entry) {
         // null checks
-        if (entry == null || entry.getBag() == null || entry.getBag().getId() == null) {
+        if (entry == null || entry.getBag() == null) {
             return false;
         }
 

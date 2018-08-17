@@ -5,16 +5,15 @@ import org.chronopolis.common.mail.SmtpProperties;
 import org.chronopolis.common.storage.PreservationProperties;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.Submitter;
-import org.chronopolis.rest.api.IngestAPIProperties;
+import org.chronopolis.rest.api.IngestApiProperties;
 import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.models.Replication;
-import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.models.enums.ReplicationStatus;
+import org.chronopolis.rest.models.page.SpringPage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Component;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -24,8 +23,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.chronopolis.rest.models.ReplicationStatus.STARTED;
 
 /**
  * Service for running the replication-shell in development mode. Give a prompt for interacting
@@ -44,7 +41,7 @@ public class CommandLineService implements ReplicationService {
     private final SmtpProperties smtpProperties;
     private final ReplicationProperties replicationProperties;
     private final PreservationProperties preservationProperties;
-    private final IngestAPIProperties properties;
+    private final IngestApiProperties properties;
     private final ServiceGenerator generator;
     private final Submitter submitter;
 
@@ -53,7 +50,7 @@ public class CommandLineService implements ReplicationService {
                               SmtpProperties smtpProperties,
                               ReplicationProperties replicationProperties,
                               PreservationProperties preservationProperties,
-                              IngestAPIProperties properties,
+                              IngestApiProperties properties,
                               ServiceGenerator generator,
                               Submitter submitter) {
         this.aceConfiguration = aceConfiguration;
@@ -103,7 +100,7 @@ public class CommandLineService implements ReplicationService {
             OPTION option = inputOption();
             if (option.equals(OPTION.RESTFUL_QUERY)) {
                 log.info("Query for active replications");
-                query(STARTED, false);
+                query(ReplicationStatus.STARTED, false);
 
                 log.info("Query for new replications");
                 query(ReplicationStatus.PENDING, true);
@@ -150,13 +147,13 @@ public class CommandLineService implements ReplicationService {
      * @param update - whether or not to update the requests while replicating
      */
     private void query(ReplicationStatus status, boolean update) {
-        Map<String, Object> params = new HashMap<>();
-        Page<Replication> replications;
-        params.put("status", status);
+        Map<String, String> params = new HashMap<>();
+        SpringPage<Replication> replications;
+        params.put("status", status.name());
         params.put("node", properties.getUsername());
-        Call<PageImpl<Replication>> call = generator.replications().get(params);
+        Call<SpringPage<Replication>> call = generator.replications().get(params);
         try {
-            Response<PageImpl<Replication>> execute = call.execute();
+            Response<SpringPage<Replication>> execute = call.execute();
             replications = execute.body();
         } catch (IOException e) {
             log.error("Error getting replications from server", e);

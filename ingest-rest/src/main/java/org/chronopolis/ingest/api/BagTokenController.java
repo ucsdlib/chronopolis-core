@@ -9,7 +9,7 @@ import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.QAceToken;
 import org.chronopolis.rest.entities.QBag;
-import org.chronopolis.rest.models.AceTokenModel;
+import org.chronopolis.rest.models.create.AceTokenCreate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +83,7 @@ public class BagTokenController extends IngestController {
     @PostMapping("/tokens")
     public ResponseEntity<AceToken> createTokenForBag(Principal principal,
                                                       @PathVariable("id") Long id,
-                                                      @Valid @RequestBody AceTokenModel model) {
+                                                      @Valid @RequestBody AceTokenCreate model) {
         access.info("[POST /api/bags/{}/tokens] - {}", id, principal.getName());
         access.info("Post parameters - {};{}", model.getBagId(), model.getFilename());
 
@@ -107,14 +107,14 @@ public class BagTokenController extends IngestController {
         } else if (tokenId > 0) {
             response = ResponseEntity.status(HttpStatus.CONFLICT).build();
         } else {
-            AceToken token = new AceToken(bag,
-                    Date.from(model.getCreateDate().toInstant()),
-                    model.getFilename(),
+            AceToken token = new AceToken(model.getFilename(),
                     model.getProof(),
-                    model.getImsHost(),
+                    model.getRound(),
                     model.getImsService(),
                     model.getAlgorithm(),
-                    model.getRound());
+                    model.getImsHost(),
+                    Date.from(model.getCreateDate().toInstant()));
+            token.setBag(bag);
             dao.save(token);
             response = ResponseEntity.status(HttpStatus.CREATED)
                     .contentType(MediaType.APPLICATION_JSON)

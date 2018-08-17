@@ -4,8 +4,10 @@ import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;
 import org.chronopolis.ingest.repository.dao.StorageRegionService;
 import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.models.RegionCreate;
-import org.chronopolis.rest.models.storage.StorageType;
+import org.chronopolis.rest.models.create.RegionCreate;
+import org.chronopolis.rest.models.enums.DataType;
+import org.chronopolis.rest.models.enums.StorageType;
+import org.chronopolis.rest.models.enums.StorageUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,6 +16,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import static com.google.common.collect.ImmutableSet.of;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
@@ -66,15 +69,18 @@ public class StorageControllerTest extends ControllerTest {
     public void createRegion() throws Exception {
         authenticateUser();
 
-        RegionCreate request = new RegionCreate();
-        request.setCapacity(1000L)
-                .setNode(AUTHORIZED)
-                .setStorageType(StorageType.LOCAL)
-                .setReplicationPath("/test-path")
-                .setReplicationServer("test-server")
-                .setReplicationUser("test-user");
+        RegionCreate request = new RegionCreate("test-note",
+                AUTHORIZED,
+                1000L,
+                DataType.BAG,
+                StorageUnit.B,
+                StorageType.LOCAL,
+                "/test-path",
+                "test-server",
+                "test-user");
 
-        when(nodes.findByUsername(eq(AUTHORIZED))).thenReturn(new Node(AUTHORIZED, AUTHORIZED));
+        when(nodes.findByUsername(eq(AUTHORIZED))).thenReturn(
+                new Node(of(), AUTHORIZED, AUTHORIZED, true));
         mvc.perform(
                 post("/api/storage")
                         .principal(authorizedPrincipal)

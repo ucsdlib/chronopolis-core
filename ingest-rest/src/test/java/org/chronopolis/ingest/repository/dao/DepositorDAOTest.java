@@ -2,11 +2,11 @@ package org.chronopolis.ingest.repository.dao;
 
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
-import org.chronopolis.rest.entities.Depositor;
-import org.chronopolis.rest.entities.DepositorContact;
 import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.QDepositor;
 import org.chronopolis.rest.entities.QNode;
+import org.chronopolis.rest.entities.depositor.Depositor;
+import org.chronopolis.rest.entities.depositor.DepositorContact;
+import org.chronopolis.rest.entities.depositor.QDepositor;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,15 +18,18 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.persistence.EntityManager;
+import java.util.HashSet;
 import java.util.List;
 
 /**
  * Tests for common operations for a Depositor
  *
+ * These are actually duplicated from the rest-entities module
+ *
  * @author shake
  */
-@RunWith(SpringRunner.class)
 @DataJpaTest
+@RunWith(SpringRunner.class)
 @ContextConfiguration(classes = JpaContext.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class DepositorDAOTest extends IngestTest {
@@ -50,19 +53,18 @@ public class DepositorDAOTest extends IngestTest {
 
     @Test
     public void newDepositor() {
+        QDepositor nu = QDepositor.depositor;
+        dao.findAll(nu);
+
         Depositor depositor = new Depositor();
         depositor.setNamespace("new-namespace");
         depositor.setSourceOrganization("new-source-organization");
         depositor.setOrganizationAddress("new-organization-address");
 
-        depositor.addContact(new DepositorContact()
-                .setContactName("new-name")
-                .setContactPhone("new-phone")
-                .setContactEmail("new-email"));
-        depositor.addContact(new DepositorContact()
-                .setContactName("new-name-2")
-                .setContactPhone("new-phone-2")
-                .setContactEmail("new-email-2"));
+        depositor.setContacts(new HashSet<>());
+        depositor.addContact(new DepositorContact("new-name", "new-phone", "new-email"));
+        depositor.addContact(new DepositorContact("new-name-2", "new-phone-2", "new-email-2"));
+        depositor.setNodeDistributions(new HashSet<>());
         dao.findAll(QNode.node).forEach(depositor::addNodeDistribution);
 
         dao.save(depositor);
@@ -79,6 +81,7 @@ public class DepositorDAOTest extends IngestTest {
     public void testDeleteAllReplicatingNodes() {
         List<Node> all = dao.findAll(QNode.node, QNode.node.username.in(umiacs, ncar, sdsc));
         Depositor one = dao.findOne(qDepositor, qDepositor.namespace.eq(namespace));
+        // todo: need to add convenience methods for adding and removing contacts/nodes
         all.forEach(one::removeNodeDistribution);
         dao.save(one);
 
@@ -101,7 +104,9 @@ public class DepositorDAOTest extends IngestTest {
     @Test
     public void testRemoveAndAddNodes() {
         Depositor one = dao.findOne(qDepositor, qDepositor.namespace.eq(namespace));
-        dao.findAll(QNode.node, QNode.node.username.in(umiacs, ncar, sdsc)).forEach(one::removeNodeDistribution);
+        dao.findAll(QNode.node,
+                QNode.node.username.in(umiacs, ncar, sdsc))
+                .forEach(one::removeNodeDistribution);
         dao.save(one);
 
         dao.findAll(QNode.node).forEach(one::addNodeDistribution);
@@ -113,10 +118,7 @@ public class DepositorDAOTest extends IngestTest {
 
     @Test
     public void testAddContact() {
-        DepositorContact contact = new DepositorContact()
-                .setContactName("test-name")
-                .setContactEmail("test-email")
-                .setContactPhone("test-phone");
+        DepositorContact contact = new DepositorContact("new-name", "new-phone", "new-email");
         Depositor one = dao.findOne(qDepositor, qDepositor.namespace.eq(namespace));
         one.addContact(contact);
         dao.save(one);
@@ -128,18 +130,14 @@ public class DepositorDAOTest extends IngestTest {
 
     @Test
     public void testAddContacts() {
-        DepositorContact contact = new DepositorContact()
-                .setContactName("test-name")
-                .setContactEmail("test-email")
-                .setContactPhone("test-phone");
-        DepositorContact contact2 = new DepositorContact()
-                .setContactName("test-name-2")
-                .setContactEmail("test-email-2")
-                .setContactPhone("test-phone-2");
-
         Depositor one = dao.findOne(qDepositor, qDepositor.namespace.eq(namespace));
-        one.addContact(contact);
-        one.addContact(contact2);
+        DepositorContact contact = new DepositorContact("new-name", "new-phone", "new-email");
+        DepositorContact contact2 = new DepositorContact("new-name-2", "new-phone-2", "new-email-2");
+
+        contact.setDepositor(one);
+        contact2.setDepositor(one);
+        one.getContacts().add(contact);
+        one.getContacts().add(contact2);
 
         Depositor saved = dao.findOne(qDepositor, qDepositor.namespace.eq(namespace));
         Assert.assertEquals(2, saved.getContacts().size());

@@ -6,25 +6,25 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Depositor;
-import org.chronopolis.rest.entities.DepositorNode;
+import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.entities.BagDistributionStatus;
 import org.chronopolis.rest.entities.QAceToken;
 import org.chronopolis.rest.entities.QBag;
-import org.chronopolis.rest.entities.QDepositor;
+import org.chronopolis.rest.entities.depositor.Depositor;
+import org.chronopolis.rest.entities.depositor.QDepositor;
 import org.chronopolis.rest.entities.storage.QStorageRegion;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
-import org.chronopolis.rest.models.BagStatus;
-import org.chronopolis.rest.models.IngestRequest;
+import org.chronopolis.rest.models.create.BagCreate;
+import org.chronopolis.rest.models.enums.BagStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-
-import static org.chronopolis.rest.entities.BagDistribution.BagDistributionStatus.DISTRIBUTE;
 
 /**
  * Service to build queries for bags from the search criteria
@@ -76,7 +76,7 @@ public class BagService extends SearchService<Bag, Long, BagRepository> {
      * @return the result of creating the Bag
      */
     public BagCreateResult processRequest(String creator,
-                                          IngestRequest request) {
+                                          BagCreate request) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         return fetchStorageRegion(creator, request, queryFactory);
     }
@@ -93,7 +93,7 @@ public class BagService extends SearchService<Bag, Long, BagRepository> {
      * @return the result of creating the Bag
      */
     private BagCreateResult fetchStorageRegion(String creator,
-                                               IngestRequest request,
+                                               BagCreate request,
                                                JPAQueryFactory factory) {
         Long id = request.getStorageRegion();
         ImmutableList<String> error = ImmutableList.of("StorageRegion does not exist: " + id);
@@ -118,7 +118,7 @@ public class BagService extends SearchService<Bag, Long, BagRepository> {
      * @return the result of creating the Bag
      */
     private BagCreateResult fetchDepositor(String creator,
-                                           IngestRequest request,
+                                           BagCreate request,
                                            StorageRegion region,
                                            JPAQueryFactory factory) {
         String namespace = request.getDepositor();
@@ -145,7 +145,7 @@ public class BagService extends SearchService<Bag, Long, BagRepository> {
      * @return the result of creating the Bag
      */
     private BagCreateResult create(String creator,
-                                   IngestRequest request,
+                                   BagCreate request,
                                    StorageRegion region,
                                    Depositor depositor,
                                    JPAQueryFactory factory) {
@@ -158,15 +158,16 @@ public class BagService extends SearchService<Bag, Long, BagRepository> {
                 .fetchOne();
 
         if (existing == null) {
-            Bag bag = new Bag(request.getName(), depositor)
-                    .setCreator(creator)
-                    .setSize(request.getSize())
-                    .setTotalFiles(request.getTotalFiles());
-
-            // keep updating this until it is removed
-            if (request.getRequiredReplications() > 0) {
-                bag.setRequiredReplications(request.getRequiredReplications());
-            }
+            Bag bag = new Bag(request.getName(),
+                    creator,
+                    depositor,
+                    request.getSize(),
+                    request.getTotalFiles(),
+                    BagStatus.DEPOSITED);
+            // get the late inits populated
+            bag.setBagStorage(new HashSet<>());
+            bag.setTokenStorage(new HashSet<>());
+            bag.setDistributions(new HashSet<>());
 
             StagingStorage storage = new StagingStorage();
             storage.setRegion(region);
@@ -174,7 +175,7 @@ public class BagService extends SearchService<Bag, Long, BagRepository> {
             storage.setSize(request.getSize());
             storage.setTotalFiles(request.getTotalFiles());
             storage.setPath(request.getLocation());
-            bag.setBagStorage(storage);
+            bag.getBagStorage().add(storage);
             createDistributions(bag, depositor);
 
             save(bag);
@@ -193,9 +194,9 @@ public class BagService extends SearchService<Bag, Long, BagRepository> {
      * @param depositor the depositor of the bag
      */
     private void createDistributions(Bag bag, Depositor depositor) {
-        for (DepositorNode node : depositor.getNodeDistributions()) {
-            log.debug("Creating requested dist record for {}", node.getNode().username);
-            bag.addDistribution(node.getNode(), DISTRIBUTE);
+        for (Node node : depositor.getNodeDistributions()) {
+            log.debug("Creating requested dist record for {}", node.getUsername());
+            bag.addDistribution(node, BagDistributionStatus.DISTRIBUTE);
         }
     }
 

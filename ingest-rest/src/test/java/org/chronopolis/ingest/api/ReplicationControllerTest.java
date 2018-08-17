@@ -4,16 +4,17 @@ import org.chronopolis.ingest.repository.criteria.SearchCriteria;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
 import org.chronopolis.ingest.repository.dao.StagingService;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Depositor;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.entities.depositor.Depositor;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
-import org.chronopolis.rest.models.FixityUpdate;
-import org.chronopolis.rest.models.RStatusUpdate;
-import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.models.enums.BagStatus;
+import org.chronopolis.rest.models.enums.ReplicationStatus;
+import org.chronopolis.rest.models.update.FixityUpdate;
+import org.chronopolis.rest.models.update.ReplicationStatusUpdate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,8 +26,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.time.ZonedDateTime;
+import java.util.HashSet;
 import java.util.Optional;
 
+import static com.google.common.collect.ImmutableSet.of;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
@@ -77,7 +80,9 @@ public class ReplicationControllerTest extends ControllerTest {
 
     @Test
     public void testFindReplication() throws Exception {
-        when(service.find(any(SearchCriteria.class))).thenReturn(new Replication(node(), bag()));
+        Replication replication = new Replication(ReplicationStatus.PENDING,
+                node(), bag(), "bag-url", "token-url", "protocol", null, null);
+        when(service.find(any(SearchCriteria.class))).thenReturn(replication);
         mvc.perform(get("/api/replications/{id}", 4L).principal(authorizedPrincipal))
                 .andDo(print())
                 .andExpect(status().is(200))
@@ -96,7 +101,8 @@ public class ReplicationControllerTest extends ControllerTest {
 
     @Test
     public void testClientUpdate() throws Exception {
-        setupPut("/api/replications/{id}/status", 4L, new RStatusUpdate(ReplicationStatus.STARTED))
+        setupPut("/api/replications/{id}/status", 4L,
+                new ReplicationStatusUpdate(ReplicationStatus.STARTED))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.status").value("STARTED"));
     }
@@ -122,7 +128,9 @@ public class ReplicationControllerTest extends ControllerTest {
     }
 
     public <T> ResultActions setupPut(String uri, Long id, T obj) throws Exception {
-        when(service.find(any(SearchCriteria.class))).thenReturn(new Replication(node(), bag()));
+        Replication replication = new Replication(ReplicationStatus.PENDING,
+                node(), bag(), "bag-url", "token-url", "protocol", null, null);
+        when(service.find(any(SearchCriteria.class))).thenReturn(replication);
         authenticateUser();
         return mvc.perform(
                 put(uri, id)
@@ -136,32 +144,27 @@ public class ReplicationControllerTest extends ControllerTest {
     private Bag bag() {
         StorageRegion region = new StorageRegion();
         region.setId(1L);
-        Bag bag = new Bag("test-bag", depositor);
+
+        Bag bag = new Bag("test-bag", "test-creator", depositor, 1L, 1L, BagStatus.REPLICATING);
         bag.setId(1L);
-        bag.setBagStorage(new StagingStorage().addFixity(
-                new Fixity().setAlgorithm("test-algorithm")
-                        .setValue(CORRECT_TAG_FIXITY)
-                        .setCreatedAt(ZonedDateTime.now()))
-                .setRegion(region));
-        bag.setTokenStorage(new StagingStorage().addFixity(
-                new Fixity().setAlgorithm("test-algorithm")
-                        .setValue(CORRECT_TOKEN_FIXITY)
-                        .setCreatedAt(ZonedDateTime.now()))
-                .setRegion(region));
+        bag.setBagStorage(of(stagingStorage(CORRECT_TAG_FIXITY)));
+        bag.setTokenStorage(of(stagingStorage(CORRECT_TOKEN_FIXITY)));
+        bag.setDistributions(new HashSet<>());
         return bag;
     }
 
     private StagingStorage stagingStorage(String value) {
-        return new StagingStorage().addFixity(
-                new Fixity().setAlgorithm("test-algorithm")
-                .setValue(value)
-                .setCreatedAt(ZonedDateTime.now()))
-        ;
+        StagingStorage storage = new StagingStorage();
+        storage.setBags(new HashSet<>());
+        storage.setTokens(new HashSet<>());
+        storage.setFixities(new HashSet<>());
+        storage.addFixity(new Fixity(storage, ZonedDateTime.now(), value, "test-algorithm"));
+        return storage;
     }
 
 
     private Node node() {
-        return new Node("user", "password");
+        return new Node(of(), "user", "password", true);
     }
 
 }

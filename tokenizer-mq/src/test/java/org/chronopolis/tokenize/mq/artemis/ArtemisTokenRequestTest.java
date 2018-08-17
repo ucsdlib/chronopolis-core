@@ -4,8 +4,7 @@ import com.google.common.collect.ImmutableList;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.junit.Test;
 
-import java.util.concurrent.TimeUnit;
-
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.atLeast;
@@ -26,8 +25,10 @@ public class ArtemisTokenRequestTest extends MqTest {
         sendRequestMessage();
 
         when(imsWrapper.configuration()).thenReturn(imsConfig);
-        when(imsWrapper.requestTokensImmediate(eq(imsConfig.getTokenClass()), any())).thenReturn(ImmutableList.of(createTokenResponse()));
-        ArtemisTokenRequest request = new ArtemisTokenRequest(0, TimeUnit.MILLISECONDS, imsWrapper, supervisor, serverLocator, mapper);
+        when(imsWrapper.requestTokensImmediate(eq(imsConfig.getTokenClass()), any
+                ())).thenReturn(ImmutableList.of(createTokenResponse()));
+        ArtemisTokenRequest request = new ArtemisTokenRequest(0, MILLISECONDS, imsWrapper,
+                supervisor, serverLocator, mapper);
         request.run();
 
         verify(imsWrapper, atLeast(3)).configuration();

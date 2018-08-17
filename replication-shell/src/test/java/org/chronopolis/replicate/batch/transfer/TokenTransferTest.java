@@ -6,8 +6,11 @@ import org.chronopolis.common.storage.OperationType;
 import org.chronopolis.common.storage.SingleFileOperation;
 import org.chronopolis.common.transfer.FileTransfer;
 import org.chronopolis.rest.api.ReplicationService;
-import org.chronopolis.rest.models.FixityUpdate;
+import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.Replication;
+import org.chronopolis.rest.models.enums.BagStatus;
+import org.chronopolis.rest.models.enums.ReplicationStatus;
+import org.chronopolis.rest.models.update.FixityUpdate;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -15,8 +18,10 @@ import org.mockito.MockitoAnnotations;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.Optional;
 
+import static java.time.ZonedDateTime.now;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
@@ -25,12 +30,14 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 public class TokenTransferTest {
 
-    @Mock private Bucket bucket;
-    @Mock private FileTransfer ft;
-    @Mock private ReplicationService replications;
+    @Mock
+    private Bucket bucket;
+    @Mock
+    private FileTransfer ft;
+    @Mock
+    private ReplicationService replications;
 
     private SingleFileOperation op;
-    private Replication replication;
 
     private TokenTransfer transfer;
     private Path EMPTY_PATH;
@@ -46,8 +53,11 @@ public class TokenTransferTest {
         op.setLink("link");
         op.setIdentifier("id");
 
-        replication = new Replication()
-                .setId(1L);
+        Bag bag = new Bag(1L, 1L, 1L, null, null, now(), now(), "test-bag", "token-transfer-test",
+                "test-depositor", BagStatus.DEPOSITED, Collections.emptySet());
+        Replication replication = new Replication(1L, now(), now(), ReplicationStatus.PENDING,
+                "link", "link", "test-protocol", "", "", "test-node", bag
+        );
 
         transfer = new TokenTransfer(bucket, op, replication, replications);
     }

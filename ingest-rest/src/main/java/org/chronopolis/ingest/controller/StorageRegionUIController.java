@@ -13,11 +13,11 @@ import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.storage.ReplicationConfig;
 import org.chronopolis.rest.entities.storage.StorageRegion;
-import org.chronopolis.rest.models.RegionCreate;
-import org.chronopolis.rest.models.RegionEdit;
-import org.chronopolis.rest.models.storage.DataType;
-import org.chronopolis.rest.models.storage.StorageType;
-import org.chronopolis.rest.support.StorageUnit;
+import org.chronopolis.rest.models.create.RegionCreate;
+import org.chronopolis.rest.models.enums.DataType;
+import org.chronopolis.rest.models.enums.StorageType;
+import org.chronopolis.rest.models.enums.StorageUnit;
+import org.chronopolis.rest.models.update.RegionUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -142,10 +142,11 @@ public class StorageRegionUIController extends IngestController {
         }
 
         StorageRegion region = new StorageRegion();
+        Double capacity = regionCreate.normalizedCapacity();
         region.setNote(regionCreate.getNote());
         region.setDataType(regionCreate.getDataType());
         region.setStorageType(regionCreate.getStorageType());
-        region.setCapacity(regionCreate.getCapacity());
+        region.setCapacity(capacity.longValue());
         region.setNode(owner);
 
         ReplicationConfig config = new ReplicationConfig();
@@ -173,7 +174,7 @@ public class StorageRegionUIController extends IngestController {
     public String editRegionForm(Model model,
                                  Principal principal,
                                  @PathVariable("id") Long id,
-                                 RegionEdit regionEdit) {
+                                 RegionUpdate regionEdit) {
         access.info("[GET /regions/{}/edit] - {}", id, principal.getName());
         StorageRegion region = service.find(new StorageRegionSearchCriteria().withId(id));
         model.addAttribute("region", region);
@@ -199,7 +200,7 @@ public class StorageRegionUIController extends IngestController {
     public String editRegion(Model model,
                              Principal principal,
                              @PathVariable("id") Long id,
-                             @Valid RegionEdit regionEdit,
+                             @Valid RegionUpdate regionEdit,
                              BindingResult bindingResult) throws ForbiddenException {
         access.info("[POST /regions/{}/edit] - {}", id, principal.getName());
         StorageRegion region = service.find(new StorageRegionSearchCriteria().withId(id));
@@ -313,19 +314,13 @@ public class StorageRegionUIController extends IngestController {
         }
 
         ReplicationConfig config = region.getReplicationConfig();
-        if (config == null) {
-            config = new ReplicationConfig();
-            // A better way to do this...?
-            region.setReplicationConfig(config);
-            config.setRegion(region);
-        }
         config.setPath(update.getPath());
         config.setServer(update.getServer());
         config.setUsername(update.getUsername());
         service.save(region);
 
         model.addAttribute("region", region);
-        return "storage_region/region";
+        return "redirect:/regions/" + region.getId();
     }
 
     /**

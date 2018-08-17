@@ -35,7 +35,8 @@ public class StagingService extends SearchService<StagingStorage, Long, StorageR
      * @param storageJoin the table to join on
      * @return the StagingStorage entity, if found
      */
-    public Optional<StagingStorage> activeStorageForBag(Bag bag, CollectionExpression<?, StagingStorage> storageJoin) {
+    public Optional<StagingStorage> activeStorageForBag(Bag bag,
+                                                        CollectionExpression<?, StagingStorage> storageJoin) {
         return activeStorageForBag(bag.getId(), storageJoin);
     }
 
@@ -46,7 +47,8 @@ public class StagingService extends SearchService<StagingStorage, Long, StorageR
      * @param storageJoin the table to join on
      * @return the StagingStorage entity, if found
      */
-    public Optional<StagingStorage> activeStorageForBag(Long bag, CollectionExpression<?, StagingStorage> storageJoin) {
+    public Optional<StagingStorage> activeStorageForBag(Long bag,
+                                                        CollectionExpression<?, StagingStorage> storageJoin) {
         JPAQueryFactory factory = new JPAQueryFactory(manager);
         QBag b = QBag.bag;
         QStagingStorage storage = QStagingStorage.stagingStorage;

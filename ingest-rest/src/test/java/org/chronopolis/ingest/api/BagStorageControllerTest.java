@@ -8,6 +8,7 @@ import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.QStagingStorage;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
+import org.chronopolis.rest.models.update.ActiveToggle;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,8 +19,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.ZonedDateTime;
+import java.util.HashSet;
 import java.util.Optional;
 
+import static java.util.Collections.emptySet;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -30,11 +33,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Tests for the BagStorageController
- *
  */
 @RunWith(SpringRunner.class)
 @WebMvcTest(controllers = BagStorageController.class)
 public class BagStorageControllerTest extends ControllerTest {
+
     private static final long ID = 1L;
     private static final String TYPE = "bag";
 
@@ -42,7 +45,8 @@ public class BagStorageControllerTest extends ControllerTest {
     private BagStorageController controller;
     private SetPath<StagingStorage, QStagingStorage> storageJoin;
 
-    @MockBean private StagingService stagingService;
+    @MockBean
+    private StagingService stagingService;
 
     @Before
     public void setup() {
@@ -50,12 +54,12 @@ public class BagStorageControllerTest extends ControllerTest {
         StorageRegion region = new StorageRegion();
         region.setId(ID);
         region.setCapacity(100000L);
-        region.setNode(new Node(AUTHORIZED, AUTHORIZED));
+        region.setNode(new Node(emptySet(), AUTHORIZED, AUTHORIZED, true));
 
         Fixity fixity = new Fixity();
-        fixity.setAlgorithm("test-algorithm")
-              .setCreatedAt(ZonedDateTime.now())
-              .setValue("test-value");
+        fixity.setAlgorithm("test-algorithm");
+        fixity.setCreatedAt(ZonedDateTime.now());
+        fixity.setValue("test-value");
 
         storage = new StagingStorage();
         storage.setId(ID);
@@ -64,9 +68,13 @@ public class BagStorageControllerTest extends ControllerTest {
         storage.setSize(100L);
         storage.setTotalFiles(10L);
         storage.setRegion(region);
+        storage.setBags(new HashSet<>());
+        storage.setTokens(new HashSet<>());
+        storage.setFixities(new HashSet<>());
         storage.addFixity(fixity);
         storage.setCreatedAt(ZonedDateTime.now());
         storage.setUpdatedAt(ZonedDateTime.now());
+        fixity.setStorage(storage);
 
         controller = new BagStorageController(stagingService);
         setupMvc(controller);
@@ -74,7 +82,8 @@ public class BagStorageControllerTest extends ControllerTest {
 
     @Test
     public void testGetStorage() throws Exception {
-        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin))).thenReturn(Optional.of(storage));
+        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin)))
+                .thenReturn(Optional.of(storage));
         mvc.perform(get("/api/bags/{id}/storage/{type}", ID, TYPE))
                 .andDo(print())
                 .andExpect(status().is(HttpStatus.OK.value()))
@@ -85,10 +94,14 @@ public class BagStorageControllerTest extends ControllerTest {
     @Test
     public void testUpdateStorage() throws Exception {
         authenticateUser();
-        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin))).thenReturn(Optional.of(storage));
-        mvc.perform(put("/api/bags/{id}/storage/{type}", ID, TYPE)
+        ActiveToggle toggle = new ActiveToggle(false);
+        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin)))
+                .thenReturn(Optional.of(storage));
+        mvc.perform(
+                put("/api/bags/{id}/storage/{type}", ID, TYPE)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"active\": false}").principal(authorizedPrincipal))
+                        .content(asJson(toggle))
+                        .principal(authorizedPrincipal))
                 .andDo(print())
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andExpect(jsonPath("$.active").value(false));
@@ -96,7 +109,8 @@ public class BagStorageControllerTest extends ControllerTest {
 
     @Test
     public void testGetFixities() throws Exception {
-        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin))).thenReturn(Optional.of(storage));
+        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin)))
+                .thenReturn(Optional.of(storage));
         mvc.perform(get("/api/bags/{id}/storage/{type}/fixity", ID, TYPE))
                 .andDo(print())
                 .andExpect(status().is(HttpStatus.OK.value()));
@@ -104,7 +118,9 @@ public class BagStorageControllerTest extends ControllerTest {
 
     @Test
     public void testGetFixity() throws Exception {
-        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin))).thenReturn(Optional.of(storage));
+        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin)))
+                .thenReturn(Optional.of(storage));
+
         mvc.perform(get("/api/bags/{id}/storage/{type}/fixity/{alg}", ID, TYPE, "test-algorithm"))
                 .andDo(print())
                 .andExpect(status().is(HttpStatus.OK.value()));
@@ -113,10 +129,11 @@ public class BagStorageControllerTest extends ControllerTest {
     @Test
     public void testAddFixity() throws Exception {
         authenticateUser();
-        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin))).thenReturn(Optional.of(storage));
+        when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin)))
+                .thenReturn(Optional.of(storage));
         mvc.perform(put("/api/bags/{id}/storage/{type}/fixity", ID, TYPE)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"algorithm\": \"test-put\", \"value\": \"success\"}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"algorithm\": \"test-put\", \"value\": \"success\"}")
                 .principal(authorizedPrincipal))
                 .andDo(print())
                 .andExpect(status().is(HttpStatus.CREATED.value()));

@@ -3,7 +3,7 @@ package org.chronopolis.ingest.repository.criteria;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import org.chronopolis.ingest.api.Params;
 import org.chronopolis.rest.entities.QReplication;
-import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.models.enums.ReplicationStatus;
 
 import java.time.ZonedDateTime;
 import java.util.Collection;

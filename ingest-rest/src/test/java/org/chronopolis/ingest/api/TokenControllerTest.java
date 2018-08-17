@@ -7,7 +7,7 @@ import org.chronopolis.ingest.repository.criteria.SearchCriteria;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Depositor;
+import org.chronopolis.rest.entities.depositor.Depositor;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Date;
+import java.util.HashSet;
 
+import static org.chronopolis.rest.models.enums.BagStatus.DEPOSITED;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -75,17 +77,22 @@ public class TokenControllerTest {
     }
 
     private AceToken generateToken() {
-        final Depositor depositor = new Depositor();
-        Bag bag = new Bag("test-name", depositor);
+        Depositor depositor = new Depositor("depositor", "depositor", "depositor");
+        depositor.setContacts(new HashSet<>());
+        depositor.setNodeDistributions(new HashSet<>());
+        Bag bag = new Bag("test-name", depositor.getNamespace(), depositor, 1L, 1L, DEPOSITED);
         bag.setId(1L);
-        AceToken token = new AceToken(bag,
-                new Date(),
-                "test-filename",
+        bag.setBagStorage(new HashSet<>());
+        bag.setTokenStorage(new HashSet<>());
+        bag.setDistributions(new HashSet<>());
+        AceToken token = new AceToken("test-filename",
                 "test-proof",
-                "test-ims-host",
+                100L,
                 "test-ims",
                 "test-algorithm",
-                100L);
+                "test-ims-host",
+                new Date());
+        token.setBag(bag);
         token.setId(1L);
         return token;
     }

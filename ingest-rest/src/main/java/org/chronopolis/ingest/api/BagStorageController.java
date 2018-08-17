@@ -6,8 +6,8 @@ import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
-import org.chronopolis.rest.models.storage.ActiveToggle;
-import org.chronopolis.rest.models.storage.FixityCreate;
+import org.chronopolis.rest.models.create.FixityCreate;
+import org.chronopolis.rest.models.update.ActiveToggle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +30,7 @@ import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
 
 /**
  * REST controller for interacting with the Storage fields in a Bag
- *
+ * <p>
  * todo: BadRequest on invalid type?
  */
 @RestController
@@ -99,7 +99,9 @@ public class BagStorageController {
      * @param principal the security principal of the user
      * @return a ResponseEntity corresponding to the status of the operation
      */
-    private ResponseEntity<StagingStorage> toggleStorage(StagingStorage storage, ActiveToggle toggle, Principal principal) {
+    private ResponseEntity<StagingStorage> toggleStorage(StagingStorage storage,
+                                                         ActiveToggle toggle,
+                                                         Principal principal) {
         ResponseEntity<StagingStorage> response;
         String username = storage.getRegion().getNode().getUsername();
         if (hasRoleAdmin() || username.equalsIgnoreCase(principal.getName())) {
@@ -122,7 +124,8 @@ public class BagStorageController {
      * @return The fixities associated with the TagManifest of the bag
      */
     @GetMapping("/storage/{type}/fixity")
-    private ResponseEntity<Set<Fixity>> getFixities(@PathVariable("id") Long id, @PathVariable("type") String type) {
+    private ResponseEntity<Set<Fixity>> getFixities(@PathVariable("id") Long id,
+                                                    @PathVariable("type") String type) {
         access.info("[GET /api/bags/{}/storage/{}/fixity]", id, type);
         Optional<StagingStorage> storage = storageFor(id, type);
         return storage.map(StagingStorage::getFixities)
@@ -150,10 +153,10 @@ public class BagStorageController {
         access.info("[PUT /api/bags/{}/storage/{}/fixity]", id, type);
         access.info("Put parameters - {};{}", create.getAlgorithm(), create.getValue());
 
-        Fixity fixity = new Fixity()
-                .setValue(create.getValue())
-                .setAlgorithm(create.getAlgorithm())
-                .setCreatedAt(ZonedDateTime.now());
+        Fixity fixity = new Fixity();
+        fixity.setValue(create.getValue());
+        fixity.setAlgorithm(create.getAlgorithm());
+        fixity.setCreatedAt(ZonedDateTime.now());
 
         Optional<StagingStorage> stagingStorage = storageFor(id, type);
 
@@ -169,12 +172,14 @@ public class BagStorageController {
      * @param principal the security principal of the user
      * @return the ResponseEntity corresponding to the status of the operation
      */
-    private ResponseEntity<Fixity> saveFixity(StagingStorage storage, Fixity fixity, Principal principal) {
+    private ResponseEntity<Fixity> saveFixity(StagingStorage storage,
+                                              Fixity fixity,
+                                              Principal principal) {
         ResponseEntity<Fixity> response;
         try {
             String owner = storage.getRegion().getNode().getUsername();
             if (hasRoleAdmin() || owner.equalsIgnoreCase(principal.getName())) {
-                storage.addFixity(fixity);
+                storage.getFixities().add(fixity);
                 fixity.setStorage(storage);
                 stagingService.save(storage);
                 response = ResponseEntity.status(HttpStatus.CREATED).body(fixity);
@@ -182,7 +187,8 @@ public class BagStorageController {
                 response = ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
         } catch (DataIntegrityViolationException ex) {
-            log.warn("[{}] Fixity({}) already exists for storage", storage.getId(), fixity.getAlgorithm());
+            log.warn("[{}] Fixity({}) already exists for storage",
+                    storage.getId(), fixity.getAlgorithm());
             response = ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
 
