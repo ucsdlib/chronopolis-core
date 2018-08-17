@@ -32,8 +32,6 @@ import java.util.function.Predicate;
 /**
  * Task for processing bags in our local staging area which need to be tokenized
  *
- * TODO: This needs to be updated when the BagProcessor is updated :(((
- *
  * @author shake
  */
 @Component

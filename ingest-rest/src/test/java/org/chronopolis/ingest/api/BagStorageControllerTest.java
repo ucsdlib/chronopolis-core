@@ -12,8 +12,6 @@ import org.chronopolis.rest.models.update.ActiveToggle;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
@@ -39,8 +37,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @WebMvcTest(controllers = BagStorageController.class)
 public class BagStorageControllerTest extends ControllerTest {
-
-    private final Logger log = LoggerFactory.getLogger(BagStorageControllerTest.class);
 
     private static final long ID = 1L;
     private static final String TYPE = "bag";
@@ -124,7 +120,6 @@ public class BagStorageControllerTest extends ControllerTest {
     public void testGetFixity() throws Exception {
         when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin)))
                 .thenReturn(Optional.of(storage));
-        log.info("WTF {}", storage.getFixities());
 
         mvc.perform(get("/api/bags/{id}/storage/{type}/fixity/{alg}", ID, TYPE, "test-algorithm"))
                 .andDo(print())

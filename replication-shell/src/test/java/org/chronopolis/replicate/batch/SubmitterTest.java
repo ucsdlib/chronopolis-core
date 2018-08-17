@@ -28,8 +28,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 
@@ -77,19 +75,17 @@ import static org.mockito.Mockito.when;
  * Created by shake on 10/18/16.
  */
 public class SubmitterTest {
-    private final Logger log = LoggerFactory.getLogger(SubmitterTest.class);
 
-    private static final String TM_DIGEST = "699caf4dc3dd8bd084f18174035a627b71f31cf5d07d5adbd722c45b874e7a78";
-    private static final String TOKEN_DIGEST = "d20b847cbe138983b1235efb607ce9d9a0ba7d5d1d2e95767b3393857ea2cb82";
+    private static final String TM_DIGEST =
+            "699caf4dc3dd8bd084f18174035a627b71f31cf5d07d5adbd722c45b874e7a78";
+    private static final String TOKEN_DIGEST =
+            "d20b847cbe138983b1235efb607ce9d9a0ba7d5d1d2e95767b3393857ea2cb82";
 
     private Submitter submitter;
 
-    @Mock
-    private AceService ace;
-    @Mock
-    private MailUtil mail;
-    @Mock
-    private ReplicationService replications;
+    @Mock private AceService ace;
+    @Mock private MailUtil mail;
+    @Mock private ReplicationService replications;
 
     private String testBag;
     private String testToken;
