@@ -12,6 +12,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * @author shake
  */
 @ConfigurationProperties(prefix = "ingest.api")
-data class IngestApiProperties(val endpoint: String = "http://localhost:8080/",
-                               val username: String = "ingest-user",
-                               val password: String = "change-me")
+data class IngestApiProperties(var endpoint: String = "http://localhost:8080/",
+                               var username: String = "ingest-user",
+                               var password: String = "change-me")
