@@ -13,6 +13,7 @@ import retrofit2.http.GET
 import retrofit2.http.HEAD
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.QueryMap
 
 /**
  * Chronopolis API Methods for interacting with a Depositor and their resources
@@ -27,7 +28,7 @@ interface DepositorService {
      * @return all depositors
      */
     @GET(Paths.DEPOSITOR_ROOT)
-    fun getDepositors(): Call<Iterable<Depositor>>
+    fun getDepositors(@QueryMap params: Map<String, String>): Call<Iterable<Depositor>>
 
     /**
      * Create a depositor
@@ -94,7 +95,7 @@ interface DepositorService {
      * @param remove    the DepositorContact to remove, identified by their email
      * @return the updated Depositor
      */
-    @DELETE("${Paths.DEPOSITOR_ROOT}/{namespace}/contacts/{contactEmail}")
+    @DELETE("${Paths.DEPOSITOR_ROOT}/{namespace}/contacts")
     fun deleteContact(@Path("namespace") namespace: String,
                       @Body remove: DepositorContactDelete): Call<Depositor>
 

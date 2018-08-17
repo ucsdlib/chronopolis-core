@@ -7,6 +7,7 @@ import org.chronopolis.rest.models.create.RepairCreate
 import org.chronopolis.rest.models.enums.AuditStatus
 import org.chronopolis.rest.models.enums.RepairStatus
 import retrofit2.Call
+import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
@@ -52,7 +53,7 @@ interface RepairService {
      * @return the newly created repair
      */
     @POST("$REPAIR_ROOT/{id}")
-    fun create(body: RepairCreate): Call<Repair>
+    fun create(@Body body: RepairCreate): Call<Repair>
 
     /**
      * Offer to fulfill a Repair request
@@ -61,7 +62,7 @@ interface RepairService {
      * @return the updated repair
      */
     @POST("$REPAIR_ROOT/{id}/fulfill")
-    fun fulfill(id: Long): Call<Repair>
+    fun fulfill(@Path("id") id: Long): Call<Repair>
 
     /**
      * Update a repair with fulfillment information in order for
@@ -72,7 +73,7 @@ interface RepairService {
      * @return the updated repair
      */
     @PUT("$REPAIR_ROOT/{id}/ready")
-    fun ready(id: Long, body: FulfillmentStrategy): Call<Repair>
+    fun ready(@Path("id") id: Long, @Body body: FulfillmentStrategy): Call<Repair>
 
     /**
      * Complete a repair
@@ -81,7 +82,7 @@ interface RepairService {
      * @return the updated repair
      */
     @PUT("$REPAIR_ROOT/{id}/complete")
-    fun complete(id: Long): Call<Repair>
+    fun complete(@Path("id") id: Long): Call<Repair>
 
     /**
      * Update a repair with the status of an ongoing ACE Audit
@@ -91,7 +92,7 @@ interface RepairService {
      * @return the updated repair
      */
     @PUT("$REPAIR_ROOT/{id}/audit")
-    fun auditing(id: Long, body: AuditStatus): Call<Repair>
+    fun auditing(@Path("id") id: Long, @Body body: AuditStatus): Call<Repair>
 
     /**
      * Mark a repair showing that the pull fulfillment data has been
@@ -101,7 +102,7 @@ interface RepairService {
      * @return the updated repair
      */
     @PUT("$REPAIR_ROOT/{id}/cleaned")
-    fun cleaned(id: Long): Call<Repair>
+    fun cleaned(@Path("id") id: Long): Call<Repair>
 
     /**
      * Mark that a repair has successfully replaced corrupt data
@@ -112,7 +113,7 @@ interface RepairService {
      * @return the updated repair
      */
     @PUT("$REPAIR_ROOT/{id}/replaced")
-    fun replaced(id: Long, body: AuditStatus): Call<Repair>
+    fun replaced(@Path("id") id: Long, @Body body: AuditStatus): Call<Repair>
 
     /**
      * Update the fulfillment status of a repair
@@ -122,7 +123,7 @@ interface RepairService {
      * @return the updated repair
      */
     @PUT("$REPAIR_ROOT/{id}/status")
-    fun fulfillmentUpdate(id: Long, body: RepairStatus): Call<Repair>
+    fun fulfillmentUpdate(@Path("id") id: Long, @Body body: RepairStatus): Call<Repair>
 
     /**
      * Mark that the pulled fulfillment data has successfully been
@@ -132,6 +133,6 @@ interface RepairService {
      * @return the updated repair
      */
     @PUT("$REPAIR_ROOT/{id}/validated")
-    fun validate(id: Long): Call<Repair>
+    fun validate(@Path("id") id: Long): Call<Repair>
 
 }
