@@ -197,7 +197,7 @@ public class RepairControllerTest extends ControllerTest {
         when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
         authenticateUser();
 
-        AceStrategy strategy = new AceStrategy(FulfillmentType.ACE, "test-api-key", "test-url");
+        AceStrategy strategy = new AceStrategy("test-api-key", "test-url");
 
         log.info("{}", asJson(strategy));
 
@@ -217,7 +217,7 @@ public class RepairControllerTest extends ControllerTest {
         when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
         authenticateUser();
 
-        AceStrategy strategy = new AceStrategy(FulfillmentType.ACE, "test-api-key", "test-url");
+        AceStrategy strategy = new AceStrategy("test-api-key", "test-url");
 
         log.info("{}", asJson(strategy));
 

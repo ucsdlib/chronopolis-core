@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import okhttp3.OkHttpClient
+import org.chronopolis.rest.models.FulfillmentStrategy
+import org.chronopolis.rest.models.serializers.FulfillmentStrategyDeserializer
+import org.chronopolis.rest.models.serializers.FulfillmentStrategySerializer
 import org.chronopolis.rest.models.serializers.ZonedDateTimeDeserializer
 import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer
 import retrofit2.Retrofit
@@ -73,6 +76,8 @@ class IngestGenerator(val properties: IngestApiProperties) : ServiceGenerator {
         val module = SimpleModule()
         module.addSerializer(ZonedDateTime::class.java, ZonedDateTimeSerializer())
         module.addDeserializer(ZonedDateTime::class.java, ZonedDateTimeDeserializer())
+        module.addSerializer(FulfillmentStrategy::class.java, FulfillmentStrategySerializer())
+        module.addDeserializer(FulfillmentStrategy::class.java, FulfillmentStrategyDeserializer())
         mapper.registerModule(module)
         mapper.registerModule(KotlinModule())
 
@@ -83,6 +88,5 @@ class IngestGenerator(val properties: IngestApiProperties) : ServiceGenerator {
         return OkHttpClient.Builder()
                 .addInterceptor(OkBasicInterceptor(properties.username, properties.password))
                 .build()
-
     }
 }

@@ -11,9 +11,7 @@ import org.chronopolis.rest.models.enums.FulfillmentType
  */
 sealed class FulfillmentStrategy(val type: FulfillmentType)
 
-data class AceStrategy(val aceType: FulfillmentType,
-                       val apiKey: String,
-                       val url: String) : FulfillmentStrategy(aceType)
+data class AceStrategy(val apiKey: String,
+                       val url: String) : FulfillmentStrategy(FulfillmentType.ACE)
 
-data class RsyncStrategy(val rsyncType: FulfillmentType,
-                         val link: String): FulfillmentStrategy(rsyncType)
+data class RsyncStrategy(val link: String): FulfillmentStrategy(FulfillmentType.NODE_TO_NODE)
