@@ -6,6 +6,7 @@ import org.chronopolis.rest.api.ReplicationService;
 import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.enums.ReplicationStatus;
+import org.chronopolis.rest.models.page.SpringPage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +77,6 @@ public class ReplicationQueryTask {
 
         int page = 0;
         int pageSize = 20;
-        boolean hasNext = false;
 
         Query q = new Query(true);
         Map<String, String> params = new HashMap<>();
@@ -86,26 +86,19 @@ public class ReplicationQueryTask {
         params.put("node", properties.getUsername());
 
         // TODO: As replications get updated, the state can change and alter the
-        // amount of pages. We might want to switch this to only work on one page
-        // at a time or figure something else out.
-        // TODO: If we remove Page from the API definition we lose some information about how to
-        //       determine if we have more work. We could provide a wrapper for this or include a
-        //       dependency on spring-data-commons... I'm not really sure what is best...
+        // amount of pages. For now we'll handle at most 1 page at a time, and maybe
+        // introduce new query methods to the api later (e.g. /api/nodes/my-nodes/replications)
         try {
-            Call<Iterable<Replication>> call = replications.get(params);
-            Response<Iterable<Replication>> response = call.execute();
-            Iterable<Replication> replications = response.body();
-                /*
-                log.debug("[{}] On page {} with {} replications. {} total.", status,
-                        replications.getNumber(),
-                        replications.getNumberOfElements(),
-                        replications.getTotalElements());
-                        */
+            Call<SpringPage<Replication>> call = replications.get(params);
+            Response<SpringPage<Replication>> response = call.execute();
+            SpringPage<Replication> replications = response.body();
+            log.debug("[{}] On page {} with {} replications. {} total.", status,
+                    replications.getNumber(),
+                    replications.getNumberOfElements(),
+                    replications.getTotalElements());
 
             ++page;
-            // hasNext = replications.iterator().hasNext();
             params.put("page", String.valueOf(page));
-
             startReplications(replications);
         } catch (IOException e) {
             q = new Query(false, e);

@@ -11,6 +11,7 @@ import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.enums.BagStatus;
+import org.chronopolis.rest.models.page.SpringPage;
 import org.chronopolis.tokenize.batch.ChronopolisTokenRequestBatch;
 import org.chronopolis.tokenize.config.TokenTaskConfiguration;
 import org.chronopolis.tokenize.filter.HttpFilter;
@@ -88,14 +89,14 @@ public class TokenApplication implements CommandLineRunner {
                 "status", BagStatus.DEPOSITED.toString(),
                 "region_id", properties.getPosix().getId().toString());
 
-        Call<Iterable<Bag>> bags = bagService.get(DEFAULT_QUERY);
+        Call<SpringPage<Bag>> bags = bagService.get(DEFAULT_QUERY);
         try {
-            Response<Iterable<Bag>> response = bags.execute();
+            Response<SpringPage<Bag>> response = bags.execute();
 
             while (response.isSuccessful()
                     && response.body() != null
                     && response.body().iterator().hasNext()) {
-                // log.debug("Found {} bags for tokenization", response.body().getSize());
+                log.debug("Found {} bags for tokenization", response.body().getNumberOfElements());
                 executeBatch(response.body());
 
                 // polling updated pages can be a problem if bag states are updated as we go on

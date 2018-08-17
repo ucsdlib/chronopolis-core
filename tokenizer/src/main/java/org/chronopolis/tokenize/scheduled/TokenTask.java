@@ -10,6 +10,7 @@ import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.enums.BagStatus;
+import org.chronopolis.rest.models.page.SpringPage;
 import org.chronopolis.tokenize.BagProcessor;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.filter.HttpFilter;
@@ -53,8 +54,8 @@ public class TokenTask {
                      BagStagingProperties properties,
                      IngestApiProperties ingestProperties,
                      TrackingThreadPoolExecutor<Bag> executor) {
-        this.tokens = null; // generator.tokens();
-        this.service = null;// generator.bags();
+        this.tokens = generator.tokens();
+        this.service = generator.bags();
         this.supervisor = supervisor;
         this.properties = properties;
         this.ingestProperties = ingestProperties;
@@ -68,14 +69,14 @@ public class TokenTask {
 
         // Query ingest API
         // Maybe getMyBags? Can work this out later
-        Call<Iterable<Bag>> bags = service.get(ImmutableMap.of(
+        Call<SpringPage<Bag>> bags = service.get(ImmutableMap.of(
                 "status", BagStatus.DEPOSITED.toString(),
                 "creator", ingestProperties.getUsername(),
                 "region_id", properties.getPosix().getId().toString()));
         try {
-            Response<Iterable<Bag>> response = bags.execute();
+            Response<SpringPage<Bag>> response = bags.execute();
             if (response.isSuccessful()) {
-                // log.debug("Found {} bags for tokenization", response.b);
+                log.debug("Found {} bags for tokenization", response.body().getNumberOfElements());
                 for (Bag bag : response.body()) {
                     ImmutableList<Predicate<ManifestEntry>> predicates =
                             ImmutableList.of(processingFilter, new HttpFilter(bag.getId(), tokens));

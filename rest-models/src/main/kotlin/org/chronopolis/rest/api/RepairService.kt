@@ -6,6 +6,7 @@ import org.chronopolis.rest.models.Repair
 import org.chronopolis.rest.models.create.RepairCreate
 import org.chronopolis.rest.models.enums.AuditStatus
 import org.chronopolis.rest.models.enums.RepairStatus
+import org.chronopolis.rest.models.page.SpringPage
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -44,7 +45,7 @@ interface RepairService {
      * @return all repairs
      */
     @GET(REPAIR_ROOT)
-    fun get(@QueryMap parameters: Map<String, String>): Call<Iterable<Repair>>
+    fun get(@QueryMap parameters: Map<String, String>): Call<SpringPage<Repair>>
 
     /**
      * Create a Repair request in the Ingest API

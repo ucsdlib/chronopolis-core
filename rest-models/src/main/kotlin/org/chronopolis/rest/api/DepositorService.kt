@@ -6,6 +6,7 @@ import org.chronopolis.rest.models.DepositorContact
 import org.chronopolis.rest.models.create.DepositorContactCreate
 import org.chronopolis.rest.models.create.DepositorCreate
 import org.chronopolis.rest.models.delete.DepositorContactDelete
+import org.chronopolis.rest.models.page.SpringPage
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -28,7 +29,7 @@ interface DepositorService {
      * @return all depositors
      */
     @GET(Paths.DEPOSITOR_ROOT)
-    fun getDepositors(@QueryMap params: Map<String, String>): Call<Iterable<Depositor>>
+    fun getDepositors(@QueryMap params: Map<String, String>): Call<SpringPage<Depositor>>
 
     /**
      * Create a depositor
@@ -64,7 +65,7 @@ interface DepositorService {
      * @return the depositor's bags
      */
     @GET("${Paths.DEPOSITOR_ROOT}/{namespace}/bags")
-    fun getDepositorBags(@Path("namespace") namespace: String): Call<Iterable<Bag>>
+    fun getDepositorBags(@Path("namespace") namespace: String): Call<SpringPage<Bag>>
 
     /**
      * Get a bag for a depositor identified by its name

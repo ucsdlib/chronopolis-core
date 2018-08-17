@@ -11,11 +11,11 @@ import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.enums.BagStatus;
 import org.chronopolis.rest.models.enums.ReplicationStatus;
+import org.chronopolis.rest.models.page.SpringPageKt;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.data.domain.PageImpl;
 import retrofit2.Call;
 
 import java.util.ArrayList;
@@ -74,8 +74,7 @@ public class ReplicationQueryTaskTest {
             replicationList.add(replication);
         }
 
-        PageImpl<Replication> page = new PageImpl<>(replicationList);
-        replications = new CallWrapper<>(page);
+        replications = new CallWrapper<>(SpringPageKt.wrap(replicationList));
     }
 
     @Test

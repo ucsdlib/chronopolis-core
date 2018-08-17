@@ -2,6 +2,7 @@ package org.chronopolis.rest.api
 
 import org.chronopolis.rest.models.Bag
 import org.chronopolis.rest.models.create.BagCreate
+import org.chronopolis.rest.models.page.SpringPage
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -36,7 +37,7 @@ interface BagService {
      * @return all bags matching the query
      */
     @GET(Paths.BAG_ROOT)
-    fun get(@QueryMap params: Map<String, String>) : Call<Iterable<Bag>>
+    fun get(@QueryMap params: Map<String, String>): Call<SpringPage<Bag>>
 
     /**
      * Deposit a bag to the ingest server

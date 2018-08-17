@@ -3,6 +3,7 @@ package org.chronopolis.rest.api
 import org.chronopolis.rest.api.Paths.REPLICATION_ROOT
 import org.chronopolis.rest.models.Replication
 import org.chronopolis.rest.models.create.ReplicationCreate
+import org.chronopolis.rest.models.page.SpringPage
 import org.chronopolis.rest.models.update.FixityUpdate
 import org.chronopolis.rest.models.update.ReplicationStatusUpdate
 import retrofit2.Call
@@ -44,7 +45,7 @@ interface ReplicationService {
      * @return all replications which match the query
      */
     @GET(REPLICATION_ROOT)
-    fun get(@QueryMap params: Map<String, String>): Call<Iterable<Replication>>
+    fun get(@QueryMap params: Map<String, String>): Call<SpringPage<Replication>>
 
     /**
      * Create a Replication request

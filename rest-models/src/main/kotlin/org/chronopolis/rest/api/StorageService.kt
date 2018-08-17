@@ -3,6 +3,7 @@ package org.chronopolis.rest.api
 import org.chronopolis.rest.api.Paths.STORAGE_ROOT
 import org.chronopolis.rest.models.StorageRegion
 import org.chronopolis.rest.models.create.RegionCreate
+import org.chronopolis.rest.models.page.SpringPage
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -39,7 +40,7 @@ interface StorageService {
      * @return all storage regions
      */
     @GET(STORAGE_ROOT)
-    fun get(@QueryMap parameters: Map<String, String>): Call<Iterable<StorageRegion>>
+    fun get(@QueryMap parameters: Map<String, String>): Call<SpringPage<StorageRegion>>
 
     /**
      * Create a StorageRegion for monitoring in the Ingest API

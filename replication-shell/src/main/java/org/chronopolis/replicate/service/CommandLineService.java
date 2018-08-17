@@ -9,6 +9,7 @@ import org.chronopolis.rest.api.IngestApiProperties;
 import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.enums.ReplicationStatus;
+import org.chronopolis.rest.models.page.SpringPage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -147,19 +148,19 @@ public class CommandLineService implements ReplicationService {
      */
     private void query(ReplicationStatus status, boolean update) {
         Map<String, String> params = new HashMap<>();
-        Iterable<Replication> replications;
+        SpringPage<Replication> replications;
         params.put("status", status.name());
         params.put("node", properties.getUsername());
-        Call<Iterable<Replication>> call = generator.replications().get(params);
+        Call<SpringPage<Replication>> call = generator.replications().get(params);
         try {
-            Response<Iterable<Replication>> execute = call.execute();
+            Response<SpringPage<Replication>> execute = call.execute();
             replications = execute.body();
         } catch (IOException e) {
             log.error("Error getting replications from server", e);
             return;
         }
 
-        // log.debug("Found {} replications", replications.getNumberOfElements());
+        log.debug("Found {} replications", replications.getNumberOfElements());
 
         for (Replication replication : replications) {
             log.info("Starting job for replication id {}", replication.getId());

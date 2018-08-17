@@ -14,6 +14,7 @@ import org.chronopolis.rest.api.IngestGenerator;
 import org.chronopolis.rest.api.TokenService;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.enums.BagStatus;
+import org.chronopolis.rest.models.page.SpringPage;
 import org.chronopolis.rest.models.serializers.ZonedDateTimeDeserializer;
 import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
 import org.chronopolis.tokenize.BagProcessor;
@@ -104,12 +105,12 @@ public class MqApplication implements CommandLineRunner {
                 "status", BagStatus.DEPOSITED.toString(),
                 "region_id", staging.getPosix().getId().toString());
 
-        Call<Iterable<Bag>> allBags = bags.get(params);
-        Response<Iterable<Bag>> response = allBags.execute();
+        Call<SpringPage<Bag>> allBags = bags.get(params);
+        Response<SpringPage<Bag>> response = allBags.execute();
         if (response.isSuccessful()
                 && response.body() != null
                 && response.body().iterator().hasNext()) {
-            // log.info("Starting tokenization on {} bags", response.body().getNumberOfElements());
+            log.info("Starting tokenization on {} bags", response.body().getNumberOfElements());
             for (Bag bag : response.body()) {
                 HttpFilter httpFilter = new HttpFilter(bag.getId(), tokens);
                 ImmutableList<Predicate<ManifestEntry>> predicates = ImmutableList.of(
