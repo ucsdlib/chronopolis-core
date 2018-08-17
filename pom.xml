@@ -11,10 +11,10 @@
         <version>1.5.4.RELEASE</version>
     </parent>
 
+    <packaging>pom</packaging>
+    <version>3.0.0-SNAPSHOT</version>
     <groupId>org.chronopolis</groupId>
     <artifactId>chronopolis</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
 
     <name>Core Chronopolis</name>
     <url>https://gitlab.umiacs.umd.edu/chronopolis</url>
@@ -108,6 +108,7 @@
     </build>
 
     <properties>
+        <ace.version>1.13-RELEASE</ace.version>
         <artemis.version>2.6.0</artemis.version>
         <kotlin.version>1.2.51</kotlin.version>
         <project.license>BSD 3</project.license>
@@ -178,20 +179,20 @@
 
             <dependency>
                 <groupId>org.chronopolis</groupId>
-                <artifactId>duracloud-backend</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.chronopolis</groupId>
                 <artifactId>rest-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.chronopolis</groupId>
-                <artifactId>earth-core</artifactId>
-                <version>2.0.0-RELEASE</version>
+                <artifactId>rest-models</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.chronopolis</groupId>
+                <artifactId>rest-entities</artifactId>
+                <version>${project.version}</version>
             </dependency>
 
             <!-- Apache libs -->
@@ -212,13 +213,13 @@
             <dependency>
                 <groupId>edu.umiacs.ace</groupId>
                 <artifactId>ace-common</artifactId>
-                <version>1.12-RELEASE</version>
+                <version>${ace.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>edu.umiacs.ace</groupId>
                 <artifactId>ace-ims-api</artifactId>
-                <version>1.12-RELEASE</version>
+                <version>${ace.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>log4j</groupId>
