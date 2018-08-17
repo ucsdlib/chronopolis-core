@@ -24,6 +24,8 @@ public class DefaultSupervisorTest {
     private final String BAG_NAME = "test-bag";
     private final String CREATOR_NAME = "default-supervisor-test";
     private final String DEPOSITOR_NAME = "test-depositor";
+    private final String START_FAILURE = "start-failure";
+    private final String REGISTERED_DIGEST = "registered-digest";
     private final Bag bag = new Bag(1L, 1L, 1L, null, null, now(), now(),
             BAG_NAME, CREATOR_NAME, DEPOSITOR_NAME, BagStatus.DEPOSITED, new HashSet<>());
 
@@ -31,17 +33,17 @@ public class DefaultSupervisorTest {
 
     @Test
     public void startExceedsLimit() throws InterruptedException {
-        // todo: unhardcode this
+        String START_SUCCESS_PREFIX = "start-success-";
         for (int i = 0; i < 5000; i++) {
             boolean started = supervisor.start(
-                    new ManifestEntry(bag, "start-success-" + i, "registered-digest"));
+                    new ManifestEntry(bag, START_SUCCESS_PREFIX + i, REGISTERED_DIGEST));
             Assert.assertTrue(started);
         }
 
         boolean interrupted = false;
         try {
             CompletableFuture.supplyAsync(() -> supervisor.start(new ManifestEntry(bag,
-                    "start-failure", "registered-digest")))
+                    START_FAILURE, REGISTERED_DIGEST)))
                     .get(100, TimeUnit.MILLISECONDS);
         } catch (ExecutionException | TimeoutException e) {
             interrupted = true;
@@ -52,7 +54,7 @@ public class DefaultSupervisorTest {
 
     @Test
     public void startRejectsTrackedEntry() {
-        ManifestEntry exists = new ManifestEntry(bag, "exists", "registered-digest");
+        ManifestEntry exists = new ManifestEntry(bag, "exists", REGISTERED_DIGEST);
         Map<ManifestEntry, WorkUnit> processing = supervisor.getProcessing();
         processing.put(exists, new WorkUnit());
 
@@ -64,7 +66,7 @@ public class DefaultSupervisorTest {
 
     @Test
     public void retryTokenize() {
-        ManifestEntry retry = new ManifestEntry(bag, "retry-register", "registered-digest");
+        ManifestEntry retry = new ManifestEntry(bag, "retry-register", REGISTERED_DIGEST);
         supervisor.start(retry);
         Set<ManifestEntry> entries = supervisor.queuedEntries(1, 10, TimeUnit.MILLISECONDS);
         Assert.assertFalse(entries.isEmpty());
@@ -79,8 +81,8 @@ public class DefaultSupervisorTest {
 
     @Test
     public void retryTokenizeRejectsInvalidEntry() {
-        ManifestEntry noEncapsulator = new ManifestEntry(bag, "no-enc", "registered-digest");
-        ManifestEntry invalidState = new ManifestEntry(bag, "invalid-state", "registered-digest");
+        ManifestEntry noEncapsulator = new ManifestEntry(bag, "no-enc", REGISTERED_DIGEST);
+        ManifestEntry invalidState = new ManifestEntry(bag, "invalid-state", REGISTERED_DIGEST);
 
         Map<ManifestEntry, WorkUnit> processing = supervisor.getProcessing();
         processing.put(invalidState, new WorkUnit());
@@ -92,7 +94,7 @@ public class DefaultSupervisorTest {
 
     @Test
     public void associate() {
-        ManifestEntry assoc = new ManifestEntry(bag, "associate", "registered-digest");
+        ManifestEntry assoc = new ManifestEntry(bag, "associate", REGISTERED_DIGEST);
         supervisor.start(assoc);
 
         Set<ManifestEntry> entries = supervisor.queuedEntries(1, 10, TimeUnit.MILLISECONDS);
@@ -103,8 +105,8 @@ public class DefaultSupervisorTest {
 
     @Test
     public void associateRejectsNotRequesting() {
-        ManifestEntry queued = new ManifestEntry(bag, "queued", "registered-digest");
-        ManifestEntry noResponse = new ManifestEntry(bag, "no-response", "registered-digest");
+        ManifestEntry queued = new ManifestEntry(bag, "queued", REGISTERED_DIGEST);
+        ManifestEntry noResponse = new ManifestEntry(bag, "no-response", REGISTERED_DIGEST);
         Map<ManifestEntry, WorkUnit> processing = supervisor.getProcessing();
         processing.put(queued, new WorkUnit());
 
@@ -114,7 +116,7 @@ public class DefaultSupervisorTest {
 
     @Test
     public void associateRejectsTokenConflict() {
-        ManifestEntry conflict = new ManifestEntry(bag, "conflict", "registered-digest");
+        ManifestEntry conflict = new ManifestEntry(bag, "conflict", REGISTERED_DIGEST);
         WorkUnit enc = new WorkUnit();
         enc.setState(WorkUnit.State.QUEUED_FOR_REGISTRATION);
         enc.setResponse(new TokenResponse());
@@ -131,7 +133,7 @@ public class DefaultSupervisorTest {
 
     @Test
     public void retryRegister() {
-        ManifestEntry assoc = new ManifestEntry(bag, "associate", "registered-digest");
+        ManifestEntry assoc = new ManifestEntry(bag, "associate", REGISTERED_DIGEST);
         supervisor.start(assoc);
 
         Set<ManifestEntry> entries = supervisor.queuedEntries(1, 10, TimeUnit.MILLISECONDS);
@@ -144,8 +146,8 @@ public class DefaultSupervisorTest {
 
     @Test
     public void retryRegisterRejectsInvalidEntry() {
-        ManifestEntry noResponse = new ManifestEntry(bag, "no-response", "registered-digest");
-        ManifestEntry invalidState = new ManifestEntry(bag, "invalid-state", "registered-digest");
+        ManifestEntry noResponse = new ManifestEntry(bag, "no-response", REGISTERED_DIGEST);
+        ManifestEntry invalidState = new ManifestEntry(bag, "invalid-state", REGISTERED_DIGEST);
 
         Map<ManifestEntry, WorkUnit> processing = supervisor.getProcessing();
         processing.put(invalidState, new WorkUnit());
@@ -156,7 +158,7 @@ public class DefaultSupervisorTest {
 
     @Test
     public void complete() {
-        ManifestEntry complete = new ManifestEntry(bag, "complete", "registered-digest");
+        ManifestEntry complete = new ManifestEntry(bag, "complete", REGISTERED_DIGEST);
         supervisor.start(complete);
         supervisor.complete(complete);
         Assert.assertFalse(supervisor.isProcessing(complete));
@@ -167,7 +169,7 @@ public class DefaultSupervisorTest {
      */
     @Test
     public void notStartedEntryOperations() {
-        ManifestEntry untracked = new ManifestEntry(bag, "untracked", "registered-digest");
+        ManifestEntry untracked = new ManifestEntry(bag, "untracked", REGISTERED_DIGEST);
 
         Assert.assertFalse(supervisor.retryRegister(untracked));
         Assert.assertFalse(supervisor.retryTokenize(untracked));

@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import org.chronopolis.common.storage.BagStagingProperties;
 import org.chronopolis.common.storage.Posix;
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.Fixity;
 import org.chronopolis.rest.models.StagingStorage;
 import org.chronopolis.rest.models.enums.BagStatus;
 import org.chronopolis.tokenize.filter.HttpFilter;
@@ -55,9 +56,12 @@ public class BagProcessorTest {
         properties = new BagStagingProperties()
                 .setPosix(new Posix().setPath(bags.getPath()));
 
+        Fixity fixity = new Fixity("test-fixity", "test-algorithm", ZonedDateTime.now());
+        HashSet<Fixity> fixities = new HashSet<>();
+        fixities.add(fixity);
         StagingStorage bagStorage = new StagingStorage(true, 1L, 1L, 1L,
-                DEPOSITOR + "/" + COLLECTION, new HashSet<>());
-        bag = new Bag(1L, 1L, 1L, bagStorage, null, ZonedDateTime.now(), ZonedDateTime.now(),
+                DEPOSITOR + "/" + COLLECTION, fixities);
+        bag = new Bag(1L, 1L, 1L, bagStorage, bagStorage, ZonedDateTime.now(), ZonedDateTime.now(),
                 COLLECTION, DEPOSITOR, DEPOSITOR, BagStatus.DEPOSITED, new HashSet<>());
 
     }
