@@ -1,6 +1,7 @@
 package org.chronopolis.rest.models.create
 
 import org.chronopolis.rest.models.Fixity
+import org.chronopolis.rest.models.enums.FixityAlgorithm
 import org.hibernate.validator.constraints.NotEmpty
 
 /**
@@ -10,5 +11,5 @@ import org.hibernate.validator.constraints.NotEmpty
  * @property value the value the algorithm produced
  * @author shake
  */
-data class FixityCreate(@get:NotEmpty var algorithm: String = "",
+data class FixityCreate(var algorithm: FixityAlgorithm = FixityAlgorithm.SHA_256,
                         @get:NotEmpty var value: String = "")
