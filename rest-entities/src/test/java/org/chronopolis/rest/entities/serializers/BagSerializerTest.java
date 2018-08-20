@@ -9,7 +9,6 @@ import org.chronopolis.rest.entities.BagDistribution;
 import org.chronopolis.rest.entities.BagDistributionStatus;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.depositor.Depositor;
-import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.enums.BagStatus;
@@ -26,7 +25,6 @@ import java.io.IOException;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
 
 import static com.google.common.collect.ImmutableSet.of;
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
@@ -67,8 +65,8 @@ public class BagSerializerTest {
         ZonedDateTime dateTime = ZonedDateTime.from(fmt.parse(dateTimeString));
         Bag b = new Bag("bag", "creator", depositor, 1L, 1L, BagStatus.REPLICATING);
         b.setId(1L);
-        b.setBagStorage(of(createStorage()));
-        b.setTokenStorage(new HashSet<>());
+        // b.setBagStorage(of(createStorage()));
+        // b.setTokenStorage(new HashSet<>());
         b.setDistributions(of(new BagDistribution(b, node, BagDistributionStatus.DISTRIBUTE)));
         b.setCreatedAt(dateTime);
         b.setUpdatedAt(dateTime);
@@ -86,10 +84,10 @@ public class BagSerializerTest {
         storage.setSize(1L);
         storage.setTotalFiles(1L);
 
-        Fixity fixity = new Fixity(storage,
-                ZonedDateTime.from(fmt.parse(dateTimeString)),
-                "test-value", "test-algorithm");
-        storage.setFixities(of(fixity));
+//        Fixity fixity = new Fixity(storage,
+//                ZonedDateTime.from(fmt.parse(dateTimeString)),
+//                "test-value", "test-algorithm");
+        // storage.setFixities(of(fixity));
 
         return storage;
     }

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.BagFile;
 import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,6 +19,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.HashSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -63,10 +65,20 @@ public class AceTokenSerializerTest {
         final String host = "test-ims-host";
         final String proof = "test-proof";
         final String filename = "test-filename";
-        AceToken token = new AceToken(filename, proof, round, ims, algorithm, host, date);
+        final BagFile bagFile = new BagFile();
+        bagFile.setId(id);
+        bagFile.setFilename(filename);
+        bagFile.setCreatedAt(ZonedDateTime.now());
+        bagFile.setSize(id);
+        bagFile.setFixities(new HashSet<>());
+        AceToken token = new AceToken(proof, round, ims, algorithm, host, date, bagFile);
         token.setId(id);
         token.setBag(genBag());
         assertThat(json.write(token)).isEqualToJson("token.json");
+    }
+
+    private BagFile genBagFile() {
+        return null;
     }
 
     private Bag genBag() {

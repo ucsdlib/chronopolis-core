@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
-import com.google.common.collect.ImmutableSet;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
@@ -77,7 +76,7 @@ public class StagingStorageSerializerTest {
         fixity.setAlgorithm("test-algorithm");
         fixity.setValue("test-value");
         fixity.setCreatedAt(zdt);
-        storage.setFixities(ImmutableSet.of(fixity));
+        // storage.setFixities(ImmutableSet.of(fixity));
 
         assertThat(json.write(storage)).isEqualToJson("storage.json");
     }

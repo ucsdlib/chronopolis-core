@@ -69,8 +69,8 @@ public class RepairSerializerTest {
         Node toNode = new Node(emptySet(), to, to, true);
         Node fromNode = new Node(emptySet(), from, from, true);
         Bag bag = new Bag("bag", depositor.getNamespace(), depositor, 0L, 0L, DEPOSITED);
-        bag.setBagStorage(emptySet());
-        bag.setTokenStorage(emptySet());
+        // bag.setBagStorage(emptySet());
+        // bag.setTokenStorage(emptySet());
         bag.setDistributions(emptySet());
 
         // geez

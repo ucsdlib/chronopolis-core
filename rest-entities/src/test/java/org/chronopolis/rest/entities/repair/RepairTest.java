@@ -9,7 +9,6 @@ import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.depositor.Depositor;
 import org.chronopolis.rest.entities.depositor.QDepositor;
 import org.chronopolis.rest.entities.storage.QStorageRegion;
-import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.enums.AuditStatus;
 import org.chronopolis.rest.models.enums.BagStatus;
@@ -189,12 +188,12 @@ public class RepairTest {
         persist.setStatus(BagStatus.DEPOSITED);
 
         String TEST_PATH = "test-path";
-        StagingStorage bagStore =
-                new StagingStorage(storageRegion, LONG_VALUE, LONG_VALUE, TEST_PATH, true);
-        StagingStorage tokenStore =
-                new StagingStorage(storageRegion, LONG_VALUE, LONG_VALUE, TEST_PATH, true);
-        persist.setBagStorage(ImmutableSet.of(bagStore));
-        persist.setTokenStorage(ImmutableSet.of(tokenStore));
+//        StagingStorage bagStore =
+//                new StagingStorage(storageRegion, LONG_VALUE, LONG_VALUE, TEST_PATH, true);
+//        StagingStorage tokenStore =
+//                new StagingStorage(storageRegion, LONG_VALUE, LONG_VALUE, TEST_PATH, true);
+//        persist.setBagStorage(ImmutableSet.of(bagStore));
+//        persist.setTokenStorage(ImmutableSet.of(tokenStore));
         persist.setDistributions(new HashSet<>());
         persist.addDistribution(from, BagDistributionStatus.DISTRIBUTE);
         persist.addDistribution(to, BagDistributionStatus.DEGRADED);
