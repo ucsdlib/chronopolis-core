@@ -1,5 +1,7 @@
 package org.chronopolis.rest.entities.serializers
 
+import org.chronopolis.rest.entities.BagFile
+import org.chronopolis.rest.entities.TokenStore
 import org.chronopolis.rest.entities.repair.Ace
 import org.chronopolis.rest.entities.repair.Rsync
 import org.chronopolis.rest.entities.repair.Strategy
@@ -34,7 +36,7 @@ fun AceTokenEntity.model(): AceToken {
             this.round,
             this.proof,
             this.imsHost,
-            this.filename,
+            this.file.filename,
             this.algorithm,
             this.imsService,
             ZonedDateTime.ofInstant(this.createDate.toInstant(), ZoneOffset.UTC))
@@ -52,10 +54,23 @@ fun BagEntity.model(): Bag {
             status = this.status,
             createdAt = this.createdAt,
             updatedAt = this.updatedAt,
-            bagStorage = this.bagStorage
+            // todo: update this
+            bagStorage = this.storage
+                    .filter {
+                        when (it.file) {
+                            is BagFile -> true
+                            else -> false
+                        }
+                    }
                     .firstOrNull { it.active }
                     ?.model(),
-            tokenStorage = this.tokenStorage
+            tokenStorage = this.storage
+                    .filter {
+                        when (it.file) {
+                            is TokenStore -> true
+                            else -> false
+                        }
+                    }
                     .firstOrNull { it.active }
                     ?.model()
 
@@ -124,9 +139,10 @@ fun StagingStorageEntity.model(): StagingStorage {
             region = this.region.id,
             size = this.size,
             totalFiles = this.totalFiles,
-            fixities = this.fixities
-                    .map { Fixity(it.value, it.algorithm, it.createdAt) }
-                    .toSet()
+            fixities = this.file
+                    ?.fixities
+                    ?.map { Fixity(it.value, it.algorithm, it.createdAt) }
+                    ?.toSet() ?: mutableSetOf()
     )
 }
 
