@@ -111,6 +111,7 @@
         <ace.version>1.13-RELEASE</ace.version>
         <artemis.version>2.6.0</artemis.version>
         <kotlin.version>1.2.51</kotlin.version>
+        <jackson.version>2.9.6</jackson.version>
         <project.license>BSD 3</project.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -247,6 +248,14 @@
                 <artifactId>jackson-mapper-asl</artifactId>
                 <version>1.9.11</version>
             </dependency>
+
+            <!-- specify version jackson kotlin module -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.module</groupId>
+                <artifactId>jackson-module-kotlin</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+
 
             <!-- Stuff -->
             <dependency>
