@@ -1,43 +1,46 @@
 package org.chronopolis.rest.entities.storage
 
 import org.chronopolis.rest.entities.Bag
+import org.chronopolis.rest.entities.DataFile
+import org.chronopolis.rest.entities.TokenStore
 import org.chronopolis.rest.entities.UpdatableEntity
-import javax.persistence.CascadeType
 import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.ManyToMany
+import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
-import javax.persistence.OneToMany
 
+/**
+ * Allocated storage in a [StorageRegion] used for distributing either a [Bag] or [TokenStore]
+ *
+ * @property region The [StorageRegion] which space is allocated in
+ * @property bag The [Bag] associated with this space
+ * @property size The amount of space which has been allocated/needed when distributing
+ * @property totalFiles The number of files staged for distribution
+ * @property path The relative path to this data set in the [StorageRegion]
+ * @property active Whether or not this data is still available
+ * @property file A file used for validation during distributions of the data
+ *
+ * @author shake
+ */
 @Entity
 class StagingStorage(
         @ManyToOne
         var region: StorageRegion = StorageRegion(),
-
+        @ManyToOne
+        var bag: Bag = Bag(),
         var size: Long = 0L,
         var totalFiles: Long = 0L,
         var path: String = "",
-        var active: Boolean = true
+        var active: Boolean = true,
+
+        // because this is abstract I think it needs to be nullable :/
+        // we could make DataFile open but I'd rather note
+        // maybe move to a lateinit
+        @ManyToOne
+        @JoinColumn(name = "file_id")
+        var file: DataFile? = null
 ) : UpdatableEntity() {
-    // Still super sloppy from previous impl
-    // allegedly only one of the bag_storage or token_storage will be used depending on the type of
-    // storage this is associated with... should probably update the schema to have a better
-    // understanding of the world
-    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "bagStorage")
-    lateinit var bags: MutableSet<Bag>
-
-    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "tokenStorage")
-    lateinit var tokens: MutableSet<Bag>
-
-    @OneToMany(mappedBy = "storage", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
-    lateinit var fixities: MutableSet<Fixity>
 
     // Helper function for more fluent verbage
-
-    fun addFixity(fixity: Fixity) {
-        fixities.add(fixity)
-    }
-
     fun isActive() = active
 
 }

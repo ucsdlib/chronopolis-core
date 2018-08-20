@@ -4,20 +4,39 @@ import com.google.common.collect.ComparisonChain
 import org.chronopolis.rest.entities.depositor.Depositor
 import org.chronopolis.rest.entities.storage.StagingStorage
 import org.chronopolis.rest.models.enums.BagStatus
-import javax.persistence.CascadeType
+import org.hibernate.annotations.NaturalId
+import javax.persistence.CascadeType.ALL
 import javax.persistence.Entity
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
-import javax.persistence.FetchType
+import javax.persistence.FetchType.EAGER
+import javax.persistence.FetchType.LAZY
 import javax.persistence.JoinColumn
-import javax.persistence.JoinTable
-import javax.persistence.ManyToMany
 import javax.persistence.ManyToOne
 import javax.persistence.OneToMany
 import javax.persistence.PreUpdate
 
+/**
+ * A BagIt [Bag] stored by Chronopolis
+ *
+ * todo: creator should map to the user table (which means it will no longer be controlled by
+ * spring-security)
+ *
+ * @property name a unique identifier for this [Bag]
+ * @property creator the user which created the [Bag]
+ * @property depositor the [Depositor] who owns the content of the [Bag]
+ * @property size the size of the [Bag] in bytes
+ * @property totalFiles the number of files contained within the [Bag]
+ * @property status the status of the [Bag] in the Chronopolis Network
+ * @property files a set of [BagFile]s which belong to the [Bag]
+ * @property tokens a set of [AceToken]s which belong to the [BagFile]
+ * @property distributions a set of [BagDistribution]s defining the state of the [Bag] at distribution [Node]s
+ *
+ * @author shake
+ */
 @Entity
 class Bag(
+        @NaturalId
         var name: String = "",
 
         var creator: String = "",
@@ -34,20 +53,17 @@ class Bag(
         var status: BagStatus = BagStatus.DEPOSITED
 ) : UpdatableEntity(), Comparable<Bag> {
 
-    @OneToMany(mappedBy = "bag", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
-    lateinit var distributions: MutableSet<BagDistribution>
+    @OneToMany(mappedBy = "bag", cascade = [ALL], fetch = LAZY, orphanRemoval = true)
+    var files: MutableSet<DataFile> = mutableSetOf()
 
-    @ManyToMany(cascade = [CascadeType.PERSIST, CascadeType.MERGE], fetch = FetchType.EAGER)
-    @JoinTable(name = "bag_storage",
-            joinColumns = [(JoinColumn(name = "bag_id", referencedColumnName = "id"))],
-            inverseJoinColumns = [JoinColumn(name = "staging_id", referencedColumnName = "id")])
-    lateinit var bagStorage: MutableSet<StagingStorage>
+    @OneToMany(mappedBy = "bag", cascade = [ALL], fetch = LAZY, orphanRemoval = true)
+    var tokens: MutableSet<AceToken> = mutableSetOf()
 
-    @ManyToMany(cascade = [CascadeType.PERSIST, CascadeType.MERGE], fetch = FetchType.EAGER)
-    @JoinTable(name = "token_storage",
-            joinColumns = [(JoinColumn(name = "bag_id", referencedColumnName = "id"))],
-            inverseJoinColumns = [JoinColumn(name = "staging_id", referencedColumnName = "id")])
-    lateinit var tokenStorage: MutableSet<StagingStorage>
+    @OneToMany(mappedBy = "bag", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
+    var distributions: MutableSet<BagDistribution> = mutableSetOf()
+
+    @OneToMany(mappedBy = "bag", cascade = [ALL], fetch = LAZY, orphanRemoval = true)
+    var storage: MutableSet<StagingStorage> = mutableSetOf()
 
     // Functions
 

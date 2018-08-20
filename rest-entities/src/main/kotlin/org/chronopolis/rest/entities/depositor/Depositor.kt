@@ -35,13 +35,13 @@ class Depositor(
 ) : UpdatableEntity(), Comparable<Depositor> {
 
     @OneToMany(mappedBy = "depositor", cascade = [CascadeType.ALL], orphanRemoval = true)
-    lateinit var contacts: MutableSet<DepositorContact>
+    var contacts: MutableSet<DepositorContact> = mutableSetOf()
 
     @JoinTable(name = "depositor_distribution",
             joinColumns = [JoinColumn(name = "depositor_id")],
             inverseJoinColumns = [JoinColumn(name = "node_id")])
     @ManyToMany(cascade = [CascadeType.ALL])
-    lateinit var nodeDistributions: MutableSet<Node>
+    var nodeDistributions: MutableSet<Node> = mutableSetOf()
 
     // Helpers for adding/removing contacts and distributions?
 
