@@ -73,7 +73,7 @@ public class ReplicationControllerTest extends ControllerTest {
     public void testReplications() throws Exception {
         when(service.findAll(any(SearchCriteria.class), any(Pageable.class))).thenReturn(null);
         mvc.perform(get("/api/replications?node=umiacs").principal(authorizedPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is(200))
                 .andReturn();
     }
@@ -84,7 +84,7 @@ public class ReplicationControllerTest extends ControllerTest {
                 node(), bag(), "bag-url", "token-url", "protocol", null, null);
         when(service.find(any(SearchCriteria.class))).thenReturn(replication);
         mvc.perform(get("/api/replications/{id}", 4L).principal(authorizedPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is(200))
                 .andReturn();
     }
@@ -137,8 +137,8 @@ public class ReplicationControllerTest extends ControllerTest {
                         .with(user(user)) // any way to streamline some of this I wonder?
                         .principal(authorizedPrincipal)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(asJson(obj)))
-                .andDo(print());
+                        .content(asJson(obj)));
+                // .andDo(print());
     }
 
     private Bag bag() {

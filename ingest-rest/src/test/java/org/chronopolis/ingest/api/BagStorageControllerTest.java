@@ -85,7 +85,7 @@ public class BagStorageControllerTest extends ControllerTest {
         when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin)))
                 .thenReturn(Optional.of(storage));
         mvc.perform(get("/api/bags/{id}/storage/{type}", ID, TYPE))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andExpect(jsonPath("$.active").value(true))
                 .andExpect(jsonPath("$.size").value(100L));
@@ -102,7 +102,7 @@ public class BagStorageControllerTest extends ControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJson(toggle))
                         .principal(authorizedPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andExpect(jsonPath("$.active").value(false));
     }
@@ -112,7 +112,7 @@ public class BagStorageControllerTest extends ControllerTest {
         when(stagingService.activeStorageForBag(eq(ID), eq(storageJoin)))
                 .thenReturn(Optional.of(storage));
         mvc.perform(get("/api/bags/{id}/storage/{type}/fixity", ID, TYPE))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is(HttpStatus.OK.value()));
     }
 
@@ -122,7 +122,7 @@ public class BagStorageControllerTest extends ControllerTest {
                 .thenReturn(Optional.of(storage));
 
         mvc.perform(get("/api/bags/{id}/storage/{type}/fixity/{alg}", ID, TYPE, "test-algorithm"))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is(HttpStatus.OK.value()));
     }
 
@@ -135,7 +135,7 @@ public class BagStorageControllerTest extends ControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"algorithm\": \"test-put\", \"value\": \"success\"}")
                 .principal(authorizedPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is(HttpStatus.CREATED.value()));
     }
 

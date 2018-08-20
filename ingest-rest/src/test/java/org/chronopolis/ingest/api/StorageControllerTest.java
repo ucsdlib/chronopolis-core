@@ -53,7 +53,7 @@ public class StorageControllerTest extends ControllerTest {
 
         mvc.perform(get("/api/storage/{id}", 1L)
                 .principal(() -> "user"))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is(200));
     }
 
@@ -61,7 +61,7 @@ public class StorageControllerTest extends ControllerTest {
     public void getRegions() throws Exception {
         mvc.perform(get("/api/storage")
                 .principal(() -> "user"))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is(200));
     }
 
@@ -86,7 +86,7 @@ public class StorageControllerTest extends ControllerTest {
                         .principal(authorizedPrincipal)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJson(request)))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isCreated());
     }
 

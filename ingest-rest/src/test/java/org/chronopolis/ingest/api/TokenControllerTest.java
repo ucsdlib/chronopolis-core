@@ -27,7 +27,6 @@ import static org.chronopolis.rest.models.enums.BagStatus.DEPOSITED;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -52,7 +51,7 @@ public class TokenControllerTest {
                 .thenReturn(wrap(generateToken()));
 
         mvc.perform(get("/api/tokens").principal(() -> "test-principal"))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is(200));
     }
 
@@ -62,7 +61,7 @@ public class TokenControllerTest {
                 .thenReturn(generateToken());
 
         mvc.perform(get("/api/tokens/{id}", 1L).principal(() -> "test-principal"))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is(200));
     }
 
@@ -72,7 +71,7 @@ public class TokenControllerTest {
                 .thenReturn(null);
 
         mvc.perform(get("/api/tokens/{id}", 1L).principal(() -> "test-principal"))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isNotFound());
     }
 

@@ -87,7 +87,7 @@ public class BagTokenControllerTest extends ControllerTest {
         mvc.perform(
                 get("/api/bags/{id}/tokens", 1L)
                         .principal(authorizedPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is(HttpStatus.OK.value()));
     }
 
@@ -150,7 +150,7 @@ public class BagTokenControllerTest extends ControllerTest {
                         .principal(authorizedPrincipal)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(model)))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is(responseStatus.value()));
     }
 

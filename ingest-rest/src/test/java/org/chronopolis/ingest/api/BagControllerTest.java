@@ -27,7 +27,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -62,7 +61,7 @@ public class BagControllerTest extends ControllerTest {
         mvc.perform(
                 get("/api/bags/")
                         .principal(() -> "user"))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isOk());
     }
 
@@ -73,7 +72,7 @@ public class BagControllerTest extends ControllerTest {
         mvc.perform(
                 get("/api/bags/{id}", 1L)
                         .principal(() -> "user"))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.depositor").value("test-depositor"))
@@ -86,7 +85,7 @@ public class BagControllerTest extends ControllerTest {
         mvc.perform(
                 get("/api/bags/{id}", 100L)
                         .principal(() -> "user"))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isNotFound());
     }
 
@@ -106,7 +105,7 @@ public class BagControllerTest extends ControllerTest {
                     .principal(() -> "user")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(asJson(request)))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.depositor").value(NAMESPACE))
                 .andExpect(jsonPath("$.name").value(BAG));

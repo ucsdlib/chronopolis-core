@@ -69,7 +69,7 @@ public class RepairControllerTest extends ControllerTest {
         mvc.perform(
                 get("/api/repairs/{id}", unfulfilled.getId())
                         .principal(authorizedPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is(200));
     }
 
@@ -79,7 +79,7 @@ public class RepairControllerTest extends ControllerTest {
         mvc.perform(
                 get("/api/repairs/{id}", 100L)
                     .principal(authorizedPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is(404));
     }
 
@@ -87,7 +87,7 @@ public class RepairControllerTest extends ControllerTest {
     public void getRepairs() throws Exception {
         when(repairs.findAll(any(SearchCriteria.class), any(Pageable.class))).thenReturn(new PageImpl<>());
         mvc.perform(get("/api/repairs").principal(authorizedPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is2xxSuccessful());
     }
 
@@ -109,7 +109,7 @@ public class RepairControllerTest extends ControllerTest {
                         .principal(authorizedPrincipal)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.status").value(RepairStatus.REQUESTED.name()))
                 .andExpect(jsonPath("$.requester").value(AUTHORIZED))
@@ -132,7 +132,7 @@ public class RepairControllerTest extends ControllerTest {
                         .principal(authorizedPrincipal)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.requester").value(AUTHORIZED))
                 .andExpect(jsonPath("$.to").value(REQUESTER));
@@ -148,7 +148,7 @@ public class RepairControllerTest extends ControllerTest {
         String json = "{\"to\":\"requester\",\"depositor\":\"test-depositor\",\"collection\":\"bag-0\",\"files\":[\"test-file-1\"]}";
 
         mvc.perform(post("/api/repairs").principal(unauthorizedPrincipal).contentType(MediaType.APPLICATION_JSON).content(json))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
 
@@ -159,7 +159,7 @@ public class RepairControllerTest extends ControllerTest {
         when(nodes.findByUsername(AUTHORIZED)).thenReturn(node);
         when(repairs.find(any(SearchCriteria.class))).thenReturn(unfulfilled);
         mvc.perform(post("/api/repairs/{id}/fulfill", unfulfilled.getId()).principal(authorizedPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.from").value(AUTHORIZED));
 
@@ -174,7 +174,7 @@ public class RepairControllerTest extends ControllerTest {
         when(repairs.find(any(SearchCriteria.class))).thenReturn(unfulfilled);
 
         mvc.perform(post("/api/repairs/{id}/fulfill", unfulfilled.getId()).principal(requesterPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isBadRequest());
     }
 
@@ -186,7 +186,7 @@ public class RepairControllerTest extends ControllerTest {
         when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
 
         mvc.perform(post("/api/repairs/{id}/fulfill", fulfilling.getId()).principal(unauthorizedPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isConflict());
     }
 
@@ -206,7 +206,7 @@ public class RepairControllerTest extends ControllerTest {
                         .principal(authorizedPrincipal)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJson(strategy)))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.type").value(FulfillmentType.ACE.name()));
     }
@@ -226,7 +226,7 @@ public class RepairControllerTest extends ControllerTest {
                         .principal(unauthorizedPrincipal)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJson(strategy)))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
 
@@ -236,7 +236,7 @@ public class RepairControllerTest extends ControllerTest {
         when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
         authenticateUser();
         mvc.perform(put("/api/repairs/{id}/complete", fulfilling.getId()).principal(requesterPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isBadRequest());
     }
 
@@ -248,7 +248,7 @@ public class RepairControllerTest extends ControllerTest {
         authenticateUser();
 
         mvc.perform(put("/api/repairs/{id}/complete", completing.getId()).principal(requesterPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.status").value(RepairStatus.REPAIRED.name()));
     }
@@ -260,7 +260,7 @@ public class RepairControllerTest extends ControllerTest {
         authenticateUser();
 
         mvc.perform(put("/api/repairs/{id}/complete", completing.getId()).principal(unauthorizedPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
 
@@ -275,7 +275,7 @@ public class RepairControllerTest extends ControllerTest {
                         .principal(requesterPrincipal)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJson(AuditStatus.AUDITING)))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.audit").value(AuditStatus.AUDITING.name()));
     }
@@ -289,7 +289,7 @@ public class RepairControllerTest extends ControllerTest {
                         .principal(requesterPrincipal)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJson(AuditStatus.AUDITING)))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isNotFound());
     }
 
@@ -302,7 +302,7 @@ public class RepairControllerTest extends ControllerTest {
         mvc.perform(
                 put("/api/repairs/{id}/audit",auditing.getId())
                         .principal(unauthorizedPrincipal).contentType(MediaType.APPLICATION_JSON).content(asJson(AuditStatus.AUDITING)))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
 
@@ -314,7 +314,7 @@ public class RepairControllerTest extends ControllerTest {
 
         mvc.perform(
                 put("/api/repairs/{id}/cleaned", cleaning.getId()).principal(requesterPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.cleaned").value(true));
     }
@@ -323,7 +323,7 @@ public class RepairControllerTest extends ControllerTest {
     public void repairCleanNotFound() throws Exception {
         when(repairs.find(any(SearchCriteria.class))).thenReturn(null);
         mvc.perform(put("/api/repairs/{id}/cleaned", cleaning().getId()).principal(requesterPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isNotFound());
     }
 
@@ -334,7 +334,7 @@ public class RepairControllerTest extends ControllerTest {
         authenticateUser();
 
         mvc.perform(put("/api/repairs/{id}/cleaned", cleaning.getId()).principal(unauthorizedPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
 
@@ -345,7 +345,7 @@ public class RepairControllerTest extends ControllerTest {
         authenticateUser();
 
         mvc.perform(put("/api/repairs/{id}/replaced", replacing.getId()).principal(requesterPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.replaced").value(true));
     }
@@ -354,7 +354,7 @@ public class RepairControllerTest extends ControllerTest {
     public void repairReplacedNotFound() throws Exception {
         when(repairs.find(any(SearchCriteria.class))).thenReturn(null);
         mvc.perform(put("/api/repairs/{id}/replaced", replacing().getId()).principal(requesterPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isNotFound());
     }
 
@@ -365,7 +365,7 @@ public class RepairControllerTest extends ControllerTest {
         authenticateUser();
 
         mvc.perform(put("/api/repairs/{id}/replaced", replacing.getId()).principal(unauthorizedPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
 
@@ -377,7 +377,7 @@ public class RepairControllerTest extends ControllerTest {
         mvc.perform(
                 put("/api/repairs/{id}/status", fulfilling.getId())
                     .principal(authorizedPrincipal).contentType(MediaType.APPLICATION_JSON).content(asJson(RepairStatus.READY)))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.status").value(RepairStatus.READY.name()));
     }
@@ -389,7 +389,7 @@ public class RepairControllerTest extends ControllerTest {
         authenticateUser();
         mvc.perform(put("/api/repairs/{id}/status", transferred.getId())
                 .principal(requesterPrincipal).contentType(MediaType.APPLICATION_JSON).content(asJson(RepairStatus.TRANSFERRED)))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.status").value(RepairStatus.TRANSFERRED.name()));
     }
@@ -399,7 +399,7 @@ public class RepairControllerTest extends ControllerTest {
         when(repairs.find(any(SearchCriteria.class))).thenReturn(null);
         mvc.perform(put("/api/repairs/{id}/status", baseRepair().getId())
                 .principal(authorizedPrincipal).contentType(MediaType.APPLICATION_JSON).content(asJson(RepairStatus.TRANSFERRED)))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isNotFound());
     }
 
@@ -411,7 +411,7 @@ public class RepairControllerTest extends ControllerTest {
         mvc.perform(
                 put("/api/repairs/{id}/status", transferred.getId())
                         .principal(unauthorizedPrincipal).contentType(MediaType.APPLICATION_JSON).content(asJson(RepairStatus.TRANSFERRED)))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
 
@@ -423,7 +423,7 @@ public class RepairControllerTest extends ControllerTest {
         mvc.perform(
                 put("/api/repairs/{id}/status", transferred.getId())
                         .principal(unauthorizedPrincipal).contentType(MediaType.APPLICATION_JSON).content(asJson(RepairStatus.FAILED)))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
 
