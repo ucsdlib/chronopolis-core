@@ -286,6 +286,7 @@ CREATE TABLE file (
     filename TEXT NOT NULL,
     dtype varchar(25) NOT NULL,
     created_at TIMESTAMP DEFAULT current_timestamp,
+    updated_at TIMESTAMP DEFAULT current_timestamp,
     UNIQUE (bag_id, filename)
 );
 

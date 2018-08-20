@@ -1,7 +1,6 @@
 package org.chronopolis.rest.entities
 
 import org.chronopolis.rest.entities.storage.Fixity
-import java.time.ZonedDateTime
 import javax.persistence.CascadeType.ALL
 import javax.persistence.DiscriminatorColumn
 import javax.persistence.Entity
@@ -27,13 +26,12 @@ import javax.persistence.Table
 @Table(name = "file")
 @DiscriminatorColumn(name = "dtype")
 abstract class DataFile(
-        var createdAt: ZonedDateTime = ZonedDateTime.now(),
         var filename: String = "",
         var size: Long = 0,
 
         @ManyToOne
         var bag: Bag = Bag()
-) : PersistableEntity() {
+) : UpdatableEntity() {
 
     @OneToOne(mappedBy = "file", cascade = [ALL], optional = true, fetch = LAZY)
     var token: AceToken? = null
