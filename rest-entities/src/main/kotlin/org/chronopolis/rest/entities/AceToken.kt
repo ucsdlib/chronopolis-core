@@ -39,4 +39,30 @@ class AceToken(
     @ManyToOne(fetch = FetchType.LAZY)
     lateinit var bag: Bag
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as AceToken
+
+        if (proof != other.proof) return false
+        if (round != other.round) return false
+        if (imsService != other.imsService) return false
+        if (algorithm != other.algorithm) return false
+        if (imsHost != other.imsHost) return false
+        if (createDate != other.createDate) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = proof.hashCode()
+        result = 31 * result + round.hashCode()
+        result = 31 * result + imsService.hashCode()
+        result = 31 * result + algorithm.hashCode()
+        result = 31 * result + imsHost.hashCode()
+        result = 31 * result + createDate.hashCode()
+        return result
+    }
+
 }

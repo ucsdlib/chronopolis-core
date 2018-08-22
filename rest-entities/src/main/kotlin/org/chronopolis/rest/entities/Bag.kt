@@ -5,7 +5,8 @@ import org.chronopolis.rest.entities.depositor.Depositor
 import org.chronopolis.rest.entities.storage.StagingStorage
 import org.chronopolis.rest.models.enums.BagStatus
 import org.hibernate.annotations.NaturalId
-import javax.persistence.CascadeType.ALL
+import javax.persistence.CascadeType.MERGE
+import javax.persistence.CascadeType.PERSIST
 import javax.persistence.Entity
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
@@ -29,7 +30,6 @@ import javax.persistence.PreUpdate
  * @property totalFiles the number of files contained within the [Bag]
  * @property status the status of the [Bag] in the Chronopolis Network
  * @property files a set of [BagFile]s which belong to the [Bag]
- * @property tokens a set of [AceToken]s which belong to the [BagFile]
  * @property distributions a set of [BagDistribution]s defining the state of the [Bag] at distribution [Node]s
  *
  * @author shake
@@ -53,17 +53,14 @@ class Bag(
         var status: BagStatus = BagStatus.DEPOSITED
 ) : UpdatableEntity(), Comparable<Bag> {
 
-    @OneToMany(mappedBy = "bag", cascade = [ALL], fetch = LAZY, orphanRemoval = true)
+    @OneToMany(mappedBy = "bag", cascade = [MERGE, PERSIST], fetch = LAZY, orphanRemoval = true)
     var files: MutableSet<DataFile> = mutableSetOf()
 
-    @OneToMany(mappedBy = "bag", cascade = [ALL], fetch = LAZY, orphanRemoval = true)
-    var tokens: MutableSet<AceToken> = mutableSetOf()
-
-    @OneToMany(mappedBy = "bag", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
-    var distributions: MutableSet<BagDistribution> = mutableSetOf()
-
-    @OneToMany(mappedBy = "bag", cascade = [ALL], fetch = LAZY, orphanRemoval = true)
+    @OneToMany(mappedBy = "bag", cascade = [MERGE, PERSIST], fetch = LAZY, orphanRemoval = true)
     var storage: MutableSet<StagingStorage> = mutableSetOf()
+
+    @OneToMany(mappedBy = "bag", cascade = [MERGE, PERSIST], fetch = EAGER, orphanRemoval = true)
+    var distributions: MutableSet<BagDistribution> = mutableSetOf()
 
     // Functions
 
@@ -71,6 +68,18 @@ class Bag(
         return distributions
                 .map { it.node.username }
                 .toSet()
+    }
+
+    fun addFile(file: DataFile) {
+        files.add(file)
+    }
+
+    fun addFiles(toAdd: Set<DataFile>) {
+        files.addAll(toAdd)
+    }
+
+    fun addStagingStorage(staging: StagingStorage) {
+        storage.add(staging)
     }
 
     fun addDistribution(distribution: BagDistribution) {
