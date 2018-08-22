@@ -1,9 +1,13 @@
 package org.chronopolis.rest.entities;
 
+import com.google.common.collect.ImmutableSet;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.rest.entities.depositor.Depositor;
 import org.chronopolis.rest.entities.depositor.QDepositor;
+import org.chronopolis.rest.entities.storage.Fixity;
+import org.chronopolis.rest.entities.storage.QStagingStorage;
 import org.chronopolis.rest.entities.storage.QStorageRegion;
+import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.enums.BagStatus;
 import org.junit.Assert;
@@ -17,7 +21,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.persistence.EntityManager;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
+
+import static org.chronopolis.rest.entities.JPAContext.FIXITY_ALGORITHM;
+import static org.chronopolis.rest.entities.JPAContext.FIXITY_VALUE;
 
 /**
  * Oh boy
@@ -65,6 +73,15 @@ public class BagEntityTest {
         Assert.assertNotNull(depositor);
     }
 
+    /**
+     * Test persistence of a Bag with all its underlying relations
+     * <p>
+     * - Bag
+     * -- File
+     * ---- Fixity
+     * -- Storage (w/ File)
+     * -- Distribution
+     */
     @Test
     public void testBagPersistTests() {
         final String BAG_NAME = "test-bag-persist";
@@ -78,12 +95,25 @@ public class BagEntityTest {
         persist.setTotalFiles(LONG_VALUE);
         persist.setStatus(BagStatus.DEPOSITED);
 
-//        StagingStorage bagStore =
-//                new StagingStorage(storageRegion, LONG_VALUE, LONG_VALUE, TEST_PATH, true);
-//        StagingStorage tokenStore =
-//                new StagingStorage(storageRegion, LONG_VALUE, LONG_VALUE, TEST_PATH, true);
-        // persist.setBagStorage(ImmutableSet.of(bagStore));
-        // persist.setTokenStorage(ImmutableSet.of(tokenStore));
+        Fixity fixity = new Fixity(ZonedDateTime.now(), FIXITY_VALUE, FIXITY_ALGORITHM);
+        BagFile bf = new BagFile();
+        bf.setFilename(TEST_PATH);
+        bf.setSize(LONG_VALUE);
+        bf.setBag(persist);
+        bf.setFixities(ImmutableSet.of(fixity));
+
+        TokenStore ts = new TokenStore();
+        ts.setFilename(TEST_PATH + "-token");
+        ts.setSize(LONG_VALUE);
+        ts.setBag(persist);
+
+        persist.addFiles(ImmutableSet.of(bf, ts));
+
+        StagingStorage bagStore =
+                new StagingStorage(storageRegion, persist, LONG_VALUE, LONG_VALUE, TEST_PATH, true, bf);
+        StagingStorage tokenStore =
+                new StagingStorage(storageRegion, persist, LONG_VALUE, LONG_VALUE, TEST_PATH, true, ts);
+        persist.setStorage(ImmutableSet.of(bagStore, tokenStore));
         persist.setDistributions(new HashSet<>());
         persist.addDistribution(ncar, BagDistributionStatus.DISTRIBUTE);
         persist.addDistribution(umiacs, BagDistributionStatus.DEGRADED);
@@ -97,12 +127,32 @@ public class BagEntityTest {
         Assert.assertNotNull(fetch);
         Assert.assertEquals(persist, fetch);
         Assert.assertNotEquals(0, persist.getId());
-        // Assert.assertEquals(1, fetch.getBagStorage().size());
-        // Assert.assertEquals(1, fetch.getTokenStorage().size());
+        Assert.assertEquals(2, fetch.getStorage().size());
         Assert.assertEquals(2, fetch.getDistributions().size());
 
+        // also storage
+        StagingStorage fetchStorage = qf.select(QStagingStorage.stagingStorage)
+                .from(QBag.bag)
+                .join(QBag.bag.storage, QStagingStorage.stagingStorage)
+                .where(QStagingStorage.stagingStorage.active.eq(true)
+                    .and(QStagingStorage.stagingStorage.file.dtype.eq("BAG")))
+                .fetchOne();
+
+        // basically just check that it's the BagFile's data
+        Assert.assertNotNull(fetchStorage);
+        Assert.assertNotNull(fetchStorage.getFile());
+        Assert.assertEquals(TEST_PATH, fetchStorage.getFile().getFilename());
     }
 
+    /**
+     * Test persist of a Bag followed by a merge for its relations
+     * <p>
+     * Bag
+     * - File
+     * -- Fixity
+     * - Storage
+     * - Distribution
+     */
     @Test
     public void testBagMergeTests() {
         final String BAG_NAME = "test-bag-merge";
@@ -123,17 +173,32 @@ public class BagEntityTest {
         entityManager.persist(bag);
         entityManager.refresh(bag);
 
-        // setup Staging entities to merge
-//        StagingStorage bagStore =
-//                new StagingStorage(storageRegion, LONG_VALUE, LONG_VALUE, TEST_PATH, true);
-//        StagingStorage bagStoreInactive =
-//                new StagingStorage(storageRegion, LONG_VALUE, LONG_VALUE, TEST_PATH, false);
-//        StagingStorage tokenStore =
-//                new StagingStorage(storageRegion, LONG_VALUE, LONG_VALUE, TEST_PATH, true);
+        Fixity fixity = new Fixity(ZonedDateTime.now(), FIXITY_VALUE, FIXITY_ALGORITHM);
+        BagFile bf = new BagFile();
+        bf.setFilename(TEST_PATH);
+        bf.setSize(LONG_VALUE);
+        bf.setBag(bag);
+        bf.setFixities(ImmutableSet.of(fixity));
 
-//        bag.getbagstorage().add(bagstore);
-//        bag.getbagstorage().add(bagstoreinactive);
-//        bag.gettokenstorage().add(tokenstore);
+        TokenStore ts = new TokenStore();
+        ts.setFilename(TEST_PATH + "-token");
+        ts.setSize(LONG_VALUE);
+        ts.setBag(bag);
+
+        bag.getFiles().add(bf);
+        bag.getFiles().add(ts);
+
+        // setup Staging entities to merge
+        StagingStorage bagStore =
+                new StagingStorage(storageRegion, bag, LONG_VALUE, LONG_VALUE, TEST_PATH, true, bf);
+        StagingStorage bagStoreInactive =
+                new StagingStorage(storageRegion, bag, LONG_VALUE, LONG_VALUE, TEST_PATH, false, bf);
+        StagingStorage tokenStore =
+                new StagingStorage(storageRegion, bag, LONG_VALUE, LONG_VALUE, TEST_PATH, true, ts);
+
+        bag.getStorage().add(bagStore);
+        bag.getStorage().add(bagStoreInactive);
+        bag.getStorage().add(tokenStore);
         bag.addDistribution(ncar, BagDistributionStatus.REPLICATE);
         bag.addDistribution(umiacs, BagDistributionStatus.DISTRIBUTE);
         entityManager.merge(bag);
@@ -146,9 +211,9 @@ public class BagEntityTest {
         Assert.assertNotEquals(0L, bag.getId());
         Assert.assertNotNull(fetchedBag);
         Assert.assertEquals(bag, fetchedBag);
-//        Assert.assertEquals(2, fetchedBag.getBagStorage().size());
-//        Assert.assertEquals(1, fetchedBag.getTokenStorage().size());
+        Assert.assertEquals(3, fetchedBag.getStorage().size());
         Assert.assertEquals(2, fetchedBag.getDistributions().size());
+        Assert.assertEquals(2, fetchedBag.getFiles().size());
     }
 
 }
