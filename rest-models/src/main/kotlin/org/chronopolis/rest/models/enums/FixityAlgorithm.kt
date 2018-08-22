@@ -7,8 +7,8 @@ package org.chronopolis.rest.models.enums
  *
  * @author shake
  */
-enum class FixityAlgorithm {
-    SHA_256, UNSUPPORTED;
+enum class FixityAlgorithm(val canonical: String) {
+    SHA_256("SHA-256"), UNSUPPORTED("unsupported");
 
     companion object {
         fun fromString(algorithm: String): FixityAlgorithm {

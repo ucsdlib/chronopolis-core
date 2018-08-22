@@ -7,6 +7,9 @@ import org.apache.activemq.artemis.api.core.client.ActiveMQClient;
 import org.apache.activemq.artemis.api.core.client.ServerLocator;
 import org.apache.activemq.artemis.core.remoting.impl.invm.InVMConnectorFactory;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
+import org.chronopolis.rest.models.enums.FixityAlgorithm;
+import org.chronopolis.rest.models.serializers.FixityAlgorithmDeserializer;
+import org.chronopolis.rest.models.serializers.FixityAlgorithmSerializer;
 import org.chronopolis.rest.models.serializers.ZonedDateTimeDeserializer;
 import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
 import org.chronopolis.tokenize.ManifestEntry;
@@ -43,8 +46,10 @@ public class ArtemisConfiguration {
         ObjectMapper mapper = new ObjectMapper();
         SimpleModule module = new SimpleModule();
         module.addSerializer(ZonedDateTime.class, new ZonedDateTimeSerializer());
+        module.addSerializer(FixityAlgorithm.class, new FixityAlgorithmSerializer());
         module.addDeserializer(ZonedDateTime.class, new ZonedDateTimeDeserializer());
         module.addDeserializer(ManifestEntry.class, new ManifestEntryDeserializer());
+        module.addDeserializer(FixityAlgorithm.class, new FixityAlgorithmDeserializer());
         mapper.registerModule(module);
         return mapper;
     }

@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import okhttp3.OkHttpClient
 import org.chronopolis.rest.models.FulfillmentStrategy
+import org.chronopolis.rest.models.enums.FixityAlgorithm
+import org.chronopolis.rest.models.serializers.FixityAlgorithmDeserializer
+import org.chronopolis.rest.models.serializers.FixityAlgorithmSerializer
 import org.chronopolis.rest.models.serializers.FulfillmentStrategyDeserializer
 import org.chronopolis.rest.models.serializers.FulfillmentStrategySerializer
 import org.chronopolis.rest.models.serializers.ZonedDateTimeDeserializer
@@ -74,10 +77,16 @@ class IngestGenerator(val properties: IngestApiProperties) : ServiceGenerator {
         val mapper = ObjectMapper()
 
         val module = SimpleModule()
+
         module.addSerializer(ZonedDateTime::class.java, ZonedDateTimeSerializer())
         module.addDeserializer(ZonedDateTime::class.java, ZonedDateTimeDeserializer())
+
+        module.addSerializer(FixityAlgorithm::class.java, FixityAlgorithmSerializer())
+        module.addDeserializer(FixityAlgorithm::class.java, FixityAlgorithmDeserializer())
+
         module.addSerializer(FulfillmentStrategy::class.java, FulfillmentStrategySerializer())
         module.addDeserializer(FulfillmentStrategy::class.java, FulfillmentStrategyDeserializer())
+
         mapper.registerModule(module)
         mapper.registerModule(KotlinModule())
 

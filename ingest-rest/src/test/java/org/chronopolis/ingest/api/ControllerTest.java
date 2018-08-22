@@ -24,6 +24,9 @@ import org.chronopolis.rest.entities.serializers.StorageRegionSerializer;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.FulfillmentStrategy;
+import org.chronopolis.rest.models.enums.FixityAlgorithm;
+import org.chronopolis.rest.models.serializers.FixityAlgorithmDeserializer;
+import org.chronopolis.rest.models.serializers.FixityAlgorithmSerializer;
 import org.chronopolis.rest.models.serializers.FulfillmentStrategyDeserializer;
 import org.chronopolis.rest.models.serializers.ZonedDateTimeDeserializer;
 import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
@@ -106,9 +109,11 @@ public class ControllerTest extends IngestTest {
         builder.serializerByType(Depositor.class, new DepositorSerializer());
         builder.serializerByType(DepositorContact.class, new DepositorContactSerializer());
         builder.serializerByType(Replication.class, new ReplicationSerializer());
+        builder.serializerByType(FixityAlgorithm.class, new FixityAlgorithmSerializer());
         builder.serializerByType(StagingStorage.class, new StagingStorageSerializer());
         builder.serializerByType(StorageRegion.class, new StorageRegionSerializer());
         builder.serializerByType(ZonedDateTime.class, new ZonedDateTimeSerializer());
+        builder.deserializerByType(FixityAlgorithm.class, new FixityAlgorithmDeserializer());
         builder.deserializerByType(FulfillmentStrategy.class,
                 new FulfillmentStrategyDeserializer());
         builder.deserializerByType(ZonedDateTime.class, new ZonedDateTimeDeserializer());

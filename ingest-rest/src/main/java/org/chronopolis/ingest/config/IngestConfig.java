@@ -33,6 +33,9 @@ import org.chronopolis.rest.entities.serializers.StorageRegionSerializer;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.FulfillmentStrategy;
+import org.chronopolis.rest.models.enums.FixityAlgorithm;
+import org.chronopolis.rest.models.serializers.FixityAlgorithmDeserializer;
+import org.chronopolis.rest.models.serializers.FixityAlgorithmSerializer;
 import org.chronopolis.rest.models.serializers.FulfillmentStrategyDeserializer;
 import org.chronopolis.rest.models.serializers.ZonedDateTimeDeserializer;
 import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
@@ -138,8 +141,10 @@ public class IngestConfig {
         builder.serializerByType(StorageRegion.class, new StorageRegionSerializer());
         builder.serializerByType(ZonedDateTime.class, new ZonedDateTimeSerializer());
         builder.serializerByType(StagingStorage.class, new StagingStorageSerializer());
+        builder.serializerByType(FixityAlgorithm.class, new FixityAlgorithmSerializer());
         builder.serializerByType(DepositorContact.class, new DepositorContactSerializer());
         builder.deserializerByType(ZonedDateTime.class, new ZonedDateTimeDeserializer());
+        builder.deserializerByType(FixityAlgorithm.class, new FixityAlgorithmDeserializer());
         builder.deserializerByType(FulfillmentStrategy.class,
                 new FulfillmentStrategyDeserializer());
         return builder;

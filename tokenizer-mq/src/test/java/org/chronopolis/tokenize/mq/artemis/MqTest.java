@@ -17,6 +17,9 @@ import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.Fixity;
 import org.chronopolis.rest.models.StagingStorage;
 import org.chronopolis.rest.models.enums.BagStatus;
+import org.chronopolis.rest.models.enums.FixityAlgorithm;
+import org.chronopolis.rest.models.serializers.FixityAlgorithmDeserializer;
+import org.chronopolis.rest.models.serializers.FixityAlgorithmSerializer;
 import org.chronopolis.rest.models.serializers.ZonedDateTimeDeserializer;
 import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
 import org.chronopolis.tokenize.ManifestEntry;
@@ -55,6 +58,9 @@ public class MqTest {
     private static final String RESPONSE_FORMAT = "(%s,%s)::%s";
     private static final ZonedDateTime NOW = ZonedDateTime.now();
 
+    public static final String EMPTY_FIXITY =
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+
     private static final SimpleString REQUEST_QUEUE = new SimpleString("request");
     private static final SimpleString REGISTER_QUEUE = new SimpleString("register");
 
@@ -76,8 +82,10 @@ public class MqTest {
 
         SimpleModule module = new SimpleModule();
         module.addSerializer(ZonedDateTime.class, new ZonedDateTimeSerializer());
+        module.addSerializer(FixityAlgorithm.class, new FixityAlgorithmSerializer());
         module.addDeserializer(ZonedDateTime.class, new ZonedDateTimeDeserializer());
         module.addDeserializer(ManifestEntry.class, new ManifestEntryDeserializer());
+        module.addDeserializer(FixityAlgorithm.class, new FixityAlgorithmDeserializer());
         mapper.registerModule(module);
         mapper.registerModule(new KotlinModule());
 
@@ -94,7 +102,7 @@ public class MqTest {
     }
 
     Bag createBag() {
-        Fixity fixity = new Fixity("test-algorithm", "test-value", NOW);
+        Fixity fixity = new Fixity(EMPTY_FIXITY, FixityAlgorithm.SHA_256, NOW);
         StagingStorage storage = new StagingStorage(true, ID, ID, ID, FILENAME, of(fixity));
         return new Bag(ID, ID, ID, storage, storage, NOW, NOW,
                 NAME, DEPOSITOR, DEPOSITOR, BagStatus.DEPOSITED, emptySet());

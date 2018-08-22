@@ -7,6 +7,7 @@ import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.Fixity;
 import org.chronopolis.rest.models.StagingStorage;
 import org.chronopolis.rest.models.enums.BagStatus;
+import org.chronopolis.rest.models.enums.FixityAlgorithm;
 import org.chronopolis.tokenize.filter.HttpFilter;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.junit.Before;
@@ -30,7 +31,11 @@ import static org.mockito.Mockito.when;
 public class BagProcessorTest {
 
     private static final String HW_NAME = "data/hello_world";
-    private static final String HW_DIGEST = "a948904f2f0f479b8f8197694b30184b0d2ed1c1cd2a1ec0fb85d299a192a447";
+    private static final String HW_DIGEST =
+            "a948904f2f0f479b8f8197694b30184b0d2ed1c1cd2a1ec0fb85d299a192a447";
+
+    public static final String EMPTY_FIXITY =
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 
     private static final String DEPOSITOR = "test-depositor";
     private static final String COLLECTION = "test-bag-1";
@@ -56,7 +61,7 @@ public class BagProcessorTest {
         properties = new BagStagingProperties()
                 .setPosix(new Posix().setPath(bags.getPath()));
 
-        Fixity fixity = new Fixity("test-fixity", "test-algorithm", ZonedDateTime.now());
+        Fixity fixity = new Fixity(EMPTY_FIXITY, FixityAlgorithm.SHA_256, ZonedDateTime.now());
         HashSet<Fixity> fixities = new HashSet<>();
         fixities.add(fixity);
         StagingStorage bagStorage = new StagingStorage(true, 1L, 1L, 1L,
