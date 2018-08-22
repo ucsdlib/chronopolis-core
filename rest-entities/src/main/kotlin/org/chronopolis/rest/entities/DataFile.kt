@@ -2,8 +2,10 @@ package org.chronopolis.rest.entities
 
 import org.chronopolis.rest.entities.storage.Fixity
 import javax.persistence.CascadeType.ALL
+import javax.persistence.Column
 import javax.persistence.DiscriminatorColumn
 import javax.persistence.Entity
+import javax.persistence.FetchType.EAGER
 import javax.persistence.FetchType.LAZY
 import javax.persistence.Inheritance
 import javax.persistence.JoinColumn
@@ -29,17 +31,20 @@ abstract class DataFile(
         var filename: String = "",
         var size: Long = 0,
 
-        @ManyToOne
+        @ManyToOne(fetch = LAZY)
         var bag: Bag = Bag()
 ) : UpdatableEntity() {
 
-    @OneToOne(mappedBy = "file", cascade = [ALL], optional = true, fetch = LAZY)
+    @Column(insertable = false, updatable = false)
+    var dtype: String? = null
+
+    @OneToOne(mappedBy = "file", cascade = [ALL], orphanRemoval = true, fetch = EAGER)
     var token: AceToken? = null
 
     @JoinTable(name = "file_fixity",
             joinColumns = [(JoinColumn(name = "file_id"))],
             inverseJoinColumns = [JoinColumn(name = "fixity_id")])
-    @ManyToMany(cascade = [ALL])
+    @ManyToMany(cascade = [ALL], fetch = EAGER)
     var fixities: MutableSet<Fixity> = mutableSetOf()
 
 }
