@@ -18,6 +18,7 @@ import org.chronopolis.rest.models.ReplicationConfig
 import org.chronopolis.rest.models.RsyncStrategy
 import org.chronopolis.rest.models.StagingStorage
 import org.chronopolis.rest.models.StorageRegion
+import org.chronopolis.rest.models.enums.FixityAlgorithm
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import org.chronopolis.rest.entities.AceToken as AceTokenEntity
@@ -141,7 +142,9 @@ fun StagingStorageEntity.model(): StagingStorage {
             totalFiles = this.totalFiles,
             fixities = this.file
                     ?.fixities
-                    ?.map { Fixity(it.value, it.algorithm, it.createdAt) }
+                    ?.map {
+                        Fixity(it.value, FixityAlgorithm.fromString(it.algorithm), it.createdAt)
+                    }
                     ?.toSet() ?: mutableSetOf()
     )
 }

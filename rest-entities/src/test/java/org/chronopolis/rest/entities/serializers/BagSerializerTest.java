@@ -7,11 +7,15 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagDistribution;
 import org.chronopolis.rest.entities.BagDistributionStatus;
+import org.chronopolis.rest.entities.BagFile;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.depositor.Depositor;
+import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.enums.BagStatus;
+import org.chronopolis.rest.models.enums.FixityAlgorithm;
+import org.chronopolis.rest.models.serializers.FixityAlgorithmSerializer;
 import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,6 +57,7 @@ public class BagSerializerTest {
         mapper.registerModule(new KotlinModule());
         SimpleModule module = new SimpleModule();
         module.addSerializer(Bag.class, new BagSerializer());
+        module.addSerializer(FixityAlgorithm.class, new FixityAlgorithmSerializer());
         module.addSerializer(ZonedDateTime.class, new ZonedDateTimeSerializer());
         mapper.registerModule(module);
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
@@ -63,19 +68,20 @@ public class BagSerializerTest {
     public void testWriteJson() throws IOException {
         final Node node = new Node(emptySet(), "node", "node", true);
         ZonedDateTime dateTime = ZonedDateTime.from(fmt.parse(dateTimeString));
-        Bag b = new Bag("bag", "creator", depositor, 1L, 1L, BagStatus.REPLICATING);
-        b.setId(1L);
-        // b.setBagStorage(of(createStorage()));
-        // b.setTokenStorage(new HashSet<>());
-        b.setDistributions(of(new BagDistribution(b, node, BagDistributionStatus.DISTRIBUTE)));
-        b.setCreatedAt(dateTime);
-        b.setUpdatedAt(dateTime);
-        assertThat(json.write(b)).isEqualToJson("bag.json");
+        Bag bag = new Bag("bag", "creator", depositor, 1L, 1L, BagStatus.REPLICATING);
+        bag.setId(1L);
+        bag.addStagingStorage(createStorage());
+        bag.setDistributions(of(new BagDistribution(bag, node, BagDistributionStatus.DISTRIBUTE)));
+        bag.setCreatedAt(dateTime);
+        bag.setUpdatedAt(dateTime);
+        assertThat(json.write(bag)).isEqualToJson("bag.json");
     }
 
     private StagingStorage createStorage() {
         StorageRegion region = new StorageRegion();
         region.setId(1L);
+
+        BagFile file = new BagFile();
 
         StagingStorage storage = new StagingStorage();
         storage.setActive(true);
@@ -84,10 +90,11 @@ public class BagSerializerTest {
         storage.setSize(1L);
         storage.setTotalFiles(1L);
 
-//        Fixity fixity = new Fixity(storage,
-//                ZonedDateTime.from(fmt.parse(dateTimeString)),
-//                "test-value", "test-algorithm");
-        // storage.setFixities(of(fixity));
+        Fixity fixity = new Fixity(ZonedDateTime.from(fmt.parse(dateTimeString)),
+                "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "SHA-256");
+        file.setFixities(of(fixity));
+        storage.setFile(file);
 
         return storage;
     }

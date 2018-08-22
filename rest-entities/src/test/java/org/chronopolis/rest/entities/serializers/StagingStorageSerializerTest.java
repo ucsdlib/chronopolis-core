@@ -4,9 +4,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
+import com.google.common.collect.ImmutableSet;
+import org.chronopolis.rest.entities.BagFile;
+import org.chronopolis.rest.entities.JPAContext;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
+import org.chronopolis.rest.models.enums.FixityAlgorithm;
+import org.chronopolis.rest.models.serializers.FixityAlgorithmSerializer;
 import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,6 +51,7 @@ public class StagingStorageSerializerTest {
         SimpleModule module = new SimpleModule();
         module.addSerializer(ZonedDateTime.class, new ZonedDateTimeSerializer());
         module.addSerializer(StagingStorage.class, new StagingStorageSerializer());
+        module.addSerializer(FixityAlgorithm.class, new FixityAlgorithmSerializer());
         mapper.registerModule(module);
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         JacksonTester.initFields(this, mapper);
@@ -70,13 +76,22 @@ public class StagingStorageSerializerTest {
         region.setId(2L);
         storage.setRegion(region);
 
+        // In order ot add a Fixity entry for a StagingStorage region we need to add a File
+        BagFile file = new BagFile();
+        file.setId(1L);
+        file.setSize(1L);
+        file.setFilename("test-path");
+        file.setDtype("BAG");
         // And a single Fixity entry
         Fixity fixity = new Fixity();
         fixity.setId(1L);
-        fixity.setAlgorithm("test-algorithm");
-        fixity.setValue("test-value");
+        fixity.setValue(JPAContext.FIXITY_VALUE);
         fixity.setCreatedAt(zdt);
-        // storage.setFixities(ImmutableSet.of(fixity));
+        fixity.setAlgorithm(JPAContext.FIXITY_ALGORITHM);
+        file.setFixities(ImmutableSet.of(fixity));
+
+        // And finally link the file to the storage
+        storage.setFile(file);
 
         assertThat(json.write(storage)).isEqualToJson("storage.json");
     }
