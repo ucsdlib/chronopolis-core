@@ -35,25 +35,21 @@ class Replication(
 ) : UpdatableEntity() {
 
     fun checkTransferred() = {
-        // how to do this? link StagingStorage for bags and token stores?
-        // maybe filter on if the storage contains a BagFile or TokenStore
-        // then do equality checks based on that
-        // or we could pass the storage to this function...
-        // it's weird idk
-        // maybe push that functionality out of here
-        /*val bagFixities = bag.bagStorage
-        val tokenFixities = bag.tokenStorage
+        // todo: test when storage isEmpty
+        // this is still a bit awkward
+        // considering passing the StagingStorage directly to this function rather than trying
+        // to iterate through and match
+        val tagMatch = bag.storage.filter { it.file.dtype == "BAG" }
+                .first { it.isActive() }
+                .file.fixities.any { it.value.equals(receivedTagFixity, true) }
 
-        val tagMatch = bagFixities.flatMap { it.fixities }
-                .any { it.value.equals(receivedTagFixity, true) }
-
-        val tokenMatch = tokenFixities.flatMap { it.fixities }
-                .any { it.value.equals(receivedTokenFixity, true) }
+        val tokenMatch = bag.storage.filter { it.file.dtype == "TOKEN_STORE" }
+                .first { it.isActive() }
+                .file.fixities.any { it.value.equals(receivedTokenFixity, true) }
 
         if (status.isOngoing() && tagMatch && tokenMatch) {
             status = ReplicationStatus.TRANSFERRED
-        }*/
-
+        }
     }
 
     @PreUpdate

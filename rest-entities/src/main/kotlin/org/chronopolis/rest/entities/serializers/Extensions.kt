@@ -140,12 +140,9 @@ fun StagingStorageEntity.model(): StagingStorage {
             region = this.region.id,
             size = this.size,
             totalFiles = this.totalFiles,
-            fixities = this.file
-                    ?.fixities
-                    ?.map {
-                        Fixity(it.value, FixityAlgorithm.fromString(it.algorithm), it.createdAt)
-                    }
-                    ?.toSet() ?: mutableSetOf()
+            fixities = this.file.fixities.map {
+                Fixity(it.value, FixityAlgorithm.fromString(it.algorithm), it.createdAt)
+            }.toSet()
     )
 }
 

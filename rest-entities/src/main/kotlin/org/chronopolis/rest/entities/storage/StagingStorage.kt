@@ -30,15 +30,14 @@ class StagingStorage(
         var size: Long = 0L,
         var totalFiles: Long = 0L,
         var path: String = "",
-        var active: Boolean = true,
-
+        var active: Boolean = true
+) : UpdatableEntity() {
         // because this is abstract I think it needs to be nullable :/
         // we could make DataFile open but I'd rather note
         // maybe move to a lateinit
         @ManyToOne
         @JoinColumn(name = "file_id")
-        var file: DataFile? = null
-) : UpdatableEntity() {
+        lateinit var file: DataFile
 
     // Helper function for more fluent verbage
     fun isActive() = active

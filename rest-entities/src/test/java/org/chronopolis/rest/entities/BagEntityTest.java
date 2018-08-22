@@ -110,9 +110,11 @@ public class BagEntityTest {
         persist.addFiles(ImmutableSet.of(bf, ts));
 
         StagingStorage bagStore =
-                new StagingStorage(storageRegion, persist, LONG_VALUE, LONG_VALUE, TEST_PATH, true, bf);
+                new StagingStorage(storageRegion, persist, LONG_VALUE, LONG_VALUE, TEST_PATH, true);
         StagingStorage tokenStore =
-                new StagingStorage(storageRegion, persist, LONG_VALUE, LONG_VALUE, TEST_PATH, true, ts);
+                new StagingStorage(storageRegion, persist, LONG_VALUE, LONG_VALUE, TEST_PATH, true);
+        bagStore.setFile(bf);
+        tokenStore.setFile(ts);
         persist.setStorage(ImmutableSet.of(bagStore, tokenStore));
         persist.setDistributions(new HashSet<>());
         persist.addDistribution(ncar, BagDistributionStatus.DISTRIBUTE);
@@ -134,7 +136,7 @@ public class BagEntityTest {
         StagingStorage fetchStorage = qf.select(QStagingStorage.stagingStorage)
                 .from(QBag.bag)
                 .join(QBag.bag.storage, QStagingStorage.stagingStorage)
-                .where(QStagingStorage.stagingStorage.active.eq(true)
+                .where(QStagingStorage.stagingStorage.active.isTrue()
                     .and(QStagingStorage.stagingStorage.file.dtype.eq("BAG")))
                 .fetchOne();
 
@@ -174,27 +176,30 @@ public class BagEntityTest {
         entityManager.refresh(bag);
 
         Fixity fixity = new Fixity(ZonedDateTime.now(), FIXITY_VALUE, FIXITY_ALGORITHM);
-        BagFile bf = new BagFile();
-        bf.setFilename(TEST_PATH);
-        bf.setSize(LONG_VALUE);
-        bf.setBag(bag);
-        bf.setFixities(ImmutableSet.of(fixity));
+        BagFile bagFile = new BagFile();
+        bagFile.setFilename(TEST_PATH);
+        bagFile.setSize(LONG_VALUE);
+        bagFile.setBag(bag);
+        bagFile.setFixities(ImmutableSet.of(fixity));
 
-        TokenStore ts = new TokenStore();
-        ts.setFilename(TEST_PATH + "-token");
-        ts.setSize(LONG_VALUE);
-        ts.setBag(bag);
+        TokenStore tokenFile = new TokenStore();
+        tokenFile.setFilename(TEST_PATH + "-token");
+        tokenFile.setSize(LONG_VALUE);
+        tokenFile.setBag(bag);
 
-        bag.getFiles().add(bf);
-        bag.getFiles().add(ts);
+        bag.getFiles().add(bagFile);
+        bag.getFiles().add(tokenFile);
 
         // setup Staging entities to merge
         StagingStorage bagStore =
-                new StagingStorage(storageRegion, bag, LONG_VALUE, LONG_VALUE, TEST_PATH, true, bf);
+                new StagingStorage(storageRegion, bag, LONG_VALUE, LONG_VALUE, TEST_PATH, true);
         StagingStorage bagStoreInactive =
-                new StagingStorage(storageRegion, bag, LONG_VALUE, LONG_VALUE, TEST_PATH, false, bf);
+                new StagingStorage(storageRegion, bag, LONG_VALUE, LONG_VALUE, TEST_PATH, false);
         StagingStorage tokenStore =
-                new StagingStorage(storageRegion, bag, LONG_VALUE, LONG_VALUE, TEST_PATH, true, ts);
+                new StagingStorage(storageRegion, bag, LONG_VALUE, LONG_VALUE, TEST_PATH, true);
+        bagStore.setFile(bagFile);
+        bagStoreInactive.setFile(bagFile);
+        tokenStore.setFile(tokenFile);
 
         bag.getStorage().add(bagStore);
         bag.getStorage().add(bagStoreInactive);
