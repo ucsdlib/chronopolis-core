@@ -4,17 +4,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-import com.querydsl.core.types.Predicate;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.WebContext;
 import org.chronopolis.ingest.models.Paged;
-import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.ingest.repository.dao.TokenDao;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagFile;
 import org.chronopolis.rest.entities.QAceToken;
-import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.models.create.AceTokenCreate;
 import org.chronopolis.rest.models.enums.BagStatus;
 import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
@@ -29,21 +26,20 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.security.Principal;
 import java.time.ZonedDateTime;
 import java.util.Date;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -59,13 +55,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = WebContext.class)
 public class BagTokenControllerTest extends ControllerTest {
 
-    // private final Depositor depositor = new Depositor();
     private static final String AUTHORIZED = "authorized";
     private static UserDetails admin = new User(AUTHORIZED, AUTHORIZED, ImmutableList.of(() -> "ROLE_ADMIN"));
 
     private BagTokenController controller;
 
-    @MockBean private PagedDAO dao;
+    @MockBean private TokenDao dao;
     @MockBean private JPAQueryFactory factory;
 
     @Before
@@ -93,65 +88,28 @@ public class BagTokenControllerTest extends ControllerTest {
     @Test
     public void testCreateTokenSuccess() throws Exception {
         Bag bag = generateBag();
-        bag.setId(1L);
-        runCreateToken(generateModel(), bag, 0L, HttpStatus.CREATED);
-
-        verify(dao, times(1)).save(any(AceToken.class));
-    }
-
-    @Test
-    public void testCreateTokenBagNotFound() throws Exception {
-        runCreateToken(generateModel(), null, 0L, HttpStatus.NOT_FOUND);
-        verify(dao, times(0)).save(any(AceToken.class));
-    }
-
-    @Test
-    public void testCreateTokenBadRequest() throws Exception {
-        Bag bag = generateBag();
-        bag.setId(1L);
         AceTokenCreate model = generateModel();
-        model = model.copy(model.getBagId(), model.getRound(), model.getCreateDate(),
-                "", "", "", "", "");
-
-        runCreateToken(model, bag, 1L, HttpStatus.BAD_REQUEST);
-        verify(dao, times(0)).save(any(AceToken.class));
-    }
-
-
-    //
-    // Helpers
-    //
-
-    private void runCreateToken(AceTokenCreate model,
-                                Bag bag,
-                                long tokenCount,
-                                HttpStatus responseStatus) throws Exception {
-        JPAQuery query = mock(JPAQuery.class);
-        when(dao.getJPAQueryFactory()).thenReturn(factory);
-        when(factory.from(QBag.bag)).thenReturn(query);
-
-        // pretty rancid
-        when(query.where(any(Predicate.class))).thenReturn(query);
-        when(query.select(QBag.bag)).thenReturn(query);
-        when(query.fetchOne()).thenReturn(bag);
-
-        when(factory.select(eq(QAceToken.aceToken.id))).thenReturn(query);
-        when(query.from(eq(QAceToken.aceToken))).thenReturn(query);
-        when(query.where(any(Predicate.class))).thenReturn(query);
-        when(query.fetchCount()).thenReturn(tokenCount);
-
-        // when(bagService.find(any(SearchCriteria.class))).thenReturn(bag);
+        ResponseEntity<AceToken> response =
+                ResponseEntity.status(HttpStatus.CREATED).body(generateToken());
+        // for whatever reason this gets weird when checking equality against the model
+        // not like that matters because this tests literally nothing except serialization I guess
+        when(dao.createToken(any(Principal.class), eq(bag.getId()), any()))
+                .thenReturn(response);
         when(context.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(admin);
 
         mvc.perform(
-                post("/api/bags/{id}/tokens", 1L)
+                post("/api/bags/{id}/tokens", bag.getId())
                         .principal(authorizedPrincipal)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(model)))
                 // .andDo(print())
-                .andExpect(status().is(responseStatus.value()));
+                .andExpect(status().is(HttpStatus.CREATED.value()));
     }
+
+    //
+    // Helpers
+    //
 
     private String json(AceTokenCreate model) throws JsonProcessingException {
         ObjectMapper mapper = new Jackson2ObjectMapperBuilder()

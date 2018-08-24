@@ -16,6 +16,7 @@ import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.ingest.repository.dao.StagingService;
 import org.chronopolis.ingest.repository.dao.StorageRegionService;
+import org.chronopolis.ingest.repository.dao.TokenDao;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Replication;
@@ -71,6 +72,11 @@ public class IngestConfig {
     @Bean
     public PagedDAO pagedDAO(EntityManager entityManager) {
         return new PagedDAO(entityManager);
+    }
+
+    @Bean
+    public TokenDao tokenDao(EntityManager entityManager) {
+        return new TokenDao(entityManager);
     }
 
     @Bean(name = "tokenExecutor", destroyMethod = "destroy")

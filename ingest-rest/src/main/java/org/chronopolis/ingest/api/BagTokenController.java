@@ -1,23 +1,16 @@
 package org.chronopolis.ingest.api;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.models.filter.AceTokenFilter;
-import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.ingest.repository.dao.TokenDao;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.AceToken;
-import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.BagFile;
 import org.chronopolis.rest.entities.QAceToken;
-import org.chronopolis.rest.entities.QBag;
-import org.chronopolis.rest.entities.QBagFile;
 import org.chronopolis.rest.models.create.AceTokenCreate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -29,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.security.Principal;
-import java.util.Date;
 
 /**
  * Operations on the tokens of a bag
@@ -42,10 +34,10 @@ public class BagTokenController extends IngestController {
 
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
-    private final PagedDAO dao;
+    private final TokenDao dao;
 
     @Autowired
-    public BagTokenController(PagedDAO dao) {
+    public BagTokenController(TokenDao dao) {
         this.dao = dao;
     }
 
@@ -88,53 +80,9 @@ public class BagTokenController extends IngestController {
                                                       @Valid @RequestBody AceTokenCreate model) {
         access.info("[POST /api/bags/{}/tokens] - {}", id, principal.getName());
         access.info("Post parameters - {};{}", model.getBagId(), model.getFilename());
-
-        ResponseEntity<AceToken> response;
-        JPAQueryFactory queryFactory = dao.getJPAQueryFactory();
-        Bag bag = queryFactory.from(QBag.bag)
-                .where(QBag.bag.id.eq(id))
-                .select(QBag.bag)
-                .fetchOne();
-
-        BagFile bagFile = queryFactory.selectFrom(QBagFile.bagFile)
-                .where(QBagFile.bagFile.filename.eq(model.getFilename())
-                        .and(QBagFile.bagFile.bag.id.eq(id)))
-                .fetchOne();
-
-        Long tokenId = queryFactory.select(QAceToken.aceToken.id)
-                .from(QAceToken.aceToken)
-                .where(QAceToken.aceToken.bag.id.eq(id)
-                        .and(QAceToken.aceToken.file.filename.eq(model.getFilename())))
-                .fetchCount();
-
-        if (bag == null || bagFile == null) {
-            response = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } else if (!authorized(principal, bag)) {
-            response = ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } else if (tokenId > 0) {
-            response = ResponseEntity.status(HttpStatus.CONFLICT).build();
-        } else {
-            AceToken token = new AceToken(
-                    model.getProof(),
-                    model.getRound(),
-                    model.getImsService(),
-                    model.getAlgorithm(),
-                    model.getImsHost(),
-                    Date.from(model.getCreateDate().toInstant()),
-                    bagFile);
-            bagFile.setToken(token);
-            token.setBag(bag);
-            dao.save(bag);
-            response = ResponseEntity.status(HttpStatus.CREATED)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(token);
-        }
-
-        return response;
-    }
-
-    private boolean authorized(Principal principal, Bag bag) {
-        return hasRoleAdmin() || bag.getCreator().equalsIgnoreCase(principal.getName());
+        ResponseEntity<AceToken> token = dao.createToken(principal, id, model);
+        access.info("YO RESPONSE IS {}", token.getStatusCode());
+        return token;
     }
 
 }
