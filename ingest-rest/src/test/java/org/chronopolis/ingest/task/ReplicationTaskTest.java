@@ -36,9 +36,9 @@ import static junit.framework.Assert.assertEquals;
         // We only want bags to be inserted for these tests
         // but when tearing down remove the replications as well
         @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
-             scripts = "classpath:sql/createBags.sql"),
+             scripts = "classpath:sql/create.sql"),
         @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
-             scripts = "classpath:sql/deleteReplications.sql")
+             scripts = "classpath:sql/delete.sql")
 })
 public class ReplicationTaskTest extends IngestTest {
 
@@ -56,7 +56,7 @@ public class ReplicationTaskTest extends IngestTest {
     }
 
     @Test
-    public void testCreateReplications() throws Exception {
+    public void testCreateReplications() {
         task.createReplications();
 
         // Based on the sql we should have 4 replications

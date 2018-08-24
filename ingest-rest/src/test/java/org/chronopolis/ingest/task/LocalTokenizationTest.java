@@ -38,14 +38,14 @@ import static org.mockito.Mockito.times;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SqlGroup({
         @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
-                scripts = "classpath:sql/createBags.sql"),
+                scripts = "classpath:sql/create.sql"),
         @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
-                scripts = "classpath:sql/deleteBags.sql")
+                scripts = "classpath:sql/delete.sql")
 })
 public class LocalTokenizationTest extends IngestTest {
 
     private static final Long ID = 1L;
-    private static final String USERNAME = "admin";
+    private static final String USERNAME = "test-admin";
     private final Collection<Predicate<ManifestEntry>> predicates = ImmutableList.of();
 
     @Mock private TokenWorkSupervisor tws;

@@ -21,15 +21,20 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.persistence.EntityManager;
 
+/**
+ * Test the DatabasePredicate to ensure filtering works correctly when retrieving work
+ *
+ * @author shake
+ */
 @DataJpaTest
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = JpaContext.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SqlGroup({
         @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
-                scripts = "classpath:sql/createBagsWithTokens.sql"),
+                scripts = "classpath:sql/create.sql"),
         @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
-                scripts = "classpath:sql/deleteBagsWithTokens.sql")
+                scripts = "classpath:sql/delete.sql")
 })
 public class DatabasePredicateTest extends IngestTest {
 
@@ -48,9 +53,9 @@ public class DatabasePredicateTest extends IngestTest {
     @Test
     public void test() {
         final String digest = "test-digest";
-        final String fileExists = "/data/hello_world";
+        final String fileExists = "/manifest-sha256.txt";
         final String fileNotExists = "/data/hello_other_world";
-        org.chronopolis.rest.entities.Bag be = dao.findOne(QBag.bag, QBag.bag.name.eq("new-bag-3"));
+        org.chronopolis.rest.entities.Bag be = dao.findOne(QBag.bag, QBag.bag.name.eq("bag-3"));
 
         final Bag bag = ExtensionsKt.model(be);
         // an unfortunate side effect of immutability + java :(
@@ -67,17 +72,13 @@ public class DatabasePredicateTest extends IngestTest {
                 bag.getStatus(),
                 bag.getReplicatingNodes());
 
-        /* None of this can be tested while the ME relies on the old version...
         ManifestEntry exists = new ManifestEntry(bag, fileExists, digest);
         ManifestEntry bagNotExists = new ManifestEntry(invalidId, fileNotExists, digest);
         ManifestEntry tokenNotExists = new ManifestEntry(bag, fileNotExists, digest);
-        */
 
-        /*
         Assert.assertFalse(predicate.test(exists));
         Assert.assertFalse(predicate.test(bagNotExists));
         Assert.assertTrue(predicate.test(tokenNotExists));
-        */
     }
 
     @Test

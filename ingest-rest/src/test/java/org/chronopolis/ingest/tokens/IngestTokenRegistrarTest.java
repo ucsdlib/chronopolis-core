@@ -39,8 +39,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
- * todo: old BagModel -> new Bag when tokenizer is updated
  *
+ * @author shake
  */
 @DataJpaTest
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -48,9 +48,9 @@ import static org.mockito.Mockito.verify;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SqlGroup({
         @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
-                scripts = "classpath:sql/createBagsWithTokens.sql"),
+                scripts = "classpath:sql/create.sql"),
         @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
-                scripts = "classpath:sql/deleteBagsWithTokens.sql")
+                scripts = "classpath:sql/delete.sql")
 })
 public class IngestTokenRegistrarTest extends IngestTest {
 
@@ -64,8 +64,8 @@ public class IngestTokenRegistrarTest extends IngestTest {
     private final String TOKEN_FORMAT = "(%s,%s)::%s";
     private final String FILENAME = "/manifest-sha256.txt";
     private final String DEPOSITOR = "test-depositor";
-    private final String BAG_ONE_NAME = "new-bag-1";
-    private final String BAG_THREE_NAME = "new-bag-3";
+    private final String BAG_ONE_NAME = "bag-1";
+    private final String BAG_THREE_NAME = "bag-3";
     // From sql
     // private Bag bagOne = new Bag().setName(BAG_ONE_NAME).setDepositor(DEPOSITOR);
     // private Bag bagThree = new Bag().setName(BAG_THREE_NAME).setDepositor(DEPOSITOR);
@@ -79,14 +79,6 @@ public class IngestTokenRegistrarTest extends IngestTest {
 
         GregorianCalendar gc = GregorianCalendar.from(ZonedDateTime.now());
         xmlCal = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc);
-    }
-
-    private Long getId(final String name) {
-        JPAQueryFactory factory = new JPAQueryFactory(entityManager);
-        return factory.from(QBag.bag)
-                .select(QBag.bag.id)
-                .where(QBag.bag.depositor.namespace.eq(DEPOSITOR).and(QBag.bag.name.eq(name)))
-                .fetchOne();
     }
 
     private Bag getBag(final String name) {
@@ -133,12 +125,14 @@ public class IngestTokenRegistrarTest extends IngestTest {
         verify(tws, times(1)).complete(eq(entry));
 
         Assert.assertEquals(1, tokenCount(bag.getId()));
-        AceToken token = dao.findOne(QAceToken.aceToken, QAceToken.aceToken.filename.eq(FILENAME)
-                .and(QAceToken.aceToken.bag.id.eq(bag.getId())));
+        QAceToken qAceToken = QAceToken.aceToken;
+        AceToken token = dao.findOne(qAceToken,
+                qAceToken.file.filename.eq(FILENAME)
+                        .and(qAceToken.bag.id.eq(bag.getId())));
 
         // check that the token was not overwritten
         Assert.assertNotNull(token);
-        Assert.assertEquals("test-proof-hw", token.getProof());
+        Assert.assertEquals("test-proof", token.getProof());
     }
 
     @Test
@@ -172,7 +166,7 @@ public class IngestTokenRegistrarTest extends IngestTest {
         QAceToken qAceToken = QAceToken.aceToken;
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         return queryFactory.selectFrom(qAceToken)
-                .where(qAceToken.bag.id.eq(bagId).and(qAceToken.filename.eq(FILENAME)))
+                .where(qAceToken.bag.id.eq(bagId).and(qAceToken.file.filename.eq(FILENAME)))
                 .fetchCount();
     }
 
