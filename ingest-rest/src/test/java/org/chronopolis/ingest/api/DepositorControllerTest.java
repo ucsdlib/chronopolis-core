@@ -20,6 +20,7 @@ import org.chronopolis.rest.models.create.DepositorCreate;
 import org.chronopolis.rest.models.delete.DepositorContactDelete;
 import org.chronopolis.rest.models.enums.BagStatus;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -30,7 +31,6 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.security.Principal;
 import java.time.ZonedDateTime;
-import java.util.HashSet;
 
 import static com.google.common.collect.ImmutableSet.of;
 import static org.mockito.Matchers.any;
@@ -76,7 +76,6 @@ public class DepositorControllerTest extends ControllerTest {
     // Fields we set up
     private Bag bag;
     private Node node;
-    // private Depositor DEPOSITOR = new Depositor();
     private DepositorContact contact = new DepositorContact();
     private BooleanExpression namespaceEq = Q_DEPOSITOR.namespace.eq(NAMESPACE);
     private BooleanExpression contactEq = Q_CONTACT.depositor.namespace.eq(NAMESPACE)
@@ -88,19 +87,9 @@ public class DepositorControllerTest extends ControllerTest {
 
     @Before
     public void setup() {
-        // DEPOSITOR = new Depositor(NAMESPACE, ADDRESS, ORGANIZATION);
-        // DEPOSITOR.setContacts(new HashSet<>());
-        // DEPOSITOR.setNodeDistributions(new HashSet<>());
-        // DEPOSITOR.setCreatedAt(NOW);
-        // DEPOSITOR.setUpdatedAt(NOW);
-        // DEPOSITOR.setId(1L);
-
         node = new Node(of(), NODE_NAME, NODE_NAME, true);
 
         bag = new Bag(BAG_NAME, NAMESPACE, DEPOSITOR, 1L, 1L, BagStatus.DEPOSITED);
-        bag.setBagStorage(new HashSet<>());
-        bag.setTokenStorage(new HashSet<>());
-        bag.setDistributions(new HashSet<>());
         bag.setCreatedAt(NOW);
         bag.setUpdatedAt(NOW);
         bag.setId(1L);
@@ -326,6 +315,8 @@ public class DepositorControllerTest extends ControllerTest {
         verify(dao, times(1)).findOne(eq(Q_CONTACT), eq(contactEq));
     }
 
+    @Test
+    @Ignore
     public void testRemoveContactNotFound() throws Exception {
         DepositorContactDelete remove = new DepositorContactDelete(EMAIL);
 
@@ -341,6 +332,8 @@ public class DepositorControllerTest extends ControllerTest {
         verify(dao, times(1)).findOne(eq(Q_CONTACT), eq(contactEq));
     }
 
+    @Test
+    @Ignore
     public void testRemoveContactBadRequest() throws Exception {
         DepositorContactDelete remove = new DepositorContactDelete(EMAIL);
 

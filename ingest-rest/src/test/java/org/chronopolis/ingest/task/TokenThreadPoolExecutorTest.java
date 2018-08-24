@@ -46,12 +46,6 @@ public class TokenThreadPoolExecutorTest extends IngestTest {
         // ensure the ids are not null
         b0.setId(0L);
         b1.setId(1L);
-        b0.setBagStorage(new HashSet<>());
-        b0.setTokenStorage(new HashSet<>());
-        b0.setDistributions(new HashSet<>());
-        b1.setBagStorage(new HashSet<>());
-        b1.setTokenStorage(new HashSet<>());
-        b1.setDistributions(new HashSet<>());
         depositor.setId(1L);
         depositor.setContacts(new HashSet<>());
         depositor.setNodeDistributions(new HashSet<>());

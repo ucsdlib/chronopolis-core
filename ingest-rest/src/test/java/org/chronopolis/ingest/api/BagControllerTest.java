@@ -18,8 +18,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.Collections;
-
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
@@ -114,12 +112,9 @@ public class BagControllerTest extends ControllerTest {
     }
 
     private Bag bag() {
-        Bag b = new Bag(BAG, "namespace", DEPOSITOR, 1L, 1L, BagStatus.DEPOSITED);
-        b.setId(1L);
-        b.setBagStorage(Collections.emptySet());
-        b.setTokenStorage(Collections.emptySet());
-        b.setDistributions(Collections.emptySet());
-        return b;
+        Bag bag = new Bag(BAG, "namespace", DEPOSITOR, 1L, 1L, BagStatus.DEPOSITED);
+        bag.setId(1L);
+        return bag;
     }
 
 }
