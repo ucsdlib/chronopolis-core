@@ -1,13 +1,13 @@
 package org.chronopolis.ingest.tokens;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import edu.umiacs.ace.ims.api.IMSUtil;
 import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.QAceToken;
+import org.chronopolis.rest.entities.BagFile;
 import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.QBagFile;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.registrar.TokenRegistrar;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
@@ -23,6 +23,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Registrar which loads Tokens directly into the DB
+ * <p>
+ * todo: update for BagFile
  *
  * @author shake
  */
@@ -69,20 +71,17 @@ public class IngestTokenRegistrar implements TokenRegistrar, Runnable {
 
             String filename = getFilename(response);
             java.util.Date create = Date.from(responseInstant);
-            // The TokenClassName and DigestService don't really map well to what we store
-            // maybe we store it wrong I'm not sure need to look into it further
-            AceToken token = new AceToken(filename,
-                    IMSUtil.formatProof(response),
-                    response.getRoundId(),
-                    response.getTokenClassName(),
-                    response.getDigestService(),
-                    IMS_HOST,
-                    create);
+
+            BagFile file = dao.findOne(QBagFile.bagFile,
+                    QBagFile.bagFile.filename.eq(filename).and(QBagFile.bagFile.bag.id.eq(bagId)));
+
+            /*
             JPAQueryFactory qf = dao.getJPAQueryFactory();
             long count = qf.selectFrom(QAceToken.aceToken)
                     .where(QAceToken.aceToken.bag.id.eq(bagId)
-                            .and(QAceToken.aceToken.filename.eq(filename)))
+                            .and(QAceToken.aceToken.file.filename.eq(filename)))
                     .fetchCount();
+                    */
 
             // IMO there's a very large problem with this in that if the dao.save throws an
             // exception, only the single entry will be completed. We probably want to wrap
@@ -90,7 +89,17 @@ public class IngestTokenRegistrar implements TokenRegistrar, Runnable {
             // check if a Entry is being processed and if so retry register on it. Maybe marking the
             // excepted entry for removal.
             try {
-                if (bag != null && count == 0) {
+                if (file != null && file.getToken() == null) {
+                    // The TokenClassName and DigestService don't really map well to what we store
+                    // maybe we store it wrong I'm not sure need to look into it further
+                    AceToken token = new AceToken(IMSUtil.formatProof(response),
+                            response.getRoundId(),
+                            response.getTokenClassName(),
+                            response.getDigestService(),
+                            IMS_HOST,
+                            create,
+                            file);
+                    file.setToken(token);
                     token.setBag(bag);
                     dao.save(token);
                 }

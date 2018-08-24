@@ -10,6 +10,7 @@ import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.TokenStore;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
@@ -28,17 +29,16 @@ import java.nio.file.Paths;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
 
 import static java.nio.file.StandardOpenOption.CREATE;
 import static org.chronopolis.ingest.api.Params.SORT_ID;
+import static org.chronopolis.rest.models.enums.FixityAlgorithm.SHA_256;
 
 /**
  * Runnable task which can write a TokenStore
  *
  * TODO: Configurable names for TokenStores
  * TODO: Test various collection names to see how this can break
- * TODO: we need to get the ims uri from the returned token, but that involves updating the entity as well
  *
  * @author shake
  */
@@ -100,14 +100,13 @@ public class TokenStoreWriter implements Runnable {
                         pageable);
 
                 for (AceToken token : tokens) {
-                    log.trace("[{}:{}] Writing token", bag.getId(), token.getFilename());
-                    // Make sure we have a leading /
-                    if (!token.getFilename().startsWith("/")) {
-                        token.setFilename("/" + token.getFilename());
-                    }
+                    String tokenFilename = token.getFile().getFilename();
+                    log.trace("[{}:{}] Writing token", bag.getId(), tokenFilename);
 
                     writer.startToken(token);
-                    writer.addIdentifier(token.getFilename());
+                    writer.addIdentifier(tokenFilename.startsWith("/")
+                            ? tokenFilename
+                            : "/" + tokenFilename);
                     writer.writeTokenEntry();
                 }
 
@@ -121,16 +120,22 @@ public class TokenStoreWriter implements Runnable {
             Long count = cos.getCount();
             String hash = hos.hash().toString();
             log.info("[Bag {}] Wrote TokenStore(size={},digest={})", bagId, count, hash);
+            TokenStore tokenStore = new TokenStore();
+            tokenStore.setBag(bag);
+            tokenStore.setSize(count);
+            tokenStore.setFilename(filename);
+            tokenStore.getFixities().add(
+                    new Fixity(ZonedDateTime.now(), hash, SHA_256.getCanonical()));
 
+            storage.setBag(bag);
             storage.setSize(count);
             storage.setActive(true);
             storage.setTotalFiles(1L);
+            storage.setFile(tokenStore);
             storage.setPath(root.relativize(store).toString());
 
-            storage.setFixities(new HashSet<>());
-            storage.addFixity(new Fixity(storage, ZonedDateTime.now(), hash, "SHA-256"));
-
-            bag.getTokenStorage().add(storage);
+            bag.getFiles().add(tokenStore);
+            bag.getStorage().add(storage);
             bag.setStatus(BagStatus.TOKENIZED);
             bagService.save(bag);
         } catch (Exception ex) { // not to happy about the catch all but there are multiple

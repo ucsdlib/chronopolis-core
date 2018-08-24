@@ -12,6 +12,7 @@ import org.chronopolis.ingest.models.Paged;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.BagFile;
 import org.chronopolis.rest.entities.QAceToken;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.models.create.AceTokenCreate;
@@ -35,7 +36,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.ZonedDateTime;
-import java.util.Collections;
 import java.util.Date;
 
 import static org.mockito.Matchers.any;
@@ -46,7 +46,6 @@ import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -171,9 +170,6 @@ public class BagTokenControllerTest extends ControllerTest {
 
     private Bag generateBag() {
         Bag bag = new Bag("test-name", "namespace", DEPOSITOR, 1L, 1L, BagStatus.DEPOSITED);
-        bag.setBagStorage(Collections.emptySet());
-        bag.setTokenStorage(Collections.emptySet());
-        bag.setDistributions(Collections.emptySet());
         bag.setId(1L);
         return bag;
     }
@@ -182,8 +178,11 @@ public class BagTokenControllerTest extends ControllerTest {
     // but we'll probably want a better way to do this
     @SuppressWarnings("Duplicates")
     private AceToken generateToken() {
-        AceToken token = new AceToken("test-filename", "test-proof", 100L, "test-ims-host",
-                "test-ims", "test-algorithm", new Date());
+        BagFile file = new BagFile();
+        file.setFilename("test-filename");
+
+        AceToken token = new AceToken("test-proof", 100L, "test-ims-host",
+                "test-ims", "test-algorithm", new Date(), file);
         token.setId(1L);
         token.setBag(generateBag());
         return token;

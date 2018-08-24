@@ -7,8 +7,10 @@ import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.BagFile;
 import org.chronopolis.rest.entities.QAceToken;
 import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.QBagFile;
 import org.chronopolis.rest.models.create.AceTokenCreate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,28 +96,35 @@ public class BagTokenController extends IngestController {
                 .select(QBag.bag)
                 .fetchOne();
 
+        BagFile bagFile = queryFactory.selectFrom(QBagFile.bagFile)
+                .where(QBagFile.bagFile.filename.eq(model.getFilename())
+                        .and(QBagFile.bagFile.bag.id.eq(id)))
+                .fetchOne();
+
         Long tokenId = queryFactory.select(QAceToken.aceToken.id)
                 .from(QAceToken.aceToken)
                 .where(QAceToken.aceToken.bag.id.eq(id)
-                        .and(QAceToken.aceToken.filename.eq(model.getFilename())))
+                        .and(QAceToken.aceToken.file.filename.eq(model.getFilename())))
                 .fetchCount();
 
-        if (bag == null) {
-            response = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        if (bag == null || bagFile == null) {
+            response = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } else if (!authorized(principal, bag)) {
             response = ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } else if (tokenId > 0) {
             response = ResponseEntity.status(HttpStatus.CONFLICT).build();
         } else {
-            AceToken token = new AceToken(model.getFilename(),
+            AceToken token = new AceToken(
                     model.getProof(),
                     model.getRound(),
                     model.getImsService(),
                     model.getAlgorithm(),
                     model.getImsHost(),
-                    Date.from(model.getCreateDate().toInstant()));
+                    Date.from(model.getCreateDate().toInstant()),
+                    bagFile);
+            bagFile.setToken(token);
             token.setBag(bag);
-            dao.save(token);
+            dao.save(bag);
             response = ResponseEntity.status(HttpStatus.CREATED)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(token);

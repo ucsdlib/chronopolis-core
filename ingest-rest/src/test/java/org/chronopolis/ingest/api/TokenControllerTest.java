@@ -7,6 +7,7 @@ import org.chronopolis.ingest.repository.criteria.SearchCriteria;
 import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.BagFile;
 import org.chronopolis.rest.entities.depositor.Depositor;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -81,16 +82,15 @@ public class TokenControllerTest {
         depositor.setNodeDistributions(new HashSet<>());
         Bag bag = new Bag("test-name", depositor.getNamespace(), depositor, 1L, 1L, DEPOSITED);
         bag.setId(1L);
-        bag.setBagStorage(new HashSet<>());
-        bag.setTokenStorage(new HashSet<>());
-        bag.setDistributions(new HashSet<>());
-        AceToken token = new AceToken("test-filename",
-                "test-proof",
+        BagFile file = new BagFile();
+        file.setFilename("test-filename");
+        AceToken token = new AceToken("test-proof",
                 100L,
                 "test-ims",
                 "test-algorithm",
                 "test-ims-host",
-                new Date());
+                new Date(),
+                file);
         token.setBag(bag);
         token.setId(1L);
         return token;
