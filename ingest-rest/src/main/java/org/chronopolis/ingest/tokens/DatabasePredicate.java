@@ -49,7 +49,7 @@ public class DatabasePredicate implements Predicate<ManifestEntry> {
         String filename = entry.getPath();
         boolean notExists = qf.selectFrom(QAceToken.aceToken)
                 .where(QAceToken.aceToken.bag.id.eq(bagId)
-                        .and(QAceToken.aceToken.filename.eq(filename)))
+                        .and(QAceToken.aceToken.file.filename.eq(filename)))
                 .fetchCount() == 0;
 
         log.trace("[{}:{}] DbFilter: Token !exists {}", entry.getBag().getName(),

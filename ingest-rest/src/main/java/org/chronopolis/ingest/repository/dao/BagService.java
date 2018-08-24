@@ -6,14 +6,13 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.BagDistributionStatus;
+import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QAceToken;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.depositor.Depositor;
 import org.chronopolis.rest.entities.depositor.QDepositor;
 import org.chronopolis.rest.entities.storage.QStorageRegion;
-import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.create.BagCreate;
 import org.chronopolis.rest.models.enums.BagStatus;
@@ -22,7 +21,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -164,20 +162,8 @@ public class BagService extends SearchService<Bag, Long, BagRepository> {
                     request.getSize(),
                     request.getTotalFiles(),
                     BagStatus.DEPOSITED);
-            // get the late inits populated
-            bag.setBagStorage(new HashSet<>());
-            bag.setTokenStorage(new HashSet<>());
-            bag.setDistributions(new HashSet<>());
 
-            StagingStorage storage = new StagingStorage();
-            storage.setRegion(region);
-            storage.setActive(true);
-            storage.setSize(request.getSize());
-            storage.setTotalFiles(request.getTotalFiles());
-            storage.setPath(request.getLocation());
-            bag.getBagStorage().add(storage);
             createDistributions(bag, depositor);
-
             save(bag);
             result = new BagCreateResult(bag);
         } else {

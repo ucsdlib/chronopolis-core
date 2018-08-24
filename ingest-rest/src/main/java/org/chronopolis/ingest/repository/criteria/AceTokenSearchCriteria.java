@@ -35,7 +35,7 @@ public class AceTokenSearchCriteria implements SearchCriteria {
 
     public AceTokenSearchCriteria withFilenames(String filenames) {
         if (filenames != null && !filenames.isEmpty()) {
-            criteria.put("PATHS", aceToken.filename.in(filenames));
+            criteria.put("PATHS", aceToken.file.filename.eq(filenames));
         }
 
         return this;
