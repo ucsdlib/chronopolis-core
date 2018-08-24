@@ -1,1 +1,0 @@
-INSERT INTO restoration VALUES (1, 'test-depositor', 'rsync@restore', 'test-bag-0', 'rsync', 'PENDING', 1);
