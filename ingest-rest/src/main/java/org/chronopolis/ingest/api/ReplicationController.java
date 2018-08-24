@@ -8,7 +8,6 @@ import org.chronopolis.ingest.repository.dao.ReplicationService;
 import org.chronopolis.ingest.repository.dao.StagingService;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
@@ -40,9 +39,12 @@ import static org.chronopolis.ingest.api.Params.NODE;
 import static org.chronopolis.ingest.api.Params.STATUS;
 import static org.chronopolis.ingest.api.Params.UPDATED_AFTER;
 import static org.chronopolis.ingest.api.Params.UPDATED_BEFORE;
+import static org.chronopolis.ingest.repository.dao.StagingService.DISCRIMINATOR_BAG;
+import static org.chronopolis.ingest.repository.dao.StagingService.DISCRIMINATOR_TOKEN;
 
 /**
  * REST controller for replication methods
+ * todo: do we need to do check fixity here? is replication.checkTransferred good enough?
  *
  * Created by shake on 11/5/14.
  */
@@ -121,8 +123,8 @@ public class ReplicationController extends IngestController {
         // Validate the fixity and update the replication
         // need to get active storage
         Optional<StagingStorage> storage =
-                stagingService.activeStorageForBag(bag, QBag.bag.tokenStorage);
-        storage.ifPresent(s -> checkFixity(r, s.getFixities(), fixity, failureStatus));
+                stagingService.activeStorageForBag(bag, DISCRIMINATOR_TOKEN);
+        storage.ifPresent(s -> checkFixity(r, s.getFile().getFixities(), fixity, failureStatus));
         r.setReceivedTokenFixity(fixity);
         r.checkTransferred();
         replicationService.save(r);
@@ -153,8 +155,8 @@ public class ReplicationController extends IngestController {
 
         // Validate the fixity and update the replication
         Optional<StagingStorage> storage =
-                stagingService.activeStorageForBag(bag, QBag.bag.bagStorage);
-        storage.ifPresent(s -> checkFixity(r, s.getFixities(), fixity, failureStatus));
+                stagingService.activeStorageForBag(bag, DISCRIMINATOR_BAG);
+        storage.ifPresent(s -> checkFixity(r, s.getFile().getFixities(), fixity, failureStatus));
         r.setReceivedTagFixity(update.getFixity());
         r.checkTransferred();
         replicationService.save(r);

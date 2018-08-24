@@ -1,6 +1,5 @@
 package org.chronopolis.ingest.repository.dao;
 
-import com.querydsl.core.types.CollectionExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.repository.StorageRepository;
 import org.chronopolis.rest.entities.Bag;
@@ -21,6 +20,10 @@ import java.util.Optional;
 @Transactional
 public class StagingService extends SearchService<StagingStorage, Long, StorageRepository> {
 
+    // I don't know where to define these, should be cleaned up before the release
+    public static final String DISCRIMINATOR_BAG = "BAG";
+    public static final String DISCRIMINATOR_TOKEN = "TOKEN_STORE";
+
     private final EntityManager manager;
 
     public StagingService(StorageRepository storageRepository, EntityManager manager) {
@@ -31,35 +34,34 @@ public class StagingService extends SearchService<StagingStorage, Long, StorageR
     /**
      * Get the active storage object for a bag
      *
-     * @param bag         the bag whose staging_storage we're retrieving
-     * @param storageJoin the table to join on
+     * @param bag           the bag whose staging_storage we're retrieving
+     * @param discriminator the discriminator to join on
      * @return the StagingStorage entity, if found
      */
-    public Optional<StagingStorage> activeStorageForBag(Bag bag,
-                                                        CollectionExpression<?, StagingStorage> storageJoin) {
-        return activeStorageForBag(bag.getId(), storageJoin);
+    public Optional<StagingStorage> activeStorageForBag(Bag bag, String discriminator) {
+        return activeStorageForBag(bag.getId(), discriminator);
     }
 
     /**
      * Get the active storage object for a bag given its id
      *
-     * @param bag         the id of the bag
-     * @param storageJoin the table to join on
+     * @param bag           the id of the bag
+     * @param discriminator the discriminator to join on
      * @return the StagingStorage entity, if found
      */
-    public Optional<StagingStorage> activeStorageForBag(Long bag,
-                                                        CollectionExpression<?, StagingStorage> storageJoin) {
+    public Optional<StagingStorage> activeStorageForBag(Long bag, String discriminator) {
         JPAQueryFactory factory = new JPAQueryFactory(manager);
         QBag b = QBag.bag;
         QStagingStorage storage = QStagingStorage.stagingStorage;
         // once again not the best query but that's ok
         return Optional.ofNullable(factory.from(b)
-                .innerJoin(storageJoin, storage)
-                .where(storage.active.isTrue().and(b.id.eq(bag)))
+                .innerJoin(b.storage, storage)
+                .where(storage.active.isTrue()
+                        .and(storage.file.dtype.eq(discriminator)
+                        .and(storage.bag.id.eq(bag))))
                 .select(storage)
                 .fetchOne());
     }
-
 
     /**
      * Remove a fixity value fora given StagingStorage entity
@@ -71,7 +73,7 @@ public class StagingService extends SearchService<StagingStorage, Long, StorageR
         JPAQueryFactory factory = new JPAQueryFactory(manager);
         QFixity fixity = QFixity.fixity;
         factory.delete(fixity)
-                .where(fixity.storage.eq(storage), fixity.id.eq(fixityId))
+                .where(fixity.id.eq(fixityId))
                 .execute();
     }
 }

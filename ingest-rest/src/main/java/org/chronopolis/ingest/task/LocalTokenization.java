@@ -73,7 +73,8 @@ public class LocalTokenization {
             creator = "admin";
         }
 
-        BooleanExpression ingestStorage = QBag.bag.bagStorage.any().region.id.eq(staging.getId());
+        // todo: enforce that the storage has a 'BAG' file for validation
+        BooleanExpression ingestStorage = QBag.bag.storage.any().region.id.eq(staging.getId());
 
         // Would like to do a paged list but for now this will be ok
         List<Bag> bags = dao.findAll(QBag.bag, ingestStorage
@@ -87,7 +88,7 @@ public class LocalTokenization {
                     .fetchCount();
 
             log.trace("[{}] Submitting: {}", bag.getName(), count < bag.getTotalFiles());
-            Optional<StagingStorage> storage = bag.getBagStorage().stream()
+            Optional<StagingStorage> storage = bag.getStorage().stream()
                     .filter(StagingStorage::isActive)
                     .findFirst();
 

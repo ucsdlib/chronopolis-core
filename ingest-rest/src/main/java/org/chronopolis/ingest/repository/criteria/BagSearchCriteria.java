@@ -66,7 +66,7 @@ public class BagSearchCriteria implements SearchCriteria {
     public BagSearchCriteria withRegion(String region) {
         if (region != null) {
             Long regionId = Long.parseLong(region);
-            criteria.put(Params.REGION, bag.bagStorage.any().region.id.eq(regionId));
+            criteria.put(Params.REGION, bag.storage.any().region.id.eq(regionId));
         }
         return this;
     }
@@ -74,7 +74,7 @@ public class BagSearchCriteria implements SearchCriteria {
     public BagSearchCriteria withActiveStorage(String active) {
         if (active != null) {
             Boolean isActive = Boolean.parseBoolean(active);
-            criteria.put(Params.ACTIVE, bag.bagStorage.any().active.eq(isActive));
+            criteria.put(Params.ACTIVE, bag.storage.any().active.eq(isActive));
         }
         return this;
     }

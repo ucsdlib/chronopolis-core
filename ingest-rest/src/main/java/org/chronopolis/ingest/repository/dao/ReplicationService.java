@@ -1,7 +1,6 @@
 package org.chronopolis.ingest.repository.dao;
 
 import com.google.common.collect.ImmutableList;
-import com.querydsl.core.types.dsl.SetPath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.exception.NotFoundException;
@@ -35,6 +34,8 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.chronopolis.ingest.repository.dao.StagingService.DISCRIMINATOR_BAG;
+import static org.chronopolis.ingest.repository.dao.StagingService.DISCRIMINATOR_TOKEN;
 
 
 /**
@@ -114,8 +115,8 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
      * @return the result of creating the replication
      */
     public ReplicationCreateResult create(final Bag bag, final Node node) {
-        Optional<StagingStorage> bagStorage = queryStorage(bag.getId(), QBag.bag.bagStorage);
-        return bagStorage.filter(staging -> !staging.getFixities().isEmpty())
+        Optional<StagingStorage> bagStorage = queryStorage(bag.getId(), DISCRIMINATOR_BAG);
+        return bagStorage.filter(staging -> !staging.getFile().getFixities().isEmpty())
                 .map(staging -> createReplicationString(staging, true))
                 .map(staging -> withBagStorage(bag, node, staging))
                 .orElseGet(() -> new ReplicationCreateResult(ImmutableList
@@ -133,8 +134,8 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
      * @return the result of creating the replication
      */
     private ReplicationCreateResult withBagStorage(Bag bag, Node node, String bagLink) {
-        return queryStorage(bag.getId(), QBag.bag.tokenStorage)
-                .filter(staging -> !staging.getFixities().isEmpty())
+        return queryStorage(bag.getId(), DISCRIMINATOR_TOKEN)
+                .filter(staging -> !staging.getFile().getFixities().isEmpty())
                 .map(staging -> createReplicationString(staging, false))
                 .map(tokenLink -> withTokenStorage(bag, node, bagLink, tokenLink))
                 .orElseGet(() -> new ReplicationCreateResult(ImmutableList
@@ -196,13 +197,11 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
     /**
      * Retrieve a StagingStorage entity for a bag
      *
-     * @param bagId       the id of the bag
-     * @param storageJoin the table to join on (either bag_staging or token_staging)
+     * @param bagId         the id of the bag
+     * @param discriminator the discriminator to join on (either BAG or TOKEN_STORE)
      * @return the StagingStorage entity, wrapped in an Optional in the event none exist
      */
-    private Optional<StagingStorage> queryStorage(Long bagId,
-                                                  SetPath<StagingStorage,
-                                                          QStagingStorage> storageJoin) {
+    private Optional<StagingStorage> queryStorage(Long bagId, String discriminator) {
         log.trace("[Bag-{}] Querying storage", bagId);
         QBag b = QBag.bag;
         QStagingStorage storage = QStagingStorage.stagingStorage;
@@ -225,8 +224,8 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
          */
         JPAQueryFactory factory = new JPAQueryFactory(manager);
         JPAQuery<StagingStorage> query = factory.from(b)
-                .innerJoin(storageJoin, storage)
-                .where(storage.active.isTrue().and(b.id.eq(bagId)))
+                .innerJoin(b.storage, storage)
+                .where(storage.active.isTrue().and(storage.file.dtype.eq(discriminator)))
                 .select(storage);
 
         return Optional.ofNullable(query.fetchFirst());

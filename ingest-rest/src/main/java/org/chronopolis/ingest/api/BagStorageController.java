@@ -3,7 +3,7 @@ package org.chronopolis.ingest.api;
 import com.google.common.collect.ImmutableSet;
 import org.chronopolis.ingest.repository.dao.StagingService;
 import org.chronopolis.ingest.support.Loggers;
-import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.DataFile;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.models.create.FixityCreate;
@@ -27,6 +27,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
+import static org.chronopolis.ingest.repository.dao.StagingService.DISCRIMINATOR_BAG;
+import static org.chronopolis.ingest.repository.dao.StagingService.DISCRIMINATOR_TOKEN;
 
 /**
  * REST controller for interacting with the Storage fields in a Bag
@@ -39,9 +41,6 @@ public class BagStorageController {
 
     private final Logger log = LoggerFactory.getLogger(BagStorageController.class);
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
-
-    private static final String BAG_TYPE = "bag";
-    private static final String TOKEN_TYPE = "token";
 
     private final StagingService stagingService;
 
@@ -128,7 +127,8 @@ public class BagStorageController {
                                                     @PathVariable("type") String type) {
         access.info("[GET /api/bags/{}/storage/{}/fixity]", id, type);
         Optional<StagingStorage> storage = storageFor(id, type);
-        return storage.map(StagingStorage::getFixities)
+        return storage.map(StagingStorage::getFile)
+                .map(DataFile::getFixities)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.ok(ImmutableSet.of())); // no 404, just an empty set
     }
@@ -155,7 +155,7 @@ public class BagStorageController {
 
         Fixity fixity = new Fixity();
         fixity.setValue(create.getValue());
-        fixity.setAlgorithm(create.getAlgorithm());
+        fixity.setAlgorithm(create.getAlgorithm().getCanonical());
         fixity.setCreatedAt(ZonedDateTime.now());
 
         Optional<StagingStorage> stagingStorage = storageFor(id, type);
@@ -179,8 +179,7 @@ public class BagStorageController {
         try {
             String owner = storage.getRegion().getNode().getUsername();
             if (hasRoleAdmin() || owner.equalsIgnoreCase(principal.getName())) {
-                storage.getFixities().add(fixity);
-                fixity.setStorage(storage);
+                storage.getFile().getFixities().add(fixity);
                 stagingService.save(storage);
                 response = ResponseEntity.status(HttpStatus.CREATED).body(fixity);
             } else {
@@ -213,7 +212,8 @@ public class BagStorageController {
         access.info("[GET /api/bags/{}/storage/{}/fixity/{alg}]", id, type, algorithm);
 
         Optional<StagingStorage> storage = storageFor(id, type);
-        return storage.map(StagingStorage::getFixities)
+        return storage.map(StagingStorage::getFile)
+                .map(DataFile::getFixities)
                 // this.... sucks
                 .flatMap(fixities -> fixities.stream()
                         .filter(f -> f.getAlgorithm().equalsIgnoreCase(algorithm))
@@ -225,6 +225,8 @@ public class BagStorageController {
     /**
      * Retrieve the StagingStorage for a given Bag and type, or Optional.empty if it does not exist
      *
+     * todo: u p d a t e (properly though)
+     *
      * @param bag  the bag to retrieve the StagingStorage object from
      * @param type the type of StagingStorage to retrieve
      * @return the StagingStorage
@@ -232,10 +234,10 @@ public class BagStorageController {
     private Optional<StagingStorage> storageFor(Long bag, String type) {
         Optional<StagingStorage> storage = Optional.empty();
 
-        if (TOKEN_TYPE.equalsIgnoreCase(type)) {
-            storage = stagingService.activeStorageForBag(bag, QBag.bag.tokenStorage);
-        } else if (BAG_TYPE.equalsIgnoreCase(type)) {
-            storage = stagingService.activeStorageForBag(bag, QBag.bag.bagStorage);
+        if (DISCRIMINATOR_TOKEN.equalsIgnoreCase(type)) {
+            storage = stagingService.activeStorageForBag(bag, type);
+        } else if (DISCRIMINATOR_BAG.equalsIgnoreCase(type)) {
+            storage = stagingService.activeStorageForBag(bag, type);
         }
 
         return storage;

@@ -4,9 +4,11 @@ import org.chronopolis.ingest.repository.criteria.SearchCriteria;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
 import org.chronopolis.ingest.repository.dao.StagingService;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.BagFile;
+import org.chronopolis.rest.entities.DataFile;
 import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.entities.TokenStore;
 import org.chronopolis.rest.entities.depositor.Depositor;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
@@ -30,13 +32,15 @@ import java.util.HashSet;
 import java.util.Optional;
 
 import static com.google.common.collect.ImmutableSet.of;
+import static org.chronopolis.ingest.repository.dao.StagingService.DISCRIMINATOR_BAG;
+import static org.chronopolis.ingest.repository.dao.StagingService.DISCRIMINATOR_TOKEN;
+import static org.chronopolis.rest.models.enums.FixityAlgorithm.SHA_256;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -91,8 +95,8 @@ public class ReplicationControllerTest extends ControllerTest {
 
     @Test
     public void testCorrectUpdate() throws Exception {
-        when(staging.activeStorageForBag(any(Bag.class), eq(QBag.bag.tokenStorage)))
-                .thenReturn(Optional.of(stagingStorage(CORRECT_TOKEN_FIXITY)));
+        when(staging.activeStorageForBag(any(Bag.class), eq(DISCRIMINATOR_TOKEN)))
+                .thenReturn(Optional.of(stagingStorage(tokenStore(CORRECT_TOKEN_FIXITY))));
         setupPut("/api/replications/{id}/tokenstore", 4L, new FixityUpdate(CORRECT_TOKEN_FIXITY))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.status").value("PENDING"))
@@ -109,8 +113,8 @@ public class ReplicationControllerTest extends ControllerTest {
 
     @Test
     public void testInvalidTokenFixity() throws Exception {
-        when(staging.activeStorageForBag(any(Bag.class), eq(QBag.bag.tokenStorage)))
-                .thenReturn(Optional.of(stagingStorage(CORRECT_TAG_FIXITY)));
+        when(staging.activeStorageForBag(any(Bag.class), eq(DISCRIMINATOR_TOKEN)))
+                .thenReturn(Optional.of(stagingStorage(bagFile(CORRECT_TAG_FIXITY))));
         setupPut("/api/replications/{id}/tokenstore", 4L, new FixityUpdate(INVALID_FIXITY))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.status").value("FAILURE_TOKEN_STORE"))
@@ -119,8 +123,8 @@ public class ReplicationControllerTest extends ControllerTest {
 
     @Test
     public void testInvalidTagFixity() throws Exception {
-        when(staging.activeStorageForBag(any(Bag.class), eq(QBag.bag.bagStorage)))
-                .thenReturn(Optional.of(stagingStorage(CORRECT_TOKEN_FIXITY)));
+        when(staging.activeStorageForBag(any(Bag.class), eq(DISCRIMINATOR_BAG)))
+                .thenReturn(Optional.of(stagingStorage(tokenStore(CORRECT_TOKEN_FIXITY))));
         setupPut("/api/replications/{id}/tagmanifest", 4L, new FixityUpdate(INVALID_FIXITY))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.status").value("FAILURE_TAG_MANIFEST"))
@@ -147,18 +151,28 @@ public class ReplicationControllerTest extends ControllerTest {
 
         Bag bag = new Bag("test-bag", "test-creator", depositor, 1L, 1L, BagStatus.REPLICATING);
         bag.setId(1L);
-        bag.setBagStorage(of(stagingStorage(CORRECT_TAG_FIXITY)));
-        bag.setTokenStorage(of(stagingStorage(CORRECT_TOKEN_FIXITY)));
+        bag.addStagingStorage(stagingStorage(bagFile(CORRECT_TAG_FIXITY)));
+        bag.addStagingStorage(stagingStorage(tokenStore(CORRECT_TOKEN_FIXITY)));
         bag.setDistributions(new HashSet<>());
         return bag;
     }
 
-    private StagingStorage stagingStorage(String value) {
+    // not sure if we need to bother with id, filenames, etc on the Files
+    private BagFile bagFile(String fixity) {
+        BagFile bagFile = new BagFile();
+        bagFile.getFixities().add(new Fixity(ZonedDateTime.now(), fixity, SHA_256.getCanonical()));
+        return bagFile;
+    }
+
+    private TokenStore tokenStore(String fixity) {
+        TokenStore store = new TokenStore();
+        store.getFixities().add(new Fixity(ZonedDateTime.now(), fixity, SHA_256.getCanonical()));
+        return store;
+    }
+
+    private StagingStorage stagingStorage(DataFile file) {
         StagingStorage storage = new StagingStorage();
-        storage.setBags(new HashSet<>());
-        storage.setTokens(new HashSet<>());
-        storage.setFixities(new HashSet<>());
-        storage.addFixity(new Fixity(storage, ZonedDateTime.now(), value, "test-algorithm"));
+        storage.setFile(file);
         return storage;
     }
 
