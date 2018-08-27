@@ -85,9 +85,9 @@ public class TokenDao extends PagedDAO {
                     model.getAlgorithm(),
                     model.getImsHost(),
                     Date.from(model.getCreateDate().toInstant()),
+                    bag,
                     bagFile);
             bagFile.setToken(token);
-            token.setBag(bag);
             save(bag);
             response = ResponseEntity.status(HttpStatus.CREATED)
                     .contentType(MediaType.APPLICATION_JSON)

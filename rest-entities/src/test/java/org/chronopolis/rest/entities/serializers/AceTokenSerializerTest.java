@@ -71,9 +71,8 @@ public class AceTokenSerializerTest {
         bagFile.setCreatedAt(ZonedDateTime.now());
         bagFile.setSize(id);
         bagFile.setFixities(new HashSet<>());
-        AceToken token = new AceToken(proof, round, ims, algorithm, host, date, bagFile);
+        AceToken token = new AceToken(proof, round, ims, algorithm, host, date, genBag(), bagFile);
         token.setId(id);
-        token.setBag(genBag());
         assertThat(json.write(token)).isEqualToJson("token.json");
     }
 

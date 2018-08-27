@@ -10,14 +10,14 @@ import javax.persistence.OneToOne
 /**
  * AceToken connected to a single [BagFile]
  *
- * @property proof
- * @property round
- * @property imsService
- * @property algorithm
- * @property imsHost
- * @property createDate
- * @property file
- * @property bag
+ * @property proof the proof returned by the IMS
+ * @property round the round returned by the IMS
+ * @property imsService the digest service used by the IMS
+ * @property algorithm the digest algorithm used by the IMS
+ * @property imsHost the hostname of the IMS
+ * @property createDate the create date of the Ace Token returned by the IMS
+ * @property bag the corresponding [Bag]
+ * @property file the corresponding [BagFile]
  *
  * @author shake
  */
@@ -30,14 +30,13 @@ class AceToken(
         var imsHost: String = "",
         var createDate: Date = Date(),
 
+        @ManyToOne(fetch = FetchType.LAZY)
+        var bag: Bag = Bag(),
+
         @OneToOne
         @JoinColumn(name = "file_id")
         var file: BagFile = BagFile()
 ) : PersistableEntity() {
-
-    // move to constructor?
-    @ManyToOne(fetch = FetchType.LAZY)
-    lateinit var bag: Bag
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

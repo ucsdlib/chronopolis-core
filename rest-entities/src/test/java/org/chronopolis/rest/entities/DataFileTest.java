@@ -95,8 +95,7 @@ public class DataFileTest {
         file.setFixities(ImmutableSet.of(fixity));
 
         AceToken token = new AceToken(PROOF, LONG_VALUE,
-                IMS_SERVICE, FIXITY_ALGORITHM, IMS_HOST, date, file);
-        token.setBag(bag);
+                IMS_SERVICE, FIXITY_ALGORITHM, IMS_HOST, date, bag, file);
         file.setToken(token);
         bag.addFile(file);
 
@@ -138,8 +137,7 @@ public class DataFileTest {
         bagFile.getFixities().add(fixity);
 
         token = new AceToken(PROOF, LONG_VALUE,
-                IMS_SERVICE, FIXITY_ALGORITHM, IMS_HOST, date, bagFile);
-        token.setBag(fetch);
+                IMS_SERVICE, FIXITY_ALGORITHM, IMS_HOST, date, bag, bagFile);
         bagFile.setToken(token);
 
         entityManager.merge(fetch);

@@ -97,9 +97,9 @@ public class IngestTokenRegistrar implements TokenRegistrar, Runnable {
                             response.getDigestService(),
                             IMS_HOST,
                             create,
+                            bag,
                             file);
                     file.setToken(token);
-                    token.setBag(bag);
                     dao.save(token);
                 }
             } finally {

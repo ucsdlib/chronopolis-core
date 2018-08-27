@@ -90,8 +90,8 @@ public class TokenControllerTest {
                 "test-algorithm",
                 "test-ims-host",
                 new Date(),
+                bag,
                 file);
-        token.setBag(bag);
         token.setId(1L);
         return token;
     }

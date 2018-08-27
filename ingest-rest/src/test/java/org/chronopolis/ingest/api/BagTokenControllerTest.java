@@ -76,7 +76,7 @@ public class BagTokenControllerTest extends ControllerTest {
     @Test
     public void testGetTokensForBag() throws Exception {
         when(dao.findPage(eq(QAceToken.aceToken), any(Paged.class)))
-                .thenReturn(wrap(generateToken()));
+                .thenReturn(wrap(generateToken(generateBag())));
 
         mvc.perform(
                 get("/api/bags/{id}/tokens", 1L)
@@ -90,7 +90,7 @@ public class BagTokenControllerTest extends ControllerTest {
         Bag bag = generateBag();
         AceTokenCreate model = generateModel();
         ResponseEntity<AceToken> response =
-                ResponseEntity.status(HttpStatus.CREATED).body(generateToken());
+                ResponseEntity.status(HttpStatus.CREATED).body(generateToken(bag));
         // for whatever reason this gets weird when checking equality against the model
         // not like that matters because this tests literally nothing except serialization I guess
         when(dao.createToken(any(Principal.class), eq(bag.getId()), any()))
@@ -135,14 +135,13 @@ public class BagTokenControllerTest extends ControllerTest {
     // These are pulled from the TokenControllerTest, since we're doing simple operations at the moment that's ok
     // but we'll probably want a better way to do this
     @SuppressWarnings("Duplicates")
-    private AceToken generateToken() {
+    private AceToken generateToken(Bag bag) {
         BagFile file = new BagFile();
         file.setFilename("test-filename");
 
         AceToken token = new AceToken("test-proof", 100L, "test-ims-host",
-                "test-ims", "test-algorithm", new Date(), file);
+                "test-ims", "test-algorithm", new Date(), bag, file);
         token.setId(1L);
-        token.setBag(generateBag());
         return token;
     }
 
