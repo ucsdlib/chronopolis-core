@@ -1,0 +1,4 @@
+ALTER TABLE ace_token ALTER COLUMN file_id SET NOT NULL;
+ALTER TABLE ace_token ALTER COLUMN bag_id SET NOT NULL;
+ALTER TABLE staging_storage ALTER COLUMN bag_id SET NOT NULL;
+ALTER TABLE staging_storage ALTER COLUMN file_id SET NOT NULL;
