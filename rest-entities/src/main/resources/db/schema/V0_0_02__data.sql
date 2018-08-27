@@ -1,3 +1,4 @@
+-- NOTE: This is only test data and should not be used in production
 insert into users (username, password, enabled) values ('admin', '$2a$04$PLODVoI9PXF4cu9uk.Zng.vFQ8883O5FnF/GvlBGChVZh7Ne/3hem', true);
 insert into users (username, password, enabled) values ('umiacs', '$2a$04$76rT9ZdZ0x4i..B.XDJDXeFrWjXIMBtQYTfTRA2pMhar7yhywJBAW', true);
 insert into users (username, password, enabled) values ('ncar', '$2a$04$TXo2NmbY8WcAOAcIU6NZUuTBysa6/cZS.GU4capVVY/jC2EFjdQBu', true);
