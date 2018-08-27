@@ -21,6 +21,6 @@ WITH tb AS (SELECT ss.id AS rowid, f.id AS file_id FROM staging_storage ss
 WITH tb AS (SELECT ss.id AS rowid, f.id AS file_id FROM staging_storage ss
               JOIN token_storage ts ON ss.id = ts.staging_id
               JOIN file f ON ss.bag_id = f.bag_id
-              WHERE f.dtype = 'TOKEN')
+              WHERE f.dtype = 'TOKEN_STORE')
   UPDATE staging_storage
   SET file_id = tb.file_id FROM tb WHERE id = tb.rowid;

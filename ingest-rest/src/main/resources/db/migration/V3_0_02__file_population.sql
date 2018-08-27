@@ -5,7 +5,7 @@ INSERT INTO file(bag_id, filename, type)
 -- token entity creation (pull path from storage)
 -- regexp replace up to the first '/' so we only get the token store name
 INSERT INTO file(size, bag_id, filename, created_at, type)
-  SELECT size, bag_id, created_at, regexp_replace(path, '.*/(.*)', '\1'), ('TOKEN')
+  SELECT size, bag_id, created_at, regexp_replace(path, '.*/(.*)', '\1'), ('TOKEN_STORE')
   FROM token_storage
   JOIN staging_storage ON (token_storage.staging_id = staging_storage.id);
 
@@ -23,4 +23,4 @@ INSERT INTO file_fixity(file_id, fixity_id)
     SELECT file.id, fixity.id FROM token_storage
       JOIN fixity ON (token_storage.staging_id = fixity.storage_id)
       JOIN file ON (token_storage.bag_id = file.bag_id)
-      WHERE file.dtype = 'TOKEN';
+      WHERE file.dtype = 'TOKEN_STORE';
