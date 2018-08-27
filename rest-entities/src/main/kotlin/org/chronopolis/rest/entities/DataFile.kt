@@ -12,7 +12,6 @@ import javax.persistence.JoinColumn
 import javax.persistence.JoinTable
 import javax.persistence.ManyToMany
 import javax.persistence.ManyToOne
-import javax.persistence.OneToOne
 import javax.persistence.Table
 
 /**
@@ -37,9 +36,6 @@ abstract class DataFile(
 
     @Column(insertable = false, updatable = false)
     var dtype: String? = null
-
-    @OneToOne(mappedBy = "file", cascade = [ALL], orphanRemoval = true, fetch = EAGER)
-    var token: AceToken? = null
 
     @JoinTable(name = "file_fixity",
             joinColumns = [(JoinColumn(name = "file_id"))],

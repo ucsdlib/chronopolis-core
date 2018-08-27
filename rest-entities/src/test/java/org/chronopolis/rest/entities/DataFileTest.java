@@ -74,10 +74,12 @@ public class DataFileTest {
                 Assert.assertEquals(fixity.getAlgorithm(), registeredFixity.getAlgorithm());
             });
 
-            Assert.assertNotNull(df.getToken());
-            Assert.assertEquals(token, df.getToken());
+            Assert.assertTrue(df instanceof BagFile);
+            BagFile bf = (BagFile) df;
+            Assert.assertNotNull(bf.getToken());
+            Assert.assertEquals(token, bf.getToken());
+            Assert.assertEquals(bag, bf.getToken().getBag());
             Assert.assertEquals(bag, df.getBag());
-            Assert.assertEquals(bag, df.getToken().getBag());
         });
     }
 
