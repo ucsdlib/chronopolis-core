@@ -11,9 +11,6 @@ import javax.persistence.PreUpdate
 /**
  * Replication in chronopolis beep
  *
- * todo: with the file changes should we introduce relations to the staging areas which this will
- * pull from? it's tricky to get it from the Bag now, though there may be a way...
- *
  * @author shake
  */
 @Entity

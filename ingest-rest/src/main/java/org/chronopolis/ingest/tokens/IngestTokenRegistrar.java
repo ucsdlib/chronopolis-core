@@ -24,7 +24,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Registrar which loads Tokens directly into the DB
  * <p>
- * todo: update for BagFile
  *
  * @author shake
  */

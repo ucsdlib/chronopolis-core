@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
-import com.google.common.collect.ImmutableSet;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.storage.ReplicationConfig;
 import org.chronopolis.rest.entities.storage.StorageRegion;
@@ -61,7 +60,6 @@ public class StorageRegionSerializerTest {
         region.setId(2L);
         region.setNote("note");
         region.setNode(new Node(emptySet(), "test-node", "test-node", true));
-        region.setStorage(ImmutableSet.of());
         region.setCapacity(250L);
         region.setDataType(DataType.BAG);
         region.setStorageType(StorageType.LOCAL);

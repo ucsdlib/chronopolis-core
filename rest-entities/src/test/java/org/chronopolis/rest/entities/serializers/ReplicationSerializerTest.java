@@ -67,9 +67,6 @@ public class ReplicationSerializerTest {
         String datetime = "2017-06-30T20:24:01.311Z";
         ZonedDateTime time = ZonedDateTime.from(fmt.parse(datetime));
         Bag bag = new Bag(bagName, depositor.getNamespace(), depositor, 0L, 0L, DEPOSITED);
-        // bag.setBagStorage(emptySet());
-        // bag.setTokenStorage(emptySet());
-        bag.setDistributions(emptySet());
         Replication replication = new Replication(ReplicationStatus.SUCCESS,
                 new Node(emptySet(), node, node, true),
                 bag,

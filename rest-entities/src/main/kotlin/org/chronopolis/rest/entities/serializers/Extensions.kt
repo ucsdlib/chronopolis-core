@@ -55,7 +55,6 @@ fun BagEntity.model(): Bag {
             status = this.status,
             createdAt = this.createdAt,
             updatedAt = this.updatedAt,
-            // todo: update this
             bagStorage = this.storage
                     .filter {
                         when (it.file) {

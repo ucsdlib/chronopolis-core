@@ -77,10 +77,6 @@ public class AceTokenSerializerTest {
         assertThat(json.write(token)).isEqualToJson("token.json");
     }
 
-    private BagFile genBagFile() {
-        return null;
-    }
-
     private Bag genBag() {
         Bag b = new Bag();
         b.setId(1L);

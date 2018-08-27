@@ -80,9 +80,7 @@ public class BagTokenController extends IngestController {
                                                       @Valid @RequestBody AceTokenCreate model) {
         access.info("[POST /api/bags/{}/tokens] - {}", id, principal.getName());
         access.info("Post parameters - {};{}", model.getBagId(), model.getFilename());
-        ResponseEntity<AceToken> token = dao.createToken(principal, id, model);
-        access.info("YO RESPONSE IS {}", token.getStatusCode());
-        return token;
+        return dao.createToken(principal, id, model);
     }
 
 }

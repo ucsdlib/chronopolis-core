@@ -6,7 +6,6 @@ import javax.persistence.OneToMany
 /**
  * Representation of a Node in Chronopolis
  *
- * todo: lateinit Sets?
  * todo: remove password/enabled... maybe rename username
  *
  * @author shake

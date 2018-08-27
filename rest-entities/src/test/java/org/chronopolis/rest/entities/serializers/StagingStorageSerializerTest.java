@@ -66,7 +66,6 @@ public class StagingStorageSerializerTest {
         storage.setUpdatedAt(zdt);
         storage.setCreatedAt(zdt);
         storage.setActive(true);
-        // storage.setChecksum("test-checksum");
         storage.setPath("test-path");
         storage.setSize(100L);
         storage.setTotalFiles(10L);

@@ -18,7 +18,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 import java.time.ZonedDateTime;
-import java.util.Collections;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,7 +53,6 @@ public class DepositorSerializerTest {
         final Depositor depositor = new Depositor(namespace, "test-organization", "test-address");
         depositor.setId(1L);
         depositor.setContacts(contacts);
-        depositor.setNodeDistributions(Collections.emptySet());
         depositor.setCreatedAt(ZonedDateTime.parse(dateTimeString));
         depositor.setUpdatedAt(ZonedDateTime.parse(dateTimeString));
 
