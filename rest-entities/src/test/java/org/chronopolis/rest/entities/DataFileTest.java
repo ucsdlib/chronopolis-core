@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableSet;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.rest.entities.depositor.Depositor;
 import org.chronopolis.rest.entities.storage.Fixity;
+import org.chronopolis.rest.entities.storage.QFixity;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -104,6 +105,19 @@ public class DataFileTest {
         entityManager.persist(bag);
 
         runChecks(name, bag, token, fixity);
+
+        // checks against querying fixity
+        JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
+        QFixity qFixity = QFixity.fixity;
+        Fixity fetchFixity = queryFactory.select(qFixity)
+                .from(QBagFile.bagFile)
+                .join(QBagFile.bagFile.fixities, qFixity)
+                .where(QBagFile.bagFile.id.eq(file.getId())
+                        .and(qFixity.algorithm.eq(FIXITY_ALGORITHM)))
+                .fetchOne();
+
+        Assert.assertNotNull(fetchFixity);
+        
     }
 
     @Test
