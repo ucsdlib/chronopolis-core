@@ -40,7 +40,7 @@ public class BagEntityTest {
 
     private final Long LONG_VALUE = 1L;
     private final String CREATOR = "bag-entity-test";
-    private final String TEST_PATH = "test-path";
+    private final String TEST_PATH = "/test-path";
 
     @Autowired
     private EntityManager entityManager;

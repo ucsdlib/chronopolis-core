@@ -4,13 +4,13 @@ import javax.persistence.CascadeType.MERGE
 import javax.persistence.CascadeType.PERSIST
 import javax.persistence.DiscriminatorValue
 import javax.persistence.Entity
-import javax.persistence.FetchType.EAGER
+import javax.persistence.FetchType.LAZY
 import javax.persistence.OneToOne
 
 @Entity
 @DiscriminatorValue("BAG")
 class BagFile : DataFile() {
-    @OneToOne(mappedBy = "file", cascade = [MERGE, PERSIST], orphanRemoval = true, fetch = EAGER)
+    @OneToOne(mappedBy = "file", cascade = [MERGE, PERSIST], orphanRemoval = true, fetch = LAZY)
     var token: AceToken? = null
 
     override fun equals(other: Any?): Boolean {

@@ -12,6 +12,7 @@ import javax.persistence.JoinColumn
 import javax.persistence.JoinTable
 import javax.persistence.ManyToMany
 import javax.persistence.ManyToOne
+import javax.persistence.PrePersist
 import javax.persistence.Table
 
 /**
@@ -42,5 +43,12 @@ abstract class DataFile(
             inverseJoinColumns = [JoinColumn(name = "fixity_id")])
     @ManyToMany(cascade = [ALL], fetch = EAGER)
     var fixities: MutableSet<Fixity> = mutableSetOf()
+
+    @PrePersist
+    fun checkLeading() {
+        if (!filename.startsWith("/")) {
+            this.filename = "/$filename"
+        }
+    }
 
 }

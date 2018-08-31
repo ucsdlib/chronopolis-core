@@ -43,7 +43,7 @@ public class DataFileTest {
     private final Logger log = LoggerFactory.getLogger(DataFileTest.class);
 
     private final String CREATOR = "data-file-test";
-    private final String TEST_PATH = "test-path";
+    private final String TEST_PATH = "/test-path";
 
     private Depositor depositor;
 
