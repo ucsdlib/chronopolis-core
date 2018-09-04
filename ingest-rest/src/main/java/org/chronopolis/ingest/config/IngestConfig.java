@@ -17,6 +17,7 @@ import org.chronopolis.ingest.repository.dao.SearchService;
 import org.chronopolis.ingest.repository.dao.StagingService;
 import org.chronopolis.ingest.repository.dao.StorageRegionService;
 import org.chronopolis.ingest.repository.dao.TokenDao;
+import org.chronopolis.ingest.support.BagFileCSVProcessor;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Replication;
@@ -47,6 +48,7 @@ import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletCon
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.validation.Validator;
 
@@ -60,6 +62,7 @@ import java.util.concurrent.TimeUnit;
  *
  * Created by shake on 3/3/15.
  */
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @Configuration
 @EnableConfigurationProperties({IngestProperties.class, TokenStagingProperties.class})
 public class IngestConfig {
@@ -70,13 +73,19 @@ public class IngestConfig {
     private final int KEEP_ALIVE = 30;
 
     @Bean
-    public PagedDAO pagedDAO(EntityManager entityManager) {
+    @Primary
+    public PagedDAO pagedDao(EntityManager entityManager) {
         return new PagedDAO(entityManager);
     }
 
     @Bean
     public TokenDao tokenDao(EntityManager entityManager) {
         return new TokenDao(entityManager);
+    }
+
+    @Bean
+    public BagFileCSVProcessor processor(PagedDAO pagedDAO) {
+        return new BagFileCSVProcessor(pagedDAO);
     }
 
     @Bean(name = "tokenExecutor", destroyMethod = "destroy")
