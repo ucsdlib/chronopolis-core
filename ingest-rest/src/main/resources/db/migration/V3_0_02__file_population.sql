@@ -1,13 +1,13 @@
 -- file entity creation (just pull bag and filename from ace_token)
-INSERT INTO file(bag_id, filename, type)
-    SELECT bag, filename, ('BAG') FROM ace_token;
+INSERT INTO file(bag_id, filename, dtype)
+    SELECT bag_id, filename, ('BAG') FROM ace_token;
 
 -- token entity creation (pull path from storage)
 -- regexp replace up to the first '/' so we only get the token store name
-INSERT INTO file(size, bag_id, filename, created_at, type)
-  SELECT size, bag_id, created_at, regexp_replace(path, '.*/(.*)', '\1'), ('TOKEN_STORE')
-  FROM token_storage
-  JOIN staging_storage ON (token_storage.staging_id = staging_storage.id);
+INSERT INTO file(size, bag_id, created_at, filename, dtype)
+  SELECT size, ts.bag_id, created_at, regexp_replace(path, '.*/(.*)', '\1'), ('TOKEN_STORE')
+  FROM token_storage ts
+  JOIN staging_storage ON (ts.staging_id = staging_storage.id);
 
 -- bag file fixity (file_id, fixity_id)
 -- retrieve the fixity_id and file_id for only a tagmanifest file
