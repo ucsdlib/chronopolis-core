@@ -89,9 +89,9 @@ public class BagFileCSVProcessor implements BiFunction<Long, Path, ResponseEntit
                         bagFile.setSize(size);
                         bagFile.setFilename(filename);
 
-                        Fixity fixityEnt =
-                                new Fixity(ZonedDateTime.now(), fixity, algorithm.getCanonical());
-                        bagFile.getFixities().add(fixityEnt);
+                        String canonical = algorithm.getCanonical();
+                        bagFile.addFixity(
+                                new Fixity(ZonedDateTime.now(), bagFile, fixity, canonical));
 
                         bag.addFile(bagFile);
                     } else {
@@ -103,7 +103,7 @@ public class BagFileCSVProcessor implements BiFunction<Long, Path, ResponseEntit
 
                 // no idea if this batches correctly or not
                 // it would be nice to be able to flush and clear here too
-                if (num % 20 == 0) {
+                if (num % 1000 == 0) {
                     dao.save(bag);
                 }
             }
@@ -138,9 +138,8 @@ public class BagFileCSVProcessor implements BiFunction<Long, Path, ResponseEntit
                 .anyMatch(pFixity -> pFixity.getAlgorithm().equals(algorithm.getCanonical()));
 
         if (!containsFixity) {
-            Fixity fixityEnt =
-                    new Fixity(ZonedDateTime.now(), fixity, algorithm.getCanonical());
-            bagFile.getFixities().add(fixityEnt);
+            bagFile.addFixity(
+                    new Fixity(ZonedDateTime.now(), bagFile, fixity, algorithm.getCanonical()));
         }
     }
 }

@@ -8,10 +8,8 @@ import javax.persistence.Entity
 import javax.persistence.FetchType.EAGER
 import javax.persistence.FetchType.LAZY
 import javax.persistence.Inheritance
-import javax.persistence.JoinColumn
-import javax.persistence.JoinTable
-import javax.persistence.ManyToMany
 import javax.persistence.ManyToOne
+import javax.persistence.OneToMany
 import javax.persistence.PrePersist
 import javax.persistence.Table
 
@@ -38,11 +36,18 @@ abstract class DataFile(
     @Column(insertable = false, updatable = false)
     var dtype: String? = null
 
-    @JoinTable(name = "file_fixity",
-            joinColumns = [(JoinColumn(name = "file_id"))],
-            inverseJoinColumns = [JoinColumn(name = "fixity_id")])
-    @ManyToMany(cascade = [ALL], fetch = EAGER)
+    @OneToMany(mappedBy = "file", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
     var fixities: MutableSet<Fixity> = mutableSetOf()
+
+    fun addFixity(fixity: Fixity) {
+        fixities.add(fixity)
+        fixity.file = this
+    }
+
+    fun rmFixity(fixity: Fixity) {
+        fixities.remove(fixity)
+        fixity.file = null
+    }
 
     @PrePersist
     fun checkLeading() {

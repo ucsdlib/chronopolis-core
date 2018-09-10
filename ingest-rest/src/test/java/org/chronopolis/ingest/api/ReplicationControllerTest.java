@@ -160,13 +160,13 @@ public class ReplicationControllerTest extends ControllerTest {
     // not sure if we need to bother with id, filenames, etc on the Files
     private BagFile bagFile(String fixity) {
         BagFile bagFile = new BagFile();
-        bagFile.getFixities().add(new Fixity(ZonedDateTime.now(), fixity, SHA_256.getCanonical()));
+        bagFile.addFixity(new Fixity(ZonedDateTime.now(), bagFile, fixity, SHA_256.getCanonical()));
         return bagFile;
     }
 
     private TokenStore tokenStore(String fixity) {
         TokenStore store = new TokenStore();
-        store.getFixities().add(new Fixity(ZonedDateTime.now(), fixity, SHA_256.getCanonical()));
+        store.addFixity(new Fixity(ZonedDateTime.now(), store, fixity, SHA_256.getCanonical()));
         return store;
     }
 

@@ -91,6 +91,7 @@ public class BagSerializerTest {
         storage.setTotalFiles(1L);
 
         Fixity fixity = new Fixity(ZonedDateTime.from(fmt.parse(dateTimeString)),
+                file,
                 "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
                 "SHA-256");
         file.setFixities(of(fixity));

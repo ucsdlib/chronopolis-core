@@ -95,12 +95,12 @@ public class BagEntityTest {
         persist.setTotalFiles(LONG_VALUE);
         persist.setStatus(BagStatus.DEPOSITED);
 
-        Fixity fixity = new Fixity(ZonedDateTime.now(), FIXITY_VALUE, FIXITY_ALGORITHM);
         BagFile bf = new BagFile();
+        Fixity fixity = new Fixity(ZonedDateTime.now(), bf, FIXITY_VALUE, FIXITY_ALGORITHM);
         bf.setFilename(TEST_PATH);
         bf.setSize(LONG_VALUE);
         bf.setBag(persist);
-        bf.setFixities(ImmutableSet.of(fixity));
+        bf.addFixity(fixity);
 
         TokenStore ts = new TokenStore();
         ts.setFilename(TEST_PATH + "-token");
@@ -175,12 +175,12 @@ public class BagEntityTest {
         entityManager.persist(bag);
         entityManager.refresh(bag);
 
-        Fixity fixity = new Fixity(ZonedDateTime.now(), FIXITY_VALUE, FIXITY_ALGORITHM);
         BagFile bagFile = new BagFile();
+        Fixity fixity = new Fixity(ZonedDateTime.now(), bagFile, FIXITY_VALUE, FIXITY_ALGORITHM);
         bagFile.setFilename(TEST_PATH);
         bagFile.setSize(LONG_VALUE);
         bagFile.setBag(bag);
-        bagFile.setFixities(ImmutableSet.of(fixity));
+        bagFile.addFixity(fixity);
 
         TokenStore tokenFile = new TokenStore();
         tokenFile.setFilename(TEST_PATH + "-token");

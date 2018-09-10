@@ -1,6 +1,5 @@
 package org.chronopolis.rest.entities;
 
-import com.google.common.collect.ImmutableSet;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.rest.entities.depositor.Depositor;
 import org.chronopolis.rest.entities.storage.Fixity;
@@ -90,12 +89,12 @@ public class DataFileTest {
 
         Date date = new Date();
         Bag bag = JPAContext.createBag(name, CREATOR, depositor);
-        Fixity fixity = new Fixity(ZonedDateTime.now(), FIXITY_VALUE, FIXITY_ALGORITHM);
         BagFile file = new BagFile();
+        Fixity fixity = new Fixity(ZonedDateTime.now(), file, FIXITY_VALUE, FIXITY_ALGORITHM);
         file.setBag(bag);
         file.setSize(LONG_VALUE);
         file.setFilename(TEST_PATH);
-        file.setFixities(ImmutableSet.of(fixity));
+        file.addFixity(fixity);
 
         AceToken token = new AceToken(PROOF, LONG_VALUE,
                 IMS_SERVICE, FIXITY_ALGORITHM, IMS_HOST, date, bag, file);
@@ -149,8 +148,8 @@ public class DataFileTest {
                 .fetchFirst();
         Fixity fixity;
         AceToken token;
-        fixity = new Fixity(ZonedDateTime.now(), FIXITY_VALUE, FIXITY_ALGORITHM);
-        bagFile.getFixities().add(fixity);
+        fixity = new Fixity(ZonedDateTime.now(), bagFile, FIXITY_VALUE, FIXITY_ALGORITHM);
+        bagFile.addFixity(fixity);
 
         token = new AceToken(PROOF, LONG_VALUE,
                 IMS_SERVICE, FIXITY_ALGORITHM, IMS_HOST, date, bag, bagFile);

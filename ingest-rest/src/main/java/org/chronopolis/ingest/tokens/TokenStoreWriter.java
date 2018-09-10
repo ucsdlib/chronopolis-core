@@ -125,7 +125,7 @@ public class TokenStoreWriter implements Runnable {
             tokenStore.setSize(count);
             tokenStore.setFilename(filename);
             tokenStore.getFixities().add(
-                    new Fixity(ZonedDateTime.now(), hash, SHA_256.getCanonical()));
+                    new Fixity(ZonedDateTime.now(), tokenStore, hash, SHA_256.getCanonical()));
 
             storage.setBag(bag);
             storage.setSize(count);

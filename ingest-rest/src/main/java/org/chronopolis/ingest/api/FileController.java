@@ -130,15 +130,14 @@ public class FileController {
         ResponseEntity<BagFile> response = ResponseEntity.badRequest().build();
         Bag bag = dao.findOne(QBag.bag, QBag.bag.id.eq(bagId));
         if (bag != null) {
-            Fixity fixity = new Fixity(ZonedDateTime.now(),
-                    create.getFixity(),
-                    create.getFixityAlgorithm().getCanonical());
-
             BagFile file = new BagFile();
             file.setBag(bag);
             file.setSize(create.getSize());
-            file.getFixities().add(fixity);
             file.setFilename(create.getFilename());
+            file.addFixity(new Fixity(ZonedDateTime.now(),
+                    file,
+                    create.getFixity(),
+                    create.getFixityAlgorithm().getCanonical()));
 
             bag.addFile(file);
             dao.save(bag);
@@ -148,7 +147,6 @@ public class FileController {
 
         return response;
     }
-
 
 
     @GetMapping("/api/bags/{bag_id}/files/{file_id}/fixity")
@@ -209,8 +207,9 @@ public class FileController {
         if (stored != null) {
             response = ResponseEntity.status(HttpStatus.CONFLICT).build();
         } else if (file != null) {
-            Fixity fixity = new Fixity(ZonedDateTime.now(), create.getValue(), algorithm);
-            file.getFixities().add(fixity);
+            // could inline
+            Fixity fixity = new Fixity(ZonedDateTime.now(), file, create.getValue(), algorithm);
+            file.addFixity(fixity);
             dao.save(file);
             response = ResponseEntity.status(HttpStatus.CREATED).body(fixity);
         }
