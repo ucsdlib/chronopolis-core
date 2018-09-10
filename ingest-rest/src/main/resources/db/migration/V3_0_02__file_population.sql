@@ -9,18 +9,20 @@ INSERT INTO file(size, bag_id, created_at, filename, dtype)
   FROM token_storage ts
   JOIN staging_storage ON (ts.staging_id = staging_storage.id);
 
--- bag file fixity (file_id, fixity_id)
--- retrieve the fixity_id and file_id for only a tagmanifest file
-INSERT INTO file_fixity(file_id, fixity_id)
-    SELECT file.id, fixity.id FROM bag_storage
-      JOIN fixity ON (bag_storage.staging_id = fixity.storage_id)
-      JOIN file ON (bag_storage.bag_id = file.bag_id)
-      WHERE file.filename = 'tagmanifest-sha256.txt';
+-- fixity for bag files (that we have)
+-- similar to storage association
+WITH tb AS (SELECT fixity.id AS rowid, file.id AS file_id FROM bag_storage bs
+              JOIN fixity ON (bs.staging_id = fixity.storage_id)
+              JOIN file ON (bs.bag_id = file.bag_id)
+              WHERE file.dtype = 'BAG')
+    UPDATE fixity
+    SET file_id = tb.file_id FROM tb WHERE id = rowid;
 
--- token file fixity
--- a bit harder to say 'token filename' so just join on a token_store type
-INSERT INTO file_fixity(file_id, fixity_id)
-    SELECT file.id, fixity.id FROM token_storage
-      JOIN fixity ON (token_storage.staging_id = fixity.storage_id)
-      JOIN file ON (token_storage.bag_id = file.bag_id)
-      WHERE file.dtype = 'TOKEN_STORE';
+-- fixity for token stores
+WITH tb AS (SELECT fixity.id AS rowid, file.id AS file_id FROM token_storage ts
+              JOIN fixity ON (ts.staging_id = fixity.storage_id)
+              JOIN file ON (ts.bag_id = file.bag_id)
+              WHERE file.dtype = 'TOKEN_STORE')
+  UPDATE fixity
+  SET file_id = tb.file_id FROM tb WHERE id = rowid;
+

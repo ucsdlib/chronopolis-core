@@ -1,3 +1,6 @@
+ALTER TABLE fixity
+    ADD CONSTRAINT fk_fixity_file FOREIGN KEY (file_id) REFERENCES file;
+
 ALTER TABLE ace_token
     ADD CONSTRAINT fk_token_file FOREIGN KEY (file_id) REFERENCES file;
 

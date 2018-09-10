@@ -209,6 +209,7 @@ DROP SEQUENCE IF EXISTS fixity_id_seq;
 CREATE SEQUENCE fixity_id_seq;
 CREATE TABLE fixity (
     id BIGINT PRIMARY KEY DEFAULT nextval('fixity_id_seq'),
+    file_id BIGINT NOT NULL,
     algorithm VARCHAR(255) NOT NULL,
     value VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT current_timestamp
@@ -286,24 +287,14 @@ CREATE TABLE file (
     filename TEXT NOT NULL,
     dtype varchar(25) NOT NULL,
     created_at TIMESTAMP DEFAULT current_timestamp,
-    updated_at TIMESTAMP DEFAULT current_timestamp,
-    UNIQUE (bag_id, filename)
-);
-
-CREATE TABLE file_fixity (
-    file_id BIGINT NOT NULL,
-    fixity_id BIGINT NOT NULL,
-    UNIQUE (file_id, fixity_id)
+    updated_at TIMESTAMP DEFAULT current_timestamp
 );
 
 ALTER TABLE file
   ADD CONSTRAINT fk_file_bag FOREIGN KEY (bag_id) REFERENCES bag;
 
-ALTER TABLE file_fixity
-  ADD CONSTRAINT fk_ff_join_file FOREIGN KEY (file_id) REFERENCES file;
-
-ALTER TABLE file_fixity
-  ADD CONSTRAINT fk_ff_join_fixity FOREIGN KEY (fixity_id) REFERENCES fixity;
+ALTER TABLE fixity
+  ADD CONSTRAINT fk_fixity_file FOREIGN KEY (file_id) REFERENCES file;
 
 ALTER TABLE ace_token
     ADD CONSTRAINT fk_token_file FOREIGN KEY (file_id) REFERENCES file;

@@ -1,12 +1,11 @@
 CREATE OR REPLACE FUNCTION clean_all() RETURNS void AS $BODY$
 BEGIN
     -- delete test data only (i.e. not from data.sql)
-    DELETE FROM file_fixity;
     DELETE FROM staging_storage;
     DELETE FROM bag_distribution;
     DELETE FROM ace_token;
-    DELETE FROM file;
     DELETE FROM fixity;
+    DELETE FROM file;
     DELETE FROM repair_file;
     DELETE FROM strategy;
     DELETE FROM repair;
@@ -15,17 +14,18 @@ BEGIN
 END;
 $BODY$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION create_file(bag_id bigint, fixity_id bigint, filename text, dtype text) RETURNS bigint AS $BODY$
+CREATE OR REPLACE FUNCTION create_file(bag_id bigint, filename text, dtype text) RETURNS bigint AS $BODY$
 DECLARE
     file_id bigint;
 BEGIN
-    -- tagmanifest
+    -- file
     EXECUTE format('INSERT INTO file (bag_id, filename, size, dtype) VALUES ($1, $2, 1, $3) RETURNING id')
     INTO file_id
     USING bag_id, filename, dtype;
 
-    -- tagmanifest fixity
-    EXECUTE format('INSERT INTO file_fixity VALUES ($1, $2)') USING file_id, fixity_id;
+    -- file fixity
+    EXECUTE format('INSERT INTO fixity (value, algorithm, file_id) VALUES ($1, $2, $3)')
+    USING 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'SHA-256', file_id;
     return file_id;
 END;
 $BODY$ LANGUAGE plpgsql;
@@ -54,13 +54,9 @@ DECLARE
     bag_id    bigint;
     bagname   text;
     file_id   bigint;
-    fixity_id bigint;
     region_id bigint;
 BEGIN
     -- this is equivalent to running sha-256 on an empty string
-    INSERT INTO fixity (value, algorithm)
-        VALUES ('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'SHA-256')
-    RETURNING id INTO fixity_id;
     FOR i in 0..9 LOOP
         bagname := concat('bag-', i);
         -- bag
@@ -69,11 +65,11 @@ BEGIN
         USING bagname, 'test-admin', 'DEPOSITED';
 
         -- manifest-sha256
-        PERFORM create_file(bag_id, fixity_id, '/manifest-sha256.txt', 'BAG');
+        PERFORM create_file(bag_id, '/manifest-sha256.txt', 'BAG');
 
         -- tagmanifest + staging
         SELECT id FROM storage_region WHERE data_type = 'BAG' INTO region_id;
-        SELECT create_file(bag_id, fixity_id, '/tagmanifest-sha256.txt', 'BAG') INTO file_id;
+        SELECT create_file(bag_id, '/tagmanifest-sha256.txt', 'BAG') INTO file_id;
         EXECUTE format('INSERT INTO staging_storage (bag_id, file_id, region_id, active, path, size, total_files)
                         VALUES ($1, $2, $3, TRUE, $4, 1500, 3)')
         USING bag_id, file_id, region_id, bagname;
@@ -82,7 +78,7 @@ BEGIN
     -- have one bag TOKENIZED and ready to be replicated
     UPDATE bag SET status = 'TOKENIZED' where id = bag_id;
     SELECT id FROM storage_region WHERE data_type = 'TOKEN' INTO region_id;
-    SELECT create_file(bag_id, fixity_id, '/token_store', 'TOKEN_STORE') INTO file_id;
+    SELECT create_file(bag_id, '/token_store', 'TOKEN_STORE') INTO file_id;
     EXECUTE format('INSERT INTO staging_storage (bag_id, file_id, region_id, active, path, size, total_files)
                     VALUES ($1, $2, $3, TRUE, $4, 1500, 1)')
         USING bag_id, file_id, region_id, 'token-store';
