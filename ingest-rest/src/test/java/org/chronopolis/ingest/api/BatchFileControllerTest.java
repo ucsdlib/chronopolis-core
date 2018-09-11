@@ -53,7 +53,7 @@ public class BatchFileControllerTest extends ControllerTest {
     @Test
     public void uploadCsv() throws Exception {
         final URL csvRoot = ClassLoader.getSystemClassLoader().getResource("csv");
-        Path toCsv = Paths.get(csvRoot.toURI()).resolve("large-0.csv");
+        Path toCsv = Paths.get(csvRoot.toURI()).resolve("valid.csv");
 
         Mockito.when(processor.apply(eq(1L), any())).thenReturn(ResponseEntity.ok().build());
 
