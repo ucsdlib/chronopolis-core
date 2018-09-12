@@ -1,8 +1,7 @@
 package org.chronopolis.ingest.api;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.models.filter.BagFileFilter;
-import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.ingest.repository.dao.DataFileDao;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagFile;
 import org.chronopolis.rest.entities.DataFile;
@@ -10,9 +9,9 @@ import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.QBagFile;
 import org.chronopolis.rest.entities.QDataFile;
 import org.chronopolis.rest.entities.storage.Fixity;
-import org.chronopolis.rest.entities.storage.QFixity;
 import org.chronopolis.rest.models.create.FileCreate;
 import org.chronopolis.rest.models.create.FixityCreate;
+import org.chronopolis.rest.models.enums.FixityAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +23,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.ZonedDateTime;
+import java.security.Principal;
 import java.util.Set;
 
 /**
@@ -35,17 +34,15 @@ import java.util.Set;
 @RestController
 public class FileController {
 
-    private final PagedDAO dao;
+    private final DataFileDao dao;
 
     @Autowired
-    public FileController(PagedDAO dao) {
-        this.dao = dao;
+    public FileController(DataFileDao dataFileDao) {
+        this.dao = dataFileDao;
     }
 
     /**
      * Retrieve a paginated list of all {@link BagFile}s
-     * <p>
-     * todo: data file?
      *
      * @param filter QueryParameters to be used when searching
      * @return a paginated list of results
@@ -57,12 +54,11 @@ public class FileController {
 
     /**
      * Retrieve a paginated list of {@link BagFile}s for a given {@link Bag} identified by its id
-     * <p>
-     * todo: 404 if the bag does not exist?
      *
      * @param bagId  the id of the {@link Bag} to query on
      * @param filter other QueryParameters for filtering the results
-     * @return a paginated list of results
+     * @return HTTP 200 with a paginated list of results
+     *         HTTP 400 if the bag_id does not correlate to a known Bag
      */
     @GetMapping("/api/bags/{bag_id}/files")
     public ResponseEntity<Iterable<BagFile>> getBagFiles(@PathVariable("bag_id") Long bagId,
@@ -96,17 +92,22 @@ public class FileController {
      * @param bagId  the id of the {@link Bag} to query on
      * @param fileId the id of the {@link BagFile} to query on
      * @return HTTP 200 if the {@link BagFile} is found
+     *         HTTP 400 if the {@link Bag} specified by the bag_id does not exist
      *         HTTP 401 if the user is not authenticated
-     *         HTTP 404 if either the {@link Bag} or {@link BagFile} does not exist
+     *         HTTP 404 if the {@link BagFile} does not exist
      */
     @GetMapping("/api/bags/{bag_id}/files/{file_id}")
     public ResponseEntity<BagFile> getBagFile(@PathVariable("bag_id") Long bagId,
                                               @PathVariable("file_id") Long fileId) {
         ResponseEntity<BagFile> response = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        // is this the best way?
+        Bag bag = dao.findOne(QBag.bag, QBag.bag.id.eq(bagId));
         BagFile file = dao.findOne(QBagFile.bagFile,
                 QBagFile.bagFile.bag.id.eq(bagId).and(QBagFile.bagFile.id.eq(fileId)));
 
-        if (file != null) {
+        if (bag == null) {
+            response = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } else if (file != null) {
             response = ResponseEntity.ok(file);
         }
 
@@ -121,69 +122,61 @@ public class FileController {
      * @return HTTP 201 with the {@link BagFile} if successful
      *         HTTP 400 if the {@link Bag} does not exist or the {@link FileCreate} is invalid
      *         HTTP 401 if the user is not authenticated
-     *         HTTP 403 if the user is not allowed to update the resource (todo)
-     *         HTTP 409 if the {@link BagFile} already exists (todo)
+     *         HTTP 403 if the user is not allowed to update the resource
+     *         HTTP 409 if the {@link BagFile} already exists
      */
     @PostMapping("/api/bags/{bag_id}/file")
-    public ResponseEntity<BagFile> createBagFile(@PathVariable("bag_id") Long bagId,
+    public ResponseEntity<BagFile> createBagFile(Principal principal,
+                                                 @PathVariable("bag_id") Long bagId,
                                                  @RequestBody FileCreate create) {
-        ResponseEntity<BagFile> response = ResponseEntity.badRequest().build();
-        Bag bag = dao.findOne(QBag.bag, QBag.bag.id.eq(bagId));
-        if (bag != null) {
-            BagFile file = new BagFile();
-            file.setBag(bag);
-            file.setSize(create.getSize());
-            file.setFilename(create.getFilename());
-            file.addFixity(new Fixity(ZonedDateTime.now(),
-                    file,
-                    create.getFixity(),
-                    create.getFixityAlgorithm().getCanonical()));
-
-            bag.addFile(file);
-            dao.save(bag);
-
-            response = ResponseEntity.status(HttpStatus.CREATED).body(file);
-        }
-
-        return response;
+        create.setBag(bagId);
+        return dao.createBagFile(principal, create).response();
     }
 
 
+    /**
+     * Get all {@link Fixity}s for a {@link BagFile}
+     *
+     * @param bagId  the id of the {@link Bag}
+     * @param fileId the id of the {@link BagFile}
+     * @return HTTP 200 with a view of all {@link Fixity} for a {@link BagFile}
+     *         HTTP 400 if the {@link Bag} or {@link BagFile} ids specified do not exist
+     */
     @GetMapping("/api/bags/{bag_id}/files/{file_id}/fixity")
     public ResponseEntity<Set<Fixity>> getBagFileFixities(@PathVariable("bag_id") Long bagId,
                                                           @PathVariable("file_id") Long fileId) {
-        ResponseEntity<Set<Fixity>> response =
-                ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        ResponseEntity<Set<Fixity>> response;
+        Bag bag = dao.findOne(QBag.bag, QBag.bag.id.eq(bagId));
         BagFile file = dao.findOne(QBagFile.bagFile,
                 QBagFile.bagFile.id.eq(fileId).and(QBagFile.bagFile.bag.id.eq(bagId)));
-        if (file != null) {
+        if (bag == null || file == null) {
+            response = ResponseEntity.badRequest().build();
+        } else {
             response = ResponseEntity.ok(file.getFixities());
         }
 
         return response;
     }
 
+    /**
+     * Get a single {@link Fixity}s for a {@link BagFile} specified by a {@code algorithm}
+     *
+     * @param bagId     the id of the {@link Bag}
+     * @param fileId    the id of the {@link BagFile}
+     * @param algorithm the name of the {@link FixityAlgorithm} to retrieve
+     * @return HTTP 200 with the {@link Fixity} specified
+     *         HTTP 400 if the {@link Bag} or {@link BagFile} do not exist
+     *         HTTP 404 if no {@link Fixity} exists for the specified {@code algorithm}
+     */
     @GetMapping("/api/bags/{bag_id}/files/{file_id}/fixity/{algorithm}")
     public ResponseEntity<Fixity> getBagFileFixity(@PathVariable("bag_id") Long bagId,
                                                    @PathVariable("file_id") Long fileId,
                                                    @PathVariable("algorithm") String algorithm) {
-        ResponseEntity<Fixity> response =
-                ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-
-        // join instead
-        // push to dao? testing here will be painful
-        Fixity fixity = fixityFor(bagId, fileId, algorithm);
-        if (fixity != null) {
-            response = ResponseEntity.ok(fixity);
-        }
-
-        return response;
+        return dao.fixityFor(bagId, fileId, algorithm).response();
     }
 
     /**
      * Create a Fixity associated with a File
-     * <p>
-     * todo: http 403
      *
      * @param bagId  the id of the bag
      * @param fileId the id of the file
@@ -191,41 +184,15 @@ public class FileController {
      * @return HTTP 201 if the FixityCreate was successful
      *         HTTP 400 if the bag or file was not found
      *         HTTP 401 if the user was not authenticated
+     *         HTTP 403 if the user is now allowed to update the Bag
      *         HTTP 409 if a Fixity already exists for the given algorithm
      */
     @PutMapping("/api/bags/{bag_id}/files/{file_id}/fixity")
-    public ResponseEntity<Fixity> createBagFileFixity(@PathVariable("bag_id") Long bagId,
+    public ResponseEntity<Fixity> createBagFileFixity(Principal principal,
+                                                      @PathVariable("bag_id") Long bagId,
                                                       @PathVariable("file_id") Long fileId,
                                                       @RequestBody FixityCreate create) {
-        ResponseEntity<Fixity> response = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        String algorithm = create.getAlgorithm().getCanonical();
-        BagFile file = dao.findOne(QBagFile.bagFile,
-                QBagFile.bagFile.id.eq(fileId).and(QBagFile.bagFile.bag.id.eq(bagId)));
-
-        Fixity stored = fixityFor(bagId, fileId, algorithm);
-
-        if (stored != null) {
-            response = ResponseEntity.status(HttpStatus.CONFLICT).build();
-        } else if (file != null) {
-            // could inline
-            Fixity fixity = new Fixity(ZonedDateTime.now(), file, create.getValue(), algorithm);
-            file.addFixity(fixity);
-            dao.save(file);
-            response = ResponseEntity.status(HttpStatus.CREATED).body(fixity);
-        }
-
-        return response;
-    }
-
-    private Fixity fixityFor(Long bagId, Long fileId, String algorithm) {
-        JPAQueryFactory query = dao.getJPAQueryFactory();
-        return query.select(QFixity.fixity)
-                .from(QBagFile.bagFile)
-                .join(QBagFile.bagFile.fixities, QFixity.fixity)
-                .where(QBagFile.bagFile.bag.id.eq(bagId)
-                        .and(QBagFile.bagFile.id.eq(fileId)
-                                .and(QFixity.fixity.algorithm.eq(algorithm))))
-                .fetchOne();
+        return dao.createFixity(principal, bagId, fileId, create).response();
     }
 
 }

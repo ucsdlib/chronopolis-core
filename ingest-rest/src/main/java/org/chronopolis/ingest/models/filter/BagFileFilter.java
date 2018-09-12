@@ -73,7 +73,6 @@ public class BagFileFilter extends Paged {
 
     public BagFileFilter setAlgorithm(String algorithm) {
         if (algorithm != null && !algorithm.isEmpty()) {
-
             expressions.put("algorithm", qBagFile.fixities.any().algorithm.eq(algorithm));
         }
         return this;
