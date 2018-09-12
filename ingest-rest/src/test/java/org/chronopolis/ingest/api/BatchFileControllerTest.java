@@ -1,11 +1,13 @@
 package org.chronopolis.ingest.api;
 
+import com.querydsl.core.types.Predicate;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.ingest.support.BagFileCSVProcessor;
+import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.QBag;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
@@ -26,6 +28,8 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -36,8 +40,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * @author shake
  */
-@SuppressWarnings("Duplicates")
 @RunWith(SpringRunner.class)
+@SuppressWarnings("Duplicates")
 @WebMvcTest(controllers = BatchFileController.class)
 public class BatchFileControllerTest extends ControllerTest {
 
@@ -46,7 +50,7 @@ public class BatchFileControllerTest extends ControllerTest {
 
     @Before
     public void setup() {
-        BatchFileController controller = new BatchFileController(processor);
+        BatchFileController controller = new BatchFileController(dao, processor);
         setupMvc(controller);
     }
 
@@ -55,7 +59,9 @@ public class BatchFileControllerTest extends ControllerTest {
         final URL csvRoot = ClassLoader.getSystemClassLoader().getResource("csv");
         Path toCsv = Paths.get(csvRoot.toURI()).resolve("valid.csv");
 
-        Mockito.when(processor.apply(eq(1L), any())).thenReturn(ResponseEntity.ok().build());
+        when(dao.findOne(eq(QBag.bag), any(Predicate.class))).thenReturn(new Bag());
+        when(dao.authorized(eq(authorizedPrincipal), eq(new Bag()))).thenReturn(true);
+        when(processor.apply(eq(1L), any())).thenReturn(ResponseEntity.ok().build());
 
         MockMultipartFile csvMp = new MockMultipartFile(
                 "file",
@@ -70,13 +76,16 @@ public class BatchFileControllerTest extends ControllerTest {
                 // .andDo(print())
                 .andExpect(status().is(HttpStatus.OK.value()));
 
-        Mockito.verify(processor, times(1)).apply(eq(1L), any());
+        verify(processor, times(1)).apply(eq(1L), any());
     }
 
     @Test
     public void uploadCsvNoMediaType() throws Exception {
         final URL csvRoot = ClassLoader.getSystemClassLoader().getResource("csv");
         Path toCsv = Paths.get(csvRoot.toURI()).resolve("valid.csv");
+
+        when(dao.findOne(eq(QBag.bag), any(Predicate.class))).thenReturn(new Bag());
+        when(dao.authorized(eq(authorizedPrincipal), eq(new Bag()))).thenReturn(true);
 
         MockMultipartFile csvMp = new MockMultipartFile(
                 "file",
@@ -89,7 +98,7 @@ public class BatchFileControllerTest extends ControllerTest {
                 // .andDo(print())
                 .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
 
-        Mockito.verify(processor, never()).apply(any(), any());
+        verify(processor, never()).apply(any(), any());
     }
 
     @Test
@@ -97,7 +106,9 @@ public class BatchFileControllerTest extends ControllerTest {
         final URL csvRoot = ClassLoader.getSystemClassLoader().getResource("csv");
         Path toCsv = Paths.get(csvRoot.toURI()).resolve("invalid.csv");
 
-        Mockito.when(processor.apply(eq(1L), any())).thenReturn(ResponseEntity.ok().build());
+        when(dao.findOne(eq(QBag.bag), any(Predicate.class))).thenReturn(new Bag());
+        when(dao.authorized(eq(authorizedPrincipal), eq(new Bag()))).thenReturn(true);
+        when(processor.apply(eq(1L), any())).thenReturn(ResponseEntity.ok().build());
 
         MockMultipartFile csvMp = new MockMultipartFile(
                 "file",
@@ -112,7 +123,7 @@ public class BatchFileControllerTest extends ControllerTest {
                 // .andDo(print())
                 .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
 
-        Mockito.verify(processor, never()).apply(any(), any());
+        verify(processor, never()).apply(any(), any());
     }
 
     @Test
@@ -120,7 +131,9 @@ public class BatchFileControllerTest extends ControllerTest {
         final URL csvRoot = ClassLoader.getSystemClassLoader().getResource("csv");
         Path toCsv = Paths.get(csvRoot.toURI()).resolve("inconsistent.csv");
 
-        Mockito.when(processor.apply(eq(1L), any())).thenReturn(ResponseEntity.ok().build());
+        when(dao.findOne(eq(QBag.bag), any(Predicate.class))).thenReturn(new Bag());
+        when(dao.authorized(eq(authorizedPrincipal), eq(new Bag()))).thenReturn(true);
+        when(processor.apply(eq(1L), any())).thenReturn(ResponseEntity.ok().build());
 
         MockMultipartFile csvMp = new MockMultipartFile(
                 "file",
@@ -136,7 +149,7 @@ public class BatchFileControllerTest extends ControllerTest {
                 .andDo(print())
                 .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
 
-        Mockito.verify(processor, never()).apply(any(), any());
+        verify(processor, never()).apply(any(), any());
     }
 
 }

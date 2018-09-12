@@ -1,11 +1,14 @@
 package org.chronopolis.ingest.api;
 
+import com.google.common.primitives.Longs;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.ingest.support.BagFileCSVProcessor;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagFile;
+import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.models.enums.FixityAlgorithm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,10 +45,12 @@ public class BatchFileController {
     private final String TYPE_CSV = "text/csv";
     private final Logger log = LoggerFactory.getLogger(BatchFileController.class);
 
+    private final PagedDAO dao;
     private final BagFileCSVProcessor processor;
 
     @Autowired
-    public BatchFileController(BagFileCSVProcessor processor) {
+    public BatchFileController(PagedDAO dao, BagFileCSVProcessor processor) {
+        this.dao = dao;
         this.processor = processor;
     }
 
@@ -67,10 +73,22 @@ public class BatchFileController {
      * @param bagId the id of the {@link Bag} to create {@link BagFile}s for
      */
     @PostMapping("/api/bags/{bag_id}/files")
-    public ResponseEntity createBagFiles(@PathVariable("bag_id") Long bagId,
+    public ResponseEntity createBagFiles(Principal principal,
+                                         @PathVariable("bag_id") Long bagId,
                                          @RequestParam("file") MultipartFile file) {
         boolean valid = true;
         ResponseEntity entity = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+
+        Bag bag = dao.findOne(QBag.bag, QBag.bag.id.eq(bagId));
+        if (bag == null) {
+            log.error("Invalid bag id specified: {}", bagId);
+            return entity;
+        }
+
+        if (!dao.authorized(principal, bag)) {
+            log.error("User {} is not allowed to update bag {}", principal.getName(), bag.getId());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
 
         // check these early
         final String uuid = UUID.randomUUID().toString();
@@ -156,16 +174,9 @@ public class BatchFileController {
         String size = record.get(BagFileCSVProcessor.Headers.SIZE);
         String algorithm = record.get(BagFileCSVProcessor.Headers.FIXITY_ALGORITHM);
 
-        // blegh
-        // honestly might iterate the string and do a isDigit
-        try {
-            Long.parseLong(size);
-        } catch (NumberFormatException e) {
-            return false;
-        }
-
+        boolean isNumber = Longs.tryParse(size) != null;
         FixityAlgorithm parsedAlgorithm = FixityAlgorithm.Companion.fromString(algorithm);
-        return !parsedAlgorithm.equals(FixityAlgorithm.UNSUPPORTED);
+        return isNumber && !parsedAlgorithm.equals(FixityAlgorithm.UNSUPPORTED);
     }
 
     private void deleteCsv(Path tmpCsv) {
