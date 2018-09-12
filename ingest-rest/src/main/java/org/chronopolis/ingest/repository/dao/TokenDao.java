@@ -16,8 +16,6 @@ import javax.persistence.EntityManager;
 import java.security.Principal;
 import java.util.Date;
 
-import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
-
 /**
  * Data accessor for AceTokens. Really just to move the logic for creating a token from a
  * {@link AceTokenCreate} out of the BagTokenController.
@@ -97,16 +95,4 @@ public class TokenDao extends PagedDAO {
         return response;
     }
 
-    /**
-     * Helper to check if a user is authorized to update a resource.
-     * <p>
-     * Not really fond of this implementation.
-     *
-     * @param principal the principal of the user
-     * @param bag       the bag being modified
-     * @return true if the user can update the bag; false otherwise
-     */
-    private boolean authorized(Principal principal, Bag bag) {
-        return hasRoleAdmin() || bag.getCreator().equalsIgnoreCase(principal.getName());
-    }
 }

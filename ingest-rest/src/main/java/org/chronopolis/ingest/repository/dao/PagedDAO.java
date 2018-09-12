@@ -7,6 +7,7 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.models.Paged;
+import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.PersistableEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,7 +15,10 @@ import org.springframework.data.repository.support.PageableExecutionUtils;
 
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
+import java.security.Principal;
 import java.util.List;
+
+import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
 
 /**
  * DAO to support basic fetching, saving, and removal from an EntityManager. Can be extended to
@@ -85,9 +89,9 @@ public class PagedDAO {
     /**
      * Find all entities of a certain type matching a Predicate
      *
-     * @param path the EntityPath to query on
+     * @param path      the EntityPath to query on
      * @param predicate the Predicate to filter on
-     * @param <T> the Type of the Entity
+     * @param <T>       the Type of the Entity
      * @return a List containing all Entities that match the Predicate
      */
     public <T extends PersistableEntity> List<T> findAll(EntityPath<T> path, Predicate predicate) {
@@ -101,11 +105,11 @@ public class PagedDAO {
      * Find all entities of a certain type matching a Predicate and restrict/order based on a given
      * modifier and specifier.
      *
-     * @param path the EntityPath to query on
+     * @param path      the EntityPath to query on
      * @param predicate the Predicate to filter on
      * @param specifier the OrderSpecifier to sort the data
      * @param modifiers the QueryModifiers to restrict/limit data (replicate paging)
-     * @param <T> the Type of the Entity
+     * @param <T>       the Type of the Entity
      * @return a List containing all Entities that match the Predicate
      */
     public <T extends PersistableEntity> List<T> findAll(EntityPath<T> path,
@@ -182,6 +186,19 @@ public class PagedDAO {
             // em.getTransaction().commit();
         }
         // warn if null?
+    }
+
+    /**
+     * Helper to check if a user is authorized to update a resource.
+     * <p>
+     * Not really fond of this implementation.
+     *
+     * @param principal the principal of the user
+     * @param bag       the bag being modified
+     * @return true if the user can update the bag; false otherwise
+     */
+    public boolean authorized(Principal principal, Bag bag) {
+        return hasRoleAdmin() || bag.getCreator().equalsIgnoreCase(principal.getName());
     }
 
     /**
