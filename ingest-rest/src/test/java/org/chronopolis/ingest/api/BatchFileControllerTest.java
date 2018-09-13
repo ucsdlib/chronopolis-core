@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Basic tests for the {@link BatchFileController}
- *
+ * <p>
  * Not sure how to test for the Internal Server Errors, maybe sending a null stream or something
  *
  * @author shake
@@ -52,6 +52,53 @@ public class BatchFileControllerTest extends ControllerTest {
     public void setup() {
         BatchFileController controller = new BatchFileController(dao, processor);
         setupMvc(controller);
+    }
+
+    @Test
+    public void uploadForbidden() throws Exception {
+        final URL csvRoot = ClassLoader.getSystemClassLoader().getResource("csv");
+        Path toCsv = Paths.get(csvRoot.toURI()).resolve("valid.csv");
+
+        when(dao.findOne(eq(QBag.bag), any(Predicate.class))).thenReturn(new Bag());
+        when(dao.authorized(eq(authorizedPrincipal), eq(new Bag()))).thenReturn(false);
+        MockMultipartFile csvMp = new MockMultipartFile(
+                "file",
+                "valid.csv",
+                MediaType.TEXT_PLAIN_VALUE,
+                Files.newInputStream(toCsv, StandardOpenOption.READ));
+        MockHttpServletRequestBuilder request =
+                MockMvcRequestBuilders.fileUpload("/api/bags/{id}/files", 1L)
+                        .file(csvMp)
+                        .principal(authorizedPrincipal);
+        mvc.perform(request)
+                .andExpect(status().is(HttpStatus.FORBIDDEN.value()));
+
+        verify(dao, times(1)).findOne(eq(QBag.bag), any(Predicate.class));
+        verify(dao, times(1)).authorized(eq(authorizedPrincipal), any());
+        verify(processor, never()).apply(eq(1L), any());
+    }
+
+    @Test
+    public void uploadBagNotFound() throws Exception {
+        final URL csvRoot = ClassLoader.getSystemClassLoader().getResource("csv");
+        Path toCsv = Paths.get(csvRoot.toURI()).resolve("valid.csv");
+
+        when(dao.findOne(eq(QBag.bag), any(Predicate.class))).thenReturn(null);
+        MockMultipartFile csvMp = new MockMultipartFile(
+                "file",
+                "valid.csv",
+                MediaType.TEXT_PLAIN_VALUE,
+                Files.newInputStream(toCsv, StandardOpenOption.READ));
+        MockHttpServletRequestBuilder request =
+                MockMvcRequestBuilders.fileUpload("/api/bags/{id}/files", 1L)
+                        .file(csvMp)
+                        .principal(authorizedPrincipal);
+        mvc.perform(request)
+                .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
+
+        verify(dao, times(1)).findOne(eq(QBag.bag), any(Predicate.class));
+        verify(dao, never()).authorized(eq(authorizedPrincipal), any());
+        verify(processor, never()).apply(eq(1L), any());
     }
 
     @Test
@@ -76,6 +123,8 @@ public class BatchFileControllerTest extends ControllerTest {
                 // .andDo(print())
                 .andExpect(status().is(HttpStatus.OK.value()));
 
+        verify(dao, times(1)).findOne(eq(QBag.bag), any(Predicate.class));
+        verify(dao, times(1)).authorized(eq(authorizedPrincipal), any());
         verify(processor, times(1)).apply(eq(1L), any());
     }
 
@@ -98,6 +147,8 @@ public class BatchFileControllerTest extends ControllerTest {
                 // .andDo(print())
                 .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
 
+        verify(dao, times(1)).findOne(eq(QBag.bag), any(Predicate.class));
+        verify(dao, times(1)).authorized(eq(authorizedPrincipal), any());
         verify(processor, never()).apply(any(), any());
     }
 
@@ -123,6 +174,8 @@ public class BatchFileControllerTest extends ControllerTest {
                 // .andDo(print())
                 .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
 
+        verify(dao, times(1)).findOne(eq(QBag.bag), any(Predicate.class));
+        verify(dao, times(1)).authorized(eq(authorizedPrincipal), any());
         verify(processor, never()).apply(any(), any());
     }
 
@@ -149,6 +202,8 @@ public class BatchFileControllerTest extends ControllerTest {
                 .andDo(print())
                 .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
 
+        verify(dao, times(1)).findOne(eq(QBag.bag), any(Predicate.class));
+        verify(dao, times(1)).authorized(eq(authorizedPrincipal), any());
         verify(processor, never()).apply(any(), any());
     }
 
