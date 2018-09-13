@@ -1,5 +1,6 @@
 package org.chronopolis.ingest.api;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.querydsl.core.types.Predicate;
 import org.chronopolis.ingest.repository.dao.DataFileDao;
@@ -11,11 +12,13 @@ import org.chronopolis.rest.entities.QDataFile;
 import org.chronopolis.rest.entities.TokenStore;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.ZonedDateTime;
@@ -53,46 +56,43 @@ public class FileControllerTest extends ControllerTest {
     }
 
     @Test
-    @Ignore
-    public void getFiles() {
+    public void getFiles() throws Exception {
+        // todo: retrieve token stores as well
         TokenStore ts = new TokenStore();
         ts.setId(2L);
         ts.setFilename("/tokens");
-        ts.setSize(1L);
-        ts.setBag(null);
         ts.setDtype("TOKEN_STORE");
-        ts.setCreatedAt(ZonedDateTime.now());
-        ts.setUpdatedAt(ZonedDateTime.now());
 
         BagFile bf = new BagFile();
         bf.setId(1L);
-        bf.setSize(1L);
-        bf.setBag(null);
         bf.setDtype("BAG");
         bf.setFilename("/bag-file");
         bf.setFixities(ImmutableSet.of());
-        bf.setCreatedAt(ZonedDateTime.now());
-        bf.setUpdatedAt(ZonedDateTime.now());
 
-        // BagFileFilter filter = new BagFileFilter();
-        // response -> of(ts, bf);
-        when(dao.findPage(eq(QBagFile.bagFile), any())).thenReturn(null);
+        Pageable page = new PageRequest(5, 5);
+
+        when(dao.findPage(eq(QBagFile.bagFile), any()))
+                .thenReturn(PageableExecutionUtils.getPage(ImmutableList.of(bf), page, () -> 1));
+
+        mvc.perform(get("/api/files")
+                .principal(authorizedPrincipal))
+                .andDo(print())
+                .andExpect(status().isOk());
     }
 
     @Test
-    @Ignore
-    public void getBagFiles() {
-        TokenStore ts = new TokenStore();
-        ts.setId(2L);
-        ts.setFilename("/tokens");
-
+    public void getBagFiles() throws Exception {
         BagFile bf = new BagFile();
         bf.setDtype("BAG");
         bf.setFilename("/bag-file");
 
-        // response -> of(ts, bf)
+        Pageable page = new PageRequest(5, 5);
+        when(dao.findPage(eq(QBagFile.bagFile), any()))
+                .thenReturn(PageableExecutionUtils.getPage(ImmutableList.of(bf), page, () -> 1));
 
-        when(dao.findPage(eq(QBagFile.bagFile), any())).thenReturn(null);
+        mvc.perform(get("/api/bags/{id}/files", 1L)
+                .principal(authorizedPrincipal))
+                .andExpect(status().isOk());
     }
 
     @Test

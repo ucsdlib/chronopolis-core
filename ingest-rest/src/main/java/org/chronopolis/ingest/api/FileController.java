@@ -29,6 +29,8 @@ import java.util.Set;
 /**
  * Controller defining various operations for {@link BagFile}s in Chronopolis
  *
+ * todo: how to do datafiles?
+ *
  * @author shake
  */
 @RestController
