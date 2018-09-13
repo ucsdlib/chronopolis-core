@@ -84,8 +84,8 @@ public class IngestConfig {
     }
 
     @Bean
-    public BagFileCSVProcessor processor(PagedDAO pagedDAO) {
-        return new BagFileCSVProcessor(pagedDAO);
+    public BagFileCSVProcessor processor(PagedDAO pagedDAO, IngestProperties properties) {
+        return new BagFileCSVProcessor(pagedDAO, properties);
     }
 
     @Bean(name = "tokenExecutor", destroyMethod = "destroy")

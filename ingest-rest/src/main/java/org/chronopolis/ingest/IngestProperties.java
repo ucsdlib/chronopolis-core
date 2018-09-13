@@ -10,12 +10,23 @@ public class IngestProperties {
 
     private Ajp ajp = new Ajp();
 
+    private Integer fileIngestBatchSize = 1000;
+
     public Ajp getAjp() {
         return ajp;
     }
 
     public IngestProperties setAjp(Ajp ajp) {
         this.ajp = ajp;
+        return this;
+    }
+
+    public Integer getFileIngestBatchSize() {
+        return fileIngestBatchSize;
+    }
+
+    public IngestProperties setFileIngestBatchSize(Integer fileIngestBatchSize) {
+        this.fileIngestBatchSize = fileIngestBatchSize;
         return this;
     }
 

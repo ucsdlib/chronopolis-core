@@ -3,6 +3,7 @@ package org.chronopolis.ingest.support;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagFile;
@@ -22,10 +23,11 @@ import java.time.ZonedDateTime;
 import java.util.function.BiFunction;
 
 /**
- * Processor for CSV files containing FileCreate elementals
+ * Processor for ingesting {@link BagFile}s from CSV files containing what is essentially a mapping
+ * to a FileCreate.
  * <p>
- * This might be good to have somewhere else so that other services can make use of the headers.
- * Maybe provide utils for reading and writing idk.
+ * Headers are defined in the rest-models module and must match the same ordering as their ordinals
+ * i.e. filename, size, fixity_value, fixity_algorithm.
  *
  * @author shake
  */
@@ -38,16 +40,17 @@ public class BagFileCSVProcessor implements BiFunction<Long, Path, ResponseEntit
     }
 
     private final PagedDAO dao;
+    private final IngestProperties properties;
 
-    public BagFileCSVProcessor(PagedDAO dao) {
+    public BagFileCSVProcessor(PagedDAO dao, IngestProperties properties) {
         this.dao = dao;
+        this.properties = properties;
     }
 
     @Override
     public ResponseEntity apply(Long bagId, Path csvIn) {
         ResponseEntity response = ResponseEntity.ok().build();
-        // leading slash
-        final String LS = "/";
+        final String LS = "/"; // leading slash
         try {
             int num = 0;
             Bag bag = dao.findOne(QBag.bag, QBag.bag.id.eq(bagId));
@@ -59,11 +62,10 @@ public class BagFileCSVProcessor implements BiFunction<Long, Path, ResponseEntit
                     .withSkipHeaderRecord()
                     .withIgnoreSurroundingSpaces()
                     .parse(Files.newBufferedReader(csvIn));
-            log.info("Processing all records");
+            log.info("[{}] Attempting ingest of BagFiles from csv", bag.getName());
             for (CSVRecord record : parse.getRecords()) {
                 // how to handle inconsistent records?
                 if (record.isConsistent()) {
-                    log.trace("Processing {}", record.toString());
                     // coerce leading /
                     String filename = record.get(Headers.FILENAME).startsWith(LS)
                             ? record.get(Headers.FILENAME)
@@ -83,7 +85,7 @@ public class BagFileCSVProcessor implements BiFunction<Long, Path, ResponseEntit
                                     .and(QBagFile.bagFile.bag.id.eq(bagId)));
 
                     if (bagFile == null) {
-                        log.trace("Inserting entity for {}", filename);
+                        log.debug("Inserting entity for {}", filename);
                         bagFile = new BagFile();
                         bagFile.setBag(bag);
                         bagFile.setSize(size);
@@ -102,8 +104,9 @@ public class BagFileCSVProcessor implements BiFunction<Long, Path, ResponseEntit
                 }
 
                 // no idea if this batches correctly or not
-                // it would be nice to be able to flush and clear here too
-                if (num % 1000 == 0) {
+                // also this _could_ potentially overflow, but we would need 2^31 files to ingest
+                // so I think we'll be ok
+                if (num % properties.getFileIngestBatchSize() == 0) {
                     dao.save(bag);
                 }
             }
@@ -116,7 +119,6 @@ public class BagFileCSVProcessor implements BiFunction<Long, Path, ResponseEntit
             response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Previously validated csv found to be invalid");
         } catch (IOException e) {
-            // ouch
             log.error("Unable to parse csv", e);
             response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Unable to read csv");

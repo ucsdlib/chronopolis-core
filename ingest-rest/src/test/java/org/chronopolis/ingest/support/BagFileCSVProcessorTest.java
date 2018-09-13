@@ -1,6 +1,7 @@
 package org.chronopolis.ingest.support;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
@@ -8,7 +9,6 @@ import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.QBagFile;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +43,8 @@ public class BagFileCSVProcessorTest extends IngestTest {
     @Autowired
     private EntityManager entityManager;
 
+    private final IngestProperties properties = new IngestProperties();
+
     @Test
     public void testReadValidCsv() throws URISyntaxException {
         final String BAG_NAME = "bag-2";
@@ -52,7 +54,7 @@ public class BagFileCSVProcessorTest extends IngestTest {
         Bag bag = dao.findOne(QBag.bag, QBag.bag.name.eq(BAG_NAME));
         Path toCsv = Paths.get(csvRoot.toURI()).resolve("valid.csv");
 
-        BagFileCSVProcessor processor = new BagFileCSVProcessor(dao);
+        BagFileCSVProcessor processor = new BagFileCSVProcessor(dao, properties);
         ResponseEntity response = processor.apply(bag.getId(), toCsv);
 
         JPAQueryFactory factory = new JPAQueryFactory(entityManager);
@@ -66,7 +68,6 @@ public class BagFileCSVProcessorTest extends IngestTest {
     }
 
     @Test
-    @Ignore
     public void testReadInvalidCsv() throws URISyntaxException {
         final String BAG_NAME = "bag-2";
         final URL csvRoot = ClassLoader.getSystemClassLoader().getResource("csv");
@@ -75,18 +76,9 @@ public class BagFileCSVProcessorTest extends IngestTest {
         Bag bag = dao.findOne(QBag.bag, QBag.bag.name.eq(BAG_NAME));
         Path toCsv = Paths.get(csvRoot.toURI()).resolve("invalid.csv");
 
-        BagFileCSVProcessor processor = new BagFileCSVProcessor(dao);
-        processor.apply(bag.getId(), toCsv);
-
-        JPAQueryFactory factory = new JPAQueryFactory(entityManager);
-        long count = factory.selectFrom(QBagFile.bagFile)
-                .where(QBagFile.bagFile.bag.name.eq(BAG_NAME))
-                .fetchCount();
-
-        // System.out.println(count);
-
-        // manifest + tagmanifest + 8 data files = 10
-        // Assert.assertEquals(10, count);
+        BagFileCSVProcessor processor = new BagFileCSVProcessor(dao, properties);
+        ResponseEntity response = processor.apply(bag.getId(), toCsv);
+        Assert.assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 
 }
