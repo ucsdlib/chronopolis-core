@@ -122,6 +122,10 @@ public class BagFileCSVProcessor implements BiFunction<Long, Path, ResponseEntit
             log.error("Unable to parse csv", e);
             response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Unable to read csv");
+        } catch (Exception e) {
+            log.error("Unexpected exception processing csv!", e);
+            response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Unexpected exception processing csv!");
         }
 
         return response;

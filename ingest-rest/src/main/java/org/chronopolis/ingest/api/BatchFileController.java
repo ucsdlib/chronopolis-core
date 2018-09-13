@@ -34,9 +34,10 @@ import java.nio.file.StandardOpenOption;
 import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
- * Separate controller for FileUploads because I say so
+ * Separate controller for FileUploads to keep the logic separated a bit
  *
  * @author shake
  */
@@ -48,25 +49,30 @@ public class BatchFileController {
 
     private final PagedDAO dao;
     private final BagFileCSVProcessor processor;
+    private final ConcurrentSkipListSet<Long> processing;
 
     @Autowired
     public BatchFileController(PagedDAO dao, BagFileCSVProcessor processor) {
         this.dao = dao;
         this.processor = processor;
+        this.processing = new ConcurrentSkipListSet<>();
+    }
+
+    protected BatchFileController(PagedDAO dao,
+                                  BagFileCSVProcessor processor,
+                                  ConcurrentSkipListSet<Long> processing) {
+        this.dao = dao;
+        this.processor = processor;
+        this.processing = processing;
     }
 
     /**
      * Create many files for a Bag
      * <p>
      * Need to determine
-     * - output: custom response? (status={SUCCESS,WARN,FAIL}; results (maybe just errors))
-     * - types: What do the input stream and output stream look like?
-     * - async: ???
-     * - todos: - disallow multiple submissions for a single bag;
-     *            - thread pool for processing?
-     *            - how to get response
-     *            - how to check if a bag is being processed
-     *            - how to check if a process stalled
+     * - output: are our responses ok? should we do something other than an ok on success?
+     * - async: should we use DeferredResponse or other async utils?
+     *
      * <p>
      * Can we even do batch processing of inserts right now? I think spring will prevent us unless
      * we do things only through it.
@@ -80,18 +86,21 @@ public class BatchFileController {
         boolean valid = true;
         ResponseEntity entity = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
+        // a few things we check early, to avoid unnecessary processing
+        // bag exists
         Bag bag = dao.findOne(QBag.bag, QBag.bag.id.eq(bagId));
         if (bag == null) {
             log.error("Invalid bag id specified: {}", bagId);
             return entity;
         }
 
+        // authorized to update the bag
         if (!dao.authorized(principal, bag)) {
             log.error("User {} is not allowed to update bag {}", principal.getName(), bag.getId());
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        // check these early
+        // upload file type
         final String uuid = UUID.randomUUID().toString();
         boolean csv = TYPE_CSV.equals(file.getContentType());
         boolean plainText = MediaType.TEXT_PLAIN_VALUE.equals(file.getContentType());
@@ -102,6 +111,13 @@ public class BatchFileController {
             log.error("Invalid upload: Check if the file is empty? {} or content type {}",
                     file.isEmpty(), file.getContentType());
             return entity;
+        }
+
+        // finally check if we're already processing said bag (last bc we only need to remove once)
+        boolean add = processing.add(bagId);
+        if (!add) {
+            log.warn("Bag {} is already being processed for batch file ingestion", bagId);
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
 
         // need a way to get our temp resource
@@ -165,6 +181,7 @@ public class BatchFileController {
                 entity = processor.apply(bagId, tmpCsv);
             }
 
+            processing.remove(bagId);
             deleteCsv(tmpCsv);
         }
 

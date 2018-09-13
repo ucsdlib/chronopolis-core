@@ -5,6 +5,8 @@ import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.ingest.support.BagFileCSVProcessor;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.QBag;
+import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -45,13 +48,47 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(controllers = BatchFileController.class)
 public class BatchFileControllerTest extends ControllerTest {
 
+    private ConcurrentSkipListSet<Long> processing = new ConcurrentSkipListSet<>();
+
     @MockBean private PagedDAO dao;
     @MockBean private BagFileCSVProcessor processor;
 
     @Before
     public void setup() {
-        BatchFileController controller = new BatchFileController(dao, processor);
+        BatchFileController controller = new BatchFileController(dao, processor, processing);
         setupMvc(controller);
+    }
+
+    @After
+    public void after() {
+        Assert.assertTrue(processing.isEmpty());
+    }
+
+    @Test
+    public void uploadConflict() throws Exception {
+        processing.add(1L);
+        final URL csvRoot = ClassLoader.getSystemClassLoader().getResource("csv");
+        Path toCsv = Paths.get(csvRoot.toURI()).resolve("valid.csv");
+
+        when(dao.findOne(eq(QBag.bag), any(Predicate.class))).thenReturn(new Bag());
+        when(dao.authorized(eq(authorizedPrincipal), eq(new Bag()))).thenReturn(true);
+        MockMultipartFile csvMp = new MockMultipartFile(
+                "file",
+                "valid.csv",
+                MediaType.TEXT_PLAIN_VALUE,
+                Files.newInputStream(toCsv, StandardOpenOption.READ));
+        MockHttpServletRequestBuilder request =
+                MockMvcRequestBuilders.fileUpload("/api/bags/{id}/files", 1L)
+                        .file(csvMp)
+                        .principal(authorizedPrincipal);
+        mvc.perform(request)
+                .andExpect(status().is(HttpStatus.CONFLICT.value()));
+
+        verify(dao, times(1)).findOne(eq(QBag.bag), any(Predicate.class));
+        verify(dao, times(1)).authorized(eq(authorizedPrincipal), any());
+        verify(processor, never()).apply(eq(1L), any());
+
+        processing.remove(1L);
     }
 
     @Test
