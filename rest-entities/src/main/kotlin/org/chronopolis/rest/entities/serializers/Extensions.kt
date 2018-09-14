@@ -1,26 +1,16 @@
 package org.chronopolis.rest.entities.serializers
 
 import org.chronopolis.rest.entities.BagFile
+import org.chronopolis.rest.entities.DataFile
 import org.chronopolis.rest.entities.TokenStore
 import org.chronopolis.rest.entities.repair.Ace
 import org.chronopolis.rest.entities.repair.Rsync
 import org.chronopolis.rest.entities.repair.Strategy
-import org.chronopolis.rest.models.AceStrategy
-import org.chronopolis.rest.models.AceToken
-import org.chronopolis.rest.models.Bag
-import org.chronopolis.rest.models.Depositor
-import org.chronopolis.rest.models.DepositorContact
-import org.chronopolis.rest.models.Fixity
-import org.chronopolis.rest.models.FulfillmentStrategy
-import org.chronopolis.rest.models.Repair
-import org.chronopolis.rest.models.Replication
-import org.chronopolis.rest.models.ReplicationConfig
-import org.chronopolis.rest.models.RsyncStrategy
-import org.chronopolis.rest.models.StagingStorage
-import org.chronopolis.rest.models.StorageRegion
+import org.chronopolis.rest.models.*
 import org.chronopolis.rest.models.enums.FixityAlgorithm
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
+import org.chronopolis.rest.entities.storage.Fixity as FixityEntity
 import org.chronopolis.rest.entities.AceToken as AceTokenEntity
 import org.chronopolis.rest.entities.Bag as BagEntity
 import org.chronopolis.rest.entities.Replication as ReplicationEntity
@@ -74,6 +64,23 @@ fun BagEntity.model(): Bag {
                     .firstOrNull { it.active }
                     ?.model()
 
+    )
+}
+
+// todo: it's really dumb to go String -> FixityAlgorithm -> String
+fun FixityEntity.model(): Fixity {
+    return Fixity(this.value, FixityAlgorithm.fromString(this.algorithm), this.createdAt)
+}
+
+fun DataFile.model(): File {
+    return File(
+            this.id,
+            this.filename,
+            this.size,
+            this.fixities.map { it.model() }.toSet(),
+            this.bag.id,
+            this.createdAt,
+            this.updatedAt
     )
 }
 

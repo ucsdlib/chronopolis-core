@@ -1,0 +1,12 @@
+{
+  "id": 1,
+  "filename": "/test-filename",
+  "size": 100,
+  "fixities": [{
+    "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", 
+    "algorithm": "SHA-256", 
+    "createdAt": "2017-06-30T19:49:12.37Z"}],
+  "bag": 1,
+  "createdAt": "2017-06-30T19:49:12.37Z",
+  "updatedAt": "2017-06-30T19:49:12.37Z"
+}
