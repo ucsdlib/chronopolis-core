@@ -1,7 +1,7 @@
 package org.chronopolis.ingest.api;
 
 import org.chronopolis.ingest.models.filter.BagFileFilter;
-import org.chronopolis.ingest.repository.dao.DataFileDao;
+import org.chronopolis.ingest.repository.dao.BagFileDao;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagFile;
 import org.chronopolis.rest.entities.DataFile;
@@ -36,11 +36,11 @@ import java.util.Set;
 @RestController
 public class FileController {
 
-    private final DataFileDao dao;
+    private final BagFileDao dao;
 
     @Autowired
-    public FileController(DataFileDao dataFileDao) {
-        this.dao = dataFileDao;
+    public FileController(BagFileDao bagFileDao) {
+        this.dao = bagFileDao;
     }
 
     /**

@@ -40,7 +40,7 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TES
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 
 /**
- * Tests for {@link DataFileDao}
+ * Tests for {@link BagFileDao}
  *
  * @author shake
  */
@@ -52,7 +52,7 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
         @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = "classpath:sql/create.sql"),
         @Sql(executionPhase = AFTER_TEST_METHOD, scripts = "classpath:sql/delete.sql")
 })
-public class DataFileDaoTest extends IngestTest {
+public class BagFileDaoTest extends IngestTest {
 
     private Long id = null;
     private final Long size = 1L;
@@ -70,12 +70,12 @@ public class DataFileDaoTest extends IngestTest {
     @Autowired private EntityManager entityManager;
 
 
-    private DataFileDao dao;
+    private BagFileDao dao;
 
     @Before
     public void setup() {
         id = idFor();
-        dao = new DataFileDao(entityManager);
+        dao = new BagFileDao(entityManager);
 
         SecurityContextHolder.setContext(context);
         mockAuthenticated();

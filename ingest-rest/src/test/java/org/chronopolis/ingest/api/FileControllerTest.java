@@ -3,7 +3,7 @@ package org.chronopolis.ingest.api;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.querydsl.core.types.Predicate;
-import org.chronopolis.ingest.repository.dao.DataFileDao;
+import org.chronopolis.ingest.repository.dao.BagFileDao;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagFile;
 import org.chronopolis.rest.entities.QBag;
@@ -47,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class FileControllerTest extends ControllerTest {
 
     @MockBean
-    DataFileDao dao;
+    BagFileDao dao;
 
     @Before
     public void setup() {

@@ -11,6 +11,7 @@ import org.chronopolis.ingest.repository.RepairRepository;
 import org.chronopolis.ingest.repository.StorageRegionRepository;
 import org.chronopolis.ingest.repository.StorageRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
+import org.chronopolis.ingest.repository.dao.BagFileDao;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.ingest.repository.dao.SearchService;
@@ -72,6 +73,11 @@ public class IngestConfig {
     @Bean
     public TokenDao tokenDao(EntityManager entityManager) {
         return new TokenDao(entityManager);
+    }
+
+    @Bean
+    public BagFileDao bagFileDao(EntityManager entityManager) {
+        return new BagFileDao(entityManager);
     }
 
     @Bean

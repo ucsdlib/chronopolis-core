@@ -24,11 +24,11 @@ import java.time.ZonedDateTime;
  *
  * @author shake
  */
-public class DataFileDao extends PagedDAO {
+public class BagFileDao extends PagedDAO {
 
-    private final Logger log = LoggerFactory.getLogger(DataFileDao.class);
+    private final Logger log = LoggerFactory.getLogger(BagFileDao.class);
 
-    public DataFileDao(EntityManager em) {
+    public BagFileDao(EntityManager em) {
         super(em);
     }
 
