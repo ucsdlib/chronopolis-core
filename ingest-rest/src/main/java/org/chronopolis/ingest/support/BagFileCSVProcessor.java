@@ -5,6 +5,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.rest.csv.BagFileHeaders;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagFile;
 import org.chronopolis.rest.entities.QBag;
@@ -35,10 +36,6 @@ public class BagFileCSVProcessor implements BiFunction<Long, Path, ResponseEntit
 
     private final Logger log = LoggerFactory.getLogger(BagFileCSVProcessor.class);
 
-    public enum Headers {
-        FILENAME, SIZE, FIXITY_VALUE, FIXITY_ALGORITHM
-    }
-
     private final PagedDAO dao;
     private final IngestProperties properties;
 
@@ -56,7 +53,7 @@ public class BagFileCSVProcessor implements BiFunction<Long, Path, ResponseEntit
             Bag bag = dao.findOne(QBag.bag, QBag.bag.id.eq(bagId));
 
             CSVParser parse = CSVFormat.RFC4180
-                    .withHeader(Headers.class)
+                    .withHeader(BagFileHeaders.class)
                     .withIgnoreEmptyLines()
                     .withIgnoreHeaderCase()
                     .withSkipHeaderRecord()
@@ -67,12 +64,12 @@ public class BagFileCSVProcessor implements BiFunction<Long, Path, ResponseEntit
                 // how to handle inconsistent records?
                 if (record.isConsistent()) {
                     // coerce leading /
-                    String filename = record.get(Headers.FILENAME).startsWith(LS)
-                            ? record.get(Headers.FILENAME)
-                            : LS + record.get(Headers.FILENAME);
-                    String sizeRecord = record.get(Headers.SIZE);
-                    String fixity = record.get(Headers.FIXITY_VALUE);
-                    String algorithmRecord = record.get(Headers.FIXITY_ALGORITHM);
+                    String filename = record.get(BagFileHeaders.FILENAME).startsWith(LS)
+                            ? record.get(BagFileHeaders.FILENAME)
+                            : LS + record.get(BagFileHeaders.FILENAME);
+                    String sizeRecord = record.get(BagFileHeaders.SIZE);
+                    String fixity = record.get(BagFileHeaders.FIXITY_VALUE);
+                    String algorithmRecord = record.get(BagFileHeaders.FIXITY_ALGORITHM);
 
                     // I think these can error
                     Long size = Long.parseLong(sizeRecord);

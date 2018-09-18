@@ -5,6 +5,7 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.chronopolis.rest.csv.BagFileHeaders;
 import org.chronopolis.rest.models.enums.FixityAlgorithm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,13 +39,6 @@ public class BagFileCsvGenerator implements Callable<BagFileCsvResult> {
     private static final String MANIFEST_NAME = "manifest-";
     private static final String TAGMANIFEST_NAME = "tagmanifest-";
 
-    /**
-     * should probably move this to a lower level
-     */
-    private enum Headers {
-        FILENAME, SIZE, FIXITY_ALGORITHM, FIXITY_VALUE
-    }
-
     private Path out;
     private Path root;
     private FixityAlgorithm algorithm;
@@ -65,7 +59,7 @@ public class BagFileCsvGenerator implements Callable<BagFileCsvResult> {
         Path csv = out.resolve(bagName + ".csv");
         BagFileCsvResult result = new BagFileCsvResult(csv);
         try (CSVPrinter print = CSVFormat.RFC4180.withHeader()
-                .withHeader(Headers.class)
+                .withHeader(BagFileHeaders.class)
                 .print(csv, Charset.defaultCharset())) {
             Path manifest = root.resolve(MANIFEST_NAME + prefix);
             Path tagmanifest = root.resolve(TAGMANIFEST_NAME + prefix);

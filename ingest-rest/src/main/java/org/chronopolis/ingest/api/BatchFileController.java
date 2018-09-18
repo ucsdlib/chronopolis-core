@@ -6,7 +6,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.ingest.support.BagFileCSVProcessor;
-import org.chronopolis.ingest.support.BagFileCSVProcessor.Headers;
+import org.chronopolis.rest.csv.BagFileHeaders;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagFile;
 import org.chronopolis.rest.entities.QBag;
@@ -135,7 +135,7 @@ public class BatchFileController {
             isr = new InputStreamReader(file.getInputStream());
             reader = new BufferedReader(isr);
             CSVParser parser = CSVFormat.RFC4180
-                    .withHeader(Headers.class)
+                    .withHeader(BagFileHeaders.class)
                     .withIgnoreHeaderCase()
                     .withIgnoreEmptyLines()
                     .withIgnoreSurroundingSpaces()
@@ -164,13 +164,13 @@ public class BatchFileController {
                     break;
                 }
 
-                writer.write(record.get(Headers.FILENAME.ordinal()));
+                writer.write(record.get(BagFileHeaders.FILENAME.ordinal()));
                 writer.write(",");
-                writer.write(record.get(Headers.SIZE.ordinal()));
+                writer.write(record.get(BagFileHeaders.SIZE.ordinal()));
                 writer.write(",");
-                writer.write(record.get(Headers.FIXITY_VALUE.ordinal()));
+                writer.write(record.get(BagFileHeaders.FIXITY_VALUE.ordinal()));
                 writer.write(",");
-                writer.write(record.get(Headers.FIXITY_ALGORITHM.ordinal()));
+                writer.write(record.get(BagFileHeaders.FIXITY_ALGORITHM.ordinal()));
                 writer.newLine();
             }
         } catch (IOException e) {
@@ -189,8 +189,8 @@ public class BatchFileController {
     }
 
     private boolean validate(CSVRecord record) {
-        String size = record.get(Headers.SIZE);
-        String algorithm = record.get(Headers.FIXITY_ALGORITHM);
+        String size = record.get(BagFileHeaders.SIZE);
+        String algorithm = record.get(BagFileHeaders.FIXITY_ALGORITHM);
 
         boolean isNumber = Longs.tryParse(size) != null;
         FixityAlgorithm parsedAlgorithm = FixityAlgorithm.Companion.fromString(algorithm);
