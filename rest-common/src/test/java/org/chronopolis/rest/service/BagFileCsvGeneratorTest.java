@@ -38,7 +38,8 @@ public class BagFileCsvGeneratorTest {
 
         try (Stream<String> lines = Files.lines(path)) {
             long count = lines.count();
-            Assert.assertEquals(3, count);
+            // header + 3 files
+            Assert.assertEquals(4, count);
         } catch (IOException e) {
             Assert.fail();
         }
