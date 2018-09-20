@@ -2,7 +2,7 @@ package org.chronopolis.ingest.api;
 
 import org.chronopolis.ingest.repository.criteria.SearchCriteria;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
-import org.chronopolis.ingest.repository.dao.StagingService;
+import org.chronopolis.ingest.repository.dao.StagingDao;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagFile;
 import org.chronopolis.rest.entities.DataFile;
@@ -64,7 +64,7 @@ public class ReplicationControllerTest extends ControllerTest {
 
     private ReplicationController controller;
 
-    @MockBean private StagingService staging;
+    @MockBean private StagingDao staging;
     @MockBean private ReplicationService service;
 
     @Before

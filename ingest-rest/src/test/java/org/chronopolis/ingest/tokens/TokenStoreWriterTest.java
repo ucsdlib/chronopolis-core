@@ -41,7 +41,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
 
-import static org.chronopolis.ingest.repository.dao.StagingService.DISCRIMINATOR_TOKEN;
+import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_TOKEN;
 
 @DataJpaTest
 @RunWith(SpringRunner.class)

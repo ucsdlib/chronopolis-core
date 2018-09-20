@@ -34,8 +34,8 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.chronopolis.ingest.repository.dao.StagingService.DISCRIMINATOR_BAG;
-import static org.chronopolis.ingest.repository.dao.StagingService.DISCRIMINATOR_TOKEN;
+import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_BAG;
+import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_TOKEN;
 
 
 /**

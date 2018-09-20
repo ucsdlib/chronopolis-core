@@ -13,11 +13,10 @@ import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.ReplicationSearchCriteria;
-import org.chronopolis.ingest.repository.criteria.StagingStorageSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
-import org.chronopolis.ingest.repository.dao.StagingService;
+import org.chronopolis.ingest.repository.dao.StagingDao;
 import org.chronopolis.ingest.repository.dao.StorageRegionService;
 import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.ingest.support.FileSizeFormatter;
@@ -26,6 +25,7 @@ import org.chronopolis.ingest.support.ReplicationCreateResult;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.entities.storage.QStagingStorage;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.create.BagCreate;
@@ -74,7 +74,7 @@ public class BagUIController extends IngestController {
     private final Integer DEFAULT_PAGE = 0;
 
     private final BagService bagService;
-    private final StagingService stagingService;
+    private final StagingDao stagingService;
     private final ReplicationService replicationService;
     private final TokenRepository tokenRepository;
     private final NodeRepository nodeRepository;
@@ -82,7 +82,7 @@ public class BagUIController extends IngestController {
 
     @Autowired
     public BagUIController(BagService bagService,
-                           StagingService stagingService,
+                           StagingDao stagingService,
                            ReplicationService replicationService,
                            TokenRepository tokenRepository,
                            NodeRepository nodeRepository,
@@ -248,7 +248,7 @@ public class BagUIController extends IngestController {
         }
 
         StagingStorage storage = findStorageForBag(principal, storageId);
-        stagingService.deleteFixity(storage, fixityId);
+        stagingService.deleteFixity(fixityId);
         return "redirect:/bags/" + id;
     }
 
@@ -343,11 +343,8 @@ public class BagUIController extends IngestController {
      */
     private StagingStorage findStorageForBag(Principal principal,
                                              Long storageId) throws ForbiddenException {
-        // might be able to make criteria out of this or smth not sure yet
-        StagingStorageSearchCriteria ssmc = new StagingStorageSearchCriteria()
-                .withId(storageId);
-
-        StagingStorage storage = stagingService.find(ssmc);
+        StagingStorage storage = stagingService.findOne(QStagingStorage.stagingStorage,
+                QStagingStorage.stagingStorage.id.eq(storageId));
         if (storage == null) {
             throw new RuntimeException("Invalid Storage Id");
         }
