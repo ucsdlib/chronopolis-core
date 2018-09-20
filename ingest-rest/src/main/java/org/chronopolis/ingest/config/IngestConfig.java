@@ -9,21 +9,32 @@ import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.ingest.repository.BagRepository;
 import org.chronopolis.ingest.repository.RepairRepository;
 import org.chronopolis.ingest.repository.StorageRegionRepository;
-import org.chronopolis.ingest.repository.StorageRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.dao.BagFileDao;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.PagedDAO;
 import org.chronopolis.ingest.repository.dao.SearchService;
-import org.chronopolis.ingest.repository.dao.StagingService;
+import org.chronopolis.ingest.repository.dao.StagingDao;
 import org.chronopolis.ingest.repository.dao.StorageRegionService;
 import org.chronopolis.ingest.repository.dao.TokenDao;
 import org.chronopolis.ingest.support.BagFileCSVProcessor;
-import org.chronopolis.rest.entities.*;
+import org.chronopolis.rest.entities.AceToken;
+import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.BagFile;
+import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.entities.TokenStore;
 import org.chronopolis.rest.entities.depositor.Depositor;
 import org.chronopolis.rest.entities.depositor.DepositorContact;
 import org.chronopolis.rest.entities.repair.Repair;
-import org.chronopolis.rest.entities.serializers.*;
+import org.chronopolis.rest.entities.serializers.AceTokenSerializer;
+import org.chronopolis.rest.entities.serializers.BagSerializer;
+import org.chronopolis.rest.entities.serializers.DataFileSerializer;
+import org.chronopolis.rest.entities.serializers.DepositorContactSerializer;
+import org.chronopolis.rest.entities.serializers.DepositorSerializer;
+import org.chronopolis.rest.entities.serializers.RepairSerializer;
+import org.chronopolis.rest.entities.serializers.ReplicationSerializer;
+import org.chronopolis.rest.entities.serializers.StagingStorageSerializer;
+import org.chronopolis.rest.entities.serializers.StorageRegionSerializer;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.FulfillmentStrategy;
@@ -54,8 +65,8 @@ import java.util.concurrent.TimeUnit;
  *
  * Created by shake on 3/3/15.
  */
-@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @Configuration
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @EnableConfigurationProperties({IngestProperties.class, TokenStagingProperties.class})
 public class IngestConfig {
     private final Logger log = LoggerFactory.getLogger(IngestConfig.class);
@@ -78,6 +89,11 @@ public class IngestConfig {
     @Bean
     public BagFileDao bagFileDao(EntityManager entityManager) {
         return new BagFileDao(entityManager);
+    }
+
+    @Bean
+    public StagingDao stagingDao(EntityManager entityManager) {
+        return new StagingDao(entityManager);
     }
 
     @Bean
@@ -108,11 +124,6 @@ public class IngestConfig {
     @Bean
     public StorageRegionService storageRegionService(StorageRegionRepository repository, EntityManager entityManager) {
         return new StorageRegionService(repository, entityManager);
-    }
-
-    @Bean
-    public StagingService stagingService(StorageRepository repository, EntityManager entityManager) {
-        return new StagingService(repository, entityManager);
     }
 
     @Bean

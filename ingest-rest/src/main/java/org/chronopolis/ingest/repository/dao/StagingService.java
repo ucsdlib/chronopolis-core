@@ -17,6 +17,7 @@ import java.util.Optional;
  *
  * @author shake
  */
+@Deprecated
 @Transactional
 public class StagingService extends SearchService<StagingStorage, Long, StorageRepository> {
 

@@ -1,6 +1,6 @@
 package org.chronopolis.ingest.api;
 
-import org.chronopolis.ingest.repository.dao.StagingService;
+import org.chronopolis.ingest.repository.dao.StagingDao;
 import org.chronopolis.rest.entities.BagFile;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.storage.Fixity;
@@ -30,6 +30,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Tests for the BagStorageController
+ *
+ * @author shake
  */
 @RunWith(SpringRunner.class)
 @WebMvcTest(controllers = BagStorageController.class)
@@ -39,10 +41,9 @@ public class BagStorageControllerTest extends ControllerTest {
     private static final String TYPE = "bag";
 
     private StagingStorage storage;
-    private BagStorageController controller;
 
     @MockBean
-    private StagingService stagingService;
+    private StagingDao stagingDao;
 
     @Before
     public void setup() {
@@ -74,13 +75,13 @@ public class BagStorageControllerTest extends ControllerTest {
         storage.setCreatedAt(ZonedDateTime.now());
         storage.setUpdatedAt(ZonedDateTime.now());
 
-        controller = new BagStorageController(stagingService);
+        BagStorageController controller = new BagStorageController(stagingDao);
         setupMvc(controller);
     }
 
     @Test
     public void testGetStorage() throws Exception {
-        when(stagingService.activeStorageForBag(eq(ID), eq(TYPE)))
+        when(stagingDao.activeStorageForBag(eq(ID), eq(TYPE)))
                 .thenReturn(Optional.of(storage));
         mvc.perform(get("/api/bags/{id}/storage/{type}", ID, TYPE))
                 // .andDo(print())
@@ -93,10 +94,10 @@ public class BagStorageControllerTest extends ControllerTest {
     public void testUpdateStorage() throws Exception {
         authenticateUser();
         ActiveToggle toggle = new ActiveToggle(false);
-        when(stagingService.activeStorageForBag(eq(ID), eq(TYPE)))
+        when(stagingDao.activeStorageForBag(eq(ID), eq(TYPE)))
                 .thenReturn(Optional.of(storage));
         mvc.perform(
-                put("/api/bags/{id}/storage/{type}", ID, TYPE)
+                put("/api/bags/{id}/storage/{type}/active", ID, TYPE)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJson(toggle))
                         .principal(authorizedPrincipal))
@@ -104,38 +105,5 @@ public class BagStorageControllerTest extends ControllerTest {
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andExpect(jsonPath("$.active").value(false));
     }
-
-    @Test
-    public void testGetFixities() throws Exception {
-        when(stagingService.activeStorageForBag(eq(ID), eq(TYPE)))
-                .thenReturn(Optional.of(storage));
-        mvc.perform(get("/api/bags/{id}/storage/{type}/fixity", ID, TYPE))
-                // .andDo(print())
-                .andExpect(status().is(HttpStatus.OK.value()));
-    }
-
-    @Test
-    public void testGetFixity() throws Exception {
-        when(stagingService.activeStorageForBag(eq(ID), eq(TYPE)))
-                .thenReturn(Optional.of(storage));
-
-        mvc.perform(get("/api/bags/{id}/storage/{type}/fixity/{alg}", ID, TYPE, "SHA-256"))
-                // .andDo(print())
-                .andExpect(status().is(HttpStatus.OK.value()));
-    }
-
-    @Test
-    public void testAddFixity() throws Exception {
-        authenticateUser();
-        when(stagingService.activeStorageForBag(eq(ID), eq(TYPE)))
-                .thenReturn(Optional.of(storage));
-        mvc.perform(put("/api/bags/{id}/storage/{type}/fixity", ID, TYPE)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"algorithm\": \"test-put\", \"value\": \"success\"}")
-                .principal(authorizedPrincipal))
-                // .andDo(print())
-                .andExpect(status().is(HttpStatus.CREATED.value()));
-    }
-
 
 }

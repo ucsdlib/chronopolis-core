@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.WebContext;
 import org.chronopolis.ingest.models.Paged;
 import org.chronopolis.ingest.repository.dao.TokenDao;
@@ -49,6 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <p>
  * - Remove magic vals
  * - Check json output
+ * - Do we need tests for every api method? For the most part they are delegating to the TokenDao...
  */
 @RunWith(SpringRunner.class)
 @WebMvcTest(controllers = BagTokenController.class)
@@ -60,8 +60,8 @@ public class BagTokenControllerTest extends ControllerTest {
 
     private BagTokenController controller;
 
-    @MockBean private TokenDao dao;
-    @MockBean private JPAQueryFactory factory;
+    @MockBean
+    private TokenDao dao;
 
     @Before
     public void setup() {
@@ -75,6 +75,19 @@ public class BagTokenControllerTest extends ControllerTest {
 
     @Test
     public void testGetTokensForBag() throws Exception {
+        when(dao.findOne(eq(QAceToken.aceToken),
+                eq(QAceToken.aceToken.bag.id.eq(1L).and(QAceToken.aceToken.file.id.eq(1L)))))
+                .thenReturn(generateToken(generateBag()));
+
+        mvc.perform(
+                get("/api/bags/{id}/files/{file_id}/token", 1L, 1L)
+                        .principal(authorizedPrincipal))
+                // .andDo(print())
+                .andExpect(status().is(HttpStatus.OK.value()));
+    }
+
+    @Test
+    public void testGetTokenForFile() throws Exception {
         when(dao.findPage(eq(QAceToken.aceToken), any(Paged.class)))
                 .thenReturn(wrap(generateToken(generateBag())));
 

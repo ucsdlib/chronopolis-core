@@ -5,7 +5,7 @@ import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.criteria.ReplicationSearchCriteria;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
-import org.chronopolis.ingest.repository.dao.StagingService;
+import org.chronopolis.ingest.repository.dao.StagingDao;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Replication;
@@ -39,8 +39,8 @@ import static org.chronopolis.ingest.api.Params.NODE;
 import static org.chronopolis.ingest.api.Params.STATUS;
 import static org.chronopolis.ingest.api.Params.UPDATED_AFTER;
 import static org.chronopolis.ingest.api.Params.UPDATED_BEFORE;
-import static org.chronopolis.ingest.repository.dao.StagingService.DISCRIMINATOR_BAG;
-import static org.chronopolis.ingest.repository.dao.StagingService.DISCRIMINATOR_TOKEN;
+import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_BAG;
+import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_TOKEN;
 
 /**
  * REST controller for replication methods
@@ -54,13 +54,13 @@ public class ReplicationController extends IngestController {
     private final Logger log = LoggerFactory.getLogger(ReplicationController.class);
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
-    private final StagingService stagingService;
+    private final StagingDao stagingDao;
     private final ReplicationService replicationService;
 
     @Autowired
-    public ReplicationController(StagingService stagingService,
+    public ReplicationController(StagingDao stagingDao,
                                  ReplicationService replicationService) {
-        this.stagingService = stagingService;
+        this.stagingDao = stagingDao;
         this.replicationService = replicationService;
     }
 
@@ -123,7 +123,7 @@ public class ReplicationController extends IngestController {
         // Validate the fixity and update the replication
         // need to get active storage
         Optional<StagingStorage> storage =
-                stagingService.activeStorageForBag(bag, DISCRIMINATOR_TOKEN);
+                stagingDao.activeStorageForBag(bag, DISCRIMINATOR_TOKEN);
         storage.ifPresent(s -> checkFixity(r, s.getFile().getFixities(), fixity, failureStatus));
         r.setReceivedTokenFixity(fixity);
         r.checkTransferred();
@@ -155,7 +155,7 @@ public class ReplicationController extends IngestController {
 
         // Validate the fixity and update the replication
         Optional<StagingStorage> storage =
-                stagingService.activeStorageForBag(bag, DISCRIMINATOR_BAG);
+                stagingDao.activeStorageForBag(bag, DISCRIMINATOR_BAG);
         storage.ifPresent(s -> checkFixity(r, s.getFile().getFixities(), fixity, failureStatus));
         r.setReceivedTagFixity(update.getFixity());
         r.checkTransferred();

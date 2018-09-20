@@ -30,6 +30,16 @@ interface TokenService {
                      @QueryMap params: Map<String, String>): Call<SpringPage<AceToken>>
 
     @POST("$BAG_ROOT/{bagId}/tokens")
-    fun createToken(@Path("bagId") bagId: Long, @Body model: AceTokenCreate): Call<AceToken>
+    fun createToken(@Path("bagId") bagId: Long,
+                    @Body model: AceTokenCreate): Call<AceToken>
+
+    @GET("$BAG_ROOT/{bagId}/files/{fileId}/token")
+    fun getTokenForFile(@Path("bagId") bagId: Long,
+                        @Path("fileId") fileId: Long): Call<AceToken>
+
+    @POST("$BAG_ROOT/{bagId}/files/{fileId}/token")
+    fun createToken(@Path("bagId") bagId: Long,
+                    @Path("fileId") fileId: Long,
+                    @Body model: AceTokenCreate): Call<AceToken>
 
 }
