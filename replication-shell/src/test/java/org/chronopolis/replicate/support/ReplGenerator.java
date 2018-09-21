@@ -2,6 +2,7 @@ package org.chronopolis.replicate.support;
 
 
 import org.chronopolis.rest.api.BagService;
+import org.chronopolis.rest.api.FileService;
 import org.chronopolis.rest.api.DepositorService;
 import org.chronopolis.rest.api.RepairService;
 import org.chronopolis.rest.api.ReplicationService;
@@ -26,6 +27,11 @@ public class ReplGenerator implements ServiceGenerator {
 
     @Override
     public BagService bags() {
+        return null;
+    }
+
+    @Override
+    public FileService files() {
         return null;
     }
 

@@ -16,6 +16,13 @@ interface ServiceGenerator {
     fun bags(): BagService
 
     /**
+     * Create a [FileService] for querying Bags in the Ingest Server
+     *
+     * @return a new BagService
+     */
+    fun files(): FileService
+
+    /**
      * Create a [TokenService] for querying Bag Tokens in the Ingest Server
      *
      * @return a new TokenService

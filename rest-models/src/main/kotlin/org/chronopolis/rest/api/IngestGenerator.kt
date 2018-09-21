@@ -25,6 +25,14 @@ class IngestGenerator(val properties: IngestApiProperties) : ServiceGenerator {
                 .build().create(BagService::class.java)
     }
 
+    override fun files(): FileService {
+        return Retrofit.Builder()
+                .client(client())
+                .baseUrl(properties.endpoint)
+                .addConverterFactory(converterFactory())
+                .build().create(FileService::class.java)
+    }
+
     override fun tokens(): TokenService {
         return Retrofit.Builder()
                 .client(client())
