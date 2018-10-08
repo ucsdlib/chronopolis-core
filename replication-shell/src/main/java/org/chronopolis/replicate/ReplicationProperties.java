@@ -17,6 +17,20 @@ public class ReplicationProperties {
      * Node name to use for sending mail
      */
     private String node = "chron";
+
+    /**
+     * Work directory for temporary files
+     */
+    private String workDirectory = "/tmp/chronopolis";
+
+    /**
+     * The maximum number of file transfers to execute at a single time
+     */
+    private Integer maxFileTransfers = 2;
+
+    /**
+     * Smtp configuration
+     */
     private Smtp smtp = new Smtp();
 
     public Smtp getSmtp() {
@@ -34,6 +48,24 @@ public class ReplicationProperties {
 
     public ReplicationProperties setNode(String node) {
         this.node = node;
+        return this;
+    }
+
+    public String getWorkDirectory() {
+        return workDirectory;
+    }
+
+    public ReplicationProperties setWorkDirectory(String workDirectory) {
+        this.workDirectory = workDirectory;
+        return this;
+    }
+
+    public Integer getMaxFileTransfers() {
+        return maxFileTransfers;
+    }
+
+    public ReplicationProperties setMaxFileTransfers(Integer maxFileTransfers) {
+        this.maxFileTransfers = maxFileTransfers;
         return this;
     }
 

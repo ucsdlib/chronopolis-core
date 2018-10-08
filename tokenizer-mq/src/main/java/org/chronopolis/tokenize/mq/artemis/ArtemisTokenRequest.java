@@ -100,6 +100,10 @@ public class ArtemisTokenRequest implements Runnable, Closeable {
         long localTimeout = deadline;
 
         try {
+            // todo: what if we change this to work as follows:
+            // 1: Poll the broker for a message
+            // 2: Send the message to a tokenrequestbatch
+            // 3: Have the tokenrequestbatch block on (size == batch_size || timeout)
             // I'm not the biggest fan of constantly polling for messages, but since we can't ask
             // the broker for a batch it seems to be the best we can do
             while (receivedMessages.size() < batchSize && localTimeout > 0) {

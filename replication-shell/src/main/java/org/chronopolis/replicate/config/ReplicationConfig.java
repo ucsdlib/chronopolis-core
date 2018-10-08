@@ -95,7 +95,7 @@ public class ReplicationConfig {
      * @param properties    the configuration for... general replication properties
      * @param generator     the ServiceGenerator to use for creating Ingest API services
      * @param broker        the BucketBroker for handling distribution of replications into Buckets
-     * @return
+     * @return A {@link Submitter} which tracks bags submitted for replication
      */
     @Bean
     public Submitter submitter(MailUtil mail,
@@ -104,7 +104,14 @@ public class ReplicationConfig {
                                ReplicationProperties properties,
                                ServiceGenerator generator,
                                BucketBroker broker) {
-        return new Submitter(mail, ace, broker, generator, configuration, properties, io(), http());
+        return new Submitter(mail,
+                ace,
+                broker,
+                generator,
+                configuration,
+                properties,
+                io(properties),
+                http());
     }
 
     @Bean
@@ -113,8 +120,12 @@ public class ReplicationConfig {
     }
 
     @Bean
-    public ThreadPoolExecutor io() {
-        return new ThreadPoolExecutor(2, 2, 30, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
+    public ThreadPoolExecutor io(ReplicationProperties properties) {
+        return new ThreadPoolExecutor(properties.getMaxFileTransfers(),
+                properties.getMaxFileTransfers(),
+                30,
+                TimeUnit.SECONDS,
+                new LinkedBlockingDeque<>());
     }
 
     /**
