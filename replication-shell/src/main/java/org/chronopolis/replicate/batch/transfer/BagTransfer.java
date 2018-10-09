@@ -30,7 +30,7 @@ public class BagTransfer implements Transfer, Runnable {
     private final ReplicationService replications;
 
     // These could all be local
-    private final Long id;
+    private final Long replicationId;
 
     public BagTransfer(Bucket bucket,
                        StorageOperation operation,
@@ -40,17 +40,19 @@ public class BagTransfer implements Transfer, Runnable {
         this.operation = operation;
         this.replications = replications;
 
-        this.id = replication.getId();
+        this.replicationId = replication.getId();
     }
 
     @Override
     public void run() {
         // Replicate the collection
-        log.info("{} Downloading bag from {}", operation.getIdentifier(), operation.getLink());
+        String link = operation.getLink();
+        String identifier = operation.getIdentifier();
+        log.info("{} Downloading bag from {}", identifier, link);
         Optional<FileTransfer> transfer = bucket.transfer(operation);
 
         // This might work better as a CompletableFuture... but this works too
-        transfer.flatMap(xfer -> transfer(xfer, operation.getIdentifier()))
+        transfer.flatMap(xfer -> transfer(xfer, identifier))
                 .flatMap(ignored -> bucket.hash(operation, Paths.get("tagmanifest-sha256.txt")))
                 .map(this::update)
                 .orElseThrow(() -> new RuntimeException("Unable to update bag tagmanifest value." +
@@ -61,9 +63,11 @@ public class BagTransfer implements Transfer, Runnable {
     public Callback<Replication> update(HashCode hash) {
         UpdateCallback cb = new UpdateCallback();
         String calculatedDigest = hash.toString();
-        log.info("{} Calculated digest {} for tagmanifest", operation.getIdentifier(), calculatedDigest);
+        String identifier = operation.getIdentifier();
+        log.info("{} Calculated digest {} for tagmanifest", identifier, calculatedDigest);
 
-        Call<Replication> call = replications.updateTagManifestFixity(id, new FixityUpdate(calculatedDigest));
+        Call<Replication> call = replications.updateTagManifestFixity(replicationId,
+                new FixityUpdate(calculatedDigest));
         call.enqueue(cb);
         return cb;
     }

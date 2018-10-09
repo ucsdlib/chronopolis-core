@@ -115,8 +115,8 @@ public interface Transfer {
     /**
      * Same as the other log
      *
-     * @param name
-     * @param stream
+     * @param name   The name of the Bag being operated on
+     * @param stream The InputStream to read from
      */
     default void log(String name, InputStream stream) {
         Logger log = LoggerFactory.getLogger("rsync-log");

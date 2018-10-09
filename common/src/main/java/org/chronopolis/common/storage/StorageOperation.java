@@ -1,8 +1,10 @@
 package org.chronopolis.common.storage;
 
 import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.ImmutableList;
 
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * Base Class to represent a basic type of operation regardless of the Storage Type
@@ -25,6 +27,11 @@ public abstract class StorageOperation implements Comparable<StorageOperation> {
      * An identifier for the operation
      */
     private String identifier;
+
+    /**
+     * Arguments to pass, if applicable
+     */
+    private List<String> arguments = ImmutableList.of();
 
     /**
      * The link/uri to transfer content with
@@ -74,6 +81,15 @@ public abstract class StorageOperation implements Comparable<StorageOperation> {
         return this;
     }
 
+    public List<String> getArguments() {
+        return arguments;
+    }
+
+    public StorageOperation setArguments(List<String> arguments) {
+        this.arguments = arguments;
+        return this;
+    }
+
     @Override
     public int compareTo(StorageOperation operation) {
         return ComparisonChain.start()
@@ -102,4 +118,5 @@ public abstract class StorageOperation implements Comparable<StorageOperation> {
         result = 31 * result + (identifier != null ? identifier.hashCode() : 0);
         return result;
     }
+
 }

@@ -25,7 +25,7 @@ public class TokenTransfer implements Transfer, Runnable {
     // todo: something other than rsync-log
     private final Logger log = LoggerFactory.getLogger("rsync-log");
 
-    private final Long id;
+    private final Long replicationId;
     private final Bucket bucket;
     private final SingleFileOperation operation;
     private final ReplicationService replications;
@@ -37,16 +37,18 @@ public class TokenTransfer implements Transfer, Runnable {
         this.bucket = bucket;
         this.operation = operation;
         this.replications = replications;
-        this.id = replication.getId();
+        this.replicationId = replication.getId();
     }
 
     @Override
     public void run() {
-        log.info("{} Downloading Token Store from {}", operation.getIdentifier(), operation.getLink());
+        String link = operation.getLink();
+        String identifier = operation.getIdentifier();
+        log.info("{} Downloading Token Store from {}", identifier, link);
 
         Optional<FileTransfer> transfer = bucket.transfer(operation);
 
-        transfer.flatMap(xfer -> transfer(xfer, operation.getIdentifier()))
+        transfer.flatMap(xfer -> transfer(xfer, identifier))
                 // For a Token Operation, the operation run is a SingleFileOperation, so we
                 // can  use the path given from the operation to get the hash of the token store
                 .flatMap(ignored -> bucket.hash(operation, operation.getFile()))
@@ -59,10 +61,11 @@ public class TokenTransfer implements Transfer, Runnable {
     public Callback<Replication> update(HashCode hash) {
         UpdateCallback cb = new UpdateCallback();
         String calculatedDigest = hash.toString();
-        log.info("{} Calculated digest {} for token store", operation.getIdentifier(), calculatedDigest);
+        String identifier = operation.getIdentifier();
+        log.info("{} Calculated digest {} for token store", identifier, calculatedDigest);
 
         // could probably extend call and do our own enqueue which returns a callback
-        Call<Replication> call = replications.updateTokenStoreFixity(id,
+        Call<Replication> call = replications.updateTokenStoreFixity(replicationId,
                 new FixityUpdate(calculatedDigest));
         call.enqueue(cb);
         return cb;
