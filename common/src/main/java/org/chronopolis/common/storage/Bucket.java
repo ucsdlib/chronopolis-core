@@ -27,8 +27,8 @@ public interface Bucket {
     boolean allocate(StorageOperation operation);
 
     /**
-     * Check if a Bucket contains a StorageOperation, if it is pending or if it is
-     * already exists in the Bucket
+     * Check if a Bucket contains a StorageOperation:
+     * if it is pending or if it already exists in the Bucket
      *
      * @param operation the operation to check
      * @return true if the operation exists; false otherwise
@@ -91,14 +91,16 @@ public interface Bucket {
      * Update the ACE Collection.Builder with storage information for this
      * bucket
      *
-     * @param operation
-     * @param collection
-     * @return
+     * @param operation  the operation to create the ACE storage for
+     * @param collection the Builder for creating the Ace Collection Gson model
+     * @return the updated {@link GsonCollection.Builder}
      */
-    GsonCollection.Builder fillAceStorage(StorageOperation operation, GsonCollection.Builder collection);
+    GsonCollection.Builder fillAceStorage(StorageOperation operation,
+                                          GsonCollection.Builder collection);
 
     /**
-     * What does it mean to free an operation in our context? Remove it from disk? Reclaim its allocated space?
+     * What does it mean to free an operation in our context? Remove it from disk?
+     * Reclaim its allocated space?
      * <p>
      * For now it might be best only to use this when a replication cannot be recovered and needs to
      * be removed from a Bucket

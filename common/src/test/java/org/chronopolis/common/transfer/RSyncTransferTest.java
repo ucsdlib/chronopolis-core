@@ -1,7 +1,9 @@
 package org.chronopolis.common.transfer;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /**
  *
@@ -9,8 +11,11 @@ import org.junit.Test;
  */
 public class RSyncTransferTest {
 
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
+
     @Test
-    public void lastRemote() throws Exception {
+    public void lastRemote() {
         String link = "test@test.host:/path/to/folder";
         RSyncTransfer xfer = new RSyncTransfer(link);
 
@@ -45,31 +50,35 @@ public class RSyncTransferTest {
         Assert.assertEquals("folder", last);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void lastEmpty() {
         String link = "";
         RSyncTransfer xfer = new RSyncTransfer(link);
-        String last = xfer.last();
+        exception.expect(IllegalArgumentException.class);
+        xfer.last();
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void lastRemoteEmpty() {
         String link = "test@test.host:";
         RSyncTransfer xfer = new RSyncTransfer(link);
-        String last = xfer.last();
+        exception.expect(IllegalArgumentException.class);
+        xfer.last();
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void lastLocalEmpty() {
         String link = "";
         RSyncTransfer xfer = new RSyncTransfer(link);
-        String last = xfer.last();
+        exception.expect(IllegalArgumentException.class);
+        xfer.last();
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void lastNull() {
         RSyncTransfer xfer = new RSyncTransfer(null);
-        String last = xfer.last();
+        exception.expect(IllegalArgumentException.class);
+        xfer.last();
     }
 
 }

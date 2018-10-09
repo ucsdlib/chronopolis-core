@@ -44,14 +44,12 @@ import java.util.function.BiConsumer;
  * ExecutorService, but testing will need to be done to see how that plays with the
  * CompletableFuture interface.
  * <p>
- * Also we'll want to reevaluate if we want to do partial flows (replicate; ace register; ace load; ace audit)
- * or if we should keep it how it is now. Either way there will be some updates to make a distinction of
- * when to audit ace data as currently we trigger the audit eagerly, which could be bad if tokens fail to
- * upload.
- * <p>
+ * Also we'll want to reevaluate if we want to do partial flows (replicate; ace register; ace load;
+ * ace audit) or if we should keep it how it is now. Either way there will be some updates to make a
+ * distinction of when to audit ace data as currently we trigger the audit eagerly, which could be
+ * bad if tokens fail to upload.
  * <p>
  * todo: +ingestAPIProperties
- * <p>
  * <p>
  * Created by shake on 10/12/16.
  */
@@ -164,8 +162,8 @@ public class Submitter {
     }
 
     /**
-     * Allocate a bucket for both the BagOperation and TokenOperation (Directory and SingleFile Operations, respectively). If not able to complete,
-     * then fail.
+     * Allocate a bucket for both the BagOperation and TokenOperation (Directory and SingleFile
+     * Operations, respectively). If not able to complete, then fail.
      *
      * @param replication the replication being processed
      * @param bagOp       the StorageOperation for replicating a Bag
@@ -196,7 +194,6 @@ public class Submitter {
                 .orElseThrow(() -> new IllegalArgumentException("No bucket allocated for bag!"));
         Bucket tokenBucket = broker.findBucketForOperation(tokenOp)
                 .orElseThrow(() -> new IllegalArgumentException("No bucket allocated for token!"));
-
 
         ReplicationService replications = generator.replications();
         BagTransfer bxfer = new BagTransfer(bagBucket, bagOp, replication, replications);
@@ -269,31 +266,33 @@ public class Submitter {
 
         @Override
         public void accept(ReplicationStatus status, Throwable throwable) {
-            String s = replicationIdentifier(replication);
             String body;
             String subject;
+            String replicationId = replicationIdentifier(replication);
 
             try {
-                // Send mail if there's an exception
+                // Send mail if there is an exception
                 if (throwable != null) {
-                    log.warn("Replication did not complete successfully, returned throwable is", throwable);
-                    subject = "Failed to replicate " + s;
+                    log.warn("Replication did not complete successfully, returned throwable is",
+                            throwable);
+                    subject = "Failed to replicate " + replicationId;
                     body = throwable.getMessage()
                             + "\n"
                             + Arrays.toString(throwable.getStackTrace());
                     send(subject, body);
 
                     // Send mail if we are set to and the replication is complete
-                } else if (properties.getSmtp().getSendOnSuccess() && status == ReplicationStatus.SUCCESS) {
-                    subject = "Successful replication of " + s;
+                } else if (properties.getSmtp().getSendOnSuccess() &&
+                        status == ReplicationStatus.SUCCESS) {
+                    subject = "Successful replication of " + replicationId;
                     body = "";
                     send(subject, body);
                 }
             } catch (Exception e) {
                 log.error("Exception caught sending mail", e);
             } finally {
-                log.debug("{} removing from threadpool", s);
-                replicating.remove(s);
+                log.debug("{} removing from thread pool", replicationId);
+                replicating.remove(replicationId);
             }
         }
 

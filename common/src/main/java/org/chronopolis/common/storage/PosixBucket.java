@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.FileStore;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -28,7 +29,8 @@ public class PosixBucket implements Bucket {
 
     private final Logger log = LoggerFactory.getLogger(PosixBucket.class);
 
-    private final ImmutableSet<OperationType> supportedOperations = ImmutableSet.of(OperationType.RSYNC);
+    private final ImmutableSet<OperationType> supportedOperations =
+            ImmutableSet.of(OperationType.RSYNC);
 
     private final Posix posix;
     private final Set<StorageOperation> pendingOperations;
@@ -96,7 +98,8 @@ public class PosixBucket implements Bucket {
         // Long.MAX so we should be ok
         Double remainder = (double) (usable - size);
 
-        log.trace("[{}] Total {}; Remainder {} ({} %(UL))", operation.getIdentifier(), total, remainder, remainder / total);
+        log.trace("[{}] Total {}; Remainder {} ({} %(UL))",
+                operation.getIdentifier(), total, remainder, remainder / total);
         if (remainder > 0 && remainder / total >= warn) {
             writeable = true;
         }
@@ -122,30 +125,40 @@ public class PosixBucket implements Bucket {
     public Optional<FileTransfer> transfer(StorageOperation operation) {
         Optional<FileTransfer> response = Optional.empty();
         OperationType type = operation.getType();
+
         if (contains(operation) && supported(type)) {
             if (type == OperationType.RSYNC) {
+                List<String> args = operation.getArguments();
                 Path rsyncPath = Paths.get(posix.getPath()).resolve(operation.getRoot());
-                response = Optional.of(new RSyncTransfer(operation.getLink(), rsyncPath));
+                response = args == null || args.isEmpty()
+                        ? Optional.of(new RSyncTransfer(operation.getLink(), rsyncPath))
+                        : Optional.of(new RSyncTransfer(operation.getLink(), rsyncPath, args));
             } else {
                 log.warn("Unable to support transfer of type {}", type);
             }
         }
+
         return response;
     }
 
     @Override
     public Optional<HashCode> hash(StorageOperation operation, Path file) {
         Optional<HashCode> response = Optional.empty();
+
         Path root = Paths.get(posix.getPath());
         Path resolved = root.resolve(operation.getRoot()).resolve(file);
         log.debug("[{}] Resolved file for hashing: {}", operation.getIdentifier(), resolved);
+
         if (resolved.toFile().exists()) {
             try {
-                response = Optional.of(Files.asByteSource(resolved.toFile()).hash(Hashing.sha256()));
+                response = Optional.of(
+                        Files.asByteSource(resolved.toFile())
+                                .hash(Hashing.sha256()));
             } catch (IOException e) {
                 log.error("[{}] Error hashing file", e);
             }
         }
+
         return response;
     }
 
@@ -160,7 +173,8 @@ public class PosixBucket implements Bucket {
     }
 
     @Override
-    public GsonCollection.Builder fillAceStorage(StorageOperation operation, GsonCollection.Builder builder) {
+    public GsonCollection.Builder fillAceStorage(StorageOperation operation,
+                                                 GsonCollection.Builder builder) {
         builder.storage("local");
         Path root;
         if (posix.getAce() != null) {

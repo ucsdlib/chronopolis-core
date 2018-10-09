@@ -49,7 +49,8 @@ public class Allocator implements Supplier<ReplicationStatus> {
     public ReplicationStatus get() {
         ReplicationStatus status = ReplicationStatus.STARTED;
 
-        log.debug("[{}] Allocating buckets for replication", replication.getBag().getName());
+        String bagName = replication.getBag().getName();
+        log.debug("[{}] Allocating buckets for replication", bagName);
         Bucket bagBucket = broker.findBucketForOperation(bagOp)
                 .orElseGet(() -> allocate(bagOp));
         Bucket tokenBucket = broker.findBucketForOperation(tokenOp)
@@ -64,7 +65,7 @@ public class Allocator implements Supplier<ReplicationStatus> {
             update.enqueue(new UpdateCallback());
         } else {
             // this should be unreachable, but just in case
-            log.warn("[{}] Unable to allocate storage for operations!", replication.getBag().getName());
+            log.warn("[{}] Unable to allocate storage for operations!", bagName);
             status = ReplicationStatus.FAILURE;
         }
 
@@ -72,7 +73,8 @@ public class Allocator implements Supplier<ReplicationStatus> {
     }
 
     private Bucket allocate(StorageOperation operation) {
+        String message = "Unable to allocate storage for operation!";
         return broker.allocateSpaceForOperation(operation)
-                .orElseThrow(() -> new IllegalArgumentException("Unable to allocate storage for operation!"));
+                .orElseThrow(() -> new IllegalArgumentException(message));
     }
 }
