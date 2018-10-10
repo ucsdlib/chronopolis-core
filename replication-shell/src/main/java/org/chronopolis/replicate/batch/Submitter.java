@@ -8,6 +8,7 @@ import org.chronopolis.common.storage.BucketBroker;
 import org.chronopolis.common.storage.DirectoryStorageOperation;
 import org.chronopolis.common.storage.OperationType;
 import org.chronopolis.common.storage.SingleFileOperation;
+import org.chronopolis.common.storage.StorageOperation;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.ace.AceRunner;
@@ -26,7 +27,6 @@ import org.springframework.mail.SimpleMailMessage;
 import javax.annotation.Nullable;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -62,9 +62,9 @@ public class Submitter {
     private final BucketBroker broker;
     private final ServiceGenerator generator;
 
-    private final ReplicationProperties properties;
     private final ThreadPoolExecutor io;
     private final ThreadPoolExecutor http;
+    private final ReplicationProperties properties;
 
     private final Set<String> replicating;
     private final AceConfiguration aceConfiguration;
@@ -95,8 +95,26 @@ public class Submitter {
     }
 
     /**
-     * submit a replication for processing, returning the future which it is bound by
-     * todo: {@link Optional}
+     * Basic configuration for a {@link StorageOperation}. Depending on the protocol of the
+     * replication allow for different configuration.
+     *
+     * @param operation   the operation to configure
+     * @param replication the replication being processed
+     * @param storage     the StagingStorage of either the Bag or TokenStore
+     * @param link        the link of either the Bag or TokenStore
+     */
+    private void configureOperation(StorageOperation operation,
+                                    Replication replication,
+                                    StagingStorage storage,
+                                    String link) {
+        operation.setLink(link);
+        operation.setSize(storage.getSize());
+        operation.setIdentifier(replicationIdentifier(replication));
+        operation.setType(OperationType.from(replication.getProtocol()));
+    }
+
+    /**
+     * Submit a replication for processing, returning the future which it is bound by
      *
      * @param replication the replication to work on
      * @return a {@link CompletableFuture} of the replication flow
@@ -104,51 +122,51 @@ public class Submitter {
     public CompletableFuture<ReplicationStatus> submit(Replication replication) {
         String identifier = replicationIdentifier(replication);
 
-        // todo: do we want to run through the entire flow or have it staggered like before?
+        CompletableFuture<ReplicationStatus> future;
         if (replicating.add(identifier)) {
             log.info("Submitting replication {}", identifier);
 
             StagingStorage bagStorage = replication.getBag().getBagStorage();
             StagingStorage tokenStorage = replication.getBag().getTokenStorage();
+            if (bagStorage != null && tokenStorage != null) {
+                // create storage operations
+                DirectoryStorageOperation bagOp =
+                        new DirectoryStorageOperation(Paths.get(bagStorage.getPath()));
+                configureOperation(bagOp, replication, bagStorage, replication.getBagLink());
 
-            // create storage operations
-            DirectoryStorageOperation bagOp =
-                    new DirectoryStorageOperation(Paths.get(bagStorage.getPath()));
-            bagOp.setIdentifier(identifier);
-            bagOp.setSize(bagStorage.getSize());
-            bagOp.setLink(replication.getBagLink());
-            bagOp.setType(OperationType.from(replication.getProtocol()));
+                SingleFileOperation tokenOp =
+                        new SingleFileOperation(Paths.get(tokenStorage.getPath()));
+                configureOperation(tokenOp, replication, tokenStorage, replication.getTokenLink());
 
-
-            SingleFileOperation tokenOp =
-                    new SingleFileOperation(Paths.get(tokenStorage.getPath()));
-            tokenOp.setIdentifier(identifier);
-            tokenOp.setSize(tokenStorage.getSize());
-            tokenOp.setLink(replication.getTokenLink());
-            tokenOp.setType(OperationType.from(replication.getProtocol()));
-
-            // create work based on replication status
-            CompletableFuture<ReplicationStatus> future;
-            switch (replication.getStatus()) {
-                // Allocate
-                case PENDING:
-                    future = allocate(replication, bagOp, tokenOp);
-                    break;
-                // Replicate
-                case STARTED:
-                    future = fromStarted(replication, bagOp, tokenOp);
-                    break;
-                // Do all ACE work
-                case TRANSFERRED:
-                case ACE_REGISTERED:
-                case ACE_TOKEN_LOADED:
-                    future = fromTransferred(null, replication, bagOp, tokenOp);
-                    break;
-                case ACE_AUDITING:
-                    future = fromAceAuditing(replication);
-                    break;
-                default:
-                    return null;
+                // create work based on replication status
+                // todo: do we want to run through the entire flow or have it staggered like before?
+                switch (replication.getStatus()) {
+                    // Allocate
+                    case PENDING:
+                        future = allocate(replication, bagOp, tokenOp);
+                        break;
+                    // Replicate
+                    case STARTED:
+                        future = fromStarted(replication, bagOp, tokenOp);
+                        break;
+                    // Do all ACE work
+                    case TRANSFERRED:
+                    case ACE_REGISTERED:
+                    case ACE_TOKEN_LOADED:
+                        future = fromTransferred(null, replication, bagOp, tokenOp);
+                        break;
+                    case ACE_AUDITING:
+                        future = fromAceAuditing(replication);
+                        break;
+                    default:
+                        return null;
+                }
+            } else {
+                // we could throw an exception but that seems kind of unnecessary
+                future = CompletableFuture.supplyAsync(() -> {
+                    log.error("[{}] Unable to work on replication", identifier);
+                    return ReplicationStatus.FAILURE;
+                });
             }
 
             // handle instead of whenComplete?
@@ -196,14 +214,16 @@ public class Submitter {
                 .orElseThrow(() -> new IllegalArgumentException("No bucket allocated for token!"));
 
         ReplicationService replications = generator.replications();
-        BagTransfer bxfer = new BagTransfer(bagBucket, bagOp, replication, replications);
-        TokenTransfer txfer = new TokenTransfer(tokenBucket, tokenOp, replication, replications);
+        BagTransfer bagTransfer =
+                new BagTransfer(bagBucket, bagOp, replication, replications, properties);
+        TokenTransfer tokenTransfer =
+                new TokenTransfer(tokenBucket, tokenOp, replication, replications, properties);
 
         // todo: maybe we shouldn't chain together fromTransferred?
         return fromTransferred(
                 CompletableFuture
-                        .runAsync(txfer, io)
-                        .thenRunAsync(bxfer, io),
+                        .runAsync(tokenTransfer, io)
+                        .thenRunAsync(bagTransfer, io),
                 replication, bagOp, tokenOp);
     }
 

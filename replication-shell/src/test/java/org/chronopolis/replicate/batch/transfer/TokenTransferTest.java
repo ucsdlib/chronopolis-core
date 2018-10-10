@@ -5,6 +5,7 @@ import org.chronopolis.common.storage.Bucket;
 import org.chronopolis.common.storage.OperationType;
 import org.chronopolis.common.storage.SingleFileOperation;
 import org.chronopolis.common.transfer.FileTransfer;
+import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.rest.api.ReplicationService;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.Replication;
@@ -13,7 +14,6 @@ import org.chronopolis.rest.models.enums.ReplicationStatus;
 import org.chronopolis.rest.models.update.FixityUpdate;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.nio.file.Path;
@@ -24,29 +24,25 @@ import java.util.Optional;
 import static java.time.ZonedDateTime.now;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 public class TokenTransferTest {
 
-    @Mock
-    private Bucket bucket;
-    @Mock
-    private FileTransfer ft;
-    @Mock
-    private ReplicationService replications;
+    private final Path EMPTY_PATH = Paths.get("");
+    private final Bucket bucket = mock(Bucket.class);
+    private final FileTransfer ft = mock(FileTransfer.class);
+    private final ReplicationService replications = mock(ReplicationService.class);
 
     private SingleFileOperation op;
-
     private TokenTransfer transfer;
-    private Path EMPTY_PATH;
 
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
 
-        EMPTY_PATH = Paths.get("");
         op = new SingleFileOperation(Paths.get("path"));
         op.setType(OperationType.NOP);
         op.setSize(0L);
@@ -58,8 +54,9 @@ public class TokenTransferTest {
         Replication replication = new Replication(1L, now(), now(), ReplicationStatus.PENDING,
                 "link", "link", "test-protocol", "", "", "test-node", bag
         );
+        ReplicationProperties properties = new ReplicationProperties();
 
-        transfer = new TokenTransfer(bucket, op, replication, replications);
+        transfer = new TokenTransfer(bucket, op, replication, replications, properties);
     }
 
     @Test(expected = RuntimeException.class)

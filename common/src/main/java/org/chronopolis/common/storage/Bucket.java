@@ -6,6 +6,7 @@ import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.common.transfer.FileTransfer;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -68,6 +69,17 @@ public interface Bucket {
      * @return the FileTransfer, or an empty optional if no transfer could be created
      */
     Optional<FileTransfer> transfer(StorageOperation operation);
+
+    /**
+     * Create a FileTransfer with additional arguments which can be used to replicate content
+     * into this Bucket
+     *
+     * @param operation the operation containing information about the Transfer
+     * @param arguments the arguments to pass along to the Transfer
+     * @return the FileTransfer, or an empty optional if no transfer could be created
+     */
+    Optional<FileTransfer> transfer(StorageOperation operation, List<String> arguments);
+
 
     /**
      * Retrieve the hash for a file for a given StorageOperation

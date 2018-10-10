@@ -1,6 +1,9 @@
 package org.chronopolis.replicate;
 
+import com.google.common.collect.ImmutableList;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.util.List;
 
 /**
  * ConfigurationProperties for replication
@@ -33,14 +36,10 @@ public class ReplicationProperties {
      */
     private Smtp smtp = new Smtp();
 
-    public Smtp getSmtp() {
-        return smtp;
-    }
-
-    public ReplicationProperties setSmtp(Smtp smtp) {
-        this.smtp = smtp;
-        return this;
-    }
+    /**
+     * Rsync configuration
+     */
+    private Rsync rsync = new Rsync();
 
     public String getNode() {
         return node;
@@ -69,6 +68,24 @@ public class ReplicationProperties {
         return this;
     }
 
+    public Smtp getSmtp() {
+        return smtp;
+    }
+
+    public ReplicationProperties setSmtp(Smtp smtp) {
+        this.smtp = smtp;
+        return this;
+    }
+
+    public Rsync getRsync() {
+        return rsync;
+    }
+
+    public ReplicationProperties setRsync(Rsync rsync) {
+        this.rsync = rsync;
+        return this;
+    }
+
     /**
      * Additional smtp configuration unique to the replication shell
      */
@@ -84,6 +101,26 @@ public class ReplicationProperties {
 
         public Smtp setSendOnSuccess(Boolean sendOnSuccess) {
             this.sendOnSuccess = sendOnSuccess;
+            return this;
+        }
+    }
+
+    /**
+     * Additional rsync configuration
+     */
+    public static class Rsync {
+
+        /**
+         * Optional set of arguments to use when creating an rsync process
+         */
+        private List<String> arguments = ImmutableList.of("-aL", "--stats");
+
+        public List<String> getArguments() {
+            return arguments;
+        }
+
+        public Rsync setArguments(List<String> arguments) {
+            this.arguments = arguments;
             return this;
         }
     }

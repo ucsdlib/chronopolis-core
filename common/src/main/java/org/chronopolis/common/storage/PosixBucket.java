@@ -1,5 +1,6 @@
 package org.chronopolis.common.storage;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
@@ -123,16 +124,20 @@ public class PosixBucket implements Bucket {
 
     @Override
     public Optional<FileTransfer> transfer(StorageOperation operation) {
+        return transfer(operation, ImmutableList.of());
+    }
+
+    @Override
+    public Optional<FileTransfer> transfer(StorageOperation operation, List<String> arguments) {
         Optional<FileTransfer> response = Optional.empty();
         OperationType type = operation.getType();
 
         if (contains(operation) && supported(type)) {
             if (type == OperationType.RSYNC) {
-                List<String> args = operation.getArguments();
                 Path rsyncPath = Paths.get(posix.getPath()).resolve(operation.getRoot());
-                response = args == null || args.isEmpty()
+                response = arguments == null || arguments.isEmpty()
                         ? Optional.of(new RSyncTransfer(operation.getLink(), rsyncPath))
-                        : Optional.of(new RSyncTransfer(operation.getLink(), rsyncPath, args));
+                        : Optional.of(new RSyncTransfer(operation.getLink(), rsyncPath, arguments));
             } else {
                 log.warn("Unable to support transfer of type {}", type);
             }
