@@ -40,13 +40,6 @@ public class RSyncTransfer implements FileTransfer {
 
     private final ExecutorService threadPool = Executors.newSingleThreadExecutor();
 
-    @Deprecated
-    public RSyncTransfer(String link) {
-        this.link = link;
-        this.storage = null;
-        this.arguments = ImmutableList.of("-aL", "--stats");
-    }
-
     public RSyncTransfer(final String link, final Path local) {
         this.link = link;
         this.storage = local;
@@ -76,7 +69,6 @@ public class RSyncTransfer implements FileTransfer {
 
         // search for rsync in the path? or pass in path?
         final String rsyncCommand = "rsync";
-        final String stats = "--stats";
 
         // always disable password auth
         final String sshConfig = "-e ssh -o 'PasswordAuthentication no'";

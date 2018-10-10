@@ -4,6 +4,7 @@ import com.google.common.hash.HashCode;
 import org.chronopolis.common.storage.Bucket;
 import org.chronopolis.common.storage.SingleFileOperation;
 import org.chronopolis.common.transfer.FileTransfer;
+import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
 import org.chronopolis.rest.api.ReplicationService;
 import org.chronopolis.rest.models.Replication;
@@ -17,7 +18,7 @@ import java.util.Optional;
 
 /**
  * Class to transfer token stores to a given bucket
- *
+ * <p>
  * Created by shake on 10/11/16.
  */
 public class TokenTransfer implements Transfer, Runnable {
@@ -29,15 +30,18 @@ public class TokenTransfer implements Transfer, Runnable {
     private final Bucket bucket;
     private final SingleFileOperation operation;
     private final ReplicationService replications;
+    private final ReplicationProperties properties;
 
     public TokenTransfer(Bucket bucket,
                          SingleFileOperation operation,
                          Replication replication,
-                         ReplicationService replications) {
+                         ReplicationService replications,
+                         ReplicationProperties properties) {
         this.bucket = bucket;
         this.operation = operation;
         this.replications = replications;
         this.replicationId = replication.getId();
+        this.properties = properties;
     }
 
     @Override
@@ -46,7 +50,14 @@ public class TokenTransfer implements Transfer, Runnable {
         String identifier = operation.getIdentifier();
         log.info("{} Downloading Token Store from {}", identifier, link);
 
-        Optional<FileTransfer> transfer = bucket.transfer(operation);
+        Optional<FileTransfer> transfer;
+        switch (operation.getType()) {
+            case RSYNC:
+                transfer = bucket.transfer(operation, properties.getRsync().getArguments());
+                break;
+            default:
+                transfer = Optional.empty();
+        }
 
         transfer.flatMap(xfer -> transfer(xfer, identifier))
                 // For a Token Operation, the operation run is a SingleFileOperation, so we

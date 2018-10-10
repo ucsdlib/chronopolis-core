@@ -4,6 +4,7 @@ import com.google.common.hash.HashCode;
 import org.chronopolis.common.storage.Bucket;
 import org.chronopolis.common.storage.StorageOperation;
 import org.chronopolis.common.transfer.FileTransfer;
+import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
 import org.chronopolis.rest.api.ReplicationService;
 import org.chronopolis.rest.models.Replication;
@@ -18,7 +19,7 @@ import java.util.Optional;
 
 /**
  * Class which transfers bags into a given Bucket
- *
+ * <p>
  * Created by shake on 10/11/16.
  */
 public class BagTransfer implements Transfer, Runnable {
@@ -28,6 +29,7 @@ public class BagTransfer implements Transfer, Runnable {
     private final Bucket bucket;
     private final StorageOperation operation;
     private final ReplicationService replications;
+    private final ReplicationProperties properties;
 
     // These could all be local
     private final Long replicationId;
@@ -35,12 +37,14 @@ public class BagTransfer implements Transfer, Runnable {
     public BagTransfer(Bucket bucket,
                        StorageOperation operation,
                        Replication replication,
-                       ReplicationService replications) {
+                       ReplicationService replications,
+                       ReplicationProperties properties) {
         this.bucket = bucket;
         this.operation = operation;
         this.replications = replications;
 
         this.replicationId = replication.getId();
+        this.properties = properties;
     }
 
     @Override
@@ -49,7 +53,15 @@ public class BagTransfer implements Transfer, Runnable {
         String link = operation.getLink();
         String identifier = operation.getIdentifier();
         log.info("{} Downloading bag from {}", identifier, link);
-        Optional<FileTransfer> transfer = bucket.transfer(operation);
+
+        Optional<FileTransfer> transfer;
+        switch (operation.getType()) {
+            case RSYNC:
+                transfer = bucket.transfer(operation, properties.getRsync().getArguments());
+                break;
+            default:
+                transfer = Optional.empty();
+        }
 
         // This might work better as a CompletableFuture... but this works too
         transfer.flatMap(xfer -> transfer(xfer, identifier))
