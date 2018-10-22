@@ -15,11 +15,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * @deprecated will be removed by 3.0
+ *
  * Generalized service for access database objects. Uses SearchCriteria to build queries, as well
  * as offers a basic save method.
  *
  * Created by shake on 1/24/17.
  */
+@Deprecated
 @Transactional
 public class SearchService<T, I extends Serializable, E extends JpaRepository<T, I> & QueryDslPredicateExecutor<T>> {
 

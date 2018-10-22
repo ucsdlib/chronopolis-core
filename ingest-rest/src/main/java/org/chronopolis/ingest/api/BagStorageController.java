@@ -35,7 +35,6 @@ import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_TOK
 @RequestMapping("/api/bags/{id}")
 public class BagStorageController {
 
-    private final Logger log = LoggerFactory.getLogger(BagStorageController.class);
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private final StagingDao dao;

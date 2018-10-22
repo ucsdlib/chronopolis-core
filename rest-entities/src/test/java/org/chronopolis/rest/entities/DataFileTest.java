@@ -8,8 +8,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -38,8 +36,6 @@ import static org.chronopolis.rest.entities.JPAContext.PROOF;
 @ContextConfiguration(classes = JPAContext.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class DataFileTest {
-
-    private final Logger log = LoggerFactory.getLogger(DataFileTest.class);
 
     private final String CREATOR = "data-file-test";
     private final String TEST_PATH = "/test-path";

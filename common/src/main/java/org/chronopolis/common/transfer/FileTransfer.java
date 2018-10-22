@@ -36,11 +36,10 @@ public interface FileTransfer {
     /**
      * Return the statistics for the given transfer (ie: transfer speed, amount, etc)
      *
-     * @return
+     * @return the output information for the transfer, if given
      */
     String getStats();
 
     InputStream getOutput();
-
     InputStream getErrors();
 }

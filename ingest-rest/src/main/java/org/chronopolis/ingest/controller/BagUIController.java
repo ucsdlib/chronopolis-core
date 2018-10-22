@@ -58,8 +58,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.chronopolis.ingest.repository.dao.StagingService.DISCRIMINATOR_BAG;
-import static org.chronopolis.ingest.repository.dao.StagingService.DISCRIMINATOR_TOKEN;
+import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_BAG;
+import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_TOKEN;
+
 
 /**
  * Controller for handling bag/replication related requests

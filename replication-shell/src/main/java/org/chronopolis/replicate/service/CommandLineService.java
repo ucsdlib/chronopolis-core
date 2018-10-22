@@ -108,7 +108,6 @@ public class CommandLineService implements ReplicationService {
                 log.info("Quitting");
                 done = true;
             }
-
         }
     }
 
@@ -132,7 +131,6 @@ public class CommandLineService implements ReplicationService {
                 }
             }
 
-            //The one difference, mwahhaha
             sb.replace(sb.length() - sep.length(), sb.length(), " -> ");
             System.out.println(sb.toString());
             option = OPTION.fromString(readLine().trim());
