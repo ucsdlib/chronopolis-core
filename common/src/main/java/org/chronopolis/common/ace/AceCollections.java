@@ -15,7 +15,9 @@ import java.util.List;
 public interface AceCollections {
 
     @GET("rest/collections")
-    Call<List<GsonCollection>> getCollections(@Query("group") String group, @Query("corrupt") Boolean corrupt, @Query("active") Boolean active);
+    Call<List<GsonCollection>> getCollections(@Query("group") String group,
+                                              @Query("corrupt") Boolean corrupt,
+                                              @Query("active") Boolean active);
 
     @GET("rest/collections/{id}/items")
     Call<List<MonitoredItem>> getItems(@Path("id") Long id, @Query("state") String state);

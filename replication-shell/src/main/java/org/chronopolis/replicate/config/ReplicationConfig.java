@@ -14,8 +14,6 @@ import org.chronopolis.rest.api.IngestApiProperties;
 import org.chronopolis.rest.api.IngestGenerator;
 import org.chronopolis.rest.api.OkBasicInterceptor;
 import org.chronopolis.rest.api.ServiceGenerator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -40,7 +38,6 @@ import java.util.concurrent.TimeUnit;
         ReplicationProperties.class,
         AceConfiguration.class})
 public class ReplicationConfig {
-    public final Logger log = LoggerFactory.getLogger(ReplicationConfig.class);
 
     @Value("${debug.retrofit:NONE}")
     public String retrofitLogLevel;
@@ -68,8 +65,6 @@ public class ReplicationConfig {
                 .baseUrl(configuration.getAm())
                 .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
-                // .setErrorHandler(logger())
-                // .setLogLevel(Retrofit.LogLevel.valueOf(retrofitLogLevel))
                 .build();
 
         return restAdapter.create(AceService.class);

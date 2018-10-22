@@ -66,7 +66,7 @@ verify:jdk8:
   <<: *verify
   image: maven:3.3.9-jdk-8
   services: 
-    - postgres:latest
+    - postgres:9
   artifacts:
     expire_in: 2 days
     untracked: true
@@ -96,7 +96,7 @@ deploy:jdk8:
     - develop
   image: maven:3.3.9-jdk-8
   services:
-    - postgres:latest
+    - postgres:9
 
 .rpm: &rpm
   before_script:
@@ -109,7 +109,7 @@ deploy:jdk8:
     - develop
   image: maven:3.3.9-jdk-8
   services:
-    - postgres:latest
+    - postgres:9
 
 rpm_ingest:
   <<: *rpm

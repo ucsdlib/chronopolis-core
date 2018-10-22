@@ -21,12 +21,11 @@ import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.QBagDistribution;
 import org.chronopolis.rest.entities.QReplication;
 import org.chronopolis.rest.models.enums.BagStatus;
-import org.chronopolis.rest.models.update.PasswordUpdate;
 import org.chronopolis.rest.models.enums.ReplicationStatus;
+import org.chronopolis.rest.models.update.PasswordUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,13 +54,11 @@ public class SiteController extends IngestController {
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private final EntityManager entityManager;
-    private final UserDetailsManager manager;
     private final UserService userService;
 
     @Autowired
-    public SiteController(EntityManager entityManager, UserDetailsManager manager, UserService userService) {
+    public SiteController(EntityManager entityManager, UserService userService) {
         this.entityManager = entityManager;
-        this.manager = manager;
         this.userService = userService;
     }
 

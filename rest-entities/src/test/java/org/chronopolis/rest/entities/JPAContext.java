@@ -34,7 +34,6 @@ public class JPAContext {
     public static final String PROOF = "test-proof";
     public static final String IMS_SERVICE = "test-ims-service";
     public static final String IMS_HOST = "test-ims-host";
-    public static final String TEST_PATH = "test-path";
     private static final String SCHEMA_LOCATION = "db/schema";
 
     public static void main(String[] args) {

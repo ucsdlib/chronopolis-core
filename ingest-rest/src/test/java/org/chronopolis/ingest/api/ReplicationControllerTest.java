@@ -32,8 +32,8 @@ import java.util.HashSet;
 import java.util.Optional;
 
 import static com.google.common.collect.ImmutableSet.of;
-import static org.chronopolis.ingest.repository.dao.StagingService.DISCRIMINATOR_BAG;
-import static org.chronopolis.ingest.repository.dao.StagingService.DISCRIMINATOR_TOKEN;
+import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_BAG;
+import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_TOKEN;
 import static org.chronopolis.rest.models.enums.FixityAlgorithm.SHA_256;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;

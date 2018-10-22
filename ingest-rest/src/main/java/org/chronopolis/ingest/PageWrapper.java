@@ -1,8 +1,6 @@
 package org.chronopolis.ingest;
 
 import com.google.common.collect.Multimap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 
 import java.util.ArrayList;
@@ -14,7 +12,6 @@ import java.util.List;
  * Created by shake on 1/5/16.
  */
 public class PageWrapper<T> {
-    private final Logger log = LoggerFactory.getLogger(PageWrapper.class);
 
     private static final int MAX_SIZE = 5;
 

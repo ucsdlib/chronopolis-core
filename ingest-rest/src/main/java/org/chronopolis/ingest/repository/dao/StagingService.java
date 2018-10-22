@@ -21,10 +21,6 @@ import java.util.Optional;
 @Transactional
 public class StagingService extends SearchService<StagingStorage, Long, StorageRepository> {
 
-    // I don't know where to define these, should be cleaned up before the release
-    public static final String DISCRIMINATOR_BAG = "BAG";
-    public static final String DISCRIMINATOR_TOKEN = "TOKEN_STORE";
-
     private final EntityManager manager;
 
     public StagingService(StorageRepository storageRepository, EntityManager manager) {
