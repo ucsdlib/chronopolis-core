@@ -6,58 +6,69 @@
 <body>
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column align-items-center m-3">
-    <div class="w-50">
-        <h4>Add Depositor</h4>
-        <h6 class="text-muted">Register a depositor for ingestion of content into Chronopolis</h6>
-        <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem">
-            <!--/*@thymesVar id="depositorCreate" type="org.chronopolis.rest.models.create.DepositorCreate"*/-->
-            <form th:action="@{/depositors}" th:object="${depositorCreate}" method="post" name="depositor">
-                <div class="form-group row">
-                    <label for="sourceOrganization" class="col-4 col-form-label">Organization Name</label>
-                    <div class="col-8"
-                         th:with="orgError=${#fields.hasErrors('sourceOrganization')}">
-                        <input th:field="*{sourceOrganization}"
-                               th:classappend="${orgError} ? 'is-invalid'"
-                               name="sourceOrganization" id="sourceOrganization"
-                               class="form-control" type="text" placeholder="org-name"/>
-                        <div class="invalid-feedback" th:if="${orgError}" th:errors="*{sourceOrganization}"></div>
+    <div class="card w-75">
+        <nav th:replace="fragments/crumbs/depositor :: add"></nav>
+        <div class="card-body p2">
+            <h6>Register a depositor for ingestion of content into Chronopolis</h6>
+            <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem">
+                <!--/*@thymesVar id="depositorCreate" type="org.chronopolis.rest.models.create.DepositorCreate"*/-->
+                <form th:action="@{/depositors}" th:object="${depositorCreate}" method="post"
+                      name="depositor">
+                    <div class="form-group row">
+                        <label for="sourceOrganization" class="col-4 col-form-label">
+                            Organization Name
+                        </label>
+                        <div class="col-8"
+                             th:with="orgError=${#fields.hasErrors('sourceOrganization')}">
+                            <input th:field="*{sourceOrganization}"
+                                   th:classappend="${orgError} ? 'is-invalid'"
+                                   name="sourceOrganization" id="sourceOrganization"
+                                   class="form-control" type="text" placeholder="org-name"/>
+                            <div class="invalid-feedback" th:if="${orgError}"
+                                 th:errors="*{sourceOrganization}"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group row">
-                    <label for="org-address" class="col-4 col-form-label">Organization Address</label>
-                    <div class="col-8"
-                         th:with="addressError=${#fields.hasErrors('organizationAddress')}">
-                        <input th:field="*{organizationAddress}"
-                               th:classappend="${addressError} ? 'is-invalid'"
-                               name="organizationAddress" id="org-address"
-                               class="form-control" type="text" placeholder="org-address"/>
-                        <div class="invalid-feedback" th:if="${addressError}" th:errors="*{organizationAddress}"></div>
+                    <div class="form-group row">
+                        <label for="org-address" class="col-4 col-form-label">
+                            Organization Address
+                        </label>
+                        <div class="col-8"
+                             th:with="addressError=${#fields.hasErrors('organizationAddress')}">
+                            <input th:field="*{organizationAddress}"
+                                   th:classappend="${addressError} ? 'is-invalid'"
+                                   name="organizationAddress" id="org-address"
+                                   class="form-control" type="text" placeholder="org-address"/>
+                            <div class="invalid-feedback" th:if="${addressError}"
+                                 th:errors="*{organizationAddress}"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group row">
-                    <label for="namespace" class="col-4 col-form-label">Namespace</label>
-                    <div class="col-8" th:with="nsError=${#fields.hasErrors('namespace')}">
-                        <input th:field="*{namespace}"
-                               th:classappend="${nsError} ? 'is-invalid'"
-                               name="namespace" id="namespace"
-                               class="form-control" type="text" placeholder="namespace"/>
-                        <div class="invalid-feedback" th:if="${nsError}" th:errors="*{namespace}"></div>
+                    <div class="form-group row">
+                        <label for="namespace" class="col-4 col-form-label">Namespace</label>
+                        <div class="col-8" th:with="nsError=${#fields.hasErrors('namespace')}">
+                            <input th:field="*{namespace}"
+                                   th:classappend="${nsError} ? 'is-invalid'"
+                                   name="namespace" id="namespace"
+                                   class="form-control" type="text" placeholder="namespace"/>
+                            <div class="invalid-feedback" th:if="${nsError}"
+                                 th:errors="*{namespace}"></div>
+                        </div>
                     </div>
-                </div>
 
-                 <div class="form-group row">
-                    <label for="nodes" class="col-4 col-form-label">Replicating Nodes</label>
-                    <div class="col-8">
-                        <select th:field="*{replicatingNodes}" name="replicatingNodes"
-                                multiple="multiple" id="nodes" class="form-control">
-                            <!--/*@thymesVar id="nodes" type="java.util.List<org.chronopolis.rest.entities.Node>"*/-->
-                            <option th:each="node: ${nodes}"
-                                    th:value="${node.username}" th:text="${node.username}"></option>
-                        </select>
+                    <div class="form-group row">
+                        <label for="nodes" class="col-4 col-form-label">Replicating Nodes</label>
+                        <div class="col-8">
+                            <select th:field="*{replicatingNodes}" name="replicatingNodes"
+                                    multiple="multiple" id="nodes" class="form-control">
+                                <!--/*@thymesVar id="nodes" type="java.util.List<org.chronopolis.rest.entities.Node>"*/-->
+                                <option th:each="node: ${nodes}"
+                                        th:value="${node.username}"
+                                        th:text="${node.username}"></option>
+                            </select>
+                        </div>
                     </div>
-                </div>
-                <input class="btn btn-primary" type="submit" value="Add Depositor"/>
-            </form>
+                    <input class="btn btn-primary" type="submit" value="Add Depositor"/>
+                </form>
+            </div>
         </div>
     </div>
     <div th:replace="layout :: foot"></div>

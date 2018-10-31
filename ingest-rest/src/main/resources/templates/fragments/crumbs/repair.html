@@ -6,10 +6,10 @@
 </head>
 <body>
 
-<!--@thymesVar id="repair" type="org.chronopolis.rest.entities.Repair"-->
+<!--@thymesVar id="repair" type="org.chronopolis.rest.entities.repair.Repair"-->
 <nav th:fragment="single" aria-label="breadcrumb" role="navigation">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a th:href="@{/repairs}">Storage Regions</a></li>
+        <li class="breadcrumb-item"><a th:href="@{/repairs}">Repairs</a></li>
         <li class="breadcrumb-item"><a th:href="@{/repairs(node=${repair.to.username})}"
                                        th:text="${repair.to.username}">To Node</a>
         </li>
@@ -21,10 +21,12 @@
     <ol class="breadcrumb" style="margin-bottom: 0 !important">
         <li class="breadcrumb-item active">Repairs</li>
 
-        <a data-toggle="collapse" data-target="#filter-body" id="dropdown" class="ml-auto"
-           style="padding: 0 !important" aria-expanded="false" aria-controls="filter-body">
-            <i class="fa fa-search"></i> Search
-        </a>
+        <li class="ml-auto">
+            <a data-toggle="collapse" data-target="#filter-body" id="dropdown"
+               style="padding: 0 !important" aria-expanded="false" aria-controls="filter-body">
+                <i class="fa fa-search"></i> Search
+            </a>
+        </li>
     </ol>
 
     <div id="filter-body" class="collapse p-2">
@@ -35,26 +37,31 @@
                        placeholder="Search Node"/>
             </div>
             <div class="form-group row">
-                <label for="fulfilling-table-filter" class="col-form-label col-2">Fulfilling Node</label>
+                <label for="fulfilling-table-filter" class="col-form-label col-2">Fulfilling
+                    Node</label>
                 <input class="form-control col-9" id="fulfilling-table-filter" name="fulfillingNode"
                        placeholder="Search Fulfilling Node"/>
             </div>
             <div class="form-group row">
                 <label for="status-table-filter" class="col-form-label col-2">Status</label>
-                <select multiple="multiple" name="status" id="status-table-filter" class="form-control col-9">
+                <select multiple="multiple" name="status" id="status-table-filter"
+                        class="form-control col-9">
                     <!--/*@thymesVar id="repairStatus" type="com.google.common.collect.ImmutableListMultimap<String, RepairStatus>"*/-->
-                    <optgroup th:each="group : ${repairStatus.keySet()}" th:label="${group}">
+                    <optgroup th:each="group : ${repairStatus.keySet()}" th:label="${group}"
+                              label="group">
                         <option th:each="status : ${repairStatus.get(group)}" th:value="${status}"
                                 th:text="${status}"></option>
                     </optgroup>
                 </select>
             </div>
             <div class="form-group row">
-                <label for="audit-status-table-filter" class="col-form-label col-2">Audit Status</label>
+                <label for="audit-status-table-filter" class="col-form-label col-2">Audit
+                    Status</label>
                 <select multiple="multiple" name="auditStatus" id="audit-status-table-filter"
                         class="form-control col-9">
                     <!--/*@thymesVar id="auditStatus" type="com.google.common.collect.ImmutableListMultimap<String, AuditStatus>"*/-->
-                    <optgroup th:each="group : ${auditStatus.keySet()}" th:label="${group}">
+                    <optgroup th:each="group : ${auditStatus.keySet()}" th:label="${group}"
+                              label="group">
                         <option th:each="status : ${auditStatus.get(group)}" th:value="${status}"
                                 th:text="${status}"></option>
                     </optgroup>
@@ -64,13 +71,15 @@
                 <label class="col-form-label col-2" for="direction-filter">Order By</label>
                 <div class="form-check col-2 align-self-center">
                     <label class="form-check-label">
-                        <input class="form-check-input" type="radio" name="orderBy" id="optionUpdatedAt"
+                        <input class="form-check-input" type="radio" name="orderBy"
+                               id="optionUpdatedAt"
                                value="updatedAt"/> Updated At
                     </label>
                 </div>
                 <div class="form-check col-2 align-self-center">
                     <label class="form-check-label">
-                        <input class="form-check-input" type="radio" name="orderBy" id="optionCreatedAt"
+                        <input class="form-check-input" type="radio" name="orderBy"
+                               id="optionCreatedAt"
                                value="createdAt"/> Created At
                     </label>
                 </div>

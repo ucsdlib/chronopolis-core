@@ -6,40 +6,46 @@
 <body>
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column align-items-center m-3">
-    <div class="w-50">
-        <h4>Add Replication</h4>
-        <h6 class="text-muted">Create a new replication for a node</h6>
-        <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem;">
-            <form enctype="application/json" method="post" name="replication">
-                <!--@thymesVar id="bags" type="List<Bag>"-->
-                <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
-                <div class="form-group row">
-                    <label for="bagId" class="col-4 col-form-label">Bag</label>
-                    <div class="col-8">
-                        <select class="form-control" name="bagId" id="bagId">
-                            <option th:each="bag: ${bags}"
-                                    th:value="${bag.id}" th:text="|${bag.depositor.namespace}/${bag.name}|">
-                            </option>
-                        </select>
+    <div class="card w-75">
+        <nav th:replace="fragments/crumbs/repl :: create"></nav>
+        <div class="card-body p2">
+            <h6>Distribute a Bag to a Chronopolis Node</h6>
+            <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem;">
+                <form method="post" name="replication">
+                    <!--@thymesVar id="bags" type="List<org.chronopolis.rest.entities.Bag>"-->
+                    <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
+                    <div class="form-group row">
+                        <label for="bagId" class="col-4 col-form-label">Bag</label>
+                        <div class="col-8">
+                            <select class="form-control" name="bagId" id="bagId">
+                                <!--/*@thymesVar id="id" type="java.lang.Long"*/-->
+                                <!--/*@thymesVar id="depositor" type="org.chronopolis.rest.entities.depositor.Depositor"*/-->
+                                <option th:each="bag: ${bags}"
+                                        th:value="${bag.id}">
+                                    [[${bag.depositor.namespace}]]/[[${bag.name}]]
+                                </option>
+                            </select>
+                        </div>
                     </div>
-                </div>
 
 
-                <!--@thymesVar id="nodes" type="List<Node>"-->
-                <!--@thymesVar id="node" type="org.chronopolis.rest.entities.Node"-->
-                <div class="form-group row">
-                    <label for="nodeId" class="col-4 col-form-label">To</label>
-                    <div class="col-8">
-                        <select class="form-control" name="nodeId" id="nodeId">
-                            <option th:each="node: ${nodes}"
-                                    th:value="${node.id}" th:text="${node.username}">
-                            </option>
-                        </select>
+                    <!--@thymesVar id="nodes" type="List<org.chronopolis.rest.entities.Node>"-->
+                    <!--@thymesVar id="node" type="org.chronopolis.rest.entities.Node"-->
+                    <div class="form-group row">
+                        <label for="nodeId" class="col-4 col-form-label">To</label>
+                        <div class="col-8">
+                            <select class="form-control" name="nodeId" id="nodeId">
+                                <option th:each="node: ${nodes}"
+                                        th:value="${node.id}" th:text="${node.username}">
+                                </option>
+                            </select>
+                        </div>
                     </div>
-                </div>
 
-                <input class="btn btn-primary" type="submit" value="Create Replication"/> <!-- onclick="submit()"/> -->
-            </form>
+                    <input class="btn btn-primary" type="submit" value="Create Replication"/>
+                    <!-- onclick="submit()"/> -->
+                </form>
+            </div>
         </div>
     </div>
     <div th:replace="layout :: foot"></div>

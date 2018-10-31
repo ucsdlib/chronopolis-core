@@ -160,7 +160,7 @@ public class RepairUIController extends IngestController {
         access.info("POST parameters - {};{}", infoRequest.getCollection(), infoRequest.getDepositor());
         AceCollections collections;
         Object o = session.getAttribute("ace");
-        if (o == null || !(o instanceof AceCollections)) {
+        if (!(o instanceof AceCollections)) {
             return "repair/add";
         }
 
@@ -218,6 +218,7 @@ public class RepairUIController extends IngestController {
         Optional<String> of = Optional.ofNullable(request.getTo());
         Node to = nodes.findByUsername(of.orElse(principal.getName()));
 
+        // todo: we could create a constructor which accepts non-null fields only
         Repair repair = new Repair(bag,
                 to,
                 null, // from_node -> set once we start to fulfill
@@ -251,9 +252,12 @@ public class RepairUIController extends IngestController {
                 .withAuditStatuses(filter.getAuditStatus());
 
         // might be able to put Sort.Direction in the Paged class
-        Sort.Direction direction = (filter.getDir() == null) ? Sort.Direction.DESC : Sort.Direction.fromStringOrNull(filter.getDir());
+        Sort.Direction direction = (filter.getDir() == null)
+                ? Sort.Direction.DESC
+                : Sort.Direction.fromStringOrNull(filter.getDir());
         Sort s = new Sort(direction, filter.getOrderBy());
-        Page<Repair> results = repairs.findAll(criteria, new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, s));
+        Page<Repair> results = repairs.findAll(criteria,
+                new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, s));
 
         PageWrapper<Repair> pages = new PageWrapper<>(results, "/repairs", filter.getParameters());
 

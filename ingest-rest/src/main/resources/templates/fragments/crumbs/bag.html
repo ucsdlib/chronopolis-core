@@ -6,6 +6,7 @@
     <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet"/>
 </head>
 <body>
+
 <nav th:fragment="index" aria-label="breadcrumb" role="navigation">
     <ol class="breadcrumb">
         <li class="breadcrumb-item active">Bags</li>
@@ -13,6 +14,13 @@
         <li class="ml-auto">
             <a class="btn btn-primary text-white" th:href="@{/bags/add}">Deposit Bag</a>
         </li>
+    </ol>
+</nav>
+
+<nav th:fragment="deposit" aria-label="breadcrumb" role="navigation">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/bags/overview}">Bags</a></li>
+        <li class="breadcrumb-item active">Deposit Bag</li>
     </ol>
 </nav>
 

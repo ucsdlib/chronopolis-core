@@ -7,54 +7,64 @@
 <body>
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column align-items-center m-3">
-    <form method="post" th:action="@{/repairs/fulfill}">
-        <div class="card">
-            <div class="form-group p-2">
-                <label for="node-select">Fulfill As</label>
-                <select class="form-control" id="node-select" name="from">
-                    <!--/*@thymesVar id="from" type="org.chronopolis.rest.entities.Node"*/-->
-                    <option th:each="node : ${from}"
-                            th:value="${node.username}"
-                            th:text="${node.username}"></option>
-                </select>
-            </div>
+    <div class="card w-75">
+        <nav th:fragment="form" aria-label="breadcrumb" role="navigation">
+            <ol class="breadcrumb" style="margin-bottom: 0">
+                <li class="breadcrumb-item"><a th:href="@{/repairs}">Repairs</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Fulfill Repair</li>
+            </ol>
+        </nav>
 
-            <div class="card-header">
-                <div class="d-flex justify-content-start">
-                    <h3 class="card-title p-2">Available Repairs</h3>
+        <form method="post" th:action="@{/repairs/fulfill}">
+            <div class="card-body p-2">
+                <div class="form-group p-2">
+                    <label for="node-select">Fulfill As</label>
+                    <select class="form-control" id="node-select" name="from">
+                        <!--/*@thymesVar id="from" type="org.chronopolis.rest.entities.Node"*/-->
+                        <option th:each="node : ${from}"
+                                th:value="${node.username}"
+                                th:text="${node.username}"></option>
+                    </select>
+                </div>
+
+                <div class="card-header">
+                    <div class="d-flex justify-content-start">
+                        <h3 class="card-title p-2">Available Repairs</h3>
+                    </div>
+                </div>
+                <fieldset class="form-group">
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>Select</th>
+                            <th>ID</th>
+                            <th>Created At</th>
+                            <th>Node</th>
+                            <th>Status</th>
+                            <th>Bag</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!--@thymesVar id="repairs" type="Page<Repair>"-->
+                        <!--@thymesVar id="repair" type="org.chronopolis.rest.entities.Repair"-->
+                        <tr th:each="repair: ${repairs}">
+                            <td><input type="radio" name="repair" th:value="${repair.id}"/></td>
+                            <td><a th:text="${repair.id}" th:href="@{|/repairs/${repair.id}|}"></a>
+                            </td>
+                            <td th:text="${repair.createdAt.toLocalDate()}"></td>
+                            <td th:text="${repair.to.username}"></td>
+                            <td th:text="${repair.status}"></td>
+                            <td th:text="|${repair.bag.depositor.namespace} :: ${repair.bag.name}|"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </fieldset>
+                <div class="card-body">
+                    <input type="submit" value="Create Fulfillment" class="btn btn-primary"/>
                 </div>
             </div>
-            <fieldset class="form-group">
-                <table class="table table-striped">
-                    <thead>
-                    <tr>
-                        <th>Select</th>
-                        <th>ID</th>
-                        <th>Created At</th>
-                        <th>Node</th>
-                        <th>Status</th>
-                        <th>Bag</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <!--@thymesVar id="repairs" type="Page<Repair>"-->
-                    <!--@thymesVar id="repair" type="org.chronopolis.rest.entities.Repair"-->
-                    <tr th:each="repair: ${repairs}">
-                        <td><input type="radio" name="repair" th:value="${repair.id}"/></td>
-                        <td><a th:text="${repair.id}" th:href="@{|/repairs/${repair.id}|}"></a></td>
-                        <td th:text="${repair.createdAt.toLocalDate()}"></td>
-                        <td th:text="${repair.to.username}"></td>
-                        <td th:text="${repair.status}"></td>
-                        <td th:text="|${repair.bag.depositor.namespace} :: ${repair.bag.name}|"></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </fieldset>
-            <div class="card-body">
-                <input type="submit" value="Create Fulfillment" class="btn btn-primary"/>
-            </div>
-        </div>
-    </form>
+        </form>
+    </div>
 </div>
 <div th:replace="layout :: foot"></div>
 </body>
