@@ -66,7 +66,7 @@ public class AceRegisterTasklet implements Callable<Long> {
         phaser = new Phaser();
     }
 
-    public void run() throws Exception {
+    public void run() {
         Bag bag = replication.getBag();
         String name = bag.getName();
         log.trace("{} Building ACE json", name);
@@ -172,7 +172,7 @@ public class AceRegisterTasklet implements Callable<Long> {
     }
 
     @Override
-    public Long call() throws Exception {
+    public Long call() {
         if (id == -1) {
             run();
         }

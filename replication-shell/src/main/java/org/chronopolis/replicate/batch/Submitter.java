@@ -1,6 +1,6 @@
 package org.chronopolis.replicate.batch;
 
-import org.chronopolis.common.ace.AceConfiguration;
+import com.google.common.annotations.VisibleForTesting;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.storage.Bucket;
@@ -9,22 +9,16 @@ import org.chronopolis.common.storage.DirectoryStorageOperation;
 import org.chronopolis.common.storage.OperationType;
 import org.chronopolis.common.storage.SingleFileOperation;
 import org.chronopolis.common.storage.StorageOperation;
-import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.ReplicationProperties;
-import org.chronopolis.replicate.batch.ace.AceRunner;
-import org.chronopolis.replicate.batch.transfer.BagTransfer;
-import org.chronopolis.replicate.batch.transfer.TokenTransfer;
-import org.chronopolis.rest.api.ReplicationService;
+import org.chronopolis.replicate.batch.ace.AceFactory;
 import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.StagingStorage;
 import org.chronopolis.rest.models.enums.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 
-import javax.annotation.Nullable;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Set;
@@ -61,35 +55,35 @@ public class Submitter {
 
     private final BucketBroker broker;
     private final ServiceGenerator generator;
+    private final AceFactory aceFactory;
+    private final TransferFactory transferFactory;
 
-    private final ThreadPoolExecutor io;
     private final ThreadPoolExecutor http;
     private final ReplicationProperties properties;
 
     private final Set<String> replicating;
-    private final AceConfiguration aceConfiguration;
 
-    @Autowired
     public Submitter(MailUtil mail,
                      AceService ace,
                      BucketBroker broker,
                      ServiceGenerator generator,
-                     AceConfiguration aceConfiguration,
+                     AceFactory aceFactory,
+                     TransferFactory transferFactory,
                      ReplicationProperties properties,
-                     ThreadPoolExecutor io,
                      ThreadPoolExecutor http) {
         this.mail = mail;
         this.ace = ace;
         this.broker = broker;
         this.generator = generator;
-        this.aceConfiguration = aceConfiguration;
+        this.aceFactory = aceFactory;
+        this.transferFactory = transferFactory;
         this.properties = properties;
-        this.io = io;
         this.http = http;
 
         this.replicating = new ConcurrentSkipListSet<>();
     }
 
+    @VisibleForTesting
     public boolean isRunning(Replication replication) {
         return replicating.contains(replicationIdentifier(replication));
     }
@@ -139,7 +133,7 @@ public class Submitter {
                 configureOperation(tokenOp, replication, tokenStorage, replication.getTokenLink());
 
                 // create work based on replication status
-                // todo: do we want to run through the entire flow or have it staggered like before?
+                // do we want to run through the entire flow?
                 switch (replication.getStatus()) {
                     // Allocate
                     case PENDING:
@@ -153,7 +147,7 @@ public class Submitter {
                     case TRANSFERRED:
                     case ACE_REGISTERED:
                     case ACE_TOKEN_LOADED:
-                        future = fromTransferred(null, replication, bagOp, tokenOp);
+                        future = fromTransferred(replication, bagOp, tokenOp);
                         break;
                     case ACE_AUDITING:
                         future = fromAceAuditing(replication);
@@ -191,8 +185,8 @@ public class Submitter {
     private CompletableFuture<ReplicationStatus> allocate(Replication replication,
                                                           DirectoryStorageOperation bagOp,
                                                           SingleFileOperation tokenOp) {
-        return CompletableFuture.supplyAsync(
-                new Allocator(broker, bagOp, tokenOp, replication, generator));
+        Allocator allocator = new Allocator(broker, bagOp, tokenOp, replication, generator);
+        return CompletableFuture.supplyAsync(allocator);
     }
 
     /**
@@ -213,48 +207,33 @@ public class Submitter {
         Bucket tokenBucket = broker.findBucketForOperation(tokenOp)
                 .orElseThrow(() -> new IllegalArgumentException("No bucket allocated for token!"));
 
-        ReplicationService replications = generator.replications();
-        BagTransfer bagTransfer =
-                new BagTransfer(bagBucket, bagOp, replication, replications, properties);
-        TokenTransfer tokenTransfer =
-                new TokenTransfer(tokenBucket, tokenOp, replication, replications, properties);
+        CompletableFuture<Void> tokenFuture =
+                transferFactory.tokenTransfer(tokenBucket, replication, tokenOp);
+        CompletableFuture<Void> bagFuture =
+                transferFactory.bagTransfer(bagBucket, replication, bagOp);
 
-        // todo: maybe we shouldn't chain together fromTransferred?
-        return fromTransferred(
-                CompletableFuture
-                        .runAsync(tokenTransfer, io)
-                        .thenRunAsync(bagTransfer, io),
-                replication, bagOp, tokenOp);
+        CompletableFuture<Void> allOf = CompletableFuture.allOf(tokenFuture, bagFuture);
+        return allOf.thenApplyAsync((Void param) -> replication.getStatus());
     }
 
     /**
      * Create a CompletableFuture with all steps needed after a transfer has completed
      *
-     * @param future      the future to append to or null
      * @param replication the replication to work on
      * @return a completable future which runs ace registration tasks
      */
     private CompletableFuture<ReplicationStatus> fromTransferred(
-            @Nullable CompletableFuture<Void> future,
             Replication replication,
             DirectoryStorageOperation bagOp,
             SingleFileOperation tokenOp) {
-        ReplicationNotifier notifier = new ReplicationNotifier(replication);
-
-        // tf will this do on an exception?
+        // what will this do on an exception?
         // could also do it in each runnable but... eh
         Bucket bagBucket = broker.findBucketForOperation(bagOp)
                 .orElseThrow(() -> new IllegalArgumentException("No bucket allocated for bag!"));
         Bucket tokenBucket = broker.findBucketForOperation(tokenOp)
                 .orElseThrow(() -> new IllegalArgumentException("No bucket allocated for token!"));
 
-        AceRunner runner = new AceRunner(ace, generator, replication.getId(), aceConfiguration,
-                bagBucket, tokenBucket, bagOp, tokenOp, notifier);
-        if (future == null) {
-            return CompletableFuture.supplyAsync(runner, http);
-        }
-
-        return future.thenApplyAsync(runner, http);
+        return aceFactory.register(replication, bagBucket, bagOp, tokenBucket, tokenOp);
     }
 
     /**

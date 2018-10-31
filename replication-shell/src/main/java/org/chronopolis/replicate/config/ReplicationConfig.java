@@ -10,6 +10,8 @@ import org.chronopolis.common.storage.PreservationProperties;
 import org.chronopolis.common.storage.PreservationPropertiesValidator;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.Submitter;
+import org.chronopolis.replicate.batch.TransferFactory;
+import org.chronopolis.replicate.batch.ace.AceFactory;
 import org.chronopolis.rest.api.IngestApiProperties;
 import org.chronopolis.rest.api.IngestGenerator;
 import org.chronopolis.rest.api.OkBasicInterceptor;
@@ -70,6 +72,21 @@ public class ReplicationConfig {
         return restAdapter.create(AceService.class);
     }
 
+    @Bean
+    public TransferFactory transferFactory(ThreadPoolExecutor io,
+                                           ServiceGenerator generator,
+                                           ReplicationProperties properties) {
+        return new TransferFactory(io, generator.replications(), properties);
+    }
+
+    @Bean
+    public AceFactory aceFactory(AceService ace,
+                                 ThreadPoolExecutor http,
+                                 ServiceGenerator generator,
+                                 AceConfiguration configuration) {
+        return new AceFactory(ace, generator, configuration, http);
+    }
+
     /**
      * ServiceGenerator for creating services which can send requests to the Ingest REST API
      *
@@ -86,7 +103,6 @@ public class ReplicationConfig {
      *
      * @param mail          the mail utility for sending success/failure notifications
      * @param ace           the service to connect to the ACE-AM REST API
-     * @param configuration the configuration properties for ACE-AM
      * @param properties    the configuration for... general replication properties
      * @param generator     the ServiceGenerator to use for creating Ingest API services
      * @param broker        the BucketBroker for handling distribution of replications into Buckets
@@ -95,7 +111,8 @@ public class ReplicationConfig {
     @Bean
     public Submitter submitter(MailUtil mail,
                                AceService ace,
-                               AceConfiguration configuration,
+                               AceFactory aceFactory,
+                               TransferFactory transferFactory,
                                ReplicationProperties properties,
                                ServiceGenerator generator,
                                BucketBroker broker) {
@@ -103,9 +120,9 @@ public class ReplicationConfig {
                 ace,
                 broker,
                 generator,
-                configuration,
+                aceFactory,
+                transferFactory,
                 properties,
-                io(properties),
                 http());
     }
 
