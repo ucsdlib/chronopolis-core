@@ -6,8 +6,8 @@
 </head>
 <body>
 
+<!--/*@thymesVar id="region" type="org.chronopolis.rest.entities.storage.StorageRegion"*/-->
 <nav th:fragment="single" aria-label="breadcrumb" role="navigation">
-    <!--/*@thymesVar id="region" type="org.chronopolis.rest.entities.storage.StorageRegion"*/-->
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a th:href="@{/regions}">Storage Regions</a></li>
         <li class="breadcrumb-item"><a th:href="@{/regions(node=${region.node.username})}"
@@ -15,13 +15,20 @@
         </li>
         <li class="breadcrumb-item active" aria-current="page" th:text="${region.id}">Region Id</li>
 
-        <!-- trying to determine the best way to display this... hmmm -->
-        <a class="ml-auto" th:href="@{|/regions/${region.id}/edit|}"><i class="fa fa-pencil"></i></a>
+        <li class="ml-auto">
+            <a th:href="@{|/regions/${region.id}/edit|}"><i class="fa fa-pencil"></i></a>
+        </li>
+    </ol>
+</nav>
+
+<nav th:fragment="add" aria-label="breadcrumb" role="navigation">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/regions}">Storage Regions</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Create Storage Region</li>
     </ol>
 </nav>
 
 <nav th:fragment="edit" aria-label="breadcrumb" role="navigation">
-    <!--/*@thymesVar id="region" type="org.chronopolis.rest.entities.storage.StorageRegion"*/-->
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a th:href="@{/regions}">Storage Regions</a></li>
         <li class="breadcrumb-item"><a th:href="@{/regions(node=${region.node.username})}"
@@ -34,14 +41,15 @@
 </nav>
 
 <nav th:fragment="list" aria-label="breadcrumb" role="navigation">
-    <!--/*@thymesVar id="region" type="org.chronopolis.rest.entities.storage.StorageRegion"*/-->
     <ol class="breadcrumb" style="margin-bottom: 0 !important">
         <li class="breadcrumb-item active">Storage Regions</li>
 
-        <a data-toggle="collapse" data-target="#filter-body" id="dropdown" class="ml-auto"
-           style="padding: 0 !important" aria-expanded="false" aria-controls="filter-body">
-            <i class="fa fa-search"></i> Search
-        </a>
+        <li class="ml-auto">
+            <a data-toggle="collapse" data-target="#filter-body" id="dropdown"
+               style="padding: 0 !important" aria-expanded="false" aria-controls="filter-body">
+                <i class="fa fa-search"></i> Search
+            </a>
+        </li>
     </ol>
 
     <div id="filter-body" class="collapse p-2">
@@ -56,16 +64,19 @@
                 <label for="status-table-filter" class="col-form-label col-3">Storage Type</label>
                 <select name="status" id="status-table-filter" class="form-control col-3">
                     <!--/*@thymesVar id="storageTypes" type="List<org.chronopolis.rest.models.storage.StorageType>"*/-->
-                    <option th:each="type : ${storageTypes}" th:value="${type}" th:text="${type}"></option>
+                    <option th:each="type : ${storageTypes}" th:value="${type}"
+                            th:text="${type}"></option>
                 </select>
             </div>
             <div class="form-group row">
-                <label for="capacityLessThan" class="col-form-label col-3">Capacity Less Than</label>
+                <label for="capacityLessThan" class="col-form-label col-3">Capacity Less
+                    Than</label>
                 <input class="form-control col" id="capacityLessThan" name="capacityLess"
                        placeholder="Capacity Less Than"/>
             </div>
             <div class="form-group row">
-                <label for="capacityGreaterThan" class="col-form-label col-3">Capacity Greater Than</label>
+                <label for="capacityGreaterThan" class="col-form-label col-3">Capacity Greater
+                    Than</label>
                 <input class="form-control col" id="capacityGreaterThan" name="capacityGreater"
                        placeholder="Capacity Greater Than"/>
             </div>
@@ -73,13 +84,15 @@
                 <label class="col-form-label col-2" for="direction-filter">Order By</label>
                 <div class="form-check col-2 align-self-center">
                     <label class="form-check-label">
-                        <input class="form-check-input" type="radio" name="orderBy" id="optionUpdatedAt"
+                        <input class="form-check-input" type="radio" name="orderBy"
+                               id="optionUpdatedAt"
                                value="updatedAt"/> Updated At
                     </label>
                 </div>
                 <div class="form-check col-2 align-self-center">
                     <label class="form-check-label">
-                        <input class="form-check-input" type="radio" name="orderBy" id="optionCreatedAt"
+                        <input class="form-check-input" type="radio" name="orderBy"
+                               id="optionCreatedAt"
                                value="createdAt"/> Created At
                     </label>
                 </div>

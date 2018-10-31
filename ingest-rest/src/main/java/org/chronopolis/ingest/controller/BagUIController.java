@@ -2,9 +2,6 @@ package org.chronopolis.ingest.controller;
 
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.PageWrapper;
-import org.chronopolis.ingest.exception.ConflictException;
-import org.chronopolis.ingest.exception.ForbiddenException;
-import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.models.BagUpdate;
 import org.chronopolis.ingest.models.ReplicationCreate;
 import org.chronopolis.ingest.models.filter.BagFilter;
@@ -13,7 +10,6 @@ import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.ingest.repository.TokenRepository;
 import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.repository.criteria.ReplicationSearchCriteria;
-import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
 import org.chronopolis.ingest.repository.dao.BagService;
 import org.chronopolis.ingest.repository.dao.ReplicationService;
 import org.chronopolis.ingest.repository.dao.StagingDao;
@@ -25,15 +21,10 @@ import org.chronopolis.ingest.support.ReplicationCreateResult;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.Replication;
-import org.chronopolis.rest.entities.storage.QStagingStorage;
 import org.chronopolis.rest.entities.storage.StagingStorage;
-import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.create.BagCreate;
-import org.chronopolis.rest.models.create.FixityCreate;
-import org.chronopolis.rest.models.create.StagingCreate;
 import org.chronopolis.rest.models.enums.BagStatus;
 import org.chronopolis.rest.models.enums.ReplicationStatus;
-import org.chronopolis.rest.models.enums.StorageUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +33,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -193,271 +183,6 @@ public class BagUIController extends IngestController {
 
         return "bags/bag";
     }
-
-    /**
-     * Invert the active flag for Storage in a Bag
-     *
-     * @param principal the principal of the user
-     * @param id        the id of the bag
-     * @param storageId the id of the stagingStorage
-     * @return the bag
-     */
-    @GetMapping("/bags/{id}/storage/{storageId}/activate")
-    public String updateBagStorage(Principal principal,
-                                   @PathVariable("id") Long id,
-                                   @PathVariable("storageId") Long storageId)
-            throws ForbiddenException {
-        access.info("[GET /bags/{}/storage/{}/activate] - {}", id, storageId, principal.getName());
-
-        BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
-        Bag bag = bagService.find(criteria);
-        if (bag == null) {
-            throw new NotFoundException("Bag does not exist");
-        }
-
-        StagingStorage storage = findStorageForBag(principal, storageId);
-        storage.setActive(!storage.isActive());
-        bagService.save(bag);
-        return "redirect:/bags/" + id;
-    }
-
-    /**
-     * Remove a fixity entity for a given StagingStorage object
-     * todo: remove file?
-     *
-     * @param principal the security principal of the user
-     * @param id        the id of the Bag
-     * @param storageId the id of the StagingStorage
-     * @param fixityId  the id of the Fixity entity
-     * @return /bags/id
-     * @throws ForbiddenException if the user does not have permissions to edit the Bag
-     */
-    @GetMapping("/bags/{id}/storage/{storageId}/fixity/{fixityId}")
-    public String removeStorageFixity(Principal principal,
-                                      @PathVariable("id") Long id,
-                                      @PathVariable("storageId") Long storageId,
-                                      @PathVariable("fixityId") Long fixityId)
-            throws ForbiddenException {
-        access.info("[GET /bags/{}/storage/{}/fixity/{}] - {}",
-                id, storageId, fixityId, principal.getName());
-
-        // check constraints first - existence && permissions
-        BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
-        Bag bag = bagService.find(criteria);
-        if (bag == null) {
-            throw new NotFoundException("Bag does not exist");
-        }
-
-        StagingStorage storage = findStorageForBag(principal, storageId);
-        stagingService.deleteFixity(fixityId);
-        return "redirect:/bags/" + id;
-    }
-
-    /**
-     * Update a fixity for a Bag's Storage Area
-     * <p>
-     * This is kind of a patch job at the moment to help with doing things through the ui
-     * For now: if the fixity is null send to a create page
-     * else remove the fixity
-     *
-     * @param model     the model for the controller
-     * @param principal the security principal of the user
-     * @param id        the id of the bag
-     * @param storageId the id of the storage area
-     * @return either the view for creating a fixity for a storage or a redirect to the bag details
-     * @throws ForbiddenException if the user does not have permission to edit the Bag
-     */
-    @GetMapping("/bags/{id}/storage/{storageId}/fixity")
-    public String updateStorageFixity(Model model,
-                                      Principal principal,
-                                      @PathVariable("id") Long id,
-                                      @PathVariable("storageId") Long storageId)
-            throws ForbiddenException {
-        access.info("[GET /bags/{}/storage/{}/fixity] - {}", id, storageId, principal.getName());
-        String template = "redirect:/bags/" + id;
-
-        BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
-        Bag bag = bagService.find(criteria);
-        if (bag == null) {
-            throw new NotFoundException("Bag does not exist!");
-        }
-
-        StagingStorage storage = findStorageForBag(principal, storageId);
-
-        if (storage.getFile().getFixities().isEmpty()) {
-            model.addAttribute("bag", bag);
-            model.addAttribute("storage", storage);
-            template = "fixity/create";
-        }
-
-        return template;
-    }
-
-    /**
-     * Create a Fixity for a given Bag and StagingStorage
-     * todo: select file?
-     * todo: tostring for FixityCreate
-     *
-     * @param principal the principal of the user
-     * @param id        the id of the Bag
-     * @param storageId the id of the StagingStorage
-     * @param create    the FixityCreate information
-     * @return the updated Bag
-     * @throws ForbiddenException if the user does not have permissions to edit the Bag
-     */
-    @PostMapping("/bags/{id}/storage/{storageId}/fixity")
-    public String createStorageFixity(Principal principal,
-                                      @PathVariable("id") Long id,
-                                      @PathVariable("storageId") Long storageId,
-                                      FixityCreate create) throws ForbiddenException {
-        access.info("[POST /bags/{}/storage/{}/fixity] - {}", id, storageId, principal.getName());
-        access.info("POST parameters - {};{}", create.getAlgorithm(), create.getValue());
-
-        BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
-        Bag bag = bagService.find(criteria);
-        if (bag == null) {
-            throw new NotFoundException("Bag does not exist!");
-        }
-
-        /*
-        StagingStorage storage = findStorageForBag(principal, storageId);
-
-        Fixity fixity = new Fixity();
-        fixity.setValue(create.getValue());
-        fixity.setAlgorithm(create.getAlgorithm().getCanonical());
-        fixity.setCreatedAt(ZonedDateTime.now());
-        // storage.getFixities().add(fixity);
-        bagService.save(bag);
-        */
-
-        return "redirect:/bags/" + id;
-    }
-
-    /**
-     * Get a StagingStorage object for a bag by its id and validate permissions
-     * for the Region it is associated with on the given principal
-     *
-     * @param principal the user attempting to modify the StagingStorage
-     * @param storageId the id of the StagingStorage entity
-     * @return the StagingStorage entity
-     * @throws ForbiddenException if the user does not have permissions to edit the Bag
-     */
-    private StagingStorage findStorageForBag(Principal principal,
-                                             Long storageId) throws ForbiddenException {
-        StagingStorage storage = stagingService.findOne(QStagingStorage.stagingStorage,
-                QStagingStorage.stagingStorage.id.eq(storageId));
-        if (storage == null) {
-            throw new RuntimeException("Invalid Storage Id");
-        }
-        // should do a null check here...
-        StorageRegion region = storage.getRegion();
-        String owner = region.getNode().getUsername();
-        if (!hasRoleAdmin() && !owner.equalsIgnoreCase(principal.getName())) {
-            throw new ForbiddenException("User is not allowed to update this resource");
-        }
-
-        return storage;
-    }
-
-    @GetMapping("/bags/{id}/storage/all")
-    public String getAllStorage(Model model, Principal principal, @PathVariable("id") Long id) {
-        access.info("[GET /bags/{}/storage/add] - {}", id, principal.getName());
-
-        Bag bag = bagService.find(new BagSearchCriteria().withId(id));
-        // for whatever reason we need to use get*Storage to retrieve the entities from the DB
-        // maybe the lazy loading idk
-        log.info("{} #storage = {}", bag.getName(), bag.getStorage().size());
-        model.addAttribute("bag", bag);
-        model.addAttribute("formatter", new FileSizeFormatter());
-        return "staging/all";
-    }
-
-    /**
-     * Retrieve the page for inputting form data to create a new StagingStorage entity for a Bag
-     *
-     * @param model         the view model
-     * @param principal     the principal of the user
-     * @param id            the id of the bag
-     * @param stagingCreate the model with the form data
-     * @return the create form
-     */
-    @GetMapping("/bags/{id}/storage/add")
-    public String addStagingForm(Model model,
-                                 Principal principal,
-                                 @PathVariable("id") Long id,
-                                 StagingCreate stagingCreate) {
-        access.info("[GET /bags/{}/storage/add] - {}", id, principal.getName());
-
-        Optional<StagingStorage> stagingStorage =
-                stagingService.activeStorageForBag(id, "BAG");
-        model.addAttribute("conflict", stagingStorage.isPresent());
-        model.addAttribute("regions", regions.findAll());
-        model.addAttribute("storageUnits", StorageUnit.values());
-        model.addAttribute("stagingCreate", stagingCreate);
-        return "staging/create";
-    }
-
-    /**
-     * Add a StagingStorage entity to a Bag
-     * <p>
-     * This requires the StagingCreate form data to be valid (if not, we return the create form
-     * again), and ownership of the Bag/an admin user. We will also require that the StorageRegion
-     * used is part of the same Node as the Bag, but right now we don't exactly have the means of
-     * doing that
-     *
-     * todo: update this for the world of files
-     *
-     * @param model         the model to pass to the view
-     * @param principal     the principal of the user
-     * @param id            the id of the Bag
-     * @param stagingCreate the form data
-     * @param bindingResult the validation data for the form
-     * @return redirect to the Bag if successful; the create form if there are errors; or a 4xx page for any other type of errors
-     * @throws ForbiddenException if the user is not allowed to modify the Bag
-     */
-    @PostMapping("/bags/{id}/storage/add")
-    public String addStaging(Model model,
-                             Principal principal,
-                             @PathVariable("id") Long id,
-                             @Valid StagingCreate stagingCreate,
-                             BindingResult bindingResult) throws ForbiddenException {
-        access.info("[POST /bags/{}/storage/add] - {}", id, principal.getName());
-        if (bindingResult.hasErrors()) {
-            model.addAttribute("regions", regions.findAll());
-            model.addAttribute("storageUnits", StorageUnit.values());
-            model.addAttribute("stagingCreate", stagingCreate);
-            return "staging/create";
-        }
-
-        Bag bag = bagService.find(new BagSearchCriteria().withId(id));
-        // not too crazy about the stream... but... it works
-        Boolean activeExists = bag.getStorage().stream()
-                .anyMatch(StagingStorage::isActive);
-        StorageRegion region = regions.find(new StorageRegionSearchCriteria()
-                .withId(stagingCreate.getStorageRegion()));
-        if (!hasRoleAdmin() && !bag.getCreator().equalsIgnoreCase(principal.getName())) {
-            throw new ForbiddenException("User is not allowed to update this resource");
-        } else if (activeExists) {
-            throw new ConflictException("Resource already has active storage!");
-        }
-
-        double multiple = Math.pow(1000, stagingCreate.getStorageUnit().getPower());
-        long size = Double.valueOf(stagingCreate.getSize() * multiple).longValue();
-
-        /*
-        StagingStorage storage = new StagingStorage();
-        storage.setSize(size);
-        storage.setActive(true);
-        storage.setRegion(region);
-        storage.setPath(stagingCreate.getLocation());
-        storage.setTotalFiles(stagingCreate.getTotalFiles());
-        bag.getStorage().add(storage);
-        bagService.save(bag);
-        */
-
-        return "redirect:/bags/" + id;
-    }
-
 
     /**
      * Retrieve the page for adding bags

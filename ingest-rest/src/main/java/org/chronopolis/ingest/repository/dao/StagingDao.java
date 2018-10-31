@@ -6,7 +6,6 @@ import org.chronopolis.rest.entities.DataFile;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.QBagFile;
 import org.chronopolis.rest.entities.QTokenStore;
-import org.chronopolis.rest.entities.storage.QFixity;
 import org.chronopolis.rest.entities.storage.QStagingStorage;
 import org.chronopolis.rest.entities.storage.QStorageRegion;
 import org.chronopolis.rest.entities.storage.StagingStorage;
@@ -65,19 +64,6 @@ public class StagingDao extends PagedDAO {
                                 .and(storage.bag.id.eq(bag))))
                 .select(storage)
                 .fetchOne());
-    }
-
-    /**
-     * Remove a fixity value for a given StagingStorage entity
-     *
-     * @param fixityId the id of the fixity to remove
-     */
-    public void deleteFixity(Long fixityId) {
-        JPAQueryFactory factory = getJPAQueryFactory();
-        QFixity fixity = QFixity.fixity;
-        factory.delete(fixity)
-                .where(fixity.id.eq(fixityId))
-                .execute();
     }
 
     /**

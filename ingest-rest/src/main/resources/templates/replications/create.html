@@ -6,23 +6,27 @@
 <body>
 <nav th:replace="layout :: navbar"></nav>
 <div class="d-flex flex-column align-items-center m-3">
-    <div class="w-50">
-        <h4>Create replication</h4>
-        <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem;">
-            <form method="post" name="replication" th:action="@{/replications/create}">
-                <div class="form-group row">
-                    <input type="hidden" name="bag" id="bag" th:value="${bag}"/>
+    <div class="card w-75">
+        <nav th:replace="fragments/crumbs/repl :: create"></nav>
+        <div class="card-body p2">
+            <h6>Distribute a Bag to a Chronopolis Node</h6>
+            <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem;">
+                <form method="post" name="replication" th:action="@{/replications/create}">
+                    <div class="form-group row">
+                        <input type="hidden" name="bag" id="bag" th:value="${bag}"/>
 
-                    <label for="nodes" class="col-form-label col-2">Replicating Nodes</label>
-                    <!--/*@thymesVar id="nodes" type="List<org.chronopolis.rest.entities.Node>"*/-->
-                    <select multiple="multiple" name="nodes" id="nodes" class="form-control col-3">
-                        <option th:each="node: ${nodes}"
-                                th:value="${node.id}" th:text="${node.username}">
-                        </option>
-                    </select>
-                </div>
-                <input class="btn btn-primary" type="submit" value="Create Replication(s)"/>
-            </form>
+                        <label for="nodes" class="col-form-label col-2">Replicating Nodes</label>
+                        <!--/*@thymesVar id="nodes" type="List<org.chronopolis.rest.entities.Node>"*/-->
+                        <select multiple="multiple" name="nodes" id="nodes"
+                                class="form-control col-3">
+                            <option th:each="node: ${nodes}"
+                                    th:value="${node.id}" th:text="${node.username}">
+                            </option>
+                        </select>
+                    </div>
+                    <input class="btn btn-primary" type="submit" value="Create Replication(s)"/>
+                </form>
+            </div>
         </div>
     </div>
     <div th:replace="layout :: foot"></div>
