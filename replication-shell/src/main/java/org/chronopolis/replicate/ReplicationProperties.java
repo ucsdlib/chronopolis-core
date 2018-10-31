@@ -1,6 +1,7 @@
 package org.chronopolis.replicate;
 
 import com.google.common.collect.ImmutableList;
+import org.chronopolis.replicate.batch.rsync.Profile;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.List;
@@ -111,6 +112,11 @@ public class ReplicationProperties {
     public static class Rsync {
 
         /**
+         * Define what rsync profile to use
+         */
+        private Profile profile = Profile.SINGLE;
+
+        /**
          * Optional set of arguments to use when creating an rsync process
          */
         private List<String> arguments = ImmutableList.of("-aL", "--stats");
@@ -121,6 +127,15 @@ public class ReplicationProperties {
 
         public Rsync setArguments(List<String> arguments) {
             this.arguments = arguments;
+            return this;
+        }
+
+        public Profile getProfile() {
+            return profile;
+        }
+
+        public Rsync setProfile(Profile profile) {
+            this.profile = profile;
             return this;
         }
     }

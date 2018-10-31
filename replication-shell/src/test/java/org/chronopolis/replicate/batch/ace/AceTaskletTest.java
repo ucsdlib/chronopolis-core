@@ -10,7 +10,6 @@ import org.chronopolis.common.storage.Bucket;
 import org.chronopolis.common.storage.DirectoryStorageOperation;
 import org.chronopolis.common.storage.SingleFileOperation;
 import org.chronopolis.common.storage.StorageOperation;
-import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.support.CallWrapper;
 import org.chronopolis.replicate.support.NotFoundCallWrapper;
 import org.chronopolis.replicate.support.ReplGenerator;
@@ -36,6 +35,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import static java.time.ZonedDateTime.now;
@@ -60,12 +62,8 @@ public class AceTaskletTest {
     @Mock private Bucket tokenBucket;
 
     private Bag bag;
+    private AceFactory factory;
     private Replication replication;
-    private ReplicationNotifier notifier;
-    private AceConfiguration aceConfiguration;
-    private DirectoryStorageOperation bagOp;
-    private SingleFileOperation tokenOp;
-    private ServiceGenerator generator;
 
     private Path tokens;
 
@@ -81,10 +79,12 @@ public class AceTaskletTest {
 
         URL bags = ClassLoader.getSystemClassLoader().getResource("");
         tokens = Paths.get(bags.toURI()).resolve(bag.getTokenStorage().getPath());
-        aceConfiguration = new AceConfiguration();
-        bagOp = new DirectoryStorageOperation(Paths.get(group, name));
-        tokenOp = new SingleFileOperation(Paths.get(group, "test-token-store"));
-        generator = new ReplGenerator(replications);
+        AceConfiguration aceConfiguration = new AceConfiguration();
+        ServiceGenerator generator = new ReplGenerator(replications);
+        ThreadPoolExecutor executor =
+                new ThreadPoolExecutor(4, 4, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+
+        factory = new AceFactory(ace, generator, aceConfiguration, executor);
     }
 
 
@@ -93,7 +93,8 @@ public class AceTaskletTest {
         replication = new Replication(1L, now(), now(), ReplicationStatus.TRANSFERRED,
                 "bag-link", "token-link", "test-protocol", "received-fixity", "received-fixity",
                 "test-node", bag);
-        notifier = new ReplicationNotifier(replication);
+        DirectoryStorageOperation bagOp = new DirectoryStorageOperation(Paths.get(group, name));
+        SingleFileOperation tokenOp = new SingleFileOperation(Paths.get(group, "test-token-store"));
 
         // setup our mocks for our http requests
         prepareIngestGet(replication.getId(), replication);
@@ -104,9 +105,9 @@ public class AceTaskletTest {
         prepareAceAudit();
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
-        AceRunner runner = new AceRunner(ace, generator, replication.getId(), aceConfiguration,
-                bagBucket, tokenBucket, bagOp, tokenOp, notifier);
-        runner.get();
+        CompletableFuture<ReplicationStatus> future =
+                factory.register(replication, bagBucket, bagOp, tokenBucket, tokenOp);
+        future.join();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName(any(String.class), any(String.class));
@@ -121,7 +122,8 @@ public class AceTaskletTest {
         replication = new Replication(1L, now(), now(), ReplicationStatus.TRANSFERRED,
                 "bag-link", "token-link", "test-protocol", "received-fixity", "received-fixity",
                 "test-node", bag);
-        notifier = new ReplicationNotifier(replication);
+        DirectoryStorageOperation bagOp = new DirectoryStorageOperation(Paths.get(group, name));
+        SingleFileOperation tokenOp = new SingleFileOperation(Paths.get(group, "test-token-store"));
 
         // setup our mocks for our http requests
         prepareIngestGet(replication.getId(), replication);
@@ -132,9 +134,9 @@ public class AceTaskletTest {
         prepareAceAudit();
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
-        AceRunner runner = new AceRunner(ace, generator, replication.getId(), aceConfiguration,
-                bagBucket, tokenBucket, bagOp, tokenOp, notifier);
-        runner.get();
+        CompletableFuture<ReplicationStatus> future =
+                factory.register(replication, bagBucket, bagOp, tokenBucket, tokenOp);
+        future.join();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName(any(String.class), any(String.class));
@@ -149,8 +151,8 @@ public class AceTaskletTest {
         replication = new Replication(1L, now(), now(), ReplicationStatus.ACE_TOKEN_LOADED,
                 "bag-link", "token-link", "test-protocol", "received-fixity", "received-fixity",
                 "test-node", bag);
-
-        notifier = new ReplicationNotifier(replication);
+        DirectoryStorageOperation bagOp = new DirectoryStorageOperation(Paths.get(group, name));
+        SingleFileOperation tokenOp = new SingleFileOperation(Paths.get(group, "test-token-store"));
 
         // setup our mocks for our http requests
         prepareIngestGet(replication.getId(), replication);
@@ -158,9 +160,9 @@ public class AceTaskletTest {
         prepareAceAudit();
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
-        AceRunner runner = new AceRunner(ace, generator, replication.getId(), aceConfiguration,
-                bagBucket, tokenBucket, bagOp, tokenOp, notifier);
-        runner.get();
+        CompletableFuture<ReplicationStatus> future =
+                factory.register(replication, bagBucket, bagOp, tokenBucket, tokenOp);
+        future.join();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName("test-bag", "test-depositor");
@@ -173,6 +175,8 @@ public class AceTaskletTest {
         replication = new Replication(1L, now(), now(), ReplicationStatus.ACE_REGISTERED,
                 "bag-link", "token-link", "test-protocol", "received-fixity", "received-fixity",
                 "test-node", bag);
+        DirectoryStorageOperation bagOp = new DirectoryStorageOperation(Paths.get(group, name));
+        SingleFileOperation tokenOp = new SingleFileOperation(Paths.get(group, "test-token-store"));
 
         // setup our mocks for our http requests
         prepareIngestGet(replication.getId(), replication);
@@ -182,11 +186,9 @@ public class AceTaskletTest {
         prepareAceAudit();
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
-        notifier = new ReplicationNotifier(replication);
-
-        AceRunner runner = new AceRunner(ace, generator, replication.getId(), aceConfiguration,
-                bagBucket, tokenBucket, bagOp, tokenOp, notifier);
-        runner.get();
+        CompletableFuture<ReplicationStatus> future =
+                factory.register(replication, bagBucket, bagOp, tokenBucket, tokenOp);
+        future.join();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName("test-bag", "test-depositor");
