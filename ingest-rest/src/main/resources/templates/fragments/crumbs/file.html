@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title></title>
+    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet"/>
+</head>
+<body>
+
+<!--/*@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"*/-->
+<nav th:fragment="list" aria-label="breadcrumb" role="navigation">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/bags/overview}">Bags</a></li>
+        <li class="breadcrumb-item"><a th:href="@{/bags}">All</a></li>
+        <li class="breadcrumb-item">
+            <a th:href="@{/bags(depositor=${bag.depositor.namespace})}"
+               th:text="${bag.depositor.namespace}">Depositor</a>
+        </li>
+        <li class="breadcrumb-item"><a th:href="@{|/bags/${bag.id}|}"
+                                       th:text="${bag.name}">Bag</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Files</li>
+    </ol>
+</nav>
+
+<!--/*@thymesVar id="file" type="org.chronopolis.rest.entities.DataFile"*/-->
+<nav th:fragment="single" aria-label="breadcrumb" role="navigation">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/bags/overview}">Bags</a></li>
+        <li class="breadcrumb-item"><a th:href="@{/bags}">All</a></li>
+        <li class="breadcrumb-item">
+            <a th:href="@{/bags(depositor=${bag.depositor.namespace})}"
+               th:text="${bag.depositor.namespace}">Depositor</a>
+        </li>
+        <li class="breadcrumb-item"><a th:href="@{|/bags/${bag.id}|}"
+                                       th:text="${bag.name}">Bag</a>
+        </li>
+        <li class="breadcrumb-item active"><a th:href="@{|/bags/${bag.id}/files|}"
+                                              th:text="Files">Files</a></li>
+        <li class="breadcrumb-item active" aria-current="page" th:text="${file.filename}">File</li>
+    </ol>
+</nav>
+
+</body>
+</html>

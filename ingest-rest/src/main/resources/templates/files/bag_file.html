@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout :: head">
+    <title>Chronopolis Ingestion Service</title>
+</head>
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column align-items-center m-3">
+    <div class="card w-75" th:fragment="info">
+        <nav th:replace="fragments/crumbs/file :: single"></nav>
+
+        <div class="card-body p-2">
+            <table class="table table-hover">
+                <tbody>
+                <!--/*@thymesVar id="file" type="org.chronopolis.rest.entities.DataFile"*/-->
+                <div th:replace="fragments/storage :: list-item(head='Id', content=${file.id})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Filename', content=${file.filename})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Size', content=${file.size})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Created At', content=${file.createdAt})"></div>
+                <div th:replace="fragments/storage :: list-item(head='Updated At', content=${file.updatedAt})"></div>
+
+ <!--/*
+                <div th:each="fixity : ${file.fixities}"
+                     th:replace="fragments/storage :: list-item(head=${fixity.algorithm}, content=${fixity.value})"></div>
+
+               todo display AceToken */-->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div th:replace="layout :: foot"></div>
+</body>
+</html>
+

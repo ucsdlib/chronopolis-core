@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout :: head">
+    <title>Chronopolis Ingestion Service</title>
+</head>
+<body>
+<nav th:replace="layout :: navbar"></nav>
+<div class="d-flex flex-column align-items-center m-3">
+    <div class="card w-75" th:fragment="info">
+        <nav th:replace="fragments/crumbs/file :: list"></nav>
+
+        <!--/*@thymesVar id="files" type="java.util.List<org.chronopolis.rest.entities.DataFile>"*/-->
+        <div class="list-group">
+            <a th:each="file : ${files}" th:href="@{|files/${file.id}|}" th:text="${file.filename}"
+               class="list-group-item list-group-item-action"></a>
+        </div>
+    </div>
+</div>
+<div th:replace="layout :: foot"></div>
+</body>
+</html>
