@@ -3,7 +3,7 @@ package org.chronopolis.ingest.api;
 import com.google.common.collect.ImmutableSet;
 import org.chronopolis.ingest.models.filter.BagFilter;
 import org.chronopolis.ingest.models.filter.DepositorFilter;
-import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
@@ -51,10 +51,10 @@ public class DepositorController {
 
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
-    private final PagedDAO dao;
+    private final PagedDao dao;
 
     @Autowired
-    public DepositorController(PagedDAO dao) {
+    public DepositorController(PagedDao dao) {
         this.dao = dao;
     }
 

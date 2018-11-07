@@ -6,7 +6,7 @@ import com.sun.org.apache.xerces.internal.jaxp.datatype.XMLGregorianCalendarImpl
 import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
-import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.QAceToken;
@@ -57,7 +57,7 @@ public class IngestTokenRegistrarTest extends IngestTest {
     @Autowired
     private EntityManager entityManager;
 
-    private PagedDAO dao;
+    private PagedDao dao;
     private TokenWorkSupervisor tws;
     private IngestTokenRegistrar registrar;
 
@@ -74,7 +74,7 @@ public class IngestTokenRegistrarTest extends IngestTest {
     @Before
     public void setup() throws DatatypeConfigurationException {
         tws = mock(TokenWorkSupervisor.class);
-        dao = new PagedDAO(entityManager);
+        dao = new PagedDao(entityManager);
         registrar = new IngestTokenRegistrar(dao, tws);
 
         GregorianCalendar gc = GregorianCalendar.from(ZonedDateTime.now());

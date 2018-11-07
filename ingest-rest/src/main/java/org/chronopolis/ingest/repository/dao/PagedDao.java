@@ -21,8 +21,8 @@ import java.util.List;
 import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
 
 /**
- * DAO to support basic fetching, saving, and removal from an EntityManager. Can be extended to
- * provide additional support for queries if any are needed.
+ * Data Access Object to support basic fetching, saving, and removal from an EntityManager.
+ * Can be extended to provide additional support for queries if any are needed.
  * <p>
  * Note that some deprecated methods are still called here while we require less of
  * Spring for JPA work. Soon we'll need to replace that with our own utilities I guess, or see
@@ -32,11 +32,11 @@ import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
  *
  * @author shake
  */
-public class PagedDAO {
+public class PagedDao {
 
     private final EntityManager em;
 
-    public PagedDAO(EntityManager em) {
+    public PagedDao(EntityManager em) {
         this.em = em;
     }
 

@@ -1,7 +1,7 @@
 package org.chronopolis.ingest.tokens;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.rest.entities.QAceToken;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.tokenize.ManifestEntry;
@@ -19,9 +19,9 @@ public class DatabasePredicate implements Predicate<ManifestEntry> {
 
     private final Logger log = LoggerFactory.getLogger(DatabasePredicate.class);
 
-    private final PagedDAO dao;
+    private final PagedDao dao;
 
-    public DatabasePredicate(PagedDAO dao) {
+    public DatabasePredicate(PagedDao dao) {
         this.dao = dao;
     }
 

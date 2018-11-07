@@ -4,7 +4,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.chronopolis.ingest.IngestProperties;
-import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.rest.csv.BagFileHeaders;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagFile;
@@ -36,10 +36,10 @@ public class BagFileCSVProcessor implements BiFunction<Long, Path, ResponseEntit
 
     private final Logger log = LoggerFactory.getLogger(BagFileCSVProcessor.class);
 
-    private final PagedDAO dao;
+    private final PagedDao dao;
     private final IngestProperties properties;
 
-    public BagFileCSVProcessor(PagedDAO dao, IngestProperties properties) {
+    public BagFileCSVProcessor(PagedDao dao, IngestProperties properties) {
         this.dao = dao;
         this.properties = properties;
     }

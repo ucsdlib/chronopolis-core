@@ -2,11 +2,12 @@ package org.chronopolis.ingest.repository;
 
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
-import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
-import org.chronopolis.ingest.repository.dao.BagService;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagDistributionStatus;
 import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.QNode;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,21 +44,19 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 public class ReplicatingNodeTest extends IngestTest {
 
     @Autowired EntityManager entityManager;
-    @Autowired BagRepository bagRepository;
-    @Autowired NodeRepository nodeRepository;
 
-    private BagService bags;
+    private PagedDao dao;
     private final String DEPOSITOR = "test-depositor";
 
     @Before
     public void setup() {
-        bags = new BagService(bagRepository, entityManager);
+        dao = new PagedDao(entityManager);
     }
 
     @Test
     public void testNumReplications() {
         String name = "bag-0";
-        Bag bag = bags.find(new BagSearchCriteria().withName(name).withDepositor(DEPOSITOR));
+        Bag bag = dao.findOne(QBag.bag, QBag.bag.name.eq(name));
         Assert.assertEquals(2, bag.getReplicatingNodes().size());
     }
 
@@ -65,14 +64,14 @@ public class ReplicatingNodeTest extends IngestTest {
     public void testUpdateReplications() {
         String name = "bag-1";
         // Add replicating nodes
-        Bag bag = bags.find(new BagSearchCriteria().withName(name).withDepositor(DEPOSITOR));
-        for (Node node : nodeRepository.findAll()) {
+        Bag bag = dao.findOne(QBag.bag, QBag.bag.name.eq(name));
+        for (Node node : dao.findAll(QNode.node)) {
             bag.addDistribution(node, BagDistributionStatus.REPLICATE);
         }
-        bagRepository.save(bag);
+        dao.save(bag);
 
         // And test that we pulled them all
-        Bag updated = bags.find(new BagSearchCriteria().withName(name).withDepositor(DEPOSITOR));
+        Bag updated = dao.findOne(QBag.bag, QBag.bag.name.eq(name));
         Assert.assertEquals(4, updated.getReplicatingNodes().size());
     }
 

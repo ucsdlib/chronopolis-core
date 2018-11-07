@@ -2,13 +2,13 @@ package org.chronopolis.ingest.repository.dao;
 
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
-import org.chronopolis.ingest.repository.BagRepository;
-import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
 import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.models.create.BagCreate;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,17 +34,17 @@ public class BagServiceTest extends IngestTest {
     private static final String BAG_CONFLICT = "create-conflict";
     private static final String BAG_BAD_REQUEST = "create-bad-request";
 
-    @Autowired private BagRepository repository;
     @Autowired private EntityManager entityManager;
 
-    private BagService service;
+    private BagDao service;
 
     @Before
     public void setup() {
-        service = new BagService(repository, entityManager);
+        service = new BagDao(entityManager);
     }
 
     @Test
+    @Ignore("no longer part of the dao")
     public void processRequestNoRegion() {
         BagCreate request = new BagCreate(BAG_BAD_REQUEST, 100L, 5L, -1L, LOCATION, DEPOSITOR);
         BagCreateResult result = service.processRequest(CREATOR, request);
@@ -77,7 +77,7 @@ public class BagServiceTest extends IngestTest {
         Assert.assertEquals(HttpStatus.CREATED, result.getResponseEntity().getStatusCode());
 
         Bag created = result.getBag().get();
-        Bag fromDb = service.find(new BagSearchCriteria().withId(created.getId()));
+        Bag fromDb = service.findOne(QBag.bag, QBag.bag.id.eq(created.getId()));
         Assert.assertEquals(3, fromDb.getDistributions().size());
     }
 

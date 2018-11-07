@@ -1,13 +1,14 @@
 package org.chronopolis.ingest.api;
 
-import com.google.common.collect.ImmutableMap;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.exception.NotFoundException;
-import org.chronopolis.ingest.repository.criteria.ReplicationSearchCriteria;
-import org.chronopolis.ingest.repository.dao.ReplicationService;
+import org.chronopolis.ingest.models.filter.ReplicationFilter;
+import org.chronopolis.ingest.repository.dao.ReplicationDao;
 import org.chronopolis.ingest.repository.dao.StagingDao;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.QReplication;
 import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
@@ -18,27 +19,19 @@ import org.chronopolis.rest.models.update.ReplicationStatusUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.chronopolis.ingest.api.Params.CREATED_AFTER;
-import static org.chronopolis.ingest.api.Params.CREATED_BEFORE;
-import static org.chronopolis.ingest.api.Params.NODE;
-import static org.chronopolis.ingest.api.Params.STATUS;
-import static org.chronopolis.ingest.api.Params.UPDATED_AFTER;
-import static org.chronopolis.ingest.api.Params.UPDATED_BEFORE;
 import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_BAG;
 import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_TOKEN;
 
@@ -55,13 +48,13 @@ public class ReplicationController extends IngestController {
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private final StagingDao stagingDao;
-    private final ReplicationService replicationService;
+    private final ReplicationDao replicationDao;
 
     @Autowired
     public ReplicationController(StagingDao stagingDao,
-                                 ReplicationService replicationService) {
+                                 ReplicationDao replicationDao) {
         this.stagingDao = stagingDao;
-        this.replicationService = replicationService;
+        this.replicationDao = replicationDao;
     }
 
     /**
@@ -78,21 +71,10 @@ public class ReplicationController extends IngestController {
         access.info("Post parameters - ", request.getBagId(), request.getNodeId());
         log.debug("Received replication request {}", request);
         ResponseEntity<Replication> response;
-        response = replicationService.create(request)
+        response = replicationDao.create(request)
                 .getResult().map(repl -> ResponseEntity.status(HttpStatus.CREATED).body(repl))
                 .orElse(ResponseEntity.badRequest().build());
         return response;
-    }
-
-    private ReplicationSearchCriteria createCriteria(Principal principal, Long id) {
-        ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
-                .withId(id);
-
-        if (!hasRoleAdmin()) {
-            criteria.withNodeUsername(principal.getName());
-        }
-
-        return criteria;
     }
 
     /**
@@ -112,11 +94,9 @@ public class ReplicationController extends IngestController {
         access.info("[PUT /api/replications/{}/tokenstore] - {}", principal);
         access.info("PUT parameters - {}", update.getFixity());
 
-        ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
-
         // Break out our objects
-        Replication r = replicationService.find(criteria);
-        Bag bag = r.getBag();
+        Replication replication = replicationDao.findOne(QReplication.replication, QReplication.replication.id.eq(replicationId));
+        Bag bag = replication.getBag();
         String fixity = update.getFixity();
         ReplicationStatus failureStatus = ReplicationStatus.FAILURE_TOKEN_STORE;
 
@@ -124,11 +104,11 @@ public class ReplicationController extends IngestController {
         // need to get active storage
         Optional<StagingStorage> storage =
                 stagingDao.activeStorageForBag(bag, DISCRIMINATOR_TOKEN);
-        storage.ifPresent(s -> checkFixity(r, s.getFile().getFixities(), fixity, failureStatus));
-        r.setReceivedTokenFixity(fixity);
-        r.checkTransferred();
-        replicationService.save(r);
-        return r;
+        storage.ifPresent(staging -> checkFixity(replication, staging.getFile().getFixities(), fixity, failureStatus));
+        replication.setReceivedTokenFixity(fixity);
+        replication.checkTransferred();
+        replicationDao.save(replication);
+        return replication;
     }
 
     /**
@@ -145,22 +125,21 @@ public class ReplicationController extends IngestController {
                                        @RequestBody FixityUpdate update) {
         access.info("[PUT /api/replications/{}/tokenstore] - {}", principal);
         access.info("PUT parameters - {}", update.getFixity());
-        ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
 
         // Break out our objects
-        Replication r = replicationService.find(criteria);
-        Bag bag = r.getBag();
+        Replication replication = replicationDao.findOne(QReplication.replication, QReplication.replication.id.eq(replicationId));
+        Bag bag = replication.getBag();
         String fixity = update.getFixity();
         ReplicationStatus failureStatus = ReplicationStatus.FAILURE_TAG_MANIFEST;
 
         // Validate the fixity and update the replication
         Optional<StagingStorage> storage =
                 stagingDao.activeStorageForBag(bag, DISCRIMINATOR_BAG);
-        storage.ifPresent(s -> checkFixity(r, s.getFile().getFixities(), fixity, failureStatus));
-        r.setReceivedTagFixity(update.getFixity());
-        r.checkTransferred();
-        replicationService.save(r);
-        return r;
+        storage.ifPresent(s -> checkFixity(replication, s.getFile().getFixities(), fixity, failureStatus));
+        replication.setReceivedTagFixity(update.getFixity());
+        replication.checkTransferred();
+        replicationDao.save(replication);
+        return replication;
     }
 
     /**
@@ -200,11 +179,10 @@ public class ReplicationController extends IngestController {
     public Replication failReplication(Principal principal,
                                        @PathVariable("id") Long replicationId) {
         access.info("[PUT /api/replications/{}/failure] - {}", replicationId, principal.getName());
-        ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
-        Replication r = replicationService.find(criteria);
-        r.setStatus(ReplicationStatus.FAILURE);
-        replicationService.save(r);
-        return r;
+        Replication replication = replicationDao.findOne(QReplication.replication, QReplication.replication.id.eq(replicationId));
+        replication.setStatus(ReplicationStatus.FAILURE);
+        replicationDao.save(replication);
+        return replication;
     }
 
     @RequestMapping(value = "/{id}/status", method = RequestMethod.PUT)
@@ -213,13 +191,12 @@ public class ReplicationController extends IngestController {
                                     @RequestBody ReplicationStatusUpdate update) {
         access.info("[PUT /api/replications/{}/status] - {}", replicationId, principal.getName());
         access.info("PUT parameters - {}", update.getStatus());
-        ReplicationSearchCriteria criteria = createCriteria(principal, replicationId);
         log.info("Received update request for replication {}: {}",
                 replicationId, update.getStatus());
-        Replication r = replicationService.find(criteria);
-        r.setStatus(update.getStatus());
-        replicationService.save(r);
-        return r;
+        Replication replication = replicationDao.findOne(QReplication.replication, QReplication.replication.id.eq(replicationId));
+        replication.setStatus(update.getStatus());
+        replicationDao.save(replication);
+        return replication;
     }
 
 
@@ -240,14 +217,14 @@ public class ReplicationController extends IngestController {
         access.info("PUT parameters - {};{};{}", replication.getReceivedTokenFixity(),
                 replication.getReceivedTagFixity(),
                 replication.getStatus());
-        ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
-                .withId(replicationId);
+        BooleanExpression query = QReplication.replication.id.eq(replicationId);
 
         // If a user is not an admin, make sure we only search for THEIR replications
         if (!hasRoleAdmin()) {
-            criteria.withNodeUsername(principal.getName());
+            query = query.and(QReplication.replication.node.username.eq(principal.getName()));
         }
-        Replication update = replicationService.find(criteria);
+
+        Replication update = replicationDao.findOne(QReplication.replication, query);
 
         if (update == null) {
             throw new NotFoundException("Replication " + replicationId);
@@ -265,41 +242,20 @@ public class ReplicationController extends IngestController {
             }
         }
 
-        replicationService.save(update);
+        replicationDao.save(update);
         return update;
     }
 
     /**
      * Retrieve all replications associated with a particular node/user
      *
-     * @param params query parameters used for searching
+     * @param filter query parameters used for searching
      * @return all replication matching the request parameters
      */
     @RequestMapping(method = RequestMethod.GET)
-    public Iterable<Replication> replications(@RequestParam Map<String, String> params) {
+    public Iterable<Replication> replications(@ModelAttribute ReplicationFilter filter) {
         access.info("[GET /api/replications]");
-        String name;
-
-        // Workaround for giving service accounts a view into all replications
-        name = params.getOrDefault(NODE, null);
-
-        // null is handled by the search criteria so we can set use it as a default
-        ReplicationStatus status = params.containsKey(STATUS)
-                ? ReplicationStatus.valueOf(params.get(STATUS))
-                : null;
-
-        // TODO: May want a function to build the criteria from the request params
-        ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
-                .createdAfter(params.getOrDefault(CREATED_AFTER, null))
-                .createdBefore(params.getOrDefault(CREATED_BEFORE, null))
-                .updatedAfter(params.getOrDefault(UPDATED_AFTER, null))
-                .updatedBefore(params.getOrDefault(UPDATED_BEFORE, null))
-                .withNodeUsername(name)
-                .withStatus(status);
-
-        PageRequest pr = createPageRequest(params, ImmutableMap.of());
-
-        return replicationService.findAll(criteria, pr);
+        return replicationDao.findPage(QReplication.replication, filter);
     }
 
     /**
@@ -313,9 +269,7 @@ public class ReplicationController extends IngestController {
     public Replication findReplication(Principal principal,
                                        @PathVariable("id") Long id) {
         access.info("[GET /api/replications/{}] - {}", id, principal.getName());
-        return replicationService.find(
-                new ReplicationSearchCriteria().withId(id)
-        );
+        return replicationDao.findOne(QReplication.replication, QReplication.replication.id.eq(id));
     }
 
 }

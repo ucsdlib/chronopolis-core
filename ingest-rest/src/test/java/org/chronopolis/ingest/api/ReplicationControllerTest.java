@@ -1,7 +1,7 @@
 package org.chronopolis.ingest.api;
 
-import org.chronopolis.ingest.repository.criteria.SearchCriteria;
-import org.chronopolis.ingest.repository.dao.ReplicationService;
+import com.querydsl.core.types.Predicate;
+import org.chronopolis.ingest.repository.dao.ReplicationDao;
 import org.chronopolis.ingest.repository.dao.StagingDao;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagFile;
@@ -22,7 +22,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.ResultActions;
@@ -65,17 +64,17 @@ public class ReplicationControllerTest extends ControllerTest {
     private ReplicationController controller;
 
     @MockBean private StagingDao staging;
-    @MockBean private ReplicationService service;
+    @MockBean private ReplicationDao replicationDao;
 
     @Before
     public void setup() {
-        controller = new ReplicationController(staging, service);
+        controller = new ReplicationController(staging, replicationDao);
         setupMvc(controller);
     }
 
     @Test
     public void testReplications() throws Exception {
-        when(service.findAll(any(SearchCriteria.class), any(Pageable.class))).thenReturn(null);
+        when(replicationDao.findAll(any(), any())).thenReturn(null);
         mvc.perform(get("/api/replications?node=umiacs").principal(authorizedPrincipal))
                 // .andDo(print())
                 .andExpect(status().is(200))
@@ -86,7 +85,7 @@ public class ReplicationControllerTest extends ControllerTest {
     public void testFindReplication() throws Exception {
         Replication replication = new Replication(ReplicationStatus.PENDING,
                 node(), bag(), "bag-url", "token-url", "protocol", null, null);
-        when(service.find(any(SearchCriteria.class))).thenReturn(replication);
+        when(replicationDao.findOne(any(), any(Predicate.class))).thenReturn(replication);
         mvc.perform(get("/api/replications/{id}", 4L).principal(authorizedPrincipal))
                 // .andDo(print())
                 .andExpect(status().is(200))
@@ -134,7 +133,7 @@ public class ReplicationControllerTest extends ControllerTest {
     public <T> ResultActions setupPut(String uri, Long id, T obj) throws Exception {
         Replication replication = new Replication(ReplicationStatus.PENDING,
                 node(), bag(), "bag-url", "token-url", "protocol", null, null);
-        when(service.find(any(SearchCriteria.class))).thenReturn(replication);
+        when(replicationDao.findOne(any(), any(Predicate.class))).thenReturn(replication);
         authenticateUser();
         return mvc.perform(
                 put(uri, id)

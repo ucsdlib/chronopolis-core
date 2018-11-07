@@ -1,26 +1,27 @@
 package org.chronopolis.ingest.controller;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.PageWrapper;
 import org.chronopolis.ingest.models.BagUpdate;
 import org.chronopolis.ingest.models.ReplicationCreate;
 import org.chronopolis.ingest.models.filter.BagFilter;
 import org.chronopolis.ingest.models.filter.ReplicationFilter;
-import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.TokenRepository;
-import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
-import org.chronopolis.ingest.repository.criteria.ReplicationSearchCriteria;
-import org.chronopolis.ingest.repository.dao.BagService;
-import org.chronopolis.ingest.repository.dao.ReplicationService;
+import org.chronopolis.ingest.repository.dao.BagDao;
+import org.chronopolis.ingest.repository.dao.ReplicationDao;
 import org.chronopolis.ingest.repository.dao.StagingDao;
-import org.chronopolis.ingest.repository.dao.StorageRegionService;
 import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.ingest.support.FileSizeFormatter;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.ingest.support.ReplicationCreateResult;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.entities.QAceToken;
+import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.QNode;
+import org.chronopolis.rest.entities.QReplication;
 import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.entities.storage.QStorageRegion;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.models.create.BagCreate;
 import org.chronopolis.rest.models.enums.BagStatus;
@@ -29,8 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -64,26 +63,17 @@ public class BagUIController extends IngestController {
     private final Integer DEFAULT_PAGE_SIZE = 20;
     private final Integer DEFAULT_PAGE = 0;
 
-    private final BagService bagService;
+    private final BagDao dao;
     private final StagingDao stagingService;
-    private final ReplicationService replicationService;
-    private final TokenRepository tokenRepository;
-    private final NodeRepository nodeRepository;
-    private final StorageRegionService regions;
+    private final ReplicationDao replicationDao;
 
     @Autowired
-    public BagUIController(BagService bagService,
+    public BagUIController(BagDao dao,
                            StagingDao stagingService,
-                           ReplicationService replicationService,
-                           TokenRepository tokenRepository,
-                           NodeRepository nodeRepository,
-                           StorageRegionService regions) {
-        this.bagService = bagService;
+                           ReplicationDao replicationDao) {
+        this.dao = dao;
         this.stagingService = stagingService;
-        this.replicationService = replicationService;
-        this.tokenRepository = tokenRepository;
-        this.nodeRepository = nodeRepository;
-        this.regions = regions;
+        this.replicationDao = replicationDao;
     }
 
     /**
@@ -98,18 +88,7 @@ public class BagUIController extends IngestController {
                           @ModelAttribute(value = "filter") BagFilter filter) {
         access.info("[GET /bags] - {}", principal.getName());
 
-        BagSearchCriteria criteria = new BagSearchCriteria()
-                .nameLike(filter.getName())
-                .depositorLike(filter.getDepositor())
-                .withStatuses(filter.getStatus());
-
-        Sort.Direction direction = (filter.getDir() == null)
-                ? Sort.Direction.DESC
-                : Sort.Direction.fromStringOrNull(filter.getDir());
-        Sort s = new Sort(direction, filter.getOrderBy());
-        Page<Bag> bags = bagService.findAll(criteria,
-                new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, s));
-
+        Page<Bag> bags = dao.findPage(QBag.bag, filter);
         PageWrapper<Bag> pages = new PageWrapper<>(bags, "/bags", filter.getParameters());
         model.addAttribute("bags", bags);
         model.addAttribute("pages", pages);
@@ -132,10 +111,8 @@ public class BagUIController extends IngestController {
     public String getBag(Model model, Principal principal, @PathVariable("id") Long id) {
         access.info("[GET /bags/{}] - {}", id, principal.getName());
 
-        BagSearchCriteria bsc = new BagSearchCriteria().withId(id);
         FileSizeFormatter formatter = new FileSizeFormatter();
-        ReplicationSearchCriteria rsc = new ReplicationSearchCriteria().withBagId(id);
-        Bag bag = bagService.find(bsc);
+        Bag bag = dao.findOne(QBag.bag, QBag.bag.id.eq(id));
         Optional<StagingStorage> activeBagStorage =
                 stagingService.activeStorageForBag(bag, DISCRIMINATOR_BAG);
         Optional<StagingStorage> activeTokenStorage =
@@ -143,10 +120,10 @@ public class BagUIController extends IngestController {
 
         model.addAttribute("formatter", formatter);
         model.addAttribute("bag", bag);
-        model.addAttribute("replications", replicationService.findAll(rsc,
-                new PageRequest(DEFAULT_PAGE, DEFAULT_PAGE_SIZE)));
+        model.addAttribute("replications",
+                replicationDao.findAll(QReplication.replication, QReplication.replication.bag.id.eq(id)));
         model.addAttribute("statuses", Arrays.asList(BagStatus.values()));
-        model.addAttribute("tokens", tokenRepository.countByBagId(id));
+        model.addAttribute("tokens", tokenCount(id));
         activeBagStorage.ifPresent(s -> model.addAttribute("activeBagStorage", s));
         activeTokenStorage.ifPresent(s -> model.addAttribute("activeTokenStorage", s));
 
@@ -172,14 +149,13 @@ public class BagUIController extends IngestController {
         access.info("[POST /bags/{}] - {}", id, principal.getName());
         access.info("POST parameters - {};{}", update.getLocation(), update.getStatus());
 
-        BagSearchCriteria criteria = new BagSearchCriteria().withId(id);
-        Bag bag = bagService.find(criteria);
+        Bag bag = dao.findOne(QBag.bag, QBag.bag.id.eq(id));
         bag.setStatus(update.getStatus());
-        bagService.save(bag);
+        dao.save(bag);
 
         model.addAttribute("bags", bag);
         model.addAttribute("statuses", Arrays.asList(BagStatus.values()));
-        model.addAttribute("tokens", tokenRepository.countByBagId(id));
+        model.addAttribute("tokens", tokenCount(id));
 
         return "bags/bag";
     }
@@ -193,8 +169,8 @@ public class BagUIController extends IngestController {
     @RequestMapping(value = "/bags/add", method = RequestMethod.GET)
     public String addBag(Model model, Principal principal) {
         access.info("[GET /bags/add] - {}", principal.getName());
-        model.addAttribute("nodes", nodeRepository.findAll());
-        model.addAttribute("regions", regions.findAll());
+        model.addAttribute("nodes", dao.findAll(QNode.node));
+        model.addAttribute("regions", replicationDao.findAll(QStorageRegion.storageRegion));
         return "bags/add";
     }
 
@@ -209,7 +185,7 @@ public class BagUIController extends IngestController {
         access.info("[POST /bags/add] - {}", principal.getName());
         access.info("Post parameters: {};{}", request.getDepositor(), request.getName());
 
-        BagCreateResult result = bagService.processRequest(principal.getName(), request);
+        BagCreateResult result = dao.processRequest(principal.getName(), request);
         return result.getBag()
                 .map(bag -> "redirect:/bags/" + bag.getId())
                 .orElse("redirect:/bags/add");
@@ -232,17 +208,8 @@ public class BagUIController extends IngestController {
         access.info("[GET /replications] - {}", principal.getName());
 
         Page<Replication> replications;
-        ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
-                .bagNameLike(filter.getBag())
-                .nodeUsernameLike(filter.getNode())
-                .withStatuses(filter.getStatus());
 
-        Sort.Direction direction = (filter.getDir() == null)
-                ? Sort.Direction.DESC
-                : Sort.Direction.fromStringOrNull(filter.getDir());
-        Sort s = new Sort(direction, filter.getOrderBy());
-        replications = replicationService.findAll(criteria,
-                new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, s));
+        replications = replicationDao.findPage(QReplication.replication, filter);
 
         model.addAttribute("replications", replications);
         model.addAttribute("statuses", ReplicationStatus.Companion.statusByGroup());
@@ -256,10 +223,8 @@ public class BagUIController extends IngestController {
     @RequestMapping(value = "/replications/{id}", method = RequestMethod.GET)
     public String getReplication(Model model, Principal principal, @PathVariable("id") Long id) {
         access.info("[GET /replications/{}] - {}", id, principal.getName());
-        ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
-                .withId(id);
 
-        Replication replication = replicationService.find(criteria);
+        Replication replication = replicationDao.findOne(QReplication.replication, QReplication.replication.id.eq(id));
         // Not found if null
         model.addAttribute("replication", replication);
 
@@ -278,10 +243,8 @@ public class BagUIController extends IngestController {
     @RequestMapping(value = "/replications/add", method = RequestMethod.GET)
     public String addReplications(Model model, Principal principal) {
         access.info("[GET /replications/add] - {}", principal.getName());
-        model.addAttribute("bags", bagService.findAll(
-                new BagSearchCriteria(),
-                new PageRequest(0, 100)));
-        model.addAttribute("nodes", nodeRepository.findAll());
+        model.addAttribute("bags", dao.findPage(QBag.bag, new BagFilter()));
+        model.addAttribute("nodes", dao.findAll(QNode.node));
         return "replications/add";
     }
 
@@ -299,10 +262,10 @@ public class BagUIController extends IngestController {
         access.info("[GET /replications/create] - {}", principal.getName());
         model.addAttribute("bag", bag);
         if (hasRoleAdmin()) {
-            model.addAttribute("nodes", nodeRepository.findAll());
+            model.addAttribute("nodes", dao.findAll(QNode.node));
         } else {
             List<Node> nodes = new ArrayList<>();
-            Node node = nodeRepository.findByUsername(principal.getName());
+            Node node = dao.findOne(QNode.node, QNode.node.username.eq(principal.getName()));
             if (node != null) {
                 nodes.add(node);
             }
@@ -326,7 +289,7 @@ public class BagUIController extends IngestController {
         access.info("[POST /replications/create] - {}", principal.getName());
         final Long bag = form.getBag();
         form.getNodes().forEach(nodeId -> {
-            ReplicationCreateResult result = replicationService.create(bag, nodeId);
+            ReplicationCreateResult result = replicationDao.create(bag, nodeId);
             log.debug("[Bag-{}] ReplicationCreate errors {}", bag, result.getErrors());
         });
         return "redirect:/replications/";
@@ -342,12 +305,22 @@ public class BagUIController extends IngestController {
     public String addReplication(Principal principal,
                                  org.chronopolis.rest.models.create.ReplicationCreate request) {
         access.info("[POST /replications/add] - {}", principal.getName());
-        ReplicationCreateResult result = replicationService.create(request);
+        ReplicationCreateResult result = replicationDao.create(request);
 
         // todo: display errors if ReplicationRequest is not valid
         return result.getResult()
                 .map(repl -> "redirect:/replications/" + repl.getId())
                 .orElse("redirect:/replications/create");
     }
+
+    // sup
+
+    private Long tokenCount(Long bagId) {
+        JPAQueryFactory queryFactory = replicationDao.getJPAQueryFactory();
+        return queryFactory.selectFrom(QAceToken.aceToken)
+                .where(QAceToken.aceToken.bag.id.eq(bagId))
+                .fetchCount();
+    }
+
 
 }

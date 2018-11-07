@@ -8,18 +8,12 @@ import org.chronopolis.common.storage.Posix;
 import org.chronopolis.common.storage.TokenStagingProperties;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
-import org.chronopolis.ingest.repository.BagRepository;
-import org.chronopolis.ingest.repository.StorageRegionRepository;
-import org.chronopolis.ingest.repository.TokenRepository;
-import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
-import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
-import org.chronopolis.ingest.repository.dao.BagService;
-import org.chronopolis.ingest.repository.dao.SearchService;
-import org.chronopolis.ingest.repository.dao.StorageRegionService;
-import org.chronopolis.rest.entities.AceToken;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.QStagingStorage;
+import org.chronopolis.rest.entities.storage.QStorageRegion;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.enums.BagStatus;
@@ -55,24 +49,21 @@ public class TokenStoreWriterTest extends IngestTest {
 
     // Beans created by spring
     @Autowired private EntityManager entityManager;
-    @Autowired private BagRepository bagRepository;
-    @Autowired private TokenRepository tokenRepository;
-    @Autowired private StorageRegionRepository regionRepository;
 
     // Our search services which we need to create
-    private BagService bagService;
-    private SearchService<AceToken, Long, TokenRepository> tokenService;
-    private StorageRegionService storageRegionService;
+    private PagedDao dao;
 
     private TokenStagingProperties properties;
 
     @Before
     public void setup() {
+        dao = new PagedDao(entityManager);
         properties = new TokenStagingProperties()
                 .setPosix(new Posix().setId(1L).setPath(System.getProperty("chron.stage.tokens")));
-        bagService = new BagService(bagRepository, entityManager);
-        tokenService = new SearchService<>(tokenRepository);
-        storageRegionService = new StorageRegionService(regionRepository, entityManager);
+    }
+
+    private Bag findBag(String depositor, String name) {
+        return dao.findOne(QBag.bag, QBag.bag.depositor.namespace.eq(depositor).and(QBag.bag.name.eq(name)));
     }
 
     @Test
@@ -80,19 +71,15 @@ public class TokenStoreWriterTest extends IngestTest {
         final String name = "bag-3";
         final String depositor = "test-depositor";
         // Init the TokenStoreWriter and run it
-        Bag b = bagService.find(new BagSearchCriteria()
-                .withDepositor(depositor)
-                .withName(name));
-        StorageRegion region = storageRegionService.find(
-                new StorageRegionSearchCriteria().withId(properties.getPosix().getId()));
+        Bag b = findBag(depositor, name);
+        StorageRegion region = dao.findOne(QStorageRegion.storageRegion,
+                QStorageRegion.storageRegion.id.eq(properties.getPosix().getId()));
         String stage = properties.getPosix().getPath();
-        TokenStoreWriter writer = new TokenStoreWriter(b, region, properties, bagService, tokenService);
+        TokenStoreWriter writer = new TokenStoreWriter(b, region, properties, dao);
         writer.run();
 
         // Refresh the bag from the db
-        Bag updated = bagService.find(new BagSearchCriteria()
-                .withDepositor(depositor)
-                .withName(name));
+        Bag updated = findBag(depositor, name);
 
         // pull the storage
         JPAQueryFactory qf = new JPAQueryFactory(entityManager);
