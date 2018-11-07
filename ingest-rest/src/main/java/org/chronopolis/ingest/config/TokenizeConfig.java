@@ -5,7 +5,7 @@ import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.storage.BagStagingProperties;
 import org.chronopolis.common.storage.BagStagingPropertiesValidator;
-import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.ingest.tokens.DatabasePredicate;
 import org.chronopolis.ingest.tokens.IngestTokenRegistrar;
 import org.chronopolis.rest.entities.Bag;
@@ -48,7 +48,7 @@ public class TokenizeConfig {
     }
 
     @Bean
-    public Collection<Predicate<ManifestEntry>> predicates(PagedDAO dao,
+    public Collection<Predicate<ManifestEntry>> predicates(PagedDao dao,
                                                            TokenWorkSupervisor supervisor) {
         return ImmutableList.of(new ProcessingFilter(supervisor), new DatabasePredicate(dao));
     }
@@ -60,7 +60,7 @@ public class TokenizeConfig {
     }
 
     @Bean(destroyMethod = "close")
-    public IngestTokenRegistrar tokenRegistrar(PagedDAO dao, TokenWorkSupervisor supervisor) {
+    public IngestTokenRegistrar tokenRegistrar(PagedDao dao, TokenWorkSupervisor supervisor) {
         return new IngestTokenRegistrar(dao, supervisor);
     }
 

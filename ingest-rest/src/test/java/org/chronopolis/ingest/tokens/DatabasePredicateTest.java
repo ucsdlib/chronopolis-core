@@ -2,7 +2,7 @@ package org.chronopolis.ingest.tokens;
 
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
-import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.serializers.ExtensionsKt;
 import org.chronopolis.rest.models.Bag;
@@ -41,12 +41,12 @@ public class DatabasePredicateTest extends IngestTest {
     @Autowired
     private EntityManager entityManager;
 
-    private PagedDAO dao;
+    private PagedDao dao;
     private DatabasePredicate predicate;
 
     @Before
     public void setup() {
-        dao = new PagedDAO(entityManager);
+        dao = new PagedDao(entityManager);
         predicate = new DatabasePredicate(dao);
     }
 

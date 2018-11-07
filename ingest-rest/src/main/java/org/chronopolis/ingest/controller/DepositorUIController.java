@@ -18,7 +18,7 @@ import org.chronopolis.ingest.exception.ForbiddenException;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.models.DepositorSummary;
 import org.chronopolis.ingest.models.filter.DepositorFilter;
-import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.ingest.support.FileSizeFormatter;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Node;
@@ -71,11 +71,11 @@ public class DepositorUIController extends IngestController {
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
     private final Logger log = LoggerFactory.getLogger(DepositorUIController.class);
 
-    private final PagedDAO dao;
+    private final PagedDao dao;
     private final EntityManager entityManager;
 
     @Autowired
-    public DepositorUIController(PagedDAO dao, EntityManager entityManager) {
+    public DepositorUIController(PagedDao dao, EntityManager entityManager) {
         this.dao = dao;
         this.entityManager = entityManager;
     }

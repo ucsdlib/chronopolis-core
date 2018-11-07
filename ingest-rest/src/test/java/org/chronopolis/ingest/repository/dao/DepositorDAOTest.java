@@ -44,11 +44,11 @@ public class DepositorDAOTest extends IngestTest {
     @Autowired
     private EntityManager entityManager;
 
-    private PagedDAO dao;
+    private PagedDao dao;
 
     @Before
     public void setup() {
-        dao = new PagedDAO(entityManager);
+        dao = new PagedDao(entityManager);
     }
 
     @Test

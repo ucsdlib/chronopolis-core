@@ -5,12 +5,13 @@ import org.chronopolis.ingest.PageWrapper;
 import org.chronopolis.ingest.exception.ForbiddenException;
 import org.chronopolis.ingest.models.ReplicationConfigUpdate;
 import org.chronopolis.ingest.models.filter.StorageRegionFilter;
-import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
-import org.chronopolis.ingest.repository.dao.StorageRegionService;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.ingest.support.FileSizeFormatter;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.entities.QNode;
+import org.chronopolis.rest.entities.storage.QStagingStorage;
+import org.chronopolis.rest.entities.storage.QStorageRegion;
 import org.chronopolis.rest.entities.storage.ReplicationConfig;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.create.RegionCreate;
@@ -22,8 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -50,13 +49,11 @@ public class StorageRegionUIController extends IngestController {
     private final Logger log = LoggerFactory.getLogger(StorageRegionUIController.class);
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
-    private final NodeRepository nodes;
-    private final StorageRegionService service;
+    private final PagedDao dao;
 
     @Autowired
-    public StorageRegionUIController(NodeRepository nodes, StorageRegionService service) {
-        this.nodes = nodes;
-        this.service = service;
+    public StorageRegionUIController(PagedDao dao) {
+        this.dao = dao;
     }
 
     /**
@@ -73,18 +70,7 @@ public class StorageRegionUIController extends IngestController {
                              @ModelAttribute(value = "filter") StorageRegionFilter filter) {
         access.info("[GET /regions] - {}", principal.getName());
 
-        StorageRegionSearchCriteria criteria = new StorageRegionSearchCriteria()
-                .withCapacityGreaterThan(filter.getCapacityGreater())
-                .withCapacityLessThan(filter.getCapacityLess())
-                .withStorageType(filter.getType())
-                .withNodeName(filter.getName());
-
-        Sort.Direction direction = (filter.getDir() == null)
-                ? Sort.DEFAULT_DIRECTION
-                : Sort.Direction.fromString(filter.getDir());
-        Sort sort = new Sort(direction, filter.getOrderBy());
-        Page<StorageRegion> regions = service.findAll(criteria,
-                new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, sort));
+        Page<StorageRegion> regions = dao.findPage(QStorageRegion.storageRegion, filter);
         PageWrapper<StorageRegion> pages = new PageWrapper<>(regions,
                 "/regions", filter.getParameters());
 
@@ -136,7 +122,7 @@ public class StorageRegionUIController extends IngestController {
 
         Node owner;
         if (hasRoleAdmin() || principal.getName().equalsIgnoreCase(regionCreate.getNode())) {
-            owner = nodes.findByUsername(regionCreate.getNode());
+            owner = dao.findOne(QNode.node, QNode.node.username.eq(regionCreate.getNode()));
         } else {
             throw new ForbiddenException("User does not have permissions to create this resource");
         }
@@ -156,7 +142,7 @@ public class StorageRegionUIController extends IngestController {
         config.setRegion(region);
 
         region.setReplicationConfig(config);
-        service.save(region);
+        dao.save(region);
 
         return "redirect:/regions/" + region.getId();
     }
@@ -176,7 +162,7 @@ public class StorageRegionUIController extends IngestController {
                                  @PathVariable("id") Long id,
                                  RegionUpdate regionEdit) {
         access.info("[GET /regions/{}/edit] - {}", id, principal.getName());
-        StorageRegion region = service.find(new StorageRegionSearchCriteria().withId(id));
+        StorageRegion region = dao.findOne(QStorageRegion.storageRegion, QStorageRegion.storageRegion.id.eq(id));
         model.addAttribute("region", region);
         model.addAttribute("dataTypes", DataType.values());
         model.addAttribute("storageTypes", StorageType.values());
@@ -203,7 +189,7 @@ public class StorageRegionUIController extends IngestController {
                              @Valid RegionUpdate regionEdit,
                              BindingResult bindingResult) throws ForbiddenException {
         access.info("[POST /regions/{}/edit] - {}", id, principal.getName());
-        StorageRegion region = service.find(new StorageRegionSearchCriteria().withId(id));
+        StorageRegion region = dao.findOne(QStorageRegion.storageRegion, QStorageRegion.storageRegion.id.eq(id));
 
         if (bindingResult.hasErrors()) {
 
@@ -237,7 +223,7 @@ public class StorageRegionUIController extends IngestController {
         Double capacity = regionEdit.getCapacity() * Math.pow(1000, exponent);
         region.setCapacity(capacity.longValue());
 
-        service.save(region);
+        dao.save(region);
         return "redirect:/regions/" + id;
     }
 
@@ -248,7 +234,7 @@ public class StorageRegionUIController extends IngestController {
      * @param regionCreate the previous form data
      */
     private void appendFormAttributes(Model model, RegionCreate regionCreate) {
-        model.addAttribute("nodes", nodes.findAll());
+        model.addAttribute("nodes", dao.findAll(QNode.node));
         model.addAttribute("dataTypes", DataType.values());
         model.addAttribute("storageUnits", StorageUnit.values());
         model.addAttribute("storageTypes", StorageType.values());
@@ -267,11 +253,10 @@ public class StorageRegionUIController extends IngestController {
     public String getRegion(Model model, Principal principal, @PathVariable("id") Long id) {
         access.info("[GET /regions/{}] - {}", id, principal.getName());
 
-        StorageRegionSearchCriteria criteria = new StorageRegionSearchCriteria().withId(id);
-        StorageRegion region = service.find(criteria);
+        StorageRegion region = dao.findOne(QStorageRegion.storageRegion, QStorageRegion.storageRegion.id.eq(id));
         BigDecimal bdCapacity = new BigDecimal(region.getCapacity());
 
-        Optional<Long> usedRaw = service.getUsedSpace(region);
+        Optional<Long> usedRaw = getUsedSpace(region);
         FileSizeFormatter formatter = new FileSizeFormatter();
         String capacity = formatter.format(bdCapacity);
         String used = formatter.format(usedRaw.orElse(0L));
@@ -285,6 +270,20 @@ public class StorageRegionUIController extends IngestController {
         model.addAttribute("used", used);
         model.addAttribute("percent", percent);
         return "storage_region/region";
+    }
+
+    /**
+     * Get the amount of space used by a StorageRegion
+     *
+     * @param region the storage region
+     * @return the used space
+     */
+    private Optional<Long> getUsedSpace(StorageRegion region) {
+        QStagingStorage storage = QStagingStorage.stagingStorage;
+        return Optional.ofNullable(dao.getJPAQueryFactory().selectFrom(storage)
+                .select(storage.size.sum())
+                .where(storage.region.eq(region), storage.active.isTrue())
+                .fetchOne());
     }
 
     /**
@@ -305,8 +304,7 @@ public class StorageRegionUIController extends IngestController {
                                      @PathVariable("id") Long id,
                                      ReplicationConfigUpdate update) throws ForbiddenException {
         access.info("[POST /regions/{}/config] - {}", id, principal.getName());
-        StorageRegionSearchCriteria criteria = new StorageRegionSearchCriteria().withId(id);
-        StorageRegion region = service.find(criteria);
+        StorageRegion region = dao.findOne(QStorageRegion.storageRegion, QStorageRegion.storageRegion.id.eq(id));
         Node owner = region.getNode();
 
         if (!hasRoleAdmin() && !principal.getName().equalsIgnoreCase(owner.getUsername())) {
@@ -317,7 +315,7 @@ public class StorageRegionUIController extends IngestController {
         config.setPath(update.getPath());
         config.setServer(update.getServer());
         config.setUsername(update.getUsername());
-        service.save(region);
+        dao.save(region);
 
         model.addAttribute("region", region);
         return "redirect:/regions/" + region.getId();

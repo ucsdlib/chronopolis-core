@@ -23,7 +23,7 @@ import java.util.Optional;
  *
  * @author shake
  */
-public class StagingDao extends PagedDAO {
+public class StagingDao extends PagedDao {
     // I don't know where to define these, should be looked at before the release
     // Might be nice to put in a sealed class
     public static final String DISCRIMINATOR_BAG = "BAG";

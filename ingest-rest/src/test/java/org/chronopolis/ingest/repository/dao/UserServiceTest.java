@@ -5,7 +5,6 @@ import org.chronopolis.ingest.JpaContext;
 import org.chronopolis.ingest.models.UserRequest;
 import org.chronopolis.ingest.models.UserRole;
 import org.chronopolis.ingest.repository.AuthoritiesRepository;
-import org.chronopolis.ingest.repository.NodeRepository;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,6 +19,8 @@ import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.persistence.EntityManager;
+
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -28,9 +29,9 @@ import static org.mockito.Mockito.when;
  *
  * Created by shake on 6/11/15.
  */
+@DataJpaTest
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = JpaContext.class)
-@DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class UserServiceTest extends IngestTest {
 
@@ -39,20 +40,20 @@ public class UserServiceTest extends IngestTest {
     private final String PASSWORD = "new-password";
 
     // Beans beans the magical fruit
-    @Autowired NodeRepository nodes;
+    @MockBean PasswordEncoder encoder;
+    @Autowired EntityManager entityManager;
     @Autowired UserDetailsManager manager;
     @Autowired AuthoritiesRepository authorities;
-    @MockBean PasswordEncoder encoder;
 
     private UserService service;
 
     @Before
     public void setup() {
-        service = new UserService(authorities, manager, nodes, encoder);
+        service = new UserService(new PagedDao(entityManager), authorities, manager, encoder);
     }
 
     @Test
-    public void testCreateExistingUser() throws Exception {
+    public void testCreateExistingUser() {
         when(encoder.encode(eq(PASSWORD))).thenReturn(PASSWORD);
         UserRequest request = new UserRequest();
         request.setRole(UserRole.ROLE_USER);
@@ -66,7 +67,7 @@ public class UserServiceTest extends IngestTest {
     }
 
     @Test
-    public void testCreateNewUser() throws Exception {
+    public void testCreateNewUser() {
         when(encoder.encode(eq(PASSWORD))).thenReturn(PASSWORD);
         UserRequest request = new UserRequest();
         request.setRole(UserRole.ROLE_USER);

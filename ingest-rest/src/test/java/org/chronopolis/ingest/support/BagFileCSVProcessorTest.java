@@ -4,7 +4,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
-import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.QBagFile;
@@ -50,7 +50,7 @@ public class BagFileCSVProcessorTest extends IngestTest {
         final String BAG_NAME = "bag-2";
         final URL csvRoot = ClassLoader.getSystemClassLoader().getResource("csv");
 
-        PagedDAO dao = new PagedDAO(entityManager);
+        PagedDao dao = new PagedDao(entityManager);
         Bag bag = dao.findOne(QBag.bag, QBag.bag.name.eq(BAG_NAME));
         Path toCsv = Paths.get(csvRoot.toURI()).resolve("valid.csv");
 
@@ -72,7 +72,7 @@ public class BagFileCSVProcessorTest extends IngestTest {
         final String BAG_NAME = "bag-2";
         final URL csvRoot = ClassLoader.getSystemClassLoader().getResource("csv");
 
-        PagedDAO dao = new PagedDAO(entityManager);
+        PagedDao dao = new PagedDao(entityManager);
         Bag bag = dao.findOne(QBag.bag, QBag.bag.name.eq(BAG_NAME));
         Path toCsv = Paths.get(csvRoot.toURI()).resolve("invalid.csv");
 

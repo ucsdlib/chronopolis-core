@@ -1,7 +1,7 @@
 package org.chronopolis.ingest.api;
 
 import com.querydsl.core.types.Predicate;
-import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.ingest.support.BagFileCSVProcessor;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.QBag;
@@ -50,7 +50,7 @@ public class BatchFileControllerTest extends ControllerTest {
 
     private ConcurrentSkipListSet<Long> processing = new ConcurrentSkipListSet<>();
 
-    @MockBean private PagedDAO dao;
+    @MockBean private PagedDao dao;
     @MockBean private BagFileCSVProcessor processor;
 
     @Before

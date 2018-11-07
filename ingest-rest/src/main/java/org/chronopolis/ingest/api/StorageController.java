@@ -1,13 +1,12 @@
 package org.chronopolis.ingest.api;
 
-import com.google.common.collect.ImmutableMap;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.models.filter.StorageRegionFilter;
-import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
-import org.chronopolis.ingest.repository.dao.StorageRegionService;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.entities.QNode;
+import org.chronopolis.rest.entities.storage.QStorageRegion;
 import org.chronopolis.rest.entities.storage.ReplicationConfig;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.create.RegionCreate;
@@ -27,7 +26,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.util.Collections;
-import java.util.HashMap;
 
 /**
  * API methods to query StorageRegions
@@ -39,13 +37,11 @@ import java.util.HashMap;
 public class StorageController extends IngestController {
     private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
-    private NodeRepository nodes;
-    private StorageRegionService service;
+    private final PagedDao dao;
 
     @Autowired
-    public StorageController(NodeRepository nodes, StorageRegionService storageRegionService) {
-        this.nodes = nodes;
-        this.service = storageRegionService;
+    public StorageController(PagedDao dao) {
+        this.dao = dao;
     }
 
     /**
@@ -57,9 +53,7 @@ public class StorageController extends IngestController {
     @GetMapping("{id}")
     public StorageRegion getRegion(@PathVariable("id") Long id) {
         access.info("[GET /api/storage/{}]", id);
-        StorageRegionSearchCriteria criteria = new StorageRegionSearchCriteria();
-        criteria.withId(id);
-        return service.find(criteria);
+        return dao.findOne(QStorageRegion.storageRegion, QStorageRegion.storageRegion.id.eq(id));
     }
 
     /**
@@ -71,14 +65,7 @@ public class StorageController extends IngestController {
     @GetMapping
     public Page<StorageRegion> getRegions(@ModelAttribute StorageRegionFilter filter) {
         access.info("[GET /api/storage]");
-        StorageRegionSearchCriteria criteria = new StorageRegionSearchCriteria()
-                .withStorageType(filter.getType())
-                .withNodeName(filter.getName())
-                .withCapacityLessThan(filter.getCapacityLess())
-                .withCapacityGreaterThan(filter.getCapacityGreater());
-
-        // blehh we should really just create our own PageRequest since we can
-        return service.findAll(criteria, createPageRequest(ImmutableMap.of("page", filter.getPage().toString()), new HashMap<>()));
+        return dao.findPage(QStorageRegion.storageRegion, filter);
     }
 
     /**
@@ -104,7 +91,7 @@ public class StorageController extends IngestController {
 
         // Good enough I suppose
         if (hasRoleAdmin() || principal.getName().equalsIgnoreCase(create.getNode())) {
-            Node node = nodes.findByUsername(create.getNode());
+            Node node = dao.findOne(QNode.node, QNode.node.username.eq(create.getNode()));
 
             // check if the create exists, and if not return a bad request
             if (node == null) {
@@ -125,7 +112,7 @@ public class StorageController extends IngestController {
                         create.getReplicationUser());
                 region.setReplicationConfig(config);
                 region.setStorage(Collections.emptySet());
-                service.save(region);
+                dao.save(region);
                 entity = ResponseEntity
                         .status(HttpStatus.CREATED)
                         .body(region);

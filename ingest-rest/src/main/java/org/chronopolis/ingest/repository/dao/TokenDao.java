@@ -15,8 +15,6 @@ import javax.persistence.EntityManager;
 import java.security.Principal;
 import java.util.Date;
 
-import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
-
 /**
  * Data accessor for AceTokens. Really just to move the logic for creating a token from a
  * {@link AceTokenCreate} out of the BagTokenController.
@@ -26,7 +24,7 @@ import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
  *
  * @author shake
  */
-public class TokenDao extends PagedDAO {
+public class TokenDao extends PagedDao {
     private EntityManager em;
 
     public TokenDao(EntityManager em) {

@@ -24,7 +24,7 @@ import java.time.ZonedDateTime;
  *
  * @author shake
  */
-public class BagFileDao extends PagedDAO {
+public class BagFileDao extends PagedDao {
 
     private final Logger log = LoggerFactory.getLogger(BagFileDao.class);
 

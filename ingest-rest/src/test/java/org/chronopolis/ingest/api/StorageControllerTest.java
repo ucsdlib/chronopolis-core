@@ -1,9 +1,9 @@
 package org.chronopolis.ingest.api;
 
-import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.criteria.SearchCriteria;
-import org.chronopolis.ingest.repository.dao.StorageRegionService;
+import com.querydsl.core.types.Predicate;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.entities.QNode;
 import org.chronopolis.rest.models.create.RegionCreate;
 import org.chronopolis.rest.models.enums.DataType;
 import org.chronopolis.rest.models.enums.StorageType;
@@ -22,7 +22,6 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -37,19 +36,18 @@ public class StorageControllerTest extends ControllerTest {
     private StorageController controller;
 
     // Constructor params
-    @MockBean private NodeRepository nodes;
-    @MockBean private StorageRegionService service;
+    @MockBean private PagedDao dao;
 
     @Before
     public void setup() {
-        controller = new StorageController(nodes, service);
+        controller = new StorageController(dao);
         setupMvc(controller);
     }
 
     @Test
     public void getRegion() throws Exception {
         // todo: return actual StorageRegion and check json
-        when(service.find(any(SearchCriteria.class))).thenReturn(null);
+        when(dao.findOne(any(), any(Predicate.class))).thenReturn(null);
 
         mvc.perform(get("/api/storage/{id}", 1L)
                 .principal(() -> "user"))
@@ -79,7 +77,7 @@ public class StorageControllerTest extends ControllerTest {
                 "test-server",
                 "test-user");
 
-        when(nodes.findByUsername(eq(AUTHORIZED))).thenReturn(
+        when(dao.findOne(eq(QNode.node), eq(QNode.node.username.eq(AUTHORIZED)))).thenReturn(
                 new Node(of(), AUTHORIZED, AUTHORIZED, true));
         mvc.perform(
                 post("/api/storage")

@@ -4,7 +4,7 @@ import org.chronopolis.ingest.api.BagController;
 import org.chronopolis.ingest.config.IngestConfig;
 import org.chronopolis.ingest.controller.SiteController;
 import org.chronopolis.ingest.repository.Authority;
-import org.chronopolis.ingest.repository.dao.ReplicationService;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.ingest.service.IngestService;
 import org.chronopolis.ingest.task.TokenWriteTask;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +27,7 @@ import org.springframework.context.annotation.ComponentScan;
         SiteController.class,
         TokenWriteTask.class,
         IngestConfig.class,
-        ReplicationService.class
+        PagedDao.class
 })
 @EntityScan(basePackages = "org.chronopolis.rest.entities",
         basePackageClasses = Authority.class)

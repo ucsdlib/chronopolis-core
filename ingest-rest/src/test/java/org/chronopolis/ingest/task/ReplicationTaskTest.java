@@ -2,10 +2,8 @@ package org.chronopolis.ingest.task;
 
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
-import org.chronopolis.ingest.repository.BagRepository;
-import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.ReplicationRepository;
-import org.chronopolis.ingest.repository.dao.ReplicationService;
+import org.chronopolis.ingest.repository.dao.ReplicationDao;
+import org.chronopolis.rest.entities.QReplication;
 import org.chronopolis.rest.entities.Replication;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,17 +40,15 @@ import static junit.framework.Assert.assertEquals;
 })
 public class ReplicationTaskTest extends IngestTest {
 
+    private ReplicationDao dao;
     private ReplicationTask task;
 
     @Autowired EntityManager manager;
-    @Autowired ReplicationRepository repository;
-    @Autowired BagRepository bags;
-    @Autowired NodeRepository nodes;
 
     @Before
     public void setup() {
-        ReplicationService service = new ReplicationService(manager, repository,  bags, nodes);
-        task = new ReplicationTask(bags, service);
+        dao = new ReplicationDao(manager);
+        task = new ReplicationTask(dao);
     }
 
     @Test
@@ -60,7 +56,7 @@ public class ReplicationTaskTest extends IngestTest {
         task.createReplications();
 
         // Based on the sql we should have 4 replications
-        List<Replication> all = repository.findAll();
+        List<Replication> all = dao.findAll(QReplication.replication);
         assertEquals(4, all.size());
     }
 

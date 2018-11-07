@@ -4,7 +4,7 @@ import com.google.common.primitives.Longs;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.ingest.support.BagFileCSVProcessor;
 import org.chronopolis.rest.csv.BagFileHeaders;
 import org.chronopolis.rest.entities.Bag;
@@ -47,18 +47,18 @@ public class BatchFileController {
     private final String TYPE_CSV = "text/csv";
     private final Logger log = LoggerFactory.getLogger(BatchFileController.class);
 
-    private final PagedDAO dao;
+    private final PagedDao dao;
     private final BagFileCSVProcessor processor;
     private final ConcurrentSkipListSet<Long> processing;
 
     @Autowired
-    public BatchFileController(PagedDAO dao, BagFileCSVProcessor processor) {
+    public BatchFileController(PagedDao dao, BagFileCSVProcessor processor) {
         this.dao = dao;
         this.processor = processor;
         this.processing = new ConcurrentSkipListSet<>();
     }
 
-    protected BatchFileController(PagedDAO dao,
+    protected BatchFileController(PagedDao dao,
                                   BagFileCSVProcessor processor,
                                   ConcurrentSkipListSet<Long> processing) {
         this.dao = dao;

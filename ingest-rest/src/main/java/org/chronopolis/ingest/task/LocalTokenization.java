@@ -5,7 +5,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.storage.BagStagingProperties;
 import org.chronopolis.common.storage.Posix;
-import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.rest.api.IngestApiProperties;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.QAceToken;
@@ -42,14 +42,14 @@ public class LocalTokenization {
 
     private final Logger log = LoggerFactory.getLogger(LocalTokenization.class);
 
-    private final PagedDAO dao;
+    private final PagedDao dao;
     private final TokenWorkSupervisor tws;
     private final IngestApiProperties apiProperties;
     private final BagStagingProperties properties;
     private final TrackingThreadPoolExecutor<Bag> executor;
     private final Collection<Predicate<ManifestEntry>> predicates;
 
-    public LocalTokenization(PagedDAO dao,
+    public LocalTokenization(PagedDao dao,
                              TokenWorkSupervisor tws,
                              IngestApiProperties apiProperties,
                              BagStagingProperties properties,

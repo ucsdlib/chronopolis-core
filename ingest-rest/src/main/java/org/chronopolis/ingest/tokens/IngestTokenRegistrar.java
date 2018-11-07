@@ -2,7 +2,7 @@ package org.chronopolis.ingest.tokens;
 
 import edu.umiacs.ace.ims.api.IMSUtil;
 import edu.umiacs.ace.ims.ws.TokenResponse;
-import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagFile;
@@ -33,11 +33,11 @@ public class IngestTokenRegistrar implements TokenRegistrar, Runnable {
 
     private static final String IMS_HOST = "ims.umiacs.umd.edu";
 
-    private final PagedDAO dao;
+    private final PagedDao dao;
     private final TokenWorkSupervisor supervisor;
     private final AtomicBoolean running = new AtomicBoolean(true);
 
-    public IngestTokenRegistrar(PagedDAO dao, TokenWorkSupervisor supervisor) {
+    public IngestTokenRegistrar(PagedDao dao, TokenWorkSupervisor supervisor) {
         this.dao = dao;
         this.supervisor = supervisor;
     }

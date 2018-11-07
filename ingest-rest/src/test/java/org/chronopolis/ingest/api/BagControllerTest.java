@@ -1,9 +1,9 @@
 package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableList;
-import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
-import org.chronopolis.ingest.repository.criteria.SearchCriteria;
-import org.chronopolis.ingest.repository.dao.BagService;
+import com.querydsl.core.types.Predicate;
+import org.chronopolis.ingest.models.Paged;
+import org.chronopolis.ingest.repository.dao.BagDao;
 import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.models.create.BagCreate;
@@ -14,7 +14,6 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -43,17 +42,17 @@ public class BagControllerTest extends ControllerTest {
     // private final Depositor DEPOSITOR = new Depositor(NAMESPACE, NAMESPACE, NAMESPACE);
 
     // Mocks for the StagingController
-    @MockBean private BagService bagService;
+    @MockBean private BagDao dao;
 
     @Before
     public void setup() {
-        BagController controller = new BagController(bagService);
+        BagController controller = new BagController(dao);
         setupMvc(controller);
     }
 
     @Test
     public void testGetBags() throws Exception {
-        when(bagService.findAll(eq(new BagSearchCriteria()), any(Pageable.class)))
+        when(dao.findPage(any(), any(Paged.class)))
                 .thenReturn(new PageImpl<>(ImmutableList.of(bag())));
 
         mvc.perform(
@@ -65,7 +64,7 @@ public class BagControllerTest extends ControllerTest {
 
     @Test
     public void testGetBag() throws Exception {
-        when(bagService.find(eq(new BagSearchCriteria().withId(1L)))).thenReturn(bag());
+        when(dao.findOne(any(), any(Predicate.class))).thenReturn(bag());
 
         mvc.perform(
                 get("/api/bags/{id}", 1L)
@@ -79,7 +78,7 @@ public class BagControllerTest extends ControllerTest {
 
     @Test
     public void testGetDoesNotExist() throws Exception {
-        when(bagService.find(any(SearchCriteria.class))).thenReturn(null);
+        when(dao.findOne(any(), any(Predicate.class))).thenReturn(null);
         mvc.perform(
                 get("/api/bags/{id}", 100L)
                         .principal(() -> "user"))
@@ -96,7 +95,7 @@ public class BagControllerTest extends ControllerTest {
         Bag bag = bag();
         BagCreateResult result = new BagCreateResult(bag);
 
-        when(bagService.processRequest(eq("user"), eq(request))).thenReturn(result);
+        when(dao.processRequest(eq("user"), eq(request))).thenReturn(result);
 
         mvc.perform(
                 post("/api/bags")
@@ -108,7 +107,7 @@ public class BagControllerTest extends ControllerTest {
                 .andExpect(jsonPath("$.depositor").value(NAMESPACE))
                 .andExpect(jsonPath("$.name").value(BAG));
 
-        verify(bagService, times(1)).processRequest(eq("user"), eq(request));
+        verify(dao, times(1)).processRequest(eq("user"), eq(request));
     }
 
     private Bag bag() {

@@ -5,7 +5,7 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import org.chronopolis.ingest.models.filter.BagFilter;
 import org.chronopolis.ingest.models.filter.DepositorFilter;
-import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QBag;
@@ -83,7 +83,7 @@ public class DepositorControllerTest extends ControllerTest {
     private BooleanExpression nodeEq = Q_NODE.username.eq(NODE_NAME);
 
     // Mocks for the Controller
-    @MockBean private PagedDAO dao;
+    @MockBean private PagedDao dao;
 
     @Before
     public void setup() {

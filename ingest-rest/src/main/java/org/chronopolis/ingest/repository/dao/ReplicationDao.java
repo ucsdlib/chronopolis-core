@@ -4,16 +4,15 @@ import com.google.common.collect.ImmutableList;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.exception.NotFoundException;
-import org.chronopolis.ingest.repository.BagRepository;
-import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.ReplicationRepository;
-import org.chronopolis.ingest.repository.criteria.ReplicationSearchCriteria;
 import org.chronopolis.ingest.support.ReplicationCreateResult;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagDistribution;
 import org.chronopolis.rest.entities.BagDistributionStatus;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.QBagDistribution;
+import org.chronopolis.rest.entities.QNode;
+import org.chronopolis.rest.entities.QReplication;
 import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.entities.storage.QStagingStorage;
 import org.chronopolis.rest.entities.storage.ReplicationConfig;
@@ -22,50 +21,25 @@ import org.chronopolis.rest.models.create.ReplicationCreate;
 import org.chronopolis.rest.models.enums.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
-import javax.transaction.Transactional;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_BAG;
 import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_TOKEN;
 
+public class ReplicationDao extends PagedDao {
 
-/**
- * Class to help querying for replication objects based on various values.
- * ex: search by node, bag-id, status
- * <p>
- * Created by shake on 5/21/15.
- */
-@Component
-@Transactional
-public class ReplicationService extends SearchService<Replication, Long, ReplicationRepository> {
     private static final String DEFAULT_USER = "chronopolis";
-    private final Logger log = LoggerFactory.getLogger(ReplicationService.class);
 
-    private final EntityManager manager;
+    private final Logger log = LoggerFactory.getLogger(ReplicationDao.class);
 
-    private final BagRepository bagRepository;
-    private final NodeRepository nodeRepository;
-
-    @Autowired
-    public ReplicationService(EntityManager manager,
-                              ReplicationRepository replicationRepository,
-                              BagRepository bagRepository,
-                              NodeRepository nodeRepository) {
-        super(replicationRepository);
-        this.manager = manager;
-        this.bagRepository = bagRepository;
-        this.nodeRepository = nodeRepository;
+    public ReplicationDao(EntityManager em) {
+        super(em);
     }
-
 
     /**
      * Public method to create a replication based on a bag id and node id
@@ -79,8 +53,8 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
         log.debug("Processing request for Bag {}", bagId);
 
         // Get our db resources
-        Node node = nodeRepository.findOne(nodeId);
-        Bag bag = bagRepository.findOne(bagId);
+        Bag bag = findOne(QBag.bag, QBag.bag.id.eq(bagId));
+        Node node = findOne(QNode.node, QNode.node.id.eq(nodeId));
 
         if (bag == null) {
             throw new NotFoundException("Bag " + bagId);
@@ -156,13 +130,11 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
                                                      String bagLink,
                                                      String tokenLink) {
         createDist(bag, node);
+        List<Replication> ongoing = findAll(QReplication.replication,
+                QReplication.replication.bag.id.eq(bag.getId())
+                        .and(QReplication.replication.node.username.eq(node.getUsername())
+                                .and(QReplication.replication.status.in(ReplicationStatus.Companion.active()))));
 
-        ReplicationSearchCriteria criteria = new ReplicationSearchCriteria()
-                .withBagId(bag.getId())
-                .withNodeUsername(node.getUsername())
-                .withStatuses(ReplicationStatus.Companion.active());
-
-        Page<Replication> ongoing = findAll(criteria, new PageRequest(0, 10));
         Replication action = new Replication(ReplicationStatus.PENDING,
                 node, bag, bagLink, tokenLink, "rsync", null, null);
 
@@ -175,8 +147,8 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
         // iterate through our ongoing replications and search for a non terminal replication
         // Partial index this instead?
         //       create unique index "one_repl" on replications(node_id) where status == ''...
-        if (ongoing.getTotalElements() != 0) {
-            for (Replication replication : ongoing.getContent()) {
+        if (ongoing.size() != 0) {
+            for (Replication replication : ongoing) {
                 ReplicationStatus status = replication.getStatus();
                 if (status.isOngoing()) {
                     log.info("Found ongoing replication for {} to {}, ignoring create request",
@@ -222,7 +194,7 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
          * what we end up with seems like a pretty suboptimal query; if needed we can look into it
          * might be easier to execute native sql than fiddle with querydsl in that case
          */
-        JPAQueryFactory factory = new JPAQueryFactory(manager);
+        JPAQueryFactory factory = getJPAQueryFactory();
         JPAQuery<StagingStorage> query = factory.from(b)
                 .innerJoin(b.storage, storage)
                 .where(storage.active.isTrue().and(storage.file.dtype.eq(discriminator)))
@@ -234,8 +206,6 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
     /**
      * Build a string for replication based off the storage for the object
      * <p>
-     * todo: determine who the default user should be
-     * todo: might want this to be created by a subclass for the ReplicationConfig (RsyncReplConfig, HttpReplConfig, etc)
      *
      * @param storage The storage to replication from
      * @return The string for the replication
@@ -262,19 +232,14 @@ public class ReplicationService extends SearchService<Replication, Long, Replica
      * @param node the node being distributed to
      */
     private void createDist(Bag bag, Node node) {
-        BagDistribution bagDistribution = null;
-        // todo: see if there's a way to query this instead of iterate
-        Set<BagDistribution> distributions = bag.getDistributions();
-        for (BagDistribution distribution : distributions) {
-            if (distribution.getNode().equals(node)) {
-                bagDistribution = distribution;
-            }
-        }
+        BagDistribution bagDistribution;
+        QBagDistribution qBagDist = QBagDistribution.bagDistribution;
+        bagDistribution = findOne(qBagDist, qBagDist.bag.eq(bag).and(qBagDist.node.eq(node)));
 
         if (bagDistribution == null) {
             bag.addDistribution(node, BagDistributionStatus.DISTRIBUTE);
             // not sure if this is the best place for this...
-            bagRepository.save(bag);
+            save(bag);
         }
     }
 
