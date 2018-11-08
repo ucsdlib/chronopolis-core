@@ -1,15 +1,18 @@
 package org.chronopolis.ingest.api;
 
 import com.google.common.primitives.Longs;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.ingest.support.BagFileCSVProcessor;
+import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.csv.BagFileHeaders;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagFile;
 import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.QBagFile;
 import org.chronopolis.rest.models.enums.FixityAlgorithm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,16 +20,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -46,6 +52,7 @@ public class BatchFileController {
 
     private final String TYPE_CSV = "text/csv";
     private final Logger log = LoggerFactory.getLogger(BatchFileController.class);
+    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private final PagedDao dao;
     private final BagFileCSVProcessor processor;
@@ -67,15 +74,41 @@ public class BatchFileController {
     }
 
     /**
+     * Retrieve a listing of all files for a {@link Bag}
+     *
+     * @param principal the security principal of the user
+     * @param bagId     the id of the {@link Bag} to retrieve files for
+     * @return a listing of all {@link BagFile}s
+     */
+    @GetMapping("/api/bags/{bag_id}/download")
+    public StreamingResponseBody downloadBagFiles(Principal principal,
+                                                  @PathVariable("bag_id") Long bagId) {
+        access.info("[GET /api/bags/{}/download] - {}", bagId, principal.getName());
+
+        JPAQueryFactory queryFactory = dao.getJPAQueryFactory();
+        List<String> fetch = queryFactory.select(QBagFile.bagFile.filename)
+                .from(QBagFile.bagFile)
+                .where(QBagFile.bagFile.bag.id.eq(bagId)).fetch();
+
+        return outputStream -> {
+            for (String filename : fetch) {
+                outputStream.write(filename.getBytes(Charset.defaultCharset())); // force UTF-8?
+                outputStream.write("\n".getBytes(Charset.defaultCharset()));
+            }
+        };
+    }
+
+    /**
      * Create many files for a Bag
      * <p>
      * Need to determine
      * - output: are our responses ok? should we do something other than an ok on success?
      * - async: should we use DeferredResponse or other async utils?
-     *
+     * <p>
      * <p>
      * Can we even do batch processing of inserts right now? I think spring will prevent us unless
-     * we do things only through it.
+     * we do things only through it. Note: when ingesting a ~100MB file, I quickly ran out of memory
+     * so this should certainly remain limited for now.
      *
      * @param bagId the id of the {@link Bag} to create {@link BagFile}s for
      */
@@ -83,6 +116,8 @@ public class BatchFileController {
     public ResponseEntity createBagFiles(Principal principal,
                                          @PathVariable("bag_id") Long bagId,
                                          @RequestParam("file") MultipartFile file) {
+        access.info("[POST /api/bags/{}/files] - {}", bagId, principal.getName());
+
         boolean valid = true;
         ResponseEntity entity = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 

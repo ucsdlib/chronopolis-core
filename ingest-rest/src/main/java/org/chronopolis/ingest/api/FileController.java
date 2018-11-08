@@ -29,7 +29,7 @@ import java.util.Set;
 /**
  * Controller defining various operations for {@link BagFile}s in Chronopolis
  *
- * todo: how to do datafiles?
+ * todo: how to do datafiles? (at the moment just don't expose token stores)
  *
  * @author shake
  */
