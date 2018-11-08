@@ -31,6 +31,9 @@ import java.util.concurrent.Callable;
  * and resolve the paths to get the file metadata. We might want to offer something which can write
  * to an output stream as we validate each Bag but for now that's not terribly important.
  *
+ * Also something to keep in mind is that we are going to be limited in how large of csv files we
+ * can upload, meaning we should optionally split files here while writing.
+ *
  * @author shake
  */
 public class BagFileCsvGenerator implements Callable<BagFileCsvResult> {
