@@ -21,6 +21,7 @@ import org.springframework.mail.SimpleMailMessage;
 
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -200,20 +201,21 @@ public class Submitter {
     private CompletableFuture<ReplicationStatus> fromStarted(Replication replication,
                                                              DirectoryStorageOperation bagOp,
                                                              SingleFileOperation tokenOp) {
-        // tf will this do on an exception?
-        // really would like a way to do this without throwing an exception...
-        Bucket bagBucket = broker.findBucketForOperation(bagOp)
-                .orElseThrow(() -> new IllegalArgumentException("No bucket allocated for bag!"));
-        Bucket tokenBucket = broker.findBucketForOperation(tokenOp)
-                .orElseThrow(() -> new IllegalArgumentException("No bucket allocated for token!"));
+        Optional<Bucket> bBucket = broker.findBucketForOperation(bagOp);
+        Optional<Bucket> tBucket = broker.findBucketForOperation(tokenOp);
+        Optional<MultiBucket> buckets = bBucket.flatMap(bagBucket ->
+                tBucket.map(tokenBucket -> new MultiBucket(bagBucket, tokenBucket)));
 
-        CompletableFuture<Void> tokenFuture =
-                transferFactory.tokenTransfer(tokenBucket, replication, tokenOp);
-        CompletableFuture<Void> bagFuture =
-                transferFactory.bagTransfer(bagBucket, replication, bagOp);
+        Optional<CompletableFuture<Void>> optFuture = buckets.map(multi ->
+                CompletableFuture.allOf(
+                        transferFactory.tokenTransfer(multi.token, replication, tokenOp),
+                        transferFactory.bagTransfer(multi.bag, replication, bagOp)
+                )
+        );
 
-        CompletableFuture<Void> allOf = CompletableFuture.allOf(tokenFuture, bagFuture);
-        return allOf.thenApplyAsync((Void param) -> replication.getStatus());
+        return optFuture.map(future ->
+                future.thenApplyAsync((Void param) -> replication.getStatus())
+        ).orElse(failNotAllocated(replication));
     }
 
     /**
@@ -226,14 +228,15 @@ public class Submitter {
             Replication replication,
             DirectoryStorageOperation bagOp,
             SingleFileOperation tokenOp) {
-        // what will this do on an exception?
-        // could also do it in each runnable but... eh
-        Bucket bagBucket = broker.findBucketForOperation(bagOp)
-                .orElseThrow(() -> new IllegalArgumentException("No bucket allocated for bag!"));
-        Bucket tokenBucket = broker.findBucketForOperation(tokenOp)
-                .orElseThrow(() -> new IllegalArgumentException("No bucket allocated for token!"));
+        Optional<Bucket> bagOpt = broker.findBucketForOperation(bagOp);
+        Optional<Bucket> tokenOpt = broker.findBucketForOperation(tokenOp);
 
-        return aceFactory.register(replication, bagBucket, bagOp, tokenBucket, tokenOp);
+        Optional<MultiBucket> multiOpt = bagOpt.flatMap(bagBucket ->
+                tokenOpt.map(tokenBucket -> new MultiBucket(bagBucket, tokenBucket)));
+
+        return multiOpt.map(multi ->
+                aceFactory.register(replication, multi.bag, bagOp, multi.token, tokenOp)
+        ).orElse(failNotAllocated(replication));
     }
 
     /**
@@ -246,6 +249,25 @@ public class Submitter {
         return CompletableFuture.supplyAsync(check, http);
     }
 
+    private CompletableFuture<ReplicationStatus> failNotAllocated(Replication replication) {
+        return CompletableFuture.supplyAsync(() -> {
+            log.error("[{}] No bucket allocated for bag!", replication.getBag().getName());
+            return ReplicationStatus.FAILURE;
+        });
+    }
+
+    /**
+     * Encapsulate two known buckets
+     */
+    private class MultiBucket {
+        final Bucket bag;
+        final Bucket token;
+
+        public MultiBucket(Bucket bagBucket, Bucket tokenBucket) {
+            this.bag = bagBucket;
+            this.token = tokenBucket;
+        }
+    }
 
     /**
      * Consumer which runs at the end of a replication, ensures removal from the

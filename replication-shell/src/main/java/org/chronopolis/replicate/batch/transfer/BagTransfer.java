@@ -71,7 +71,6 @@ public class BagTransfer implements Transfer, Runnable {
                         " Check that the file exists or that the Ingest API is available."));
     }
 
-    @Override
     public Callback<Replication> update(HashCode hash) {
         UpdateCallback cb = new UpdateCallback();
         String calculatedDigest = hash.toString();
