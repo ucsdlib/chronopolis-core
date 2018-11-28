@@ -13,7 +13,9 @@ import org.chronopolis.rest.models.enums.BagStatus;
 import org.chronopolis.rest.models.enums.ReplicationStatus;
 import org.chronopolis.rest.models.update.FixityUpdate;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.MockitoAnnotations;
 
 import java.nio.file.Path;
@@ -30,6 +32,9 @@ import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 public class TokenTransferTest {
+
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
 
     private final Path EMPTY_PATH = Paths.get("");
     private final Bucket bucket = mock(Bucket.class);
@@ -59,7 +64,7 @@ public class TokenTransferTest {
         transfer = new TokenTransfer(bucket, op, replication, replications, properties);
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void failHash() throws Exception {
         // kind of sucks to mock all this... otherwise we can setup everything to what we should expect
         when(bucket.transfer(eq(op))).thenReturn(Optional.of(ft));
@@ -67,6 +72,7 @@ public class TokenTransferTest {
         when(ft.getOutput()).thenReturn(ByteSource.wrap("hello".getBytes()).openStream());
         when(bucket.hash(eq(op), eq(EMPTY_PATH))).thenReturn(Optional.empty());
 
+        exception.expect(RuntimeException.class);
         transfer.run();
 
         verify(bucket, times(1)).transfer(eq(op));

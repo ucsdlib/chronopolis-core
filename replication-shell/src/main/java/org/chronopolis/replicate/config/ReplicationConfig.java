@@ -76,7 +76,7 @@ public class ReplicationConfig {
     public TransferFactory transferFactory(ThreadPoolExecutor io,
                                            ServiceGenerator generator,
                                            ReplicationProperties properties) {
-        return new TransferFactory(io, generator.replications(), properties);
+        return new TransferFactory(io, generator.files(), generator.replications(), properties);
     }
 
     @Bean

@@ -9,7 +9,6 @@ import org.chronopolis.common.storage.Posix;
 import org.chronopolis.common.storage.PosixBucket;
 import org.chronopolis.common.storage.SingleFileOperation;
 import org.chronopolis.common.storage.StorageOperation;
-import org.chronopolis.replicate.support.CallWrapper;
 import org.chronopolis.replicate.support.ReplGenerator;
 import org.chronopolis.rest.api.ReplicationService;
 import org.chronopolis.rest.api.ServiceGenerator;
@@ -18,6 +17,7 @@ import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.enums.BagStatus;
 import org.chronopolis.rest.models.enums.ReplicationStatus;
 import org.chronopolis.rest.models.update.ReplicationStatusUpdate;
+import org.chronopolis.test.support.CallWrapper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -82,16 +82,19 @@ public class AllocatorTest {
 
     @Test
     public void allocate() {
-        StorageOperation op1 = new DirectoryStorageOperation(Paths.get(ALLOCATE_PARENT).resolve(ALLOCATE_BAG))
+        Path bagPath = Paths.get(ALLOCATE_PARENT).resolve(ALLOCATE_BAG);
+        Path tokenPath = Paths.get(ALLOCATE_PARENT).resolve(ALLOCATE_TS);
+        StorageOperation op1 = new DirectoryStorageOperation(bagPath)
                 .setType(OperationType.RSYNC)
                 .setIdentifier("id")
                 .setSize(1L);
-        StorageOperation op2 = new SingleFileOperation(Paths.get(ALLOCATE_PARENT).resolve(ALLOCATE_TS))
+        StorageOperation op2 = new SingleFileOperation(tokenPath)
                 .setType(OperationType.RSYNC)
                 .setIdentifier("id")
                 .setSize(1L);
 
-        when(replications.updateStatus(eq(1L), any(ReplicationStatusUpdate.class))).thenReturn(new CallWrapper<>(replication));
+        when(replications.updateStatus(eq(1L), any(ReplicationStatusUpdate.class)))
+                .thenReturn(new CallWrapper<>(replication));
 
         allocator = new Allocator(broker, op1, op2, replication, generator);
         ReplicationStatus status = allocator.get();
@@ -107,17 +110,19 @@ public class AllocatorTest {
 
     @Test
     public void allocateExists() {
-        // ???
-        StorageOperation op1 = new DirectoryStorageOperation(Paths.get(ALLOCATE_BAG))
+        Path bagPath = Paths.get(ALLOCATE_BAG);
+        Path tokenPath = Paths.get(ALLOCATE_BAG).resolve(ALLOCATE_TS);
+        StorageOperation op1 = new DirectoryStorageOperation(bagPath)
                 .setType(OperationType.RSYNC)
                 .setIdentifier("id")
                 .setSize(1L);
-        StorageOperation op2 = new SingleFileOperation(Paths.get(ALLOCATE_BAG).resolve(ALLOCATE_TS))
+        StorageOperation op2 = new SingleFileOperation(tokenPath)
                 .setType(OperationType.RSYNC)
                 .setIdentifier("id")
                 .setSize(1L);
 
-        when(replications.updateStatus(eq(1L), any(ReplicationStatusUpdate.class))).thenReturn(new CallWrapper<>(replication));
+        when(replications.updateStatus(eq(1L), any(ReplicationStatusUpdate.class)))
+                .thenReturn(new CallWrapper<>(replication));
         allocator = new Allocator(broker, op1, op2, replication, generator);
         ReplicationStatus status = allocator.get();
         Assert.assertEquals(EXPECTED_SUCCESS, status);

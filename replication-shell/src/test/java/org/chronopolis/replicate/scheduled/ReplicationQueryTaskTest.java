@@ -2,7 +2,6 @@ package org.chronopolis.replicate.scheduled;
 
 import com.google.common.collect.ImmutableSet;
 import org.chronopolis.replicate.batch.Submitter;
-import org.chronopolis.replicate.support.CallWrapper;
 import org.chronopolis.replicate.support.ReplGenerator;
 import org.chronopolis.rest.api.IngestApiProperties;
 import org.chronopolis.rest.api.ReplicationService;
@@ -12,6 +11,7 @@ import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.enums.BagStatus;
 import org.chronopolis.rest.models.enums.ReplicationStatus;
 import org.chronopolis.rest.models.page.SpringPageKt;
+import org.chronopolis.test.support.CallWrapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

@@ -11,7 +11,6 @@ import org.chronopolis.common.storage.PosixBucket;
 import org.chronopolis.common.storage.PreservationProperties;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.ace.AceFactory;
-import org.chronopolis.replicate.support.CallWrapper;
 import org.chronopolis.replicate.support.ReplGenerator;
 import org.chronopolis.rest.api.ReplicationService;
 import org.chronopolis.rest.models.Bag;
@@ -20,6 +19,8 @@ import org.chronopolis.rest.models.StagingStorage;
 import org.chronopolis.rest.models.enums.BagStatus;
 import org.chronopolis.rest.models.enums.ReplicationStatus;
 import org.chronopolis.rest.models.update.ReplicationStatusUpdate;
+import org.chronopolis.test.support.CallWrapper;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -41,6 +42,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.chronopolis.rest.models.enums.ReplicationStatus.ACE_AUDITING;
 import static org.chronopolis.rest.models.enums.ReplicationStatus.STARTED;
 import static org.chronopolis.rest.models.enums.ReplicationStatus.SUCCESS;
+import static org.chronopolis.rest.models.enums.ReplicationStatus.TRANSFERRED;
 import static org.junit.Assert.assertFalse;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
@@ -113,12 +115,41 @@ public class SubmitterTest {
     }
 
     @Test
+    @SuppressWarnings("Duplicates")
+    public void fromStartedNotAllocated() {
+        Bag bag = createBag(testBag.replace("test-bag", "unallocated-bag"), testToken);
+        Replication started = createReplication(STARTED, bag);
+
+        CompletableFuture<ReplicationStatus> submit = submitter.submit(started);
+        ReplicationStatus status = submit.join();
+
+        Assert.assertFalse(submitter.isRunning(started));
+        Assert.assertEquals(ReplicationStatus.FAILURE, status);
+    }
+
+    @Test
+    @SuppressWarnings("Duplicates")
+    public void fromTransferredNotAllocated() {
+        Bag bag = createBag(testBag.replace("test-bag", "unallocated-bag"), testToken);
+
+        Replication transferred = createReplication(TRANSFERRED, bag);
+        CompletableFuture<ReplicationStatus> submit = submitter.submit(transferred);
+        ReplicationStatus status = submit.join();
+
+        Assert.assertFalse(submitter.isRunning(transferred));
+        Assert.assertEquals(ReplicationStatus.FAILURE, status);
+    }
+
+    @Test
     public void fromStartedFailTokenTransfer() throws ExecutionException, InterruptedException {
         Bag bag = createBag(testBag, testToken.replace("test-token-store", "test-tokens-404"));
         Replication replication = createReplication(STARTED, bag);
-        CompletableFuture<Void> xferFuture = CompletableFuture.runAsync(() -> {});
+        CompletableFuture<Void> xferFuture = CompletableFuture.runAsync(() -> {
+        });
         CompletableFuture<Void> xferFail =
-                CompletableFuture.runAsync(() -> {throw new RuntimeException("not found");});
+                CompletableFuture.runAsync(() -> {
+                    throw new RuntimeException("not found");
+                });
 
         when(factory.bagTransfer(any(), any(), any())).thenReturn(xferFuture);
         when(factory.tokenTransfer(any(), any(), any())).thenReturn(xferFail);
@@ -137,12 +168,12 @@ public class SubmitterTest {
 
     @Test
     public void fromStartedServerStop() throws InterruptedException, ExecutionException {
-        CompletableFuture<Void> xferFuture = CompletableFuture.runAsync(() -> {});
+        CompletableFuture<Void> xferFuture = CompletableFuture.runAsync(() -> {
+        });
 
         // same issue here as in fromPendingSuccess
         Bag bag = createBag(testBag, testToken);
         Replication replication = createReplication(STARTED, bag);
-
 
         // Replication Fixity Update Mock
         when(factory.bagTransfer(any(), any(), any())).thenReturn(xferFuture);
@@ -159,7 +190,8 @@ public class SubmitterTest {
     @Test
     public void fromStartedSuccess() throws InterruptedException, ExecutionException {
         // vars which don't change over the lifetime of the test
-        CompletableFuture<Void> xferFuture = CompletableFuture.runAsync(() -> {});
+        CompletableFuture<Void> xferFuture = CompletableFuture.runAsync(() -> {
+        });
 
         // todo: check to see if mockito can capture the old values
         // Because we need to create an updated replication, there's a bit of ugliness we need to
