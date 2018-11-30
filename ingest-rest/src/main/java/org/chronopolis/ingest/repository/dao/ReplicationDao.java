@@ -1,9 +1,11 @@
 package org.chronopolis.ingest.repository.dao;
 
 import com.google.common.collect.ImmutableList;
+import com.querydsl.core.group.GroupBy;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.exception.NotFoundException;
+import org.chronopolis.ingest.models.filter.ReplicationFilter;
 import org.chronopolis.ingest.support.ReplicationCreateResult;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagDistribution;
@@ -11,9 +13,12 @@ import org.chronopolis.rest.entities.BagDistributionStatus;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.QBagDistribution;
+import org.chronopolis.rest.entities.QDataFile;
 import org.chronopolis.rest.entities.QNode;
 import org.chronopolis.rest.entities.QReplication;
 import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.entities.depositor.QDepositor;
+import org.chronopolis.rest.entities.projections.ReplicationView;
 import org.chronopolis.rest.entities.storage.QStagingStorage;
 import org.chronopolis.rest.entities.storage.ReplicationConfig;
 import org.chronopolis.rest.entities.storage.StagingStorage;
@@ -21,6 +26,8 @@ import org.chronopolis.rest.models.create.ReplicationCreate;
 import org.chronopolis.rest.models.enums.ReplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.repository.support.PageableExecutionUtils;
 
 import javax.persistence.EntityManager;
 import java.nio.file.Path;
@@ -249,4 +256,46 @@ public class ReplicationDao extends PagedDao {
                 ":" + file.toString() + (trailingSlash ? "/" : "");
     }
 
+    public ReplicationView findReplicationAsView(Long id) {
+        QReplication replication = QReplication.replication;
+        // not a fan of transforming this into a map then getting the id but.. not sure how to
+        // do it otherwise
+        return createViewQuery()
+                .where(QReplication.replication.id.eq(id))
+                .transform(GroupBy.groupBy(replication.id).as(replicationProjection()))
+                .get(id);
+    }
+
+    public Page<ReplicationView> findViewsAsPage(ReplicationFilter filter) {
+        QReplication replication = QReplication.replication;
+        JPAQuery<?> query = createViewQuery()
+                .where(filter.getQuery())
+                .orderBy(filter.getOrderSpecifier())
+                .restrict(filter.getRestriction());
+        return PageableExecutionUtils.getPage(
+                query.transform(GroupBy.groupBy(replication.id).list(replicationProjection())),
+                filter.createPageRequest(),
+                query::fetchCount);
+    }
+
+    private JPAQuery<?> createViewQuery() {
+        QReplication replication = QReplication.replication;
+        QBag bag = QBag.bag;
+        QNode node = QNode.node;
+        QNode distributionNode = new QNode(DISTRIBUTION_IDENTIFIER);
+        QBagDistribution distribution = QBagDistribution.bagDistribution;
+        QStagingStorage staging = QStagingStorage.stagingStorage;
+        QDataFile file = QDataFile.dataFile;
+        return getJPAQueryFactory().from(replication)
+                .innerJoin(replication.node, node)
+                // CompleteBag projection joins
+                .innerJoin(replication.bag, bag)
+                .innerJoin(bag.depositor, QDepositor.depositor)
+                .leftJoin(bag.distributions, distribution)
+                .on(distribution.status.eq(BagDistributionStatus.REPLICATE))
+                .leftJoin(distribution.node, distributionNode)
+                .leftJoin(bag.storage, staging)
+                .on(staging.active.isTrue())
+                .innerJoin(staging.file, file);
+    }
 }

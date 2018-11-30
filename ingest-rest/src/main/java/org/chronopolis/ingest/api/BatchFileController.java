@@ -1,5 +1,6 @@
 package org.chronopolis.ingest.api;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.primitives.Longs;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.apache.commons.csv.CSVFormat;
@@ -65,6 +66,8 @@ public class BatchFileController {
         this.processing = new ConcurrentSkipListSet<>();
     }
 
+    @VisibleForTesting
+    @SuppressWarnings("WeakerAccess")
     protected BatchFileController(PagedDao dao,
                                   BagFileCSVProcessor processor,
                                   ConcurrentSkipListSet<Long> processing) {

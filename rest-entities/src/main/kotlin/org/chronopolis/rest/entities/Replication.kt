@@ -31,24 +31,6 @@ class Replication(
         var receivedTokenFixity: String? = null
 ) : UpdatableEntity() {
 
-    fun checkTransferred() = {
-        // todo: test when storage isEmpty
-        // this is still a bit awkward
-        // considering passing the StagingStorage directly to this function rather than trying
-        // to iterate through and match
-        val tagMatch = bag.storage.filter { it.file.dtype == "BAG" }
-                .first { it.isActive() }
-                .file.fixities.any { it.value.equals(receivedTagFixity, true) }
-
-        val tokenMatch = bag.storage.filter { it.file.dtype == "TOKEN_STORE" }
-                .first { it.isActive() }
-                .file.fixities.any { it.value.equals(receivedTokenFixity, true) }
-
-        if (status.isOngoing() && tagMatch && tokenMatch) {
-            status = ReplicationStatus.TRANSFERRED
-        }
-    }
-
     @PreUpdate
     protected fun updateReplication() {
         if (status.isFailure()) {

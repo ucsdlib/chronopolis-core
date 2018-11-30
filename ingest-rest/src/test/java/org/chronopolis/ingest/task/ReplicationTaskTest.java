@@ -20,6 +20,10 @@ import javax.persistence.EntityManager;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
+import static org.chronopolis.ingest.JpaContext.CREATE_SCRIPT;
+import static org.chronopolis.ingest.JpaContext.DELETE_SCRIPT;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 
 /**
  * Tests to validate replications are created properly
@@ -31,12 +35,8 @@ import static junit.framework.Assert.assertEquals;
 @ContextConfiguration(classes = JpaContext.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SqlGroup({
-        // We only want bags to be inserted for these tests
-        // but when tearing down remove the replications as well
-        @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
-             scripts = "classpath:sql/create.sql"),
-        @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
-             scripts = "classpath:sql/delete.sql")
+        @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = CREATE_SCRIPT),
+        @Sql(executionPhase = AFTER_TEST_METHOD, scripts = DELETE_SCRIPT)
 })
 public class ReplicationTaskTest extends IngestTest {
 

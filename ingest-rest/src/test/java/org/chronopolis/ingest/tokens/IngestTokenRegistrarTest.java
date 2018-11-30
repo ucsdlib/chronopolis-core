@@ -33,10 +33,14 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import java.time.ZonedDateTime;
 import java.util.GregorianCalendar;
 
+import static org.chronopolis.ingest.JpaContext.CREATE_SCRIPT;
+import static org.chronopolis.ingest.JpaContext.DELETE_SCRIPT;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 
 /**
  *
@@ -47,10 +51,8 @@ import static org.mockito.Mockito.verify;
 @ContextConfiguration(classes = JpaContext.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SqlGroup({
-        @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
-                scripts = "classpath:sql/create.sql"),
-        @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
-                scripts = "classpath:sql/delete.sql")
+        @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = CREATE_SCRIPT),
+        @Sql(executionPhase = AFTER_TEST_METHOD, scripts = DELETE_SCRIPT)
 })
 public class IngestTokenRegistrarTest extends IngestTest {
 

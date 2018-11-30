@@ -21,6 +21,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.persistence.EntityManager;
 
+import static org.chronopolis.ingest.JpaContext.CREATE_SCRIPT;
+import static org.chronopolis.ingest.JpaContext.DELETE_SCRIPT;
+
 /**
  * Test the DatabasePredicate to ensure filtering works correctly when retrieving work
  *
@@ -31,10 +34,8 @@ import javax.persistence.EntityManager;
 @ContextConfiguration(classes = JpaContext.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SqlGroup({
-        @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
-                scripts = "classpath:sql/create.sql"),
-        @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
-                scripts = "classpath:sql/delete.sql")
+        @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = CREATE_SCRIPT),
+        @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = DELETE_SCRIPT)
 })
 public class DatabasePredicateTest extends IngestTest {
 

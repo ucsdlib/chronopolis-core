@@ -2,10 +2,11 @@ package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableList;
 import com.querydsl.core.types.Predicate;
-import org.chronopolis.ingest.models.Paged;
 import org.chronopolis.ingest.repository.dao.BagDao;
 import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.projections.CompleteBag;
+import org.chronopolis.rest.entities.projections.PartialBag;
 import org.chronopolis.rest.models.create.BagCreate;
 import org.chronopolis.rest.models.enums.BagStatus;
 import org.junit.Before;
@@ -17,6 +18,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.time.ZonedDateTime;
+
+import static java.util.Collections.emptySet;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
@@ -38,8 +42,6 @@ public class BagControllerTest extends ControllerTest {
 
     private static final String BAG = "test-bag";
     private static final String LOCATION = "bags/test-bag-0";
-    // private static final String NAMESPACE = "test-depositor";
-    // private final Depositor DEPOSITOR = new Depositor(NAMESPACE, NAMESPACE, NAMESPACE);
 
     // Mocks for the StagingController
     @MockBean private BagDao dao;
@@ -52,8 +54,8 @@ public class BagControllerTest extends ControllerTest {
 
     @Test
     public void testGetBags() throws Exception {
-        when(dao.findPage(any(), any(Paged.class)))
-                .thenReturn(new PageImpl<>(ImmutableList.of(bag())));
+        PageImpl<PartialBag> bags = new PageImpl<>(ImmutableList.of(partialBag()));
+        when(dao.findViewAsPage(any())).thenReturn(bags);
 
         mvc.perform(
                 get("/api/bags/")
@@ -64,7 +66,7 @@ public class BagControllerTest extends ControllerTest {
 
     @Test
     public void testGetBag() throws Exception {
-        when(dao.findOne(any(), any(Predicate.class))).thenReturn(bag());
+        when(dao.findCompleteView(1L)).thenReturn(completeView());
 
         mvc.perform(
                 get("/api/bags/{id}", 1L)
@@ -74,6 +76,16 @@ public class BagControllerTest extends ControllerTest {
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.depositor").value("test-depositor"))
                 .andExpect(jsonPath("$.name").value("test-bag"));
+    }
+
+    private PartialBag partialBag() {
+        return new PartialBag(1L, BAG, NAMESPACE, 1L, 1L, BagStatus.DEPOSITED,
+                ZonedDateTime.now(), ZonedDateTime.now(), NAMESPACE, emptySet());
+    }
+
+    private CompleteBag completeView() {
+        return new CompleteBag(1L, BAG, NAMESPACE, 1L, 1L, BagStatus.INITIALIZED,
+                ZonedDateTime.now(), ZonedDateTime.now(), NAMESPACE, emptySet(), emptySet());
     }
 
     @Test

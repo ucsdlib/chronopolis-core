@@ -27,6 +27,8 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static org.chronopolis.ingest.JpaContext.CREATE_SCRIPT;
+import static org.chronopolis.ingest.JpaContext.DELETE_SCRIPT;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 
@@ -35,8 +37,8 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 @ContextConfiguration(classes = JpaContext.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SqlGroup({
-        @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = "classpath:sql/create.sql"),
-        @Sql(executionPhase = AFTER_TEST_METHOD, scripts = "classpath:sql/delete.sql")
+        @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = CREATE_SCRIPT),
+        @Sql(executionPhase = AFTER_TEST_METHOD, scripts = DELETE_SCRIPT)
 })
 public class BagFileCSVProcessorTest extends IngestTest {
 

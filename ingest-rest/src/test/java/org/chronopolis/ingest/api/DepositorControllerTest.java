@@ -20,7 +20,6 @@ import org.chronopolis.rest.models.create.DepositorCreate;
 import org.chronopolis.rest.models.delete.DepositorContactDelete;
 import org.chronopolis.rest.models.enums.BagStatus;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -54,11 +53,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class DepositorControllerTest extends ControllerTest {
     // Immutable fields used for testing
     private static final String EMAIL = "fake-account@umiacs.umd.edu";
-    // private static final String ADDRESS = "test-address";
     private static final String BAG_NAME = "test-bag";
     private static final String NODE_NAME = "node-name";
-    // private static final String NAMESPACE = "test-depositor";
-    // private static final String ORGANIZATION = "test-organization";
     private static final String DEPOSITOR_ROOT_PATH = "/api/depositors";
     private static final String DEPOSITOR_BAGS_PATH = "/api/depositors/{namespace}/bags";
     private static final String DEPOSITOR_BAG_NAME_PATH = "/api/depositors/{namespace}/bags/{bagName}";
@@ -316,7 +312,6 @@ public class DepositorControllerTest extends ControllerTest {
     }
 
     @Test
-    @Ignore
     public void testRemoveContactNotFound() throws Exception {
         DepositorContactDelete remove = new DepositorContactDelete(EMAIL);
 
@@ -333,7 +328,6 @@ public class DepositorControllerTest extends ControllerTest {
     }
 
     @Test
-    @Ignore
     public void testRemoveContactBadRequest() throws Exception {
         DepositorContactDelete remove = new DepositorContactDelete(EMAIL);
 

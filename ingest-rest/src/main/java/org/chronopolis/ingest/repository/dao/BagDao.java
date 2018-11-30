@@ -1,20 +1,35 @@
 package org.chronopolis.ingest.repository.dao;
 
 import com.google.common.collect.ImmutableList;
+import com.querydsl.core.group.GroupBy;
+import com.querydsl.jpa.impl.JPAQuery;
+import org.chronopolis.ingest.models.filter.BagFilter;
 import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagDistributionStatus;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.QBagDistribution;
+import org.chronopolis.rest.entities.QDataFile;
+import org.chronopolis.rest.entities.QNode;
 import org.chronopolis.rest.entities.depositor.Depositor;
 import org.chronopolis.rest.entities.depositor.QDepositor;
+import org.chronopolis.rest.entities.projections.CompleteBag;
+import org.chronopolis.rest.entities.projections.PartialBag;
+import org.chronopolis.rest.entities.storage.QStagingStorage;
 import org.chronopolis.rest.models.create.BagCreate;
 import org.chronopolis.rest.models.enums.BagStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.repository.support.PageableExecutionUtils;
 
 import javax.persistence.EntityManager;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+
+import static org.chronopolis.rest.entities.depositor.QDepositor.depositor;
 
 public class BagDao extends PagedDao {
 
@@ -51,8 +66,8 @@ public class BagDao extends PagedDao {
         String namespace = request.getDepositor();
         ImmutableList<String> error = ImmutableList.of("Depositor does not exist: " + namespace);
         return Optional.ofNullable(
-                getJPAQueryFactory().selectFrom(QDepositor.depositor)
-                        .where(QDepositor.depositor.namespace.eq(namespace))
+                getJPAQueryFactory().selectFrom(depositor)
+                        .where(depositor.namespace.eq(namespace))
                         .fetchOne())
                 .map(depositor -> create(creator, request, depositor))
                 .orElse(new BagCreateResult(error, BagCreateResult.Status.BAD_REQUEST));
@@ -109,6 +124,65 @@ public class BagDao extends PagedDao {
             log.debug("Creating requested dist record for {}", node.getUsername());
             bag.addDistribution(node, BagDistributionStatus.DISTRIBUTE);
         }
+    }
+
+    public List<PartialBag> partialViews(BagFilter filter) {
+        QBag bag = QBag.bag;
+        return partialQuery(filter)
+                .transform(GroupBy.groupBy(bag.id).list(partialProjection()));
+    }
+
+    public Page<PartialBag> findViewAsPage(BagFilter filter) {
+        return PageableExecutionUtils.getPage(partialViews(filter),
+                // need to pass this in order to fetch the count correctly
+                filter.createPageRequest(),
+                partialQuery(filter)::fetchCount);
+    }
+
+    private JPAQuery<?> partialQuery(BagFilter filter) {
+        QBag bag = QBag.bag;
+        QNode node = new QNode(DISTRIBUTION_IDENTIFIER);
+        QDepositor depositor = QDepositor.depositor;
+        QBagDistribution distribution = QBagDistribution.bagDistribution;
+        return getJPAQueryFactory().from(bag)
+                .innerJoin(bag.depositor, depositor)
+                .leftJoin(bag.distributions, distribution)
+                .on(distribution.status.eq(BagDistributionStatus.REPLICATE))
+                .leftJoin(distribution.node, node)
+                .where(filter.getQuery())
+                .orderBy(filter.getOrderSpecifier())
+                .restrict(filter.getRestriction());
+    }
+
+    public CompleteBag findCompleteView(Long id) {
+        QBag bag = QBag.bag;
+        QNode node = new QNode(DISTRIBUTION_IDENTIFIER);
+        QDepositor depositor = QDepositor.depositor;
+        QBagDistribution distribution = QBagDistribution.bagDistribution;
+
+        // originally I wanted to join each staging area separately but this was causing some
+        // issues. It might be better to map each staging area based on the type of file, as noted
+        // when creating the constructor.
+        QDataFile dataFile = QDataFile.dataFile;
+        QStagingStorage storage = QStagingStorage.stagingStorage;
+
+        Map<Long, CompleteBag> transform = getJPAQueryFactory()
+                .from(bag)
+                .innerJoin(bag.depositor, depositor)
+                .leftJoin(bag.distributions, distribution)
+                .on(distribution.status.eq(BagDistributionStatus.REPLICATE))
+                .leftJoin(distribution.node, node)
+
+                // push to function ?
+                .leftJoin(bag.storage, storage)
+                .on(storage.active.isTrue())
+                .innerJoin(storage.file, dataFile)
+
+                .where(bag.id.eq(id))
+                .transform(GroupBy.groupBy(bag.id)
+                        .as(completeProjection()));
+
+        return transform.get(id);
     }
 
 }
