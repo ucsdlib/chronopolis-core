@@ -29,18 +29,20 @@ import javax.persistence.EntityManager;
 import java.util.Collection;
 import java.util.function.Predicate;
 
+import static org.chronopolis.ingest.JpaContext.CREATE_SCRIPT;
+import static org.chronopolis.ingest.JpaContext.DELETE_SCRIPT;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 
 @DataJpaTest
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = JpaContext.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SqlGroup({
-        @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
-                scripts = "classpath:sql/create.sql"),
-        @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
-                scripts = "classpath:sql/delete.sql")
+        @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = CREATE_SCRIPT),
+        @Sql(executionPhase = AFTER_TEST_METHOD, scripts = DELETE_SCRIPT)
 })
 public class LocalTokenizationTest extends IngestTest {
 

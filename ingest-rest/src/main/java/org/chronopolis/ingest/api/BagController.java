@@ -7,7 +7,8 @@ import org.chronopolis.ingest.repository.dao.BagDao;
 import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.projections.CompleteBag;
+import org.chronopolis.rest.entities.projections.PartialBag;
 import org.chronopolis.rest.models.create.BagCreate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,9 +49,9 @@ public class BagController extends IngestController {
      * @return all bags matching the query parameters
      */
     @GetMapping
-    public Iterable<Bag> getBags(@ModelAttribute BagFilter filter) {
+    public Iterable<PartialBag> getBags(@ModelAttribute BagFilter filter) {
         access.info("[GET /api/bags]");
-        return dao.findPage(QBag.bag, filter);
+        return dao.findViewAsPage(filter);
     }
 
     /**
@@ -60,10 +61,9 @@ public class BagController extends IngestController {
      * @return the bag specified by the id
      */
     @GetMapping("/{id}")
-    public Bag getBag(@PathVariable("id") Long id) {
+    public CompleteBag getBag(@PathVariable("id") Long id) {
         access.info("[GET /api/bags/{}]", id);
-
-        Bag bag = dao.findOne(QBag.bag, QBag.bag.id.eq(id));
+        CompleteBag bag = dao.findCompleteView(id);
 
         if (bag == null) {
             throw new NotFoundException("bag/" + id);

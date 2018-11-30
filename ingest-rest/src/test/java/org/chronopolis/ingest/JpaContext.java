@@ -18,10 +18,10 @@ import java.sql.SQLException;
 
 /**
  * Context for our JPA Stuff
- *
+ * <p>
  * EntityScan
  * Necessary beans
- *
+ * <p>
  * Created by shake on 6/29/17.
  */
 @SpringBootApplication
@@ -29,6 +29,8 @@ import java.sql.SQLException;
 public class JpaContext {
 
     private static final String SCHEMA_LOCATION = "db/schema";
+    public static final String CREATE_SCRIPT = "classpath:sql/create.sql";
+    public static final String DELETE_SCRIPT = "classpath:sql/delete.sql";
 
     public static void main(String[] args) {
         SpringApplication.run(JpaContext.class);
@@ -42,6 +44,24 @@ public class JpaContext {
         return provider.createDataSource();
     }
 
+    /*
+    @Bean
+    @Profile("!gitlab")
+    public DataSource dataSource() throws SQLException {
+        String driver = "org.postgresql.Driver";
+        String url = "jdbc:postgresql://172.17.0.2/ingest3";
+        String username = "readonly";
+        String password = "ro";
+
+        return DataSourceBuilder.create()
+                .url(url)
+                .username(username)
+                .password(password)
+                .driverClassName(driver)
+                .build();
+    }
+
+    */
     @Bean
     @Profile("gitlab")
     public DataSource serviceDataSource() {

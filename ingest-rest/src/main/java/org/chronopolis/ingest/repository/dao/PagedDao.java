@@ -1,14 +1,27 @@
 package org.chronopolis.ingest.repository.dao;
 
 import com.querydsl.core.QueryModifiers;
+import com.querydsl.core.group.GroupBy;
+import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.models.Paged;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.PersistableEntity;
+import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.QDataFile;
+import org.chronopolis.rest.entities.QNode;
+import org.chronopolis.rest.entities.QReplication;
+import org.chronopolis.rest.entities.depositor.QDepositor;
+import org.chronopolis.rest.entities.projections.CompleteBag;
+import org.chronopolis.rest.entities.projections.PartialBag;
+import org.chronopolis.rest.entities.projections.ReplicationView;
+import org.chronopolis.rest.entities.projections.StagingView;
+import org.chronopolis.rest.entities.storage.QStagingStorage;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.support.PageableExecutionUtils;
@@ -32,9 +45,11 @@ import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
  *
  * @author shake
  */
+@Transactional
 public class PagedDao {
 
     private final EntityManager em;
+    protected final String DISTRIBUTION_IDENTIFIER = "distribution_node";
 
     public PagedDao(EntityManager em) {
         this.em = em;
@@ -209,4 +224,71 @@ public class PagedDao {
     public JPAQueryFactory getJPAQueryFactory() {
         return new JPAQueryFactory(em);
     }
+
+    public ConstructorExpression<ReplicationView> replicationProjection() {
+        QReplication replication = QReplication.replication;
+        QNode node = QNode.node;
+        return Projections.constructor(ReplicationView.class,
+                replication.id,
+                replication.createdAt,
+                replication.updatedAt,
+                replication.status,
+                replication.bagLink,
+                replication.tokenLink,
+                replication.protocol,
+                replication.receivedTagFixity,
+                replication.receivedTokenFixity,
+                node.username,
+                completeProjection()
+        );
+    }
+
+    public ConstructorExpression<CompleteBag> completeProjection() {
+        QBag bag = QBag.bag;
+        QNode node = new QNode(DISTRIBUTION_IDENTIFIER);
+        QDepositor depositor = QDepositor.depositor;
+        return Projections.constructor(CompleteBag.class,
+                bag.id,
+                bag.name,
+                bag.creator,
+                bag.size,
+                bag.totalFiles,
+                bag.status,
+                bag.createdAt,
+                bag.updatedAt,
+                depositor.namespace,
+                GroupBy.set(node.username),
+                // maybe move to Map<Dtype,FullStaging>
+                GroupBy.set(stagingProjection()));
+    }
+
+    public ConstructorExpression<PartialBag> partialProjection() {
+        QBag bag = QBag.bag;
+        QNode node = new QNode(DISTRIBUTION_IDENTIFIER);
+        QDepositor depositor = QDepositor.depositor;
+        return Projections.constructor(PartialBag.class,
+                bag.id,
+                bag.name,
+                bag.creator,
+                bag.size,
+                bag.totalFiles,
+                bag.status,
+                bag.createdAt,
+                bag.updatedAt,
+                depositor.namespace,
+                GroupBy.set(node.username));
+    }
+
+    public ConstructorExpression<StagingView> stagingProjection() {
+        QDataFile file = QDataFile.dataFile;
+        QStagingStorage storage = QStagingStorage.stagingStorage;
+        return Projections.constructor(StagingView.class,
+                storage.id,
+                storage.path,
+                file.dtype,
+                storage.region.id,
+                storage.active,
+                storage.totalFiles);
+    }
+
 }

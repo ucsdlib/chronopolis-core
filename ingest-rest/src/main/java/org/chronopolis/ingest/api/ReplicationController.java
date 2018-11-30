@@ -4,14 +4,13 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.models.filter.ReplicationFilter;
+import org.chronopolis.ingest.repository.dao.FixityChecker;
 import org.chronopolis.ingest.repository.dao.ReplicationDao;
 import org.chronopolis.ingest.repository.dao.StagingDao;
 import org.chronopolis.ingest.support.Loggers;
-import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.QReplication;
 import org.chronopolis.rest.entities.Replication;
-import org.chronopolis.rest.entities.storage.Fixity;
-import org.chronopolis.rest.entities.storage.StagingStorage;
+import org.chronopolis.rest.entities.projections.ReplicationView;
 import org.chronopolis.rest.models.create.ReplicationCreate;
 import org.chronopolis.rest.models.enums.ReplicationStatus;
 import org.chronopolis.rest.models.update.FixityUpdate;
@@ -29,16 +28,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
-import java.util.Optional;
-import java.util.Set;
-
-import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_BAG;
-import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_TOKEN;
 
 /**
  * REST controller for replication methods
- * todo: do we need to do check fixity here? is replication.checkTransferred good enough?
- *
+ * <p>
  * Created by shake on 11/5/14.
  */
 @RestController
@@ -63,7 +56,7 @@ public class ReplicationController extends IngestController {
      *
      * @param request request containing the bag id to replicate
      * @return 201 with the newly created Replication
-     * 400 if the request is not valid
+     *         400 if the request is not valid
      */
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<Replication> createReplication(@RequestBody ReplicationCreate request) {
@@ -72,7 +65,8 @@ public class ReplicationController extends IngestController {
         log.debug("Received replication request {}", request);
         ResponseEntity<Replication> response;
         response = replicationDao.create(request)
-                .getResult().map(repl -> ResponseEntity.status(HttpStatus.CREATED).body(repl))
+                .getResult()
+                .map(replication -> ResponseEntity.status(HttpStatus.CREATED).body(replication))
                 .orElse(ResponseEntity.badRequest().build());
         return response;
     }
@@ -88,27 +82,14 @@ public class ReplicationController extends IngestController {
      * @return the updated replication
      */
     @RequestMapping(value = "/{id}/tokenstore", method = RequestMethod.PUT)
-    public Replication updateTokenFixity(Principal principal,
-                                         @PathVariable("id") Long replicationId,
-                                         @RequestBody FixityUpdate update) {
+    public ResponseEntity<Replication> updateTokenFixity(Principal principal,
+                                                         @PathVariable("id") Long replicationId,
+                                                         @RequestBody FixityUpdate update) {
         access.info("[PUT /api/replications/{}/tokenstore] - {}", principal);
         access.info("PUT parameters - {}", update.getFixity());
 
-        // Break out our objects
-        Replication replication = replicationDao.findOne(QReplication.replication, QReplication.replication.id.eq(replicationId));
-        Bag bag = replication.getBag();
-        String fixity = update.getFixity();
-        ReplicationStatus failureStatus = ReplicationStatus.FAILURE_TOKEN_STORE;
-
-        // Validate the fixity and update the replication
-        // need to get active storage
-        Optional<StagingStorage> storage =
-                stagingDao.activeStorageForBag(bag, DISCRIMINATOR_TOKEN);
-        storage.ifPresent(staging -> checkFixity(replication, staging.getFile().getFixities(), fixity, failureStatus));
-        replication.setReceivedTokenFixity(fixity);
-        replication.checkTransferred();
-        replicationDao.save(replication);
-        return replication;
+        FixityChecker checker = new FixityChecker(stagingDao, replicationDao);
+        return checker.checkTokenStore(principal, replicationId, update);
     }
 
     /**
@@ -120,66 +101,22 @@ public class ReplicationController extends IngestController {
      * @return the updated replication
      */
     @RequestMapping(value = "/{id}/tagmanifest", method = RequestMethod.PUT)
-    public Replication updateTagFixity(Principal principal,
-                                       @PathVariable("id") Long replicationId,
-                                       @RequestBody FixityUpdate update) {
+    public ResponseEntity<Replication> updateTagFixity(Principal principal,
+                                                       @PathVariable("id") Long replicationId,
+                                                       @RequestBody FixityUpdate update) {
         access.info("[PUT /api/replications/{}/tokenstore] - {}", principal);
         access.info("PUT parameters - {}", update.getFixity());
 
-        // Break out our objects
-        Replication replication = replicationDao.findOne(QReplication.replication, QReplication.replication.id.eq(replicationId));
-        Bag bag = replication.getBag();
-        String fixity = update.getFixity();
-        ReplicationStatus failureStatus = ReplicationStatus.FAILURE_TAG_MANIFEST;
-
-        // Validate the fixity and update the replication
-        Optional<StagingStorage> storage =
-                stagingDao.activeStorageForBag(bag, DISCRIMINATOR_BAG);
-        storage.ifPresent(s -> checkFixity(replication, s.getFile().getFixities(), fixity, failureStatus));
-        replication.setReceivedTagFixity(update.getFixity());
-        replication.checkTransferred();
-        replicationDao.save(replication);
-        return replication;
-    }
-
-    /**
-     * Check a fixity against what we have stored
-     *
-     * @param r        The replication we are checking
-     * @param stored   The stored fixity values to check against
-     * @param received The received value
-     * @param failure  The status to set upon failure
-     * @return true if matches, false otherwise
-     */
-    private boolean checkFixity(Replication r,
-                                Set<Fixity> stored,
-                                String received,
-                                ReplicationStatus failure) {
-        boolean match = stored.stream()
-                // getValue _should_ always be non-null
-                // but we might need to validate this or enforce it in the schema
-                .anyMatch(fixity -> fixity.getValue().equalsIgnoreCase(received));
-
-        if (match) {
-            log.info("Matching fixity for {}", r.getId());
-        } else {
-            Long bagId = r.getBag().getId();
-            String node = r.getNode().getUsername();
-            // bleh maybe trim down this msg
-            String text = "Received invalid fixity (found={},expected={}) for bag {} from {}." +
-                    " Setting {}";
-            log.warn(text, received, stored, bagId, node, failure);
-            r.setStatus(failure);
-        }
-
-        return match;
+        FixityChecker checker = new FixityChecker(stagingDao, replicationDao);
+        return checker.checkTag(principal, replicationId, update);
     }
 
     @RequestMapping(value = "/{id}/failure", method = RequestMethod.PUT)
     public Replication failReplication(Principal principal,
                                        @PathVariable("id") Long replicationId) {
         access.info("[PUT /api/replications/{}/failure] - {}", replicationId, principal.getName());
-        Replication replication = replicationDao.findOne(QReplication.replication, QReplication.replication.id.eq(replicationId));
+        Replication replication = replicationDao.findOne(QReplication.replication,
+                QReplication.replication.id.eq(replicationId));
         replication.setStatus(ReplicationStatus.FAILURE);
         replicationDao.save(replication);
         return replication;
@@ -193,7 +130,8 @@ public class ReplicationController extends IngestController {
         access.info("PUT parameters - {}", update.getStatus());
         log.info("Received update request for replication {}: {}",
                 replicationId, update.getStatus());
-        Replication replication = replicationDao.findOne(QReplication.replication, QReplication.replication.id.eq(replicationId));
+        Replication replication = replicationDao.findOne(QReplication.replication,
+                QReplication.replication.id.eq(replicationId));
         replication.setStatus(update.getStatus());
         replicationDao.save(replication);
         return replication;
@@ -253,23 +191,29 @@ public class ReplicationController extends IngestController {
      * @return all replication matching the request parameters
      */
     @RequestMapping(method = RequestMethod.GET)
-    public Iterable<Replication> replications(@ModelAttribute ReplicationFilter filter) {
+    public Iterable<ReplicationView> replications(@ModelAttribute ReplicationFilter filter) {
         access.info("[GET /api/replications]");
-        return replicationDao.findPage(QReplication.replication, filter);
+        return replicationDao.findViewsAsPage(filter);
     }
 
     /**
      * Retrieve a single replication based on its Id
+     * <p>
      *
      * @param principal authentication information
      * @param id        the id to search for
      * @return the replication specified by the id
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public Replication findReplication(Principal principal,
-                                       @PathVariable("id") Long id) {
+    public ResponseEntity<ReplicationView> findReplication(Principal principal,
+                                                           @PathVariable("id") Long id) {
         access.info("[GET /api/replications/{}] - {}", id, principal.getName());
-        return replicationDao.findOne(QReplication.replication, QReplication.replication.id.eq(id));
+        ResponseEntity<ReplicationView> entity = ResponseEntity.notFound().build();
+        ReplicationView view = replicationDao.findReplicationAsView(id);
+        if (view != null) {
+            entity = ResponseEntity.ok(view);
+        }
+        return entity;
     }
 
 }
