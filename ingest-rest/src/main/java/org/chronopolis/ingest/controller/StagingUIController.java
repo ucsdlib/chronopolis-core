@@ -6,7 +6,6 @@ import org.chronopolis.ingest.exception.ForbiddenException;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.repository.dao.StagingDao;
 import org.chronopolis.ingest.support.FileSizeFormatter;
-import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.DataFile;
 import org.chronopolis.rest.entities.QBag;
@@ -46,7 +45,6 @@ import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
 @Controller
 public class StagingUIController {
 
-    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
     private final Logger log = LoggerFactory.getLogger(StagingUIController.class);
 
     private final StagingDao dao;
@@ -71,8 +69,6 @@ public class StagingUIController {
                                    @PathVariable("id") Long id,
                                    @PathVariable("storageId") Long storageId)
             throws ForbiddenException {
-        access.info("[GET /bags/{}/storage/{}/activate] - {}", id, storageId, principal.getName());
-
         Optional<StagingStorage> opt = dao.activeStorageForBag(id, StagingDao.DISCRIMINATOR_BAG);
         StagingStorage staging = opt.orElseThrow(() ->
                 new NotFoundException("How about you request the proper resource"));
@@ -99,8 +95,6 @@ public class StagingUIController {
      */
     @GetMapping("/bags/{id}/storage")
     public String getAllStorage(Model model, Principal principal, @PathVariable("id") Long id) {
-        access.info("[GET /bags/{}/storage/add] - {}", id, principal.getName());
-
         Bag bag = dao.findOne(QBag.bag, QBag.bag.id.eq(id));
         // for whatever reason we need to use get*Storage to retrieve the entities from the DB
         // maybe the lazy loading idk
@@ -124,8 +118,6 @@ public class StagingUIController {
                                  Principal principal,
                                  @PathVariable("id") Long id,
                                  StagingCreate stagingCreate) {
-        access.info("[GET /bags/{}/storage/add] - {}", id, principal.getName());
-
         Bag bag = dao.findOne(QBag.bag, QBag.bag.id.eq(id));
         Optional<StagingStorage> stagingStorage =
                 dao.activeStorageForBag(id, StagingDao.DISCRIMINATOR_BAG);
@@ -163,7 +155,6 @@ public class StagingUIController {
                              @PathVariable("id") Long id,
                              @Valid StagingCreate stagingCreate,
                              BindingResult bindingResult) throws ForbiddenException {
-        access.info("[POST /bags/{}/storage/add] - {}", id, principal.getName());
         if (bindingResult.hasErrors()) {
             model.addAttribute("regions", dao.findAll(QStorageRegion.storageRegion));
             model.addAttribute("storageUnits", StorageUnit.values());

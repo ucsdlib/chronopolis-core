@@ -15,7 +15,6 @@ import org.chronopolis.ingest.models.FulfillmentRequest;
 import org.chronopolis.ingest.models.HttpError;
 import org.chronopolis.ingest.models.filter.RepairFilter;
 import org.chronopolis.ingest.repository.dao.PagedDao;
-import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.api.OkBasicInterceptor;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
@@ -62,7 +61,6 @@ public class RepairUIController extends IngestController {
     private final Integer DEFAULT_PAGE_SIZE = 20;
 
     private final Logger log = LoggerFactory.getLogger(RepairUIController.class);
-    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private final PagedDao dao;
 
@@ -78,7 +76,6 @@ public class RepairUIController extends IngestController {
      */
     @GetMapping("/repairs/add")
     public String newRepairRequest() {
-        access.info("[GET /repairs/add]");
         return "repair/add";
     }
 
@@ -92,7 +89,6 @@ public class RepairUIController extends IngestController {
      */
     @PostMapping("/repairs/ace")
     public String getCollections(Model model, HttpSession session, AceCredentials credentials) {
-        access.info("[POST /repairs/ace]");
         // todo: remove gson
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Date.class,
@@ -147,8 +143,6 @@ public class RepairUIController extends IngestController {
      */
     @PostMapping("/repairs/collection")
     public String getErrors(Model model, Principal principal, HttpSession session, CollectionInfo infoRequest) {
-        access.info("[POST /repairs/collection] - {}", principal.getName());
-        access.info("POST parameters - {};{}", infoRequest.getCollection(), infoRequest.getDepositor());
         AceCollections collections;
         Object o = session.getAttribute("ace");
         if (!(o instanceof AceCollections)) {
@@ -201,7 +195,6 @@ public class RepairUIController extends IngestController {
      */
     @PostMapping("/repairs")
     public String requestRepair(Principal principal, RepairCreate request) {
-        access.info("[POST /repairs] - {}", principal.getName());
         log.info("{} items requested", request.getFiles().size());
         Bag bag = dao.findOne(QBag.bag, QBag.bag.depositor.namespace.eq(request.getDepositor()).and(QBag.bag.name.eq(request.getCollection())));
         Optional<String> of = Optional.ofNullable(request.getTo());
@@ -233,7 +226,6 @@ public class RepairUIController extends IngestController {
      */
     @GetMapping("/repairs")
     public String repairs(Model model, @ModelAttribute(value = "filter") RepairFilter filter) {
-        access.info("[GET /repairs]");
         // might be able to put Sort.Direction in the Paged class
         Page<Repair> results = dao.findPage(QRepair.repair, filter);
 
@@ -255,7 +247,6 @@ public class RepairUIController extends IngestController {
      */
     @GetMapping("/repairs/{id}")
     public String repair(Model model, @PathVariable("id") Long id) {
-        access.info("[GET /repairs/{}]", id);
         Repair repair = dao.findOne(QRepair.repair, QRepair.repair.id.eq(id));
         model.addAttribute("repair", repair);
         if (repair.getStrategy() != null && repair.getType() != null) {
@@ -274,7 +265,6 @@ public class RepairUIController extends IngestController {
      */
     @GetMapping("/repairs/fulfill")
     public String fulfillRepair(Model model, Principal principal) {
-        access.info("[GET /repairs/fulfill]");
         // todo: either to withFromNot principal.getName
         //       or disable all radios w/ the selected from in the page
         Page<Repair> availableRepairs = dao.findPage(
@@ -304,7 +294,6 @@ public class RepairUIController extends IngestController {
      */
     @PostMapping("/repairs/fulfill")
     public String createFulfillment(Model model, Principal principal, FulfillmentRequest request) {
-        access.info("[POST /repairs/fulfill] - ", principal.getName());
         log.info("{} offering to fulfill {}", request.getFrom(), request.getRepair());
         Repair repair = dao.findOne(QRepair.repair, QRepair.repair.id.eq(request.getRepair()));
         String toNode = repair.getTo().getUsername();

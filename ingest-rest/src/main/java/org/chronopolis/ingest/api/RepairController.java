@@ -6,7 +6,6 @@ import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.exception.UnauthorizedException;
 import org.chronopolis.ingest.models.filter.RepairFilter;
 import org.chronopolis.ingest.repository.dao.PagedDao;
-import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QBag;
@@ -47,7 +46,6 @@ import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
 @RequestMapping("/api/repairs")
 public class RepairController {
     private final Logger log = LoggerFactory.getLogger(RepairController.class);
-    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private final PagedDao dao;
 
@@ -64,7 +62,6 @@ public class RepairController {
      */
     @RequestMapping(method = RequestMethod.GET)
     public Page<Repair> getRequests(@ModelAttribute RepairFilter filter) {
-        access.info("[GET /api/repairs]");
         return dao.findPage(QRepair.repair, filter);
     }
 
@@ -77,8 +74,6 @@ public class RepairController {
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public Repair getRequest(@PathVariable("id") Long id) {
-        access.info("[GET /api/repairs/{}]", id);
-
         Repair repair = dao.findOne(QRepair.repair, QRepair.repair.id.eq(id));
         if (repair == null) {
             throw new NotFoundException("Repair " + id + " does not exist");
@@ -101,8 +96,6 @@ public class RepairController {
     @SuppressWarnings("ConstantConditions")
     @RequestMapping(method = RequestMethod.POST)
     public Repair createRequest(Principal principal, @RequestBody RepairCreate request) {
-        access.info("[POST /api/repairs/] - ", principal.getName());
-        access.info("POST parameters - {};{}", request.getCollection(), request.getDepositor());
         boolean ignore = true;
         boolean admin = hasRoleAdmin();
         boolean sameNode = request.getTo() == null
@@ -155,7 +148,6 @@ public class RepairController {
      */
     @RequestMapping(value = "/{id}/fulfill", method = RequestMethod.POST)
     public Repair fulfillRequest(Principal principal, @PathVariable("id") Long id) {
-        access.info("[POST /api/repairs/{}/fulfill] - {}", id, principal.getName());
         Node from = dao.findOne(QNode.node, QNode.node.username.eq(principal.getName()));
         Repair repair = dao.findOne(QRepair.repair, QRepair.repair.id.eq(id));
 
@@ -192,8 +184,6 @@ public class RepairController {
     public Repair readyFulfillment(Principal principal,
                                    @RequestBody FulfillmentStrategy strategy,
                                    @PathVariable("id") Long id) {
-        access.info("[PUT /api/repairs/{}/ready] - {}", id, principal.getName());
-        access.info("PUT parameters - {}", strategy.getType());
         Repair repair = dao.findOne(QRepair.repair, QRepair.repair.id.eq(id));
 
         // Move constraint logic somewhere else?
@@ -201,7 +191,8 @@ public class RepairController {
 
         // Validate access
         // Do we want to do the below or nest ifs?
-        // boolean authorized = !hasRoleAdmin() && principal.getName().equals(fulfillment.getFrom().getUsername());
+        // boolean authorized =
+        // !hasRoleAdmin() && principal.getName().equals(fulfillment.getFrom().getUsername());
         if (!hasRoleAdmin()) {
             boolean authorized = repair.getFrom() != null
                     && principal.getName().equals(repair.getFrom().getUsername());
@@ -232,7 +223,6 @@ public class RepairController {
      */
     @RequestMapping(value = "/{id}/complete", method = RequestMethod.PUT)
     public Repair completeFulfillment(Principal principal, @PathVariable("id") Long id) {
-        access.info("[PUT /api/repairs/{}/complete] - {}", id, principal.getName());
         Repair repair = dao.findOne(QRepair.repair, QRepair.repair.id.eq(id));
         check(repair, "Repair does not exist");
         check(repair.getStrategy(), "Repair must have a strategy before being completed!");
@@ -265,7 +255,6 @@ public class RepairController {
     public Repair repairAuditing(Principal principal,
                                  @PathVariable("id") Long id,
                                  @RequestBody AuditStatus status) {
-        access.info("[PUT /api/repairs/{}/audit] - {}", id, principal.getName());
         Repair repair = dao.findOne(QRepair.repair, QRepair.repair.id.eq(id));
         checkNotFound(repair, "Repair does not exist!");
 
@@ -287,7 +276,6 @@ public class RepairController {
      */
     @RequestMapping(path = "/{id}/cleaned", method = RequestMethod.PUT)
     public Repair repairCleaned(Principal principal, @PathVariable("id") Long id) {
-        access.info("[PUT /api/repairs/{}/cleaned] - {}", id, principal.getName());
         Repair repair = dao.findOne(QRepair.repair, QRepair.repair.id.eq(id));
         checkNotFound(repair, "Repair does not exist");
 
@@ -309,7 +297,6 @@ public class RepairController {
      */
     @RequestMapping(path = "/{id}/replaced", method = RequestMethod.PUT)
     public Repair repairReplaced(Principal principal, @PathVariable("id") Long id) {
-        access.info("[PUT /api/repairs/{}/replaced] - {}", id, principal.getName());
         Repair repair = dao.findOne(QRepair.repair, QRepair.repair.id.eq(id));
         checkNotFound(repair, "Repair does not exist");
 
@@ -357,7 +344,6 @@ public class RepairController {
     public Repair fulfillmentUpdated(Principal principal,
                                      @PathVariable("id") Long id,
                                      @RequestBody RepairStatus status) {
-        access.info("[PUT /api/repairs/{}/status] - {}", id, principal.getName());
         Repair repair = dao.findOne(QRepair.repair, QRepair.repair.id.eq(id));
         checkNotFound(repair, "Repair does not exist");
 
@@ -387,7 +373,6 @@ public class RepairController {
      */
     @RequestMapping(path = "/{id}/validated", method = RequestMethod.PUT)
     public Repair fulfillmentValidated(Principal principal, @PathVariable("id") Long id) {
-        access.info("[PUT /api/repairs/{}/validated] - {}", id, principal.getName());
 
         Repair repair = dao.findOne(QRepair.repair, QRepair.repair.id.eq(id));
         checkNotFound(repair, "Repair does not exist");

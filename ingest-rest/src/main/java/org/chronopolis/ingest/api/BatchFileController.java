@@ -8,7 +8,6 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.ingest.support.BagFileCSVProcessor;
-import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.csv.BagFileHeaders;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagFile;
@@ -53,7 +52,6 @@ public class BatchFileController {
 
     private final String TYPE_CSV = "text/csv";
     private final Logger log = LoggerFactory.getLogger(BatchFileController.class);
-    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private final PagedDao dao;
     private final BagFileCSVProcessor processor;
@@ -86,8 +84,6 @@ public class BatchFileController {
     @GetMapping("/api/bags/{bag_id}/download")
     public StreamingResponseBody downloadBagFiles(Principal principal,
                                                   @PathVariable("bag_id") Long bagId) {
-        access.info("[GET /api/bags/{}/download] - {}", bagId, principal.getName());
-
         JPAQueryFactory queryFactory = dao.getJPAQueryFactory();
         List<String> fetch = queryFactory.select(QBagFile.bagFile.filename)
                 .from(QBagFile.bagFile)
@@ -119,8 +115,6 @@ public class BatchFileController {
     public ResponseEntity createBagFiles(Principal principal,
                                          @PathVariable("bag_id") Long bagId,
                                          @RequestParam("file") MultipartFile file) {
-        access.info("[POST /api/bags/{}/files] - {}", bagId, principal.getName());
-
         boolean valid = true;
         ResponseEntity entity = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 

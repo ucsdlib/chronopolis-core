@@ -3,15 +3,12 @@ package org.chronopolis.ingest.api;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.models.filter.StorageRegionFilter;
 import org.chronopolis.ingest.repository.dao.PagedDao;
-import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QNode;
 import org.chronopolis.rest.entities.storage.QStorageRegion;
 import org.chronopolis.rest.entities.storage.ReplicationConfig;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.create.RegionCreate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -35,7 +32,6 @@ import java.util.Collections;
 @RestController
 @RequestMapping("/api/storage")
 public class StorageController extends IngestController {
-    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private final PagedDao dao;
 
@@ -52,7 +48,6 @@ public class StorageController extends IngestController {
      */
     @GetMapping("{id}")
     public StorageRegion getRegion(@PathVariable("id") Long id) {
-        access.info("[GET /api/storage/{}]", id);
         return dao.findOne(QStorageRegion.storageRegion, QStorageRegion.storageRegion.id.eq(id));
     }
 
@@ -64,7 +59,6 @@ public class StorageController extends IngestController {
      */
     @GetMapping
     public Page<StorageRegion> getRegions(@ModelAttribute StorageRegionFilter filter) {
-        access.info("[GET /api/storage]");
         return dao.findPage(QStorageRegion.storageRegion, filter);
     }
 
@@ -82,9 +76,6 @@ public class StorageController extends IngestController {
     @PostMapping
     public ResponseEntity<StorageRegion> createRegion(Principal principal,
                                                       @RequestBody RegionCreate create) {
-        access.info("[POST /api/storage] - ", principal.getName());
-        access.info("POST parameters - {};{};{}",
-                create.getNode(), create.getDataType(), create.getStorageType());
         ResponseEntity<StorageRegion> entity = ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .build();
