@@ -1,13 +1,10 @@
 package org.chronopolis.ingest.api;
 
 import org.chronopolis.ingest.repository.dao.StagingDao;
-import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.models.create.StagingCreate;
 import org.chronopolis.rest.models.update.ActiveToggle;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,8 +32,6 @@ import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_TOK
 @RequestMapping("/api/bags/{id}")
 public class BagStorageController {
 
-    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
-
     private final StagingDao dao;
 
     @Autowired
@@ -55,7 +50,6 @@ public class BagStorageController {
     @GetMapping("/storage/{type}")
     private ResponseEntity<StagingStorage> getBagStorage(@PathVariable("id") Long id,
                                                          @PathVariable("type") String type) {
-        access.info("[GET /api/bags/{}/storage/{}]", id, type);
         return storageFor(id, type)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -77,8 +71,6 @@ public class BagStorageController {
                                                       @PathVariable("id") Long id,
                                                       @PathVariable("type") String type,
                                                       @RequestBody StagingCreate create) {
-        access.info("[PUT /api/bags/{}/storage/{}]", id, type);
-        access.info("PUT parameters - {}", create.toString());
         return dao.createStaging(principal, id, type, create);
     }
 
@@ -98,8 +90,6 @@ public class BagStorageController {
                                                          @PathVariable("id") Long id,
                                                          @PathVariable("type") String type,
                                                          @RequestBody ActiveToggle toggle) {
-        access.info("[PUT /api/bags/{}/storage/{}/active]", id, type);
-        access.info("PUT parameters - {}", toggle.isActive());
 
         Optional<StagingStorage> stagingStorage = storageFor(id, type);
         return stagingStorage.map(storage -> toggleStorage(storage, toggle, principal))

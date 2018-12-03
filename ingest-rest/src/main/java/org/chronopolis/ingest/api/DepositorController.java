@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableSet;
 import org.chronopolis.ingest.models.filter.BagFilter;
 import org.chronopolis.ingest.models.filter.DepositorFilter;
 import org.chronopolis.ingest.repository.dao.PagedDao;
-import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QBag;
@@ -17,8 +16,6 @@ import org.chronopolis.rest.entities.depositor.QDepositorContact;
 import org.chronopolis.rest.models.create.DepositorContactCreate;
 import org.chronopolis.rest.models.create.DepositorCreate;
 import org.chronopolis.rest.models.delete.DepositorContactDelete;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -48,8 +45,6 @@ import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
 @RestController
 @RequestMapping("/api/depositors")
 public class DepositorController {
-
-    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private final PagedDao dao;
 
@@ -84,7 +79,6 @@ public class DepositorController {
     public ResponseEntity<Depositor> createDepositor(Principal principal,
                                                      @Valid @RequestBody
                                                      DepositorCreate depositorCreate) {
-        access.info("[POST /api/depositors] - {}", principal.getName());
         QDepositor qDepositor = QDepositor.depositor;
 
         List<Node> nodes = dao.findAll(QNode.node,
@@ -205,7 +199,6 @@ public class DepositorController {
                                                        @PathVariable("namespace") String namespace,
                                                        @Valid @RequestBody
                                                        DepositorContactCreate create) {
-        access.info("[POST /api/depositors/{}/contacts] - {}", namespace, principal.getName());
         ResponseEntity<DepositorContact> response = ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .build();
@@ -248,7 +241,6 @@ public class DepositorController {
     public ResponseEntity<Depositor> removeContact(Principal principal,
                                                    @PathVariable("namespace") String namespace,
                                                    @RequestBody DepositorContactDelete body) {
-        access.info("[DELETE /api/depositors/{}/contacts] - {}", namespace, principal.getName());
         ResponseEntity<Depositor> response = ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         if (hasRoleAdmin()) {
             QDepositor qDepositor = QDepositor.depositor;
@@ -289,8 +281,6 @@ public class DepositorController {
     public ResponseEntity<Depositor> addNode(Principal principal,
                                              @PathVariable("namespace") String namespace,
                                              @PathVariable("nodeName") String nodeName) {
-        access.info("[POST /api/depositors/{}/nodes/{}] - {}",
-                namespace, nodeName, principal.getName());
         ResponseEntity<Depositor> response = ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 
         if (hasRoleAdmin()) {
@@ -329,8 +319,6 @@ public class DepositorController {
     public ResponseEntity<Depositor> removeNode(Principal principal,
                                                 @PathVariable("namespace") String namespace,
                                                 @PathVariable("nodeName") String nodeName) {
-        access.info("[DELETE /api/depositors/{}/nodes/{}] - {}",
-                namespace, nodeName, principal.getName());
         ResponseEntity<Depositor> response = ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         if (hasRoleAdmin()) {
             QNode qNode = QNode.node;

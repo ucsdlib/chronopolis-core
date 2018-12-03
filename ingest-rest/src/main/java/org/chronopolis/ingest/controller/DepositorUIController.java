@@ -20,7 +20,6 @@ import org.chronopolis.ingest.models.DepositorSummary;
 import org.chronopolis.ingest.models.filter.DepositorFilter;
 import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.ingest.support.FileSizeFormatter;
-import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.QNode;
@@ -68,7 +67,6 @@ import java.util.Set;
 @Controller
 public class DepositorUIController extends IngestController {
 
-    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
     private final Logger log = LoggerFactory.getLogger(DepositorUIController.class);
 
     private final PagedDao dao;
@@ -163,8 +161,6 @@ public class DepositorUIController extends IngestController {
                                Principal principal,
                                @Valid DepositorCreate depositorCreate,
                                BindingResult bindingResult) {
-        access.info("[POST /depositors] - {}", principal.getName());
-
         // Additional constraints
         List<Node> nodes = dao.findAll(QNode.node,
                 QNode.node.username.in(depositorCreate.getReplicatingNodes()));
@@ -227,7 +223,6 @@ public class DepositorUIController extends IngestController {
     public String postEditDepositor(Principal principal,
                                     @PathVariable("namespace") String namespace,
                                     DepositorUpdate depositorEdit) {
-        access.info("[POST /depositors/list/{}/edit] - {}", namespace, principal.getName());
         Depositor depositor = getOrThrowNotFound(namespace);
 
         String address = depositorEdit.getOrganizationAddress();
@@ -284,8 +279,6 @@ public class DepositorUIController extends IngestController {
                                    @PathVariable("namespace") String namespace,
                                    @Valid DepositorContactCreate depositorContactCreate,
                                    BindingResult result) throws BadRequestException {
-        access.info("[POST /depositors/list/{}/addContact] - {}", namespace, principal.getName());
-
         // Additional constraints
         Depositor depositor = getOrThrowNotFound(namespace);
         DepositorContact contact = dao.findOne(QDepositorContact.depositorContact,
@@ -361,7 +354,6 @@ public class DepositorUIController extends IngestController {
                              Principal principal,
                              @PathVariable("namespace") String namespace,
                              @ModelAttribute("name") String name) throws ForbiddenException {
-        access.info("[GET /depositors/list/{}/removeNode] - {}", namespace, principal.getName());
         if (!hasRoleAdmin()) {
             throw new ForbiddenException("User is not allowed to update a Depositor");
         }
@@ -385,8 +377,6 @@ public class DepositorUIController extends IngestController {
                                 Principal principal,
                                 @PathVariable("namespace") String namespace,
                                 @ModelAttribute("email") String email) throws ForbiddenException {
-        access.info("[POST /depositors/list/{}/removeContact] - {}",
-                namespace, principal.getName());
         if (!hasRoleAdmin()) {
             throw new ForbiddenException("User is not allowed to update a Depositor");
         }

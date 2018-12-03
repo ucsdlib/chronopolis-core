@@ -7,7 +7,7 @@ import org.chronopolis.ingest.models.filter.ReplicationFilter;
 import org.chronopolis.ingest.repository.dao.FixityChecker;
 import org.chronopolis.ingest.repository.dao.ReplicationDao;
 import org.chronopolis.ingest.repository.dao.StagingDao;
-import org.chronopolis.ingest.support.Loggers;
+import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.QReplication;
 import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.entities.projections.ReplicationView;
@@ -38,7 +38,6 @@ import java.security.Principal;
 @RequestMapping("/api/replications")
 public class ReplicationController extends IngestController {
     private final Logger log = LoggerFactory.getLogger(ReplicationController.class);
-    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private final StagingDao stagingDao;
     private final ReplicationDao replicationDao;
@@ -60,8 +59,6 @@ public class ReplicationController extends IngestController {
      */
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<Replication> createReplication(@RequestBody ReplicationCreate request) {
-        access.info("[POST /api/replications]");
-        access.info("Post parameters - ", request.getBagId(), request.getNodeId());
         log.debug("Received replication request {}", request);
         ResponseEntity<Replication> response;
         response = replicationDao.create(request)
@@ -85,9 +82,6 @@ public class ReplicationController extends IngestController {
     public ResponseEntity<Replication> updateTokenFixity(Principal principal,
                                                          @PathVariable("id") Long replicationId,
                                                          @RequestBody FixityUpdate update) {
-        access.info("[PUT /api/replications/{}/tokenstore] - {}", principal);
-        access.info("PUT parameters - {}", update.getFixity());
-
         FixityChecker checker = new FixityChecker(stagingDao, replicationDao);
         return checker.checkTokenStore(principal, replicationId, update);
     }
@@ -104,9 +98,6 @@ public class ReplicationController extends IngestController {
     public ResponseEntity<Replication> updateTagFixity(Principal principal,
                                                        @PathVariable("id") Long replicationId,
                                                        @RequestBody FixityUpdate update) {
-        access.info("[PUT /api/replications/{}/tokenstore] - {}", principal);
-        access.info("PUT parameters - {}", update.getFixity());
-
         FixityChecker checker = new FixityChecker(stagingDao, replicationDao);
         return checker.checkTag(principal, replicationId, update);
     }
@@ -114,7 +105,6 @@ public class ReplicationController extends IngestController {
     @RequestMapping(value = "/{id}/failure", method = RequestMethod.PUT)
     public Replication failReplication(Principal principal,
                                        @PathVariable("id") Long replicationId) {
-        access.info("[PUT /api/replications/{}/failure] - {}", replicationId, principal.getName());
         Replication replication = replicationDao.findOne(QReplication.replication,
                 QReplication.replication.id.eq(replicationId));
         replication.setStatus(ReplicationStatus.FAILURE);
@@ -126,8 +116,6 @@ public class ReplicationController extends IngestController {
     public Replication updateStatus(Principal principal,
                                     @PathVariable("id") Long replicationId,
                                     @RequestBody ReplicationStatusUpdate update) {
-        access.info("[PUT /api/replications/{}/status] - {}", replicationId, principal.getName());
-        access.info("PUT parameters - {}", update.getStatus());
         log.info("Received update request for replication {}: {}",
                 replicationId, update.getStatus());
         Replication replication = replicationDao.findOne(QReplication.replication,
@@ -151,10 +139,6 @@ public class ReplicationController extends IngestController {
     public Replication updateReplication(Principal principal,
                                          @PathVariable("id") Long replicationId,
                                          @RequestBody Replication replication) {
-        access.info("[PUT /api/replications/{}] - {}", replicationId, principal.getName());
-        access.info("PUT parameters - {};{};{}", replication.getReceivedTokenFixity(),
-                replication.getReceivedTagFixity(),
-                replication.getStatus());
         BooleanExpression query = QReplication.replication.id.eq(replicationId);
 
         // If a user is not an admin, make sure we only search for THEIR replications
@@ -192,7 +176,6 @@ public class ReplicationController extends IngestController {
      */
     @RequestMapping(method = RequestMethod.GET)
     public Iterable<ReplicationView> replications(@ModelAttribute ReplicationFilter filter) {
-        access.info("[GET /api/replications]");
         return replicationDao.findViewsAsPage(filter);
     }
 
@@ -207,7 +190,6 @@ public class ReplicationController extends IngestController {
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public ResponseEntity<ReplicationView> findReplication(Principal principal,
                                                            @PathVariable("id") Long id) {
-        access.info("[GET /api/replications/{}] - {}", id, principal.getName());
         ResponseEntity<ReplicationView> entity = ResponseEntity.notFound().build();
         ReplicationView view = replicationDao.findReplicationAsView(id);
         if (view != null) {

@@ -12,7 +12,6 @@ import org.chronopolis.ingest.repository.dao.ReplicationDao;
 import org.chronopolis.ingest.repository.dao.StagingDao;
 import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.ingest.support.FileSizeFormatter;
-import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.ingest.support.ReplicationCreateResult;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
@@ -59,7 +58,6 @@ import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_TOK
 @Controller
 public class BagUIController extends IngestController {
     private final Logger log = LoggerFactory.getLogger(BagUIController.class);
-    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
     private final Integer DEFAULT_PAGE_SIZE = 20;
     private final Integer DEFAULT_PAGE = 0;
 
@@ -86,8 +84,6 @@ public class BagUIController extends IngestController {
     @GetMapping("/bags")
     public String getBags(Model model, Principal principal,
                           @ModelAttribute(value = "filter") BagFilter filter) {
-        access.info("[GET /bags] - {}", principal.getName());
-
         Page<Bag> bags = dao.findPage(QBag.bag, filter);
         PageWrapper<Bag> pages = new PageWrapper<>(bags, "/bags", filter.getParameters());
         model.addAttribute("bags", bags);
@@ -109,8 +105,6 @@ public class BagUIController extends IngestController {
      */
     @GetMapping("/bags/{id}")
     public String getBag(Model model, Principal principal, @PathVariable("id") Long id) {
-        access.info("[GET /bags/{}] - {}", id, principal.getName());
-
         FileSizeFormatter formatter = new FileSizeFormatter();
         Bag bag = dao.findOne(QBag.bag, QBag.bag.id.eq(id));
         Optional<StagingStorage> activeBagStorage =
@@ -146,9 +140,6 @@ public class BagUIController extends IngestController {
                             Principal principal,
                             @PathVariable("id") Long id,
                             BagUpdate update) {
-        access.info("[POST /bags/{}] - {}", id, principal.getName());
-        access.info("POST parameters - {};{}", update.getLocation(), update.getStatus());
-
         Bag bag = dao.findOne(QBag.bag, QBag.bag.id.eq(id));
         bag.setStatus(update.getStatus());
         dao.save(bag);
@@ -168,7 +159,6 @@ public class BagUIController extends IngestController {
      */
     @RequestMapping(value = "/bags/add", method = RequestMethod.GET)
     public String addBag(Model model, Principal principal) {
-        access.info("[GET /bags/add] - {}", principal.getName());
         model.addAttribute("nodes", dao.findAll(QNode.node));
         model.addAttribute("regions", replicationDao.findAll(QStorageRegion.storageRegion));
         return "bags/add";
@@ -182,9 +172,6 @@ public class BagUIController extends IngestController {
      */
     @RequestMapping(value = "/bags/add", method = RequestMethod.POST)
     public String addBag(Principal principal, @Valid BagCreate request) {
-        access.info("[POST /bags/add] - {}", principal.getName());
-        access.info("Post parameters: {};{}", request.getDepositor(), request.getName());
-
         BagCreateResult result = dao.processRequest(principal.getName(), request);
         return result.getBag()
                 .map(bag -> "redirect:/bags/" + bag.getId())
@@ -205,11 +192,7 @@ public class BagUIController extends IngestController {
     @RequestMapping(value = "/replications", method = RequestMethod.GET)
     public String getReplications(Model model, Principal principal,
                                   @ModelAttribute(value = "filter") ReplicationFilter filter) {
-        access.info("[GET /replications] - {}", principal.getName());
-
-        Page<Replication> replications;
-
-        replications = replicationDao.findPage(QReplication.replication, filter);
+        Page<Replication> replications = replicationDao.findPage(QReplication.replication, filter);
 
         model.addAttribute("replications", replications);
         model.addAttribute("statuses", ReplicationStatus.Companion.statusByGroup());
@@ -222,8 +205,6 @@ public class BagUIController extends IngestController {
 
     @RequestMapping(value = "/replications/{id}", method = RequestMethod.GET)
     public String getReplication(Model model, Principal principal, @PathVariable("id") Long id) {
-        access.info("[GET /replications/{}] - {}", id, principal.getName());
-
         Replication replication = replicationDao.findOne(QReplication.replication, QReplication.replication.id.eq(id));
         // Not found if null
         model.addAttribute("replication", replication);
@@ -242,7 +223,6 @@ public class BagUIController extends IngestController {
      */
     @RequestMapping(value = "/replications/add", method = RequestMethod.GET)
     public String addReplications(Model model, Principal principal) {
-        access.info("[GET /replications/add] - {}", principal.getName());
         model.addAttribute("bags", dao.findPage(QBag.bag, new BagFilter()));
         model.addAttribute("nodes", dao.findAll(QNode.node));
         return "replications/add";
@@ -259,7 +239,6 @@ public class BagUIController extends IngestController {
     public String createReplicationForm(Model model,
                                         Principal principal,
                                         @RequestParam("bag") Long bag) {
-        access.info("[GET /replications/create] - {}", principal.getName());
         model.addAttribute("bag", bag);
         if (hasRoleAdmin()) {
             model.addAttribute("nodes", dao.findAll(QNode.node));
@@ -286,7 +265,6 @@ public class BagUIController extends IngestController {
     @RequestMapping(value = "/replications/create", method = RequestMethod.POST)
     public String createReplications(Principal principal,
                                      @ModelAttribute("form") ReplicationCreate form) {
-        access.info("[POST /replications/create] - {}", principal.getName());
         final Long bag = form.getBag();
         form.getNodes().forEach(nodeId -> {
             ReplicationCreateResult result = replicationDao.create(bag, nodeId);
@@ -304,7 +282,6 @@ public class BagUIController extends IngestController {
     @RequestMapping(value = "/replications/add", method = RequestMethod.POST)
     public String addReplication(Principal principal,
                                  org.chronopolis.rest.models.create.ReplicationCreate request) {
-        access.info("[POST /replications/add] - {}", principal.getName());
         ReplicationCreateResult result = replicationDao.create(request);
 
         // todo: display errors if ReplicationRequest is not valid

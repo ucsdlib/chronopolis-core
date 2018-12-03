@@ -3,14 +3,11 @@ package org.chronopolis.ingest.api;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.models.filter.AceTokenFilter;
 import org.chronopolis.ingest.repository.dao.TokenDao;
-import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagFile;
 import org.chronopolis.rest.entities.QAceToken;
 import org.chronopolis.rest.models.create.AceTokenCreate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -35,8 +32,6 @@ import java.security.Principal;
 @RequestMapping("/api/bags/{id}")
 public class BagTokenController extends IngestController {
 
-    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
-
     private final TokenDao dao;
 
     @Autowired
@@ -56,7 +51,6 @@ public class BagTokenController extends IngestController {
     public Page<AceToken> getTokensForBag(Principal principal,
                                           @PathVariable("id") Long id,
                                           @ModelAttribute AceTokenFilter filter) {
-        access.info("[GET /api/bags/{}/tokens] - {}", id, principal.getName());
         filter.setBagId(id);
         return dao.findPage(QAceToken.aceToken, filter);
     }
@@ -74,8 +68,6 @@ public class BagTokenController extends IngestController {
     public ResponseEntity<AceToken> getTokenForFile(Principal principal,
                                                     @PathVariable("id") Long bagId,
                                                     @PathVariable("file_id") Long fileId) {
-        access.info("[GET /api/bags/{}/files/{}/token] - {}", bagId, fileId, principal.getName());
-
         ResponseEntity<AceToken> response = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         AceToken token = dao.findOne(QAceToken.aceToken,
                 QAceToken.aceToken.bag.id.eq(bagId).and(QAceToken.aceToken.file.id.eq(fileId)));
@@ -107,8 +99,6 @@ public class BagTokenController extends IngestController {
     public ResponseEntity<AceToken> createTokenForBag(Principal principal,
                                                       @PathVariable("id") Long id,
                                                       @Valid @RequestBody AceTokenCreate model) {
-        access.info("[POST /api/bags/{}/tokens] - {}", id, principal.getName());
-        access.info("Post parameters - {};{}", model.getBagId(), model.getFilename());
         return dao.createToken(principal, id, model);
     }
 
@@ -137,8 +127,6 @@ public class BagTokenController extends IngestController {
                                                        @PathVariable("id") Long id,
                                                        @PathVariable("file_id") Long fileId,
                                                        @Valid @RequestBody AceTokenCreate model) {
-        access.info("[POST /api/bags/{}/files/{}/token] - {}", id, fileId, principal.getName());
-        access.info("Post parameters - {};{}", model.getBagId(), model.getFilename());
         return dao.createToken(principal, id, fileId, model);
     }
 

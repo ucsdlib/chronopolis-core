@@ -14,7 +14,6 @@ import org.chronopolis.ingest.models.UserRequest;
 import org.chronopolis.ingest.repository.Authority;
 import org.chronopolis.ingest.repository.dao.UserService;
 import org.chronopolis.ingest.support.FileSizeFormatter;
-import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagDistributionStatus;
 import org.chronopolis.rest.entities.QBag;
@@ -51,7 +50,6 @@ import java.util.List;
 public class SiteController extends IngestController {
 
     private final Logger log = LoggerFactory.getLogger(SiteController.class);
-    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private final EntityManager entityManager;
     private final UserService userService;
@@ -69,7 +67,6 @@ public class SiteController extends IngestController {
      */
     @GetMapping("/")
     public String getIndex(Model model) {
-        access.info("GET /");
         BagSummary preserved = new BagSummary(0L, 0L, BagStatus.PRESERVED);
         BagSummary replicating = new BagSummary(0L, 0L, BagStatus.REPLICATING);
 
@@ -124,8 +121,6 @@ public class SiteController extends IngestController {
      */
     @GetMapping("/bags/overview")
     public String getBagsOverview(Model model, Principal principal) {
-        access.info("[GET /bags/overview] - {}", principal.getName());
-
         LocalDate before = LocalDate.now().minusWeeks(1);
 
         QBag bag = QBag.bag;
@@ -220,7 +215,6 @@ public class SiteController extends IngestController {
      */
     @RequestMapping(value = "/login")
     public String login() {
-        access.debug("[GET /login]");
         return "login";
     }
 
@@ -234,7 +228,6 @@ public class SiteController extends IngestController {
      */
     @RequestMapping(value = "/users", method = RequestMethod.GET)
     public String getUsers(Model model, Principal principal) {
-        access.info("[GET /users] - {}", principal.getName());
         Collection<Authority> users = new ArrayList<>();
         String user = principal.getName();
 
@@ -259,7 +252,6 @@ public class SiteController extends IngestController {
      */
     @RequestMapping(value = "/users/add", method = RequestMethod.POST)
     public String createUser(UserRequest user, Principal principal) {
-        access.info("[POST /users/add] - {}", principal.getName());
         log.debug("Request to create user: {} {} {}", user.getUsername(), user.getRole(), user.isNode());
         userService.createUser(user);
         return "redirect:/users";
@@ -274,7 +266,6 @@ public class SiteController extends IngestController {
      */
     @RequestMapping(value = "/users/update", method = RequestMethod.POST)
     public String updateUser(PasswordUpdate update, Principal principal) {
-        access.info("[POST /users/update] - {}", principal.getName());
         userService.updatePassword(update, principal);
         return "users";
     }

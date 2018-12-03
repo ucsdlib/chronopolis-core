@@ -5,13 +5,10 @@ import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.models.filter.BagFilter;
 import org.chronopolis.ingest.repository.dao.BagDao;
 import org.chronopolis.ingest.support.BagCreateResult;
-import org.chronopolis.ingest.support.Loggers;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.projections.CompleteBag;
 import org.chronopolis.rest.entities.projections.PartialBag;
 import org.chronopolis.rest.models.create.BagCreate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,8 +30,6 @@ import java.security.Principal;
 @RequestMapping("/api/bags")
 public class BagController extends IngestController {
 
-    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
-
     private final BagDao dao;
 
     @Autowired
@@ -50,7 +45,6 @@ public class BagController extends IngestController {
      */
     @GetMapping
     public Iterable<PartialBag> getBags(@ModelAttribute BagFilter filter) {
-        access.info("[GET /api/bags]");
         return dao.findViewAsPage(filter);
     }
 
@@ -62,7 +56,6 @@ public class BagController extends IngestController {
      */
     @GetMapping("/{id}")
     public CompleteBag getBag(@PathVariable("id") Long id) {
-        access.info("[GET /api/bags/{}]", id);
         CompleteBag bag = dao.findCompleteView(id);
 
         if (bag == null) {
@@ -84,8 +77,6 @@ public class BagController extends IngestController {
      */
     @PostMapping
     public ResponseEntity<Bag> stageBag(Principal principal, @RequestBody BagCreate request) {
-        access.info("[POST /api/bags/] - {}", principal.getName());
-        access.info("POST parameters - {}", request.getDepositor(), request.getName(), request.getStorageRegion());
         BagCreateResult result = dao.processRequest(principal.getName(), request);
         return result.getResponseEntity();
     }
