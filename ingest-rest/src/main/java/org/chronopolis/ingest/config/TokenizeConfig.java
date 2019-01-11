@@ -3,8 +3,6 @@ package org.chronopolis.ingest.config;
 import com.google.common.collect.ImmutableList;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
-import org.chronopolis.common.storage.BagStagingProperties;
-import org.chronopolis.common.storage.BagStagingPropertiesValidator;
 import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.ingest.tokens.DatabasePredicate;
 import org.chronopolis.ingest.tokens.IngestTokenRegistrar;
@@ -14,11 +12,10 @@ import org.chronopolis.tokenize.batch.ChronopolisTokenRequestBatch;
 import org.chronopolis.tokenize.filter.ProcessingFilter;
 import org.chronopolis.tokenize.supervisor.DefaultSupervisor;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
-import org.springframework.validation.Validator;
 
 import java.util.Collection;
 import java.util.concurrent.ExecutorService;
@@ -33,8 +30,8 @@ import java.util.function.Predicate;
  * @author shake
  */
 @Configuration
-@Profile("!disable-tokenizer")
-@EnableConfigurationProperties({AceConfiguration.class, BagStagingProperties.class})
+@EnableConfigurationProperties(AceConfiguration.class)
+@ConditionalOnProperty(prefix = "ingest", name = "tokenizer.enabled", havingValue = "true")
 public class TokenizeConfig {
 
     @Bean
@@ -72,11 +69,4 @@ public class TokenizeConfig {
         service.submit(registrar);
         return service;
     }
-
-    @Bean
-    public static Validator configurationPropertiesValidator() {
-        return new BagStagingPropertiesValidator();
-    }
-
-
 }

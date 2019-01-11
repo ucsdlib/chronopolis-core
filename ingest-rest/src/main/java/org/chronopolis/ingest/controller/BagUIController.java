@@ -1,5 +1,6 @@
 package org.chronopolis.ingest.controller;
 
+import com.querydsl.core.QueryModifiers;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.PageWrapper;
@@ -13,10 +14,13 @@ import org.chronopolis.ingest.repository.dao.StagingDao;
 import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.ingest.support.FileSizeFormatter;
 import org.chronopolis.ingest.support.ReplicationCreateResult;
+import org.chronopolis.ingest.tokens.TokenWriter;
+import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QAceToken;
 import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.QBagFile;
 import org.chronopolis.rest.entities.QNode;
 import org.chronopolis.rest.entities.QReplication;
 import org.chronopolis.rest.entities.Replication;
@@ -38,8 +42,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.validation.Valid;
+import java.nio.charset.Charset;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -176,6 +182,56 @@ public class BagUIController extends IngestController {
         return result.getBag()
                 .map(bag -> "redirect:/bags/" + bag.getId())
                 .orElse("redirect:/bags/add");
+    }
+
+    @GetMapping("/bags/{id}/download/files")
+    public StreamingResponseBody getFiles(@PathVariable("id") Long id) {
+        JPAQueryFactory queryFactory = dao.getJPAQueryFactory();
+        List<String> fetch = queryFactory.select(QBagFile.bagFile.filename)
+                .from(QBagFile.bagFile)
+                .where(QBagFile.bagFile.bag.id.eq(id)).fetch();
+
+        return outputStream -> {
+            for (String filename : fetch) {
+                outputStream.write(filename.getBytes(Charset.defaultCharset())); // force UTF-8?
+                outputStream.write("\n".getBytes(Charset.defaultCharset()));
+            }
+        };
+    }
+
+    @GetMapping("/bags/{id}/download/tokens")
+    public StreamingResponseBody getBagTokens(@PathVariable("id") Long id) {
+        return outputStream -> {
+            // copy paste
+            long offset;
+            long page = 0;
+            long limit = 1000;
+            boolean next = true;
+            TokenWriter writer = new TokenWriter(outputStream);
+            while (next) {
+                offset = page * limit;
+                QueryModifiers queryModifiers = new QueryModifiers(limit, offset);
+                List<AceToken> tokens = dao.findAll(QAceToken.aceToken,
+                        QAceToken.aceToken.bag.id.eq(id),
+                        QAceToken.aceToken.id.asc(),
+                        queryModifiers);
+
+                for (AceToken token : tokens) {
+                    String tokenFilename = token.getFile().getFilename();
+                    writer.startToken(token);
+                    writer.addIdentifier(tokenFilename.startsWith("/")
+                            ? tokenFilename
+                            : "/" + tokenFilename);
+                    writer.writeTokenEntry();
+                }
+
+                next = tokens.size() == limit;
+                if (next) {
+                    ++page;
+                }
+            }
+            writer.close();
+        };
     }
 
     //

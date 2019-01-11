@@ -74,6 +74,6 @@ public class TransferFactory {
         return CompletableFuture.supplyAsync(downloader, longIoPool)
                 .thenApplyAsync(apply)
                 .thenApplyAsync(new FilesFromValidator(replication.getBag(), operation, properties))
-                .thenAcceptAsync(hasher, longIoPool);
+                .thenAcceptAsync(hasher);
     }
 }

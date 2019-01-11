@@ -8,6 +8,7 @@ import org.chronopolis.ingest.tokens.TokenStoreWriter;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.QAceToken;
 import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.storage.QStagingStorage;
 import org.chronopolis.rest.entities.storage.QStorageRegion;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.enums.BagStatus;
@@ -66,6 +67,8 @@ public class TokenWriteTask {
         QBag bag = QBag.bag;
         QAceToken token = QAceToken.aceToken;
         return dao.getJPAQueryFactory().selectFrom(bag)
+                .innerJoin(bag.storage, QStagingStorage.stagingStorage)
+                .fetchJoin()
                 .where(bag.status.eq(BagStatus.DEPOSITED),
                         bag.totalFiles.eq(
                                 JPAExpressions.select(token.id.count())

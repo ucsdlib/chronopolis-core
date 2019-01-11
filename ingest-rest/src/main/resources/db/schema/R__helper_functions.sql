@@ -64,8 +64,9 @@ BEGIN
         INTO bag_id
         USING bagname, 'test-admin', 'DEPOSITED';
 
-        -- manifest-sha256
+        -- manifest-sha256 + 1 data file
         PERFORM create_file(bag_id, '/manifest-sha256.txt', 'BAG');
+        PERFORM create_file(bag_id, '/data/hello-world', 'BAG');
 
         -- tagmanifest + staging
         SELECT id FROM storage_region WHERE data_type = 'BAG' INTO region_id;

@@ -2,7 +2,7 @@ package org.chronopolis.ingest.controller;
 
 import org.chronopolis.tokenize.supervisor.DefaultSupervisor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  * @author shake
  */
 @Controller
-@Profile("!disable-tokenizer")
+@ConditionalOnProperty(prefix = "ingest", name = "tokenizer.enabled", havingValue = "true")
 public class TokenizerStatusController {
 
     private final DefaultSupervisor supervisor;

@@ -20,6 +20,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.ZonedDateTime;
 
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -85,7 +86,7 @@ public class BagControllerTest extends ControllerTest {
 
     private CompleteBag completeView() {
         return new CompleteBag(1L, BAG, NAMESPACE, 1L, 1L, BagStatus.INITIALIZED,
-                ZonedDateTime.now(), ZonedDateTime.now(), NAMESPACE, emptySet(), emptySet());
+                ZonedDateTime.now(), ZonedDateTime.now(), NAMESPACE, emptySet(), emptyMap());
     }
 
     @Test

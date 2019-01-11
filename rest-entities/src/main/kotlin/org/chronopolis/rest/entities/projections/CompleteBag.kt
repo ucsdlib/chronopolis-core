@@ -22,7 +22,7 @@ class CompleteBag @QueryProjection constructor(
         val updatedAt: ZonedDateTime,
         val depositor: String,
         val replicatingNodes: Set<String>,
-        val storage: Set<StagingView>
+        val storage: Map<String, StagingView>
 ) {
     override fun toString(): String {
         return "CompleteBag[\nid=$id;\nname=$name;\ncreator=$creator;\nsize=$size;\n" +

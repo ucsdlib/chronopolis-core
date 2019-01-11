@@ -126,17 +126,31 @@ public class BagDao extends PagedDao {
         }
     }
 
+    /**
+     * Retrieve a List of {@link PartialBag} views which will not further query the database for
+     * related tables
+     *
+     * @param filter the {@link BagFilter} containing the query parameters
+     * @return the result of the database query
+     */
     public List<PartialBag> partialViews(BagFilter filter) {
         QBag bag = QBag.bag;
         return partialQuery(filter)
                 .transform(GroupBy.groupBy(bag.id).list(partialProjection()));
     }
 
+    /**
+     * Retrieve a {@link Page} of {@link PartialBag} views
+     *
+     * @param filter the {@link BagFilter} containing the query parameters
+     * @return the result of the database query
+     */
     public Page<PartialBag> findViewAsPage(BagFilter filter) {
-        return PageableExecutionUtils.getPage(partialViews(filter),
-                // need to pass this in order to fetch the count correctly
+        JPAQuery<Bag> count = getJPAQueryFactory().selectFrom(QBag.bag).where(filter.getQuery());
+        return PageableExecutionUtils.getPage(
+                partialViews(filter),
                 filter.createPageRequest(),
-                partialQuery(filter)::fetchCount);
+                count::fetchCount);
     }
 
     private JPAQuery<?> partialQuery(BagFilter filter) {
@@ -154,6 +168,13 @@ public class BagDao extends PagedDao {
                 .restrict(filter.getRestriction());
     }
 
+    /**
+     * Retrieve a single {@link Bag} from the database projected onto a {@link CompleteBag}. This
+     * will create a view which maps to the API model.
+     *
+     * @param id the id of the {@link Bag} to query
+     * @return the {@link CompleteBag} query projection
+     */
     public CompleteBag findCompleteView(Long id) {
         QBag bag = QBag.bag;
         QNode node = new QNode(DISTRIBUTION_IDENTIFIER);
@@ -176,7 +197,7 @@ public class BagDao extends PagedDao {
                 // push to function ?
                 .leftJoin(bag.storage, storage)
                 .on(storage.active.isTrue())
-                .innerJoin(storage.file, dataFile)
+                .leftJoin(storage.file, dataFile)
 
                 .where(bag.id.eq(id))
                 .transform(GroupBy.groupBy(bag.id)

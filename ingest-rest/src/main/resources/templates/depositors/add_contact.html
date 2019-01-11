@@ -43,10 +43,11 @@
                         <div class="col-2">
                             <select class="form-control" id="country-code"
                                     name="contactPhone.countryCode">
-                                <!--/*@thymesVar id="regions" type="Set<String>"*/-->
+                                <!--/*@thymesVar id="regions" type="java.util.Map<String, Integer>"*/-->
                                 <option th:each="region: ${regions}"
-                                        th:value="${region}" th:text="${region}"
-                                        th:selected="${region.equals('US')}"></option>
+                                        th:value="${region.key}"
+                                        th:text="|${region.key} (+${region.value})|"
+                                        th:selected="${region.key.equals('US')}"></option>
                             </select>
                         </div>
                         <div class="col-6" th:with="numError=${#fields.hasErrors('contactPhone')}">

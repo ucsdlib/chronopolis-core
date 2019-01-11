@@ -1,6 +1,6 @@
 package org.chronopolis.replicate;
 
-import com.google.common.collect.ImmutableList;
+import kotlin.collections.CollectionsKt;
 import org.chronopolis.replicate.batch.rsync.Profile;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -119,7 +119,7 @@ public class ReplicationProperties {
         /**
          * Optional set of arguments to use when creating an rsync process
          */
-        private List<String> arguments = ImmutableList.of("-aL", "--stats");
+        private List<String> arguments = CollectionsKt.mutableListOf("-aL", "--stats");
 
         public List<String> getArguments() {
             return arguments;

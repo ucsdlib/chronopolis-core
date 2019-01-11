@@ -14,7 +14,7 @@ UPDATE staging_storage SET bag_id = token_storage.bag_id
 WITH tb AS (SELECT ss.id AS rowid, f.id AS file_id FROM staging_storage ss
               JOIN bag_storage bs ON ss.id = bs.staging_id
               JOIN file f ON ss.bag_id = f.bag_id
-              WHERE f.filename = 'tagmanifest-sha256.txt')
+              WHERE f.filename = '/tagmanifest-sha256.txt')
   UPDATE staging_storage
   SET file_id = tb.file_id FROM tb WHERE id = tb.rowid;
 

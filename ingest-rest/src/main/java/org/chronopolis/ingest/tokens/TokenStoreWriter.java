@@ -87,9 +87,12 @@ public class TokenStoreWriter implements Runnable {
             while (next) {
                 offset = page * limit;
                 QueryModifiers queryModifiers = new QueryModifiers(limit, offset);
-                log.debug("[{}] Iterating page # {} size {} offset {}", bag.getName(), page, limit, offset);
-                List<AceToken> tokens = dao.findAll(QAceToken.aceToken, QAceToken.aceToken.bag.id.eq(bagId),
-                        QAceToken.aceToken.id.asc(), queryModifiers);
+                log.debug("[{}] Iterating page # {} size {} offset {}",
+                        bag.getName(), page, limit, offset);
+                List<AceToken> tokens = dao.findAll(QAceToken.aceToken,
+                        QAceToken.aceToken.bag.id.eq(bagId),
+                        QAceToken.aceToken.id.asc(),
+                        queryModifiers);
 
                 for (AceToken token : tokens) {
                     String tokenFilename = token.getFile().getFilename();
@@ -128,9 +131,10 @@ public class TokenStoreWriter implements Runnable {
             storage.setFile(tokenStore);
             storage.setPath(root.relativize(store).toString());
 
-            bag.getFiles().add(tokenStore);
+            // bag.getFiles().add(tokenStore);
             bag.getStorage().add(storage);
             bag.setStatus(BagStatus.TOKENIZED);
+            dao.save(tokenStore);
             dao.save(bag);
         } catch (Exception ex) { // not to happy about the catch all but there are multiple
             // exceptions which can happen

@@ -34,6 +34,7 @@ import java.util.Optional;
 
 import static com.google.common.collect.ImmutableSet.of;
 import static java.time.ZonedDateTime.now;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_BAG;
 import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_TOKEN;
@@ -92,7 +93,7 @@ public class ReplicationControllerTest extends ControllerTest {
     @Test
     public void testFindReplication() throws Exception {
         CompleteBag bag = new CompleteBag(ID, NAMESPACE, NAMESPACE, ID, ID, BagStatus.REPLICATING,
-                now(), now(), NAMESPACE, emptySet(), emptySet());
+                now(), now(), NAMESPACE, emptySet(), emptyMap());
         ReplicationView view = new ReplicationView(ID, now(), now(), ReplicationStatus.TRANSFERRED,
                 "link", "link", "protocol", "fixity", "fixity", NAMESPACE, bag);
         when(replicationDao.findReplicationAsView(eq(ID))).thenReturn(view);

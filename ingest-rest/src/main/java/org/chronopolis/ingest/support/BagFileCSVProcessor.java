@@ -1,5 +1,6 @@
 package org.chronopolis.ingest.support;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -9,7 +10,7 @@ import org.chronopolis.rest.csv.BagFileHeaders;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagFile;
 import org.chronopolis.rest.entities.QBag;
-import org.chronopolis.rest.entities.QBagFile;
+import org.chronopolis.rest.entities.QDataFile;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.models.enums.FixityAlgorithm;
 import org.slf4j.Logger;
@@ -21,6 +22,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiFunction;
 
 /**
@@ -60,6 +63,8 @@ public class BagFileCSVProcessor implements BiFunction<Long, Path, ResponseEntit
                     .withIgnoreSurroundingSpaces()
                     .parse(Files.newBufferedReader(csvIn));
             log.info("[{}] Attempting ingest of BagFiles from csv", bag.getName());
+            JPAQueryFactory query = dao.getJPAQueryFactory();
+            List<BagFile> files = new ArrayList<>(properties.getFileIngestBatchSize());
             for (CSVRecord record : parse.getRecords()) {
                 // how to handle inconsistent records?
                 if (record.isConsistent()) {
@@ -77,11 +82,12 @@ public class BagFileCSVProcessor implements BiFunction<Long, Path, ResponseEntit
 
                     // Not sure what type of impact this will have
                     // Since most records should not exist, hopefully very little
-                    BagFile bagFile = dao.findOne(QBagFile.bagFile,
-                            QBagFile.bagFile.filename.eq(filename)
-                                    .and(QBagFile.bagFile.bag.id.eq(bagId)));
+                    Long count = query.selectFrom(QDataFile.dataFile)
+                            .where(QDataFile.dataFile.filename.eq(filename)
+                                    .and(QDataFile.dataFile.bag.id.eq(bagId))).fetchCount();
+                    BagFile bagFile = null;
 
-                    if (bagFile == null) {
+                    if (count == 0) {
                         log.debug("Inserting entity for {}", filename);
                         bagFile = new BagFile();
                         bagFile.setBag(bag);
@@ -92,24 +98,31 @@ public class BagFileCSVProcessor implements BiFunction<Long, Path, ResponseEntit
                         bagFile.addFixity(
                                 new Fixity(ZonedDateTime.now(), bagFile, fixity, canonical));
 
-                        bag.addFile(bagFile);
-                    } else {
+                        files.add(bagFile);
+                    } /* update later? maybe 3.1.0
+                    else {
                         checkUpdate(bagFile, fixity, algorithm);
-                    }
+                    }*/
 
                     num++;
                 }
 
                 // no idea if this batches correctly or not
+                // it doesn't appear to be and becomes very memory heavy
                 // also this _could_ potentially overflow, but we would need 2^31 files to ingest
                 // so I think we'll be ok
                 if (num % properties.getFileIngestBatchSize() == 0) {
+                    bag.getFiles().addAll(files);
+                    log.info("saving bag");
                     dao.save(bag);
+                    files.clear();
                 }
             }
 
             // catch remaining entities
+            bag.getFiles().addAll(files);
             dao.save(bag);
+            files.clear();
         } catch (NumberFormatException e) {
             log.error("Invalid number in csv: ", e);
 
@@ -135,6 +148,7 @@ public class BagFileCSVProcessor implements BiFunction<Long, Path, ResponseEntit
      * @param fixity    the string representation of the {@link Fixity#value}
      * @param algorithm the type of {@link FixityAlgorithm} to persist
      */
+    @SuppressWarnings("unused")
     private void checkUpdate(BagFile bagFile, String fixity, FixityAlgorithm algorithm) {
         boolean containsFixity = bagFile.getFixities()
                 .stream()

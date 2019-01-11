@@ -20,7 +20,7 @@ public class ManifestEntry implements Comparable<ManifestEntry> {
 
     public ManifestEntry(Bag bag, String path, String digest) {
         this.bag = bag;
-        this.path = path;
+        this.path = (path.startsWith("/")) ? path : "/" + path;
         this.digest = digest;
     }
 

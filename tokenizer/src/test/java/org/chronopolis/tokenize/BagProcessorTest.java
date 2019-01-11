@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
 
 public class BagProcessorTest {
 
-    private static final String HW_NAME = "data/hello_world";
+    private static final String HW_NAME = "/data/hello_world";
     private static final String HW_DIGEST =
             "a948904f2f0f479b8f8197694b30184b0d2ed1c1cd2a1ec0fb85d299a192a447";
 

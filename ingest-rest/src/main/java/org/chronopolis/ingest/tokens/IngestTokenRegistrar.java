@@ -13,7 +13,6 @@ import org.chronopolis.tokenize.registrar.TokenRegistrar;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.thymeleaf.templateresolver.ITemplateResolver;
 
 import java.sql.Date;
 import java.time.Instant;
@@ -29,7 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class IngestTokenRegistrar implements TokenRegistrar, Runnable {
 
-    private final Logger log = LoggerFactory.getLogger(ITemplateResolver.class);
+    private final Logger log = LoggerFactory.getLogger(IngestTokenRegistrar.class);
 
     private static final String IMS_HOST = "ims.umiacs.umd.edu";
 
@@ -73,14 +72,6 @@ public class IngestTokenRegistrar implements TokenRegistrar, Runnable {
 
             BagFile file = dao.findOne(QBagFile.bagFile,
                     QBagFile.bagFile.filename.eq(filename).and(QBagFile.bagFile.bag.id.eq(bagId)));
-
-            /*
-            JPAQueryFactory qf = dao.getJPAQueryFactory();
-            long count = qf.selectFrom(QAceToken.aceToken)
-                    .where(QAceToken.aceToken.bag.id.eq(bagId)
-                            .and(QAceToken.aceToken.file.filename.eq(filename)))
-                    .fetchCount();
-                    */
 
             // IMO there's a very large problem with this in that if the dao.save throws an
             // exception, only the single entry will be completed. We probably want to wrap

@@ -7,4 +7,5 @@ package org.chronopolis.replicate.service;
 public interface ReplicationService {
 
     void replicate();
+
 }

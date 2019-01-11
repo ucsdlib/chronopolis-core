@@ -225,6 +225,12 @@ public class PagedDao {
         return new JPAQueryFactory(em);
     }
 
+    /**
+     * Constructor for a {@link ReplicationView} for use in Query Projections
+     *
+     * @return the {@link ConstructorExpression} mapping to a {@link ReplicationView}
+     */
+    @SuppressWarnings("WeakerAccess")
     public ConstructorExpression<ReplicationView> replicationProjection() {
         QReplication replication = QReplication.replication;
         QNode node = QNode.node;
@@ -243,10 +249,17 @@ public class PagedDao {
         );
     }
 
+    /**
+     * Constructor for a {@link CompleteBag} for use in Query Projections
+     *
+     * @return the {@link ConstructorExpression} mapping to a {@link CompleteBag}
+     */
+    @SuppressWarnings("WeakerAccess")
     public ConstructorExpression<CompleteBag> completeProjection() {
         QBag bag = QBag.bag;
-        QNode node = new QNode(DISTRIBUTION_IDENTIFIER);
+        QDataFile file = QDataFile.dataFile;
         QDepositor depositor = QDepositor.depositor;
+        QNode node = new QNode(DISTRIBUTION_IDENTIFIER);
         return Projections.constructor(CompleteBag.class,
                 bag.id,
                 bag.name,
@@ -259,9 +272,15 @@ public class PagedDao {
                 depositor.namespace,
                 GroupBy.set(node.username),
                 // maybe move to Map<Dtype,FullStaging>
-                GroupBy.set(stagingProjection()));
+                GroupBy.map(file.dtype, stagingProjection()));
     }
 
+    /**
+     * Constructor for a {@link PartialBag} for use in Query Projections
+     *
+     * @return the {@link ConstructorExpression} mapping to a {@link PartialBag}
+     */
+    @SuppressWarnings("WeakerAccess")
     public ConstructorExpression<PartialBag> partialProjection() {
         QBag bag = QBag.bag;
         QNode node = new QNode(DISTRIBUTION_IDENTIFIER);
@@ -279,16 +298,22 @@ public class PagedDao {
                 GroupBy.set(node.username));
     }
 
+    /**
+     * Constructor for a {@link StagingView} for use in Query Projections
+     *
+     * @return the {@link ConstructorExpression} mapping to a {@link StagingView}
+     */
+    @SuppressWarnings("WeakerAccess")
     public ConstructorExpression<StagingView> stagingProjection() {
         QDataFile file = QDataFile.dataFile;
         QStagingStorage storage = QStagingStorage.stagingStorage;
         return Projections.constructor(StagingView.class,
-                storage.id,
-                storage.path,
-                file.dtype,
-                storage.region.id,
-                storage.active,
-                storage.totalFiles);
+                storage.id.coalesce(-1L),
+                storage.path.coalesce(""),
+                file.dtype.coalesce(""),
+                storage.region.id.coalesce(-1L),
+                storage.active.coalesce(false),
+                storage.totalFiles.coalesce(0L));
     }
 
 }

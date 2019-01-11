@@ -1,6 +1,6 @@
--- file entity creation (just pull bag and filename from ace_token)
+-- file entity creation (just pull bag and filename w/ leading slash from ace_token)
 INSERT INTO file(bag_id, filename, dtype)
-    SELECT bag, filename, ('BAG') FROM ace_token;
+    SELECT bag, regexp_replace(filename, '^/?', '/') , ('BAG') FROM ace_token;
 
 -- token entity creation (pull path from storage)
 -- regexp replace up to the first '/' so we only get the token store name

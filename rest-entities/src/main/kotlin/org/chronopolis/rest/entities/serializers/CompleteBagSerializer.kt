@@ -16,15 +16,11 @@ class CompleteBagSerializer : JsonSerializer<CompleteBag>() {
 }
 
 fun CompleteBag.toModel(): Bag {
-    var bag: StagingStorage? = null
-    var token: StagingStorage? = null
-
-    storage.forEach {
-        if (it.type == "BAG") {
-            bag = StagingStorage(it.active, it.totalFiles, it.region, it.totalFiles, it.path, setOf())
-        } else {
-            token = StagingStorage(it.active, it.totalFiles, it.region, it.totalFiles, it.path, setOf())
-        }
+    val bag: StagingStorage? = storage["BAG"]?.let {
+        StagingStorage(it.active, it.totalFiles, it.region, it.totalFiles, it.path, setOf())
+    }
+    val token: StagingStorage? = storage["TOKEN_STORE"]?.let {
+        StagingStorage(it.active, it.totalFiles, it.region, it.totalFiles, it.path, setOf())
     }
 
     return Bag(
@@ -38,7 +34,6 @@ fun CompleteBag.toModel(): Bag {
             updatedAt = updatedAt,
             totalFiles = totalFiles,
             replicatingNodes = replicatingNodes,
-            // ... lol
             bagStorage = bag,
             tokenStorage = token
     )

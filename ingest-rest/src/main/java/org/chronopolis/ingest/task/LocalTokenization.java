@@ -1,33 +1,36 @@
 package org.chronopolis.ingest.task;
 
-import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.storage.BagStagingProperties;
 import org.chronopolis.common.storage.Posix;
+import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.ingest.repository.dao.PagedDao;
-import org.chronopolis.rest.api.IngestApiProperties;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.QAceToken;
 import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.QBagFile;
+import org.chronopolis.rest.entities.QDataFile;
 import org.chronopolis.rest.entities.serializers.ExtensionsKt;
-import org.chronopolis.rest.entities.storage.StagingStorage;
+import org.chronopolis.rest.entities.storage.QStagingStorage;
 import org.chronopolis.rest.models.enums.BagStatus;
 import org.chronopolis.tokenize.BagProcessor;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Profile;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Predicate;
+
+import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_BAG;
 
 /**
  * Task for processing bags in our local staging area which need to be tokenized
@@ -36,66 +39,76 @@ import java.util.function.Predicate;
  */
 @Component
 @EnableScheduling
-@Profile("!disable-tokenizer")
-@EnableConfigurationProperties(IngestApiProperties.class)
+@ConditionalOnProperty(prefix = "ingest", name = "tokenizer.enabled", havingValue = "true")
 public class LocalTokenization {
 
     private final Logger log = LoggerFactory.getLogger(LocalTokenization.class);
 
     private final PagedDao dao;
     private final TokenWorkSupervisor tws;
-    private final IngestApiProperties apiProperties;
-    private final BagStagingProperties properties;
+    private final IngestProperties properties;
     private final TrackingThreadPoolExecutor<Bag> executor;
     private final Collection<Predicate<ManifestEntry>> predicates;
 
+    @Autowired
     public LocalTokenization(PagedDao dao,
                              TokenWorkSupervisor tws,
-                             IngestApiProperties apiProperties,
-                             BagStagingProperties properties,
+                             IngestProperties properties,
                              TrackingThreadPoolExecutor<Bag> executor,
                              Collection<Predicate<ManifestEntry>> predicates) {
-        log.info("Creating tokenizer");
         this.dao = dao;
         this.tws = tws;
         this.properties = properties;
-        this.apiProperties = apiProperties;
         this.executor = executor;
         this.predicates = predicates;
     }
 
-    @Scheduled(cron = "${ingest.cron.tokenize:0 0 * * * *}")
+    @Scheduled(cron = "${ingest.tokenizer.cron:0 0 * * * *}")
     public void searchForBags() {
-        Posix staging = properties.getPosix();
+        IngestProperties.Tokenizer tokenizer = properties.getTokenizer();
+        if (!tokenizer.getEnabled()) {
+            return;
+        }
 
-        String creator = apiProperties.getUsername();
+        Posix staging = tokenizer.getStaging();
+        String creator = tokenizer.getUsername();
         if (creator == null) {
             creator = "admin";
         }
 
-        // todo: enforce that the storage has a 'BAG' file for validation
-        BooleanExpression ingestStorage = QBag.bag.storage.any().region.id.eq(staging.getId());
+        JPAQueryFactory queryFactory = dao.getJPAQueryFactory();
+        // bleh... need to rethink some things wrt the properties
+        BagStagingProperties bp = new BagStagingProperties().setPosix(staging);
 
         // Would like to do a paged list but for now this will be ok
-        List<Bag> bags = dao.findAll(QBag.bag, ingestStorage
-                .and(QBag.bag.status.eq(BagStatus.DEPOSITED))
-                .and(QBag.bag.creator.eq(creator)));
+        QBag qBag = QBag.bag;
+        QBagFile qBagFile = QBagFile.bagFile;
+        List<Bag> bags = queryFactory.selectFrom(qBag)
+                .innerJoin(qBag.storage, QStagingStorage.stagingStorage)
+                .fetchJoin()
+                .innerJoin(QStagingStorage.stagingStorage.file, QDataFile.dataFile)
+                .on(QStagingStorage.stagingStorage.file.dtype.eq(DISCRIMINATOR_BAG))
+                .where(qBag.status.eq(BagStatus.DEPOSITED)
+                        .and(qBag.creator.eq(creator))
+                        .and(qBag.totalFiles.eq(JPAExpressions.select(qBagFile.count())
+                                .from(qBagFile)
+                                .where(qBagFile.bag.id.eq(qBag.id))))
+                        .and(qBag.storage.size().eq(1))
+                        .and(QStagingStorage.stagingStorage.active.isTrue()))
+                .fetch();
+
         log.debug("Found {} bags for tokenization", bags.size());
-        JPAQueryFactory queryFactory = dao.getJPAQueryFactory();
         for (Bag bag : bags) {
             final Long count = queryFactory.selectFrom(QAceToken.aceToken)
                     .where(QAceToken.aceToken.bag.id.eq(bag.getId()))
                     .fetchCount();
 
             log.trace("[{}] Submitting: {}", bag.getName(), count < bag.getTotalFiles());
-            Optional<StagingStorage> storage = bag.getStorage().stream()
-                    .filter(StagingStorage::isActive)
-                    .findFirst();
-
-            storage.map(s -> ExtensionsKt.model(bag))
-                    .filter(s -> count < s.getTotalFiles())
-                    .map(model -> new BagProcessor(model, predicates, properties, tws))
-                    .ifPresent(processor -> executor.submitIfAvailable(processor, bag));
+            if (count < bag.getTotalFiles()) {
+                BagProcessor processor =
+                        new BagProcessor(ExtensionsKt.model(bag), predicates, bp, tws);
+                executor.submitIfAvailable(processor, bag);
+            }
         }
 
     }

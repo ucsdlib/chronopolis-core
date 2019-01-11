@@ -204,7 +204,9 @@ public class ReplicationDao extends PagedDao {
         JPAQueryFactory factory = getJPAQueryFactory();
         JPAQuery<StagingStorage> query = factory.from(b)
                 .innerJoin(b.storage, storage)
-                .where(storage.active.isTrue().and(storage.file.dtype.eq(discriminator)))
+                .where(storage.bag.id.eq(bagId)
+                        .and(storage.active.isTrue()
+                        .and(storage.file.dtype.eq(discriminator))))
                 .select(storage);
 
         return Optional.ofNullable(query.fetchFirst());
@@ -256,6 +258,12 @@ public class ReplicationDao extends PagedDao {
                 ":" + file.toString() + (trailingSlash ? "/" : "");
     }
 
+    /**
+     * Query the database for a {@link Replication} projected on to a {@link ReplicationView}
+     *
+     * @param id the id of the {@link Replication}
+     * @return the {@link ReplicationView} projection
+     */
     public ReplicationView findReplicationAsView(Long id) {
         QReplication replication = QReplication.replication;
         // not a fan of transforming this into a map then getting the id but.. not sure how to
@@ -266,16 +274,26 @@ public class ReplicationDao extends PagedDao {
                 .get(id);
     }
 
+    /**
+     * Query the database for a set of {@link Replication}s and project the results on to
+     * {@link ReplicationView}s.
+     *
+     * @param filter the {@link ReplicationFilter} containing the query parameters
+     * @return a {@link Page} containing the results of the query
+     */
     public Page<ReplicationView> findViewsAsPage(ReplicationFilter filter) {
         QReplication replication = QReplication.replication;
         JPAQuery<?> query = createViewQuery()
                 .where(filter.getQuery())
                 .orderBy(filter.getOrderSpecifier())
                 .restrict(filter.getRestriction());
+        JPAQuery<Replication> count = getJPAQueryFactory()
+                .selectFrom(replication)
+                .where(filter.getQuery());
         return PageableExecutionUtils.getPage(
                 query.transform(GroupBy.groupBy(replication.id).list(replicationProjection())),
                 filter.createPageRequest(),
-                query::fetchCount);
+                count::fetchCount);
     }
 
     private JPAQuery<?> createViewQuery() {
@@ -296,6 +314,6 @@ public class ReplicationDao extends PagedDao {
                 .leftJoin(distribution.node, distributionNode)
                 .leftJoin(bag.storage, staging)
                 .on(staging.active.isTrue())
-                .innerJoin(staging.file, file);
+                .leftJoin(staging.file, file);
     }
 }

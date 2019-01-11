@@ -1,7 +1,6 @@
 package org.chronopolis.ingest.controller;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSortedSet;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ConstructorExpression;
@@ -50,7 +49,8 @@ import java.security.Principal;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 /**
  * Controller to handle Depositor requests and things
@@ -400,9 +400,11 @@ public class DepositorUIController extends IngestController {
 
     private Map<String, ?> addContactAttributes(DepositorContactCreate depositorContactCreate) {
         PhoneNumberUtil util = PhoneNumberUtil.getInstance();
-        Set<String> regions = util.getSupportedRegions();
-        ImmutableSortedSet<String> supportedRegions = ImmutableSortedSet.copyOf(regions);
-        return ImmutableMap.of("regions", supportedRegions,
+        Map<String, Integer> regions = util.getSupportedRegions().stream()
+                .collect(Collectors.toMap(region -> region, util::getCountryCodeForRegion,
+                        (v1, v2) -> {throw new RuntimeException("Duplicate value " + v2);},
+                        TreeMap::new));
+        return ImmutableMap.of("regions", regions,
                 "depositorContactCreate", depositorContactCreate);
     }
 

@@ -32,7 +32,7 @@ enum class ReplicationStatus {
     fun isOngoing(): Boolean = !(this.isFailure() || this == SUCCESS)
 
     companion object {
-        fun active(): Set<ReplicationStatus> = ImmutableSet.of(PENDING, STARTED, TRANSFERRED,
+        fun active(): Set<ReplicationStatus> = ImmutableSet.of(STARTED, TRANSFERRED,
                 ACE_REGISTERED, ACE_AUDITING, ACE_TOKEN_LOADED)
 
         fun statusByGroup(): ImmutableListMultimap<String, ReplicationStatus> =

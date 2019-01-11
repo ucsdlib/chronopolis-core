@@ -40,7 +40,7 @@ public class HttpTokenRegistrarTest {
     private final Logger log = LoggerFactory.getLogger(HttpTokenRegistrarTest.class);
 
     // include extraneous characters?
-    private static final String path = "data/path/to/file.txt";
+    private static final String path = "/data/path/to/file.txt";
     private static final String name = "test-name";
     private static final String digest = "digest";
     private static final String service = "test-service";
