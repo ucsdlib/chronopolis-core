@@ -18,8 +18,7 @@ public class RegisterMessage {
     public RegisterMessage() {
     }
 
-    public RegisterMessage(Bag bag,
-                           TokenResponse token) {
+    public RegisterMessage(Bag bag, TokenResponse token) {
         this.bag = bag;
         this.token = token;
     }

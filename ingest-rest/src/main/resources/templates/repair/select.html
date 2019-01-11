@@ -5,129 +5,155 @@
 </head>
 <body>
 <nav th:replace="layout :: navbar"></nav>
-<div class="d-flex flex-column m-3 align-items-center">
-    <div id="accordian" role="tablist" aria-multiselectable="true" class="w-50">
-        <h4>Repair Request</h4>
-        <h6 class="text-muted">Select files to repair</h6>
-        <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem;">
-            <form id="collection" enctype="application/json" method="post" name="collection" th:action="@{/repairs}">
-                <input th:type="hidden" name="collection" th:value="${collection}"/>
-                <input th:type="hidden" name="depositor" th:value="${depositor}"/>
+<div class="d-flex flex-column align-items-center m-3 ">
+    <div class="card w-75">
+        <nav th:fragment="form" aria-label="breadcrumb" role="navigation">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/repairs}">Repairs</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Create :: Select Files</li>
+            </ol>
+        </nav>
 
-                <div class="form-group p-2">
-                    <label for="node-select">Repair To</label>
-                    <select class="form-control" id="node-select" name="to">
-                        <!--/*@thymesVar id="nodes" type="org.chronopolis.rest.entities.Node"*/-->
-                        <option th:each="node : ${nodes}"
-                                th:value="${node.username}"
-                                th:text="${node.username}"></option>
-                    </select>
-                </div>
+        <!--/*@thymesVar id="depositor" type="java.lang.String"*/-->
+        <!--/*@thymesVar id="collection" type="java.lang.String"*/-->
+        <div class="card-body p-2" id="accordion" role="tablist" aria-multiselectable="true">
+            <h6 class="text-muted">Select files from [[${collection}]] to repair</h6>
+            <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem;">
+                <form id="collection" method="post" name="collection" th:action="@{/repairs}">
+                    <input th:type="hidden" name="collection" th:value="${collection}"/>
+                    <input th:type="hidden" name="depositor" th:value="${depositor}"/>
 
-                <!-- Missing Items -->
-                <!--/*@thymesVar id="missing" type="org.chronopolis.common.ace.MonitoredItem"*/-->
-                <div th:if="${missing != null}" style="border: 1px solid #f7f7f9;">
-                    <div class="card-header" role="tab" id="missing-heading">
-                        <h5 class="mb-0">
-                            <input type="checkbox" id="select-missing"/>
-                            <a data-toggle="collapse" data-parent="#accordion"
-                               href="#collapse-missing" aria-expanded="false"
-                               aria-controls="collapse-missing" th:text="|Missing Files (${missing.size()})|">
-                                Missing Files
-                            </a>
-                        </h5>
+                    <div class="form-group p-2">
+                        <label for="node-select">Repair To</label>
+                        <select class="form-control" id="node-select" name="to">
+                            <!--/*@thymesVar id="nodes" type="List<org.chronopolis.rest.entities.Node>"*/-->
+                            <!--/*@thymesVar id="node" type="org.chronopolis.rest.entities.Node"*/-->
+                            <option th:each="node : ${nodes}"
+                                    th:value="${node.username}"
+                                    th:text="${node.username}"></option>
+                        </select>
                     </div>
-                    <div id="collapse-missing" class="collapse" role="tabpanel" aria-labelledby="missing-heading" aria-expanded="false">
-                        <div class="card-body">
-                            <fieldset class="form-group row">
-                                <div class="col-sm-10">
-                                    <div class="form-check" th:each="item : ${missing}">
-                                        <label class="form-check-label">
-                                            <input class="form-check-input missing" type="checkbox" name="files" th:value="${item.path}"/>
-                                            <span th:text="${item.path}"></span>
-                                        </label>
+
+                    <!-- Missing Items -->
+                    <!--/*@thymesVar id="missing" type="java.util.List<org.chronopolis.common.ace.MonitoredItem>"*/-->
+                    <div th:if="${missing != null}" style="border: 1px solid #f7f7f9;">
+                        <div class="card-header" role="tab" id="missing-heading">
+                            <h5 class="mb-0">
+                                <input type="checkbox" id="select-missing"/>
+                                <a data-toggle="collapse" data-parent="#accordion"
+                                   href="#collapse-missing" aria-expanded="false"
+                                   aria-controls="collapse-missing"
+                                   th:text="|Missing Files (${missing.size()})|">
+                                    Missing Files
+                                </a>
+                            </h5>
+                        </div>
+                        <div id="collapse-missing" class="collapse" role="tabpanel"
+                             aria-labelledby="missing-heading" aria-expanded="false">
+                            <div class="card-body">
+                                <fieldset class="form-group row">
+                                    <div class="col-sm-10">
+                                        <!--/*@thymesVar id="item" type="org.chronopolis.common.ace.MonitoredItem"*/-->
+                                        <div class="form-check" th:each="item : ${missing}">
+                                            <label class="form-check-label">
+                                                <input class="form-check-input missing"
+                                                       type="checkbox"
+                                                       name="files" th:value="${item.path}"/>
+                                                <span th:text="${item.path}"></span>
+                                            </label>
+                                        </div>
                                     </div>
-                                </div>
-                            </fieldset>
+                                </fieldset>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Corrupt Items -->
-                <!--/*@thymesVar id="corrupt" type="org.chronopolis.common.ace.MonitoredItem"*/-->
-                <div th:if="${corrupt != null}" style="border: 1px solid #f7f7f9;"> <!-- class="card mb-2"> -->
-                    <div class="card-header" role="tab" id="corrupt-heading">
-                        <h5 class="mb-0">
-                            <input type="checkbox" id="select-corrupt"/>
-                            <a data-toggle="collapse" data-parent="#accordion"
-                               href="#collapse-corrupt" aria-expanded="false"
-                               aria-controls="collapse-corrupt" th:text="|Corrupt Files (${corrupt.size()})|">
-                                Corrupt Files
-                            </a>
-                        </h5>
-                    </div>
-                    <div id="collapse-corrupt" class="collapse" role="tabpanel" aria-labelledby="corrupt-heading" aria-expanded="false">
-                        <div class="card-body">
-                            <fieldset class="form-group row">
-                                <div class="col-sm-10">
-                                    <div class="form-check" th:each="item : ${corrupt}">
-                                        <label class="form-check-label">
-                                            <input class="form-check-input" type="checkbox" name="files" th:value="${item.path}"/>
-                                            <span th:text="${item.path}"></span>
-                                        </label>
+                    <!-- Corrupt Items -->
+                    <!--/*@thymesVar id="corrupt" type="java.util.List<org.chronopolis.common.ace.MonitoredItem>"*/-->
+                    <div th:if="${corrupt != null}" style="border: 1px solid #f7f7f9;">
+                        <!-- class="card mb-2"> -->
+                        <div class="card-header" role="tab" id="corrupt-heading">
+                            <h5 class="mb-0">
+                                <input type="checkbox" id="select-corrupt"/>
+                                <a data-toggle="collapse" data-parent="#accordion"
+                                   href="#collapse-corrupt" aria-expanded="false"
+                                   aria-controls="collapse-corrupt"
+                                   th:text="|Corrupt Files (${corrupt.size()})|">
+                                    Corrupt Files
+                                </a>
+                            </h5>
+                        </div>
+                        <div id="collapse-corrupt" class="collapse" role="tabpanel"
+                             aria-labelledby="corrupt-heading" aria-expanded="false">
+                            <div class="card-body">
+                                <fieldset class="form-group row">
+                                    <div class="col-sm-10">
+                                        <!--/*@thymesVar id="item" type="org.chronopolis.common.ace.MonitoredItem"*/-->
+                                        <div class="form-check" th:each="item : ${corrupt}">
+                                            <label class="form-check-label">
+                                                <input class="form-check-input" type="checkbox"
+                                                       name="files" th:value="${item.path}"/>
+                                                <span th:text="${item.path}"></span>
+                                            </label>
+                                        </div>
                                     </div>
-                                </div>
-                            </fieldset>
+                                </fieldset>
+                            </div>
                         </div>
                     </div>
-                </div>
 
 
-                <!-- Invalid Items -->
-                <!--/*@thymesVar id="corrupt" type="org.chronopolis.common.ace.MonitoredItem"*/-->
-                <div th:if="${invalid != null}" style="border: 1px solid #f7f7f9;"> <!-- class="card mb-2"> -->
-                    <div class="card-header" role="tab" id="invalid-heading">
-                        <h5 class="mb-0">
-                            <input type="checkbox" id="select-invalid"/>
-                            <a data-toggle="collapse" data-parent="#accordion"
-                               href="#collapse-invalid" aria-expanded="false"
-                               aria-controls="collapse-invalid" th:text="|Invalid Files (${invalid.size()})|">
-                                Invalid Files
-                            </a>
-                        </h5>
-                    </div>
-                    <div id="collapse-invalid" class="collapse" role="tabpanel" aria-labelledby="invalid-heading" aria-expanded="false">
-                        <div class="card-body">
-                            <fieldset class="form-group row">
-                                <div class="col-sm-10">
-                                    <div class="form-check" th:each="item : ${invalid}">
-                                        <label class="form-check-label">
-                                            <input class="form-check-input" type="checkbox" name="files" th:value="${item.path}"/>
-                                            <span th:text="${item.path}"></span>
-                                        </label>
+                    <!-- Invalid Items -->
+                    <!--/*@thymesVar id="invalid" type="java.util.List<org.chronopolis.common.ace.MonitoredItem>"*/-->
+                    <div th:if="${invalid != null}" style="border: 1px solid #f7f7f9;">
+                        <!-- class="card mb-2"> -->
+                        <div class="card-header" role="tab" id="invalid-heading">
+                            <h5 class="mb-0">
+                                <input type="checkbox" id="select-invalid"/>
+                                <a data-toggle="collapse" data-parent="#accordion"
+                                   href="#collapse-invalid" aria-expanded="false"
+                                   aria-controls="collapse-invalid"
+                                   th:text="|Invalid Files (${invalid.size()})|">
+                                    Invalid Files
+                                </a>
+                            </h5>
+                        </div>
+                        <div id="collapse-invalid" class="collapse" role="tabpanel"
+                             aria-labelledby="invalid-heading" aria-expanded="false">
+                            <div class="card-body">
+                                <fieldset class="form-group row">
+                                    <div class="col-sm-10">
+                                        <!--/*@thymesVar id="item" type="org.chronopolis.common.ace.MonitoredItem"*/-->
+                                        <div class="form-check" th:each="item : ${invalid}">
+                                            <label class="form-check-label">
+                                                <input class="form-check-input" type="checkbox"
+                                                       name="files" th:value="${item.path}"/>
+                                                <span th:text="${item.path}"></span>
+                                            </label>
+                                        </div>
                                     </div>
-                                </div>
-                            </fieldset>
+                                </fieldset>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="card-body">
-                    <input type="submit" value="Select Items" class="btn btn-primary"/>
-                </div>
-            </form>
+                    <div class="card-body">
+                        <input type="submit" value="Select Items" class="btn btn-primary"/>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 <div th:replace="layout :: foot"></div>
 <script type="text/javascript">
-    $("#select-missing").click(function() {
+    $("#select-missing").click(function () {
         $('#collapse-missing input[type=checkbox]').prop('checked', this.checked);
     });
-    $("#select-invalid").click(function() {
+    $("#select-invalid").click(function () {
         $('#collapse-invalid input[type=checkbox]').prop('checked', this.checked);
     });
-    $("#select-corrupt").click(function() {
+    $("#select-corrupt").click(function () {
         $('#collapse-corrupt input[type=checkbox]').prop('checked', this.checked);
     });
 </script>

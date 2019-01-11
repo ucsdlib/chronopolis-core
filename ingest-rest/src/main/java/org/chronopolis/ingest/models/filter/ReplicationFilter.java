@@ -8,7 +8,7 @@ import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import org.chronopolis.ingest.models.Paged;
 import org.chronopolis.rest.entities.QReplication;
-import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.models.enums.ReplicationStatus;
 
 import java.util.List;
 

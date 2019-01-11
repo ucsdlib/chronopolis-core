@@ -102,4 +102,5 @@ public abstract class StorageOperation implements Comparable<StorageOperation> {
         result = 31 * result + (identifier != null ? identifier.hashCode() : 0);
         return result;
     }
+
 }

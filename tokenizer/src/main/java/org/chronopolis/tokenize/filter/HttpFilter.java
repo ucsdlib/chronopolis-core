@@ -2,11 +2,11 @@ package org.chronopolis.tokenize.filter;
 
 import com.google.common.collect.ImmutableMap;
 import org.chronopolis.rest.api.TokenService;
-import org.chronopolis.rest.models.AceTokenModel;
+import org.chronopolis.rest.models.AceToken;
+import org.chronopolis.rest.models.page.SpringPage;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.PageImpl;
 import retrofit2.Call;
 import retrofit2.Response;
 
@@ -46,11 +46,12 @@ public class HttpFilter implements Predicate<ManifestEntry> {
         boolean processEntry;
         String path = manifestEntry.getPath();
         try {
-            Call<PageImpl<AceTokenModel>> tokens = api.getBagTokens(
+            Call<SpringPage<AceToken>> tokens = api.getBagTokens(
                     bagId,
                     ImmutableMap.of("filename", path.trim()));
-            Response<PageImpl<AceTokenModel>> response = tokens.execute();
-            processEntry = response.code() == 200 && response.body().getTotalElements() == 0;
+
+            Response<SpringPage<AceToken>> response = tokens.execute();
+            processEntry = response.code() == 200 && response.body().getContent().isEmpty();
             log.trace("{} token exists? {}", path, !processEntry);
         } catch (Exception e) {
             String identifier = String.valueOf(bagId) + "/" + path;

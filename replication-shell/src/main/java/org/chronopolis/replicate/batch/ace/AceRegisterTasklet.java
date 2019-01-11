@@ -10,9 +10,10 @@ import org.chronopolis.replicate.batch.callback.UpdateCallback;
 import org.chronopolis.rest.api.ReplicationService;
 import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.Replication;
-import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.models.enums.ReplicationStatus;
+import org.chronopolis.rest.models.update.ReplicationStatusUpdate;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Call;
@@ -65,7 +66,7 @@ public class AceRegisterTasklet implements Callable<Long> {
         phaser = new Phaser();
     }
 
-    public void run() throws Exception {
+    public void run() {
         Bag bag = replication.getBag();
         String name = bag.getName();
         log.trace("{} Building ACE json", name);
@@ -103,12 +104,14 @@ public class AceRegisterTasklet implements Callable<Long> {
         Call<Map<String, Long>> call = aceService.addCollection(coll);
         call.enqueue(new Callback<Map<String, Long>>() {
             @Override
-            public void onResponse(Call<Map<String, Long>> call, Response<Map<String, Long>> response) {
+            public void onResponse(@NotNull Call<Map<String, Long>> call,
+                                   @NotNull Response<Map<String, Long>> response) {
                 if (response.isSuccessful()) {
                     id = response.body().get("id");
                     setRegistered();
                 } else {
-                    log.error("{} Error registering collection in ACE: {} - {}", name, response.code(), response.message());
+                    log.error("{} Error registering collection in ACE: {} - {}",
+                            name, response.code(), response.message());
                     try {
                         log.debug("{} {}", name, response.errorBody().string());
                     } catch (IOException ignored) {
@@ -122,7 +125,8 @@ public class AceRegisterTasklet implements Callable<Long> {
             }
 
             @Override
-            public void onFailure(Call<Map<String, Long>> call, Throwable throwable) {
+            public void onFailure(@NotNull Call<Map<String, Long>> call,
+                                  @NotNull Throwable throwable) {
                 log.error("{} Error communicating with ACE", name, throwable);
                 notifier.setSuccess(false);
                 phaser.arrive();
@@ -136,10 +140,12 @@ public class AceRegisterTasklet implements Callable<Long> {
         // Register with the phaser so that we may arrive when the callback completes
         phaser.register();
 
-        Call<GsonCollection> call = aceService.getCollectionByName(bag.getName(), bag.getDepositor());
+        Call<GsonCollection> call =
+                aceService.getCollectionByName(bag.getName(), bag.getDepositor());
         call.enqueue(new Callback<GsonCollection>() {
             @Override
-            public void onResponse(Call<GsonCollection> call, Response<GsonCollection> response) {
+            public void onResponse(@NotNull Call<GsonCollection> call,
+                                   @NotNull Response<GsonCollection> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     id = response.body().getId();
                 } else {
@@ -150,7 +156,8 @@ public class AceRegisterTasklet implements Callable<Long> {
             }
 
             @Override
-            public void onFailure(Call<GsonCollection> call, Throwable throwable) {
+            public void onFailure(@NotNull Call<GsonCollection> call,
+                                  @NotNull Throwable throwable) {
                 log.error("{} Error communicating with ACE", bag.getName(), throwable);
                 phaser.arriveAndDeregister();
             }
@@ -160,12 +167,12 @@ public class AceRegisterTasklet implements Callable<Long> {
     private void setRegistered() {
         log.info("{} Setting replication as REGISTERED", replication.getBag().getName());
         Call<Replication> update = replications.updateStatus(replication.getId(),
-                new RStatusUpdate(ReplicationStatus.ACE_REGISTERED));
+                new ReplicationStatusUpdate(ReplicationStatus.ACE_REGISTERED));
         update.enqueue(new UpdateCallback());
     }
 
     @Override
-    public Long call() throws Exception {
+    public Long call() {
         if (id == -1) {
             run();
         }

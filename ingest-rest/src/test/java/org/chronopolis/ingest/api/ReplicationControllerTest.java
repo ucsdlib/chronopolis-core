@@ -1,39 +1,50 @@
 package org.chronopolis.ingest.api;
 
-import org.chronopolis.ingest.repository.criteria.SearchCriteria;
-import org.chronopolis.ingest.repository.dao.ReplicationService;
-import org.chronopolis.ingest.repository.dao.StagingService;
+import com.querydsl.core.types.Predicate;
+import org.chronopolis.ingest.repository.dao.ReplicationDao;
+import org.chronopolis.ingest.repository.dao.StagingDao;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Depositor;
+import org.chronopolis.rest.entities.BagFile;
+import org.chronopolis.rest.entities.DataFile;
 import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.entities.TokenStore;
+import org.chronopolis.rest.entities.depositor.Depositor;
+import org.chronopolis.rest.entities.projections.CompleteBag;
+import org.chronopolis.rest.entities.projections.ReplicationView;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
-import org.chronopolis.rest.models.FixityUpdate;
-import org.chronopolis.rest.models.RStatusUpdate;
-import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.models.enums.BagStatus;
+import org.chronopolis.rest.models.enums.ReplicationStatus;
+import org.chronopolis.rest.models.update.FixityUpdate;
+import org.chronopolis.rest.models.update.ReplicationStatusUpdate;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.ResultActions;
 
-import java.time.ZonedDateTime;
+import java.util.HashSet;
 import java.util.Optional;
 
+import static com.google.common.collect.ImmutableSet.of;
+import static java.time.ZonedDateTime.now;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
+import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_BAG;
+import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_TOKEN;
+import static org.chronopolis.rest.models.enums.FixityAlgorithm.SHA_256;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -50,45 +61,68 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(controllers = ReplicationController.class)
 public class ReplicationControllerTest extends ControllerTest {
 
+    private final Long ID = 4L;
+    private static final String PUT_STATUS = "/api/replications/{id}/status";
+    private static final String PUT_TAG_FIXITY = "/api/replications/{id}/tagmanifest";
+    private static final String GET_REPLICATION = "/api/replications/{id}";
+    private static final String GET_REPLICATIONS = "/api/replications?node=umiacs";
+    private static final String PUT_TOKEN_FIXITY = "/api/replications/{id}/tokenstore";
     private final String CORRECT_TAG_FIXITY = "tag-fixity";
     private final String CORRECT_TOKEN_FIXITY = "token-fixity";
     private final String INVALID_FIXITY = "fxity";
     private final Depositor depositor = new Depositor();
 
-    private ReplicationController controller;
-
-    @MockBean private StagingService staging;
-    @MockBean private ReplicationService service;
+    @MockBean private StagingDao staging;
+    @MockBean private ReplicationDao replicationDao;
 
     @Before
     public void setup() {
-        controller = new ReplicationController(staging, service);
+        ReplicationController controller = new ReplicationController(staging, replicationDao);
         setupMvc(controller);
     }
 
     @Test
     public void testReplications() throws Exception {
-        when(service.findAll(any(SearchCriteria.class), any(Pageable.class))).thenReturn(null);
-        mvc.perform(get("/api/replications?node=umiacs").principal(authorizedPrincipal))
-                .andDo(print())
+        when(replicationDao.findAll(any(), any())).thenReturn(null);
+        mvc.perform(get(GET_REPLICATIONS).principal(authorizedPrincipal))
+                // .andDo(print())
                 .andExpect(status().is(200))
                 .andReturn();
     }
 
     @Test
     public void testFindReplication() throws Exception {
-        when(service.find(any(SearchCriteria.class))).thenReturn(new Replication(node(), bag()));
-        mvc.perform(get("/api/replications/{id}", 4L).principal(authorizedPrincipal))
-                .andDo(print())
+        CompleteBag bag = new CompleteBag(ID, NAMESPACE, NAMESPACE, ID, ID, BagStatus.REPLICATING,
+                now(), now(), NAMESPACE, emptySet(), emptyMap());
+        ReplicationView view = new ReplicationView(ID, now(), now(), ReplicationStatus.TRANSFERRED,
+                "link", "link", "protocol", "fixity", "fixity", NAMESPACE, bag);
+        when(replicationDao.findReplicationAsView(eq(ID))).thenReturn(view);
+        mvc.perform(get(GET_REPLICATION, ID).principal(authorizedPrincipal))
+                // .andDo(print())
                 .andExpect(status().is(200))
                 .andReturn();
     }
 
     @Test
+    public void testFixityComplete() throws Exception {
+        when(staging.activeStorageForBag(any(Bag.class), eq(DISCRIMINATOR_BAG)))
+                .thenReturn(Optional.of(stagingStorage(bagFile())));
+        when(staging.activeStorageForBag(any(Bag.class), eq(DISCRIMINATOR_TOKEN)))
+                .thenReturn(Optional.of(stagingStorage(tokenStore())));
+        setupPut(PUT_TAG_FIXITY, ID, CORRECT_TAG_FIXITY, CORRECT_TOKEN_FIXITY,
+                new FixityUpdate(CORRECT_TAG_FIXITY))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.status").value("TRANSFERRED"))
+                .andExpect(jsonPath("$.receivedTokenFixity").value(CORRECT_TOKEN_FIXITY));
+    }
+
+    @Test
     public void testCorrectUpdate() throws Exception {
-        when(staging.activeStorageForBag(any(Bag.class), eq(QBag.bag.tokenStorage)))
-                .thenReturn(Optional.of(stagingStorage(CORRECT_TOKEN_FIXITY)));
-        setupPut("/api/replications/{id}/tokenstore", 4L, new FixityUpdate(CORRECT_TOKEN_FIXITY))
+        when(staging.activeStorageForBag(any(Bag.class), eq(DISCRIMINATOR_BAG)))
+                .thenReturn(Optional.of(stagingStorage(bagFile())));
+        when(staging.activeStorageForBag(any(Bag.class), eq(DISCRIMINATOR_TOKEN)))
+                .thenReturn(Optional.of(stagingStorage(tokenStore())));
+        setupPut(PUT_TOKEN_FIXITY, ID, null, null, new FixityUpdate(CORRECT_TOKEN_FIXITY))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.status").value("PENDING"))
                 .andExpect(jsonPath("$.receivedTokenFixity").value(CORRECT_TOKEN_FIXITY));
@@ -96,16 +130,18 @@ public class ReplicationControllerTest extends ControllerTest {
 
     @Test
     public void testClientUpdate() throws Exception {
-        setupPut("/api/replications/{id}/status", 4L, new RStatusUpdate(ReplicationStatus.STARTED))
+        setupPut(PUT_STATUS, ID, null, null, new ReplicationStatusUpdate(ReplicationStatus.STARTED))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.status").value("STARTED"));
     }
 
     @Test
     public void testInvalidTokenFixity() throws Exception {
-        when(staging.activeStorageForBag(any(Bag.class), eq(QBag.bag.tokenStorage)))
-                .thenReturn(Optional.of(stagingStorage(CORRECT_TAG_FIXITY)));
-        setupPut("/api/replications/{id}/tokenstore", 4L, new FixityUpdate(INVALID_FIXITY))
+        when(staging.activeStorageForBag(any(Bag.class), eq(DISCRIMINATOR_BAG)))
+                .thenReturn(Optional.of(stagingStorage(bagFile())));
+        when(staging.activeStorageForBag(any(Bag.class), eq(DISCRIMINATOR_TOKEN)))
+                .thenReturn(Optional.of(stagingStorage(bagFile())));
+        setupPut(PUT_TOKEN_FIXITY, ID, null, null, new FixityUpdate(INVALID_FIXITY))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.status").value("FAILURE_TOKEN_STORE"))
                 .andExpect(jsonPath("$.receivedTokenFixity").value(INVALID_FIXITY));
@@ -113,55 +149,69 @@ public class ReplicationControllerTest extends ControllerTest {
 
     @Test
     public void testInvalidTagFixity() throws Exception {
-        when(staging.activeStorageForBag(any(Bag.class), eq(QBag.bag.bagStorage)))
-                .thenReturn(Optional.of(stagingStorage(CORRECT_TOKEN_FIXITY)));
-        setupPut("/api/replications/{id}/tagmanifest", 4L, new FixityUpdate(INVALID_FIXITY))
+        when(staging.activeStorageForBag(any(Bag.class), eq(DISCRIMINATOR_BAG)))
+                .thenReturn(Optional.of(stagingStorage(bagFile())));
+        when(staging.activeStorageForBag(any(Bag.class), eq(DISCRIMINATOR_TOKEN)))
+                .thenReturn(Optional.of(stagingStorage(bagFile())));
+        setupPut(PUT_TAG_FIXITY, ID, null, null, new FixityUpdate(INVALID_FIXITY))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.status").value("FAILURE_TAG_MANIFEST"))
                 .andExpect(jsonPath("$.receivedTagFixity").value(INVALID_FIXITY));
     }
 
-    public <T> ResultActions setupPut(String uri, Long id, T obj) throws Exception {
-        when(service.find(any(SearchCriteria.class))).thenReturn(new Replication(node(), bag()));
+    private <T> ResultActions setupPut(String uri,
+                                       Long id,
+                                       @Nullable String tagFixity,
+                                       @Nullable String tokenFixity,
+                                       T obj) throws Exception {
+        Replication replication = replication(tagFixity, tokenFixity);
+        when(replicationDao.findOne(any(), any(Predicate.class))).thenReturn(replication);
         authenticateUser();
-        return mvc.perform(
-                put(uri, id)
-                        .with(user(user)) // any way to streamline some of this I wonder?
-                        .principal(authorizedPrincipal)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(asJson(obj)))
-                .andDo(print());
+        return mvc.perform(put(uri, id)
+                .with(user(user))
+                .principal(authorizedPrincipal)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJson(obj)));
+    }
+
+    private Replication replication(String tagFixity, String tokenFixity) {
+        return new Replication(ReplicationStatus.PENDING, node(), bag(), "bag-url", "token-url",
+                "protocol", tagFixity, tokenFixity);
     }
 
     private Bag bag() {
         StorageRegion region = new StorageRegion();
         region.setId(1L);
-        Bag bag = new Bag("test-bag", depositor);
+
+        Bag bag = new Bag("test-bag", "test-creator", depositor, 1L, 1L, BagStatus.REPLICATING);
         bag.setId(1L);
-        bag.setBagStorage(new StagingStorage().addFixity(
-                new Fixity().setAlgorithm("test-algorithm")
-                        .setValue(CORRECT_TAG_FIXITY)
-                        .setCreatedAt(ZonedDateTime.now()))
-                .setRegion(region));
-        bag.setTokenStorage(new StagingStorage().addFixity(
-                new Fixity().setAlgorithm("test-algorithm")
-                        .setValue(CORRECT_TOKEN_FIXITY)
-                        .setCreatedAt(ZonedDateTime.now()))
-                .setRegion(region));
+        bag.addStagingStorage(stagingStorage(bagFile()));
+        bag.addStagingStorage(stagingStorage(tokenStore()));
+        bag.setDistributions(new HashSet<>());
         return bag;
     }
 
-    private StagingStorage stagingStorage(String value) {
-        return new StagingStorage().addFixity(
-                new Fixity().setAlgorithm("test-algorithm")
-                .setValue(value)
-                .setCreatedAt(ZonedDateTime.now()))
-        ;
+    // not sure if we need to bother with id, filenames, etc on the Files
+    private BagFile bagFile() {
+        BagFile bagFile = new BagFile();
+        bagFile.addFixity(new Fixity(now(), bagFile, CORRECT_TAG_FIXITY, SHA_256.getCanonical()));
+        return bagFile;
     }
 
+    private TokenStore tokenStore() {
+        TokenStore store = new TokenStore();
+        store.addFixity(new Fixity(now(), store, CORRECT_TOKEN_FIXITY, SHA_256.getCanonical()));
+        return store;
+    }
+
+    private StagingStorage stagingStorage(DataFile file) {
+        StagingStorage storage = new StagingStorage();
+        storage.setFile(file);
+        return storage;
+    }
 
     private Node node() {
-        return new Node("user", "password");
+        return new Node(of(), AUTHORIZED, AUTHORIZED, true);
     }
 
 }

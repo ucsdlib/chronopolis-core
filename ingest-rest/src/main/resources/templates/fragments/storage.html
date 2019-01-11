@@ -2,9 +2,9 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <div th:fragment="card-display (storage, storageName, rw)">
+    <!--/*@thymesVar id="fixity" type="org.chronopolis.rest.entities.storage.Fixity"*/-->
     <!--/*@thymesVar id="formatter" type="org.chronopolis.ingest.support.FileSizeFormatter"*/-->
     <!--/*@thymesVar id="storage" type="org.chronopolis.rest.entities.storage.StagingStorage"*/-->
-    <!--/*@thymesVar id="fixity" type="org.chronopolis.rest.entities.storage.Fixity"*/-->
     <div class="card-text p-2">
 
         <!-- list for showing storage/fixity/etc -->
@@ -17,22 +17,16 @@
                        th:href="@{|#v-storage-${storageName}|}"
                        th:aria-controls="|v-storage-${storageName}|"
                        class="nav-link active" data-toggle="pill" role="tab" aria-selected="true">
-                        Storage</a>
+                        Storage
+                    </a>
 
-                    <!-- for each fixity -->
-                    <a th:each="fixity : ${storage.fixities}"
-                       th:id="|v-${fixity.algorithm}-tag-${storageName}|"
-                       th:href="@{|#v-${fixity.algorithm}-${storageName}|}"
-                       th:aria-controls="|v-${fixity.algorithm}-${storageName}|"
-                       th:text="${fixity.algorithm}"
-                       class="nav-link" data-toggle="pill" role="tab" aria-selected="false"></a>
-
-                    <a th:if="${rw}"
-                       th:id="|v-add-fixity-tab-${storageName}|"
-                       th:href="@{|${bag.id}/storage/${storage.id}/fixity|}"
-                       th:aria-controls="|v-add-fixity-${storageName}|"
-                       class="nav-link" data-toggle="pill" role="tab" aria-selected="false">
-                        Add Fixity</a>
+                    <!-- validation file contents -->
+                    <a th:id="|v-file-tab-${storageName}|"
+                        th:href="@{|#v-file-${storageName}|}"
+                        th:aria-controls="|v-file-${storageName}|"
+                        class="nav-link" data-toggle="pill" role="tab" aria-selected="false">
+                        Validation File
+                    </a>
                 </div>
             </div>
 
@@ -42,7 +36,7 @@
                     <div class="tab-pane fade show active" th:id="|v-storage-${storageName}|"
                          role="tabpanel"
                          th:aria-labelledby="|v-storage-tab-${storageName}|">
-                        <!-- look into replacing this with a grid setup so we don't get complainsts about divs-->
+                        <!-- look into replacing this with a grid setup so we don't get complaints about divs-->
                         <table class="table">
                             <tbody>
                             <div th:replace="fragments/storage :: list-item(head='Path', content=${storage.path})"></div>
@@ -50,20 +44,23 @@
                             <div th:replace="fragments/storage :: list-item(head='Size', content=${formatter.format(storage.size)})"></div>
 
                             <!-- inactive + modal -->
-                            <!-- can see about making this a fragment as well -->
                             <tr th:replace="fragments/storage :: set-inactive"></tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <div th:each="fixity: ${storage.fixities}" class="tab-pane fade"
-                         th:id="|v-${fixity.algorithm}-${storageName}|" role="tabpanel"
-                         th:aria-labelledby="|v-${fixity.algorithm}-tab-${storageName}|">
+                    <!--/*@thymesVar id="file" type="org.chronopolis.rest.entities.DataFile"*/-->
+                    <div class="tab-pane fade" role="tabpanel"
+                         th:with="file=${storage.file}"
+                         th:id="|v-file-${storageName}|"
+                         th:aria-labelledby="|v-file-tab-${storageName}|">
                         <table class="table">
-                            <div th:replace="fragments/storage :: list-item(head='Value', content=${fixity.value})"></div>
-                            <div th:replace="fragments/storage :: list-item(head='Created', content=${fixity.createdAt})"></div>
-                            <!-- remove + modal -->
-                            <tr th:replace="fragments/storage :: remove-fixity"></tr>
+                            <tbody>
+                               <div th:replace="fragments/storage :: list-item(head='Filename', content=${file.filename})"></div>
+                               <div th:each="fixity : ${file.fixities}">
+                                   <div th:replace="fragments/storage :: list-item(head=${fixity.algorithm}, content=${fixity.value})"></div>
+                               </div>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -85,15 +82,6 @@
         th:data-message="|Warning: Proceeding will remove the active storage object|"
         data-target="#rm-modal">
         Set Inactive
-    </td>
-</tr>
-
-<tr th:fragment="remove-fixity" th:if="${rw}">
-    <td class="bg-danger text-white text-center w-25" data-toggle="modal" style="cursor: pointer;"
-        data-target="#rm-modal"
-        th:data-href="@{|${bag.id}/storage/${storage.id}/fixity/${fixity.id}|}"
-        th:data-message="|Warning: Proceeding will remove the fixity object|">
-        Remove
     </td>
 </tr>
 </html>

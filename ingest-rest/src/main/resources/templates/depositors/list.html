@@ -22,7 +22,7 @@
             </thead>
             <tbody>
             <!--@thymesVar id="depositors" type="Page<Depositor>"-->
-            <!--@thymesVar id="depositor" type="org.chronopolis.rest.entities.Depositor"-->
+            <!--@thymesVar id="depositor" type="org.chronopolis.rest.entities.depositor.Depositor"-->
             <tr class="table-clickable"
                 th:each="depositor: ${depositors}"
                 th:attr="data-href=@{|/depositors/list/${depositor.namespace}|}">

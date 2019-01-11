@@ -16,7 +16,7 @@
     </ol>
 </nav>
 
-<!--/*@thymesVar id="depositor" type="org.chronopolis.rest.entities.Depositor"*/-->
+<!--/*@thymesVar id="depositor" type="org.chronopolis.rest.entities.depositor.Depositor"*/-->
 <nav th:fragment="single" aria-label="breadcrumb" role="navigation">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a th:href="@{/depositors}">Depositors</a></li>
@@ -33,7 +33,13 @@
     </ol>
 </nav>
 
-<!--/*@thymesVar id="depositor" type="org.chronopolis.rest.entities.Depositor"*/-->
+<nav th:fragment="add" aria-label="breadcrumb" role="navigation">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/depositors}">Depositors</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Add Depositor</li>
+    </ol>
+</nav>
+
 <nav th:fragment="edit (depositor, type)" aria-label="breadcrumb" role="navigation">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a th:href="@{/depositors}">Depositors</a></li>

@@ -2,12 +2,11 @@ package org.chronopolis.ingest.task;
 
 import com.google.common.collect.ImmutableList;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
-import org.chronopolis.common.storage.BagStagingProperties;
 import org.chronopolis.common.storage.Posix;
+import org.chronopolis.ingest.IngestProperties;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
-import org.chronopolis.ingest.repository.dao.PagedDAO;
-import org.chronopolis.rest.api.IngestAPIProperties;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
@@ -29,23 +28,25 @@ import javax.persistence.EntityManager;
 import java.util.Collection;
 import java.util.function.Predicate;
 
+import static org.chronopolis.ingest.JpaContext.CREATE_SCRIPT;
+import static org.chronopolis.ingest.JpaContext.DELETE_SCRIPT;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 
-@RunWith(SpringJUnit4ClassRunner.class)
 @DataJpaTest
+@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = JpaContext.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SqlGroup({
-        @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
-                scripts = "classpath:sql/createBags.sql"),
-        @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
-                scripts = "classpath:sql/deleteBags.sql")
+        @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = CREATE_SCRIPT),
+        @Sql(executionPhase = AFTER_TEST_METHOD, scripts = DELETE_SCRIPT)
 })
 public class LocalTokenizationTest extends IngestTest {
 
     private static final Long ID = 1L;
-    private static final String USERNAME = "admin";
+    private static final String USERNAME = "test-admin";
     private final Collection<Predicate<ManifestEntry>> predicates = ImmutableList.of();
 
     @Mock private TokenWorkSupervisor tws;
@@ -57,12 +58,13 @@ public class LocalTokenizationTest extends IngestTest {
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        PagedDAO dao = new PagedDAO(entityManager);
-        BagStagingProperties properties =
-                new BagStagingProperties().setPosix(new Posix().setId(ID));
-        IngestAPIProperties apiProperties = new IngestAPIProperties().setUsername(USERNAME);
+        PagedDao dao = new PagedDao(entityManager);
+        IngestProperties properties = new IngestProperties();
+        properties.getTokenizer().setUsername(USERNAME);
+        properties.getTokenizer().setStaging(new Posix().setId(ID));
 
-        localTokenization = new LocalTokenization(dao, tws, apiProperties, properties, executor, predicates);
+        localTokenization = new LocalTokenization(dao, tws,
+                properties, executor, predicates);
     }
 
     @Test

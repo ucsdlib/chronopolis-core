@@ -1,13 +1,14 @@
 package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableList;
+import com.querydsl.core.types.Predicate;
 import org.chronopolis.ingest.WebContext;
-import org.chronopolis.ingest.repository.TokenRepository;
-import org.chronopolis.ingest.repository.criteria.SearchCriteria;
-import org.chronopolis.ingest.repository.dao.SearchService;
+import org.chronopolis.ingest.models.Paged;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Depositor;
+import org.chronopolis.rest.entities.BagFile;
+import org.chronopolis.rest.entities.depositor.Depositor;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,17 +16,17 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Date;
+import java.util.HashSet;
 
+import static org.chronopolis.rest.models.enums.BagStatus.DEPOSITED;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -38,54 +39,55 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = WebContext.class)
 public class TokenControllerTest {
 
-    @Autowired
-    private MockMvc mvc;
-
-    @MockBean
-    private SearchService<AceToken, Long, TokenRepository> tokens;
+    @MockBean private PagedDao dao;
+    @Autowired private MockMvc mvc;
 
     @Test
     public void getTokens() throws Exception {
-        when(tokens.findAll(any(SearchCriteria.class), any(Pageable.class)))
+        when(dao.findPage(any(), any(Paged.class)))
                 .thenReturn(wrap(generateToken()));
 
         mvc.perform(get("/api/tokens").principal(() -> "test-principal"))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is(200));
     }
 
     @Test
     public void getToken() throws Exception {
-        when(tokens.find(any(SearchCriteria.class)))
+        when(dao.findOne(any(), any(Predicate.class)))
                 .thenReturn(generateToken());
 
         mvc.perform(get("/api/tokens/{id}", 1L).principal(() -> "test-principal"))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is(200));
     }
 
     @Test
     public void getTokenNotFound() throws Exception {
-        when(tokens.find(any(SearchCriteria.class)))
+        when(dao.findOne(any(), any(Predicate.class)))
                 .thenReturn(null);
 
         mvc.perform(get("/api/tokens/{id}", 1L).principal(() -> "test-principal"))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isNotFound());
     }
 
     private AceToken generateToken() {
-        final Depositor depositor = new Depositor();
-        Bag bag = new Bag("test-name", depositor);
+        Depositor depositor = new Depositor("depositor", "depositor", "depositor");
+        depositor.setContacts(new HashSet<>());
+        depositor.setNodeDistributions(new HashSet<>());
+        Bag bag = new Bag("test-name", depositor.getNamespace(), depositor, 1L, 1L, DEPOSITED);
         bag.setId(1L);
-        AceToken token = new AceToken(bag,
-                new Date(),
-                "test-filename",
-                "test-proof",
-                "test-ims-host",
+        BagFile file = new BagFile();
+        file.setFilename("test-filename");
+        AceToken token = new AceToken("test-proof",
+                100L,
                 "test-ims",
                 "test-algorithm",
-                100L);
+                "test-ims-host",
+                new Date(),
+                bag,
+                file);
         token.setId(1L);
         return token;
     }

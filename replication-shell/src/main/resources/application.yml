@@ -5,6 +5,8 @@
 # send-on-success: flag to enable sending notification on successful replications
 chron:
   node: chron
+  workDirectory: /tmp/chronopolis
+  maxFileTransfers: 2
   smtp.send-on-success: true
  
 # ACE-AM Configuration

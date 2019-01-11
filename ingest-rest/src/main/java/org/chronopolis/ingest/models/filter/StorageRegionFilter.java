@@ -5,7 +5,7 @@ import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import org.chronopolis.ingest.models.Paged;
 import org.chronopolis.rest.entities.storage.QStorageRegion;
-import org.chronopolis.rest.models.storage.StorageType;
+import org.chronopolis.rest.models.enums.StorageType;
 
 import java.util.List;
 

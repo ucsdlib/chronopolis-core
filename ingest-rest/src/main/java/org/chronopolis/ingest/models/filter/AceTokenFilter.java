@@ -59,7 +59,7 @@ public class AceTokenFilter extends Paged {
             this.filename = filename;
             // parameters.putAll("filename", filename);
             parameters.put("filename", filename);
-            builder.and(aceToken.filename.eq(filename));
+            builder.and(aceToken.file.filename.eq(filename));
         }
         return this;
     }
@@ -84,7 +84,7 @@ public class AceTokenFilter extends Paged {
                 orderSpecifier = new OrderSpecifier<>(dir, aceToken.bag.id);
                 break;
             case "filename":
-                orderSpecifier = new OrderSpecifier<>(dir, aceToken.filename);
+                orderSpecifier = new OrderSpecifier<>(dir, aceToken.file.filename);
                 break;
             case "createdAt":
                 orderSpecifier = new OrderSpecifier<>(dir, aceToken.createDate);

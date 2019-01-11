@@ -3,9 +3,9 @@ package org.chronopolis.ingest.repository.dao;
 import org.chronopolis.ingest.models.UserRequest;
 import org.chronopolis.ingest.repository.AuthoritiesRepository;
 import org.chronopolis.ingest.repository.Authority;
-import org.chronopolis.ingest.repository.NodeRepository;
 import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.models.PasswordUpdate;
+import org.chronopolis.rest.entities.QNode;
+import org.chronopolis.rest.models.update.PasswordUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +22,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
+import static java.util.Collections.emptySet;
+
 /**
  * Service to handle things related to user accounts
  *
@@ -33,19 +35,19 @@ public class UserService {
 
     private final Logger log = LoggerFactory.getLogger(UserService.class);
 
+    private final PagedDao dao;
     private final AuthoritiesRepository authorities;
     private final UserDetailsManager manager;
-    private final NodeRepository repository;
     private final PasswordEncoder encoder;
 
     @Autowired
-    public UserService(AuthoritiesRepository authorities,
+    public UserService(PagedDao dao,
+                       AuthoritiesRepository authorities,
                        UserDetailsManager manager,
-                       NodeRepository repository,
                        PasswordEncoder encoder) {
+        this.dao = dao;
         this.authorities = authorities;
         this.manager = manager;
-        this.repository = repository;
         this.encoder = encoder;
     }
 
@@ -68,8 +70,9 @@ public class UserService {
         // Add node if requested
         if (request.isNode()) {
             log.debug("Creating node for {}", username);
-            if (repository.findByUsername(username) == null) {
-                repository.save(new Node(username, password));
+            if (dao.findOne(QNode.node, QNode.node.username.eq(username)) == null) {
+                Node node = new Node(emptySet(), username, password, true);
+                dao.save(node);
             }
         }
     }

@@ -9,8 +9,9 @@
     <div class="card w-75" th:fragment="info">
         <nav th:replace="fragments/crumbs/bag :: single"></nav>
 
-        <!--@thymesVar id="tokens" type="Long"-->
-        <!--@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"-->
+        <!--/*@thymesVar id="tokens" type="Long"*/-->
+        <!--/*@thymesVar id="bag" type="org.chronopolis.rest.entities.Bag"*/-->
+        <!--/*@thymesVar id="formatter" type="org.chronopolis.ingest.support.FileSizeFormatter"*/-->
         <div class="card-body p-2">
             <table class="table table-hover">
                 <tbody>
@@ -24,6 +25,11 @@
                 <div th:replace="fragments/storage :: list-item(head='Updated At', content=${bag.updatedAt})"></div>
                 </tbody>
             </table>
+
+            <a class="btn btn-small btn-outline-primary"
+               th:href="@{|${bag.id}/download/files|}">Download Files</a>
+            <a class="btn btn-small btn-outline-primary"
+                th:href="@{|${bag.id}/download/tokens|}">Download Ace Tokens</a>
         </div>
 
         <div class="card-header" data-toggle="collapse" href="#stagingCollapse"
@@ -52,19 +58,11 @@
                 <th:block th:if="${activeTokenStorage} != null">
                     <div th:replace="fragments/storage :: card-display (storage=${activeTokenStorage}, storageName='token', rw=true)"></div>
                 </th:block>
-                <th:block th:if="${activeTokenStorage} == null">
-                    <div class="btn-group p-2" role="group">
-                        <a class="btn btn-outline-primary"
-                           th:href="@{|${bag.id}/storage/add|}">
-                            Write Tokens
-                        </a>
-                    </div>
-                </th:block>
 
                 <div class="btn-group p-2" role="group">
-                    <a class="btn btn-outline-primary" th:href="@{|${bag.id}/storage/all|}">See
-                        Inactive
-                        Staging</a>
+                    <a class="btn btn-outline-primary" th:href="@{|${bag.id}/storage/|}">
+                        Inactive Staging
+                    </a>
                 </div>
             </div>
         </div>

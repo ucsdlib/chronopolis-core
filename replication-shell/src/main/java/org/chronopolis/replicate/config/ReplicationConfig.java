@@ -10,13 +10,12 @@ import org.chronopolis.common.storage.PreservationProperties;
 import org.chronopolis.common.storage.PreservationPropertiesValidator;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.Submitter;
-import org.chronopolis.rest.api.ErrorLogger;
-import org.chronopolis.rest.api.IngestAPIProperties;
+import org.chronopolis.replicate.batch.TransferFactory;
+import org.chronopolis.replicate.batch.ace.AceFactory;
+import org.chronopolis.rest.api.IngestApiProperties;
 import org.chronopolis.rest.api.IngestGenerator;
+import org.chronopolis.rest.api.OkBasicInterceptor;
 import org.chronopolis.rest.api.ServiceGenerator;
-import org.chronopolis.rest.support.OkBasicInterceptor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -36,28 +35,17 @@ import java.util.concurrent.TimeUnit;
  */
 @Configuration
 @EnableConfigurationProperties({SmtpProperties.class,
-        IngestAPIProperties.class,
+        IngestApiProperties.class,
         PreservationProperties.class,
         ReplicationProperties.class,
         AceConfiguration.class})
 public class ReplicationConfig {
-    public final Logger log = LoggerFactory.getLogger(ReplicationConfig.class);
 
     @Value("${debug.retrofit:NONE}")
     public String retrofitLogLevel;
 
     @Value("${ace.timeout:5}")
     public Long timeout;
-
-    /**
-     * Logger to capture why errors happened in Retrofit
-     *
-     * @return
-     */
-    @Bean
-    public ErrorLogger logger() {
-        return new ErrorLogger();
-    }
 
     /**
      * Retrofit adapter for interacting with the ACE REST API
@@ -68,7 +56,9 @@ public class ReplicationConfig {
     @Bean
     public AceService aceService(AceConfiguration configuration) {
         OkHttpClient client = new OkHttpClient.Builder()
-                .addInterceptor(new OkBasicInterceptor(configuration.getUsername(), configuration.getPassword()))
+                .addInterceptor(new OkBasicInterceptor(
+                        configuration.getUsername(),
+                        configuration.getPassword()))
                 .readTimeout(timeout, TimeUnit.MINUTES)
                 .writeTimeout(timeout, TimeUnit.MINUTES)
                 .build();
@@ -77,11 +67,24 @@ public class ReplicationConfig {
                 .baseUrl(configuration.getAm())
                 .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
-                // .setErrorHandler(logger())
-                // .setLogLevel(Retrofit.LogLevel.valueOf(retrofitLogLevel))
                 .build();
 
         return restAdapter.create(AceService.class);
+    }
+
+    @Bean
+    public TransferFactory transferFactory(ThreadPoolExecutor io,
+                                           ServiceGenerator generator,
+                                           ReplicationProperties properties) {
+        return new TransferFactory(io, generator.files(), generator.replications(), properties);
+    }
+
+    @Bean
+    public AceFactory aceFactory(AceService ace,
+                                 ThreadPoolExecutor http,
+                                 ServiceGenerator generator,
+                                 AceConfiguration configuration) {
+        return new AceFactory(ace, generator, configuration, http);
     }
 
     /**
@@ -91,7 +94,7 @@ public class ReplicationConfig {
      * @return the ServiceGenerator
      */
     @Bean
-    public ServiceGenerator serviceGenerator(IngestAPIProperties properties) {
+    public ServiceGenerator serviceGenerator(IngestApiProperties properties) {
         return new IngestGenerator(properties);
     }
 
@@ -100,20 +103,27 @@ public class ReplicationConfig {
      *
      * @param mail          the mail utility for sending success/failure notifications
      * @param ace           the service to connect to the ACE-AM REST API
-     * @param configuration the configuration properties for ACE-AM
      * @param properties    the configuration for... general replication properties
      * @param generator     the ServiceGenerator to use for creating Ingest API services
      * @param broker        the BucketBroker for handling distribution of replications into Buckets
-     * @return
+     * @return A {@link Submitter} which tracks bags submitted for replication
      */
     @Bean
     public Submitter submitter(MailUtil mail,
                                AceService ace,
-                               AceConfiguration configuration,
+                               AceFactory aceFactory,
+                               TransferFactory transferFactory,
                                ReplicationProperties properties,
                                ServiceGenerator generator,
                                BucketBroker broker) {
-        return new Submitter(mail, ace, broker, generator, configuration, properties, io(), http());
+        return new Submitter(mail,
+                ace,
+                broker,
+                generator,
+                aceFactory,
+                transferFactory,
+                properties,
+                http());
     }
 
     @Bean
@@ -122,8 +132,12 @@ public class ReplicationConfig {
     }
 
     @Bean
-    public ThreadPoolExecutor io() {
-        return new ThreadPoolExecutor(2, 2, 30, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
+    public ThreadPoolExecutor io(ReplicationProperties properties) {
+        return new ThreadPoolExecutor(properties.getMaxFileTransfers(),
+                properties.getMaxFileTransfers(),
+                30,
+                TimeUnit.SECONDS,
+                new LinkedBlockingDeque<>());
     }
 
     /**

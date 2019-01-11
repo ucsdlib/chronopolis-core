@@ -13,9 +13,22 @@ ingest.cron:
 ingest.ajp:
   enabled: false
   port: 8009
- 
-# The staging area for writing Token Stores. Nonposix support not yet implemented.
-## id: The id of the StagingStorage in the Ingest server
+
+# Ingest Tokenizer Settings
+# cron: the cron timer for running local-tokenization
+# enabled: flag to enable Local tokenization of bags
+# username: the 'creator' to check for when depositing bags
+# staging.id: the ID of the StorageRegion to write tokens into
+# staging.path: the path to the filesystem on disk
+ingest.tokenizer:
+  cron: 0 0 * * * *
+  enabled: true
+  username: admin
+  staging.id: -1
+  staging.path: /dev/null
+
+# The staging area for writing Token Stores. Non-posix support not yet implemented.
+## id: The id of the StorageRegion in the Ingest server
 ## path: The path to the filesystem on disk
 chron.stage.tokens.posix.id: -1
 chron.stage.tokens.posix.path: /dev/null

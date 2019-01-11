@@ -1,22 +1,21 @@
 package org.chronopolis.ingest.api;
 
+import com.google.common.collect.ImmutableSet;
 import org.chronopolis.ingest.models.filter.BagFilter;
 import org.chronopolis.ingest.models.filter.DepositorFilter;
-import org.chronopolis.ingest.repository.dao.PagedDAO;
-import org.chronopolis.ingest.support.Loggers;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Depositor;
-import org.chronopolis.rest.entities.DepositorContact;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QBag;
-import org.chronopolis.rest.entities.QDepositor;
-import org.chronopolis.rest.entities.QDepositorContact;
 import org.chronopolis.rest.entities.QNode;
-import org.chronopolis.rest.models.DepositorContactCreate;
-import org.chronopolis.rest.models.DepositorContactRemove;
-import org.chronopolis.rest.models.DepositorCreate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.chronopolis.rest.entities.depositor.Depositor;
+import org.chronopolis.rest.entities.depositor.DepositorContact;
+import org.chronopolis.rest.entities.depositor.DepositorContactKt;
+import org.chronopolis.rest.entities.depositor.QDepositor;
+import org.chronopolis.rest.entities.depositor.QDepositorContact;
+import org.chronopolis.rest.models.create.DepositorContactCreate;
+import org.chronopolis.rest.models.create.DepositorCreate;
+import org.chronopolis.rest.models.delete.DepositorContactDelete;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -32,9 +31,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.security.Principal;
-import java.util.Optional;
+import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
 
@@ -48,12 +46,10 @@ import static org.chronopolis.ingest.IngestController.hasRoleAdmin;
 @RequestMapping("/api/depositors")
 public class DepositorController {
 
-    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
-
-    private final PagedDAO dao;
+    private final PagedDao dao;
 
     @Autowired
-    public DepositorController(PagedDAO dao) {
+    public DepositorController(PagedDao dao) {
         this.dao = dao;
     }
 
@@ -83,9 +79,10 @@ public class DepositorController {
     public ResponseEntity<Depositor> createDepositor(Principal principal,
                                                      @Valid @RequestBody
                                                      DepositorCreate depositorCreate) {
-        access.info("[POST /api/depositors] - {}", principal.getName());
         QDepositor qDepositor = QDepositor.depositor;
 
+        List<Node> nodes = dao.findAll(QNode.node,
+                QNode.node.username.in(depositorCreate.getReplicatingNodes()));
         Depositor exists = dao.findOne(qDepositor,
                 qDepositor.namespace.eq(depositorCreate.getNamespace()));
 
@@ -96,18 +93,15 @@ public class DepositorController {
         } else if (exists != null) {
             response = ResponseEntity.status(HttpStatus.CONFLICT).build();
         } else {
-            Set<DepositorContact> contacts = depositorCreate.getContacts().stream()
-                    .map(DepositorContact::fromCreateRequest)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .collect(Collectors.toSet());
+            Set<DepositorContact> contacts = DepositorContactKt
+                    .fromRequest(depositorCreate.getContacts());
 
             if (contacts.size() == depositorCreate.getContacts().size()) {
-                Depositor dep = new Depositor()
-                        .setNamespace(depositorCreate.getNamespace())
-                        .setSourceOrganization(depositorCreate.getSourceOrganization())
-                        .setOrganizationAddress(depositorCreate.getOrganizationAddress())
-                        .setContacts(contacts);
+                Depositor dep = new Depositor(depositorCreate.getNamespace(),
+                        depositorCreate.getSourceOrganization(),
+                        depositorCreate.getOrganizationAddress());
+                dep.setContacts(contacts);
+                dep.setNodeDistributions(ImmutableSet.copyOf(nodes));
                 dao.save(dep);
                 response = ResponseEntity.status(HttpStatus.CREATED).body(dep);
             }
@@ -204,8 +198,7 @@ public class DepositorController {
     public ResponseEntity<DepositorContact> addContact(Principal principal,
                                                        @PathVariable("namespace") String namespace,
                                                        @Valid @RequestBody
-                                                               DepositorContactCreate create) {
-        access.info("[POST /api/depositors/{}/contacts] - {}", namespace, principal.getName());
+                                                       DepositorContactCreate create) {
         ResponseEntity<DepositorContact> response = ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .build();
@@ -216,11 +209,9 @@ public class DepositorController {
             Depositor depositor = dao.findOne(qDepositor, qDepositor.namespace.eq(namespace));
             DepositorContact depositorContact = dao.findOne(qDepositorContact,
                     qDepositorContact.depositor.namespace.eq(namespace)
-                            .and(qDepositorContact.contactEmail.eq(create.getEmail())));
+                            .and(qDepositorContact.contactEmail.eq(create.getContactEmail())));
             if (depositor != null && depositorContact == null) {
-                Optional<DepositorContact> contact = DepositorContact.fromCreateRequest(create);
-                // if valid...
-                response = contact.map(entity -> {
+                response = DepositorContactKt.fromRequest(create).map(entity -> {
                     depositor.addContact(entity);
                     dao.save(depositor);
                     return ResponseEntity.status(HttpStatus.CREATED).body(entity);
@@ -249,8 +240,7 @@ public class DepositorController {
     @DeleteMapping("/{namespace}/contacts")
     public ResponseEntity<Depositor> removeContact(Principal principal,
                                                    @PathVariable("namespace") String namespace,
-                                                   @RequestBody DepositorContactRemove body) {
-        access.info("[DELETE /api/depositors/{}/contacts] - {}", namespace, principal.getName());
+                                                   @RequestBody DepositorContactDelete body) {
         ResponseEntity<Depositor> response = ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         if (hasRoleAdmin()) {
             QDepositor qDepositor = QDepositor.depositor;
@@ -291,8 +281,6 @@ public class DepositorController {
     public ResponseEntity<Depositor> addNode(Principal principal,
                                              @PathVariable("namespace") String namespace,
                                              @PathVariable("nodeName") String nodeName) {
-        access.info("[POST /api/depositors/{}/nodes/{}] - {}",
-                namespace, nodeName, principal.getName());
         ResponseEntity<Depositor> response = ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 
         if (hasRoleAdmin()) {
@@ -331,8 +319,6 @@ public class DepositorController {
     public ResponseEntity<Depositor> removeNode(Principal principal,
                                                 @PathVariable("namespace") String namespace,
                                                 @PathVariable("nodeName") String nodeName) {
-        access.info("[DELETE /api/depositors/{}/nodes/{}] - {}",
-                namespace, nodeName, principal.getName());
         ResponseEntity<Depositor> response = ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         if (hasRoleAdmin()) {
             QNode qNode = QNode.node;

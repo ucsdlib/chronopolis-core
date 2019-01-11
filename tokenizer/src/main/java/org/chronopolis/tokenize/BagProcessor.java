@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import org.chronopolis.common.storage.BagStagingProperties;
+import org.chronopolis.common.storage.Posix;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.slf4j.Logger;
@@ -52,8 +53,7 @@ public class BagProcessor implements Runnable {
         this(bag, predicates, properties,
                 // eventually this will be cleaned up a bit when we have "storage aware" classes
                 // but for now we just have posix areas sooooo yea
-                Digester.of(properties.getPosix().getPath(),
-                        bag.getBagStorage().getPath()),
+                Digester.of(properties.getPosix(), bag.getBagStorage().getPath()),
                 supervisor);
     }
 
@@ -191,14 +191,16 @@ public class BagProcessor implements Runnable {
      */
     @SuppressWarnings("WeakerAccess")
     public static class Digester {
-        private final Path root;
+        private final Posix posix;
+        private final String location;
 
-        public static Digester of(String first, String... paths) {
-            return new Digester(Paths.get(first, paths));
+        public static Digester of(Posix posix, String location) {
+            return new Digester(posix, location);
         }
 
-        public Digester(Path root) {
-            this.root = root;
+        public Digester(Posix posix, String location) {
+            this.posix = posix;
+            this.location = location;
         }
 
         /**
@@ -227,8 +229,9 @@ public class BagProcessor implements Runnable {
          * @throws IOException if there's an error hashing
          */
         private HashCode run(String name) throws IOException {
-            log.trace("digesting {}", name);
-            return asByteSource(root.resolve(name).toFile())
+            log.debug("digesting {}", name);
+            Path fullPath = Paths.get(posix.getPath(), location, name);
+            return asByteSource(fullPath.toFile())
                     .hash(Hashing.sha256());
 
         }

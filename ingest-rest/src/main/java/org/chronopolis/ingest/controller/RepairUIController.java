@@ -1,5 +1,6 @@
 package org.chronopolis.ingest.controller;
 
+import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
@@ -13,26 +14,21 @@ import org.chronopolis.ingest.models.CollectionInfo;
 import org.chronopolis.ingest.models.FulfillmentRequest;
 import org.chronopolis.ingest.models.HttpError;
 import org.chronopolis.ingest.models.filter.RepairFilter;
-import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.RepairRepository;
-import org.chronopolis.ingest.repository.criteria.BagSearchCriteria;
-import org.chronopolis.ingest.repository.criteria.RepairSearchCriteria;
-import org.chronopolis.ingest.repository.dao.BagService;
-import org.chronopolis.ingest.repository.dao.SearchService;
-import org.chronopolis.ingest.support.Loggers;
+import org.chronopolis.ingest.repository.dao.PagedDao;
+import org.chronopolis.rest.api.OkBasicInterceptor;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.Repair;
-import org.chronopolis.rest.models.repair.AuditStatus;
-import org.chronopolis.rest.models.repair.RepairRequest;
-import org.chronopolis.rest.models.repair.RepairStatus;
-import org.chronopolis.rest.support.OkBasicInterceptor;
+import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.QNode;
+import org.chronopolis.rest.entities.repair.QRepair;
+import org.chronopolis.rest.entities.repair.Repair;
+import org.chronopolis.rest.models.create.RepairCreate;
+import org.chronopolis.rest.models.enums.AuditStatus;
+import org.chronopolis.rest.models.enums.RepairStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -49,14 +45,15 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
  * Handle routing and querying for the Repair WebUI stuff
- *
+ * <p>
  * Created by shake on 4/14/17.
  */
 @Controller
@@ -64,19 +61,12 @@ public class RepairUIController extends IngestController {
     private final Integer DEFAULT_PAGE_SIZE = 20;
 
     private final Logger log = LoggerFactory.getLogger(RepairUIController.class);
-    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
-    private final NodeRepository nodes;
-    private final BagService bags;
-    private final SearchService<Repair, Long, RepairRepository> repairs;
+    private final PagedDao dao;
 
     @Autowired
-    public RepairUIController(BagService bService,
-                              NodeRepository nodes,
-                              SearchService<Repair, Long, RepairRepository> rService) {
-        this.bags = bService;
-        this.nodes = nodes;
-        this.repairs = rService;
+    public RepairUIController(PagedDao dao) {
+        this.dao = dao;
     }
 
     /**
@@ -86,21 +76,20 @@ public class RepairUIController extends IngestController {
      */
     @GetMapping("/repairs/add")
     public String newRepairRequest() {
-        access.info("[GET /repairs/add]");
         return "repair/add";
     }
 
     /**
      * Accept ACE credentials in order to query for corrupt collections
      *
-     * @param model The model
-     * @param session The http session of the user
+     * @param model       The model
+     * @param session     The http session of the user
      * @param credentials The credentials for ACE
      * @return the corrupted collections to choose from
      */
     @PostMapping("/repairs/ace")
     public String getCollections(Model model, HttpSession session, AceCredentials credentials) {
-        access.info("[POST /repairs/ace]");
+        // todo: remove gson
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Date.class,
                         (JsonDeserializer<Date>)
@@ -110,7 +99,8 @@ public class RepairUIController extends IngestController {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(credentials.getEndpoint())
                 .client(new OkHttpClient.Builder()
-                        .addInterceptor(new OkBasicInterceptor(credentials.getUsername(),
+                        .addInterceptor(new OkBasicInterceptor(
+                                credentials.getUsername(),
                                 credentials.getPassword()))
                         .build())
                 .addConverterFactory(GsonConverterFactory.create(gson))
@@ -125,9 +115,10 @@ public class RepairUIController extends IngestController {
                 // ????? this would be pretty bad performance wise because of the db reads, but w/e
                 List<GsonCollection> filtered = response.body().stream()
                         .filter(collection ->
-                                bags.find(new BagSearchCriteria()
-                                        .withName(collection.getName())
-                                        .withDepositor(collection.getGroup())) != null)
+                                dao.findOne(
+                                        QBag.bag, QBag.bag.depositor.namespace.eq(collection.getGroup())
+                                                .and(QBag.bag.name.eq(collection.getName()))
+                                ) != null)
                         .collect(Collectors.toList());
                 model.addAttribute("collections", filtered);
             } else {
@@ -144,28 +135,26 @@ public class RepairUIController extends IngestController {
     /**
      * Retrieve invalid files defined by a collection
      *
-     * @param model The model
-     * @param principal The user's principal
-     * @param session The user's http session
+     * @param model       The model
+     * @param principal   The user's principal
+     * @param session     The user's http session
      * @param infoRequest Information about the ACE collection
      * @return page to select which files to choose
      */
     @PostMapping("/repairs/collection")
     public String getErrors(Model model, Principal principal, HttpSession session, CollectionInfo infoRequest) {
-        access.info("[POST /repairs/collection] - {}", principal.getName());
-        access.info("POST parameters - {};{}", infoRequest.getCollection(), infoRequest.getDepositor());
         AceCollections collections;
         Object o = session.getAttribute("ace");
-        if (o == null || !(o instanceof AceCollections)) {
+        if (!(o instanceof AceCollections)) {
             return "repair/add";
         }
 
         List<Node> repairingNodes;
         if (hasRoleAdmin()) {
-            repairingNodes = nodes.findAll();
+            repairingNodes = dao.findAll(QNode.node);
         } else {
             repairingNodes = new ArrayList<>();
-            repairingNodes.add(nodes.findByUsername(principal.getName()));
+            repairingNodes.add(dao.findOne(QNode.node, QNode.node.username.eq(principal.getName())));
         }
 
         collections = (AceCollections) o;
@@ -197,29 +186,33 @@ public class RepairUIController extends IngestController {
 
     /**
      * Create a new repair request
-     *
+     * <p>
      * todo: still want to verify that the bag is nonnull (should be added to sql too)
      *
      * @param principal The user's principal
-     * @param request The repair request to process
+     * @param request   The repair request to process
      * @return The newly created repair
      */
     @PostMapping("/repairs")
-    public String requestRepair(Principal principal, RepairRequest request) {
-        access.info("[POST /repairs] - {}", principal.getName());
+    public String requestRepair(Principal principal, RepairCreate request) {
         log.info("{} items requested", request.getFiles().size());
-        Bag bag = bags.find(new BagSearchCriteria()
-                .withDepositor(request.getDepositor())
-                .withName(request.getCollection()));
-        Node to = nodes.findByUsername(request.getTo().orElse(principal.getName()));
+        Bag bag = dao.findOne(QBag.bag, QBag.bag.depositor.namespace.eq(request.getDepositor()).and(QBag.bag.name.eq(request.getCollection())));
+        Optional<String> of = Optional.ofNullable(request.getTo());
+        Node to = dao.findOne(QNode.node, QNode.node.username.eq(of.orElse(principal.getName())));
 
-        Repair repair = new Repair();
-        repair.setRequester(principal.getName());
-        repair.setTo(to);
-        repair.setFilesFromRequest(request.getFiles());
-        repair.setBag(bag);
-        repair.setStatus(RepairStatus.REQUESTED);
-        repairs.save(repair);
+        // todo: we could create a constructor which accepts non-null fields only
+        Repair repair = new Repair(bag,
+                to,
+                null, // from_node -> set once we start to fulfill
+                RepairStatus.REQUESTED,
+                AuditStatus.PRE,
+                null,  // fulfillment type -> determined by from_node
+                null,  // fulfillment strategy -> determined by from_node
+                principal.getName(),
+                false, false, false);
+        repair.setFiles(new HashSet<>());
+        repair.addFilesFromRequest(request.getFiles());
+        dao.save(repair);
 
         return "redirect:/repairs/" + repair.getId();
     }
@@ -227,30 +220,21 @@ public class RepairUIController extends IngestController {
     /**
      * A listing of all repairs
      *
-     * @param model the model
+     * @param model  the model
      * @param filter Parameters to filter on
      * @return The list of repairs
      */
     @GetMapping("/repairs")
     public String repairs(Model model, @ModelAttribute(value = "filter") RepairFilter filter) {
-        access.info("[GET /repairs]");
-        RepairSearchCriteria criteria = new RepairSearchCriteria()
-                .withTo(filter.getNode())
-                .withFulfillingNode(filter.getFulfillingNode())
-                .withStatuses(filter.getStatus())
-                .withAuditStatuses(filter.getAuditStatus());
-
         // might be able to put Sort.Direction in the Paged class
-        Sort.Direction direction = (filter.getDir() == null) ? Sort.Direction.DESC : Sort.Direction.fromStringOrNull(filter.getDir());
-        Sort s = new Sort(direction, filter.getOrderBy());
-        Page<Repair> results = repairs.findAll(criteria, new PageRequest(filter.getPage(), DEFAULT_PAGE_SIZE, s));
+        Page<Repair> results = dao.findPage(QRepair.repair, filter);
 
         PageWrapper<Repair> pages = new PageWrapper<>(results, "/repairs", filter.getParameters());
 
         model.addAttribute("repairs", results);
         model.addAttribute("pages", pages);
-        model.addAttribute("repairStatus", RepairStatus.statusByGroup());
-        model.addAttribute("auditStatus", AuditStatus.statusByGroup());
+        model.addAttribute("repairStatus", RepairStatus.Companion.statusByGroup());
+        model.addAttribute("auditStatus", AuditStatus.Companion.statusByGroup());
         return "repair/repairs";
     }
 
@@ -258,15 +242,14 @@ public class RepairUIController extends IngestController {
      * Information about a single repair
      *
      * @param model The model
-     * @param id The id of the repair
+     * @param id    The id of the repair
      * @return the repair specified by id
      */
     @GetMapping("/repairs/{id}")
     public String repair(Model model, @PathVariable("id") Long id) {
-        access.info("[GET /repairs/{}]", id);
-        Repair repair = repairs.find(new RepairSearchCriteria().withId(id));
+        Repair repair = dao.findOne(QRepair.repair, QRepair.repair.id.eq(id));
         model.addAttribute("repair", repair);
-        if (repair.getStrategy() != null) {
+        if (repair.getStrategy() != null && repair.getType() != null) {
             model.addAttribute(repair.getType().name().toLowerCase(), repair.getStrategy());
         }
 
@@ -276,24 +259,24 @@ public class RepairUIController extends IngestController {
     /**
      * Return repairs which can be fulfilled
      *
-     * @param model The model
+     * @param model     The model
      * @param principal The user's principal
      * @return Repairs to fulfill
      */
     @GetMapping("/repairs/fulfill")
     public String fulfillRepair(Model model, Principal principal) {
-        access.info("[GET /repairs/fulfill]");
         // todo: either to withFromNot principal.getName
         //       or disable all radios w/ the selected from in the page
-        Page<Repair> availableRepairs = repairs.findAll(new RepairSearchCriteria()
-                        .withStatus(RepairStatus.REQUESTED),
-                createPageRequest(new HashMap<>(), new HashMap<>()));
+        Page<Repair> availableRepairs = dao.findPage(
+                QRepair.repair,
+                new RepairFilter().setStatus(ImmutableList.of(RepairStatus.REQUESTED))
+        );
         List<Node> from;
         if (hasRoleAdmin()) {
-            from = nodes.findAll();
+            from = dao.findAll(QNode.node);
         } else {
             from = new ArrayList<>();
-            from.add(nodes.findByUsername(principal.getName()));
+            from.add(dao.findOne(QNode.node, QNode.node.username.eq(principal.getName())));
         }
 
         model.addAttribute("repairs", availableRepairs);
@@ -304,28 +287,25 @@ public class RepairUIController extends IngestController {
     /**
      * Fulfill a repair
      *
-     * @param model the model
+     * @param model     the model
      * @param principal the user's principal
-     * @param request fulfillment information
+     * @param request   fulfillment information
      * @return the repair being fulfilled
      */
     @PostMapping("/repairs/fulfill")
     public String createFulfillment(Model model, Principal principal, FulfillmentRequest request) {
-        access.info("[POST /repairs/fulfill] - ", principal.getName());
         log.info("{} offering to fulfill {}", request.getFrom(), request.getRepair());
-        Repair repair = repairs.find(new RepairSearchCriteria().withId(request.getRepair()));
+        Repair repair = dao.findOne(QRepair.repair, QRepair.repair.id.eq(request.getRepair()));
         String toNode = repair.getTo().getUsername();
         String fromNode = request.getFrom();
 
         if (repair.getFrom() == null && !Objects.equals(toNode, fromNode)) {
-            repair.setFrom(nodes.findByUsername(fromNode));
+            repair.setFrom(dao.findOne(QNode.node, QNode.node.username.eq(fromNode)));
             repair.setStatus(RepairStatus.STAGING);
-            repairs.save(repair);
+            dao.save(repair);
         }
 
         return "redirect:/repairs/" + repair.getId();
     }
-
-
 
 }

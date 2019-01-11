@@ -1,6 +1,7 @@
 package org.chronopolis.common.transfer;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import org.chronopolis.common.exception.FileTransferException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -26,56 +28,76 @@ import java.util.concurrent.FutureTask;
  */
 public class RSyncTransfer implements FileTransfer {
     private final Logger log = LoggerFactory.getLogger("rsync-log");
-    private final ExecutorService threadPool = Executors.newSingleThreadExecutor();
     private final String link;
     private final Path storage;
+
+    // should this be a List?
+    private final List<String> arguments;
 
     // Set during the execution of our process
     private InputStream stream;
     private InputStream errors;
 
-    public RSyncTransfer(String link) {
+    private final ExecutorService threadPool = Executors.newSingleThreadExecutor();
+
+    public RSyncTransfer(final String link, final Path local) {
         this.link = link;
-        this.storage = null;
-    }
-
-    public RSyncTransfer(final String uri, final Path local) {
-        this.link = uri;
         this.storage = local;
+        this.arguments = ImmutableList.of("-aL", "--stats");
     }
 
+    public RSyncTransfer(final String link, final Path local, List<String> arguments) {
+        this.link = link;
+        this.storage = local;
+        this.arguments = arguments;
+    }
+
+    /**
+     * Execute an external rsync process in order to transfer data
+     *
+     * Enforces key based SSH authentication by disabling PasswordAuthentication
+     *
+     * @param uri   The location of the file
+     * @param local The local destination for the transfer
+     * @return The {@link Path} to the transferred files
+     * @throws FileTransferException if there is a problem with the transfer
+     */
     @Override
-    public Path getFile(final String uri, final Path local) throws FileTransferException {
-        // Taken from http://stackoverflow.com/questions/1246255/any-good-rsync-library-for-java
-        // Need to test/modify command
-        // Currently uses passwordless SSH keys to login
+    public Path getFile(@Deprecated final String uri,
+                        @Deprecated final Path local) throws FileTransferException {
+        final String fteMessage = "rsync did not complete successfully (exit code %d)";
+
+        // search for rsync in the path? or pass in path?
+        final String rsyncCommand = "rsync";
+
+        // always disable password auth
+        final String sshConfig = "-e ssh -o 'PasswordAuthentication no'";
 
         Callable<Path> download = () -> {
-            Path parent = local.getParent();
+            Path parent = storage.getParent();
             if (!parent.toFile().exists()) {
                 log.debug("Creating parent directory {}", parent);
                 Files.createDirectories(parent);
             }
 
-            String[] cmd = new String[]{"rsync",
-                    "-aL",
-                    "-e ssh -o 'PasswordAuthentication no'",
-                    "--stats",
-                    link,
-                    local.toString()};
-            ProcessBuilder pb = new ProcessBuilder(cmd);
+            ImmutableList<String> command = new ImmutableList.Builder<String>()
+                    .add(rsyncCommand)
+                    .add(sshConfig)
+                    .addAll(arguments)
+                    .add(link)
+                    .add(storage.toString()).build();
+            ProcessBuilder pb = new ProcessBuilder(command);
             Process p = null;
             try {
-                log.info("Rsyncing {} -> {}", link, local);
+                log.info("rsync {} -> {}", link, storage);
 
                 p = pb.start();
                 int exit = p.waitFor();
-
                 stream = p.getInputStream();
 
                 if (exit != 0) {
                     errors = p.getErrorStream();
-                    throw new FileTransferException("rsync did not complete successfully (exit code " + exit + ")");
+                    throw new FileTransferException(String.format(fteMessage, exit));
                 }
 
             } catch (IOException e) {
@@ -90,15 +112,13 @@ public class RSyncTransfer implements FileTransfer {
                 throw new FileTransferException("rsync was interrupted", e);
             }
 
-            return local.resolve(last());
+            return storage.resolve(last());
         };
 
         FutureTask<Path> timedTask = new FutureTask<>(download);
         threadPool.execute(timedTask);
 
         try {
-            // TODO: Timeout based on collection size?
-            // return timedTask.get(1, TimeUnit.DAYS);
             return timedTask.get();
         } catch (InterruptedException | ExecutionException e) {
             log.error("rsync had critical error", e);
@@ -111,46 +131,6 @@ public class RSyncTransfer implements FileTransfer {
     @Override
     public Path get() throws FileTransferException {
         return getFile(link, storage);
-    }
-
-    public void put(final Path localFile, final String uri) throws FileTransferException {
-        Callable<Boolean> upload = () -> {
-            // Ensure that we don't include the directory
-            String local = localFile.toString();
-            if (!local.endsWith("/")) {
-                local += "/";
-            }
-            String[] cmd = new String[]{"rsync", "-az", local, uri};
-            ProcessBuilder pb = new ProcessBuilder(cmd);
-            Process p = null;
-            try {
-                log.info("Executing {} {} {} {}", cmd);
-                p = pb.start();
-                p.waitFor();
-                log.info("rsync exit value: " + p.exitValue());
-            } catch (IOException e) {
-                log.error("Error starting rsync", e);
-                return false;
-            } catch (InterruptedException e) {
-                log.error("rsync interrupted", e);
-                return false;
-            }
-            return true;
-        };
-
-        FutureTask<Boolean> timedTask = new FutureTask<>(upload);
-        threadPool.execute(timedTask);
-
-        try {
-            // timedTask.get(1, TimeUnit.DAYS);
-            timedTask.get();
-        } catch (InterruptedException | ExecutionException e) {
-            log.error("rsync had a critical error", e);
-            throw new FileTransferException("rsync had a critical error", e);
-        } finally {
-            threadPool.shutdownNow();
-        }
-
     }
 
     @Override
@@ -178,11 +158,11 @@ public class RSyncTransfer implements FileTransfer {
 
     /**
      * retrieve the last directory in a link
-     *
+     * <p>
      * test remote (from :)
      * test local (from /)
-     *  -> no / return link
-     *  -> else substring lastidxof /
+     * -> no / return link
+     * -> else substring lastIndexOf /
      *
      * @return the last directory
      */

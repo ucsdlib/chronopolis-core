@@ -1,18 +1,14 @@
 package org.chronopolis.ingest.api;
 
-import com.google.common.collect.ImmutableMap;
 import org.chronopolis.ingest.IngestController;
-import org.chronopolis.ingest.repository.dao.StorageRegionService;
-import org.chronopolis.ingest.support.Loggers;
-import org.chronopolis.rest.models.RegionCreate;
 import org.chronopolis.ingest.models.filter.StorageRegionFilter;
-import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.criteria.StorageRegionSearchCriteria;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.rest.entities.Node;
+import org.chronopolis.rest.entities.QNode;
+import org.chronopolis.rest.entities.storage.QStorageRegion;
 import org.chronopolis.rest.entities.storage.ReplicationConfig;
 import org.chronopolis.rest.entities.storage.StorageRegion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.chronopolis.rest.models.create.RegionCreate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -26,25 +22,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
-import java.util.HashMap;
+import java.util.Collections;
 
 /**
  * API methods to query StorageRegions
- *
+ * <p>
  * Created by shake on 7/11/17.
  */
 @RestController
 @RequestMapping("/api/storage")
 public class StorageController extends IngestController {
-    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
-    private NodeRepository nodes;
-    private StorageRegionService service;
+    private final PagedDao dao;
 
     @Autowired
-    public StorageController(NodeRepository nodes, StorageRegionService storageRegionService) {
-        this.nodes = nodes;
-        this.service = storageRegionService;
+    public StorageController(PagedDao dao) {
+        this.dao = dao;
     }
 
     /**
@@ -55,10 +48,7 @@ public class StorageController extends IngestController {
      */
     @GetMapping("{id}")
     public StorageRegion getRegion(@PathVariable("id") Long id) {
-        access.info("[GET /api/storage/{}]", id);
-        StorageRegionSearchCriteria criteria = new StorageRegionSearchCriteria();
-        criteria.withId(id);
-        return service.find(criteria);
+        return dao.findOne(QStorageRegion.storageRegion, QStorageRegion.storageRegion.id.eq(id));
     }
 
     /**
@@ -69,22 +59,14 @@ public class StorageController extends IngestController {
      */
     @GetMapping
     public Page<StorageRegion> getRegions(@ModelAttribute StorageRegionFilter filter) {
-        access.info("[GET /api/storage]");
-        StorageRegionSearchCriteria criteria = new StorageRegionSearchCriteria()
-                .withStorageType(filter.getType())
-                .withNodeName(filter.getName())
-                .withCapacityLessThan(filter.getCapacityLess())
-                .withCapacityGreaterThan(filter.getCapacityGreater());
-
-        // blehh we should really just create our own PageRequest since we can
-        return service.findAll(criteria, createPageRequest(ImmutableMap.of("page", filter.getPage().toString()), new HashMap<>()));
+        return dao.findPage(QStorageRegion.storageRegion, filter);
     }
 
     /**
      * Create a StorageRegion for a node
-     *
+     * <p>
      * todo: some type of identifier (local??) for storage regions?
-     *       should this be included in the create call?
+     * should this be included in the create call?
      *
      * @param create the request containing the information about the SR
      * @return 201 with the new StorageRegion
@@ -92,16 +74,15 @@ public class StorageController extends IngestController {
      *         403 if the user does not have permissions to create the StorageRegion
      */
     @PostMapping
-    public ResponseEntity<StorageRegion> createRegion(Principal principal, @RequestBody RegionCreate create) {
-        access.info("[POST /api/storage] - ", principal.getName());
-        access.info("POST parameters - {};{};{}", create.getNode(), create.getDataType(), create.getStorageType());
+    public ResponseEntity<StorageRegion> createRegion(Principal principal,
+                                                      @RequestBody RegionCreate create) {
         ResponseEntity<StorageRegion> entity = ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .build();
 
         // Good enough I suppose
         if (hasRoleAdmin() || principal.getName().equalsIgnoreCase(create.getNode())) {
-            Node node = nodes.findByUsername(create.getNode());
+            Node node = dao.findOne(QNode.node, QNode.node.username.eq(create.getNode()));
 
             // check if the create exists, and if not return a bad request
             if (node == null) {
@@ -110,17 +91,19 @@ public class StorageController extends IngestController {
                         .build();
             } else {
                 StorageRegion region = new StorageRegion();
-                region.setCapacity(create.getCapacity())
-                        .setNode(node)
-                        .setNote(create.getNote())
-                        .setDataType(create.getDataType())
-                        .setStorageType(create.getStorageType())
-                        .setReplicationConfig(new ReplicationConfig()
-                                .setRegion(region)
-                                .setPath(create.getReplicationPath())
-                                .setServer(create.getReplicationServer())
-                                .setUsername(create.getReplicationUser()));
-                service.save(region);
+                region.setCapacity(create.getCapacity());
+                region.setNode(node);
+                region.setNote(create.getNote());
+                region.setDataType(create.getDataType());
+                region.setStorageType(create.getStorageType());
+
+                ReplicationConfig config = new ReplicationConfig(region,
+                        create.getReplicationPath(),
+                        create.getReplicationServer(),
+                        create.getReplicationUser());
+                region.setReplicationConfig(config);
+                region.setStorage(Collections.emptySet());
+                dao.save(region);
                 entity = ResponseEntity
                         .status(HttpStatus.CREATED)
                         .body(region);

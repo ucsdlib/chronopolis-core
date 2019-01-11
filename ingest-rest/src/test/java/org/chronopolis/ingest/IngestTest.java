@@ -16,6 +16,7 @@ public class IngestTest {
     private static final String BAG_STAGE = "chron.stage.bags";
     private static final String TOKEN_STAGE = "chron.stage.tokens";
     private static final String AJP_ENABLED = "ingest.ajp.enabled";
+    private static final String LOG_FILENAME = "logging.file";
     private static final String FLYWAY_ENABLED = "flyway.enabled";
     private static final String DATASOURCE_INITIALIZE = "spring.datasource.initialize";
 
@@ -23,6 +24,7 @@ public class IngestTest {
     public static void init() {
         System.setProperty(AJP_ENABLED, "false");
         System.setProperty(FLYWAY_ENABLED, "false");
+        System.setProperty(LOG_FILENAME, "test.log");
         System.setProperty(DATASOURCE_INITIALIZE, "false");
 
         // Get the test resources root
@@ -36,6 +38,7 @@ public class IngestTest {
         System.clearProperty(BAG_STAGE);
         System.clearProperty(TOKEN_STAGE);
         System.clearProperty(AJP_ENABLED);
+        System.clearProperty(LOG_FILENAME);
         System.clearProperty(FLYWAY_ENABLED);
         System.clearProperty(DATASOURCE_INITIALIZE);
     }

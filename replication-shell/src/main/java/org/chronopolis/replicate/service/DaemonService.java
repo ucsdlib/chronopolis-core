@@ -7,6 +7,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import sun.misc.Signal;
+
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Service for running the replication-shell in production
@@ -19,6 +23,7 @@ public class DaemonService implements ReplicationService {
     private final Logger log = LoggerFactory.getLogger(DaemonService.class);
 
     private final ApplicationContext context;
+    private final AtomicBoolean RUN = new AtomicBoolean(true);
 
     @Autowired
     public DaemonService(ApplicationContext context) {
@@ -32,19 +37,24 @@ public class DaemonService implements ReplicationService {
      */
     @Override
     public void replicate() {
+        Signal.handle(new Signal("TERM"), signal -> close());
+
         System.out.close();
         System.err.close();
 
         try {
-            while (true) {
-                Thread.sleep(30000);
-                log.trace("going back to sleep");
+            while (RUN.get()) {
+                TimeUnit.MILLISECONDS.sleep(500);
             }
         } catch (InterruptedException e) {
             log.info("Thread interrupted, exiting application");
-            SpringApplication.exit(context);
+            SpringApplication.exit(context, () -> 42);
         }
+    }
 
+    private void close() {
+        log.info("Received sigterm, closing");
+        RUN.set(false);
     }
 
 }

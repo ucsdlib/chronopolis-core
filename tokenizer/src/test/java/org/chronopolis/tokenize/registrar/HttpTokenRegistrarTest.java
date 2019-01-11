@@ -4,8 +4,10 @@ import com.google.common.collect.ImmutableMap;
 import edu.umiacs.ace.ims.ws.TokenResponse;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.rest.api.TokenService;
-import org.chronopolis.rest.models.AceTokenModel;
+import org.chronopolis.rest.models.AceToken;
 import org.chronopolis.rest.models.Bag;
+import org.chronopolis.rest.models.create.AceTokenCreate;
+import org.chronopolis.rest.models.enums.BagStatus;
 import org.chronopolis.test.support.CallWrapper;
 import org.chronopolis.test.support.ErrorCallWrapper;
 import org.chronopolis.test.support.ExceptingCallWrapper;
@@ -21,11 +23,12 @@ import org.slf4j.LoggerFactory;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.time.ZonedDateTime;
 import java.util.GregorianCalendar;
+import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.time.ZonedDateTime.now;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -37,7 +40,7 @@ public class HttpTokenRegistrarTest {
     private final Logger log = LoggerFactory.getLogger(HttpTokenRegistrarTest.class);
 
     // include extraneous characters?
-    private static final String path = "data/path/to/file.txt";
+    private static final String path = "/data/path/to/file.txt";
     private static final String name = "test-name";
     private static final String digest = "digest";
     private static final String service = "test-service";
@@ -49,24 +52,20 @@ public class HttpTokenRegistrarTest {
     private static final Integer status = 1;
 
     private ManifestEntry entry;
-    private AceTokenModel model;
+    private AceToken model;
     private TokenResponse response;
     private HttpTokenRegistrar registrar;
 
-    @Mock
-    private TokenService tokens;
-    @Mock
-    private TokenWorkSupervisor supervisor;
+    @Mock private TokenService tokens;
+    @Mock private TokenWorkSupervisor supervisor;
 
     @Before
     public void setup() throws DatatypeConfigurationException {
         tokens = mock(TokenService.class);
         supervisor = mock(TokenWorkSupervisor.class);
 
-        Bag bag = new Bag();
-        bag.setId(id);
-        bag.setName(name);
-        bag.setDepositor(depositor);
+        Bag bag = new Bag(id, id, id, null, null, now(), now(), name, depositor, depositor,
+                BagStatus.DEPOSITED, new HashSet<>());
         entry = new ManifestEntry(bag, path, digest);
 
         response = new TokenResponse();
@@ -77,63 +76,58 @@ public class HttpTokenRegistrarTest {
         response.setStatusCode(status);
 
         XMLGregorianCalendar calendar = DatatypeFactory.newInstance()
-                .newXMLGregorianCalendar(GregorianCalendar.from(ZonedDateTime.now()));
+                .newXMLGregorianCalendar(GregorianCalendar.from(now()));
         response.setTimestamp(calendar);
         response.setTokenClassName(tokenClass);
 
+        final String host = "test-ims-endpoint";
+        final String proof = "test-proof";
+
         AceConfiguration configuration = new AceConfiguration()
-                .setIms(new AceConfiguration.Ims().setEndpoint("test-ims-endpoint"));
+                .setIms(new AceConfiguration.Ims().setEndpoint(host));
         registrar = new HttpTokenRegistrar(tokens, supervisor, configuration);
 
-        model = new AceTokenModel()
-                .setCreateDate(ZonedDateTime.now())
-                .setRound(round)
-                .setImsService(service)
-                .setProof("test-proof")
-                .setFilename(path)
-                .setBagId(id)
-                .setId(id)
-                .setAlgorithm(provider);
+        model = new AceToken(id, id, round, proof, host, path, provider, service, now());
     }
 
     @Test
     public void get() {
-        CallWrapper<AceTokenModel> success = new CallWrapper<>(model);
-        when(tokens.createToken(eq(id), any(AceTokenModel.class))).thenReturn(success);
+        CallWrapper<AceToken> success = new CallWrapper<>(model);
+        when(tokens.createToken(eq(id), any(AceTokenCreate.class))).thenReturn(success);
 
         registrar.register(ImmutableMap.of(entry, response));
-        verify(tokens, times(1)).createToken(eq(id), any(AceTokenModel.class));
+        verify(tokens, times(1)).createToken(eq(id), any(AceTokenCreate.class));
         verify(supervisor, times(1)).complete(eq(entry));
     }
 
     @Test
     public void registerFailWithException() {
-        ExceptingCallWrapper<AceTokenModel> exception = new ExceptingCallWrapper<>(model);
+        ExceptingCallWrapper<AceToken> exception = new ExceptingCallWrapper<>(model);
 
-        when(tokens.createToken(eq(id), any(AceTokenModel.class))).thenReturn(exception);
+        when(tokens.createToken(eq(id), any(AceTokenCreate.class))).thenReturn(exception);
 
         registrar.register(ImmutableMap.of(entry, response));
-        verify(tokens, times(1)).createToken(eq(id), any(AceTokenModel.class));
+        verify(tokens, times(1)).createToken(eq(id), any(AceTokenCreate.class));
         verify(supervisor, times(1)).retryRegister(eq(entry));
     }
 
     @Test
     public void registerFail4xxError() {
-        ErrorCallWrapper<AceTokenModel> error = new ErrorCallWrapper<>(model, 404, "Bag not found");
-        when(tokens.createToken(eq(id), any(AceTokenModel.class))).thenReturn(error);
+        ErrorCallWrapper<AceToken> error = new ErrorCallWrapper<>(model, 404, "Bag not found");
+        when(tokens.createToken(eq(id), any(AceTokenCreate.class))).thenReturn(error);
 
         registrar.register(ImmutableMap.of(entry, response));
-        verify(tokens, times(1)).createToken(eq(id), any(AceTokenModel.class));
+        verify(tokens, times(1)).createToken(eq(id), any(AceTokenCreate.class));
         verify(supervisor, times(1)).complete(eq(entry));
     }
 
     @Test
     public void register409Success() {
-        ErrorCallWrapper<AceTokenModel> error = new ErrorCallWrapper<>(model, 409, "Token exists");
-        when(tokens.createToken(eq(id), any(AceTokenModel.class))).thenReturn(error);
+        ErrorCallWrapper<AceToken> error = new ErrorCallWrapper<>(model, 409, "Token exists");
+        when(tokens.createToken(eq(id), any(AceTokenCreate.class))).thenReturn(error);
 
         registrar.register(ImmutableMap.of(entry, response));
-        verify(tokens, times(1)).createToken(eq(id), any(AceTokenModel.class));
+        verify(tokens, times(1)).createToken(eq(id), any(AceTokenCreate.class));
         verify(supervisor, times(1)).complete(eq(entry));
     }
 

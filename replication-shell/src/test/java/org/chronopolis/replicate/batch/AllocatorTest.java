@@ -1,5 +1,6 @@
 package org.chronopolis.replicate.batch;
 
+import com.google.common.collect.ImmutableSet;
 import org.chronopolis.common.storage.Bucket;
 import org.chronopolis.common.storage.BucketBroker;
 import org.chronopolis.common.storage.DirectoryStorageOperation;
@@ -8,14 +9,15 @@ import org.chronopolis.common.storage.Posix;
 import org.chronopolis.common.storage.PosixBucket;
 import org.chronopolis.common.storage.SingleFileOperation;
 import org.chronopolis.common.storage.StorageOperation;
-import org.chronopolis.replicate.support.CallWrapper;
 import org.chronopolis.replicate.support.ReplGenerator;
 import org.chronopolis.rest.api.ReplicationService;
 import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.Replication;
-import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.models.enums.BagStatus;
+import org.chronopolis.rest.models.enums.ReplicationStatus;
+import org.chronopolis.rest.models.update.ReplicationStatusUpdate;
+import org.chronopolis.test.support.CallWrapper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,6 +30,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static java.time.ZonedDateTime.now;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
@@ -55,8 +58,7 @@ public class AllocatorTest {
     private Replication replication;
 
     private ServiceGenerator generator;
-    @Mock
-    private ReplicationService replications;
+    @Mock private ReplicationService replications;
 
     @Before
     public void setup() throws URISyntaxException, IOException {
@@ -71,23 +73,28 @@ public class AllocatorTest {
 
         broker = BucketBroker.forBucket(bucket);
         generator = new ReplGenerator(replications);
-        replication = new Replication()
-                .setId(1L)
-                .setBag(new Bag().setName("ALLOCATOR-TEST"));
+
+        Bag bag = new Bag(1L, 1L, 1L, null, null, now(), now(), "ALLOCATOR-TEST", "allocator-test",
+                "test-depositor", BagStatus.REPLICATING, ImmutableSet.of());
+        replication = new Replication(1L, now(), now(), ReplicationStatus.PENDING,
+                "bag-link", "token-link", "protocol", "", "", "test-node", bag);
     }
 
     @Test
     public void allocate() {
-        StorageOperation op1 = new DirectoryStorageOperation(Paths.get(ALLOCATE_PARENT).resolve(ALLOCATE_BAG))
+        Path bagPath = Paths.get(ALLOCATE_PARENT).resolve(ALLOCATE_BAG);
+        Path tokenPath = Paths.get(ALLOCATE_PARENT).resolve(ALLOCATE_TS);
+        StorageOperation op1 = new DirectoryStorageOperation(bagPath)
                 .setType(OperationType.RSYNC)
                 .setIdentifier("id")
                 .setSize(1L);
-        StorageOperation op2 = new SingleFileOperation(Paths.get(ALLOCATE_PARENT).resolve(ALLOCATE_TS))
+        StorageOperation op2 = new SingleFileOperation(tokenPath)
                 .setType(OperationType.RSYNC)
                 .setIdentifier("id")
                 .setSize(1L);
 
-        when(replications.updateStatus(eq(1L), any(RStatusUpdate.class))).thenReturn(new CallWrapper<>(replication));
+        when(replications.updateStatus(eq(1L), any(ReplicationStatusUpdate.class)))
+                .thenReturn(new CallWrapper<>(replication));
 
         allocator = new Allocator(broker, op1, op2, replication, generator);
         ReplicationStatus status = allocator.get();
@@ -103,17 +110,19 @@ public class AllocatorTest {
 
     @Test
     public void allocateExists() {
-        // ???
-        StorageOperation op1 = new DirectoryStorageOperation(Paths.get(ALLOCATE_BAG))
+        Path bagPath = Paths.get(ALLOCATE_BAG);
+        Path tokenPath = Paths.get(ALLOCATE_BAG).resolve(ALLOCATE_TS);
+        StorageOperation op1 = new DirectoryStorageOperation(bagPath)
                 .setType(OperationType.RSYNC)
                 .setIdentifier("id")
                 .setSize(1L);
-        StorageOperation op2 = new SingleFileOperation(Paths.get(ALLOCATE_BAG).resolve(ALLOCATE_TS))
+        StorageOperation op2 = new SingleFileOperation(tokenPath)
                 .setType(OperationType.RSYNC)
                 .setIdentifier("id")
                 .setSize(1L);
 
-        when(replications.updateStatus(eq(1L), any(RStatusUpdate.class))).thenReturn(new CallWrapper<>(replication));
+        when(replications.updateStatus(eq(1L), any(ReplicationStatusUpdate.class)))
+                .thenReturn(new CallWrapper<>(replication));
         allocator = new Allocator(broker, op1, op2, replication, generator);
         ReplicationStatus status = allocator.get();
         Assert.assertEquals(EXPECTED_SUCCESS, status);

@@ -6,6 +6,7 @@ import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.common.transfer.FileTransfer;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -27,8 +28,8 @@ public interface Bucket {
     boolean allocate(StorageOperation operation);
 
     /**
-     * Check if a Bucket contains a StorageOperation, if it is pending or if it is
-     * already exists in the Bucket
+     * Check if a Bucket contains a StorageOperation:
+     * if it is pending or if it already exists in the Bucket
      *
      * @param operation the operation to check
      * @return true if the operation exists; false otherwise
@@ -70,6 +71,17 @@ public interface Bucket {
     Optional<FileTransfer> transfer(StorageOperation operation);
 
     /**
+     * Create a FileTransfer with additional arguments which can be used to replicate content
+     * into this Bucket
+     *
+     * @param operation the operation containing information about the Transfer
+     * @param arguments the arguments to pass along to the Transfer
+     * @return the FileTransfer, or an empty optional if no transfer could be created
+     */
+    Optional<FileTransfer> transfer(StorageOperation operation, List<String> arguments);
+
+
+    /**
      * Retrieve the hash for a file for a given StorageOperation
      *
      * @param operation the operation which the file belongs to
@@ -91,14 +103,16 @@ public interface Bucket {
      * Update the ACE Collection.Builder with storage information for this
      * bucket
      *
-     * @param operation
-     * @param collection
-     * @return
+     * @param operation  the operation to create the ACE storage for
+     * @param collection the Builder for creating the Ace Collection Gson model
+     * @return the updated {@link GsonCollection.Builder}
      */
-    GsonCollection.Builder fillAceStorage(StorageOperation operation, GsonCollection.Builder collection);
+    GsonCollection.Builder fillAceStorage(StorageOperation operation,
+                                          GsonCollection.Builder collection);
 
     /**
-     * What does it mean to free an operation in our context? Remove it from disk? Reclaim its allocated space?
+     * What does it mean to free an operation in our context? Remove it from disk?
+     * Reclaim its allocated space?
      * <p>
      * For now it might be best only to use this when a replication cannot be recovered and needs to
      * be removed from a Bucket

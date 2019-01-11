@@ -22,9 +22,6 @@ public interface AceService {
     @POST("rest/collection/audit/{id}")
     Call<Void> startAudit(@Path("id") long id, @Query("corrupt") Boolean corrupt);
 
-    @POST("rest/collection/modify/{id}")
-    Call<Void> modifyCollection(@Path("id") long id, @Body GsonCollection collection);
-
     @POST("rest/collection/")
     Call<Map<String, Long>> addCollection(@Body GsonCollection collection);
 
@@ -35,8 +32,8 @@ public interface AceService {
     Call<GsonCollection> getCollectionByName(@Path("name") String name);
 
     @GET("rest/collection/settings/by-name/{name}/{group}")
-    Call<GsonCollection> getCollectionByName(@Path("name") String name, @Path("group") String group);
-
+    Call<GsonCollection> getCollectionByName(@Path("name") String name,
+                                             @Path("group") String group);
 
     @Multipart
     @POST("rest/tokenstore/{id}")
@@ -44,11 +41,5 @@ public interface AceService {
 
     @POST("rest/compare/{id}")
     Call<CompareResponse> compareToCollection(@Path("id") long id, @Body CompareRequest request);
-
-    /*
-    @Multipart
-    @POST("/rest/tokenstore/{id}")
-    void loadTokenStore(@Path("id") long id, @Part("file") TypedFile tokenStore, Callback<Void> callback);
-    */
 
 }

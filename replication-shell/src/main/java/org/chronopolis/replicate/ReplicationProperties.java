@@ -1,6 +1,10 @@
 package org.chronopolis.replicate;
 
+import kotlin.collections.CollectionsKt;
+import org.chronopolis.replicate.batch.rsync.Profile;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.util.List;
 
 /**
  * ConfigurationProperties for replication
@@ -17,7 +21,53 @@ public class ReplicationProperties {
      * Node name to use for sending mail
      */
     private String node = "chron";
+
+    /**
+     * Work directory for temporary files
+     */
+    private String workDirectory = "/tmp/chronopolis";
+
+    /**
+     * The maximum number of file transfers to execute at a single time
+     */
+    private Integer maxFileTransfers = 2;
+
+    /**
+     * Smtp configuration
+     */
     private Smtp smtp = new Smtp();
+
+    /**
+     * Rsync configuration
+     */
+    private Rsync rsync = new Rsync();
+
+    public String getNode() {
+        return node;
+    }
+
+    public ReplicationProperties setNode(String node) {
+        this.node = node;
+        return this;
+    }
+
+    public String getWorkDirectory() {
+        return workDirectory;
+    }
+
+    public ReplicationProperties setWorkDirectory(String workDirectory) {
+        this.workDirectory = workDirectory;
+        return this;
+    }
+
+    public Integer getMaxFileTransfers() {
+        return maxFileTransfers;
+    }
+
+    public ReplicationProperties setMaxFileTransfers(Integer maxFileTransfers) {
+        this.maxFileTransfers = maxFileTransfers;
+        return this;
+    }
 
     public Smtp getSmtp() {
         return smtp;
@@ -28,12 +78,12 @@ public class ReplicationProperties {
         return this;
     }
 
-    public String getNode() {
-        return node;
+    public Rsync getRsync() {
+        return rsync;
     }
 
-    public ReplicationProperties setNode(String node) {
-        this.node = node;
+    public ReplicationProperties setRsync(Rsync rsync) {
+        this.rsync = rsync;
         return this;
     }
 
@@ -52,6 +102,40 @@ public class ReplicationProperties {
 
         public Smtp setSendOnSuccess(Boolean sendOnSuccess) {
             this.sendOnSuccess = sendOnSuccess;
+            return this;
+        }
+    }
+
+    /**
+     * Additional rsync configuration
+     */
+    public static class Rsync {
+
+        /**
+         * Define what rsync profile to use
+         */
+        private Profile profile = Profile.SINGLE;
+
+        /**
+         * Optional set of arguments to use when creating an rsync process
+         */
+        private List<String> arguments = CollectionsKt.mutableListOf("-aL", "--stats");
+
+        public List<String> getArguments() {
+            return arguments;
+        }
+
+        public Rsync setArguments(List<String> arguments) {
+            this.arguments = arguments;
+            return this;
+        }
+
+        public Profile getProfile() {
+            return profile;
+        }
+
+        public Rsync setProfile(Profile profile) {
+            this.profile = profile;
             return this;
         }
     }

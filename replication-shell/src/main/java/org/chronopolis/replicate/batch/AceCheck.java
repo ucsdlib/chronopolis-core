@@ -6,9 +6,10 @@ import org.chronopolis.replicate.batch.callback.UpdateCallback;
 import org.chronopolis.rest.api.ReplicationService;
 import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.Replication;
-import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.models.enums.ReplicationStatus;
+import org.chronopolis.rest.models.update.ReplicationStatusUpdate;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Call;
@@ -56,7 +57,8 @@ public class AceCheck implements Supplier<ReplicationStatus> {
         // TODO: Check for errors as well
         if (gsonCollection.getState().equals("A")) {
             current = ReplicationStatus.SUCCESS;
-            Call<Replication> call = replications.updateStatus(replication.getId(), new RStatusUpdate(current));
+            Call<Replication> call = replications.updateStatus(replication.getId(),
+                    new ReplicationStatusUpdate(current));
             call.enqueue(new UpdateCallback());
         }
 
@@ -69,7 +71,8 @@ public class AceCheck implements Supplier<ReplicationStatus> {
         CountDownLatch latch = new CountDownLatch(1);
 
         @Override
-        public void onResponse(Call<GsonCollection> call, Response<GsonCollection> response) {
+        public void onResponse(@NotNull Call<GsonCollection> call,
+                               @NotNull Response<GsonCollection> response) {
             if (response.isSuccessful()) {
                 collection = response.body();
             } else {
@@ -79,7 +82,8 @@ public class AceCheck implements Supplier<ReplicationStatus> {
         }
 
         @Override
-        public void onFailure(Call<GsonCollection> call, Throwable t) {
+        public void onFailure(@NotNull Call<GsonCollection> call,
+                              @NotNull Throwable t) {
             collection = null;
             latch.countDown();
         }

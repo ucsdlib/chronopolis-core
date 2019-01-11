@@ -66,7 +66,7 @@ verify:jdk8:
   <<: *verify
   image: maven:3.3.9-jdk-8
   services: 
-    - postgres:latest
+    - postgres:9
   artifacts:
     expire_in: 2 days
     untracked: true
@@ -94,9 +94,10 @@ deploy:jdk8:
   only:
     - master
     - develop
+    - /^release-.*$/
   image: maven:3.3.9-jdk-8
   services:
-    - postgres:latest
+    - postgres:9
 
 .rpm: &rpm
   before_script:
@@ -107,23 +108,24 @@ deploy:jdk8:
   only:
     - master
     - develop
+    - /^release-.*$/
   image: maven:3.3.9-jdk-8
   services:
-    - postgres:latest
+    - postgres:9
 
 rpm_ingest:
   <<: *rpm
   script:
     - 'cd ingest-rest/rpm'
     - './build.sh'
-    - 'for f in `find RPMS -type f`; do curl -X POST -H "Authorization: token $BUILD_TOKEN" --data-binary @$f $SERVER/artifacts/chronopolis/$CI_BUILD_REF_NAME/$(echo $CI_BUILD_REF | cut -c -7)/$(basename $f); done'
+    - 'for f in `find RPMS -type f`; do curl -X POST -H "Authorization: $BUILD_TOKEN" -H "Content-Type: application/octet-stream" --data-binary @$f $SERVER/resource/chronopolis/$CI_BUILD_REF_NAME/$CI_BUILD_REF/$(basename $f); done'
 
 rpm_replication:
   <<: *rpm
   script:
     - 'cd replication-shell/rpm'
     - './build.sh'
-    - 'for f in `find RPMS -type f`; do curl -X POST -H "Authorization: token $BUILD_TOKEN" --data-binary @$f $SERVER/artifacts/chronopolis/$CI_BUILD_REF_NAME/$(echo $CI_BUILD_REF | cut -c -7)/$(basename $f); done'
+    - 'for f in `find RPMS -type f`; do curl -X POST -H "Authorization: $BUILD_TOKEN" -H "Content-Type: application/octet-stream" --data-binary @$f $SERVER/resource/chronopolis/$CI_BUILD_REF_NAME/$CI_BUILD_REF/$(basename $f); done'
 
 deploy_tokenizer:
   stage: deploy
@@ -133,5 +135,5 @@ deploy_tokenizer:
   script:
     - 'cd tokenizer/deploy'
     - './build.sh'
-    - 'for f in `find TARS -type f`; do curl -X POST -H "Authorization: token $BUILD_TOKEN" --data-binary @$f $SERVER/artifacts/chronopolis/$CI_BUILD_REF_NAME/$(echo $CI_BUILD_REF | cut -c -7)/$(basename $f); done'
+    - 'for f in `find TARS -type f`; do curl -X POST -H "Authorization: $BUILD_TOKEN" -H "Content-Type: application/octet-stream" --data-binary @$f $SERVER/resource/chronopolis/$CI_BUILD_REF_NAME/$CI_BUILD_REF/$(basename $f); done'
   image: maven:3.3.9-jdk-8

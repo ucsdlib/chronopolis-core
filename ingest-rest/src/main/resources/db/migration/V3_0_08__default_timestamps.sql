@@ -1,0 +1,13 @@
+ALTER TABLE bag ALTER COLUMN created_at SET DEFAULT current_timestamp;
+ALTER TABLE bag ALTER COLUMN updated_at SET DEFAULT current_timestamp;
+ALTER TABLE replication ALTER COLUMN created_at SET DEFAULT current_timestamp;
+ALTER TABLE replication ALTER COLUMN updated_at SET DEFAULT current_timestamp;
+ALTER TABLE repair ALTER COLUMN created_at SET DEFAULT current_timestamp;
+ALTER TABLE repair ALTER COLUMN updated_at SET DEFAULT current_timestamp;
+ALTER TABLE storage_region ALTER COLUMN created_at SET DEFAULT current_timestamp;
+ALTER TABLE storage_region ALTER COLUMN updated_at SET DEFAULT current_timestamp;
+ALTER TABLE staging_storage ALTER COLUMN created_at SET DEFAULT current_timestamp;
+ALTER TABLE staging_storage ALTER COLUMN updated_at SET DEFAULT current_timestamp;
+ALTER TABLE fixity ALTER COLUMN created_at SET DEFAULT current_timestamp;
+ALTER TABLE depositor ALTER COLUMN created_at SET DEFAULT current_timestamp;
+ALTER TABLE depositor ALTER COLUMN updated_at SET DEFAULT current_timestamp;

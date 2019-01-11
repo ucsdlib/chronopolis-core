@@ -1,7 +1,6 @@
 package org.chronopolis.ingest.controller;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSortedSet;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ConstructorExpression;
@@ -18,20 +17,19 @@ import org.chronopolis.ingest.exception.ForbiddenException;
 import org.chronopolis.ingest.exception.NotFoundException;
 import org.chronopolis.ingest.models.DepositorSummary;
 import org.chronopolis.ingest.models.filter.DepositorFilter;
-import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.ingest.support.FileSizeFormatter;
-import org.chronopolis.ingest.support.Loggers;
-import org.chronopolis.rest.entities.Depositor;
-import org.chronopolis.rest.entities.DepositorContact;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QBag;
-import org.chronopolis.rest.entities.QDepositor;
-import org.chronopolis.rest.entities.QDepositorContact;
-import org.chronopolis.rest.entities.QDepositorNode;
 import org.chronopolis.rest.entities.QNode;
-import org.chronopolis.rest.models.DepositorContactCreate;
-import org.chronopolis.rest.models.DepositorCreate;
-import org.chronopolis.rest.models.DepositorEdit;
+import org.chronopolis.rest.entities.depositor.Depositor;
+import org.chronopolis.rest.entities.depositor.DepositorContact;
+import org.chronopolis.rest.entities.depositor.DepositorContactKt;
+import org.chronopolis.rest.entities.depositor.QDepositor;
+import org.chronopolis.rest.entities.depositor.QDepositorContact;
+import org.chronopolis.rest.models.create.DepositorContactCreate;
+import org.chronopolis.rest.models.create.DepositorCreate;
+import org.chronopolis.rest.models.update.DepositorUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,10 +46,11 @@ import javax.persistence.EntityManager;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 /**
  * Controller to handle Depositor requests and things
@@ -68,14 +67,13 @@ import java.util.Set;
 @Controller
 public class DepositorUIController extends IngestController {
 
-    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
     private final Logger log = LoggerFactory.getLogger(DepositorUIController.class);
 
-    private final PagedDAO dao;
+    private final PagedDao dao;
     private final EntityManager entityManager;
 
     @Autowired
-    public DepositorUIController(PagedDAO dao, EntityManager entityManager) {
+    public DepositorUIController(PagedDao dao, EntityManager entityManager) {
         this.dao = dao;
         this.entityManager = entityManager;
     }
@@ -163,8 +161,6 @@ public class DepositorUIController extends IngestController {
                                Principal principal,
                                @Valid DepositorCreate depositorCreate,
                                BindingResult bindingResult) {
-        access.info("[POST /depositors] - {}", principal.getName());
-
         // Additional constraints
         List<Node> nodes = dao.findAll(QNode.node,
                 QNode.node.username.in(depositorCreate.getReplicatingNodes()));
@@ -193,6 +189,9 @@ public class DepositorUIController extends IngestController {
 
         log.info("Adding depositor");
         depositor = new Depositor();
+        // handle lateinits  first
+        depositor.setContacts(new HashSet<>());
+        depositor.setNodeDistributions(new HashSet<>());
         depositor.setNamespace(depositorCreate.getNamespace());
         depositor.setSourceOrganization(depositorCreate.getSourceOrganization());
         depositor.setOrganizationAddress(depositorCreate.getOrganizationAddress());
@@ -205,13 +204,14 @@ public class DepositorUIController extends IngestController {
     @GetMapping("/depositors/list/{namespace}/edit")
     public String editDepositor(Model model,
                                 @PathVariable("namespace") String namespace,
-                                DepositorEdit depositorEdit) {
+                                DepositorUpdate depositorEdit) {
         Depositor existing = getOrThrowNotFound(namespace);
 
-        QDepositorNode qdn = QDepositorNode.depositorNode;
-        BooleanExpression availableNodes = QNode.node.id.notIn(JPAExpressions.select(qdn.node.id)
-                .from(qdn)
-                .where(qdn.depositor.id.eq(existing.getId())));
+        BooleanExpression availableNodes = QNode.node.notIn(
+                JPAExpressions.select(QNode.node)
+                    .from(QDepositor.depositor)
+                    .join(QDepositor.depositor.nodeDistributions, QNode.node)
+                    .where(QDepositor.depositor.id.eq(existing.getId())));
 
         model.addAttribute("nodes", dao.findAll(QNode.node, availableNodes));
         model.addAttribute("depositor", existing);
@@ -222,8 +222,7 @@ public class DepositorUIController extends IngestController {
     @PostMapping("/depositors/list/{namespace}/edit")
     public String postEditDepositor(Principal principal,
                                     @PathVariable("namespace") String namespace,
-                                    DepositorEdit depositorEdit) {
-        access.info("[POST /depositors/list/{}/edit] - {}", namespace, principal.getName());
+                                    DepositorUpdate depositorEdit) {
         Depositor depositor = getOrThrowNotFound(namespace);
 
         String address = depositorEdit.getOrganizationAddress();
@@ -280,13 +279,11 @@ public class DepositorUIController extends IngestController {
                                    @PathVariable("namespace") String namespace,
                                    @Valid DepositorContactCreate depositorContactCreate,
                                    BindingResult result) throws BadRequestException {
-        access.info("[POST /depositors/list/{}/addContact] - {}", namespace, principal.getName());
-
         // Additional constraints
         Depositor depositor = getOrThrowNotFound(namespace);
         DepositorContact contact = dao.findOne(QDepositorContact.depositorContact,
                 QDepositorContact.depositorContact.contactEmail
-                        .eq(depositorContactCreate.getEmail())
+                        .eq(depositorContactCreate.getContactEmail())
                         .and(QDepositorContact.depositorContact.depositor.eq(depositor)));
 
         if (contact != null) {
@@ -305,25 +302,25 @@ public class DepositorUIController extends IngestController {
             return "depositors/add_contact";
         }
 
-        Optional<DepositorContact> depositorContact =
-                DepositorContact.fromCreateRequest(depositorContactCreate);
-        return depositorContact.map(contact1 -> {
-            depositor.addContact(contact1);
-            dao.save(contact1);
-            return "redirect:/depositors/list/" + namespace;
-        }).orElse("exceptions/bad_request");
+        return DepositorContactKt.fromRequest(depositorContactCreate)
+                .map(fromRequest -> {
+                    depositor.addContact(fromRequest);
+                    dao.save(fromRequest);
+                    return "redirect:/depositors/list/" + namespace;
+                }).orElse("exceptions/bad_request");
     }
 
     @GetMapping("/depositors/list/{namespace}/addNode")
     public String addNode(Model model,
                           @PathVariable("namespace") String namespace,
-                          DepositorEdit depositorEdit) {
+                          DepositorUpdate depositorEdit) {
         Depositor depositor = getOrThrowNotFound(namespace);
 
-        QDepositorNode qdn = QDepositorNode.depositorNode;
-        BooleanExpression availableNodes = QNode.node.id.notIn(JPAExpressions.select(qdn.node.id)
-                .from(qdn)
-                .where(qdn.depositor.id.eq(depositor.getId())));
+        BooleanExpression availableNodes = QNode.node.notIn(
+                JPAExpressions.select(QNode.node)
+                    .from(QDepositor.depositor)
+                    .join(QDepositor.depositor.nodeDistributions, QNode.node)
+                    .where(QDepositor.depositor.id.eq(depositor.getId())));
 
         model.addAttribute("depositorEdit", depositorEdit);
         model.addAttribute("nodes", dao.findAll(QNode.node, availableNodes));
@@ -333,7 +330,7 @@ public class DepositorUIController extends IngestController {
 
     @PostMapping("/depositors/list/{namespace}/addNode")
     public String addNodeAction(@PathVariable("namespace") String namespace,
-                                DepositorEdit depositorEdit) {
+                                DepositorUpdate depositorEdit) {
         Depositor depositor = dao.findOne(QDepositor.depositor,
                 QDepositor.depositor.namespace.eq(namespace));
         List<String> nodes = depositorEdit.getReplicatingNodes();
@@ -357,7 +354,6 @@ public class DepositorUIController extends IngestController {
                              Principal principal,
                              @PathVariable("namespace") String namespace,
                              @ModelAttribute("name") String name) throws ForbiddenException {
-        access.info("[GET /depositors/list/{}/removeNode] - {}", namespace, principal.getName());
         if (!hasRoleAdmin()) {
             throw new ForbiddenException("User is not allowed to update a Depositor");
         }
@@ -381,8 +377,6 @@ public class DepositorUIController extends IngestController {
                                 Principal principal,
                                 @PathVariable("namespace") String namespace,
                                 @ModelAttribute("email") String email) throws ForbiddenException {
-        access.info("[POST /depositors/list/{}/removeContact] - {}",
-                namespace, principal.getName());
         if (!hasRoleAdmin()) {
             throw new ForbiddenException("User is not allowed to update a Depositor");
         }
@@ -406,9 +400,11 @@ public class DepositorUIController extends IngestController {
 
     private Map<String, ?> addContactAttributes(DepositorContactCreate depositorContactCreate) {
         PhoneNumberUtil util = PhoneNumberUtil.getInstance();
-        Set<String> regions = util.getSupportedRegions();
-        ImmutableSortedSet<String> supportedRegions = ImmutableSortedSet.copyOf(regions);
-        return ImmutableMap.of("regions", supportedRegions,
+        Map<String, Integer> regions = util.getSupportedRegions().stream()
+                .collect(Collectors.toMap(region -> region, util::getCountryCodeForRegion,
+                        (v1, v2) -> {throw new RuntimeException("Duplicate value " + v2);},
+                        TreeMap::new));
+        return ImmutableMap.of("regions", regions,
                 "depositorContactCreate", depositorContactCreate);
     }
 

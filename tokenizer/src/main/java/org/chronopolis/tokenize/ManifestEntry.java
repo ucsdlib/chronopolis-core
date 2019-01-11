@@ -6,6 +6,8 @@ import org.chronopolis.rest.models.Bag;
 import java.util.Objects;
 
 /**
+ * Any reason why this shouldn't be a kotlin data class?
+ *
  * Information about an entry in a manifest.
  *
  * @author shake
@@ -18,7 +20,7 @@ public class ManifestEntry implements Comparable<ManifestEntry> {
 
     public ManifestEntry(Bag bag, String path, String digest) {
         this.bag = bag;
-        this.path = path;
+        this.path = (path.startsWith("/")) ? path : "/" + path;
         this.digest = digest;
     }
 

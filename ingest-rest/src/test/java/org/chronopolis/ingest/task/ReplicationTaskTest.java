@@ -2,10 +2,8 @@ package org.chronopolis.ingest.task;
 
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
-import org.chronopolis.ingest.repository.BagRepository;
-import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.ReplicationRepository;
-import org.chronopolis.ingest.repository.dao.ReplicationService;
+import org.chronopolis.ingest.repository.dao.ReplicationDao;
+import org.chronopolis.rest.entities.QReplication;
 import org.chronopolis.rest.entities.Replication;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,43 +20,43 @@ import javax.persistence.EntityManager;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
+import static org.chronopolis.ingest.JpaContext.CREATE_SCRIPT;
+import static org.chronopolis.ingest.JpaContext.DELETE_SCRIPT;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 
 /**
  * Tests to validate replications are created properly
  *
  * Created by shake on 8/6/15.
  */
-@RunWith(SpringJUnit4ClassRunner.class)
 @DataJpaTest
+@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = JpaContext.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SqlGroup({
-        // We only want bags to be inserted for these tests
-        // but when tearing down remove the replications as well
-        @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:sql/createBags.sql"),
-        @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = "classpath:sql/deleteReplications.sql")
+        @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = CREATE_SCRIPT),
+        @Sql(executionPhase = AFTER_TEST_METHOD, scripts = DELETE_SCRIPT)
 })
 public class ReplicationTaskTest extends IngestTest {
 
+    private ReplicationDao dao;
     private ReplicationTask task;
 
     @Autowired EntityManager manager;
-    @Autowired ReplicationRepository repository;
-    @Autowired BagRepository bags;
-    @Autowired NodeRepository nodes;
 
     @Before
     public void setup() {
-        ReplicationService service = new ReplicationService(manager, repository,  bags, nodes);
-        task = new ReplicationTask(bags, service);
+        dao = new ReplicationDao(manager);
+        task = new ReplicationTask(dao);
     }
 
     @Test
-    public void testCreateReplications() throws Exception {
+    public void testCreateReplications() {
         task.createReplications();
 
         // Based on the sql we should have 4 replications
-        List<Replication> all = repository.findAll();
+        List<Replication> all = dao.findAll(QReplication.replication);
         assertEquals(4, all.size());
     }
 

@@ -5,9 +5,10 @@ import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.replicate.batch.callback.UpdateCallback;
 import org.chronopolis.rest.api.ReplicationService;
 import org.chronopolis.rest.api.ServiceGenerator;
-import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.Replication;
-import org.chronopolis.rest.models.ReplicationStatus;
+import org.chronopolis.rest.models.enums.ReplicationStatus;
+import org.chronopolis.rest.models.update.ReplicationStatusUpdate;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Call;
@@ -39,7 +40,11 @@ public class AceAuditTasklet implements Runnable {
      * @param notifier    the notifier to hold status information regarding this process
      * @param id          the id of the collection in ACE
      */
-    public AceAuditTasklet(ServiceGenerator generator, AceService aceService, Replication replication, ReplicationNotifier notifier, Long id) {
+    public AceAuditTasklet(ServiceGenerator generator,
+                           AceService aceService,
+                           Replication replication,
+                           ReplicationNotifier notifier,
+                           Long id) {
         this.id = id;
         this.notifier = notifier;
         this.aceService = aceService;
@@ -54,9 +59,11 @@ public class AceAuditTasklet implements Runnable {
 
         auditCall.enqueue(new Callback<Void>() {
             @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
+            public void onResponse(@NotNull Call<Void> call,
+                                   @NotNull Response<Void> response) {
                 if (response.isSuccessful()) {
-                    Call<Replication> update = replications.updateStatus(replication.getId(), new RStatusUpdate(ReplicationStatus.ACE_AUDITING));
+                    Call<Replication> update = replications.updateStatus(replication.getId(),
+                            new ReplicationStatusUpdate(ReplicationStatus.ACE_AUDITING));
                     update.enqueue(new UpdateCallback());
                 } else {
                     log.error("{} Error starting audit for collection: {} - {}", name, response.code(), response.message());
@@ -73,7 +80,7 @@ public class AceAuditTasklet implements Runnable {
             }
 
             @Override
-            public void onFailure(Call<Void> call, Throwable throwable) {
+            public void onFailure(@NotNull Call<Void> call, @NotNull Throwable throwable) {
                 log.error("{} Error communicating with ACE Server", name, throwable);
                 notifier.setSuccess(false);
                 notifier.setAceStep(throwable.getMessage());

@@ -1,7 +1,7 @@
 package org.chronopolis.ingest.tokens;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.rest.entities.QAceToken;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.tokenize.ManifestEntry;
@@ -19,16 +19,16 @@ public class DatabasePredicate implements Predicate<ManifestEntry> {
 
     private final Logger log = LoggerFactory.getLogger(DatabasePredicate.class);
 
-    private final PagedDAO dao;
+    private final PagedDao dao;
 
-    public DatabasePredicate(PagedDAO dao) {
+    public DatabasePredicate(PagedDao dao) {
         this.dao = dao;
     }
 
     @Override
     public boolean test(ManifestEntry entry) {
         // null checks
-        if (entry == null || entry.getBag() == null || entry.getBag().getId() == null) {
+        if (entry == null || entry.getBag() == null) {
             return false;
         }
 
@@ -49,7 +49,7 @@ public class DatabasePredicate implements Predicate<ManifestEntry> {
         String filename = entry.getPath();
         boolean notExists = qf.selectFrom(QAceToken.aceToken)
                 .where(QAceToken.aceToken.bag.id.eq(bagId)
-                        .and(QAceToken.aceToken.filename.eq(filename)))
+                        .and(QAceToken.aceToken.file.filename.eq(filename)))
                 .fetchCount() == 0;
 
         log.trace("[{}:{}] DbFilter: Token !exists {}", entry.getBag().getName(),

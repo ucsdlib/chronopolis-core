@@ -4,7 +4,10 @@ import com.google.common.collect.ImmutableList;
 import org.chronopolis.common.storage.BagStagingProperties;
 import org.chronopolis.common.storage.Posix;
 import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.storage.StagingStorageModel;
+import org.chronopolis.rest.models.Fixity;
+import org.chronopolis.rest.models.StagingStorage;
+import org.chronopolis.rest.models.enums.BagStatus;
+import org.chronopolis.rest.models.enums.FixityAlgorithm;
 import org.chronopolis.tokenize.filter.HttpFilter;
 import org.chronopolis.tokenize.supervisor.TokenWorkSupervisor;
 import org.junit.Before;
@@ -13,7 +16,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.net.URL;
+import java.time.ZonedDateTime;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -25,8 +30,12 @@ import static org.mockito.Mockito.when;
 
 public class BagProcessorTest {
 
-    private static final String HW_NAME = "data/hello_world";
-    private static final String HW_DIGEST = "a948904f2f0f479b8f8197694b30184b0d2ed1c1cd2a1ec0fb85d299a192a447";
+    private static final String HW_NAME = "/data/hello_world";
+    private static final String HW_DIGEST =
+            "a948904f2f0f479b8f8197694b30184b0d2ed1c1cd2a1ec0fb85d299a192a447";
+
+    public static final String EMPTY_FIXITY =
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 
     private static final String DEPOSITOR = "test-depositor";
     private static final String COLLECTION = "test-bag-1";
@@ -52,13 +61,13 @@ public class BagProcessorTest {
         properties = new BagStagingProperties()
                 .setPosix(new Posix().setPath(bags.getPath()));
 
-        StagingStorageModel bagStorage = new StagingStorageModel()
-                .setPath(DEPOSITOR + "/" + COLLECTION);
-        bag = new Bag()
-                .setId(1L)
-                .setName(COLLECTION)
-                .setDepositor(DEPOSITOR)
-                .setBagStorage(bagStorage);
+        Fixity fixity = new Fixity(EMPTY_FIXITY, FixityAlgorithm.SHA_256, ZonedDateTime.now());
+        HashSet<Fixity> fixities = new HashSet<>();
+        fixities.add(fixity);
+        StagingStorage bagStorage = new StagingStorage(true, 1L, 1L, 1L,
+                DEPOSITOR + "/" + COLLECTION, fixities);
+        bag = new Bag(1L, 1L, 1L, bagStorage, bagStorage, ZonedDateTime.now(), ZonedDateTime.now(),
+                COLLECTION, DEPOSITOR, DEPOSITOR, BagStatus.DEPOSITED, new HashSet<>());
 
     }
 

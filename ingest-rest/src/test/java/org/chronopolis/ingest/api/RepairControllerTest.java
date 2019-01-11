@@ -1,36 +1,39 @@
 package org.chronopolis.ingest.api;
 
-import com.google.common.collect.ImmutableSet;
-import org.chronopolis.ingest.repository.NodeRepository;
-import org.chronopolis.ingest.repository.RepairRepository;
-import org.chronopolis.ingest.repository.criteria.SearchCriteria;
-import org.chronopolis.ingest.repository.dao.BagService;
-import org.chronopolis.ingest.repository.dao.SearchService;
+import com.querydsl.core.types.Predicate;
+import org.chronopolis.ingest.models.filter.RepairFilter;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.ingest.support.PageImpl;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.Depositor;
 import org.chronopolis.rest.entities.Node;
-import org.chronopolis.rest.entities.Repair;
-import org.chronopolis.rest.entities.fulfillment.Ace;
-import org.chronopolis.rest.models.repair.ACEStrategy;
-import org.chronopolis.rest.models.repair.AuditStatus;
-import org.chronopolis.rest.models.repair.FulfillmentType;
-import org.chronopolis.rest.models.repair.RepairStatus;
+import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.QNode;
+import org.chronopolis.rest.entities.depositor.Depositor;
+import org.chronopolis.rest.entities.repair.Ace;
+import org.chronopolis.rest.entities.repair.QRepair;
+import org.chronopolis.rest.entities.repair.Repair;
+import org.chronopolis.rest.models.AceStrategy;
+import org.chronopolis.rest.models.enums.AuditStatus;
+import org.chronopolis.rest.models.enums.BagStatus;
+import org.chronopolis.rest.models.enums.FulfillmentType;
+import org.chronopolis.rest.models.enums.RepairStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import static com.google.common.collect.ImmutableSet.of;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -43,46 +46,46 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(RepairController.class)
 public class RepairControllerTest extends ControllerTest {
 
+    private final Logger log = LoggerFactory.getLogger(RepairControllerTest.class);
+
     private RepairController controller;
     private final Depositor depositor = new Depositor();
 
     // Beans for the RepairController
-    @MockBean private NodeRepository nodes;
-    @MockBean private BagService bags;
-    @MockBean private SearchService<Repair, Long, RepairRepository> repairs;
+    @MockBean private PagedDao dao;
 
     @Before
     public void setup() {
-        controller = new RepairController(bags, nodes, repairs);
+        controller = new RepairController(dao);
         setupMvc(controller);
     }
 
     @Test
     public void getRepair() throws Exception {
         Repair unfulfilled = baseRepair();
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(unfulfilled);
+        when(dao.findOne(any(), any(Predicate.class))).thenReturn(unfulfilled);
         mvc.perform(
                 get("/api/repairs/{id}", unfulfilled.getId())
                         .principal(authorizedPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is(200));
     }
 
     @Test
     public void getRepairNotFound() throws Exception {
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(null);
+        when(dao.findOne(any(), any(Predicate.class))).thenReturn(null);
         mvc.perform(
                 get("/api/repairs/{id}", 100L)
                     .principal(authorizedPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is(404));
     }
 
     @Test
     public void getRepairs() throws Exception {
-        when(repairs.findAll(any(SearchCriteria.class), any(Pageable.class))).thenReturn(new PageImpl<>());
+        when(dao.findPage(any(), any(RepairFilter.class))).thenReturn(new PageImpl<>());
         mvc.perform(get("/api/repairs").principal(authorizedPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is2xxSuccessful());
     }
 
@@ -90,16 +93,21 @@ public class RepairControllerTest extends ControllerTest {
     public void createRepair() throws Exception {
         authenticateUser();
         // requester instead of authorized?
-        when(nodes.findByUsername(AUTHORIZED)).thenReturn(new Node(AUTHORIZED, AUTHORIZED));
-        when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", depositor));
+        Node node = new Node(of(), AUTHORIZED, AUTHORIZED, true);
+        Bag bag = new Bag("test-bag", "test-creator", depositor, 0L, 0L, BagStatus.DEPOSITED);
+        when(dao.findOne(eq(QNode.node), any(Predicate.class))).thenReturn(node);
+        when(dao.findOne(eq(QBag.bag), any(Predicate.class))).thenReturn(bag);
 
-        String json = "{\"depositor\":\"test-depositor\",\"collection\":\"bag-0\",\"files\":[\"test-file-1\"]}";
+        String json = "{\"to\":\"authorized\"," +
+                "\"depositor\":\"test-depositor\"," +
+                "\"collection\":\"bag-0\"," +
+                "\"files\":[\"test-file-1\"]}";
         mvc.perform(
                 post("/api/repairs")
                         .principal(authorizedPrincipal)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.status").value(RepairStatus.REQUESTED.name()))
                 .andExpect(jsonPath("$.requester").value(AUTHORIZED))
@@ -109,8 +117,10 @@ public class RepairControllerTest extends ControllerTest {
     @Test
     public void createRepairAdmin() throws Exception {
         authenticateAdmin();
-        when(nodes.findByUsername(REQUESTER)).thenReturn(new Node(REQUESTER, REQUESTER));
-        when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", depositor));
+        Node node = new Node(of(), REQUESTER, REQUESTER, true);
+        Bag bag = new Bag("test-bag", "test-creator", depositor, 0L, 0L, BagStatus.DEPOSITED);
+        when(dao.findOne(eq(QNode.node), any(Predicate.class))).thenReturn(node);
+        when(dao.findOne(eq(QBag.bag), any(Predicate.class))).thenReturn(bag);
 
         String json = "{\"to\":\"requester\",\"depositor\":\"test-depositor\",\"collection\":\"bag-0\",\"files\":[\"test-file-1\"]}";
 
@@ -120,7 +130,7 @@ public class RepairControllerTest extends ControllerTest {
                         .principal(authorizedPrincipal)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.requester").value(AUTHORIZED))
                 .andExpect(jsonPath("$.to").value(REQUESTER));
@@ -129,23 +139,25 @@ public class RepairControllerTest extends ControllerTest {
     @Test
     public void createRepairUnauthorized() throws Exception {
         authenticateUser();
-        when(bags.find(any(SearchCriteria.class))).thenReturn(new Bag("test-bag", depositor));
+        Bag bag = new Bag("test-bag", "test-creator", depositor, 0L, 0L, BagStatus.DEPOSITED);
+        when(dao.findOne(eq(QBag.bag), any(Predicate.class))).thenReturn(bag);
 
         // For some reason the ObjectMapper isn't creating proper json for the RepairRequest class, so we'll just hard code it for now
         String json = "{\"to\":\"requester\",\"depositor\":\"test-depositor\",\"collection\":\"bag-0\",\"files\":[\"test-file-1\"]}";
 
         mvc.perform(post("/api/repairs").principal(unauthorizedPrincipal).contentType(MediaType.APPLICATION_JSON).content(json))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     public void fulfillRequest() throws Exception {
         Repair unfulfilled = baseRepair();
-        when(nodes.findByUsername(AUTHORIZED)).thenReturn(new Node(AUTHORIZED, AUTHORIZED));
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(unfulfilled);
+        Node node = new Node(of(), AUTHORIZED, AUTHORIZED, true);
+        when(dao.findOne(eq(QNode.node), any(Predicate.class))).thenReturn(node);
+        when(dao.findOne(eq(QRepair.repair), any(Predicate.class))).thenReturn(unfulfilled);
         mvc.perform(post("/api/repairs/{id}/fulfill", unfulfilled.getId()).principal(authorizedPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.from").value(AUTHORIZED));
 
@@ -155,22 +167,24 @@ public class RepairControllerTest extends ControllerTest {
     @Test
     public void fulfillOwnRequest() throws Exception {
         Repair unfulfilled = baseRepair();
-        when(nodes.findByUsername(REQUESTER)).thenReturn(new Node(REQUESTER, REQUESTER));
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(unfulfilled);
+        Node node = new Node(of(), REQUESTER, REQUESTER, true);
+        when(dao.findOne(eq(QNode.node), any(Predicate.class))).thenReturn(node);
+        when(dao.findOne(eq(QRepair.repair), any(Predicate.class))).thenReturn(unfulfilled);
 
         mvc.perform(post("/api/repairs/{id}/fulfill", unfulfilled.getId()).principal(requesterPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     public void fulfillRequestConflict() throws Exception {
         Repair fulfilling = fulfilling();
-        when(nodes.findByUsername(UNAUTHORIZED)).thenReturn(new Node(UNAUTHORIZED, UNAUTHORIZED));
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
+        Node node = new Node(of(), AUTHORIZED, UNAUTHORIZED, true);
+        when(dao.findOne(eq(QNode.node), any(Predicate.class))).thenReturn(node);
+        when(dao.findOne(eq(QRepair.repair), any(Predicate.class))).thenReturn(fulfilling);
 
         mvc.perform(post("/api/repairs/{id}/fulfill", fulfilling.getId()).principal(unauthorizedPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isConflict());
     }
 
@@ -178,19 +192,19 @@ public class RepairControllerTest extends ControllerTest {
     @Test
     public void readyFulfillment() throws Exception {
         Repair fulfilling = fulfilling();
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
+        when(dao.findOne(eq(QRepair.repair), any(Predicate.class))).thenReturn(fulfilling);
         authenticateUser();
 
-        ACEStrategy strategy = new ACEStrategy()
-                .setApiKey("test-api-key")
-                .setUrl("test-url");
+        AceStrategy strategy = new AceStrategy("test-api-key", "test-url");
+
+        log.info("{}", asJson(strategy));
 
         mvc.perform(
                 put("/api/repairs/{id}/ready", fulfilling.getId())
                         .principal(authorizedPrincipal)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJson(strategy)))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.type").value(FulfillmentType.ACE.name()));
     }
@@ -198,29 +212,29 @@ public class RepairControllerTest extends ControllerTest {
     @Test
     public void readyFulfillmentUnauthorized() throws Exception {
         Repair fulfilling = fulfilling();
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
+        when(dao.findOne(eq(QRepair.repair), any(Predicate.class))).thenReturn(fulfilling);
         authenticateUser();
 
-        ACEStrategy strategy = new ACEStrategy()
-                .setApiKey("test-api-key")
-                .setUrl("test-url");
+        AceStrategy strategy = new AceStrategy("test-api-key", "test-url");
+
+        log.info("{}", asJson(strategy));
 
         mvc.perform(
                 put("/api/repairs/{id}/ready", fulfilling.getId())
                         .principal(unauthorizedPrincipal)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJson(strategy)))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     public void completeFulfillmentNoStrategy() throws Exception {
         Repair fulfilling = fulfilling();
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
+        when(dao.findOne(eq(QRepair.repair), any(Predicate.class))).thenReturn(fulfilling);
         authenticateUser();
         mvc.perform(put("/api/repairs/{id}/complete", fulfilling.getId()).principal(requesterPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isBadRequest());
     }
 
@@ -228,11 +242,11 @@ public class RepairControllerTest extends ControllerTest {
     @Test
     public void completeFulfillment() throws Exception {
         Repair completing = completing();
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(completing);
+        when(dao.findOne(eq(QRepair.repair), any(Predicate.class))).thenReturn(completing);
         authenticateUser();
 
         mvc.perform(put("/api/repairs/{id}/complete", completing.getId()).principal(requesterPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.status").value(RepairStatus.REPAIRED.name()));
     }
@@ -240,18 +254,18 @@ public class RepairControllerTest extends ControllerTest {
     @Test
     public void completeFulfillmentUnauthorized() throws Exception {
         Repair completing = completing();
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(completing);
+        when(dao.findOne(eq(QRepair.repair), any(Predicate.class))).thenReturn(completing);
         authenticateUser();
 
         mvc.perform(put("/api/repairs/{id}/complete", completing.getId()).principal(unauthorizedPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     public void repairAuditing() throws Exception {
         Repair auditing = auditing();
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(auditing);
+        when(dao.findOne(eq(QRepair.repair), any(Predicate.class))).thenReturn(auditing);
         authenticateUser();
 
         mvc.perform(
@@ -259,7 +273,7 @@ public class RepairControllerTest extends ControllerTest {
                         .principal(requesterPrincipal)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJson(AuditStatus.AUDITING)))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.audit").value(AuditStatus.AUDITING.name()));
     }
@@ -267,101 +281,101 @@ public class RepairControllerTest extends ControllerTest {
     @Test
     public void repairAuditingNotFound() throws Exception {
         Repair auditing = auditing();
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(null);
+        when(dao.findOne(eq(QRepair.repair), any(Predicate.class))).thenReturn(null);
         mvc.perform(
                 put("/api/repairs/{id}/audit", auditing.getId())
                         .principal(requesterPrincipal)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJson(AuditStatus.AUDITING)))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isNotFound());
     }
 
     @Test
     public void repairAuditingUnauthorized() throws Exception {
         Repair auditing = auditing();
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(auditing);
+        when(dao.findOne(eq(QRepair.repair), any(Predicate.class))).thenReturn(auditing);
         authenticateUser();
 
         mvc.perform(
                 put("/api/repairs/{id}/audit",auditing.getId())
                         .principal(unauthorizedPrincipal).contentType(MediaType.APPLICATION_JSON).content(asJson(AuditStatus.AUDITING)))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     public void repairCleaned() throws Exception {
         Repair cleaning = cleaning();
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(cleaning);
+        when(dao.findOne(eq(QRepair.repair), any(Predicate.class))).thenReturn(cleaning);
         authenticateUser();
 
         mvc.perform(
                 put("/api/repairs/{id}/cleaned", cleaning.getId()).principal(requesterPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.cleaned").value(true));
     }
 
     @Test
     public void repairCleanNotFound() throws Exception {
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(null);
+        when(dao.findOne(eq(QRepair.repair), any(Predicate.class))).thenReturn(null);
         mvc.perform(put("/api/repairs/{id}/cleaned", cleaning().getId()).principal(requesterPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isNotFound());
     }
 
     @Test
     public void repairCleanUnauthorized() throws Exception {
         Repair cleaning = cleaning();
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(cleaning());
+        when(dao.findOne(eq(QRepair.repair), any(Predicate.class))).thenReturn(cleaning);
         authenticateUser();
 
         mvc.perform(put("/api/repairs/{id}/cleaned", cleaning.getId()).principal(unauthorizedPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     public void repairReplaced() throws Exception {
         Repair replacing = replacing();
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(replacing);
+        when(dao.findOne(eq(QRepair.repair), any(Predicate.class))).thenReturn(replacing);
         authenticateUser();
 
         mvc.perform(put("/api/repairs/{id}/replaced", replacing.getId()).principal(requesterPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.replaced").value(true));
     }
 
     @Test
     public void repairReplacedNotFound() throws Exception {
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(null);
+        when(dao.findOne(eq(QRepair.repair), any(Predicate.class))).thenReturn(null);
         mvc.perform(put("/api/repairs/{id}/replaced", replacing().getId()).principal(requesterPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isNotFound());
     }
 
     @Test
     public void repairReplacedUnauthorized() throws Exception {
         Repair replacing = replacing();
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(replacing);
+        when(dao.findOne(eq(QRepair.repair), any(Predicate.class))).thenReturn(replacing);
         authenticateUser();
 
         mvc.perform(put("/api/repairs/{id}/replaced", replacing.getId()).principal(unauthorizedPrincipal))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     public void fulfillmentUpdated() throws Exception {
         Repair fulfilling = fulfilling();
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(fulfilling);
+        when(dao.findOne(eq(QRepair.repair), any(Predicate.class))).thenReturn(fulfilling);
         authenticateUser();
         mvc.perform(
                 put("/api/repairs/{id}/status", fulfilling.getId())
                     .principal(authorizedPrincipal).contentType(MediaType.APPLICATION_JSON).content(asJson(RepairStatus.READY)))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.status").value(RepairStatus.READY.name()));
     }
@@ -369,90 +383,101 @@ public class RepairControllerTest extends ControllerTest {
     @Test
     public void fulfillmentUpdatedXfer() throws Exception {
         Repair transferred = transferred();
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(transferred);
+        when(dao.findOne(eq(QRepair.repair), any(Predicate.class))).thenReturn(transferred);
         authenticateUser();
         mvc.perform(put("/api/repairs/{id}/status", transferred.getId())
                 .principal(requesterPrincipal).contentType(MediaType.APPLICATION_JSON).content(asJson(RepairStatus.TRANSFERRED)))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.status").value(RepairStatus.TRANSFERRED.name()));
     }
 
     @Test
     public void fulfillmentUpdateNotFound() throws Exception {
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(null);
+        when(dao.findOne(eq(QRepair.repair), any(Predicate.class))).thenReturn(null);
         mvc.perform(put("/api/repairs/{id}/status", baseRepair().getId())
                 .principal(authorizedPrincipal).contentType(MediaType.APPLICATION_JSON).content(asJson(RepairStatus.TRANSFERRED)))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isNotFound());
     }
 
     @Test
     public void fulfillmentUpdateUnauthorizedXfer() throws Exception {
         Repair transferred = transferred();
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(transferred);
+        when(dao.findOne(eq(QRepair.repair), any(Predicate.class))).thenReturn(transferred);
         authenticateUser();
         mvc.perform(
                 put("/api/repairs/{id}/status", transferred.getId())
                         .principal(unauthorizedPrincipal).contentType(MediaType.APPLICATION_JSON).content(asJson(RepairStatus.TRANSFERRED)))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     public void fulfillmentUpdateUnauthorized() throws Exception {
         Repair transferred = transferred();
-        when(repairs.find(any(SearchCriteria.class))).thenReturn(transferred);
+        when(dao.findOne(eq(QRepair.repair), any(Predicate.class))).thenReturn(transferred);
         authenticateUser();
         mvc.perform(
                 put("/api/repairs/{id}/status", transferred.getId())
                         .principal(unauthorizedPrincipal).contentType(MediaType.APPLICATION_JSON).content(asJson(RepairStatus.FAILED)))
-                .andDo(print())
+                // .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
 
+    // maybe look at trimming some of the fat here
     private Repair baseRepair() {
+        Node node = new Node(of(), REQUESTER, REQUESTER, true);
+        Bag bag = new Bag("test-bag", "test-creator", depositor, 0L, 0L, BagStatus.DEPOSITED);
         Repair repair = new Repair();
-        repair.setBag(new Bag("test-bag", depositor));
+        repair.setBag(bag);
         repair.setId(1L);
         repair.setRequester(REQUESTER);
-        repair.setFiles(ImmutableSet.of());
+        repair.setFiles(of());
         repair.setStatus(RepairStatus.READY);
-        repair.setTo(new Node(REQUESTER, REQUESTER));
+        repair.setTo(node);
         return repair;
     }
 
     private Repair fulfilling() {
-        return baseRepair()
-                .setStatus(RepairStatus.STAGING)
-                .setFrom(new Node(AUTHORIZED, AUTHORIZED));
+        Node node = new Node(of(), AUTHORIZED, AUTHORIZED, true);
+        Repair repair = baseRepair();
+        repair.setStatus(RepairStatus.STAGING);
+        repair.setFrom(node);
+        return repair;
     }
 
     private Repair transferred() {
-        return baseRepair()
-                .setStatus(RepairStatus.TRANSFERRED)
-                .setFrom(new Node(AUTHORIZED, AUTHORIZED))
-                .setStrategy(new Ace());
+        Node node = new Node(of(), REQUESTER, REQUESTER, true);
+        Repair repair = baseRepair();
+        repair.setStatus(RepairStatus.TRANSFERRED);
+        repair.setFrom(node);
+        repair.setStrategy(new Ace());
+        return repair;
     }
 
     private Repair auditing () {
-        return transferred()
-                .setValidated(true);
+        Repair repair = transferred();
+        repair.setValidated(true);
+        return repair;
     }
 
     private Repair replacing() {
-        return auditing()
-                .setAudit(AuditStatus.SUCCESS);
+        Repair repair = auditing();
+        repair.setAudit(AuditStatus.SUCCESS);
+        return repair;
     }
 
     private Repair completing() {
-        return replacing()
-                .setReplaced(true);
+        Repair repair = replacing();
+        repair.setReplaced(true);
+        return repair;
     }
 
     private Repair cleaning() {
-        return completing()
-                .setStatus(RepairStatus.REPAIRED);
+        Repair repair = completing();
+        repair.setStatus(RepairStatus.REPAIRED);
+        return repair;
     }
 
 }

@@ -1,9 +1,6 @@
 package org.chronopolis.ingest.api;
 
-import org.chronopolis.ingest.support.Loggers;
-import org.chronopolis.rest.models.PasswordUpdate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.chronopolis.rest.models.update.PasswordUpdate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.provisioning.UserDetailsManager;
@@ -23,7 +20,6 @@ import java.security.Principal;
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
-    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
     private final UserDetailsManager manager;
 
@@ -40,7 +36,6 @@ public class UserController {
      */
     @RequestMapping(value = "password", method = RequestMethod.POST)
     public void updatePassword(Principal principal, @RequestBody PasswordUpdate update) {
-        access.info("[POST /api/user/password] - {}", principal.getName());
         manager.changePassword(update.getOldPassword(), update.getNewPassword());
     }
 
@@ -48,11 +43,10 @@ public class UserController {
      * Retrieve the user details for a user
      *
      * @param principal authentication information
-     * @return
+     * @return the {@link UserDetails} for the user
      */
     @RequestMapping(value = "details", method = RequestMethod.GET)
     public UserDetails getDetails(Principal principal) {
-        access.info("[GET /api/user/details] - {}", principal.getName());
         return manager.loadUserByUsername(principal.getName());
     }
 

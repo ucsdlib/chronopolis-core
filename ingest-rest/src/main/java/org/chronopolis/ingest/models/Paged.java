@@ -13,6 +13,8 @@ import org.springframework.data.domain.Sort;
 /**
  * Hold common paging attributes
  *
+ * todo: mutable page size
+ *
  * Created by shake on 6/15/17.
  */
 public abstract class Paged {

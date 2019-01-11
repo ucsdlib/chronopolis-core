@@ -1,6 +1,6 @@
 package org.chronopolis.ingest.models;
 
-import org.chronopolis.rest.models.BagStatus;
+import org.chronopolis.rest.models.enums.BagStatus;
 
 /**
  * Model for updating bags

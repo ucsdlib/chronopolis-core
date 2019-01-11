@@ -2,8 +2,9 @@ package org.chronopolis.ingest.tokens;
 
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
-import org.chronopolis.ingest.repository.dao.PagedDAO;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.serializers.ExtensionsKt;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.tokenize.ManifestEntry;
 import org.junit.Assert;
@@ -20,42 +21,57 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.persistence.EntityManager;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+import static org.chronopolis.ingest.JpaContext.CREATE_SCRIPT;
+import static org.chronopolis.ingest.JpaContext.DELETE_SCRIPT;
+
+/**
+ * Test the DatabasePredicate to ensure filtering works correctly when retrieving work
+ *
+ * @author shake
+ */
 @DataJpaTest
+@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = JpaContext.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SqlGroup({
-        @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
-                scripts = "classpath:sql/createBagsWithTokens.sql"),
-        @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
-                scripts = "classpath:sql/deleteBagsWithTokens.sql")
+        @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = CREATE_SCRIPT),
+        @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = DELETE_SCRIPT)
 })
 public class DatabasePredicateTest extends IngestTest {
 
     @Autowired
     private EntityManager entityManager;
 
-    private PagedDAO dao;
+    private PagedDao dao;
     private DatabasePredicate predicate;
 
     @Before
     public void setup() {
-        dao = new PagedDAO(entityManager);
+        dao = new PagedDao(entityManager);
         predicate = new DatabasePredicate(dao);
     }
 
     @Test
     public void test() {
         final String digest = "test-digest";
-        final String fileExists = "/data/hello_world";
+        final String fileExists = "/manifest-sha256.txt";
         final String fileNotExists = "/data/hello_other_world";
-        org.chronopolis.rest.entities.Bag be = dao.findOne(QBag.bag, QBag.bag.name.eq("new-bag-3"));
+        org.chronopolis.rest.entities.Bag be = dao.findOne(QBag.bag, QBag.bag.name.eq("bag-3"));
 
-        final Bag bag = new Bag()
-                .setId(be.getId())
-                .setName(be.getName())
-                .setDepositor(be.getDepositor().getNamespace());
-        final Bag invalidId = new Bag().setId(999L);
+        final Bag bag = ExtensionsKt.model(be);
+        // an unfortunate side effect of immutability + java :(
+        final Bag invalidId = bag.copy(999L,
+                bag.getSize(),
+                bag.getTotalFiles(),
+                bag.getBagStorage(),
+                bag.getTokenStorage(),
+                bag.getCreatedAt(),
+                bag.getUpdatedAt(),
+                bag.getName(),
+                bag.getCreator(),
+                bag.getDepositor(),
+                bag.getStatus(),
+                bag.getReplicatingNodes());
 
         ManifestEntry exists = new ManifestEntry(bag, fileExists, digest);
         ManifestEntry bagNotExists = new ManifestEntry(invalidId, fileNotExists, digest);
@@ -70,6 +86,5 @@ public class DatabasePredicateTest extends IngestTest {
     public void testNullChecks() {
         Assert.assertFalse(predicate.test(null));
         Assert.assertFalse(predicate.test(new ManifestEntry(null, "file", "test-digest")));
-        Assert.assertFalse(predicate.test(new ManifestEntry(new Bag(), "file", "test-digest")));
     }
 }

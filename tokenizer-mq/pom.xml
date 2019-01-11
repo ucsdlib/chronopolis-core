@@ -7,11 +7,11 @@
     <parent>
         <groupId>org.chronopolis</groupId>
         <artifactId>chronopolis</artifactId>
-        <version>2.3.1-RELEASE</version>
+        <version>3.0.0-RC8</version>
     </parent>
 
     <artifactId>tokenizer-mq</artifactId>
-    <version>2.3.1-RELEASE</version>
+    <version>3.0.0-RC8</version>
 
     <properties>
         <artemis.version>2.6.0</artemis.version>
@@ -21,9 +21,7 @@
         <dependency>
             <groupId>org.chronopolis</groupId>
             <artifactId>tokenizer</artifactId>
-            <version>2.3.1-RELEASE</version>
         </dependency>
-
 
         <dependency>
             <groupId>org.apache.activemq</groupId>

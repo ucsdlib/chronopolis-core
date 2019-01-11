@@ -1,13 +1,9 @@
 package org.chronopolis.ingest.api;
 
 import org.chronopolis.ingest.models.filter.AceTokenFilter;
-import org.chronopolis.ingest.repository.TokenRepository;
-import org.chronopolis.ingest.repository.criteria.AceTokenSearchCriteria;
-import org.chronopolis.ingest.repository.dao.SearchService;
-import org.chronopolis.ingest.support.Loggers;
+import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.rest.entities.AceToken;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.chronopolis.rest.entities.QAceToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -27,13 +23,12 @@ import java.security.Principal;
 @RestController
 @RequestMapping("/api/tokens")
 public class TokenController {
-    private final Logger access = LoggerFactory.getLogger(Loggers.ACCESS_LOG);
 
-    private final SearchService<AceToken, Long, TokenRepository> tokens;
+    private final PagedDao dao;
 
     @Autowired
-    public TokenController(SearchService<AceToken, Long, TokenRepository> tokenService) {
-        this.tokens = tokenService;
+    public TokenController(PagedDao dao) {
+        this.dao = dao;
     }
 
     /**
@@ -45,13 +40,7 @@ public class TokenController {
      */
     @GetMapping
     public Page<AceToken> getTokens(Principal principal, @ModelAttribute AceTokenFilter filter) {
-        access.info("[GET /api/tokens] - {}", principal.getName());
-        AceTokenSearchCriteria criteria = new AceTokenSearchCriteria()
-                .withBagId(filter.getBagId())
-                .withFilenames(filter.getFilename())
-                .withAlgorithm(filter.getAlgorithm());
-
-        return tokens.findAll(criteria, filter.createPageRequest());
+        return dao.findPage(QAceToken.aceToken, filter);
     }
 
     /**
@@ -63,9 +52,7 @@ public class TokenController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<AceToken> getToken(Principal principal, @PathVariable("id") Long id) {
-        access.info("[GET /api/tokens/{}] - ", id, principal.getName());
-        AceTokenSearchCriteria criteria = new AceTokenSearchCriteria().withId(id);
-        AceToken token = tokens.find(criteria);
+        AceToken token = dao.findOne(QAceToken.aceToken, QAceToken.aceToken.id.eq(id));
         ResponseEntity<AceToken> response = ResponseEntity.ok(token);
         if (token == null) {
             response = ResponseEntity.notFound().build();

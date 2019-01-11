@@ -10,18 +10,17 @@ import org.chronopolis.common.storage.Bucket;
 import org.chronopolis.common.storage.DirectoryStorageOperation;
 import org.chronopolis.common.storage.SingleFileOperation;
 import org.chronopolis.common.storage.StorageOperation;
-import org.chronopolis.replicate.ReplicationNotifier;
-import org.chronopolis.replicate.support.CallWrapper;
-import org.chronopolis.replicate.support.NotFoundCallWrapper;
 import org.chronopolis.replicate.support.ReplGenerator;
 import org.chronopolis.rest.api.ReplicationService;
 import org.chronopolis.rest.api.ServiceGenerator;
-import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.models.Bag;
-import org.chronopolis.rest.models.RStatusUpdate;
 import org.chronopolis.rest.models.Replication;
-import org.chronopolis.rest.models.ReplicationStatus;
-import org.chronopolis.rest.models.storage.StagingStorageModel;
+import org.chronopolis.rest.models.StagingStorage;
+import org.chronopolis.rest.models.enums.BagStatus;
+import org.chronopolis.rest.models.enums.ReplicationStatus;
+import org.chronopolis.rest.models.update.ReplicationStatusUpdate;
+import org.chronopolis.test.support.CallWrapper;
+import org.chronopolis.test.support.ErrorCallWrapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -34,9 +33,14 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static java.time.ZonedDateTime.now;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.any;
@@ -45,7 +49,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- *
  * Created by shake on 3/18/16.
  */
 public class AceTaskletTest {
@@ -58,42 +61,37 @@ public class AceTaskletTest {
     @Mock private Bucket bagBucket;
     @Mock private Bucket tokenBucket;
 
-    private Bag b;
-    private Node n;
+    private Bag bag;
+    private AceFactory factory;
     private Replication replication;
-    private ReplicationNotifier notifier;
-    private AceConfiguration aceConfiguration;
-    private DirectoryStorageOperation bagOp;
-    private SingleFileOperation tokenOp;
-    private ServiceGenerator generator;
 
     private Path tokens;
 
     @Before
-    public void setup() throws NoSuchFieldException, URISyntaxException {
+    public void setup() throws URISyntaxException {
         MockitoAnnotations.initMocks(this);
 
-        b = new Bag().setName(name).setDepositor(group);
-        b.setTokenStorage(new StagingStorageModel().setPath("tokens/test-token-store"));
-        n = new Node("test-node", "test-node-pass");
+        StagingStorage tokenStorage =
+                new StagingStorage(true, 1L, 1L, 1L, "tokens/test-token-store", new HashSet<>());
+        bag = new Bag(1L, 1L, 1L, null, tokenStorage, now(), now(), name, group, group,
+                BagStatus.REPLICATING, new HashSet<>());
 
         URL bags = ClassLoader.getSystemClassLoader().getResource("");
-        tokens = Paths.get(bags.toURI()).resolve(b.getTokenStorage().getPath());
-        aceConfiguration = new AceConfiguration();
-        bagOp = new DirectoryStorageOperation(Paths.get(group, name));
-        tokenOp = new SingleFileOperation(Paths.get(group, "test-token-store"));
-        generator = new ReplGenerator(replications);
+        tokens = Paths.get(bags.toURI()).resolve(bag.getTokenStorage().getPath());
+        AceConfiguration aceConfiguration = new AceConfiguration();
+        ServiceGenerator generator = new ReplGenerator(replications);
+        ThreadPoolExecutor executor =
+                new ThreadPoolExecutor(4, 4, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+
+        factory = new AceFactory(ace, generator, aceConfiguration, executor);
     }
 
 
     @Test
     public void testAllRun() {
-        replication = new Replication();
-        replication.setBag(b);
-        replication.setId(1L);
-        replication.setNode(n.getUsername());
-        replication.setStatus(ReplicationStatus.TRANSFERRED);
-        notifier = new ReplicationNotifier(replication);
+        replication = replication(ReplicationStatus.TRANSFERRED);
+        DirectoryStorageOperation bagOp = new DirectoryStorageOperation(Paths.get(group, name));
+        SingleFileOperation tokenOp = new SingleFileOperation(Paths.get(group, "test-token-store"));
 
         // setup our mocks for our http requests
         prepareIngestGet(replication.getId(), replication);
@@ -104,25 +102,23 @@ public class AceTaskletTest {
         prepareAceAudit();
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
-        AceRunner runner = new AceRunner(ace, generator, replication.getId(), aceConfiguration, bagBucket, tokenBucket, bagOp, tokenOp, notifier);
-        runner.get();
+        CompletableFuture<ReplicationStatus> future =
+                factory.register(replication, bagBucket, bagOp, tokenBucket, tokenOp);
+        future.join();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName(any(String.class), any(String.class));
         verify(ace, times(1)).addCollection(any(GsonCollection.class));
         verify(ace, times(1)).loadTokenStore(anyLong(), any(RequestBody.class));
         verify(ace, times(1)).startAudit(anyLong(), eq(false));
-        verify(replications, times(3)).updateStatus(anyLong(), any(RStatusUpdate.class));
+        verify(replications, times(3)).updateStatus(anyLong(), any(ReplicationStatusUpdate.class));
     }
 
     @Test
     public void testAllRunWithCollection() {
-        replication = new Replication();
-        replication.setBag(b);
-        replication.setId(1L);
-        replication.setNode(n.getUsername());
-        replication.setStatus(ReplicationStatus.TRANSFERRED);
-        notifier = new ReplicationNotifier(replication);
+        replication = replication(ReplicationStatus.TRANSFERRED);
+        DirectoryStorageOperation bagOp = new DirectoryStorageOperation(Paths.get(group, name));
+        SingleFileOperation tokenOp = new SingleFileOperation(Paths.get(group, "test-token-store"));
 
         // setup our mocks for our http requests
         prepareIngestGet(replication.getId(), replication);
@@ -133,26 +129,23 @@ public class AceTaskletTest {
         prepareAceAudit();
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
-        AceRunner runner = new AceRunner(ace, generator, replication.getId(), aceConfiguration, bagBucket, tokenBucket, bagOp, tokenOp, notifier);
-        runner.get();
+        CompletableFuture<ReplicationStatus> future =
+                factory.register(replication, bagBucket, bagOp, tokenBucket, tokenOp);
+        future.join();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName(any(String.class), any(String.class));
         verify(ace, times(0)).addCollection(any(GsonCollection.class));
         verify(ace, times(1)).loadTokenStore(anyLong(), any(RequestBody.class));
         verify(ace, times(1)).startAudit(anyLong(), eq(false));
-        verify(replications, times(2)).updateStatus(anyLong(), any(RStatusUpdate.class));
+        verify(replications, times(2)).updateStatus(anyLong(), any(ReplicationStatusUpdate.class));
     }
 
     @Test
     public void testFromTokenLoaded() {
-        replication = new Replication();
-        replication.setBag(b);
-        replication.setId(1L);
-        replication.setNode(n.getUsername());
-        replication.setStatus(ReplicationStatus.ACE_TOKEN_LOADED);
-
-        notifier = new ReplicationNotifier(replication);
+        replication = replication(ReplicationStatus.ACE_TOKEN_LOADED);
+        DirectoryStorageOperation bagOp = new DirectoryStorageOperation(Paths.get(group, name));
+        SingleFileOperation tokenOp = new SingleFileOperation(Paths.get(group, "test-token-store"));
 
         // setup our mocks for our http requests
         prepareIngestGet(replication.getId(), replication);
@@ -160,22 +153,21 @@ public class AceTaskletTest {
         prepareAceAudit();
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
-        AceRunner runner = new AceRunner(ace, generator, replication.getId(), aceConfiguration, bagBucket, tokenBucket, bagOp, tokenOp, notifier);
-        runner.get();
+        CompletableFuture<ReplicationStatus> future =
+                factory.register(replication, bagBucket, bagOp, tokenBucket, tokenOp);
+        future.join();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName("test-bag", "test-depositor");
         verify(ace, times(1)).startAudit(anyLong(), eq(false));
-        verify(replications, times(1)).updateStatus(anyLong(), any(RStatusUpdate.class));
+        verify(replications, times(1)).updateStatus(anyLong(), any(ReplicationStatusUpdate.class));
     }
 
     @Test
     public void testFromRegistered() {
-        replication = new Replication();
-        replication.setBag(b);
-        replication.setId(1L);
-        replication.setNode(n.getUsername());
-        replication.setStatus(ReplicationStatus.ACE_REGISTERED);
+        replication = replication(ReplicationStatus.ACE_REGISTERED);
+        DirectoryStorageOperation bagOp = new DirectoryStorageOperation(Paths.get(group, name));
+        SingleFileOperation tokenOp = new SingleFileOperation(Paths.get(group, "test-token-store"));
 
         // setup our mocks for our http requests
         prepareIngestGet(replication.getId(), replication);
@@ -185,35 +177,40 @@ public class AceTaskletTest {
         prepareAceAudit();
         prepareIngestUpdate(ReplicationStatus.ACE_AUDITING);
 
-        notifier = new ReplicationNotifier(replication);
-
-        AceRunner runner = new AceRunner(ace, generator, replication.getId(), aceConfiguration, bagBucket, tokenBucket, bagOp, tokenOp, notifier);
-        runner.get();
+        CompletableFuture<ReplicationStatus> future =
+                factory.register(replication, bagBucket, bagOp, tokenBucket, tokenOp);
+        future.join();
 
         // Verify our mocks
         verify(ace, times(1)).getCollectionByName("test-bag", "test-depositor");
         verify(ace, times(1)).loadTokenStore(anyLong(), any(RequestBody.class));
         verify(ace, times(1)).startAudit(anyLong(), eq(false));
-        verify(replications, times(2)).updateStatus(anyLong(), any(RStatusUpdate.class));
-    }
-
-        private void prepareACERegister() {
-        when(bagBucket.fillAceStorage(any(StorageOperation.class), any(GsonCollection.Builder.class)))
-                .thenAnswer((Answer<GsonCollection.Builder>) invocation -> invocation.getArgumentAt(1, GsonCollection.Builder.class));
-        when(ace.getCollectionByName(any(String.class), any(String.class)))
-                .thenReturn(new NotFoundCallWrapper<>());
-        when(ace.addCollection(any(GsonCollection.class)))
-                .thenReturn(new CallWrapper<>(ImmutableMap.of("id", 1L)));
+        verify(replications, times(2)).updateStatus(anyLong(), any(ReplicationStatusUpdate.class));
     }
 
     // Helper methods for preparing mocks
+    private Replication replication(ReplicationStatus status) {
+        return new Replication(1L, now(), now(), status,
+                "bag-link", "token-link", "test-protocol", "received-fixity", "received-fixity",
+                "test-node", bag);
+    }
+
+    private void prepareACERegister() {
+        when(bagBucket.fillAceStorage(any(StorageOperation.class), any(GsonCollection.Builder.class)))
+                .thenAnswer((Answer<GsonCollection.Builder>) invocation ->
+                        invocation.getArgumentAt(1, GsonCollection.Builder.class));
+        when(ace.getCollectionByName(any(String.class), any(String.class)))
+                .thenReturn(new ErrorCallWrapper<>(null, 404, "Not Found"));
+        when(ace.addCollection(any(GsonCollection.class)))
+                .thenReturn(new CallWrapper<>(ImmutableMap.of("id", 1L)));
+    }
 
     private void prepareIngestGet(Long id, Replication r) {
         when(replications.get(id)).thenReturn(new CallWrapper<>(r));
     }
 
     private void prepareIngestUpdate(ReplicationStatus status) {
-        RStatusUpdate update = new RStatusUpdate(status);
+        ReplicationStatusUpdate update = new ReplicationStatusUpdate(status);
         when(replications.updateStatus(anyLong(), eq(update)))
                 .thenReturn(new CallWrapper<>(replication));
     }
@@ -248,7 +245,7 @@ public class AceTaskletTest {
      * Class to attempt to replicate a longer response from a server
      * Waits 2 seconds before updating the callback, used to make sure our phaser
      * is correct
-     *
+     * <p>
      * TODO: We'll want to do this for the NotFoundCW as well
      *
      * @param <E>
@@ -269,7 +266,7 @@ public class AceTaskletTest {
                 } catch (InterruptedException ignored) {
                 }
 
-                callback.onResponse(new AsyncWrapper(e), Response.success(e));
+                callback.onResponse(new AsyncWrapper<>(e), Response.success(e));
             });
 
             thread.start();
