@@ -87,7 +87,8 @@ public class BagFileCsvGenerator implements Callable<BagFileCsvResult> {
                 .asByteSource(tagFile)
                 .hash(hashFunction);
 
-        print.printRecord(filename, tagFile.length(), algorithm.getCanonical(), hash.toString());
+        // BagFileHeaders: FILENAME, SIZE, FIXITY_VALUE, FIXITY_ALGORITHM
+        print.printRecord(filename, tagFile.length(), hash.toString(), algorithm.getCanonical());
     }
 
     private void writeToCsv(CSVPrinter printer, Path manifest) throws IOException {
