@@ -10,13 +10,13 @@ import org.chronopolis.rest.models.*
 import org.chronopolis.rest.models.enums.FixityAlgorithm
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
-import org.chronopolis.rest.entities.storage.Fixity as FixityEntity
 import org.chronopolis.rest.entities.AceToken as AceTokenEntity
 import org.chronopolis.rest.entities.Bag as BagEntity
 import org.chronopolis.rest.entities.Replication as ReplicationEntity
 import org.chronopolis.rest.entities.depositor.Depositor as DepositorEntity
 import org.chronopolis.rest.entities.depositor.DepositorContact as ContactEntity
 import org.chronopolis.rest.entities.repair.Repair as RepairEntity
+import org.chronopolis.rest.entities.storage.Fixity as FixityEntity
 import org.chronopolis.rest.entities.storage.StagingStorage as StagingStorageEntity
 import org.chronopolis.rest.entities.storage.StorageRegion as StorageRegionEntity
 
@@ -92,8 +92,9 @@ fun DepositorEntity.model(): Depositor {
     return Depositor(
             id = this.id,
             namespace = this.namespace,
-            sourceOrganization = this.sourceOrganization,
-            organizationAddress = this.organizationAddress,
+            // hibernate is setting these to null maybe? whatever is going on, safety first
+            sourceOrganization = this.sourceOrganization?: "",
+            organizationAddress = this.organizationAddress?: "",
             createdAt = this.createdAt,
             updatedAt = this.updatedAt,
             replicatingNodes = this.nodeDistributions.map { it.username }.toSet(),

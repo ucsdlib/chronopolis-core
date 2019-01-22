@@ -10,8 +10,10 @@ import org.chronopolis.rest.csv.BagFileHeaders;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagFile;
 import org.chronopolis.rest.entities.QBag;
+import org.chronopolis.rest.entities.QBagFile;
 import org.chronopolis.rest.entities.QDataFile;
 import org.chronopolis.rest.entities.storage.Fixity;
+import org.chronopolis.rest.models.enums.BagStatus;
 import org.chronopolis.rest.models.enums.FixityAlgorithm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,10 +58,10 @@ public class BagFileCSVProcessor implements BiFunction<Long, Path, ResponseEntit
             Bag bag = dao.findOne(QBag.bag, QBag.bag.id.eq(bagId));
 
             CSVParser parse = CSVFormat.RFC4180
-                    .withHeader(BagFileHeaders.class)
+                    .withHeader()
+                    // .withSkipHeaderRecord()
                     .withIgnoreEmptyLines()
                     .withIgnoreHeaderCase()
-                    .withSkipHeaderRecord()
                     .withIgnoreSurroundingSpaces()
                     .parse(Files.newBufferedReader(csvIn));
             log.info("[{}] Attempting ingest of BagFiles from csv", bag.getName());
@@ -78,7 +80,8 @@ public class BagFileCSVProcessor implements BiFunction<Long, Path, ResponseEntit
 
                     // I think these can error
                     Long size = Long.parseLong(sizeRecord);
-                    FixityAlgorithm algorithm = FixityAlgorithm.Companion.fromString(algorithmRecord);
+                    FixityAlgorithm algorithm =
+                            FixityAlgorithm.Companion.fromString(algorithmRecord);
 
                     // Not sure what type of impact this will have
                     // Since most records should not exist, hopefully very little
@@ -99,23 +102,23 @@ public class BagFileCSVProcessor implements BiFunction<Long, Path, ResponseEntit
                                 new Fixity(ZonedDateTime.now(), bagFile, fixity, canonical));
 
                         files.add(bagFile);
+                        num++;
                     } /* update later? maybe 3.1.0
                     else {
                         checkUpdate(bagFile, fixity, algorithm);
                     }*/
-
-                    num++;
                 }
 
                 // no idea if this batches correctly or not
                 // it doesn't appear to be and becomes very memory heavy
                 // also this _could_ potentially overflow, but we would need 2^31 files to ingest
                 // so I think we'll be ok
-                if (num % properties.getFileIngestBatchSize() == 0) {
+                if (num == properties.getFileIngestBatchSize()) {
                     bag.getFiles().addAll(files);
                     log.info("saving bag");
                     dao.save(bag);
                     files.clear();
+                    num = 0;
                 }
             }
 
@@ -123,6 +126,7 @@ public class BagFileCSVProcessor implements BiFunction<Long, Path, ResponseEntit
             bag.getFiles().addAll(files);
             dao.save(bag);
             files.clear();
+            checkBagInitialized(query, bag);
         } catch (NumberFormatException e) {
             log.error("Invalid number in csv: ", e);
 
@@ -139,6 +143,20 @@ public class BagFileCSVProcessor implements BiFunction<Long, Path, ResponseEntit
         }
 
         return response;
+    }
+
+    private void checkBagInitialized(JPAQueryFactory query, Bag bag) {
+        long count = query.selectFrom(QBagFile.bagFile)
+                .where(QBagFile.bagFile.bag.id.eq(bag.getId()))
+                .fetchCount();
+
+        if (count == bag.getTotalFiles() && bag.getStatus() == BagStatus.DEPOSITED) {
+            bag.setStatus(BagStatus.INITIALIZED);
+            dao.save(bag);
+        } else if (count > bag.getTotalFiles()) {
+            bag.setStatus(BagStatus.ERROR);
+            dao.save(bag);
+        }
     }
 
     /**

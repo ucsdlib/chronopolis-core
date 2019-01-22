@@ -39,6 +39,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.security.Principal;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -161,49 +163,59 @@ public class BatchFileController {
         try (BufferedWriter writer = Files.newBufferedWriter(tmpCsv,
                 StandardOpenOption.CREATE_NEW,
                 StandardOpenOption.WRITE)) {
+            writeHeaders(writer);
+
             InputStreamReader isr;
             BufferedReader reader;
 
             isr = new InputStreamReader(file.getInputStream());
             reader = new BufferedReader(isr);
             CSVParser parser = CSVFormat.RFC4180
-                    .withHeader(BagFileHeaders.class)
+                    .withHeader()
                     .withIgnoreHeaderCase()
                     .withIgnoreEmptyLines()
                     .withIgnoreSurroundingSpaces()
                     .parse(reader);
-            List<CSVRecord> records = parser.getRecords();
-            for (CSVRecord record : records) {
-                // check that the record is consistent
-                if (!record.isConsistent()) {
-                    valid = false;
-                    long number = record.getRecordNumber();
-                    log.error("Uploaded csv is not consistent! Error at line {}", number);
-                    // might turn this into json
-                    entity = ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .body("Inconsistent csv! Error at line " + number);
 
-                    break;
+            valid = validateHeaders(parser);
+            if (!valid) {
+                log.error("Unable to validate headers!");
+                entity = ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Invalid headers for csv!");
+            } else {
+                List<CSVRecord> records = parser.getRecords();
+                for (CSVRecord record : records) {
+                    // check that the record is consistent
+                    if (!record.isConsistent()) {
+                        valid = false;
+                        long number = record.getRecordNumber();
+                        log.error("Uploaded csv is not consistent! Error at line {}", number);
+                        // might turn this into json
+                        entity = ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body("Inconsistent csv! Error at line " + number);
+
+                        break;
+                    }
+
+                    // check that the record is valid within our own context
+                    if (record.getRecordNumber() > 1 && !validate(record)) {
+                        valid = false;
+                        long number = record.getRecordNumber();
+                        log.error("Unable to validate record {}", number);
+                        entity = ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body("Invalid record at line " + number);
+                        break;
+                    }
+
+                    writer.write(record.get(BagFileHeaders.FILENAME));
+                    writer.write(",");
+                    writer.write(record.get(BagFileHeaders.SIZE));
+                    writer.write(",");
+                    writer.write(record.get(BagFileHeaders.FIXITY_VALUE));
+                    writer.write(",");
+                    writer.write(record.get(BagFileHeaders.FIXITY_ALGORITHM));
+                    writer.newLine();
                 }
-
-                // check that the record is valid within our own context
-                if (record.getRecordNumber() > 1 && !validate(record)) {
-                    valid = false;
-                    long number = record.getRecordNumber();
-                    log.error("Unable to validate record {}", number);
-                    entity = ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .body("Invalid record at line " + number);
-                    break;
-                }
-
-                writer.write(record.get(BagFileHeaders.FILENAME.ordinal()));
-                writer.write(",");
-                writer.write(record.get(BagFileHeaders.SIZE.ordinal()));
-                writer.write(",");
-                writer.write(record.get(BagFileHeaders.FIXITY_VALUE.ordinal()));
-                writer.write(",");
-                writer.write(record.get(BagFileHeaders.FIXITY_ALGORITHM.ordinal()));
-                writer.newLine();
             }
         } catch (IOException e) {
             log.error("Error with parser or writer", e);
@@ -218,6 +230,31 @@ public class BatchFileController {
         }
 
         return entity;
+    }
+
+    private void writeHeaders(BufferedWriter writer) throws IOException {
+        writer.write(BagFileHeaders.FILENAME.name());
+        writer.write(",");
+        writer.write(BagFileHeaders.SIZE.name());
+        writer.write(",");
+        writer.write(BagFileHeaders.FIXITY_VALUE.name());
+        writer.write(",");
+        writer.write(BagFileHeaders.FIXITY_ALGORITHM.name());
+        writer.newLine();
+    }
+
+    private boolean validateHeaders(CSVParser parser) {
+        boolean validated = true;
+        Set<String> validation = new TreeSet<>(String::compareToIgnoreCase);
+        Set<String> parserHeader = parser.getHeaderMap().keySet();
+        BagFileHeaders[] headers = BagFileHeaders.values();
+        validation.addAll(parserHeader);
+
+        for (BagFileHeaders header : headers) {
+            validated = validated && validation.contains(header.name());
+        }
+
+        return validated && validation.size() == headers.length;
     }
 
     private boolean validate(CSVRecord record) {
