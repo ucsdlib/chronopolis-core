@@ -5,12 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>rest-common</artifactId>
-    <version>3.0.0-RELEASE</version>
+    <version>3.0.1-RELEASE</version>
 
     <parent>
         <groupId>org.chronopolis</groupId>
         <artifactId>chronopolis</artifactId>
-        <version>3.0.0-RELEASE</version>
+        <version>3.0.1-RELEASE</version>
     </parent>
 
     <dependencies>
