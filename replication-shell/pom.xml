@@ -8,10 +8,10 @@
     <parent>
         <groupId>org.chronopolis</groupId>
         <artifactId>chronopolis</artifactId>
-        <version>3.0.1-RELEASE</version>
+        <version>3.0.2-RELEASE</version>
     </parent>
     <artifactId>replication-shell</artifactId>
-    <version>3.0.1-RELEASE</version>
+    <version>3.0.2-RELEASE</version>
     <name>Replication Shell</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

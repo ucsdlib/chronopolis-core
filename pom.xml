@@ -12,7 +12,7 @@
     </parent>
 
     <packaging>pom</packaging>
-    <version>3.0.1-RELEASE</version>
+    <version>3.0.2-RELEASE</version>
     <groupId>org.chronopolis</groupId>
     <artifactId>chronopolis</artifactId>
 
