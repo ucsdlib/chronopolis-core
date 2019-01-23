@@ -1,6 +1,6 @@
 package org.chronopolis.rest.api
 
-import okhttp3.RequestBody
+import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 import org.chronopolis.rest.models.File
 import org.chronopolis.rest.models.Fixity
@@ -50,7 +50,7 @@ interface FileService {
 
     @Multipart
     @POST("/api/bags/{bag_id}/files")
-    fun createBatch(@Path("bag_id") id: Long, @Part("file") file: RequestBody): Call<Void>
+    fun createBatch(@Path("bag_id") id: Long, @Part file: MultipartBody.Part): Call<Void>
 
     @Streaming
     @GET("/api/bags/{bag_id}/download")

@@ -102,7 +102,7 @@ public class MqApplication implements CommandLineRunner {
 
         ImmutableMap<String, String> params = ImmutableMap.of(
                 "creator", apiProperties.getUsername(),
-                "status", BagStatus.DEPOSITED.toString(),
+                "status", BagStatus.INITIALIZED.toString(),
                 "region_id", staging.getPosix().getId().toString());
 
         Call<SpringPage<Bag>> allBags = bags.get(params);

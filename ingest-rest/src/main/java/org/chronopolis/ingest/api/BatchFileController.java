@@ -116,7 +116,7 @@ public class BatchFileController {
     @PostMapping("/api/bags/{bag_id}/files")
     public ResponseEntity createBagFiles(Principal principal,
                                          @PathVariable("bag_id") Long bagId,
-                                         @RequestParam("file") MultipartFile file) {
+                                         @RequestParam MultipartFile file) {
         boolean valid = true;
         ResponseEntity entity = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
@@ -198,10 +198,9 @@ public class BatchFileController {
                     }
 
                     // check that the record is valid within our own context
-                    if (record.getRecordNumber() > 1 && !validate(record)) {
+                    if (!validate(record)) {
                         valid = false;
                         long number = record.getRecordNumber();
-                        log.error("Unable to validate record {}", number);
                         entity = ResponseEntity.status(HttpStatus.BAD_REQUEST)
                                 .body("Invalid record at line " + number);
                         break;
@@ -263,7 +262,13 @@ public class BatchFileController {
 
         boolean isNumber = Longs.tryParse(size) != null;
         FixityAlgorithm parsedAlgorithm = FixityAlgorithm.Companion.fromString(algorithm);
-        return isNumber && !parsedAlgorithm.equals(FixityAlgorithm.UNSUPPORTED);
+
+        boolean valid = isNumber && !parsedAlgorithm.equals(FixityAlgorithm.UNSUPPORTED);
+        if (!valid) {
+            log.error("Line {} invalid! size({}) isNumber? {} && algorithm({}) == {}",
+                    record.getRecordNumber(), size, isNumber, algorithm, parsedAlgorithm);
+        }
+        return valid;
     }
 
     private void deleteCsv(Path tmpCsv) {

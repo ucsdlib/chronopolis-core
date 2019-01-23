@@ -71,7 +71,7 @@ public class LocalTokenizationTest extends IngestTest {
     public void runLocalTokenization() {
         localTokenization.searchForBags();
 
-        Mockito.verify(executor, times(9)).submitIfAvailable(any(), any());
+        Mockito.verify(executor, times(1)).submitIfAvailable(any(), any());
     }
 
 }
