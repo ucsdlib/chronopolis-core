@@ -88,7 +88,7 @@ public class LocalTokenization {
                 .fetchJoin()
                 .innerJoin(QStagingStorage.stagingStorage.file, QDataFile.dataFile)
                 .on(QStagingStorage.stagingStorage.file.dtype.eq(DISCRIMINATOR_BAG))
-                .where(qBag.status.eq(BagStatus.DEPOSITED)
+                .where(qBag.status.eq(BagStatus.INITIALIZED)
                         .and(qBag.creator.eq(creator))
                         .and(qBag.totalFiles.eq(JPAExpressions.select(qBagFile.count())
                                 .from(qBagFile)

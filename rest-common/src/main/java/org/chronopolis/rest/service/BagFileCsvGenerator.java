@@ -111,7 +111,8 @@ public class BagFileCsvGenerator implements Callable<BagFileCsvResult> {
                         ? relativePath
                         : "/" + relativePath;
 
-                printer.printRecord(normalizedPath, length, fixityAlgorithm, fixity);
+                // BagFileHeaders: FILENAME, SIZE, FIXITY_VALUE, FIXITY_ALGORITHM
+                printer.printRecord(normalizedPath, length, fixity, fixityAlgorithm);
             }
         }
     }

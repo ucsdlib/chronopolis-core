@@ -70,7 +70,7 @@ public class TokenTask {
         // Query ingest API
         // Maybe getMyBags? Can work this out later
         Call<SpringPage<Bag>> bags = service.get(ImmutableMap.of(
-                "status", BagStatus.DEPOSITED.toString(),
+                "status", BagStatus.INITIALIZED.toString(),
                 "creator", ingestProperties.getUsername(),
                 "region_id", properties.getPosix().getId().toString()));
         try {

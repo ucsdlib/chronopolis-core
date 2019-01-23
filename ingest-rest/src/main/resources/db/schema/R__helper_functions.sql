@@ -48,6 +48,24 @@ BEGIN
 END;
 $BODY$ LANGUAGE plpgsql;
 
+-- notes
+--
+-- this is used to create a consistent set of bags to test from. it can be expanded as needed, but
+-- given that some tests rely on it care should be taken. maybe in the future we can pass parameters
+-- so that different tests don't need to worry about the behavior of the function, just the result.
+--
+-- in the interest of better understanding how tests use this, here is a list:
+-- TokenDaoTest:  Queries 'bag-1' for a successful token create; 'bag-2' and 'bag-3' for unsuccessful
+-- BagServiceTest: Queries all to test projection mapping; Queries 'bag-3' to test complete mapping
+-- BagFileDaoTest: Queries for any bag id and any file '/manifest-sha256.txt'
+-- StagingDaoTest: Queries for 'bag-1', expects no associated StagingStorage
+-- ReplicatingNodeTest:  Queries 'bag-0' for 2 distribution objects; Queries 'bag-1' for updating 4 distribution objects
+-- ReplicationTaskTest: Runs ReplicationTask which expects one Bag to be 'TOKENIZED' with 4 distributions
+-- TokenStoreWriterTest: Queries for 'bag-3'; expects to have ACE Tokens
+-- LocalTokenizationTest: Runs LocalTokenization which expects one Bag to be 'INITIALIZED'
+-- DatabasePredicateTest: Queries for 'bag-3' to test different predicates on
+-- BagFileCSVProcessorTest: Queries for 'bag-2' to load files for csv
+-- IngestTokenRegistrarTest: Queries 'bag-1' and expects no ACE Tokens; 'bag-3' and expects ACE Tokens
 CREATE OR REPLACE FUNCTION create_bags() RETURNS void AS
 $BODY$
 DECLARE
@@ -95,5 +113,7 @@ BEGIN
     -- and create a few more distribution objects
     SELECT id from bag where name = 'bag-0' INTO bag_id;
     PERFORM create_distributions(bag_id, 'DISTRIBUTE', 2);
+
+    UPDATE bag SET status = 'INITIALIZED' WHERE name = 'bag-6';
 END;
 $BODY$ LANGUAGE plpgsql;
