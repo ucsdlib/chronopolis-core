@@ -53,12 +53,12 @@ public class TokenWriteTask {
     }
 
     /**
-     * Retrieve a List of DEPOSITED Bags which have the same amount of ACE Tokens registered
-     * as total files
+     * Retrieve a List of INITIALIZED Bags which have the same amount of ACE Tokens registered
+     * as total files. Also want to make sure at least one staging option is active.
      * <p>
      * The query is equivalent to:
      * SELECT * FROM bag b
-     * WHERE status = 'DEPOSITED' AND
+     * WHERE status = 'INITIALIZED' AND
      * total_files = (SELECT count(id) FROM ace_token WHERE bag_id = b.id);
      *
      * @return the List of Bags matching the query
@@ -69,7 +69,7 @@ public class TokenWriteTask {
         return dao.getJPAQueryFactory().selectFrom(bag)
                 .innerJoin(bag.storage, QStagingStorage.stagingStorage)
                 .fetchJoin()
-                .where(bag.status.eq(BagStatus.DEPOSITED),
+                .where(bag.status.eq(BagStatus.INITIALIZED),
                         bag.totalFiles.eq(
                                 JPAExpressions.select(token.id.count())
                                         .from(token)
