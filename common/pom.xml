@@ -5,11 +5,11 @@
     <parent>
         <groupId>org.chronopolis</groupId>
         <artifactId>chronopolis</artifactId>
-        <version>3.0.3-RELEASE</version>
+        <version>3.0.4-RELEASE</version>
     </parent>
 
     <artifactId>chron-common</artifactId>
-    <version>3.0.3-RELEASE</version>
+    <version>3.0.4-RELEASE</version>
     <name>Common</name>
     <url>http://maven.apache.org</url>
     <properties>
