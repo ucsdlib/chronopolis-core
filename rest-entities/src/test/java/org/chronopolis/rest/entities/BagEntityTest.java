@@ -15,6 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ContextConfiguration;
@@ -32,7 +33,7 @@ import static org.chronopolis.rest.entities.JPAContext.FIXITY_VALUE;
  *
  * @author shake
  */
-@DataJpaTest
+@DataJpaTest(excludeAutoConfiguration = FlywayAutoConfiguration.class)
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = JPAContext.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)

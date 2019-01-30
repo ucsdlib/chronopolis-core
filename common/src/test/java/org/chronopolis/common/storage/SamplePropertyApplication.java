@@ -28,7 +28,7 @@ public class SamplePropertyApplication implements CommandLineRunner{
     }
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         for (Posix posix : preservationProperties.getPosix()) {
             System.out.println("==================================");
             System.out.println("Posix Ingest Id: " + posix.getId());

@@ -45,7 +45,7 @@ class BagHasher(val bucket: Bucket,
     fun update(hashCode: HashCode) {
         val cb = UpdateCallback()
         val hash = hashCode.toString()
-        log.info("[{}] Calculated tagmanifest digest {}", operation.identifier, hash.toString())
+        log.info("[{}] Calculated tagmanifest digest {}", operation.identifier, hash)
 
         val call = replications.updateTagManifestFixity(replication.id, FixityUpdate(hash))
         call.enqueue(cb)

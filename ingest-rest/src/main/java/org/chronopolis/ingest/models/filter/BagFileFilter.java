@@ -26,7 +26,7 @@ public class BagFileFilter extends Paged {
     private final QBagFile qBagFile = QBagFile.bagFile;
     private final BooleanBuilder builder = new BooleanBuilder();
 
-    private Map<String, BooleanExpression> expressions = new HashMap<>();
+    private final Map<String, BooleanExpression> expressions = new HashMap<>();
 
     @Override
     public BooleanBuilder getQuery() {

@@ -3,7 +3,6 @@ package org.chronopolis.ingest.tokens;
 import edu.umiacs.ace.token.TokenStoreWriter;
 import org.chronopolis.rest.entities.AceToken;
 
-import java.io.IOException;
 import java.io.OutputStream;
 
 
@@ -34,11 +33,6 @@ public class TokenWriter extends TokenStoreWriter<AceToken> {
         for (String line : aceToken.getProof().split("[\\r\\n]+")) {
             addHashLevel(line);
         }
-    }
-
-    @Override
-    public void close() throws IOException {
-        super.close();
     }
 
 }

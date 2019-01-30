@@ -47,7 +47,7 @@
                     </form>
                 </div>
                 <div id="add" class="tab-pane fade p-2" sec:authorize="hasRole('ROLE_ADMIN')">
-                    <form enctype="application/json" method="post" name="ingest" action="/users/add"
+                    <form method="post" name="ingest" action="/users/add"
                           th:action="@{/users/add}">
                             <div class="form-group row">
                                 <label for="create-username" class="col-4 col-form-label">Username</label>

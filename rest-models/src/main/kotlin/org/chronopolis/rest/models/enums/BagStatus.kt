@@ -24,6 +24,7 @@ enum class BagStatus {
 
         fun preservedStates(): Set<BagStatus> = ImmutableSet.of(PRESERVED)
 
+        @Suppress("MemberVisibilityCanBePrivate")
         fun inactiveStates(): Set<BagStatus> = ImmutableSet.of(DEPRECATED, DELETED, ERROR)
 
         fun statusByGroup(): ImmutableListMultimap<String, BagStatus> =

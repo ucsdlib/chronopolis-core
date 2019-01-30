@@ -39,7 +39,7 @@ lockfile=/var/lock/subsys/ingest-server
 logdir=/var/log/chronopolis
 
 # env vars for spring
-export SPRING_PID_FILE=$pidfile
+export SPRING_PID_FILE=${pidfile}
 export SPRING_CONFIG_LOCATION="$INGEST_DIR/"
 
 start(){
@@ -81,16 +81,16 @@ start(){
     # check for failed/hung server
     # may need to update host endpoint
     RESPONSE=`curl -I -X GET http://localhost:8080 > /dev/null 2>&1`
-    if [ $RUNNING = 1 ] && [ $? = 0 ]; then
+    if [ ${RUNNING} = 1 ] && [ $? = 0 ]; then
         action $"Starting $prog: " /bin/true
         return 0
     fi
 
     # exec
-    daemon --user "$CHRON_USER" --pidfile "$pidfile" $JAVA_CMD
+    daemon --user "$CHRON_USER" --pidfile "$pidfile" ${JAVA_CMD}
 
     # wait for timeout
-    while [ $TIMEOUT -gt 0 ]; do
+    while [ ${TIMEOUT} -gt 0 ]; do
         # Try to connect to the server
         curl -I -X GET http://localhost:8080 > /dev/null 2>&1
         if [ $? -eq 0 ]; then
@@ -102,13 +102,13 @@ start(){
 
     if [ $? -eq 0 ]; then
         action $"Starting $prog: " /bin/true
-        touch $lockfile
+        touch ${lockfile}
     else
         action $"Starting $prog: " /bin/false
         ret=3
     fi
 
-    return $ret
+    return ${ret}
 }
 
 stop(){
@@ -126,7 +126,7 @@ stop(){
         /bin/kill "$PID" > /dev/null 2>&1 || break
         if [ $? -eq 0 ]; then
             action $"Stopping $prog: " /bin/true
-            rm -f $lockfile
+            rm -f ${lockfile}
             rm -f "$pidfile"
         else
             action $"Stopping $prog: " /bin/false
@@ -137,7 +137,7 @@ stop(){
         ret=4
     fi
 
-    return $ret
+    return ${ret}
 }
 
 case "$1" in

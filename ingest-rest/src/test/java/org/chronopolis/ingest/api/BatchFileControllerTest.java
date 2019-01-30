@@ -27,8 +27,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -48,7 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(controllers = BatchFileController.class)
 public class BatchFileControllerTest extends ControllerTest {
 
-    private ConcurrentSkipListSet<Long> processing = new ConcurrentSkipListSet<>();
+    private final ConcurrentSkipListSet<Long> processing = new ConcurrentSkipListSet<>();
 
     @MockBean private PagedDao dao;
     @MockBean private BagFileCSVProcessor processor;
@@ -78,7 +78,7 @@ public class BatchFileControllerTest extends ControllerTest {
                 MediaType.TEXT_PLAIN_VALUE,
                 Files.newInputStream(toCsv, StandardOpenOption.READ));
         MockHttpServletRequestBuilder request =
-                MockMvcRequestBuilders.fileUpload("/api/bags/{id}/files", 1L)
+                MockMvcRequestBuilders.multipart("/api/bags/{id}/files", 1L)
                         .file(csvMp)
                         .principal(authorizedPrincipal);
         mvc.perform(request)
@@ -104,7 +104,7 @@ public class BatchFileControllerTest extends ControllerTest {
                 MediaType.TEXT_PLAIN_VALUE,
                 Files.newInputStream(toCsv, StandardOpenOption.READ));
         MockHttpServletRequestBuilder request =
-                MockMvcRequestBuilders.fileUpload("/api/bags/{id}/files", 1L)
+                MockMvcRequestBuilders.multipart("/api/bags/{id}/files", 1L)
                         .file(csvMp)
                         .principal(authorizedPrincipal);
         mvc.perform(request)
@@ -127,7 +127,7 @@ public class BatchFileControllerTest extends ControllerTest {
                 MediaType.TEXT_PLAIN_VALUE,
                 Files.newInputStream(toCsv, StandardOpenOption.READ));
         MockHttpServletRequestBuilder request =
-                MockMvcRequestBuilders.fileUpload("/api/bags/{id}/files", 1L)
+                MockMvcRequestBuilders.multipart("/api/bags/{id}/files", 1L)
                         .file(csvMp)
                         .principal(authorizedPrincipal);
         mvc.perform(request)
@@ -153,7 +153,7 @@ public class BatchFileControllerTest extends ControllerTest {
                 MediaType.TEXT_PLAIN_VALUE,
                 Files.newInputStream(toCsv, StandardOpenOption.READ));
         MockHttpServletRequestBuilder request =
-                MockMvcRequestBuilders.fileUpload("/api/bags/{id}/files", 1L)
+                MockMvcRequestBuilders.multipart("/api/bags/{id}/files", 1L)
                         .file(csvMp)
                         .principal(authorizedPrincipal);
         mvc.perform(request)
@@ -177,7 +177,7 @@ public class BatchFileControllerTest extends ControllerTest {
                 "file",
                 Files.newInputStream(toCsv, StandardOpenOption.READ));
         MockHttpServletRequestBuilder request =
-                MockMvcRequestBuilders.fileUpload("/api/bags/{id}/files", 1L)
+                MockMvcRequestBuilders.multipart("/api/bags/{id}/files", 1L)
                         .file(csvMp)
                         .principal(authorizedPrincipal);
         mvc.perform(request)
@@ -204,7 +204,7 @@ public class BatchFileControllerTest extends ControllerTest {
                 MediaType.TEXT_PLAIN_VALUE,
                 Files.newInputStream(toCsv, StandardOpenOption.READ));
         MockHttpServletRequestBuilder request =
-                MockMvcRequestBuilders.fileUpload("/api/bags/{id}/files", 1L)
+                MockMvcRequestBuilders.multipart("/api/bags/{id}/files", 1L)
                         .file(csvMp)
                         .principal(authorizedPrincipal);
         mvc.perform(request)
@@ -231,7 +231,7 @@ public class BatchFileControllerTest extends ControllerTest {
                 MediaType.TEXT_PLAIN_VALUE,
                 Files.newInputStream(toCsv, StandardOpenOption.READ));
         MockHttpServletRequestBuilder request =
-                MockMvcRequestBuilders.fileUpload("/api/bags/{id}/files", 1L)
+                MockMvcRequestBuilders.multipart("/api/bags/{id}/files", 1L)
                         .file(csvMp)
                         .principal(authorizedPrincipal);
         mvc.perform(request)
@@ -258,7 +258,7 @@ public class BatchFileControllerTest extends ControllerTest {
                 MediaType.TEXT_PLAIN_VALUE,
                 Files.newInputStream(toCsv, StandardOpenOption.READ));
         MockHttpServletRequestBuilder request =
-                MockMvcRequestBuilders.fileUpload("/api/bags/{id}/files", 1L)
+                MockMvcRequestBuilders.multipart("/api/bags/{id}/files", 1L)
                         .file(csvMp)
                         .principal(authorizedPrincipal);
 

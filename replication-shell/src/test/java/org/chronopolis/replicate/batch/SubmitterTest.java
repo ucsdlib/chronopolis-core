@@ -44,9 +44,9 @@ import static org.chronopolis.rest.models.enums.ReplicationStatus.STARTED;
 import static org.chronopolis.rest.models.enums.ReplicationStatus.SUCCESS;
 import static org.chronopolis.rest.models.enums.ReplicationStatus.TRANSFERRED;
 import static org.junit.Assert.assertFalse;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -226,11 +226,14 @@ public class SubmitterTest {
                 .thenReturn(new CallWrapper<>(collection));
         when(replications.updateStatus(anyLong(), any(ReplicationStatusUpdate.class)))
                 .thenReturn(new CallWrapper<>(replication));
+        // look in to being stricter with the createMessage things
+        when(mail.createMessage(any(), any(), any())).thenReturn(new SimpleMailMessage());
         CompletableFuture<ReplicationStatus> submission = submitter.submit(replication);
         submission.get();
 
         verify(ace, times(1)).getCollectionByName(bag.getName(), bag.getDepositor());
         verify(replications, times(1)).updateStatus(1L, new ReplicationStatusUpdate(SUCCESS));
+        verify(mail, times(1)).createMessage(any(), any(), any());
         verify(mail, times(1)).send(any(SimpleMailMessage.class));
     }
 

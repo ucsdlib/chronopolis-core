@@ -28,7 +28,7 @@ public class RepairFilter extends Paged {
     private List<RepairStatus> status;
     private List<AuditStatus> auditStatus;
 
-    private LinkedListMultimap<String, String> parameters = LinkedListMultimap.create();
+    private final LinkedListMultimap<String, String> parameters = LinkedListMultimap.create();
 
     public String getNode() {
         return node;

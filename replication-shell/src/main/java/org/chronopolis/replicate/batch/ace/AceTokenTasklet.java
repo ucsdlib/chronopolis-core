@@ -147,7 +147,7 @@ public class AceTokenTasklet implements Runnable {
 
     public class AceTokenBody extends RequestBody {
 
-        private ByteSource source;
+        private final ByteSource source;
 
         public AceTokenBody(ByteSource source) {
             this.source = source;

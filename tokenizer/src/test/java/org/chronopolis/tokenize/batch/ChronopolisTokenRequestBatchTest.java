@@ -22,18 +22,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.internal.verification.VerificationModeFactory.atLeast;
 
 public class ChronopolisTokenRequestBatchTest {
 
@@ -60,7 +59,7 @@ public class ChronopolisTokenRequestBatchTest {
             request.setHashValue(entry.getDigest());
 
             TokenResponse response = new TokenResponse();
-            response.setName(entry.getPath());
+            response.setName(entry.tokenName());
 
             manifestEntries.add(entry);
             tokenResponses.add(response);
@@ -89,15 +88,15 @@ public class ChronopolisTokenRequestBatchTest {
 
     @Test
     public void processRequests() {
-        when(ims.requestTokensImmediate(anyString(), anyListOf(TokenRequest.class)))
+        when(ims.requestTokensImmediate(anyString(), anyList()))
                 .thenReturn(tokenResponses);
 
         batch.process(manifestEntries);
 
         verify(supervisor, never()).queuedEntries(anyInt(), anyLong(), any(TimeUnit.class));
         verify(ims, atLeastOnce())
-                .requestTokensImmediate(anyString(), anyListOf(TokenRequest.class));
-        verify(supervisor, atLeast(10))
+                .requestTokensImmediate(anyString(), anyList());
+        verify(supervisor, times(10))
                 .associate(any(ManifestEntry.class), any(TokenResponse.class));
     }
 
@@ -105,7 +104,7 @@ public class ChronopolisTokenRequestBatchTest {
     public void emptySetNotProcessed() {
         batch.process(ImmutableSet.of());
 
-        verify(ims, never()).requestTokensImmediate(anyString(), anyListOf(TokenRequest.class));
+        verify(ims, never()).requestTokensImmediate(anyString(), anyList());
         verify(supervisor, never()).associate(any(ManifestEntry.class), any(TokenResponse.class));
         verify(supervisor, never()).retryTokenize(any(ManifestEntry.class));
     }
@@ -113,12 +112,12 @@ public class ChronopolisTokenRequestBatchTest {
     @Test
     public void runImsException() {
         // most of this is shared, can break some of it apart easily
-        when(ims.requestTokensImmediate(anyString(), anyListOf(TokenRequest.class))).thenThrow(
+        when(ims.requestTokensImmediate(anyString(), anyList())).thenThrow(
                 new IMSException(-1, "Test IMSException: Cannot connect to ims"));
 
         batch.process(manifestEntries);
 
-        verify(ims, times(1)).requestTokensImmediate(anyString(), anyListOf(TokenRequest.class));
+        verify(ims, times(1)).requestTokensImmediate(anyString(), anyList());
         verify(supervisor, never()).associate(any(ManifestEntry.class), any(TokenResponse.class));
         verify(supervisor, times(10)).retryTokenize(any(ManifestEntry.class));
     }

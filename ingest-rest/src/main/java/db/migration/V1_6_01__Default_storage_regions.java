@@ -1,7 +1,8 @@
 package db.migration;
 
 import org.chronopolis.rest.models.enums.DataType;
-import org.flywaydb.core.api.migration.jdbc.JdbcMigration;
+import org.flywaydb.core.api.migration.BaseJavaMigration;
+import org.flywaydb.core.api.migration.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,11 +16,12 @@ import java.sql.ResultSet;
  *
  * Created by shake on 7/12/17.
  */
-public class V1_6_01__Default_storage_regions implements JdbcMigration {
+public class V1_6_01__Default_storage_regions extends BaseJavaMigration {
     private final Logger log = LoggerFactory.getLogger(V1_6_01__Default_storage_regions.class);
 
     @Override
-    public void migrate(Connection connection) throws Exception {
+    public void migrate(Context context) throws Exception {
+        Connection connection = context.getConnection();
         long numBags = 0;
         boolean created = false;
         String count = "SELECT count(id) FROM bag";
@@ -38,7 +40,7 @@ public class V1_6_01__Default_storage_regions implements JdbcMigration {
                 log.info("Bag count is {}", numBags);
             }
 
-           // If no nodes exist and no bags exist, this should do nothing
+            // If no nodes exist and no bags exist, this should do nothing
             while (nodeSet.next()) {
                 created = true;
                 long id = nodeSet.getLong(1);
@@ -60,5 +62,4 @@ public class V1_6_01__Default_storage_regions implements JdbcMigration {
             }
         }
     }
-
 }

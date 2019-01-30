@@ -69,9 +69,9 @@ public class MqTest {
     ServerLocator serverLocator;
     ImsServiceWrapper imsWrapper;
     ThreadPoolExecutor executor;
-    private EmbeddedActiveMQResource activeMQ = new EmbeddedActiveMQResource();
+    private final EmbeddedActiveMQResource activeMQ = new EmbeddedActiveMQResource();
 
-    ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = new ObjectMapper();
 
     @Before
     public void startup() throws Exception {

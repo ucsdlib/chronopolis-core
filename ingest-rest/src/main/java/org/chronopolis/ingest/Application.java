@@ -12,7 +12,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.system.ApplicationPidFileWriter;
+import org.springframework.boot.context.ApplicationPidFileWriter;
 import org.springframework.context.annotation.ComponentScan;
 
 /**
@@ -48,7 +48,7 @@ public class Application implements CommandLineRunner {
     }
 
     @Override
-    public void run(final String... args) throws Exception {
+    public void run(final String... args) {
         service.runServer();
     }
 

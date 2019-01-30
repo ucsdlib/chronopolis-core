@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ContextConfiguration;
@@ -35,7 +36,7 @@ import java.util.GregorianCalendar;
 
 import static org.chronopolis.ingest.JpaContext.CREATE_SCRIPT;
 import static org.chronopolis.ingest.JpaContext.DELETE_SCRIPT;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -46,7 +47,7 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
  *
  * @author shake
  */
-@DataJpaTest
+@DataJpaTest(excludeAutoConfiguration = FlywayAutoConfiguration.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = JpaContext.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)

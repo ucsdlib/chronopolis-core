@@ -42,9 +42,9 @@ public class BagFileCsvGenerator implements Callable<BagFileCsvResult> {
     private static final String MANIFEST_NAME = "manifest-";
     private static final String TAGMANIFEST_NAME = "tagmanifest-";
 
-    private Path out;
-    private Path root;
-    private FixityAlgorithm algorithm;
+    private final Path out;
+    private final Path root;
+    private final FixityAlgorithm algorithm;
 
     public BagFileCsvGenerator(Path out, Path root, FixityAlgorithm algorithm) {
         this.out = out;

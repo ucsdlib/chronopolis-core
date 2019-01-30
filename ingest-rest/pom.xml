@@ -99,11 +99,7 @@
     </build>
 
     <properties>
-        <flyway.version>4.2.0</flyway.version>
-        <thymeleaf.version>3.0.9.RELEASE</thymeleaf.version>
         <thymeleaf-layout-dialect.version>2.1.1</thymeleaf-layout-dialect.version>
-        <thymeleaf-extras-springsecurity4.version>3.0.2.RELEASE
-        </thymeleaf-extras-springsecurity4.version>
     </properties>
 
     <dependencies>
@@ -154,7 +150,7 @@
 
         <dependency>
             <groupId>org.thymeleaf.extras</groupId>
-            <artifactId>thymeleaf-extras-springsecurity4</artifactId>
+            <artifactId>thymeleaf-extras-springsecurity5</artifactId>
         </dependency>
 
         <dependency>

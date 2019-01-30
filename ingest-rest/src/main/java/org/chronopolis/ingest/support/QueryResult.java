@@ -29,8 +29,8 @@ public class QueryResult<T> {
     }
 
     private T t;
-    private Status status;
-    private List<String> errors; // mostly for debugging
+    private final Status status;
+    private final List<String> errors; // mostly for debugging
 
     public QueryResult(T t) {
         this.t = t;

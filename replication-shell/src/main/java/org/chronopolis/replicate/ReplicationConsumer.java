@@ -9,7 +9,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
-import org.springframework.boot.system.ApplicationPidFileWriter;
+import org.springframework.boot.context.ApplicationPidFileWriter;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
@@ -45,7 +45,7 @@ public class ReplicationConsumer implements CommandLineRunner {
     }
 
     @Override
-    public void run(final String... strings) throws Exception {
+    public void run(final String... strings) {
         service.replicate();
     }
 

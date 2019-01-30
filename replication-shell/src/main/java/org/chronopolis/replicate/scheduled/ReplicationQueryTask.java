@@ -115,7 +115,7 @@ public class ReplicationQueryTask {
     }
 
     private class Query {
-        private boolean success;
+        private final boolean success;
         @Nullable
         private Throwable t;
 

@@ -26,7 +26,7 @@ public class ReplicationFilter extends Paged {
     private String bag;
     private List<ReplicationStatus> status;
 
-    private LinkedListMultimap<String, String> parameters = LinkedListMultimap.create();
+    private final LinkedListMultimap<String, String> parameters = LinkedListMultimap.create();
 
     public String getNode() {
         return node;

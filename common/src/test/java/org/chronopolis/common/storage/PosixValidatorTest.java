@@ -4,7 +4,7 @@ import org.assertj.core.util.Files;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.boot.test.util.EnvironmentTestUtils;
+import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.util.Assert;
 
@@ -23,9 +23,11 @@ public class PosixValidatorTest {
     public void bindValid() {
         context.register(SamplePropertyApplication.class);
         File tmp = Files.temporaryFolder();
-        EnvironmentTestUtils.addEnvironment(context,
+
+        TestPropertyValues.of(
                 "storage.preservation.posix[0].id:1",
-                "storage.preservation.posix[0].path:" + tmp.toString());
+                "storage.preservation.posix[0].path:" + tmp.toString()
+        ).applyTo(context);
         context.refresh();
 
         PreservationProperties properties = context.getBean(PreservationProperties.class);
@@ -35,14 +37,17 @@ public class PosixValidatorTest {
     @Test(expected = BeanCreationException.class)
     public void bindInvalid() {
         context.register(SamplePropertyApplication.class);
-        EnvironmentTestUtils.addEnvironment(context, "storage.preservation.posix[0].id:1", "storage.preservation.posix[0].path:/dne");
+        TestPropertyValues.of(
+                "storage.preservation.posix[0].id:1",
+                "storage.preservation.posix[0].path:/dne"
+        ).applyTo(context);
         context.refresh();
     }
 
     @Test(expected = BeanCreationException.class)
     public void bindNoProperties() {
         context.register(SamplePropertyApplication.class);
-        EnvironmentTestUtils.addEnvironment(context);
+        TestPropertyValues.of().applyTo(context);
         context.refresh();
     }
 

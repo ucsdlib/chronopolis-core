@@ -17,6 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -46,7 +47,7 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
  *
  * @author shake
  */
-@DataJpaTest
+@DataJpaTest(excludeAutoConfiguration = FlywayAutoConfiguration.class)
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = JpaContext.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -64,7 +65,7 @@ public class BagFileDaoTest extends IngestTest {
             "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
     private static final FixityAlgorithm FIXITY_ALGORITHM = FixityAlgorithm.SHA_256;
 
-    private static UserDetails user = new User("test-admin", "test-admin", of(() -> "ROLE_USER"));
+    private static final UserDetails user = new User("test-admin", "test-admin", of(() -> "ROLE_USER"));
 
     @MockBean private SecurityContext context;
     @MockBean private Authentication authentication;

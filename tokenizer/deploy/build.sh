@@ -3,7 +3,7 @@
 working_dir=$PWD
 sources_dir=tokenizer
 build_dir=TARS
-finaljar=$sources/tokenizer.jar
+finaljar=${sources}/tokenizer.jar
 retval=0
 
 if [ "$1" = "clean" ]; then
@@ -13,12 +13,12 @@ if [ "$1" = "clean" ]; then
     exit 0
 fi
 
-if [ ! -d $sources_dir ]; then
-    mkdir $sources_dir
+if [ ! -d ${sources_dir} ]; then
+    mkdir ${sources_dir}
 fi
 
-if [ ! -d $build_dir ]; then
-    mkdir $build_dir
+if [ ! -d ${build_dir} ]; then
+    mkdir ${build_dir}
 fi
 
 cd ../ 
@@ -32,8 +32,8 @@ if [ $? -ne 0 ]; then
     exit -1
 fi
 
-version=`echo $full_version | sed 's/-.*//'`
-release_type=`echo $full_version | sed 's/.*-//'`
+version=`echo ${full_version} | sed 's/-.*//'`
+release_type=`echo ${full_version} | sed 's/.*-//'`
 
 if [ -z "$version" ]; then
     echo "Could not get version string"
@@ -45,7 +45,7 @@ if [ -z "$release_type" ]; then
     exit -1
 fi
 
-jarfile=target/standalone/tokenizer-standalone-$version-$release_type.jar
+jarfile=target/standalone/tokenizer-standalone-${version}-${release_type}.jar
 
 if [ ! -e "$jarfile" ]; then
     echo "Building latest jar..."
@@ -59,9 +59,9 @@ else
 fi
 
 echo "Copying jar build files to $working_dir/$sources_dir"
-cp $jarfile $working_dir/$sources_dir/$finaljar
-cp target/classes/application.yml $working_dir/$sources_dir/application.yml
+cp ${jarfile} ${working_dir}/${sources_dir}/${finaljar}
+cp target/classes/application.yml ${working_dir}/${sources_dir}/application.yml
 
 echo "Building tar"
-cd $working_dir
-tar cvf $build_dir/tokenizer-$version-$release_type.tar $sources_dir
+cd ${working_dir}
+tar cvf ${build_dir}/tokenizer-${version}-${release_type}.tar ${sources_dir}

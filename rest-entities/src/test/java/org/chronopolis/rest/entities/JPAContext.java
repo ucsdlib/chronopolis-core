@@ -8,7 +8,7 @@ import org.flywaydb.core.Flyway;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
+import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 
@@ -77,9 +77,9 @@ public class JPAContext {
     @Profile("gitlab")
     @SuppressWarnings("Duplicates")
     public Flyway flyway(DataSource dataSource) {
-        Flyway fly = new Flyway();
-        fly.setDataSource(dataSource);
-        fly.setLocations(SCHEMA_LOCATION);
+        Flyway fly = Flyway.configure().dataSource(dataSource)
+                .locations(SCHEMA_LOCATION)
+                .load();
         fly.clean();
         fly.migrate();
         return fly;

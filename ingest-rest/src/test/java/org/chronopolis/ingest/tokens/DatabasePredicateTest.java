@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ContextConfiguration;
@@ -23,19 +24,21 @@ import javax.persistence.EntityManager;
 
 import static org.chronopolis.ingest.JpaContext.CREATE_SCRIPT;
 import static org.chronopolis.ingest.JpaContext.DELETE_SCRIPT;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 
 /**
  * Test the DatabasePredicate to ensure filtering works correctly when retrieving work
  *
  * @author shake
  */
-@DataJpaTest
+@DataJpaTest(excludeAutoConfiguration = FlywayAutoConfiguration.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = JpaContext.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SqlGroup({
-        @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = CREATE_SCRIPT),
-        @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = DELETE_SCRIPT)
+        @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = CREATE_SCRIPT),
+        @Sql(executionPhase = AFTER_TEST_METHOD, scripts = DELETE_SCRIPT)
 })
 public class DatabasePredicateTest extends IngestTest {
 

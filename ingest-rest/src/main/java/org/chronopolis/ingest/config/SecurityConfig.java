@@ -80,7 +80,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         http.csrf().disable().authorizeRequests()
                 .accessDecisionManager(decisionManager)
-                // RESTful paths
+                // api paths
                 .antMatchers(HttpMethod.GET, API_ROOT).hasRole("SERVICE")
                 .antMatchers(HttpMethod.PUT, API_ROOT).hasRole("USER")
                 .antMatchers(HttpMethod.POST, API_REPAIR_ROOT).hasRole("USER")
@@ -88,14 +88,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.DELETE, API_ROOT).hasRole("ADMIN")
                 // Webapp paths
                 // resources
-                .antMatchers("/css/**").permitAll()
-                .antMatchers("/js/**").permitAll()
+                .antMatchers("/css/**", "/js/**", "/").permitAll()
                 // controllers
                 .antMatchers(HttpMethod.GET, UI_BAG, UI_REPLICATION, UI_USER, UI_REPAIR, UI_DEPOSITOR, UI_STORAGE).hasRole("USER")
                 .antMatchers(HttpMethod.POST, UI_REPAIR, UI_USER_UPDATE).hasRole("USER")
                 .antMatchers(HttpMethod.POST, UI_BAG, UI_REPLICATION, UI_USER_ADD, UI_DEPOSITOR, UI_STORAGE).hasRole("ADMIN")
-                .antMatchers("/").permitAll()
-                    .anyRequest().permitAll()
+                // .antMatchers("/").permitAll()
+                //     .anyRequest().permitAll()
                 .and()
                 .formLogin()
                     .loginPage("/login")
@@ -109,19 +108,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     // This is for accessing and updating our users
-    public JdbcUserDetailsManager jdbcUserDetailsManager(
-            AuthenticationManager authenticationManager,
-            DataSource dataSource) {
+    public JdbcUserDetailsManager jdbcUserDetailsManager(DataSource dataSource) {
         JdbcUserDetailsManager manager = new JdbcUserDetailsManager();
         manager.setDataSource(dataSource);
-        manager.setAuthenticationManager(authenticationManager);
         return manager;
     }
 
     @Bean
     public RoleHierarchy roleHierarchy() {
         RoleHierarchyImpl hierarchy = new RoleHierarchyImpl();
-        hierarchy.setHierarchy("ROLE_ADMIN > ROLE_USER and ROLE_USER > ROLE_SERVICE");
+        hierarchy.setHierarchy("ROLE_ADMIN > ROLE_USER\nROLE_USER > ROLE_SERVICE");
         return hierarchy;
     }
 
@@ -131,7 +127,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         DefaultWebSecurityExpressionHandler expressionHandler = new DefaultWebSecurityExpressionHandler();
         expressionHandler.setRoleHierarchy(roleHierarchy());
         webExpressionVoter.setExpressionHandler(expressionHandler);
-        List<AccessDecisionVoter<? extends Object>> voters = new ArrayList<>();
+        List<AccessDecisionVoter<?>> voters = new ArrayList<>();
         voters.add(webExpressionVoter);
         return new AffirmativeBased(voters);
     }

@@ -8,7 +8,7 @@ import org.flywaydb.core.Flyway;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
+import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
@@ -44,28 +44,11 @@ public class JpaContext {
         return provider.createDataSource();
     }
 
-    /*
-    @Bean
-    @Profile("!gitlab")
-    public DataSource dataSource() throws SQLException {
-        String driver = "org.postgresql.Driver";
-        String url = "jdbc:postgresql://172.17.0.2/ingest3";
-        String username = "readonly";
-        String password = "ro";
-
-        return DataSourceBuilder.create()
-                .url(url)
-                .username(username)
-                .password(password)
-                .driverClassName(driver)
-                .build();
-    }
-
-    */
     @Bean
     @Profile("gitlab")
     public DataSource serviceDataSource() {
         String driver = "org.postgresql.Driver";
+        // possible to inject from environment?
         String url = "jdbc:postgresql://postgres/ingest-test";
         String username = "runner";
 
@@ -79,9 +62,10 @@ public class JpaContext {
     @Bean
     @Profile("gitlab")
     public Flyway flyway(DataSource dataSource) {
-        Flyway fly = new Flyway();
-        fly.setDataSource(dataSource);
-        fly.setLocations(SCHEMA_LOCATION);
+        Flyway fly = Flyway.configure()
+                .dataSource(dataSource)
+                .locations(SCHEMA_LOCATION)
+                .load();
         fly.clean();
         fly.migrate();
         return fly;

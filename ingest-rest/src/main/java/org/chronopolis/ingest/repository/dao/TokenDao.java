@@ -25,7 +25,7 @@ import java.util.Date;
  * @author shake
  */
 public class TokenDao extends PagedDao {
-    private EntityManager em;
+    private final EntityManager em;
 
     public TokenDao(EntityManager em) {
         super(em);

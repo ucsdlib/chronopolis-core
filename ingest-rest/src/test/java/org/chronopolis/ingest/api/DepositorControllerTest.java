@@ -32,8 +32,8 @@ import java.security.Principal;
 import java.time.ZonedDateTime;
 
 import static com.google.common.collect.ImmutableSet.of;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -72,11 +72,11 @@ public class DepositorControllerTest extends ControllerTest {
     // Fields we set up
     private Bag bag;
     private Node node;
-    private DepositorContact contact = new DepositorContact();
-    private BooleanExpression namespaceEq = Q_DEPOSITOR.namespace.eq(NAMESPACE);
-    private BooleanExpression contactEq = Q_CONTACT.depositor.namespace.eq(NAMESPACE)
+    private final DepositorContact contact = new DepositorContact();
+    private final BooleanExpression namespaceEq = Q_DEPOSITOR.namespace.eq(NAMESPACE);
+    private final BooleanExpression contactEq = Q_CONTACT.depositor.namespace.eq(NAMESPACE)
             .and(Q_CONTACT.contactEmail.eq(EMAIL));
-    private BooleanExpression nodeEq = Q_NODE.username.eq(NODE_NAME);
+    private final BooleanExpression nodeEq = Q_NODE.username.eq(NODE_NAME);
 
     // Mocks for the Controller
     @MockBean private PagedDao dao;
