@@ -38,7 +38,7 @@ export SPRING_CONFIG_LOCATION="$REPL_DIR/"
 
 start(){
     # check user exists
-    if ! getent passwd $CHRON_USER > /dev/null 2>&1; then
+    if ! getent passwd ${CHRON_USER} > /dev/null 2>&1; then
         echo "User $CHRON_USER does not exist; unable to start replication service"
         action $"Starting $prog: " /bin/false
         return 2
@@ -72,12 +72,12 @@ start(){
     fi
 
     # If we're running skip and return early
-    if [ $RUNNING = 1 ]; then
+    if [ ${RUNNING} = 1 ]; then
         action $"Starting $prog: " /bin/true
         return 0
     fi
 
-    daemon --user "$CHRON_USER" --pidfile "$pidfile" $JAVA_CMD
+    daemon --user "$CHRON_USER" --pidfile "$pidfile" ${JAVA_CMD}
     RC=$?
 
     # We just sleep arbitrary amount then hope for the best
@@ -98,7 +98,7 @@ start(){
         action $"Starting $prog: " /bin/false
     fi
 
-    return $RC
+    return ${RC}
 }
 
 stop(){
@@ -107,7 +107,7 @@ stop(){
     # check if the pidfile exists
     if [ ! -f "$pidfile" ]; then
         action $"Stopping $prog: " /bin/true
-        return $RC
+        return ${RC}
     fi
 
     # find the pid and attempt to kill
@@ -116,7 +116,7 @@ stop(){
         /bin/kill "$PID" > /dev/null 2>&1 || break
         if [ $? -eq 0 ]; then
             action $"Stopping $prog: " /bin/true
-            rm -f $lockfile
+            rm -f ${lockfile}
             rm -f "$pidfile"
         else
             action $"Stopping $prog: " /bin/false
@@ -127,7 +127,7 @@ stop(){
         RC=4
     fi
 
-    return $RC
+    return ${RC}
 }
 
 

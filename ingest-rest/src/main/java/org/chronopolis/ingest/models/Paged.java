@@ -25,7 +25,7 @@ public abstract class Paged {
     private Integer page = 0;
     private String orderBy = "id";
 
-    private LinkedListMultimap<String, String> parameters = LinkedListMultimap.create();
+    private final LinkedListMultimap<String, String> parameters = LinkedListMultimap.create();
 
     public String getDir() {
         return dir;
@@ -88,7 +88,9 @@ public abstract class Paged {
      */
     @Deprecated
     public PageRequest createPageRequest() {
-        Sort.Direction direction = (dir == null) ? Sort.Direction.ASC : Sort.Direction.fromStringOrNull(dir);
+        Sort.Direction direction = (dir == null)
+                ? Sort.Direction.ASC
+                : Sort.Direction.fromString(dir);
         Sort s = new Sort(direction, orderBy);
         return new PageRequest(page, (int) DEFAULT_PAGE_SIZE, s);
     }

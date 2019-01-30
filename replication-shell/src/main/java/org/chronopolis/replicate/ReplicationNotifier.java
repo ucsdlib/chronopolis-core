@@ -20,7 +20,7 @@ public class ReplicationNotifier implements Notifier {
     private String bagStep;
     private String tokenStep;
     private String rsyncStats;
-    private String origin;
+    private final String origin;
     private String messageText;
 
     private String calculatedTagDigest;

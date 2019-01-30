@@ -16,8 +16,8 @@ import org.mockito.MockitoAnnotations;
 import java.time.ZonedDateTime;
 
 import static com.google.common.collect.ImmutableList.of;
-import static org.mockito.Matchers.anyMapOf;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 public class HttpFilterTest {
@@ -42,28 +42,28 @@ public class HttpFilterTest {
     @Test
     public void testContains() {
         AceToken token = new AceToken(1L, 1L, 1L, "p", "h", "f", "a", "s", ZonedDateTime.now());
-        when(tokens.getBagTokens(eq(1L), anyMapOf(String.class, String.class)))
+        when(tokens.getBagTokens(eq(1L), anyMap()))
                 .thenReturn(new CallWrapper<>(SpringPageKt.wrap(of(token))));
         Assert.assertFalse(filter.test(entry));
     }
 
     @Test
     public void testNotContains() {
-        when(tokens.getBagTokens(eq(1L), anyMapOf(String.class, String.class)))
+        when(tokens.getBagTokens(eq(1L), anyMap()))
                 .thenReturn(new CallWrapper<>(SpringPageKt.wrap(of())));
         Assert.assertTrue(filter.test(entry));
     }
 
     @Test
     public void testHttpError() {
-        when(tokens.getBagTokens(eq(1L), anyMapOf(String.class, String.class)))
+        when(tokens.getBagTokens(eq(1L), anyMap()))
                 .thenReturn(new ErrorCallWrapper<>(SpringPageKt.wrap(of()), 404, "Bag Not Found"));
         Assert.assertFalse(filter.test(entry));
     }
 
     @Test
     public void testThrowsException() {
-        when(tokens.getBagTokens(eq(1L), anyMapOf(String.class, String.class)))
+        when(tokens.getBagTokens(eq(1L), anyMap()))
                 .thenReturn(new ExceptingCallWrapper<>(SpringPageKt.wrap(of())));
         Assert.assertFalse(filter.test(entry));
     }

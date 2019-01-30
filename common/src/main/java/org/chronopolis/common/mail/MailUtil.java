@@ -97,7 +97,7 @@ public class MailUtil {
      */
     public void send(final SimpleMailMessage message) {
         if (smtpSend) {
-            log.info("Sending mail to {}", message.getTo());
+            log.info("Sending mail to {}", new Object[]{message.getTo()});
             JavaMailSenderImpl sender = new JavaMailSenderImpl();
             sender.setHost(smtpHost);
             sender.send(message);

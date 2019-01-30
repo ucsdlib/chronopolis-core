@@ -21,8 +21,8 @@ public class HttpFilter implements Predicate<ManifestEntry> {
 
     private final Logger log = LoggerFactory.getLogger(HttpFilter.class);
 
-    private Long bagId;
-    private TokenService api;
+    private final Long bagId;
+    private final TokenService api;
 
     public HttpFilter(Long bagId, TokenService api) {
         this.bagId = bagId;

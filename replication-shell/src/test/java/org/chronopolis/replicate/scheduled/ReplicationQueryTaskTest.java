@@ -10,6 +10,7 @@ import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.enums.BagStatus;
 import org.chronopolis.rest.models.enums.ReplicationStatus;
+import org.chronopolis.rest.models.page.SpringPage;
 import org.chronopolis.rest.models.page.SpringPageKt;
 import org.chronopolis.test.support.CallWrapper;
 import org.junit.Before;
@@ -21,7 +22,7 @@ import retrofit2.Call;
 import java.util.ArrayList;
 
 import static java.time.ZonedDateTime.now;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyMap;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -51,7 +52,7 @@ public class ReplicationQueryTaskTest {
     @Mock private ReplicationService replicationService;
 
     private ReplicationQueryTask task;
-    private Call<Iterable<Replication>> replications;
+    private Call<SpringPage<Replication>> replications;
 
     @Before
     public void init() {

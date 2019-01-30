@@ -25,7 +25,7 @@ public class TrackingThreadPoolExecutor<T> extends ThreadPoolExecutor {
     private final Logger log = LoggerFactory.getLogger(TrackingThreadPoolExecutor.class);
 
     // List of items we're working on
-    private Set<T> items = new ConcurrentSkipListSet<>();
+    private final Set<T> items = new ConcurrentSkipListSet<>();
 
     public TrackingThreadPoolExecutor(int corePoolSize,
                                       int maximumPoolSize,
@@ -81,7 +81,7 @@ public class TrackingThreadPoolExecutor<T> extends ThreadPoolExecutor {
     public class Task extends FutureTask<T> {
 
         // We want to be able to use this without super.call
-        private T result;
+        private final T result;
 
         public Task(Runnable runnable, T result) {
             super(runnable, result);

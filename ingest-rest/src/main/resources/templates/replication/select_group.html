@@ -10,7 +10,7 @@
     <h4>Add Replication</h4>
     <h6 class="text-muted">Select the depositor</h6>
     <div style="border: 0.2rem solid #f7f7f9; padding: 1.5rem;">
-        <form enctype="application/json" method="post" name="replication">
+        <form method="post" name="replication">
             <!--@thymesVar id="depositors" type="List<String>"-->
             <select name="depositor" id="depositor">
                 <option th:each="depositor: ${depositors}"

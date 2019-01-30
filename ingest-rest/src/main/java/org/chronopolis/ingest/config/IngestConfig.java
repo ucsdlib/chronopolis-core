@@ -47,9 +47,9 @@ import org.chronopolis.rest.models.serializers.ZonedDateTimeDeserializer;
 import org.chronopolis.rest.models.serializers.ZonedDateTimeSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
-import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -123,11 +123,11 @@ public class IngestConfig {
     }
 
     @Bean
-    public EmbeddedServletContainerFactory embeddedServletContainerFactory(IngestProperties properties) {
+    public ServletWebServerFactory embeddedServletContainerFactory(IngestProperties properties) {
         IngestProperties.Ajp ajp = properties.getAjp();
         String AJP_SCHEME = "http";
         String AJP_PROTOCOL = "AJP/1.3";
-        TomcatEmbeddedServletContainerFactory bean = new TomcatEmbeddedServletContainerFactory();
+        TomcatServletWebServerFactory bean = new TomcatServletWebServerFactory();
 
         if (ajp.isEnabled()) {
             log.info("Setting up ajp connector");

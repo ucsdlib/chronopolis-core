@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-import org.chronopolis.ingest.WebContext;
 import org.chronopolis.ingest.models.Paged;
 import org.chronopolis.ingest.repository.dao.TokenDao;
 import org.chronopolis.rest.entities.AceToken;
@@ -29,15 +28,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.security.Principal;
 import java.time.ZonedDateTime;
 import java.util.Date;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -52,20 +50,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @RunWith(SpringRunner.class)
 @WebMvcTest(controllers = BagTokenController.class)
-@ContextConfiguration(classes = WebContext.class)
 public class BagTokenControllerTest extends ControllerTest {
 
     private static final String AUTHORIZED = "authorized";
-    private static UserDetails admin = new User(AUTHORIZED, AUTHORIZED, ImmutableList.of(() -> "ROLE_ADMIN"));
-
-    private BagTokenController controller;
+    private static final UserDetails admin = new User(AUTHORIZED, AUTHORIZED, ImmutableList.of(() -> "ROLE_ADMIN"));
 
     @MockBean
     private TokenDao dao;
 
     @Before
     public void setup() {
-        controller = new BagTokenController(dao);
+        BagTokenController controller = new BagTokenController(dao);
         setupMvc(controller);
     }
 

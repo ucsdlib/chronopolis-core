@@ -20,7 +20,7 @@ public class DepositorFilter extends Paged {
     private final BooleanBuilder builder = new BooleanBuilder();
 
     private String namespace;
-    private Multimap<String, String> parameters = LinkedListMultimap.create();
+    private final Multimap<String, String> parameters = LinkedListMultimap.create();
 
     public String getNamespace() {
         return namespace;

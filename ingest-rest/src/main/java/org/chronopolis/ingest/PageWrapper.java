@@ -15,7 +15,7 @@ public class PageWrapper<T> {
 
     private static final int MAX_SIZE = 5;
 
-    private List<Integer> pages;
+    private final List<Integer> pages;
     private boolean firstParam = true;
 
     private String url;

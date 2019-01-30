@@ -1,6 +1,7 @@
 package db.migration;
 
-import org.flywaydb.core.api.migration.jdbc.JdbcMigration;
+import org.flywaydb.core.api.migration.BaseJavaMigration;
+import org.flywaydb.core.api.migration.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,14 +13,15 @@ import java.sql.Statement;
 
 /**
  * Create storage entries for each bag
- *
+ * <p>
  * Created by shake on 7/13/17.
  */
-public class V1_6_03__Bag_storage_entries implements JdbcMigration {
+public class V1_6_03__Bag_storage_entries extends BaseJavaMigration {
     private final Logger log = LoggerFactory.getLogger(V1_6_03__Bag_storage_entries.class);
 
     @Override
-    public void migrate(Connection connection) throws Exception {
+    public void migrate(Context context) throws Exception {
+        Connection connection = context.getConnection();
         String sqlSelectBags = "SELECT id, location, tag_manifest_digest, token_location, token_digest, size, total_files, fixity_algorithm FROM bag";
         String sqlSelectBagRegion = "SELECT id FROM storage_region WHERE data_type = 'BAG'";
         String sqlSelectTokenRegion = "SELECT id FROM storage_region WHERE data_type = 'TOKEN'";

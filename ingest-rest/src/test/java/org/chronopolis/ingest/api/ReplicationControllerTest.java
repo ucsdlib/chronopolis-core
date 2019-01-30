@@ -39,8 +39,8 @@ import static java.util.Collections.emptySet;
 import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_BAG;
 import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_TOKEN;
 import static org.chronopolis.rest.models.enums.FixityAlgorithm.SHA_256;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -69,7 +69,7 @@ public class ReplicationControllerTest extends ControllerTest {
     private static final String PUT_TOKEN_FIXITY = "/api/replications/{id}/tokenstore";
     private final String CORRECT_TAG_FIXITY = "tag-fixity";
     private final String CORRECT_TOKEN_FIXITY = "token-fixity";
-    private final String INVALID_FIXITY = "fxity";
+    private final String INVALID_FIXITY = "invalid-fixity";
     private final Depositor depositor = new Depositor();
 
     @MockBean private StagingDao staging;

@@ -41,8 +41,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import static java.time.ZonedDateTime.now;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -198,7 +198,7 @@ public class AceTaskletTest {
     private void prepareACERegister() {
         when(bagBucket.fillAceStorage(any(StorageOperation.class), any(GsonCollection.Builder.class)))
                 .thenAnswer((Answer<GsonCollection.Builder>) invocation ->
-                        invocation.getArgumentAt(1, GsonCollection.Builder.class));
+                        invocation.getArgument(1));
         when(ace.getCollectionByName(any(String.class), any(String.class)))
                 .thenReturn(new ErrorCallWrapper<>(null, 404, "Not Found"));
         when(ace.addCollection(any(GsonCollection.class)))
@@ -251,7 +251,7 @@ public class AceTaskletTest {
      * @param <E>
      */
     private class AsyncWrapper<E> extends CallWrapper<E> {
-        E e;
+        final E e;
 
         public AsyncWrapper(E e) {
             super(e);

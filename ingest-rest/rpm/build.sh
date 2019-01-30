@@ -2,7 +2,7 @@
 
 rpmdir=$PWD
 sources=SOURCES
-finaljar=$sources/ingest-server.jar
+finaljar=${sources}/ingest-server.jar
 retval=0
 
 if [ "$1" = "clean" ]; then
@@ -16,8 +16,8 @@ if [ "$1" = "clean" ]; then
     exit 0
 fi
 
-if [ ! -d $sources ]; then
-    mkdir $sources
+if [ ! -d ${sources} ]; then
+    mkdir ${sources}
 fi
 
 cd ../
@@ -30,12 +30,12 @@ if [ $? -ne 0 ]; then
     exit -1
 fi
 
-version=`echo $full_version | sed 's/-.*//'`
-release_type=`echo $full_version | sed 's/.*-//'`
+version=`echo ${full_version} | sed 's/-.*//'`
+release_type=`echo ${full_version} | sed 's/.*-//'`
 
-jarfile=target/ingest-rest-$version-$release_type.jar
+jarfile=target/ingest-rest-${version}-${release_type}.jar
 
-if [ ! -e $jarfile ]; then
+if [ ! -e ${jarfile} ]; then
     echo "Building latest jar..."
     # todo: profile should be an env var
     mvn -q -Dmaven.test.redirectTestOutputToFile=true -Dspring.profiles.active=gitlab clean install # > /dev/null
@@ -49,13 +49,13 @@ fi
 
 
 # Copy the artifacts
-cp $jarfile rpm/$finaljar
-cp target/classes/application.yml rpm/$sources
-cp src/main/sh/ingest-server.sh rpm/$sources
-cp src/main/sh/ingest-prepare.sh rpm/$sources
-cp src/main/sh/ingest-server.service rpm/$sources
+cp ${jarfile} rpm/${finaljar}
+cp target/classes/application.yml rpm/${sources}
+cp src/main/sh/ingest-server.sh rpm/${sources}
+cp src/main/sh/ingest-prepare.sh rpm/${sources}
+cp src/main/sh/ingest-server.service rpm/${sources}
 
 # cd back to where we started and build the rpm
-cd $rpmdir
+cd ${rpmdir}
 rpmbuild -ba --define="_topdir $PWD" --define="_tmppath $PWD/tmp" --define="ver $version" SPECS/ingest-server-el6.spec
 rpmbuild -ba --define="_topdir $PWD" --define="_tmppath $PWD/tmp" --define="ver $version" SPECS/ingest-server-el7.spec

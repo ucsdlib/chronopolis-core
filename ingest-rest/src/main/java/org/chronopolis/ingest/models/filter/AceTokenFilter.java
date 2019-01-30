@@ -14,7 +14,7 @@ import org.chronopolis.rest.entities.QAceToken;
  */
 public class AceTokenFilter extends Paged {
 
-    private QAceToken aceToken = QAceToken.aceToken;
+    private final QAceToken aceToken = QAceToken.aceToken;
     private final BooleanBuilder builder = new BooleanBuilder();
 
     private Long bagId;

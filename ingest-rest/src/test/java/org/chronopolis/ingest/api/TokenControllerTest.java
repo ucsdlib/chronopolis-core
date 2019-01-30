@@ -2,7 +2,6 @@ package org.chronopolis.ingest.api;
 
 import com.google.common.collect.ImmutableList;
 import com.querydsl.core.types.Predicate;
-import org.chronopolis.ingest.WebContext;
 import org.chronopolis.ingest.models.Paged;
 import org.chronopolis.ingest.repository.dao.PagedDao;
 import org.chronopolis.rest.entities.AceToken;
@@ -24,7 +23,7 @@ import java.util.Date;
 import java.util.HashSet;
 
 import static org.chronopolis.rest.models.enums.BagStatus.DEPOSITED;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;

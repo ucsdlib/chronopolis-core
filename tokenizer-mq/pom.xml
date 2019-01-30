@@ -15,6 +15,7 @@
 
     <properties>
         <artemis.version>2.6.0</artemis.version>
+        <netty.version>4.1.24.Final</netty.version>
     </properties>
 
     <dependencies>
