@@ -23,6 +23,7 @@ public class BagFilter extends Paged {
     private final BooleanBuilder builder = new BooleanBuilder();
 
     private String name;
+    private String creator;
     private String depositor;
     private List<BagStatus> status;
 
@@ -37,6 +38,19 @@ public class BagFilter extends Paged {
             this.name = name;
             parameters.put("name", name);
             builder.and(bag.name.eq(name));
+        }
+        return this;
+    }
+
+    public String getCreator() {
+        return creator;
+    }
+
+    public BagFilter setCreator(String creator) {
+        if (creator != null && !creator.isEmpty()) {
+            this.creator = creator;
+            parameters.put("creator", creator);
+            builder.and(bag.creator.eq(creator));
         }
         return this;
     }
@@ -100,4 +114,5 @@ public class BagFilter extends Paged {
 
         return orderSpecifier;
     }
+
 }
