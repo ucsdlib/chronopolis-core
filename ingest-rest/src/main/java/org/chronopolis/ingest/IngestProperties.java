@@ -18,10 +18,19 @@ import java.nio.file.Paths;
 public class IngestProperties implements Validator {
 
     private Ajp ajp = new Ajp();
+    private Scan scan = new Scan();
+    private Tokenizer tokenizer = new Tokenizer();
 
     private Integer fileIngestBatchSize = 1000;
 
-    private Tokenizer tokenizer = new Tokenizer();
+    public Scan getScan() {
+        return scan;
+    }
+
+    public IngestProperties setScan(Scan scan) {
+        this.scan = scan;
+        return this;
+    }
 
     public Tokenizer getTokenizer() {
         return tokenizer;
@@ -79,9 +88,42 @@ public class IngestProperties implements Validator {
         }
     }
 
+    public static class Scan {
+        private Boolean enabled = false;
+        private String username = "admin";
+        private Posix staging = new Posix();
+
+        public Boolean getEnabled() {
+            return enabled;
+        }
+
+        public Scan setEnabled(Boolean enabled) {
+            this.enabled = enabled;
+            return this;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public Scan setUsername(String username) {
+            this.username = username;
+            return this;
+        }
+
+        public Posix getStaging() {
+            return staging;
+        }
+
+        public Scan setStaging(Posix staging) {
+            this.staging = staging;
+            return this;
+        }
+    }
+
     public static class Tokenizer {
 
-        private Boolean enabled = true;
+        private Boolean enabled = false;
         private String username = "admin";
         private Posix staging = new Posix();
 
