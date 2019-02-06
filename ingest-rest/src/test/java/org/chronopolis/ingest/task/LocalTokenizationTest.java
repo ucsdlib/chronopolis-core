@@ -61,6 +61,7 @@ public class LocalTokenizationTest extends IngestTest {
         MockitoAnnotations.initMocks(this);
         PagedDao dao = new PagedDao(entityManager);
         IngestProperties properties = new IngestProperties();
+        properties.getTokenizer().setEnabled(true);
         properties.getTokenizer().setUsername(USERNAME);
         properties.getTokenizer().setStaging(new Posix().setId(ID));
 
