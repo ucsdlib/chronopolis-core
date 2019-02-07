@@ -1,6 +1,7 @@
 package org.chronopolis.ingest.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import org.apache.catalina.connector.Connector;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.storage.TokenStagingProperties;
@@ -63,11 +64,10 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Configuration for the Ingest Restful Server
- *
+ * <p>
  * Created by shake on 3/3/15.
  */
 @Configuration
-@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @EnableConfigurationProperties({IngestProperties.class, TokenStagingProperties.class})
 public class IngestConfig {
     private final Logger log = LoggerFactory.getLogger(IngestConfig.class);
@@ -140,33 +140,6 @@ public class IngestConfig {
         }
 
         return bean;
-    }
-
-    @Bean
-    public Jackson2ObjectMapperBuilder jacksonBuilder() {
-        Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
-        builder.indentOutput(true);
-        builder.serializationInclusion(JsonInclude.Include.NON_NULL);
-        builder.serializerByType(Bag.class, new BagSerializer());
-        builder.serializerByType(PartialBag.class, new PartialBagSerializer());
-        builder.serializerByType(CompleteBag.class, new CompleteBagSerializer());
-        builder.serializerByType(ReplicationView.class, new ReplicationViewSerializer());
-        builder.serializerByType(Repair.class, new RepairSerializer());
-        builder.serializerByType(BagFile.class, new DataFileSerializer());
-        builder.serializerByType(AceToken.class, new AceTokenSerializer());
-        builder.serializerByType(TokenStore.class, new DataFileSerializer());
-        builder.serializerByType(Depositor.class, new DepositorSerializer());
-        builder.serializerByType(Replication.class, new ReplicationSerializer());
-        builder.serializerByType(StorageRegion.class, new StorageRegionSerializer());
-        builder.serializerByType(ZonedDateTime.class, new ZonedDateTimeSerializer());
-        builder.serializerByType(StagingStorage.class, new StagingStorageSerializer());
-        builder.serializerByType(FixityAlgorithm.class, new FixityAlgorithmSerializer());
-        builder.serializerByType(DepositorContact.class, new DepositorContactSerializer());
-        builder.deserializerByType(ZonedDateTime.class, new ZonedDateTimeDeserializer());
-        builder.deserializerByType(FixityAlgorithm.class, new FixityAlgorithmDeserializer());
-        builder.deserializerByType(FulfillmentStrategy.class,
-                new FulfillmentStrategyDeserializer());
-        return builder;
     }
 
     @Bean
