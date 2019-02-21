@@ -183,7 +183,7 @@ public class LocalIngest {
 
         // need highest priority hash (only sha256 for now so whatever)
         BagFile file = query.selectFrom(QBagFile.bagFile)
-                .where(QBagFile.bagFile.filename.eq(tagmanifest))
+                .where(QBagFile.bagFile.filename.eq(tagmanifest).and(QBagFile.bagFile.bag.eq(bag)))
                 .fetchFirst();
 
         // make sure everything is still there
