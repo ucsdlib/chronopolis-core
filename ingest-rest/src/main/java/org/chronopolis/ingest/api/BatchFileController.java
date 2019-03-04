@@ -185,6 +185,7 @@ public class BatchFileController {
             } else {
                 List<CSVRecord> records = parser.getRecords();
                 for (CSVRecord record : records) {
+                    record.toMap().forEach((s1, s2) -> log.info("{} -> {}", s1, s2));
                     // check that the record is consistent
                     if (!record.isConsistent()) {
                         valid = false;
@@ -206,8 +207,9 @@ public class BatchFileController {
                         break;
                     }
 
+                    writer.write("\"");
                     writer.write(record.get(BagFileHeaders.FILENAME));
-                    writer.write(",");
+                    writer.write("\",");
                     writer.write(record.get(BagFileHeaders.SIZE));
                     writer.write(",");
                     writer.write(record.get(BagFileHeaders.FIXITY_VALUE));
