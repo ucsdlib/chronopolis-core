@@ -7,11 +7,11 @@
     <parent>
         <groupId>org.chronopolis</groupId>
         <artifactId>chronopolis</artifactId>
-        <version>3.0.4-RELEASE</version>
+        <version>3.0.5-RELEASE</version>
     </parent>
 
     <artifactId>rest-models</artifactId>
-    <version>3.0.4-RELEASE</version>
+    <version>3.0.5-RELEASE</version>
 
     <dependencies>
         <!-- kotlin yey -->
