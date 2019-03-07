@@ -8,7 +8,7 @@ import org.chronopolis.common.storage.Posix;
 import org.chronopolis.common.storage.TokenStagingProperties;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
-import org.chronopolis.ingest.repository.dao.PagedDao;
+import org.chronopolis.ingest.repository.dao.TokenDao;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.storage.Fixity;
@@ -56,19 +56,20 @@ public class TokenStoreWriterTest extends IngestTest {
     @Autowired private EntityManager entityManager;
 
     // Our search services which we need to create
-    private PagedDao dao;
+    private TokenDao dao;
 
     private TokenStagingProperties properties;
 
     @Before
     public void setup() {
-        dao = new PagedDao(entityManager);
+        dao = new TokenDao(entityManager);
         properties = new TokenStagingProperties()
                 .setPosix(new Posix().setId(1L).setPath(System.getProperty("chron.stage.tokens")));
     }
 
     private Bag findBag(String depositor, String name) {
-        return dao.findOne(QBag.bag, QBag.bag.depositor.namespace.eq(depositor).and(QBag.bag.name.eq(name)));
+        return dao.findOne(QBag.bag,
+                QBag.bag.depositor.namespace.eq(depositor).and(QBag.bag.name.eq(name)));
     }
 
     @Test

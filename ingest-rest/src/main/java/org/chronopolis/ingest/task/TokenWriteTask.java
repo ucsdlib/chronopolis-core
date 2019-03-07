@@ -3,7 +3,7 @@ package org.chronopolis.ingest.task;
 import com.querydsl.jpa.JPAExpressions;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
 import org.chronopolis.common.storage.TokenStagingProperties;
-import org.chronopolis.ingest.repository.dao.PagedDao;
+import org.chronopolis.ingest.repository.dao.TokenDao;
 import org.chronopolis.ingest.tokens.TokenStoreWriter;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.QAceToken;
@@ -28,14 +28,14 @@ import java.util.List;
 @EnableScheduling
 public class TokenWriteTask {
 
-    private final PagedDao dao;
+    private final TokenDao dao;
     private final TokenStagingProperties properties;
     private final TrackingThreadPoolExecutor<Bag> tokenExecutor;
 
     @Autowired
     public TokenWriteTask(TokenStagingProperties properties,
                           TrackingThreadPoolExecutor<Bag> tokenExecutor,
-                          PagedDao dao) {
+                          TokenDao dao) {
         this.properties = properties;
         this.tokenExecutor = tokenExecutor;
         this.dao = dao;

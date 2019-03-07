@@ -3,12 +3,9 @@ package org.chronopolis.ingest.tokens;
 import com.google.common.hash.Hashing;
 import com.google.common.hash.HashingOutputStream;
 import com.google.common.io.CountingOutputStream;
-import com.querydsl.core.QueryModifiers;
 import org.chronopolis.common.storage.TokenStagingProperties;
-import org.chronopolis.ingest.repository.dao.PagedDao;
-import org.chronopolis.rest.entities.AceToken;
+import org.chronopolis.ingest.repository.dao.TokenDao;
 import org.chronopolis.rest.entities.Bag;
-import org.chronopolis.rest.entities.QAceToken;
 import org.chronopolis.rest.entities.TokenStore;
 import org.chronopolis.rest.entities.storage.Fixity;
 import org.chronopolis.rest.entities.storage.StagingStorage;
@@ -24,7 +21,6 @@ import java.nio.file.Paths;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 import static java.nio.file.StandardOpenOption.CREATE;
 import static org.chronopolis.rest.models.enums.FixityAlgorithm.SHA_256;
@@ -41,14 +37,14 @@ public class TokenStoreWriter implements Runnable {
     private final Logger log = LoggerFactory.getLogger(TokenStoreWriter.class);
 
     private final Bag bag;
-    private final PagedDao dao;
+    private final TokenDao dao;
     private final StorageRegion region;
     private final TokenStagingProperties properties;
 
     public TokenStoreWriter(Bag bag,
                             StorageRegion region,
                             TokenStagingProperties properties,
-                            PagedDao dao) {
+                            TokenDao dao) {
         this.bag = bag;
         this.region = region;
         this.properties = properties;
@@ -70,9 +66,6 @@ public class TokenStoreWriter implements Runnable {
             dir.toFile().mkdirs();
         }
 
-        long offset;
-        long page = 0;
-        long limit = 1000; // todo: determine best size
         // use the offset to be consistent with the date time we write to the db
         DateTimeFormatter format = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneOffset.UTC);
 
@@ -81,38 +74,7 @@ public class TokenStoreWriter implements Runnable {
         try (OutputStream os = Files.newOutputStream(store, CREATE);
              HashingOutputStream hos = new HashingOutputStream(Hashing.sha256(), os);
              CountingOutputStream cos = new CountingOutputStream(hos)) {
-            TokenWriter writer = new TokenWriter(cos);
-
-            boolean next = true;
-            while (next) {
-                offset = page * limit;
-                QueryModifiers queryModifiers = new QueryModifiers(limit, offset);
-                log.debug("[{}] Iterating page # {} size {} offset {}",
-                        bag.getName(), page, limit, offset);
-                List<AceToken> tokens = dao.findAll(QAceToken.aceToken,
-                        QAceToken.aceToken.bag.id.eq(bagId),
-                        QAceToken.aceToken.id.asc(),
-                        queryModifiers);
-
-                for (AceToken token : tokens) {
-                    String tokenFilename = token.getFile().getFilename();
-                    log.trace("[{}:{}] Writing token", bag.getId(), tokenFilename);
-
-                    writer.startToken(token);
-                    writer.addIdentifier(tokenFilename.startsWith("/")
-                            ? tokenFilename
-                            : "/" + tokenFilename);
-                    writer.writeTokenEntry();
-                }
-
-                next = tokens.size() == limit;
-                if (next) {
-                    ++page;
-                }
-            }
-
-            // The stream will close on it's own, but call this anyways
-            writer.close();
+            dao.writeToStream(bagId, cos);
 
             Long count = cos.getCount();
             String hash = hos.hash().toString();
