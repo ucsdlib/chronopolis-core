@@ -12,7 +12,7 @@ Source: ingest-server.jar
 Source1: ingest-server.sh
 Source2: application.yml
 Summary: Chronopolis Ingest Server
-License: UMD
+License: BSD-3
 URL: https://gitlab.umiacs.umd.edu/chronopolis
 Group: System Environment/Daemons
 Requires: postgresql-server >= 8.1
@@ -48,6 +48,9 @@ chkconfig --add ingest-server
 chkconfig --del ingest-server
 
 %changelog
+
+* Tue Mar 5 2019 Mike Ritter <shake@umiacs.umd.edu> 3.1.0-20190305
+- Set license to BSD 3 clause
 
 * Wed Nov 8 2017 Mike Ritter <shake@umiacs.umd.edu> 2.0.3-20171108
 - remove install command for logging directory

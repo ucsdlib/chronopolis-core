@@ -1,6 +1,5 @@
 package org.chronopolis.ingest.controller;
 
-import com.querydsl.core.QueryModifiers;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.chronopolis.ingest.IngestController;
 import org.chronopolis.ingest.PageWrapper;
@@ -11,11 +10,10 @@ import org.chronopolis.ingest.models.filter.ReplicationFilter;
 import org.chronopolis.ingest.repository.dao.BagDao;
 import org.chronopolis.ingest.repository.dao.ReplicationDao;
 import org.chronopolis.ingest.repository.dao.StagingDao;
+import org.chronopolis.ingest.repository.dao.TokenDao;
 import org.chronopolis.ingest.support.BagCreateResult;
 import org.chronopolis.ingest.support.FileSizeFormatter;
 import org.chronopolis.ingest.support.ReplicationCreateResult;
-import org.chronopolis.ingest.tokens.TokenWriter;
-import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QAceToken;
@@ -33,6 +31,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -68,14 +68,16 @@ public class BagUIController extends IngestController {
     private final Integer DEFAULT_PAGE = 0;
 
     private final BagDao dao;
+    private final TokenDao tokenDao;
     private final StagingDao stagingService;
     private final ReplicationDao replicationDao;
 
     @Autowired
     public BagUIController(BagDao dao,
-                           StagingDao stagingService,
+                           TokenDao tokenDao, StagingDao stagingService,
                            ReplicationDao replicationDao) {
         this.dao = dao;
+        this.tokenDao = tokenDao;
         this.stagingService = stagingService;
         this.replicationDao = replicationDao;
     }
@@ -184,54 +186,42 @@ public class BagUIController extends IngestController {
                 .orElse("redirect:/bags/add");
     }
 
-    @GetMapping("/bags/{id}/download/files")
-    public StreamingResponseBody getFiles(@PathVariable("id") Long id) {
+    @GetMapping(value = "/bags/{id}/download/files", produces = "text/plain")
+    public ResponseEntity<StreamingResponseBody> getFiles(@PathVariable("id") Long id) {
         JPAQueryFactory queryFactory = dao.getJPAQueryFactory();
         List<String> fetch = queryFactory.select(QBagFile.bagFile.filename)
                 .from(QBagFile.bagFile)
                 .where(QBagFile.bagFile.bag.id.eq(id)).fetch();
+        String bag = queryFactory.from(QBag.bag)
+                .select(QBag.bag.name)
+                .where(QBag.bag.id.eq(id))
+                .fetchOne();
 
-        return outputStream -> {
+        StreamingResponseBody stream = outputStream -> {
             for (String filename : fetch) {
                 outputStream.write(filename.getBytes(Charset.defaultCharset())); // force UTF-8?
                 outputStream.write("\n".getBytes(Charset.defaultCharset()));
             }
         };
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.TEXT_PLAIN)
+                .header("Content-Disposition", "attachment; filename=" + bag + "-filelist.txt")
+                .body(stream);
     }
 
-    @GetMapping("/bags/{id}/download/tokens")
-    public StreamingResponseBody getBagTokens(@PathVariable("id") Long id) {
-        return outputStream -> {
-            // copy paste
-            long offset;
-            long page = 0;
-            long limit = 1000;
-            boolean next = true;
-            TokenWriter writer = new TokenWriter(outputStream);
-            while (next) {
-                offset = page * limit;
-                QueryModifiers queryModifiers = new QueryModifiers(limit, offset);
-                List<AceToken> tokens = dao.findAll(QAceToken.aceToken,
-                        QAceToken.aceToken.bag.id.eq(id),
-                        QAceToken.aceToken.id.asc(),
-                        queryModifiers);
-
-                for (AceToken token : tokens) {
-                    String tokenFilename = token.getFile().getFilename();
-                    writer.startToken(token);
-                    writer.addIdentifier(tokenFilename.startsWith("/")
-                            ? tokenFilename
-                            : "/" + tokenFilename);
-                    writer.writeTokenEntry();
-                }
-
-                next = tokens.size() == limit;
-                if (next) {
-                    ++page;
-                }
-            }
-            writer.close();
-        };
+    @GetMapping(value = "/bags/{id}/download/tokens", produces = "text/plain")
+    public ResponseEntity<StreamingResponseBody> getBagTokens(@PathVariable("id") Long id) {
+        String bag = dao.getJPAQueryFactory()
+                .from(QBag.bag)
+                .select(QBag.bag.name)
+                .where(QBag.bag.id.eq(id))
+                .fetchOne();
+        StreamingResponseBody stream = outputStream -> tokenDao.writeToStream(id, outputStream);
+        return ResponseEntity.ok()
+                .contentType(MediaType.TEXT_PLAIN)
+                .header("Content-Disposition", "attachment; filename=" + bag + "-tokenstore.txt")
+                .body(stream);
     }
 
     //
