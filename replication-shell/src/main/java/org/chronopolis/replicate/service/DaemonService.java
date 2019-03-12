@@ -37,6 +37,7 @@ public class DaemonService implements ReplicationService {
      */
     @Override
     public void replicate() {
+        int exitCode = 0;
         Signal.handle(new Signal("TERM"), signal -> close());
 
         System.out.close();
@@ -48,7 +49,10 @@ public class DaemonService implements ReplicationService {
             }
         } catch (InterruptedException e) {
             log.info("Thread interrupted, exiting application");
-            SpringApplication.exit(context, () -> 42);
+            exitCode = 42;
+        } finally {
+            final int finalExit = exitCode;
+            SpringApplication.exit(context, () -> finalExit);
         }
     }
 
