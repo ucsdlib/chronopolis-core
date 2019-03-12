@@ -3,8 +3,6 @@ package org.chronopolis.replicate.config;
 import okhttp3.OkHttpClient;
 import org.chronopolis.common.ace.AceConfiguration;
 import org.chronopolis.common.ace.AceService;
-import org.chronopolis.common.mail.MailUtil;
-import org.chronopolis.common.mail.SmtpProperties;
 import org.chronopolis.common.storage.BucketBroker;
 import org.chronopolis.common.storage.PreservationProperties;
 import org.chronopolis.common.storage.PreservationPropertiesValidator;
@@ -12,6 +10,8 @@ import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.Submitter;
 import org.chronopolis.replicate.batch.TransferFactory;
 import org.chronopolis.replicate.batch.ace.AceFactory;
+import org.chronopolis.replicate.support.SmtpProperties;
+import org.chronopolis.replicate.support.SmtpReporter;
 import org.chronopolis.rest.api.IngestApiProperties;
 import org.chronopolis.rest.api.IngestGenerator;
 import org.chronopolis.rest.api.OkBasicInterceptor;
@@ -34,7 +34,8 @@ import java.util.concurrent.TimeUnit;
  * Created by shake on 4/16/14.
  */
 @Configuration
-@EnableConfigurationProperties({SmtpProperties.class,
+@EnableConfigurationProperties({
+        SmtpProperties.class,
         IngestApiProperties.class,
         PreservationProperties.class,
         ReplicationProperties.class,
@@ -101,29 +102,31 @@ public class ReplicationConfig {
     /**
      * The main replication submission bean
      *
-     * @param mail          the mail utility for sending success/failure notifications
-     * @param ace           the service to connect to the ACE-AM REST API
-     * @param properties    the configuration for... general replication properties
-     * @param generator     the ServiceGenerator to use for creating Ingest API services
-     * @param broker        the BucketBroker for handling distribution of replications into Buckets
+     * @param ace        the service to connect to the ACE-AM REST API
+     * @param reporter   the {@link SmtpReporter} used to send reports
+     * @param properties the configuration for... general replication properties
+     * @param generator  the ServiceGenerator to use for creating Ingest API services
+     * @param broker     the BucketBroker for handling distribution of replications into Buckets
      * @return A {@link Submitter} which tracks bags submitted for replication
      */
     @Bean
-    public Submitter submitter(MailUtil mail,
-                               AceService ace,
+    public Submitter submitter(AceService ace,
+                               SmtpReporter reporter,
                                AceFactory aceFactory,
                                TransferFactory transferFactory,
                                ReplicationProperties properties,
                                ServiceGenerator generator,
                                BucketBroker broker) {
-        return new Submitter(mail,
+        return new Submitter(
                 ace,
+                reporter,
                 broker,
                 generator,
                 aceFactory,
                 transferFactory,
                 properties,
-                http());
+                http()
+        );
     }
 
     @Bean
@@ -140,20 +143,9 @@ public class ReplicationConfig {
                 new LinkedBlockingDeque<>());
     }
 
-    /**
-     * Class to send email notifications regarding replications
-     *
-     * @param properties the SMTP configuration properties
-     * @return the MailUtil helper
-     */
     @Bean
-    public MailUtil mailUtil(SmtpProperties properties) {
-        MailUtil mailUtil = new MailUtil();
-        mailUtil.setSmtpFrom(properties.getFrom());
-        mailUtil.setSmtpTo(properties.getTo());
-        mailUtil.setSmtpHost(properties.getHost());
-        mailUtil.setSmtpSend(properties.getSend());
-        return mailUtil;
+    public SmtpReporter reporter(SmtpProperties properties) {
+        return new SmtpReporter(properties);
     }
 
     /**

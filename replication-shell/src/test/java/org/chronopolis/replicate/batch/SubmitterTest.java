@@ -3,7 +3,6 @@ package org.chronopolis.replicate.batch;
 import org.chronopolis.common.ace.AceService;
 import org.chronopolis.common.ace.GsonCollection;
 import org.chronopolis.common.concurrent.TrackingThreadPoolExecutor;
-import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.storage.Bucket;
 import org.chronopolis.common.storage.BucketBroker;
 import org.chronopolis.common.storage.Posix;
@@ -12,6 +11,7 @@ import org.chronopolis.common.storage.PreservationProperties;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.ace.AceFactory;
 import org.chronopolis.replicate.support.ReplGenerator;
+import org.chronopolis.replicate.support.Reporter;
 import org.chronopolis.rest.api.ReplicationService;
 import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.Replication;
@@ -22,8 +22,13 @@ import org.chronopolis.rest.models.update.ReplicationStatusUpdate;
 import org.chronopolis.test.support.CallWrapper;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+import org.mockito.quality.Strictness;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 
@@ -47,7 +52,6 @@ import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -74,11 +78,13 @@ public class SubmitterTest {
 
     private Submitter submitter;
 
-    private final MailUtil mail = mock(MailUtil.class);
-    private final AceService ace = mock(AceService.class);
-    private final AceFactory aceFactory = mock(AceFactory.class);
-    private final TransferFactory factory = mock(TransferFactory.class);
-    private final ReplicationService replications = mock(ReplicationService.class);
+    @Rule public MockitoRule rule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
+
+    @Mock private AceService ace;
+    @Mock private AceFactory aceFactory;
+    @Mock private TransferFactory factory;
+    @Mock private ReplicationService replications;
+    @Mock private Reporter<SimpleMailMessage> reporter;
 
     private String testBag;
     private String testToken;
@@ -111,7 +117,15 @@ public class SubmitterTest {
         TrackingThreadPoolExecutor<Replication> http
                 = new TrackingThreadPoolExecutor<>(1, 1, 1, SECONDS, new LinkedBlockingDeque<>());
         submitter = new Submitter(
-                mail, ace, broker, generator, aceFactory, factory, properties, http);
+                ace,
+                reporter,
+                broker,
+                generator,
+                aceFactory,
+                factory,
+                properties,
+                http
+        );
     }
 
     @Test
@@ -146,14 +160,14 @@ public class SubmitterTest {
         Replication replication = createReplication(STARTED, bag);
         CompletableFuture<Void> xferFuture = CompletableFuture.runAsync(() -> {
         });
-        CompletableFuture<Void> xferFail =
-                CompletableFuture.runAsync(() -> {
-                    throw new RuntimeException("not found");
-                });
+        CompletableFuture<Void> xferFail = CompletableFuture.runAsync(() -> {
+            throw new RuntimeException("not found");
+        });
 
         when(factory.bagTransfer(any(), any(), any())).thenReturn(xferFuture);
         when(factory.tokenTransfer(any(), any(), any())).thenReturn(xferFail);
-        Mockito.doThrow(new MailSendException("Unable to send msg")).when(mail)
+        when(reporter.createMessage(any(), any(), any())).thenReturn(new SimpleMailMessage());
+        Mockito.doThrow(new MailSendException("Unable to send msg")).when(reporter)
                 .send(any(SimpleMailMessage.class));
         CompletableFuture<ReplicationStatus> submission = submitter.submit(replication);
         // workaround to block on our submission
@@ -208,7 +222,7 @@ public class SubmitterTest {
         verify(factory, times(1)).bagTransfer(any(), eq(replication), any());
         verify(factory, times(1)).tokenTransfer(any(), eq(replication), any());
         verify(aceFactory, never()).register(any(), any(), any(), any(), any());
-        verify(mail, times(0)).send(any(SimpleMailMessage.class));
+        verify(reporter, times(0)).send(any(SimpleMailMessage.class));
     }
 
     @Test
@@ -227,14 +241,14 @@ public class SubmitterTest {
         when(replications.updateStatus(anyLong(), any(ReplicationStatusUpdate.class)))
                 .thenReturn(new CallWrapper<>(replication));
         // look in to being stricter with the createMessage things
-        when(mail.createMessage(any(), any(), any())).thenReturn(new SimpleMailMessage());
+        when(reporter.createMessage(any(), any(), any())).thenReturn(new SimpleMailMessage());
         CompletableFuture<ReplicationStatus> submission = submitter.submit(replication);
         submission.get();
 
         verify(ace, times(1)).getCollectionByName(bag.getName(), bag.getDepositor());
         verify(replications, times(1)).updateStatus(1L, new ReplicationStatusUpdate(SUCCESS));
-        verify(mail, times(1)).createMessage(any(), any(), any());
-        verify(mail, times(1)).send(any(SimpleMailMessage.class));
+        verify(reporter, times(1)).createMessage(any(), any(), any());
+        verify(reporter, times(1)).send(any(SimpleMailMessage.class));
     }
 
     private Replication createReplication(ReplicationStatus status, Bag bag) {
@@ -252,28 +266,6 @@ public class SubmitterTest {
                 ZonedDateTime.now(), ZonedDateTime.now(),
                 "test-name", "submitter-test", "test-depostior",
                 BagStatus.REPLICATING, new HashSet<>());
-    }
-
-
-    /**
-     * Simple copy of a Replication from Kotlin's copy function
-     *
-     * @param orig   the original Replication to copy
-     * @param status the new status to apply
-     * @return a new replication
-     */
-    private Replication copy(Replication orig, ReplicationStatus status) {
-        return orig.copy(orig.getId(),
-                orig.getCreatedAt(),
-                orig.getUpdatedAt(),
-                status,
-                orig.getBagLink(),
-                orig.getTokenLink(),
-                orig.getProtocol(),
-                orig.getReceivedTagFixity(),
-                orig.getReceivedTokenFixity(),
-                orig.getNode(),
-                orig.getBag());
     }
 
 }

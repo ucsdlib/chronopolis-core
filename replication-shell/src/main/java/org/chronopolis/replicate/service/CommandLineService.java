@@ -1,10 +1,10 @@
 package org.chronopolis.replicate.service;
 
 import org.chronopolis.common.ace.AceConfiguration;
-import org.chronopolis.common.mail.SmtpProperties;
 import org.chronopolis.common.storage.PreservationProperties;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.Submitter;
+import org.chronopolis.replicate.support.SmtpProperties;
 import org.chronopolis.rest.api.IngestApiProperties;
 import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.models.Replication;

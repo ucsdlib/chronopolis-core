@@ -2,7 +2,6 @@ package org.chronopolis.replicate.batch;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.chronopolis.common.ace.AceService;
-import org.chronopolis.common.mail.MailUtil;
 import org.chronopolis.common.storage.Bucket;
 import org.chronopolis.common.storage.BucketBroker;
 import org.chronopolis.common.storage.DirectoryStorageOperation;
@@ -11,6 +10,7 @@ import org.chronopolis.common.storage.SingleFileOperation;
 import org.chronopolis.common.storage.StorageOperation;
 import org.chronopolis.replicate.ReplicationProperties;
 import org.chronopolis.replicate.batch.ace.AceFactory;
+import org.chronopolis.replicate.support.Reporter;
 import org.chronopolis.rest.api.ServiceGenerator;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.StagingStorage;
@@ -51,8 +51,8 @@ import java.util.function.BiConsumer;
 public class Submitter {
     private final Logger log = LoggerFactory.getLogger(Submitter.class);
 
-    private final MailUtil mail;
     private final AceService ace;
+    private final Reporter<SimpleMailMessage> reporter;
 
     private final BucketBroker broker;
     private final ServiceGenerator generator;
@@ -64,15 +64,15 @@ public class Submitter {
 
     private final Set<String> replicating;
 
-    public Submitter(MailUtil mail,
-                     AceService ace,
+    public Submitter(AceService ace,
+                     Reporter<SimpleMailMessage> reporter,
                      BucketBroker broker,
                      ServiceGenerator generator,
                      AceFactory aceFactory,
                      TransferFactory transferFactory,
                      ReplicationProperties properties,
                      ThreadPoolExecutor http) {
-        this.mail = mail;
+        this.reporter = reporter;
         this.ace = ace;
         this.broker = broker;
         this.generator = generator;
@@ -263,7 +263,7 @@ public class Submitter {
         final Bucket bag;
         final Bucket token;
 
-        public MultiBucket(Bucket bagBucket, Bucket tokenBucket) {
+        MultiBucket(Bucket bagBucket, Bucket tokenBucket) {
             this.bag = bagBucket;
             this.token = tokenBucket;
         }
@@ -281,7 +281,7 @@ public class Submitter {
 
         final Replication replication;
 
-        public Completer(Replication replication) {
+        Completer(Replication replication) {
             this.replication = replication;
         }
 
@@ -318,8 +318,8 @@ public class Submitter {
         }
 
         private void send(String subject, String body) {
-            SimpleMailMessage message = mail.createMessage(properties.getNode(), subject, body);
-            mail.send(message);
+            SimpleMailMessage message = reporter.createMessage(properties.getNode(), subject, body);
+            reporter.send(message);
         }
     }
 
