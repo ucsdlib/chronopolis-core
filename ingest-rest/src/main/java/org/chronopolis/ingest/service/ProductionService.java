@@ -16,9 +16,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Production service - sleep until we're interrupted at which point we shut down
  * via Spring
- *
+ * <p>
  * Exiting the context is now handled via {@link Application}, so we just exit the loop here
- *
+ * <p>
  * Created by shake on 3/26/15.
  */
 @Component
@@ -42,16 +42,16 @@ public class ProductionService implements IngestService {
         System.out.close();
         System.err.close();
 
-        while(RUN.get()) {
-            try {
+        try {
+            while (RUN.get()) {
                 TimeUnit.SECONDS.sleep(300);
-            } catch (InterruptedException e) {
-                log.info("Shutting down");
-                exitCode = 42;
-            } finally {
-                final int finalExit = exitCode;
-                SpringApplication.exit(context, () -> finalExit);
             }
+        } catch (InterruptedException e) {
+            log.info("Shutting down");
+            exitCode = 42;
+        } finally {
+            final int finalExit = exitCode;
+            SpringApplication.exit(context, () -> finalExit);
         }
 
     }
