@@ -18,7 +18,7 @@ Source: replication-shell.jar
 Source1: replication.sh
 Source2: application.yml
 Summary: Chronopolis Replication Service
-License: UMD
+License: BSD-3
 URL: https://gitlab.umiacs.umd.edu/chronopolis
 Group: System Environment/Daemons
 autoprov: yes
@@ -53,6 +53,9 @@ chkconfig --add  replicationd
 chkconfig --del replicationd
 
 %changelog
+
+* Tue Mar 5 2019 Mike Ritter <shake@umiacs.umd.edu> 3.1.0-20190305
+- Set license to BSD 3 clause
 
 * Fri Dec 1 2017 Mike Ritter <shake@umiacs.umd.edu> 2.0.5-20171201
 - correct chkconfig service name

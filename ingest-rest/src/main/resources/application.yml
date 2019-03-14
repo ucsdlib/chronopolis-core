@@ -14,15 +14,27 @@ ingest.ajp:
   enabled: false
   port: 8009
 
+# Ingest Local FS Scan
+## cron: the cron timer for running local fs scan
+## enabled: flag to enable local fs scan of bags
+## username: the 'creator' to check for when scanning bags
+## staging.path: the path to the filesystem on disk
+ingest.scan:
+  cron: 0 0 * * * *
+  enabled: false
+  username: admin
+  staging.id: -1
+  staging.path: /dev/null
+
 # Ingest Tokenizer Settings
-# cron: the cron timer for running local-tokenization
-# enabled: flag to enable Local tokenization of bags
-# username: the 'creator' to check for when depositing bags
-# staging.id: the ID of the StorageRegion to write tokens into
-# staging.path: the path to the filesystem on disk
+## cron: the cron timer for running local-tokenization
+## enabled: flag to enable Local tokenization of bags
+## username: the 'creator' to check for when depositing bags
+## staging.id: the ID of the StorageRegion to write tokens into
+## staging.path: the path to the filesystem on disk
 ingest.tokenizer:
   cron: 0 0 * * * *
-  enabled: true
+  enabled: false
   username: admin
   staging.id: -1
   staging.path: /dev/null

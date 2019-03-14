@@ -27,7 +27,7 @@ public class BagFilter extends Paged {
     private String depositor;
     private List<BagStatus> status;
 
-    private LinkedListMultimap<String, String> parameters = LinkedListMultimap.create();
+    private final LinkedListMultimap<String, String> parameters = LinkedListMultimap.create();
 
     public String getName() {
         return name;

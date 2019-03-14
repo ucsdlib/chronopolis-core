@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 public class TrackingThreadPoolExecutorTest {
 
     @Test
-    public void testExceptionInRunnable() throws NoSuchFieldException, IllegalAccessException, InterruptedException {
+    public void testExceptionInRunnable() throws InterruptedException {
         TrackingThreadPoolExecutor<Integer> threadPoolExecutor = new TrackingThreadPoolExecutor<>(4,
             4,
             5,
@@ -32,7 +32,7 @@ public class TrackingThreadPoolExecutorTest {
     }
 
     @Test
-    public void testRejected() throws NoSuchFieldException, IllegalAccessException {
+    public void testRejected() {
         TrackingThreadPoolExecutor<Integer> threadPoolExecutor = new TrackingThreadPoolExecutor<>(1,
             1,
             5,

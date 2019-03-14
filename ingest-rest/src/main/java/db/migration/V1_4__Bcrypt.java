@@ -1,6 +1,7 @@
 package db.migration;
 
-import org.flywaydb.core.api.migration.jdbc.JdbcMigration;
+import org.flywaydb.core.api.migration.BaseJavaMigration;
+import org.flywaydb.core.api.migration.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -11,15 +12,16 @@ import java.sql.ResultSet;
 
 /**
  * Migration to encode our users' passwords with bcrypt
- *
+ * <p>
  * Created by shake on 9/7/16.
  */
-public class V1_4__Bcrypt implements JdbcMigration {
+public class V1_4__Bcrypt extends BaseJavaMigration {
     private final String update = "UPDATE users SET password = ? WHERE username = ?";
     private final Logger log = LoggerFactory.getLogger(V1_4__Bcrypt.class);
 
     @Override
-    public void migrate(Connection connection) throws Exception {
+    public void migrate(Context context) throws Exception {
+        Connection connection = context.getConnection();
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         PreparedStatement ps = connection.prepareStatement("SELECT username, password FROM users");
 

@@ -8,7 +8,7 @@ import org.chronopolis.common.storage.Posix;
 import org.chronopolis.common.storage.TokenStagingProperties;
 import org.chronopolis.ingest.IngestTest;
 import org.chronopolis.ingest.JpaContext;
-import org.chronopolis.ingest.repository.dao.PagedDao;
+import org.chronopolis.ingest.repository.dao.TokenDao;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.storage.Fixity;
@@ -22,12 +22,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.persistence.EntityManager;
 import java.io.IOException;
@@ -41,8 +42,8 @@ import static org.chronopolis.ingest.repository.dao.StagingDao.DISCRIMINATOR_TOK
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 
-@DataJpaTest
-@RunWith(SpringRunner.class)
+@DataJpaTest(excludeAutoConfiguration = FlywayAutoConfiguration.class)
+@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = JpaContext.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SqlGroup({
@@ -55,19 +56,20 @@ public class TokenStoreWriterTest extends IngestTest {
     @Autowired private EntityManager entityManager;
 
     // Our search services which we need to create
-    private PagedDao dao;
+    private TokenDao dao;
 
     private TokenStagingProperties properties;
 
     @Before
     public void setup() {
-        dao = new PagedDao(entityManager);
+        dao = new TokenDao(entityManager);
         properties = new TokenStagingProperties()
                 .setPosix(new Posix().setId(1L).setPath(System.getProperty("chron.stage.tokens")));
     }
 
     private Bag findBag(String depositor, String name) {
-        return dao.findOne(QBag.bag, QBag.bag.depositor.namespace.eq(depositor).and(QBag.bag.name.eq(name)));
+        return dao.findOne(QBag.bag,
+                QBag.bag.depositor.namespace.eq(depositor).and(QBag.bag.name.eq(name)));
     }
 
     @Test

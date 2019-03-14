@@ -17,8 +17,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static com.google.common.collect.ImmutableSet.of;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -33,14 +33,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(controllers = StorageController.class)
 public class StorageControllerTest extends ControllerTest {
 
-    private StorageController controller;
-
     // Constructor params
     @MockBean private PagedDao dao;
 
     @Before
     public void setup() {
-        controller = new StorageController(dao);
+        StorageController controller = new StorageController(dao);
         setupMvc(controller);
     }
 

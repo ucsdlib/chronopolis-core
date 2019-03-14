@@ -78,7 +78,8 @@ public class UserService {
     }
 
     public Authority getUserAuthority(String user) {
-        return authorities.findOne(user);
+        // todo: this is unsafe
+        return authorities.findById(user).get();
     }
 
     public List<Authority> listUserAuthorities() {

@@ -7,6 +7,7 @@ import org.chronopolis.common.storage.DirectoryStorageOperation;
 import org.chronopolis.common.storage.SingleFileOperation;
 import org.chronopolis.replicate.ReplicationNotifier;
 import org.chronopolis.rest.api.ServiceGenerator;
+import org.chronopolis.rest.models.Bag;
 import org.chronopolis.rest.models.Replication;
 import org.chronopolis.rest.models.enums.ReplicationStatus;
 import org.slf4j.Logger;
@@ -48,6 +49,21 @@ public class AceFactory {
         this.httpExecutor = httpExecutor;
     }
 
+    /**
+     * Run ACE AM tasks for a {@link Replication}
+     *
+     * These include:
+     * * Registration
+     * * TokenStore upload
+     * * Initial audit
+     *
+     * @param replication the {@link Replication} being processed
+     * @param bagBucket the {@link Bucket} under which the {@link Bag} was replicated
+     * @param bagOperation the {@link DirectoryStorageOperation} used to transfer the {@link Bag}
+     * @param tokenBucket the {@link Bucket} under which the ACE Token Store was downloaded
+     * @param tokenOperation the {@link SingleFileOperation} used to transfer to ACE Token Store
+     * @return the {@link ReplicationStatus} of the {@link Replication} after the tasks have been run
+     */
     public CompletableFuture<ReplicationStatus> register(Replication replication,
                                                          Bucket bagBucket,
                                                          DirectoryStorageOperation bagOperation,
@@ -70,31 +86,40 @@ public class AceFactory {
 
         return CompletableFuture
                 .supplyAsync(register::call, httpExecutor)
-                .thenApplyAsync(id -> {
-                    if (notifier.isSuccess()) {
-                        AceTokenTasklet token = new AceTokenTasklet(tokenBucket,
-                                tokenOperation,
-                                generator,
-                                ace,
-                                replication,
-                                notifier,
-                                id);
-                        token.run();
-                    }
+                .thenApplyAsync(id -> applyTokenTasklet(id, notifier, replication, tokenBucket, tokenOperation), httpExecutor)
+                .thenApplyAsync(id -> applyAuditTask(replication, notifier, id), httpExecutor);
+    }
 
-                    return id;
-                }, httpExecutor)
-                .thenApplyAsync(id -> {
-                    if (notifier.isSuccess()) {
-                        AceAuditTasklet audit = new AceAuditTasklet(generator,
-                                ace,
-                                replication,
-                                notifier,
-                                id);
-                        audit.run();
-                    }
+    private Long applyTokenTasklet(Long id,
+                                   ReplicationNotifier notifier,
+                                   Replication replication,
+                                   Bucket bucket,
+                                   SingleFileOperation operation) {
+        if (notifier.isSuccess()) {
+            AceTokenTasklet tasklet = new AceTokenTasklet(
+                    bucket,
+                    operation,
+                    generator,
+                    ace,
+                    replication,
+                    notifier,
+                    id
+            );
 
-                    return replication.getStatus();
-                }, httpExecutor);
+            tasklet.run();
+        }
+
+        return id;
+    }
+
+    private ReplicationStatus applyAuditTask(Replication replication,
+                                             ReplicationNotifier notifier,
+                                             Long id) {
+        if (notifier.isSuccess()) {
+            AceAuditTasklet task = new AceAuditTasklet(generator, ace, replication, notifier, id);
+            task.run();
+        }
+
+        return replication.getStatus();
     }
 }

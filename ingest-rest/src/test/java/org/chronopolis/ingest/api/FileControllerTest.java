@@ -23,8 +23,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.ZonedDateTime;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -69,7 +69,7 @@ public class FileControllerTest extends ControllerTest {
         bf.setFilename("/bag-file");
         bf.setFixities(ImmutableSet.of());
 
-        Pageable page = new PageRequest(5, 5);
+        Pageable page = PageRequest.of(5, 5);
 
         when(dao.findPage(eq(QBagFile.bagFile), any()))
                 .thenReturn(PageableExecutionUtils.getPage(ImmutableList.of(bf), page, () -> 1));
@@ -86,7 +86,7 @@ public class FileControllerTest extends ControllerTest {
         bf.setDtype("BAG");
         bf.setFilename("/bag-file");
 
-        Pageable page = new PageRequest(5, 5);
+        Pageable page = PageRequest.of(5, 5);
         when(dao.findPage(eq(QBagFile.bagFile), any()))
                 .thenReturn(PageableExecutionUtils.getPage(ImmutableList.of(bf), page, () -> 1));
 

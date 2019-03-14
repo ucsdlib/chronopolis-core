@@ -1,3 +1,6 @@
+-- update ace_tokens to enforce a leading slash
+UPDATE ace_token SET filename = regexp_replace(filename, '^/?', '/');
+
 -- file entity creation (just pull bag and filename w/ leading slash from ace_token)
 INSERT INTO file(bag_id, filename, dtype)
     SELECT bag, regexp_replace(filename, '^/?', '/') , ('BAG') FROM ace_token;
@@ -14,7 +17,7 @@ INSERT INTO file(size, bag_id, created_at, filename, dtype)
 WITH tb AS (SELECT fixity.id AS rowid, file.id AS file_id FROM bag_storage bs
               JOIN fixity ON (bs.staging_id = fixity.storage_id)
               JOIN file ON (bs.bag_id = file.bag_id)
-              WHERE file.dtype = 'BAG')
+              WHERE file.dtype = 'BAG' AND file.filename = '/tagmanifest-sha256.txt')
     UPDATE fixity
     SET file_id = tb.file_id FROM tb WHERE id = rowid;
 

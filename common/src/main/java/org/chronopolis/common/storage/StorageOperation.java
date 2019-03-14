@@ -2,6 +2,7 @@ package org.chronopolis.common.storage;
 
 import com.google.common.collect.ComparisonChain;
 
+import javax.annotation.Nullable;
 import java.nio.file.Path;
 
 /**
@@ -75,7 +76,7 @@ public abstract class StorageOperation implements Comparable<StorageOperation> {
     }
 
     @Override
-    public int compareTo(StorageOperation operation) {
+    public int compareTo(@Nullable StorageOperation operation) {
         return ComparisonChain.start()
                 .compare(this.size, operation.size)
                 .compare(this.type, operation.type)

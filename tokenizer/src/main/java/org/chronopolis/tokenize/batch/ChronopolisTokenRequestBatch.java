@@ -38,7 +38,7 @@ public class ChronopolisTokenRequestBatch implements TokenRequestBatch, Runnable
     private final ImsServiceWrapper ims;
     private final TokenWorkSupervisor supervisor;
 
-    private AtomicBoolean running = new AtomicBoolean(true);
+    private final AtomicBoolean running = new AtomicBoolean(true);
 
     public ChronopolisTokenRequestBatch(AceConfiguration configuration,
                                         TokenWorkSupervisor supervisor) {

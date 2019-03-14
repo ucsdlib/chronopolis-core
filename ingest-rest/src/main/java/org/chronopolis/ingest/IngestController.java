@@ -78,7 +78,7 @@ public class IngestController {
         String order = params.getOrDefault(SORT_DIRECTION, "asc");
         Sort.Direction direction = Sort.Direction.fromString(order);
 
-        return new PageRequest(pageNum, pageSize, direction, pList);
+        return PageRequest.of(pageNum, pageSize, direction, pList);
     }
 
 }

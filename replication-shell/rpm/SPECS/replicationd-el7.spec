@@ -20,7 +20,7 @@ Source1: replication-shell.jar
 Source2: application.yml
 Source3: replicationd-prepare.sh
 Summary: Chronopolis Replication Service
-License: UMD
+License: BSD-3
 URL: https://gitlab.umiacs.umd.edu/chronopolis
 Group: System Environment/Daemons
 autoprov: yes
@@ -55,6 +55,9 @@ systemctl disable replicationd
 %config(noreplace) %{_prefix}/%{yaml}
 
 %changelog
+
+* Tue Mar 5 2019 Mike Ritter <shake@umiacs.umd.edu> 3.1.0-20190305
+- Set license to BSD 3 clause
 
 * Fri Dec 1 2017 Mike Ritter <shake@umiacs.umd.edu> 2.0.5-20171201
 - fix default modebits for prepare script

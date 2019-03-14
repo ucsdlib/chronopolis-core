@@ -8,26 +8,34 @@ package org.chronopolis.rest.models.page
  * @author shake
  */
 data class SpringPage<out T>(val content: List<T>,
+                             val pageable: Pageable,
                              val last: Boolean,
-                             val first: Boolean,
                              val totalPages: Int,
                              val totalElements: Long,
-                             val sort: List<Sort>,
+                             val first: Boolean,
+                             val sort: Sort,
                              val numberOfElements: Int,
                              val size: Int,
-                             val number: Int) : Iterable<T> {
+                             val number: Int,
+                             val empty: Boolean) : Iterable<T> {
     override fun iterator(): Iterator<T> {
         return content.iterator()
     }
 }
 
 fun <T> List<T>.wrap(): SpringPage<T> {
-    return SpringPage(this, true, true, 1, this.size.toLong(), listOf(), this.size, this.size, 1)
+    val sort = Sort(true, false, false)
+    val page = Pageable(sort, this.size, 1, 0, false, true)
+    return SpringPage(this, page, true, 1, 1L, true, sort, this.size, this.size, 1, this.isEmpty())
 }
 
-data class Sort(val direction: String,
-                val property: String,
-                val ignoreCase: Boolean,
-                val nullHandling: String,
-                val ascending: Boolean,
-                val descending: Boolean)
+data class Pageable(val sort: Sort,
+                    val pageSize: Int,
+                    val pageNumber: Int,
+                    val offset: Int,
+                    val unpaged: Boolean,
+                    val paged: Boolean)
+
+data class Sort(val sorted: Boolean,
+                val unsorted: Boolean,
+                val empty: Boolean)

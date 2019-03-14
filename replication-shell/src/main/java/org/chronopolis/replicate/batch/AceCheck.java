@@ -68,7 +68,7 @@ public class AceCheck implements Supplier<ReplicationStatus> {
     class GetCallback implements Callback<GsonCollection> {
 
         GsonCollection collection;
-        CountDownLatch latch = new CountDownLatch(1);
+        final CountDownLatch latch = new CountDownLatch(1);
 
         @Override
         public void onResponse(@NotNull Call<GsonCollection> call,

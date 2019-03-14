@@ -1,9 +1,9 @@
 package org.chronopolis.ingest.api;
 
+import com.google.common.collect.ImmutableList;
 import com.querydsl.core.types.Predicate;
 import org.chronopolis.ingest.models.filter.RepairFilter;
 import org.chronopolis.ingest.repository.dao.PagedDao;
-import org.chronopolis.ingest.support.PageImpl;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.Node;
 import org.chronopolis.rest.entities.QBag;
@@ -24,12 +24,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static com.google.common.collect.ImmutableSet.of;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -48,7 +49,6 @@ public class RepairControllerTest extends ControllerTest {
 
     private final Logger log = LoggerFactory.getLogger(RepairControllerTest.class);
 
-    private RepairController controller;
     private final Depositor depositor = new Depositor();
 
     // Beans for the RepairController
@@ -56,7 +56,7 @@ public class RepairControllerTest extends ControllerTest {
 
     @Before
     public void setup() {
-        controller = new RepairController(dao);
+        RepairController controller = new RepairController(dao);
         setupMvc(controller);
     }
 
@@ -83,7 +83,8 @@ public class RepairControllerTest extends ControllerTest {
 
     @Test
     public void getRepairs() throws Exception {
-        when(dao.findPage(any(), any(RepairFilter.class))).thenReturn(new PageImpl<>());
+        when(dao.findPage(any(), any(RepairFilter.class)))
+                .thenReturn(new PageImpl<>(ImmutableList.of()));
         mvc.perform(get("/api/repairs").principal(authorizedPrincipal))
                 // .andDo(print())
                 .andExpect(status().is2xxSuccessful());

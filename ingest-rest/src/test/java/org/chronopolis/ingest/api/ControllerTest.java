@@ -6,12 +6,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import com.google.common.collect.ImmutableList;
 import org.chronopolis.ingest.IngestTest;
-import org.chronopolis.ingest.WebContext;
-import org.chronopolis.rest.entities.*;
+import org.chronopolis.rest.entities.AceToken;
+import org.chronopolis.rest.entities.Bag;
+import org.chronopolis.rest.entities.BagFile;
+import org.chronopolis.rest.entities.Replication;
+import org.chronopolis.rest.entities.TokenStore;
 import org.chronopolis.rest.entities.depositor.Depositor;
 import org.chronopolis.rest.entities.depositor.DepositorContact;
 import org.chronopolis.rest.entities.repair.Repair;
-import org.chronopolis.rest.entities.serializers.*;
+import org.chronopolis.rest.entities.serializers.AceTokenSerializer;
+import org.chronopolis.rest.entities.serializers.BagSerializer;
+import org.chronopolis.rest.entities.serializers.DataFileSerializer;
+import org.chronopolis.rest.entities.serializers.DepositorContactSerializer;
+import org.chronopolis.rest.entities.serializers.DepositorSerializer;
+import org.chronopolis.rest.entities.serializers.RepairSerializer;
+import org.chronopolis.rest.entities.serializers.ReplicationSerializer;
+import org.chronopolis.rest.entities.serializers.StagingStorageSerializer;
+import org.chronopolis.rest.entities.serializers.StorageRegionSerializer;
 import org.chronopolis.rest.entities.storage.StagingStorage;
 import org.chronopolis.rest.entities.storage.StorageRegion;
 import org.chronopolis.rest.models.FulfillmentStrategy;
@@ -58,13 +69,13 @@ public class ControllerTest extends IngestTest {
     protected static final String AUTHORIZED = "authorized";
     protected static final String UNAUTHORIZED = "unauthorized";
 
-    protected static Principal requesterPrincipal = () -> REQUESTER;
-    protected static Principal authorizedPrincipal = () -> AUTHORIZED;
-    protected static Principal unauthorizedPrincipal = () -> UNAUTHORIZED;
+    protected static final Principal requesterPrincipal = () -> REQUESTER;
+    protected static final Principal authorizedPrincipal = () -> AUTHORIZED;
+    protected static final Principal unauthorizedPrincipal = () -> UNAUTHORIZED;
 
-    public static UserDetails user = new User(AUTHORIZED, AUTHORIZED,
+    public static final UserDetails user = new User(AUTHORIZED, AUTHORIZED,
             ImmutableList.of(() -> "ROLE_USER"));
-    public static UserDetails admin = new User(AUTHORIZED, AUTHORIZED,
+    public static final UserDetails admin = new User(AUTHORIZED, AUTHORIZED,
             ImmutableList.of(() -> "ROLE_ADMIN"));
 
     static final String ADDRESS = "test-address";

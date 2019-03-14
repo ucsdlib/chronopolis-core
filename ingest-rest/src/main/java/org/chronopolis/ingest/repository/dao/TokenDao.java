@@ -1,19 +1,29 @@
 package org.chronopolis.ingest.repository.dao;
 
+import com.querydsl.core.QueryModifiers;
+import com.querydsl.core.group.GroupBy;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.chronopolis.ingest.tokens.TokenWriter;
 import org.chronopolis.rest.entities.AceToken;
 import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.BagFile;
+import org.chronopolis.rest.entities.QAceToken;
 import org.chronopolis.rest.entities.QBag;
 import org.chronopolis.rest.entities.QBagFile;
 import org.chronopolis.rest.models.create.AceTokenCreate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import javax.persistence.EntityManager;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.security.Principal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Data accessor for AceTokens. Really just to move the logic for creating a token from a
@@ -25,7 +35,8 @@ import java.util.Date;
  * @author shake
  */
 public class TokenDao extends PagedDao {
-    private EntityManager em;
+    private final Logger log = LoggerFactory.getLogger(TokenDao.class);
+    private final EntityManager em;
 
     public TokenDao(EntityManager em) {
         super(em);
@@ -131,6 +142,59 @@ public class TokenDao extends PagedDao {
         }
 
         return response;
+    }
+
+    /**
+     * Write the {@link AceToken}s belonging to a {@link Bag} to an {@link OutputStream}
+     *
+     * @param id the id of the {@link Bag} to write {@link AceToken}s for
+     * @param stream the {@link OutputStream} to write to
+     */
+    public void writeToStream(Long id, OutputStream stream) {
+        QBagFile bagFile = QBagFile.bagFile;
+        QAceToken aceToken = QAceToken.aceToken;
+        long offset;
+        long page = 0;
+        long limit = 10000;
+        boolean next = true;
+
+        JPAQueryFactory qf = getJPAQueryFactory();
+        try (TokenWriter writer = new TokenWriter(stream)) {
+            while (next) {
+                offset = page * limit;
+                QueryModifiers queryModifiers = new QueryModifiers(limit, offset);
+
+                List<org.chronopolis.rest.entities.projections.AceToken> result = qf.from(aceToken)
+                        .innerJoin(aceToken.file, bagFile)
+                        .where(aceToken.bag.id.eq(id))
+                        .orderBy(aceToken.id.asc())
+                        .restrict(queryModifiers)
+                        .transform(GroupBy.groupBy(aceToken.id).list(Projections.constructor(
+                                org.chronopolis.rest.entities.projections.AceToken.class,
+                                aceToken.id,
+                                aceToken.bag.id,
+                                aceToken.round,
+                                aceToken.imsHost,
+                                aceToken.imsService,
+                                aceToken.algorithm,
+                                aceToken.proof,
+                                aceToken.createDate,
+                                bagFile.filename
+                        )));
+
+                for (org.chronopolis.rest.entities.projections.AceToken token : result) {
+                    writer.startProjection(token);
+                    writer.writeTokenEntry();
+                }
+
+                next = result.size() == limit;
+                if (next) {
+                    ++page;
+                }
+            }
+        } catch (IOException e) {
+            log.error("Failed to write tokens to output stream", e);
+        }
     }
 
 }
