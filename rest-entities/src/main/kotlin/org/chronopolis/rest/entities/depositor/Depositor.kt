@@ -29,9 +29,9 @@ class Depositor(
         @NaturalId
         var namespace: String = "",
 
-        var sourceOrganization: String = "",
+        var sourceOrganization: String? = "",
 
-        var organizationAddress: String = ""
+        var organizationAddress: String? = ""
 ) : UpdatableEntity(), Comparable<Depositor> {
 
     @OneToMany(mappedBy = "depositor", cascade = [CascadeType.ALL], orphanRemoval = true)
