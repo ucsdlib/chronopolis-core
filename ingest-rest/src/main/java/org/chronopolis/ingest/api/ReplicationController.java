@@ -7,7 +7,6 @@ import org.chronopolis.ingest.models.filter.ReplicationFilter;
 import org.chronopolis.ingest.repository.dao.FixityChecker;
 import org.chronopolis.ingest.repository.dao.ReplicationDao;
 import org.chronopolis.ingest.repository.dao.StagingDao;
-import org.chronopolis.rest.entities.Bag;
 import org.chronopolis.rest.entities.QReplication;
 import org.chronopolis.rest.entities.Replication;
 import org.chronopolis.rest.entities.projections.ReplicationView;
@@ -59,7 +58,6 @@ public class ReplicationController extends IngestController {
      */
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<Replication> createReplication(@RequestBody ReplicationCreate request) {
-        log.debug("Received replication request {}", request);
         ResponseEntity<Replication> response;
         response = replicationDao.create(request)
                 .getResult()

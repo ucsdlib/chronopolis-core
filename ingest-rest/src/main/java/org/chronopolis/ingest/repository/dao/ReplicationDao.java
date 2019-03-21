@@ -57,7 +57,7 @@ public class ReplicationDao extends PagedDao {
      * @throws NotFoundException if the bag or node do not exist
      */
     public ReplicationCreateResult create(Long bagId, Long nodeId) {
-        log.debug("Processing request for Bag {}", bagId);
+        log.info("Processing replication create request for Bag {}", bagId);
 
         // Get our db resources
         Bag bag = findOne(QBag.bag, QBag.bag.id.eq(bagId));

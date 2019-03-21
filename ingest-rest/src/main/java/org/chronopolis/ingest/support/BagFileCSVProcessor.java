@@ -115,7 +115,7 @@ public class BagFileCSVProcessor implements BiFunction<Long, Path, ResponseEntit
                 // so I think we'll be ok
                 if (num == properties.getFileIngestBatchSize()) {
                     bag.getFiles().addAll(files);
-                    log.info("saving bag");
+                    log.trace("[{}] saving bag", bag.getName());
                     dao.save(bag);
                     files.clear();
                     num = 0;
