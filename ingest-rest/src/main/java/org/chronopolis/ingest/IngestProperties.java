@@ -21,7 +21,7 @@ public class IngestProperties implements Validator {
     private Scan scan = new Scan();
     private Tokenizer tokenizer = new Tokenizer();
 
-    private Integer fileIngestBatchSize = 1000;
+    private Integer fileIngestBatchSize = 30;
 
     public Scan getScan() {
         return scan;

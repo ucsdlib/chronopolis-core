@@ -24,8 +24,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -36,6 +36,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import static com.google.common.io.Files.asByteSource;
@@ -54,7 +55,6 @@ import static org.chronopolis.rest.models.enums.FixityAlgorithm.SHA_256;
  * @author shake
  */
 @Component
-@Transactional
 @EnableScheduling
 @ConditionalOnProperty(prefix = "ingest", name = "scan.enabled", havingValue = "true")
 public class LocalIngest {
@@ -64,6 +64,8 @@ public class LocalIngest {
     private final BagFileDao dao;
     private final IngestProperties properties;
 
+    private final int hash_idx = 0;
+    private final int file_idx = 1;
     private static final String MANIFEST_NAME = "manifest-";
     private static final String TAGMANIFEST_NAME = "tagmanifest-";
 
@@ -144,7 +146,8 @@ public class LocalIngest {
      * @param bag    the {@link Bag} to check
      * @param region the {@link StorageRegion} the {@link Bag} is staged in
      */
-    private void checkInitialized(Bag bag, StorageRegion region) {
+    @Transactional
+    void checkInitialized(Bag bag, StorageRegion region) {
         if (bag.getStatus() == BagStatus.DEPOSITED) {
             JPAQueryFactory query = dao.getJPAQueryFactory();
             // could make a func for this but meh for now
@@ -170,7 +173,8 @@ public class LocalIngest {
      * @param region  the {@link StorageRegion} the {@link Bag} is staged in
      * @param staging local {@link Posix} storage information about where the {@link Bag} is
      */
-    private void registerStaging(Bag bag, StorageRegion region, Posix staging) {
+    @Transactional
+    void registerStaging(Bag bag, StorageRegion region, Posix staging) {
         Path stage = Paths.get(staging.getPath());
         Path root = stage.resolve(bag.getDepositor().getNamespace()).resolve(bag.getName());
         String tagmanifest = "/" + TAGMANIFEST_NAME + SHA_256.bagitPrefix();
@@ -198,12 +202,8 @@ public class LocalIngest {
             long totalFiles = bag.getTotalFiles();
             String relative = stage.relativize(root).toString();
 
-            storage = new StagingStorage(region,
-                    bag,
-                    sum,
-                    totalFiles,
-                    relative,
-                    true); // active = true
+            final boolean active = true;
+            storage = new StagingStorage(region, bag, sum, totalFiles, relative, active);
             storage.setFile(file);
             dao.save(storage);
         } else if (storage != null) {
@@ -271,8 +271,9 @@ public class LocalIngest {
      * @param bag         the {@link Bag} begin operated on
      * @param tagmanifest the {@link Path} to the tagmanifest
      */
-    private void registerTagmanifest(Bag bag, Path tagmanifest) {
-        log.debug("[{}] Adding tagmanifest", bag.getName());
+    @Transactional
+    void registerTagmanifest(Bag bag, Path tagmanifest) {
+        log.info("[{}] Adding tagmanifest", bag.getName());
         File tmFile = tagmanifest.toFile();
         try {
             String filename = tagmanifest.getFileName().toString();
@@ -287,7 +288,6 @@ public class LocalIngest {
                 file.setFilename(filename);
                 file.addFixity(new Fixity(
                         ZonedDateTime.now(), file, hash.toString(), SHA_256.getCanonical()));
-                bag.addFile(file);
 
                 dao.save(file);
             }
@@ -305,18 +305,18 @@ public class LocalIngest {
      * @param manifest the {@link Path} of the manifest to read from the {@link Bag}
      * @param numFiles the number of files which have already been registered for a {@link Bag}
      */
-    private void registerManifest(Bag bag, Path root, Path manifest, long numFiles) {
-        final int hash_idx = 0;
-        final int file_idx = 1;
+    @Transactional
+    void registerManifest(Bag bag, Path root, Path manifest, long numFiles) {
+        final AtomicInteger index = new AtomicInteger(0);
 
-        log.info("[{}] Reading {} for file ingestion", bag.getName(), manifest.getFileName());
+        log.info("[{}] Reading {} {} for file ingestion", bag.getName(), root, manifest.getFileName());
         Set<BagFile> files = new TreeSet<>(Comparator.comparing(BagFile::getFilename));
         try (Stream<String> lines = Files.lines(manifest)) {
             lines.map(s -> s.split("\\s", 2))
                     // should map to manifest entry
-                    .filter(strings -> strings[hash_idx] != null && !strings[hash_idx].isEmpty() &&
-                            strings[file_idx] != null && !strings[file_idx].isEmpty())
-                    .filter(strings -> root.resolve(strings[file_idx].trim()).toFile().exists())
+                    // or could avoid object allocation skip ME
+                    .filter(entry -> entryIsValid(entry, index))
+                    .filter(entry -> fileExists(root, entry[file_idx].trim()))
                     .map(strings -> new ManifestEntry(bag,
                             strings[file_idx].trim(),
                             strings[hash_idx].trim()))
@@ -328,9 +328,21 @@ public class LocalIngest {
         }
 
         if (!files.isEmpty()) {
-            bag.getFiles().addAll(files);
-            dao.save(bag);
+            files.forEach(dao::save);
         }
+    }
+
+    private boolean fileExists(Path root, String relative) {
+        Boolean exists = root.resolve(relative.trim()).toFile().exists();
+        log.trace("[{}] exists? {}", relative, exists);
+        return exists;
+    }
+
+    private boolean entryIsValid(String[] entry, AtomicInteger index) {
+        boolean hashExists = entry[hash_idx] != null && !entry[hash_idx].isEmpty();
+        boolean fileExists = entry[file_idx] != null && !entry[file_idx].isEmpty();
+        log.trace("Idx={}: hash_eval {}; file_eval {}", index.getAndIncrement(), hashExists, fileExists);
+        return hashExists && fileExists;
     }
 
     /**
@@ -361,8 +373,7 @@ public class LocalIngest {
         files.add(bagFile);
 
         if (files.size() == properties.getFileIngestBatchSize()) {
-            bag.getFiles().addAll(files);
-            dao.save(bag);
+            files.forEach(dao::save);
             files.clear();
         }
     }

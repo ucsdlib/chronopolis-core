@@ -97,7 +97,11 @@ public class LocalTokenization {
                         .and(QStagingStorage.stagingStorage.active.isTrue()))
                 .fetch();
 
-        log.debug("Found {} bags for tokenization", bags.size());
+        // is there a better way to do conditional logging?
+        if (!bags.isEmpty()) {
+            log.info("Found {} bags for tokenization", bags.size());
+        }
+
         for (Bag bag : bags) {
             final Long count = queryFactory.selectFrom(QAceToken.aceToken)
                     .where(QAceToken.aceToken.bag.id.eq(bag.getId()))

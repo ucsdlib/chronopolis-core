@@ -314,7 +314,9 @@ public class BagUIController extends IngestController {
         final Long bag = form.getBag();
         form.getNodes().forEach(nodeId -> {
             ReplicationCreateResult result = replicationDao.create(bag, nodeId);
-            log.debug("[Bag-{}] ReplicationCreate errors {}", bag, result.getErrors());
+            if (!result.getErrors().isEmpty()) {
+                log.warn("[Bag-{}] ReplicationCreate errors {}", bag, result.getErrors());
+            }
         });
         return "redirect:/replications/";
     }
