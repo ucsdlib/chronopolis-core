@@ -65,7 +65,6 @@ public class ReplicationQueryTaskTest {
 
         // Init our returned objects
         ArrayList<Replication> replicationList = new ArrayList<>();
-        // Node n = new Node("test", "test");
         Bag bag = new Bag(1L, 1L, 1L, null, null, now(), now(), "test-name", "repl-query-test",
                 "test-depositor", BagStatus.REPLICATING, ImmutableSet.of());
 

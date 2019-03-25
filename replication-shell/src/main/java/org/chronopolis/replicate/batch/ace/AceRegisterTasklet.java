@@ -68,8 +68,6 @@ public class AceRegisterTasklet implements Callable<Long> {
 
     public void run() {
         Bag bag = replication.getBag();
-        String name = bag.getName();
-        log.trace("{} Building ACE json", name);
 
         phaser.register();
         getId(bag);
@@ -110,7 +108,7 @@ public class AceRegisterTasklet implements Callable<Long> {
                     id = response.body().get("id");
                     setRegistered();
                 } else {
-                    log.error("{} Error registering collection in ACE: {} - {}",
+                    log.warn("{} Error registering collection in ACE: {} - {}",
                             name, response.code(), response.message());
                     try {
                         log.debug("{} {}", name, response.errorBody().string());
@@ -127,11 +125,9 @@ public class AceRegisterTasklet implements Callable<Long> {
             @Override
             public void onFailure(@NotNull Call<Map<String, Long>> call,
                                   @NotNull Throwable throwable) {
-                log.error("{} Error communicating with ACE", name, throwable);
+                log.warn("{} Error communicating with ACE", name, throwable);
                 notifier.setSuccess(false);
                 phaser.arrive();
-                // ..?
-                // throw new RuntimeException(throwable);
             }
         });
     }
@@ -140,8 +136,9 @@ public class AceRegisterTasklet implements Callable<Long> {
         // Register with the phaser so that we may arrive when the callback completes
         phaser.register();
 
-        Call<GsonCollection> call =
-                aceService.getCollectionByName(bag.getName(), bag.getDepositor());
+        final String bagName = bag.getName();
+        final String depositor = bag.getDepositor();
+        Call<GsonCollection> call = aceService.getCollectionByName(bagName, depositor);
         call.enqueue(new Callback<GsonCollection>() {
             @Override
             public void onResponse(@NotNull Call<GsonCollection> call,
@@ -149,7 +146,7 @@ public class AceRegisterTasklet implements Callable<Long> {
                 if (response.isSuccessful() && response.body() != null) {
                     id = response.body().getId();
                 } else {
-                    log.info("{} not found in ACE, attempting to register", bag.getName());
+                    log.info("{} not found in ACE, attempting to register", bagName);
                 }
 
                 phaser.arriveAndDeregister();
@@ -158,7 +155,7 @@ public class AceRegisterTasklet implements Callable<Long> {
             @Override
             public void onFailure(@NotNull Call<GsonCollection> call,
                                   @NotNull Throwable throwable) {
-                log.error("{} Error communicating with ACE", bag.getName(), throwable);
+                log.warn("{} Error communicating with ACE", bagName, throwable);
                 phaser.arriveAndDeregister();
             }
         });

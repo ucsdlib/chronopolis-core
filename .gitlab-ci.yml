@@ -59,12 +59,12 @@ cache:
 # Validate merge requests using JDK8
 validate:jdk8:
   <<: *validate
-  image: maven:3.3.9-jdk-8
+  image: maven:3-jdk-8
 
 # Verify merge requests using JDK8
 verify:jdk8:
   <<: *verify
-  image: maven:3.3.9-jdk-8
+  image: maven:3-jdk-8
   services: 
     - postgres:9
   artifacts:
@@ -95,7 +95,7 @@ deploy:jdk8:
     - master
     - develop
     - /^release-.*$/
-  image: maven:3.3.9-jdk-8
+  image: maven:3-jdk-8
   services:
     - postgres:9
 
@@ -109,7 +109,7 @@ deploy:jdk8:
     - master
     - develop
     - /^release-.*$/
-  image: maven:3.3.9-jdk-8
+  image: maven:3-jdk-8
   services:
     - postgres:9
 
@@ -136,4 +136,4 @@ deploy_tokenizer:
     - 'cd tokenizer/deploy'
     - './build.sh'
     - 'for f in `find TARS -type f`; do curl -X POST -H "Authorization: $BUILD_TOKEN" -H "Content-Type: application/octet-stream" --data-binary @$f $SERVER/resource/chronopolis/$CI_BUILD_REF_NAME/$CI_BUILD_REF/$(basename $f); done'
-  image: maven:3.3.9-jdk-8
+  image: maven:3-jdk-8
