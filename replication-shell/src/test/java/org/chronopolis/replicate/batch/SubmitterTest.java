@@ -40,15 +40,20 @@ import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.chronopolis.rest.models.enums.ReplicationStatus.ACE_AUDITING;
+import static org.chronopolis.rest.models.enums.ReplicationStatus.ACE_REGISTERED;
+import static org.chronopolis.rest.models.enums.ReplicationStatus.ACE_TOKEN_LOADED;
 import static org.chronopolis.rest.models.enums.ReplicationStatus.STARTED;
 import static org.chronopolis.rest.models.enums.ReplicationStatus.SUCCESS;
 import static org.chronopolis.rest.models.enums.ReplicationStatus.TRANSFERRED;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
@@ -128,86 +133,17 @@ public class SubmitterTest {
         );
     }
 
-    @Test
-    @SuppressWarnings("Duplicates")
-    public void fromStartedNotAllocated() {
-        Bag bag = createBag(testBag.replace("test-bag", "unallocated-bag"), testToken);
-        Replication started = createReplication(STARTED, bag);
+    // Trying to organize this a bit
 
-        CompletableFuture<ReplicationStatus> submit = submitter.submit(started);
-        ReplicationStatus status = submit.join();
-
-        Assert.assertFalse(submitter.isRunning(started));
-        Assert.assertEquals(ReplicationStatus.FAILURE, status);
-    }
+    //////////////////////
+    // Successful tests //
+    //////////////////////
 
     @Test
-    @SuppressWarnings("Duplicates")
-    public void fromTransferredNotAllocated() {
-        Bag bag = createBag(testBag.replace("test-bag", "unallocated-bag"), testToken);
-
-        Replication transferred = createReplication(TRANSFERRED, bag);
-        CompletableFuture<ReplicationStatus> submit = submitter.submit(transferred);
-        ReplicationStatus status = submit.join();
-
-        Assert.assertFalse(submitter.isRunning(transferred));
-        Assert.assertEquals(ReplicationStatus.FAILURE, status);
-    }
-
-    @Test
-    public void fromStartedFailTokenTransfer() throws ExecutionException, InterruptedException {
-        Bag bag = createBag(testBag, testToken.replace("test-token-store", "test-tokens-404"));
-        Replication replication = createReplication(STARTED, bag);
-        CompletableFuture<Void> xferFuture = CompletableFuture.runAsync(() -> {
-        });
-        CompletableFuture<Void> xferFail = CompletableFuture.runAsync(() -> {
-            throw new RuntimeException("not found");
-        });
-
-        when(factory.bagTransfer(any(), any(), any())).thenReturn(xferFuture);
-        when(factory.tokenTransfer(any(), any(), any())).thenReturn(xferFail);
-        when(reporter.createMessage(any(), any(), any())).thenReturn(new SimpleMailMessage());
-        Mockito.doThrow(new MailSendException("Unable to send msg")).when(reporter)
-                .send(any(SimpleMailMessage.class));
-        CompletableFuture<ReplicationStatus> submission = submitter.submit(replication);
-        // workaround to block on our submission
-        CompletableFuture<Boolean> handle = submission.handle((ok, ex) -> true);
-        handle.get();
-
-        assertFalse(submitter.isRunning(replication));
-        verify(factory, times(1)).bagTransfer(any(), eq(replication), any());
-        verify(factory, times(1)).tokenTransfer(any(), eq(replication), any());
-        verify(aceFactory, never()).register(any(), any(), any(), any(), any());
-    }
-
-    @Test
-    public void fromStartedServerStop() throws InterruptedException, ExecutionException {
-        CompletableFuture<Void> xferFuture = CompletableFuture.runAsync(() -> {
-        });
-
-        // same issue here as in fromPendingSuccess
-        Bag bag = createBag(testBag, testToken);
-        Replication replication = createReplication(STARTED, bag);
-
-        // Replication Fixity Update Mock
-        when(factory.bagTransfer(any(), any(), any())).thenReturn(xferFuture);
-        when(factory.tokenTransfer(any(), any(), any())).thenReturn(xferFuture);
-
-        CompletableFuture<ReplicationStatus> submission = submitter.submit(replication);
-        submission.get();
-
-        verify(factory, times(1)).bagTransfer(any(), eq(replication), any());
-        verify(factory, times(1)).tokenTransfer(any(), eq(replication), any());
-        verify(aceFactory, never()).register(any(), any(), any(), any(), any());
-    }
-
-    @Test
-    public void fromStartedSuccess() throws InterruptedException, ExecutionException {
+    public void fromStartedSuccess() {
         // vars which don't change over the lifetime of the test
-        CompletableFuture<Void> xferFuture = CompletableFuture.runAsync(() -> {
-        });
+        CompletableFuture<Void> xferFuture = CompletableFuture.runAsync(() -> {});
 
-        // todo: check to see if mockito can capture the old values
         // Because we need to create an updated replication, there's a bit of ugliness we need to
         // deal with until we have a replication model class as well
         Bag bag = createBag(testBag, testToken);
@@ -217,8 +153,9 @@ public class SubmitterTest {
         when(factory.tokenTransfer(any(), eq(replication), any())).thenReturn(xferFuture);
 
         CompletableFuture<ReplicationStatus> submission = submitter.submit(replication);
-        submission.get();
+        submission.join();
 
+        assertFalse(submitter.isRunning(replication));
         verify(factory, times(1)).bagTransfer(any(), eq(replication), any());
         verify(factory, times(1)).tokenTransfer(any(), eq(replication), any());
         verify(aceFactory, never()).register(any(), any(), any(), any(), any());
@@ -226,7 +163,7 @@ public class SubmitterTest {
     }
 
     @Test
-    public void testAceCheck() throws InterruptedException, ExecutionException {
+    public void testAceCheck() {
         Bag bag = createBag(testBag, testToken);
         Replication replication = createReplication(ACE_AUDITING, bag);
         GsonCollection collection = new GsonCollection.Builder()
@@ -243,18 +180,140 @@ public class SubmitterTest {
         // look in to being stricter with the createMessage things
         when(reporter.createMessage(any(), any(), any())).thenReturn(new SimpleMailMessage());
         CompletableFuture<ReplicationStatus> submission = submitter.submit(replication);
-        submission.get();
+        submission.join();
 
+        assertFalse(submitter.isRunning(replication));
         verify(ace, times(1)).getCollectionByName(bag.getName(), bag.getDepositor());
         verify(replications, times(1)).updateStatus(1L, new ReplicationStatusUpdate(SUCCESS));
         verify(reporter, times(1)).createMessage(any(), any(), any());
         verify(reporter, times(1)).send(any(SimpleMailMessage.class));
     }
 
+    @Test
+    public void fromStartedServerStop() {
+        CompletableFuture<Void> xferFuture = CompletableFuture.runAsync(() -> {});
+
+        // same issue here as in fromPendingSuccess
+        Bag bag = createBag(testBag, testToken);
+        Replication replication = createReplication(STARTED, bag);
+
+        // Replication Fixity Update Mock
+        when(factory.bagTransfer(any(), any(), any())).thenReturn(xferFuture);
+        when(factory.tokenTransfer(any(), any(), any())).thenReturn(xferFuture);
+
+        // todo: this logs an error message, need to look into this
+        CompletableFuture<ReplicationStatus> submission = submitter.submit(replication);
+        ReplicationStatus status = submission.join();
+
+        assertEquals(STARTED, status);
+        assertFalse(submitter.isRunning(replication));
+        verify(factory, times(1)).bagTransfer(any(), eq(replication), any());
+        verify(factory, times(1)).tokenTransfer(any(), eq(replication), any());
+        verify(aceFactory, never()).register(any(), any(), any(), any(), any());
+    }
+
+    ///////////////////
+    // Failure tests //
+    ///////////////////
+
+    @Test
+    @SuppressWarnings("Duplicates")
+    public void failFromStartedStorageNotAllocated() {
+        Bag bag = createBag(testBag.replace("test-bag", "unallocated-bag"), testToken);
+        Replication started = createReplication(STARTED, bag);
+
+        CompletableFuture<ReplicationStatus> submit = submitter.submit(started);
+        ReplicationStatus status = submit.join();
+
+        Assert.assertFalse(submitter.isRunning(started));
+        Assert.assertEquals(ReplicationStatus.FAILURE, status);
+    }
+
+    @Test
+    @SuppressWarnings("Duplicates")
+    public void failFromTransferredStorageNotAllocated() {
+        Bag bag = createBag(testBag.replace("test-bag", "unallocated-bag"), testToken);
+
+        Replication transferred = createReplication(TRANSFERRED, bag);
+        CompletableFuture<ReplicationStatus> submit = submitter.submit(transferred);
+        ReplicationStatus status = submit.join();
+
+        Assert.assertFalse(submitter.isRunning(transferred));
+        Assert.assertEquals(ReplicationStatus.FAILURE, status);
+    }
+
+    @Test
+    public void failFromStartedFailTokenTransfer() {
+        Bag bag = createBag(testBag, testToken.replace("test-token-store", "test-tokens-404"));
+        Replication replication = createReplication(STARTED, bag);
+        CompletableFuture<Void> xferFuture = CompletableFuture.runAsync(() -> {
+        });
+        CompletableFuture<Void> xferFail = CompletableFuture.runAsync(() -> {
+            throw new RuntimeException("not found");
+        });
+
+        when(factory.bagTransfer(any(), any(), any())).thenReturn(xferFuture);
+        when(factory.tokenTransfer(any(), any(), any())).thenReturn(xferFail);
+        when(reporter.createMessage(any(), any(), any())).thenReturn(new SimpleMailMessage());
+        Mockito.doThrow(new MailSendException("Unable to send msg")).when(reporter)
+                .send(any(SimpleMailMessage.class));
+        CompletableFuture<ReplicationStatus> submission = submitter.submit(replication);
+        ReplicationStatus status = submission.join();
+
+        assertFalse(submitter.isRunning(replication));
+        assertEquals(ReplicationStatus.FAILURE, status);
+        verify(factory, times(1)).bagTransfer(any(), eq(replication), any());
+        verify(factory, times(1)).tokenTransfer(any(), eq(replication), any());
+        verify(aceFactory, never()).register(any(), any(), any(), any(), any());
+    }
+
+    ////////////////////
+    // Neutral Tests? //
+    ////////////////////
+
+    @Test
+    public void submitDuplicate() {
+        Bag bag = createBag(testBag, testToken);
+        ZonedDateTime created = ZonedDateTime.now();
+        Replication replication = createReplication(ACE_REGISTERED, created, bag);
+        Replication replication2 = createReplication(ACE_TOKEN_LOADED, created, bag);
+
+        // We want this to block briefly to allow time for replication2 to be submitted
+        Supplier<ReplicationStatus> busySupplier = () -> {
+            try {
+                TimeUnit.MILLISECONDS.sleep(500);
+            } catch (InterruptedException ignored) {
+            }
+            return ReplicationStatus.ACE_REGISTERED;
+        };
+
+        when(aceFactory.register(any(), any(), any(), any(), any()))
+                .thenReturn(CompletableFuture.supplyAsync(busySupplier));
+
+        CompletableFuture<ReplicationStatus> s1 = submitter.submit(replication);
+        CompletableFuture<ReplicationStatus> s2 = submitter.submit(replication2);
+        ReplicationStatus s1Status = s1.join();
+        ReplicationStatus s2Status = s2.join();
+
+        verify(aceFactory, times(1)).register(any(), any(), any(), any(), any());
+        assertFalse(submitter.isRunning(replication));
+        assertNotEquals(s1Status, s2Status);
+        assertNotEquals(ReplicationStatus.FAILURE, s1Status);
+    }
+
+    // and some helpers
+
+    private Replication createReplication(ReplicationStatus status, ZonedDateTime now, Bag bag) {
+        String es = "";
+        String user = "node-user";
+        String rsync = "rsync";
+        String bsPath = bag.getBagStorage().getPath();
+        String tsPath = bag.getTokenStorage().getPath();
+        return new Replication(1L, now, now, status, bsPath, tsPath, rsync, es, es, user, bag);
+    }
+
     private Replication createReplication(ReplicationStatus status, Bag bag) {
-        return new Replication(1L, ZonedDateTime.now(), ZonedDateTime.now(), status,
-                bag.getBagStorage().getPath(), bag.getTokenStorage().getPath(),
-                "rsync", "", "", "node-user", bag);
+        return createReplication(status, ZonedDateTime.now(), bag);
     }
 
     private Bag createBag(String location, String tokens) {

@@ -63,7 +63,7 @@ public class AceTokenTasklet implements Runnable {
 
     @Override
     public void run() {
-        // Short circuit this mahfk
+        // Short circuit this
         if (replication.getStatus() == ReplicationStatus.ACE_TOKEN_LOADED
                 || replication.getStatus() == ReplicationStatus.ACE_AUDITING) {
             return;
@@ -94,20 +94,21 @@ public class AceTokenTasklet implements Runnable {
             @Override
             public void onResponse(@NotNull Call<Void> call,
                                    @NotNull Response<Void> response) {
+                final int code = response.code();
+                final String message = response.message();
+
                 if (response.isSuccessful()) {
                     log.info("{} loaded token store", name);
                     Call<Replication> update = replications.updateStatus(replication.getId(),
                             new ReplicationStatusUpdate(ReplicationStatus.ACE_TOKEN_LOADED));
                     update.enqueue(new UpdateCallback());
                 } else {
-                    log.error("{} Error loading token store: {} - {}",
-                            response.code(), response.message());
+                    log.warn("{} Error loading token store: {}", code, message);
                     try {
                         log.debug("{} {}", name, response.errorBody().string());
                     } catch (IOException ignored) {
                     }
                     notifier.setSuccess(false);
-                    throw new RuntimeException("Error loading token store");
                 }
 
                 complete.getAndSet(true);
@@ -117,15 +118,11 @@ public class AceTokenTasklet implements Runnable {
             public void onFailure(@NotNull Call<Void> call, @NotNull Throwable throwable) {
                 complete.getAndSet(true);
                 notifier.setSuccess(false);
-                log.error("{} Failure loading token store", name, throwable);
-                throw new RuntimeException(throwable);
+                log.warn("{} Failure loading token store", name, throwable);
             }
         });
 
         // Since the callback is asynchronous, we need to wait for it to complete before moving on
-        // TODO: Should use something like the SimpleCallback to wait for it to complete
-        //       or we could wrap it in a try/catch
-        log.trace("{} waiting for token register to complete", name);
         waitForCallback(complete);
     }
 
@@ -140,7 +137,7 @@ public class AceTokenTasklet implements Runnable {
             try {
                 TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {
-                log.error("Sleep interrupted", e);
+                log.warn("Sleep interrupted in AceTokenTasklet", e);
             }
         }
     }
@@ -160,7 +157,6 @@ public class AceTokenTasklet implements Runnable {
 
         @Override
         public void writeTo(@NotNull BufferedSink sink) throws IOException {
-            // todo test this
             sink.writeAll(Okio.source(source.openBufferedStream()));
         }
     }
