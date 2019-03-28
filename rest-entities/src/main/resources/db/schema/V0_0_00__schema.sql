@@ -86,9 +86,9 @@ CREATE TABLE ace_token (
     UNIQUE (bag_id, file_id)
 );
 
+DROP TABLE IF EXISTS bag_distribution;
 DROP SEQUENCE IF EXISTS bag_distribution_id_seq;
 CREATE SEQUENCE bag_distribution_id_seq;
-DROP TABLE IF EXISTS bag_distribution;
 CREATE TABLE bag_distribution (
     id bigint PRIMARY KEY DEFAULT nextval('bag_distribution_id_seq'),
     bag_id bigint,
@@ -97,7 +97,7 @@ CREATE TABLE bag_distribution (
 );
 
 -- repair and associated tables
-DROP TABLE IF EXISTS repair;
+DROP TABLE IF EXISTS repair CASCADE;
 DROP SEQUENCE IF EXISTS repair_id_seq;
 CREATE SEQUENCE repair_id_seq;
 CREATE TABLE repair (
@@ -172,7 +172,7 @@ ALTER TABLE repair
     ADD CONSTRAINT FK_repair_strat FOREIGN KEY (strategy_id) REFERENCES strategy ON DELETE CASCADE;
 
 -- storage
-DROP TABLE IF EXISTS storage_region;
+DROP TABLE IF EXISTS storage_region CASCADE;
 DROP SEQUENCE IF EXISTS storage_region_id_seq;
 CREATE SEQUENCE storage_region_id_seq;
 CREATE TABLE storage_region (
@@ -238,6 +238,8 @@ ALTER TABLE replication_config
     ADD CONSTRAINT FK_rc_sr FOREIGN KEY (region_id) REFERENCES storage_region;
 
 -- V2_2_00 - Depositor
+DROP TABLE IF EXISTS depositor CASCADE;
+DROP SEQUENCE IF EXISTS depositor_id_seq;
 CREATE SEQUENCE depositor_id_seq;
 CREATE TABLE depositor (
     id BIGINT PRIMARY KEY DEFAULT nextval('depositor_id_seq'),
@@ -248,6 +250,8 @@ CREATE TABLE depositor (
     updated_at TIMESTAMP DEFAULT current_timestamp
 );
 
+DROP TABLE IF EXISTS depositor_contact;
+DROP SEQUENCE IF EXISTS depositor_contact_id_seq;
 CREATE SEQUENCE depositor_contact_id_seq;
 CREATE TABLE depositor_contact (
     id BIGINT PRIMARY KEY DEFAULT nextval('depositor_contact_id_seq'),
@@ -258,6 +262,7 @@ CREATE TABLE depositor_contact (
     UNIQUE (depositor_id, contact_email)
 );
 
+DROP TABLE IF EXISTS depositor_distribution;
 CREATE TABLE depositor_distribution (
     depositor_id BIGINT NOT NULL,
     node_id BIGINT NOT NULL,
