@@ -22,11 +22,10 @@ import org.springframework.mail.SimpleMailMessage;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 /**
  * Submit a replication for processing
@@ -62,7 +61,7 @@ public class Submitter {
     private final ThreadPoolExecutor http;
     private final ReplicationProperties properties;
 
-    private final Set<String> replicating;
+    private final ConcurrentSkipListSet<Replication> replicating;
 
     public Submitter(AceService ace,
                      Reporter<SimpleMailMessage> reporter,
@@ -86,7 +85,7 @@ public class Submitter {
 
     @VisibleForTesting
     public boolean isRunning(Replication replication) {
-        return replicating.contains(replicationIdentifier(replication));
+        return replicating.contains(replication);
     }
 
     /**
@@ -118,7 +117,7 @@ public class Submitter {
         String identifier = replicationIdentifier(replication);
 
         CompletableFuture<ReplicationStatus> future;
-        if (replicating.add(identifier)) {
+        if (replicating.add(replication)) {
             log.info("Submitting replication {}", identifier);
 
             StagingStorage bagStorage = replication.getBag().getBagStorage();
@@ -154,18 +153,19 @@ public class Submitter {
                         future = fromAceAuditing(replication);
                         break;
                     default:
-                        return null;
+                        // no processing for any other state we were given
+                        return CompletableFuture.supplyAsync(replication::getStatus);
                 }
             } else {
                 // we could throw an exception but that seems kind of unnecessary
                 future = CompletableFuture.supplyAsync(() -> {
-                    log.error("[{}] Unable to work on replication", identifier);
+                    log.error("[{}] Unable to work on replication, no allocated storage found",
+                            identifier);
                     return ReplicationStatus.FAILURE;
                 });
             }
 
-            // handle instead of whenComplete?
-            return future.whenComplete(new Completer(replication));
+            return future.handle(new Completer(replication));
         } else {
             log.debug("Replication {} is already running", identifier);
         }
@@ -276,7 +276,7 @@ public class Submitter {
      * eventually switch to a better interface for notifications
      * so we can have multiple outputs. i.e. email, slack, db, etc
      */
-    private class Completer implements BiConsumer<ReplicationStatus, Throwable> {
+    private class Completer implements BiFunction<ReplicationStatus, Throwable, ReplicationStatus> {
         private final Logger log = LoggerFactory.getLogger(Completer.class);
 
         final Replication replication;
@@ -286,9 +286,10 @@ public class Submitter {
         }
 
         @Override
-        public void accept(ReplicationStatus status, Throwable throwable) {
+        public ReplicationStatus apply(ReplicationStatus status, Throwable throwable) {
             String body;
             String subject;
+            ReplicationStatus response = status;
             String replicationId = replicationIdentifier(replication);
 
             try {
@@ -296,15 +297,19 @@ public class Submitter {
                 if (throwable != null) {
                     log.warn("Replication did not complete successfully, returned throwable is",
                             throwable);
-                    subject = "Failed to replicate " + replicationId;
+                    response = ReplicationStatus.FAILURE;
+
                     body = throwable.getMessage()
                             + "\n"
                             + Arrays.toString(throwable.getStackTrace());
+                    subject = "Failed to replicate " + replicationId;
                     send(subject, body);
-
-                    // Send mail if we are set to and the replication is complete
+                } else if (status == ReplicationStatus.FAILURE) {
+                    // todo: figure out if we want to send mail here
+                    log.warn("[{}] Replication failed during processing", replicationId);
                 } else if (properties.getSmtp().getSendOnSuccess() &&
                         status == ReplicationStatus.SUCCESS) {
+                    // Send mail if we are set to and the replication is complete
                     subject = "Successful replication of " + replicationId;
                     body = "";
                     send(subject, body);
@@ -313,14 +318,17 @@ public class Submitter {
                 log.error("Exception caught sending mail", e);
             } finally {
                 log.debug("{} removing from thread pool", replicationId);
-                replicating.remove(replicationId);
+                replicating.remove(replication);
             }
+
+            return response;
         }
 
         private void send(String subject, String body) {
             SimpleMailMessage message = reporter.createMessage(properties.getNode(), subject, body);
             reporter.send(message);
         }
+
     }
 
     private String replicationIdentifier(Replication replication) {

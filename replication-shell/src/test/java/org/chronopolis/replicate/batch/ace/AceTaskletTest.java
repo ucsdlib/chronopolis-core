@@ -21,6 +21,7 @@ import org.chronopolis.rest.models.enums.ReplicationStatus;
 import org.chronopolis.rest.models.update.ReplicationStatusUpdate;
 import org.chronopolis.test.support.CallWrapper;
 import org.chronopolis.test.support.ErrorCallWrapper;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -56,7 +57,7 @@ import static org.mockito.Mockito.when;
  */
 public class AceTaskletTest {
 
-    // we call stub the same mock multiple times in most tests, so it's best to set lenient here
+    // we stub the same mock multiple times in most tests, so it's best to set lenient here
     // and use strict where applicable
     @Rule public MockitoRule rule = MockitoJUnit.rule().strictness(Strictness.LENIENT);
 
@@ -99,7 +100,6 @@ public class AceTaskletTest {
         SingleFileOperation tokenOp = new SingleFileOperation(Paths.get(group, "test-token-store"));
 
         // setup our mocks for our http requests
-        prepareIngestGet(replication.getId(), replication);
         prepareACERegister();
         prepareIngestUpdate(replication.getId(), ReplicationStatus.ACE_REGISTERED);
         prepareAceTokenLoad();
@@ -126,7 +126,6 @@ public class AceTaskletTest {
         SingleFileOperation tokenOp = new SingleFileOperation(Paths.get(group, "test-token-store"));
 
         // setup our mocks for our http requests
-        prepareIngestGet(replication.getId(), replication);
         prepareAceGet();
         prepareIngestUpdate(replication.getId(), ReplicationStatus.ACE_REGISTERED);
         prepareAceTokenLoad();
@@ -176,7 +175,6 @@ public class AceTaskletTest {
         SingleFileOperation tokenOp = new SingleFileOperation(Paths.get(group, "test-token-store"));
 
         // setup our mocks for our http requests
-        prepareIngestGet(replication.getId(), replication);
         prepareAceGet();
         prepareAceTokenLoad();
         prepareIngestUpdate(replication.getId(), ReplicationStatus.ACE_TOKEN_LOADED);
@@ -194,6 +192,67 @@ public class AceTaskletTest {
         verify(replications, times(2)).updateStatus(anyLong(), any(ReplicationStatusUpdate.class));
     }
 
+    /**
+     * Test the flow when the AceRegisterTasklet fails
+     * <p>
+     * Should result in only getCollectionByName + register
+     */
+    @Test
+    public void testRegisterFail() {
+        rule.strictness(Strictness.STRICT_STUBS);
+        replication = replication(ReplicationStatus.TRANSFERRED);
+        DirectoryStorageOperation bagOp = new DirectoryStorageOperation(Paths.get(group, name));
+        SingleFileOperation tokenOp = new SingleFileOperation(Paths.get(group, "test-token-store"));
+
+        when(bagBucket.fillAceStorage(any(StorageOperation.class), any(GsonCollection.Builder.class)))
+                .thenAnswer((Answer<GsonCollection.Builder>) invocation ->
+                        invocation.getArgument(1));
+        when(ace.getCollectionByName(any(String.class), any(String.class)))
+                .thenReturn(new ErrorCallWrapper<>(null, 404, "Not Found"));
+        when(ace.addCollection(any(GsonCollection.class)))
+                .thenReturn(new ErrorCallWrapper<>(null, 403, "Forbidden"));
+
+        CompletableFuture<ReplicationStatus> future =
+                factory.register(replication, bagBucket, bagOp, tokenBucket, tokenOp);
+        ReplicationStatus status = future.join();
+
+        Assert.assertEquals(ReplicationStatus.FAILURE, status);
+        verify(bagBucket, times(1)).fillAceStorage(any(), any());
+        verify(ace, times(1)).getCollectionByName(eq(name), eq(group));
+        verify(ace, times(1)).addCollection(any());
+    }
+
+    /**
+     * Test the ACE Flow when loading the TokenStore fails
+     *
+     * Should result in the notifier being false and... the replication status... being unchanged
+     */
+    @Test
+    public void testTokenFail() {
+        rule.strictness(Strictness.STRICT_STUBS);
+        replication = replication(ReplicationStatus.TRANSFERRED);
+        DirectoryStorageOperation bagOp = new DirectoryStorageOperation(Paths.get(group, name));
+        SingleFileOperation tokenOp = new SingleFileOperation(Paths.get(group, "test-token-store"));
+
+        prepareACERegister();
+        when(tokenBucket.stream(any(StorageOperation.class), any(Path.class)))
+                .thenReturn(Optional.of(Files.asByteSource(tokens.toFile())));
+        prepareIngestUpdate(replication.getId(), ReplicationStatus.ACE_REGISTERED);
+        when(ace.loadTokenStore(anyLong(), any(RequestBody.class)))
+                .thenReturn(new ErrorCallWrapper<>(null, 403, "Forbidden"));
+
+        CompletableFuture<ReplicationStatus> future =
+                factory.register(replication, bagBucket, bagOp, tokenBucket, tokenOp);
+        ReplicationStatus status = future.join();
+
+        // currently the replication status doesn't get updated from when it was queried due it
+        // part to it being immutable
+        Assert.assertEquals(ReplicationStatus.FAILURE, status);
+        verify(bagBucket, times(1)).fillAceStorage(any(), any());
+        verify(ace, times(1)).getCollectionByName(eq(name), eq(group));
+        verify(ace, times(1)).addCollection(any());
+    }
+
     // Helper methods for preparing mocks
     private Replication replication(ReplicationStatus status) {
         return new Replication(1L, now(), now(), status,
@@ -209,10 +268,6 @@ public class AceTaskletTest {
                 .thenReturn(new ErrorCallWrapper<>(null, 404, "Not Found"));
         when(ace.addCollection(any(GsonCollection.class)))
                 .thenReturn(new CallWrapper<>(ImmutableMap.of("id", 1L)));
-    }
-
-    private void prepareIngestGet(Long id, Replication r) {
-        when(replications.get(id)).thenReturn(new CallWrapper<>(r));
     }
 
     private void prepareIngestUpdate(Long id, ReplicationStatus status) {
@@ -268,7 +323,7 @@ public class AceTaskletTest {
         public void enqueue(Callback<E> callback) {
             Thread thread = new Thread(() -> {
                 try {
-                    TimeUnit.SECONDS.sleep(2);
+                    TimeUnit.MILLISECONDS.sleep(250);
                 } catch (InterruptedException ignored) {
                 }
 

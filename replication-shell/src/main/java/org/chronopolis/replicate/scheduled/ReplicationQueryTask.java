@@ -18,16 +18,20 @@ import retrofit2.Response;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
+
+import static org.chronopolis.rest.models.enums.ReplicationStatus.*;
 
 /**
  * Scheduled task for checking the ingest-server for replication requests
  * <p>
  * todo check if we can enable configuration properties here
+ *
  * <p/>
- * Created by shake on 12/10/14.
+ * @author shake
+ * @since 12/10/14
  */
 @Component
 @EnableScheduling
@@ -53,8 +57,12 @@ public class ReplicationQueryTask {
      */
     @Scheduled(cron = "${replication.cron:0 0 * * * *}")
     public void checkForReplications() {
-        Arrays.stream(ReplicationStatus.values())
-                .filter(ReplicationStatus::isOngoing) // make sure our replication is part of the valid flow
+        log.info("Querying for replications");
+
+        // force ordering on the order which we query so that we don't end up updating a replication
+        // and submitting it again shortly after
+        //noinspection ResultOfMethodCallIgnored
+        Stream.of(ACE_AUDITING, ACE_TOKEN_LOADED, ACE_REGISTERED, TRANSFERRED, STARTED, PENDING)
                 .map(this::query)                     // run the query method
                 .anyMatch(q -> {                      // short circuit in case we have an exception
                     if (!q.success) {
@@ -73,8 +81,6 @@ public class ReplicationQueryTask {
      * @param status the status of the request to get
      */
     private Query query(ReplicationStatus status) {
-        log.info("Querying for {} replications", status.toString());
-
         int page = 0;
         int pageSize = 20;
 
@@ -92,7 +98,7 @@ public class ReplicationQueryTask {
             Call<SpringPage<Replication>> call = replications.get(params);
             Response<SpringPage<Replication>> response = call.execute();
             SpringPage<Replication> replications = response.body();
-            log.debug("[{}] On page {} with {} replications. {} total.", status,
+            log.trace("[{}] On page {} with {} replications. {} total.", status,
                     replications.getNumber(),
                     replications.getNumberOfElements(),
                     replications.getTotalElements());
@@ -109,7 +115,6 @@ public class ReplicationQueryTask {
 
     private void startReplications(Iterable<Replication> replications) {
         for (Replication replication : replications) {
-            log.trace("Replication {} has bag-id {}", replication.getId(), replication.getBag().getId());
             submitter.submit(replication);
         }
     }

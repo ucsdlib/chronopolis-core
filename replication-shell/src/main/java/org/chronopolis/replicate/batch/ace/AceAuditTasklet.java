@@ -66,7 +66,8 @@ public class AceAuditTasklet implements Runnable {
                             new ReplicationStatusUpdate(ReplicationStatus.ACE_AUDITING));
                     update.enqueue(new UpdateCallback());
                 } else {
-                    log.error("{} Error starting audit for collection: {} - {}", name, response.code(), response.message());
+                    log.warn("{} Error starting audit for collection: {} - {}",
+                            name, response.code(), response.message());
                     String message = "Error starting audit:\n";
                     try {
                         message += response.errorBody().string();

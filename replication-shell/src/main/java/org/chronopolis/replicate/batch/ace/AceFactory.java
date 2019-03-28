@@ -118,8 +118,10 @@ public class AceFactory {
         if (notifier.isSuccess()) {
             AceAuditTasklet task = new AceAuditTasklet(generator, ace, replication, notifier, id);
             task.run();
+            // this should return the status of the audit tasklet instead of the replication
+            return replication.getStatus();
         }
 
-        return replication.getStatus();
+        return ReplicationStatus.FAILURE;
     }
 }
