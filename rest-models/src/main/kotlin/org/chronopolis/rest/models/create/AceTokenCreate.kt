@@ -2,9 +2,9 @@ package org.chronopolis.rest.models.create
 
 import org.chronopolis.rest.models.AceToken
 import org.chronopolis.rest.models.Bag
-import org.hibernate.validator.constraints.NotBlank
 import java.time.ZonedDateTime
 import javax.validation.constraints.Min
+import javax.validation.constraints.NotBlank
 
 /**
  * Request to create an [AceToken]

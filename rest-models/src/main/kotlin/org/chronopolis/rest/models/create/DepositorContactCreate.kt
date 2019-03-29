@@ -3,8 +3,8 @@ package org.chronopolis.rest.models.create
 import org.chronopolis.rest.constraints.E123
 import org.chronopolis.rest.models.DepositorContact
 import org.chronopolis.rest.models.Phone
-import org.hibernate.validator.constraints.Email
-import org.hibernate.validator.constraints.NotBlank
+import javax.validation.constraints.Email
+import javax.validation.constraints.NotBlank
 
 /**
  * Class for creating a [DepositorContact]. Has a [Phone] in order to do validation, but then treats

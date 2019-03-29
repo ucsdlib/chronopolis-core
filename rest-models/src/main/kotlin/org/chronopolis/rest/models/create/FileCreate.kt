@@ -3,7 +3,7 @@ package org.chronopolis.rest.models.create
 import org.chronopolis.rest.models.Bag
 import org.chronopolis.rest.models.Fixity
 import org.chronopolis.rest.models.enums.FixityAlgorithm
-import org.hibernate.validator.constraints.NotEmpty
+import javax.validation.constraints.NotEmpty
 import javax.validation.constraints.Min
 
 /**

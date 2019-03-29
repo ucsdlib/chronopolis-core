@@ -1,6 +1,6 @@
 package org.chronopolis.rest.models
 
-import org.hibernate.validator.constraints.NotBlank
+import javax.validation.constraints.NotBlank
 import java.time.ZonedDateTime
 import javax.validation.constraints.NotNull
 

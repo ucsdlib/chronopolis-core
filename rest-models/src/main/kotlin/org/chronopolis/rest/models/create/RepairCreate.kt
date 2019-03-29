@@ -3,7 +3,7 @@ package org.chronopolis.rest.models.create
 import org.chronopolis.rest.models.Bag
 import org.chronopolis.rest.models.Depositor
 import org.chronopolis.rest.models.Repair
-import org.hibernate.validator.constraints.NotEmpty
+import javax.validation.constraints.NotEmpty
 
 /**
  * Request to create a [Repair]
