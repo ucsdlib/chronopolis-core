@@ -8,15 +8,17 @@
 %define _prefix %{_usr}/local/chronopolis/replication
 %define jar replicationd.jar
 %define yaml application.yml
-%define initsh /etc/init.d/replicationd
+%define prep replicationd-prepare
+%define service /usr/lib/systemd/system/replicationd.service
 %define build_date %(date +"%Y%m%d")
 
 Name: replicationd
 Version: %{ver}
-Release: %{build_date}.el6
-Source: replication-shell.jar
-Source1: replication.sh
-Source2: application.yml
+Release: %{build_date}.el7
+Source: replicationd.service
+Source1: replication-shell.jar
+Source2: replication-application.yml
+Source3: replicationd-prepare.sh
 Summary: Chronopolis Replication Service
 License: BSD-3
 URL: https://gitlab.umiacs.umd.edu/chronopolis
@@ -27,30 +29,30 @@ BuildArch: noarch
 BuildRoot: ${_tmppath}/build-%{name}-%{version}
 
 %description
+
 The Replication Services monitors for packages being ingested into Chronopolis
 and does replication and registration on them.
 
+%preun
+
+systemctl disable replicationd
+
 %install
 
-%__install -D -m0644 "%{SOURCE0}" "%{buildroot}%{_prefix}/%{jar}"
+%__install -D -m0644 "%{SOURCE0}" "%{buildroot}%{service}"
+%__install -D -m0644 "%{SOURCE1}" "%{buildroot}%{_prefix}/%{jar}"
 %__install -D -m0644 "%{SOURCE2}" "%{buildroot}%{_prefix}/%{yaml}"
-%__install -D -m0755 "%{SOURCE1}" "%{buildroot}%{initsh}"
+%__install -D -m0755 "%{SOURCE3}" "%{buildroot}%{_prefix}/%{prep}"
 
 %files
 
 %defattr(-,root,root)
 %dir %{_prefix}
+
+%{service}
 %{_prefix}/%{jar}
+%{_prefix}/%{prep}
 %config(noreplace) %{_prefix}/%{yaml}
-%{initsh}
-
-%post
-
-chkconfig --add  replicationd
-
-%preun
-
-chkconfig --del replicationd
 
 %changelog
 
@@ -58,9 +60,10 @@ chkconfig --del replicationd
 - Set license to BSD 3 clause
 
 * Fri Dec 1 2017 Mike Ritter <shake@umiacs.umd.edu> 2.0.5-20171201
-- correct chkconfig service name
+- fix default modebits for prepare script
 
 * Wed Nov 8 2017 Mike Ritter <shake@umiacs.umd.edu> 2.0.3-20171108
+- add replicationd-prepare script
 - remove install commands for logging directory
 
 * Tue Oct 3 2017 Mike Ritter <shake@umiacs.umd.edu> 1.6.0-20171003

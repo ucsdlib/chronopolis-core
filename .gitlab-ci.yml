@@ -27,113 +27,73 @@ variables:
   POSTGRES_USER: runner
   POSTGRES_PASSWORD: ""
 
-
 # Cache downloaded dependencies and plugins between builds.
 cache:
   paths:
     - .m2/repository/
 
-# This will only validate and compile stuff and run e.g. maven-enforcer-plugin. 
-# Because some enforcer rules might check dependency convergence and class duplications
-# we use `test-compile` here instead of `validate`, so the correct classpath is picked up.
-.validate: &validate
-  before_script:
-    - apt-get update -y
-    - apt-get install -y rsync
+image: openjdk:8-slim
+
+before_script:
+  - apt-get update -y
+  - apt-get install -y rsync mime-support
+
+stages:
+  - build
+  - test
+  - deploy
+
+# Compile code and test code using JDK8
+validate:openjdk:
   stage: build
   script:
-    - 'mvn $MAVEN_CLI_OPTS test-compile'
+    - ./mvnw $MAVEN_CLI_OPTS test-compile
 
-# For merge requests do not `deploy` but only run `verify`.
-# See https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html
-.verify: &verify
-  before_script:
-    - apt-get update -y
-    - apt-get install -y rsync
+# Verify builds pass tests using JDK8
+# On the event a build fails, collect the output of all failed unit tests
+verify:openjdk:
   stage: test
-  script:
-    - 'mvn $MAVEN_CLI_OPTS verify'
-  except:
-    - master
-
-# Validate merge requests using JDK8
-validate:jdk8:
-  <<: *validate
-  image: maven:3-jdk-8
-
-# Verify merge requests using JDK8
-verify:jdk8:
-  <<: *verify
-  image: maven:3-jdk-8
   services: 
     - postgres:9
+  script:
+    - ./mvnw $MAVEN_CLI_OPTS verify
   artifacts:
-    expire_in: 2 days
-    untracked: true
     when: on_failure
+    expire_in: 2 days
     paths:
-    - common/target/surefire-reports/
-    - tokenizer/target/surefire-reports/
-    - rest-common/target/surefire-reports/
-    - ingest-rest/target/surefire-reports/
-    - replication-shell/target/surefire-reports/
+      - ./**/target/surefire-reports/*-output.txt
+    reports:
+      junit:
+        - ./**/target/surefire-reports/TEST-*.xml
 
-
-# For `master` and `develop` branches run `mvn deploy` automatically.
+# Call mvn deploy to upload artifacts for develop and releases
 # To get this working you need to define a volume while configuring your gitlab-ci-multi-runner.
 # Mount your `settings.xml` as `/root/.m2/settings.xml` which holds your secrets.
 # See https://maven.apache.org/settings.html
-deploy:jdk8:
-  # Use stage test here, so the pages job may later pickup the created site.
-  before_script:
-    - apt-get update -y
-    - apt-get install -y rsync
-  stage: test
-  script:
-    - 'mvn $MAVEN_CLI_OPTS deploy'
-  only:
-    - master
-    - develop
-    - /^release-.*$/
-  image: maven:3-jdk-8
+deploy:openjdk:
+  stage: deploy
   services:
     - postgres:9
-
-.rpm: &rpm
-  before_script:
-    - apt-get update -y
-    - apt-get install -y rsync
-    - apt-get install -y rpm
-  stage: deploy
+  script:
+    - ./mvnw $MAVEN_CLI_OPTS deploy
   only:
-    - master
+    - tags
     - develop
     - /^release-.*$/
-  image: maven:3-jdk-8
+
+# Build and upload rpms to the adapt-ci server
+# Could have these be separate but for now run them together
+build_rpms:
+  stage: deploy
   services:
     - postgres:9
-
-rpm_ingest:
-  <<: *rpm
-  script:
-    - 'cd ingest-rest/rpm'
-    - './build.sh'
-    - 'for f in `find RPMS -type f`; do curl -X POST -H "Authorization: $BUILD_TOKEN" -H "Content-Type: application/octet-stream" --data-binary @$f $SERVER/resource/chronopolis/$CI_BUILD_REF_NAME/$CI_BUILD_REF/$(basename $f); done'
-
-rpm_replication:
-  <<: *rpm
-  script:
-    - 'cd replication-shell/rpm'
-    - './build.sh'
-    - 'for f in `find RPMS -type f`; do curl -X POST -H "Authorization: $BUILD_TOKEN" -H "Content-Type: application/octet-stream" --data-binary @$f $SERVER/resource/chronopolis/$CI_BUILD_REF_NAME/$CI_BUILD_REF/$(basename $f); done'
-
-deploy_tokenizer:
-  stage: deploy
   only:
-    - master
+    - tags
     - develop
+    - /^release-.*$/
+  before_script:
+    - apt-get update -y
+    - apt-get install -y rsync rpm mime-support
   script:
-    - 'cd tokenizer/deploy'
-    - './build.sh'
-    - 'for f in `find TARS -type f`; do curl -X POST -H "Authorization: $BUILD_TOKEN" -H "Content-Type: application/octet-stream" --data-binary @$f $SERVER/resource/chronopolis/$CI_BUILD_REF_NAME/$CI_BUILD_REF/$(basename $f); done'
-  image: maven:3-jdk-8
+    - ./build_rpms.sh
+    - 'for f in `find rpms/RPMS -type f`; do curl -X POST -H "Authorization: $BUILD_TOKEN" -H "Content-Type: application/octet-stream" --data-binary @$f $SERVER/resource/chronopolis/$CI_BUILD_REF_NAME/$CI_BUILD_REF/$(basename $f); done'
