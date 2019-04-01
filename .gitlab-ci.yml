@@ -22,6 +22,7 @@ variables:
   # when running from the command line.
   # `installAtEnd` and `deployAtEnd`are only effective with recent version of the corresponding plugins.
   MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true -Dspring.profiles.active=gitlab"
+  DB_PROPERTIES: "-Ddb.url=jdbc:postgresql://postgres/ingest-test -Ddb.username=runner -Ddb.password=  -Ddb.driver=org.postgresql.Driver"
   # Postgres Configuration
   POSTGRES_DB: ingest-test
   POSTGRES_USER: runner
@@ -47,7 +48,7 @@ stages:
 validate:openjdk:
   stage: build
   script:
-    - ./mvnw $MAVEN_CLI_OPTS test-compile
+    - ./mvnw $MAVEN_CLI_OPTS $DB_PROPERTIES test-compile
 
 # Verify builds pass tests using JDK8
 # On the event a build fails, collect the output of all failed unit tests
@@ -56,7 +57,7 @@ verify:openjdk:
   services: 
     - postgres:9
   script:
-    - ./mvnw $MAVEN_CLI_OPTS verify
+    - ./mvnw $MAVEN_CLI_OPTS $DB_PROPERTIES verify
   artifacts:
     when: on_failure
     expire_in: 2 days
@@ -75,7 +76,7 @@ deploy:openjdk:
   services:
     - postgres:9
   script:
-    - ./mvnw $MAVEN_CLI_OPTS deploy
+    - ./mvnw $MAVEN_CLI_OPTS $DB_PROPERTIES deploy
   only:
     - tags
     - develop
