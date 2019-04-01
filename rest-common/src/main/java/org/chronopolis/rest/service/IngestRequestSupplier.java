@@ -46,13 +46,17 @@ public class IngestRequestSupplier implements Supplier<Optional<BagCreate>> {
     /**
      * Gather data about a bag and return it in the form of an IngestRequest
      * <p>
-     * Todo: Optional or let it throw an exception which can be handled downstream?
      *
      * @return The IngestRequest to push to the Ingest Server
      */
     @Override
     public Optional<BagCreate> get() {
         Optional<BagCreate> request = Optional.empty();
+        if (!bag.toFile().exists()) {
+            log.warn("{} not found on disk!", bag);
+            return request;
+        }
+
         try {
             // check if we should untar the bag
             log.trace("Probing mime type for {}", bag);
@@ -67,7 +71,6 @@ public class IngestRequestSupplier implements Supplier<Optional<BagCreate>> {
 
         // update the path of the bag to the exploded directory
         Path relBag = stage.relativize(bag);
-        // request.setLocation(relBag.toString());
 
         try (Stream<Path> files = Files.walk(bag)) {
             request = files.map(this::fromPath)

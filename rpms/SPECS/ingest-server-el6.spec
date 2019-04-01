@@ -2,17 +2,15 @@
 %define _prefix %{_usr}/local/chronopolis/ingest
 %define jar ingest-server.jar
 %define yaml application.yml
-%define prep ingest-prepare
-%define service /usr/lib/systemd/system/ingest-server.service
+%define initsh /etc/init.d/ingest-server
 %define build_time %(date +"%Y%m%d")
 
 Name: ingest-server
 Version: %{ver}
-Release: %{build_time}.el7
-Source: ingest-server.service
-Source1: ingest-server.jar
-Source2: application.yml
-Source3: ingest-prepare.sh
+Release: %{build_time}.el6
+Source: ingest-server.jar
+Source1: ingest-server.sh
+Source2: ingest-application.yml
 Summary: Chronopolis Ingest Server
 License: BSD-3
 URL: https://gitlab.umiacs.umd.edu/chronopolis
@@ -27,39 +25,35 @@ BuildRoot: ${_tmppath}/build-%{name}-%{version}
 The Ingest Server hosts the API for handling bags, transfers, and
 tokens.
 
-%preun
-
-systemctl disable ingest-server
-
 %install
 
-%__install -D -m0644 "%{SOURCE0}" "%{buildroot}%{service}"
-%__install -D -m0644 "%{SOURCE1}" "%{buildroot}%{_prefix}/%{jar}"
+%__install -D -m0644 "%{SOURCE0}" "%{buildroot}%{_prefix}/%{jar}"
 %__install -D -m0644 "%{SOURCE2}" "%{buildroot}%{_prefix}/%{yaml}"
-%__install -D -m0755 "%{SOURCE3}" "%{buildroot}%{_prefix}/%{prep}"
+%__install -D -m0755 "%{SOURCE1}" "%{buildroot}%{initsh}"
 
 %files
 
 %defattr(-,root,root)
-
 %dir %{_prefix}
-
-%{service}
 %{_prefix}/%{jar}
-%{_prefix}/%{prep}
 %config(noreplace) %{_prefix}/%{yaml}
+%{initsh}
+
+%post
+
+chkconfig --add ingest-server
+
+%preun
+
+chkconfig --del ingest-server
 
 %changelog
 
 * Tue Mar 5 2019 Mike Ritter <shake@umiacs.umd.edu> 3.1.0-20190305
 - Set license to BSD 3 clause
 
-* Fri Dec 1 2017 Mike Ritter <shake@umiacs.umd.edu> 2.0.5-20171201
-- fix default modebits for prepare script
-
 * Wed Nov 8 2017 Mike Ritter <shake@umiacs.umd.edu> 2.0.3-20171108
-- add ingest-prepare script
-- remove install commands for logging directory
+- remove install command for logging directory
 
 * Mon Oct 2 2017 Mike Ritter <shake@umiacs.umd.edu> 1.6.0-20171002
 - added changelog entry
