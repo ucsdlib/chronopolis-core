@@ -93,7 +93,7 @@ build_rpms:
     - /^release-.*$/
   before_script:
     - apt-get update -y
-    - apt-get install -y rsync rpm mime-support
+    - apt-get install -y rsync rpm mime-support curl
   script:
     - ./build_rpms.sh
     - 'for f in `find rpms/RPMS -type f`; do curl -X POST -H "Authorization: $BUILD_TOKEN" -H "Content-Type: application/octet-stream" --data-binary @$f $SERVER/resource/chronopolis/$CI_BUILD_REF_NAME/$CI_BUILD_REF/$(basename $f); done'
