@@ -5,6 +5,15 @@ import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import java.time.ZonedDateTime
 
+/**
+ * Retrieve a list of [BagSummary]s grouped by their [BagStatus]
+ *
+ * @param context the [DSLContext] used for querying the database
+ * @param states the [BagStatus] states to query for
+ * @return a [List] containing each [BagSummary]
+ * @since 3.2.0
+ * @author shake
+ */
 fun statsByGroup(context: DSLContext, states: Collection<BagStatus>): List<BagSummary> {
     val bag = Tables.BAG
     val queryStates = states.map { it.toString() }
@@ -23,9 +32,10 @@ fun statsByGroup(context: DSLContext, states: Collection<BagStatus>): List<BagSu
  * it might be useful to embed some of this in the [BagsOverview] class (point to the preserved
  * summary, aggregate summary, etc).
  *
+ * @param context the [DSLContext] used for querying the database
+ * @return [BagsOverview] containing the number of stuck bags and list of summaries
  * @since 3.2.0
  * @author shake
- * @return [BagsOverview] containing the number of stuck bags and list of summaries
  */
 fun overview(context: DSLContext): BagsOverview {
     val bag = Tables.BAG

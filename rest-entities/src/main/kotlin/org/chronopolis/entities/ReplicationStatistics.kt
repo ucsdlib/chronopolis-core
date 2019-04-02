@@ -5,6 +5,15 @@ import org.jooq.DSLContext
 import java.sql.Timestamp
 import java.time.ZonedDateTime
 
+/**
+ * Retrieve a [ReplicationSummary] for displaying information about the number of replications and
+ * stuck [Replication] requests
+ *
+ * @param ctx the [DSLContext] used for querying the database
+ * @return the [ReplicationSummary]
+ * @since 3.2.0
+ * @author shake
+ */
 fun replicationStats(ctx: DSLContext): ReplicationSummary {
     val now = ZonedDateTime.now()
     val replication = Tables.REPLICATION
