@@ -3,16 +3,45 @@ package org.chronopolis.entities
 import org.chronopolis.rest.models.enums.BagStatus
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
+import java.time.ZonedDateTime
 
-fun statsByGroup(context: DSLContext) : List<BagSummary> {
-    val preserved = BagStatus.PRESERVED.toString()
-    val replicating = BagStatus.REPLICATING.toString()
+fun statsByGroup(context: DSLContext, states: Collection<BagStatus>): List<BagSummary> {
     val bag = Tables.BAG
+    val queryStates = states.map { it.toString() }
 
     return context.select(DSL.sum(bag.SIZE), DSL.count(bag), bag.STATUS).from(bag)
-                    .where(bag.STATUS.`in`(preserved, replicating))
-                    .groupBy(bag.STATUS)
-                    .fetchInto(BagSummary::class.java)
+            .where(bag.STATUS.`in`(queryStates))
+            .groupBy(bag.STATUS)
+            .fetchInto(BagSummary::class.java)
 }
 
-data class BagSummary(val size: Long, val count: Long, val status: String);
+/**
+ * Retrieve an overview of the Bags stored in the Database. This includes summaries for each
+ * processing or preserved status and the number of stuck bags (updated at > 1 week and processing).
+ * Additional processing (summarizing the processing bags) is done externally from this function.
+ * This is solely for querying the database, unless we find a good way to do aggregation as well, as
+ * it might be useful to embed some of this in the [BagsOverview] class (point to the preserved
+ * summary, aggregate summary, etc).
+ *
+ * @since 3.2.0
+ * @author shake
+ * @return [BagsOverview] containing the number of stuck bags and list of summaries
+ */
+fun overview(context: DSLContext): BagsOverview {
+    val bag = Tables.BAG
+    val processing = BagStatus.processingStates().map { it.toString() }
+
+    val stuck = context.selectCount()
+            .from(bag)
+            .where(bag.STATUS.`in`(processing)
+                    .and(bag.UPDATED_AT.lt(ZonedDateTime.now().minusWeeks(1).timestamp())))
+            .fetchOne(0, Int::class.java)
+
+    val queryStates = BagStatus.processingStates().plus(BagStatus.preservedStates())
+    val summaries = statsByGroup(context, queryStates)
+
+    return BagsOverview(stuck, summaries)
+}
+
+data class BagSummary(val size: Long, val count: Long, val status: String)
+data class BagsOverview(val stuck: Int, val summaries: List<BagSummary>)

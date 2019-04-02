@@ -28,7 +28,7 @@ fun replicationStats(ctx: DSLContext): ReplicationSummary {
     return ReplicationSummary(total, stuckOne, stuckTwo)
 }
 
-private fun ZonedDateTime.timestamp(): Timestamp {
+internal fun ZonedDateTime.timestamp(): Timestamp {
     return Timestamp.from(this.toInstant())
 }
 
