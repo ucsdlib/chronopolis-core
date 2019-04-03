@@ -17,8 +17,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.sql.Timestamp;
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -39,13 +38,11 @@ public class BagFunctionsTest {
     public void testFilenamesInBag() {
         Bag bag = Tables.BAG;
         Depositor depositor = Tables.DEPOSITOR;
-        Timestamp now = Timestamp.from(ZonedDateTime.now().toInstant());
 
         DepositorRecord depositorRecord = dsl.fetchOne(depositor);
-
         BagRecord record = dsl.insertInto(bag)
-                .set(bag.CREATED_AT, now)
-                .set(bag.UPDATED_AT, now)
+                .set(bag.CREATED_AT, LocalDateTime.now())
+                .set(bag.UPDATED_AT, LocalDateTime.now())
                 .set(bag.NAME, "test-filenames-in-bag")
                 .set(bag.CREATOR, "bag-functions-test")
                 .set(bag.SIZE, 100L)
@@ -61,13 +58,11 @@ public class BagFunctionsTest {
     public void testTokenCountForBag() {
         Bag bag = Tables.BAG;
         Depositor depositor = Tables.DEPOSITOR;
-        Timestamp now = Timestamp.from(ZonedDateTime.now().toInstant());
 
         DepositorRecord depositorRecord = dsl.fetchOne(depositor);
-
         BagRecord record = dsl.insertInto(bag)
-                .set(bag.CREATED_AT, now)
-                .set(bag.UPDATED_AT, now)
+                .set(bag.CREATED_AT, LocalDateTime.now())
+                .set(bag.UPDATED_AT, LocalDateTime.now())
                 .set(bag.NAME, "test-token-count-for-bag")
                 .set(bag.CREATOR, "bag-functions-test")
                 .set(bag.SIZE, 100L)

@@ -41,11 +41,12 @@ fun statsByGroup(context: DSLContext, states: Collection<BagStatus>): List<BagSu
 fun overview(context: DSLContext): BagsOverview {
     val bag = Tables.BAG
     val processing = BagStatus.processingStates().map { it.toString() }
+    val oneWeek = ZonedDateTime.now().minusWeeks(1).toLocalDateTime();
 
     val stuck = context.selectCount()
             .from(bag)
             .where(bag.STATUS.`in`(processing)
-                    .and(bag.UPDATED_AT.lt(ZonedDateTime.now().minusWeeks(1).timestamp())))
+                    .and(bag.UPDATED_AT.lt(oneWeek)))
             .fetchOne(0, Int::class.java)
 
     val queryStates = BagStatus.processingStates().plus(BagStatus.preservedStates())
