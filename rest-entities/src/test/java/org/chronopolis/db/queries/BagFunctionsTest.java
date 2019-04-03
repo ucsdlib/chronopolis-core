@@ -3,6 +3,7 @@ package org.chronopolis.db.queries;
 import org.chronopolis.db.generated.Tables;
 import org.chronopolis.db.generated.tables.Bag;
 import org.chronopolis.db.generated.tables.Depositor;
+import org.chronopolis.db.generated.tables.records.BagRecord;
 import org.chronopolis.db.generated.tables.records.DepositorRecord;
 import org.chronopolis.rest.entities.JPAContext;
 import org.jooq.DSLContext;
@@ -42,7 +43,7 @@ public class BagFunctionsTest {
 
         DepositorRecord depositorRecord = dsl.fetchOne(depositor);
 
-        dsl.insertInto(bag)
+        BagRecord record = dsl.insertInto(bag)
                 .set(bag.CREATED_AT, now)
                 .set(bag.UPDATED_AT, now)
                 .set(bag.NAME, "test-filenames-in-bag")
@@ -50,9 +51,9 @@ public class BagFunctionsTest {
                 .set(bag.SIZE, 100L)
                 .set(bag.TOTAL_FILES, 4L)
                 .set(bag.DEPOSITOR_ID, depositorRecord.getId())
-                .execute();
+                .returning().fetchOne();
 
-        List<String> strings = BagFunctionsKt.filenamesInBag(dsl, dsl.fetchOne(bag));
+        List<String> strings = BagFunctionsKt.filenamesInBag(dsl, record);
         Assert.assertTrue("Files exist for bag", strings.isEmpty());
     }
 
@@ -64,7 +65,7 @@ public class BagFunctionsTest {
 
         DepositorRecord depositorRecord = dsl.fetchOne(depositor);
 
-        dsl.insertInto(bag)
+        BagRecord record = dsl.insertInto(bag)
                 .set(bag.CREATED_AT, now)
                 .set(bag.UPDATED_AT, now)
                 .set(bag.NAME, "test-token-count-for-bag")
@@ -72,9 +73,9 @@ public class BagFunctionsTest {
                 .set(bag.SIZE, 100L)
                 .set(bag.TOTAL_FILES, 4L)
                 .set(bag.DEPOSITOR_ID, depositorRecord.getId())
-                .execute();
+                .returning().fetchOne();
 
-        int count = BagFunctionsKt.tokenCountForBag(dsl, dsl.selectFrom(bag).where(bag.NAME.eq("test-token-count-for-bag")).fetchOne());
+        int count = BagFunctionsKt.tokenCountForBag(dsl, record);
         Assert.assertEquals("Tokens exist for bag!", 0, count);
     }
 
