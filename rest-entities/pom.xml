@@ -202,7 +202,7 @@
                         </database>
                         <target>
                             <packageName>org.chronopolis.db.generated</packageName>
-                            <directory>target/generated-sources/jooq</directory>
+                            <directory>src/main/java</directory>
                         </target>
                     </generator>
                 </configuration>
@@ -307,6 +307,5 @@
             </plugin>
         </plugins>
     </build>
-
 
 </project>
