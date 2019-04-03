@@ -1,6 +1,7 @@
-package org.chronopolis.entities
+package org.chronopolis.db.queries
 
-import org.chronopolis.entities.tables.StorageRegion
+import org.chronopolis.db.generated.Tables
+import org.chronopolis.db.generated.tables.StorageRegion
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import java.math.BigDecimal

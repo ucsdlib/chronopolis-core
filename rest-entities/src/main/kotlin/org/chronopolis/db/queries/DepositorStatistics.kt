@@ -1,5 +1,6 @@
-package org.chronopolis.entities
+package org.chronopolis.db.queries
 
+import org.chronopolis.db.generated.Tables
 import org.jooq.AggregateFunction
 import org.jooq.DSLContext
 import org.jooq.Record2

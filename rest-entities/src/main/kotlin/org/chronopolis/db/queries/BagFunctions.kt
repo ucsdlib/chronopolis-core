@@ -1,6 +1,7 @@
-package org.chronopolis.entities
+package org.chronopolis.db.queries
 
-import org.chronopolis.entities.tables.Bag
+import org.chronopolis.db.generated.Tables
+import org.chronopolis.db.generated.tables.Bag
 import org.jooq.DSLContext
 
 /**

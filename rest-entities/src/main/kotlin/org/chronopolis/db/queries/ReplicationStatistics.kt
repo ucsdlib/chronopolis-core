@@ -1,5 +1,6 @@
-package org.chronopolis.entities
+package org.chronopolis.db.queries
 
+import org.chronopolis.db.generated.Tables
 import org.chronopolis.rest.models.enums.ReplicationStatus
 import org.jooq.DSLContext
 import java.sql.Timestamp
