@@ -5,8 +5,12 @@
 /tokenizer/target/
 /replication-shell/target/
 /rest-common/target/
-/rest-entities/target/
 /rest-models/target/
+
+# Rest Entities also needs generated code to be excluded
+# It's all kotlin so can ignore the java directory
+/rest-entities/target/
+/rest-entities/src/main/java/
 
 ## Intellij stuff
 /.idea/
