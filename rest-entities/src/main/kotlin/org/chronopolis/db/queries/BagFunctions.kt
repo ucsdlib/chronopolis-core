@@ -2,6 +2,7 @@ package org.chronopolis.db.queries
 
 import org.chronopolis.db.generated.Tables
 import org.chronopolis.db.generated.tables.Bag
+import org.chronopolis.db.generated.tables.records.BagRecord
 import org.jooq.DSLContext
 
 /**
@@ -12,10 +13,10 @@ import org.jooq.DSLContext
  * @author shake
  * @return a [MutableList] of all filenames as [String]s
  */
-fun filenamesInBag(context: DSLContext, bag: Bag): MutableList<String> {
+fun filenamesInBag(context: DSLContext, bag: BagRecord): MutableList<String> {
     val files = Tables.FILE
     return context.selectFrom(files)
-            .where(files.DTYPE.eq("BAG").and(files.BAG_ID.eq(bag.ID)))
+            .where(files.DTYPE.eq("BAG").and(files.BAG_ID.eq(bag.id)))
             .fetch(files.FILENAME)
 }
 
@@ -28,10 +29,10 @@ fun filenamesInBag(context: DSLContext, bag: Bag): MutableList<String> {
  * @author shake
  * @return the count as an [Int]
  */
-fun tokenCountForBag(context: DSLContext, bag: Bag): Int {
+fun tokenCountForBag(context: DSLContext, bag: BagRecord): Int {
     val token = Tables.ACE_TOKEN
     return context.selectCount()
             .from(token)
-            .where(token.BAG_ID.eq(bag.ID))
+            .where(token.BAG_ID.eq(bag.id))
             .fetchOne(0, Int::class.java)
 }
