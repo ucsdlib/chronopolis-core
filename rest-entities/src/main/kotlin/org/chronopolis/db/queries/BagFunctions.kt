@@ -51,11 +51,10 @@ fun bagsCompletedTokenization(context: DSLContext): Stream<BagRecord> {
     val aceToken = Tables.ACE_TOKEN
 
     return context.selectFrom(bag)
-            .where(bag.STATUS.eq(BagStatus.INITIALIZED.toString()).and(
-                    bag.TOTAL_FILES.cast(Int::class.java).eq(
-                            context.selectCount()
+            .where(bag.STATUS.eq(BagStatus.INITIALIZED.toString())
+                    .and(bag.TOTAL_FILES.cast(Int::class.java)
+                            .eq(context.selectCount()
                                     .from(aceToken)
                                     .where(aceToken.BAG_ID.eq(bag.ID)))))
             .fetchStream()
-
 }
