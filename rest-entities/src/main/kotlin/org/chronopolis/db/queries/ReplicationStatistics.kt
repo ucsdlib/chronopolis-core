@@ -15,7 +15,6 @@ import java.time.ZonedDateTime
  * @author shake
  */
 fun replicationStats(ctx: DSLContext): ReplicationSummary {
-    val now = ZonedDateTime.now()
     val oneWeek = ZonedDateTime.now().minusWeeks(1).toLocalDateTime();
     val twoWeeks = ZonedDateTime.now().minusWeeks(2).toLocalDateTime();
     val replication = Tables.REPLICATION

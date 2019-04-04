@@ -18,7 +18,7 @@ import java.util.stream.Stream
 fun filenamesInBag(context: DSLContext, bag: BagRecord): MutableList<String> {
     val files = Tables.FILE
     return context.selectFrom(files)
-            .where(files.DTYPE.eq("BAG").and(files.BAG_ID.eq(bag.id)))
+            .where(files.DTYPE.eq("BAG")).and(files.BAG_ID.eq(bag.id))
             .fetch(files.FILENAME)
 }
 
@@ -51,11 +51,11 @@ fun bagsCompletedTokenization(context: DSLContext): Stream<BagRecord> {
     val aceToken = Tables.ACE_TOKEN
 
     return context.selectFrom(bag)
-            .where(bag.STATUS.eq(BagStatus.INITIALIZED.toString())
-                    .and(bag.TOTAL_FILES.cast(Int::class.java)
-                            .eq(context.selectCount()
-                                    .from(aceToken)
-                                    .where(aceToken.BAG_ID.eq(bag.ID)))))
+            .where(bag.STATUS.eq(BagStatus.INITIALIZED.toString()))
+            .and(bag.TOTAL_FILES.cast(Int::class.java)
+                    .eq(context.selectCount()
+                            .from(aceToken)
+                            .where(aceToken.BAG_ID.eq(bag.ID))))
             .fetchStream()
 }
 

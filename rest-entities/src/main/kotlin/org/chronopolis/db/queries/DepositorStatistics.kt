@@ -35,9 +35,10 @@ private fun depositorAverages(ctx: DSLContext): Record2<BigDecimal, BigDecimal> 
     val countStmt = DSL.count(bag.ID).`as`("count")
 
     // keep it in line with sum, count, total from DepositorSummary
-    val nested: Table<Record3<BigDecimal, Int, Long>> = ctx.select(sizeStmt, countStmt, depositorId)
-            .groupBy(depositorId)
-            .asTable("nested")
+    val nested: Table<Record3<BigDecimal, Int, Long>> =
+            ctx.select(sizeStmt, countStmt, depositorId)
+                    .groupBy(depositorId)
+                    .asTable("nested")
 
     val sizeAvg = DSL.avg(nested.field("size", BigDecimal::class.java))
     val countAvg = DSL.avg(nested.field("count", Int::class.java))

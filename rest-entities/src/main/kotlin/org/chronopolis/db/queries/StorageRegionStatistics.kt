@@ -18,6 +18,6 @@ fun usedSpace(ctx: DSLContext, region: StorageRegionRecord): BigDecimal {
     val staging = Tables.STAGING_STORAGE
     return ctx.select(DSL.sum(staging.SIZE))
             .from(staging)
-            .where(staging.REGION_ID.eq(region.id).and(staging.ACTIVE.isTrue))
+            .where(staging.REGION_ID.eq(region.id)).and(staging.ACTIVE.isTrue)
             .fetchOne(0, BigDecimal::class.java)
 }
