@@ -58,3 +58,33 @@ fun bagsCompletedTokenization(context: DSLContext): Stream<BagRecord> {
                                     .where(aceToken.BAG_ID.eq(bag.ID)))))
             .fetchStream()
 }
+
+/**
+ * Retrieve [BagRecord]s which can be processed by a local tokenization task
+ *
+ * @param context the [DSLContext] to query the database
+ * @param creator the creator to search for bags
+ * @return [Stream] of [BagRecord]s
+ * @since 3.2.0
+ * @author shake
+ */
+fun localBagsForTokenization(context: DSLContext, creator: String): Stream<BagRecord> {
+    val bag = Tables.BAG
+    val file = Tables.FILE
+    val staging = Tables.STAGING_STORAGE
+
+    // todo: try to filter bags with all tokens?
+    //       bag.total_files < selectCount().from(tokens)
+    //       which makes me wonder if we should cache the number of registered files/tokens
+    return context.select()
+            .from(bag)
+            .innerJoin(staging)
+            .on(bag.ID.eq(staging.BAG_ID)).and(staging.ACTIVE.isTrue)
+            .innerJoin(file)
+            .on(staging.FILE_ID.eq(file.ID)).and(file.DTYPE.eq("BAG"))
+            .where(bag.STATUS.eq(BagStatus.INITIALIZED.toString()))
+            .and(bag.CREATOR.eq(creator))
+            .and(bag.TOTAL_FILES.cast(Int::class.java)
+                    .eq(context.selectCount().from(file).where(file.BAG_ID.eq(bag.ID))))
+            .fetchStreamInto(bag)
+}
