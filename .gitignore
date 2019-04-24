@@ -6,6 +6,9 @@
 /replication-shell/target/
 /rest-common/target/
 /rest-entities/target/
+# Ignore generated files
+# Rest-Entities is only kotlin so everything under java
+/rest-entities/src/main/java
 /rest-models/target/
 
 ## Intellij stuff
