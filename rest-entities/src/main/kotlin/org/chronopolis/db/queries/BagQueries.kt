@@ -4,7 +4,12 @@ import org.chronopolis.db.generated.Tables
 import org.chronopolis.db.generated.tables.records.BagRecord
 import org.chronopolis.rest.models.enums.BagStatus
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
+import java.time.ZonedDateTime
 import java.util.stream.Stream
+
+data class BagSummary(val size: Long, val count: Long, val status: String)
+data class BagsOverview(val stuck: Int, val summaries: List<BagSummary>)
 
 /**
  * Collection of functions used for querying the [Bag] table
@@ -98,5 +103,50 @@ object BagQueries {
                                 .where(file.BAG_ID.eq(bag.ID))))
                 .fetchStreamInto(bag)
 
+    }
+
+    /**
+     * Retrieve a list of [BagSummary]s grouped by their [BagStatus]
+     *
+     * @param context the [DSLContext] to query the database
+     * @param states the [BagStatus] to query for
+     * @return a [List] containing each [BagSummary]
+     * @since 3.2.0
+     */
+    fun statsByGroup(context: DSLContext, states: Collection<BagStatus>): List<BagSummary> {
+        val bag = Tables.BAG
+        val queryStates = states.map { it.toString() }
+
+        return context.select(DSL.sum(bag.SIZE), DSL.count(bag), bag.STATUS).from(bag)
+                .where(bag.STATUS.`in`(queryStates))
+                .groupBy(bag.STATUS)
+                .fetchInto(BagSummary::class.java)
+    }
+
+    /**
+     * Retrieve an overview of the Bags stored in the database. This includes summaries for each
+     * processing or preserved status and the number of stuck bags (updated at > 1 week and
+     * processing). Additional processing (summarizing the processing bags) is done externally from
+     * this function. This is solely for querying the database, unless we find a good way to do
+     * aggregation as well (maybe with a view or something of the like).
+     *
+     * @param context the [DSLContext] to query the database
+     * @return the [BagsOverview]
+     * @since 3.2.0
+     */
+    fun bagsOverview(context:DSLContext): BagsOverview {
+        val bag = Tables.BAG
+        val processing = BagStatus.processingStates().map { it.toString() }
+        val oneWeek = ZonedDateTime.now().minusWeeks(1).toLocalDateTime()
+
+        val stuck = context.selectCount()
+                .from(bag)
+                .where(bag.STATUS.`in`(processing))
+                .and(bag.UPDATED_AT.lt(oneWeek))
+                .fetchOne(0, Int::class.java)
+
+        val queryStates = BagStatus.processingStates().plus(BagStatus.preservedStates())
+        val summaries = statsByGroup(context, queryStates)
+        return BagsOverview(stuck, summaries)
     }
 }
