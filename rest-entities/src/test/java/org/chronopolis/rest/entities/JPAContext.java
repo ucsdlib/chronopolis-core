@@ -5,6 +5,9 @@ import com.opentable.db.postgres.embedded.PreparedDbProvider;
 import org.chronopolis.rest.entities.depositor.Depositor;
 import org.chronopolis.rest.models.enums.BagStatus;
 import org.flywaydb.core.Flyway;
+import org.jooq.DSLContext;
+import org.jooq.SQLDialect;
+import org.jooq.impl.DSL;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -83,6 +86,11 @@ public class JPAContext {
         fly.clean();
         fly.migrate();
         return fly;
+    }
+
+    @Bean
+    public DSLContext dslContext(DataSource dataSource) {
+        return DSL.using(dataSource, SQLDialect.POSTGRES);
     }
 
 }
