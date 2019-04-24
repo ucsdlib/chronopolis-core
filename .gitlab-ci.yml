@@ -34,6 +34,9 @@ cache:
 
 image: openjdk:8-slim
 
+services:
+    - postgres:9
+
 before_script:
   - apt-get update -y
   - apt-get install -y rsync mime-support
@@ -53,8 +56,6 @@ validate:openjdk:
 # On the event a build fails, collect the output of all failed unit tests
 verify:openjdk:
   stage: test
-  services: 
-    - postgres:9
   script:
     - ./mvnw $MAVEN_CLI_OPTS verify
   artifacts:
@@ -72,8 +73,6 @@ verify:openjdk:
 # See https://maven.apache.org/settings.html
 deploy:openjdk:
   stage: deploy
-  services:
-    - postgres:9
   script:
     - ./mvnw $MAVEN_CLI_OPTS deploy
   only:
@@ -85,8 +84,6 @@ deploy:openjdk:
 # Could have these be separate but for now run them together
 build_rpms:
   stage: deploy
-  services:
-    - postgres:9
   only:
     - tags
     - develop
