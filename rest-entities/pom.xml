@@ -204,8 +204,8 @@
                             <inputSchema>public</inputSchema>
                         </database>
                         <target>
-                            <packageName>org.chronopolis.entities</packageName>
-                            <directory>target/generated-sources/jooq</directory>
+                            <packageName>org.chronopolis.db.generated</packageName>
+                            <directory>src/main/java</directory>
                         </target>
                     </generator>
                 </configuration>
