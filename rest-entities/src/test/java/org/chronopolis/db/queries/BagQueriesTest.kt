@@ -36,7 +36,7 @@ class BagQueriesTest {
                 .set(bag.CREATOR, "bag-functions-test")
                 .set(bag.SIZE, 100L)
                 .set(bag.TOTAL_FILES, 4L)
-                .set(bag.DEPOSITOR_ID, depositor.ID)
+                .set(bag.DEPOSITOR_ID, depositorRecord.id)
                 .returning().fetchOne()
 
         val strings = BagQueries.filenamesInBag(dsl, bagRecord)
