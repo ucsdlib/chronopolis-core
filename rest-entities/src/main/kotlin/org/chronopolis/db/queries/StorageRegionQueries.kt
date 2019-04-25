@@ -5,7 +5,8 @@ import org.chronopolis.db.generated.tables.StagingStorage
 import org.chronopolis.db.generated.tables.StorageRegion
 import org.chronopolis.db.generated.tables.records.StorageRegionRecord
 import org.jooq.DSLContext
-import org.jooq.impl.DSL
+import org.jooq.impl.DSL.coalesce
+import org.jooq.impl.DSL.sum
 import java.math.BigDecimal
 
 /**
@@ -27,7 +28,7 @@ object StorageRegionQueries {
      */
     fun usedSpace(ctx: DSLContext, region: StorageRegionRecord): BigDecimal {
         val staging = Tables.STAGING_STORAGE
-        return ctx.select(DSL.sum(staging.SIZE))
+        return ctx.select(coalesce(sum(staging.SIZE), 0))
                 .from(staging)
                 .where(staging.REGION_ID.eq(region.id)).and(staging.ACTIVE.isTrue)
                 .fetchOne(0, BigDecimal::class.java)
