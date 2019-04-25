@@ -13,6 +13,16 @@ import java.time.LocalDateTime
  */
 object ReplicationQueries {
 
+    /**
+     * Retrieve a [ReplicationSummary] outlining some basic information about replications in the
+     * database: the total number of active replications; the number of replications which are
+     * active and haven't been updated in 1 week; the number of replications which are active and
+     * haven't been updated in 2 weeks.
+     *
+     * @param ctx the [DSLContext] used for querying the database
+     * @return [ReplicationSummary]
+     * @since 3.2.0
+     */
     fun replicationSummary(ctx: DSLContext): ReplicationSummary {
         val oneWeek = LocalDateTime.now().minusWeeks(1)
         val twoWeeks = LocalDateTime.now().minusWeeks(2)
