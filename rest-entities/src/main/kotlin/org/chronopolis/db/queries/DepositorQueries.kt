@@ -61,7 +61,7 @@ object DepositorQueries {
     }
 
     /**
-     * Get depositors ordered by sum of their ingested bags
+     * Get depositors ordered by sum of their ingested bags. Omits depositors with no data stored.
      *
      * @param ctx the [DSLContext] for querying the database
      * @param limit the number of depositors to retrieve
@@ -76,7 +76,8 @@ object DepositorQueries {
     }
 
     /**
-     * Get depositors ordered by the number of their ingested bags
+     * Get depositors ordered by the number of their ingested bags. Omits depositors with no data
+     * stored.
      *
      * @param ctx the [DSLContext] for querying the database
      * @param limit the number of depositors to retrieve
