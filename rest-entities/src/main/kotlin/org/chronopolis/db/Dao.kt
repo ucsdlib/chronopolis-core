@@ -14,6 +14,7 @@ import org.jooq.DSLContext
 import org.jooq.OrderField
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.util.Optional
 
 /**
  * Definition of a DAO in the Chronopolis context. As this serves as the base for a query object,
@@ -34,7 +35,7 @@ interface Dao<T, ID> {
              order: Collection<OrderField<*>>,
              limit: Limit): List<T>
 
-    fun findOne(id: ID): T
+    fun findOne(id: ID): Optional<T>
 
 }
 
@@ -44,11 +45,11 @@ class BagDao(val context: DSLContext) : Dao<BagRecord, Long> {
 
     val log: Logger = LoggerFactory.getLogger(BagDao::class.java)
 
-    override fun findOne(id: Long): BagRecord {
+    override fun findOne(id: Long): Optional<BagRecord> {
         val bag = Tables.BAG
-        return context.selectFrom(bag)
+        return Optional.ofNullable(context.selectFrom(bag)
                 .where(bag.ID.eq(id))
-                .fetchOne()
+                .fetchOne())
     }
 
     /**
