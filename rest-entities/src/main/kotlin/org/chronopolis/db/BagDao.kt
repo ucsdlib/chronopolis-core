@@ -70,7 +70,7 @@ class BagDao(private val context: DSLContext) : Dao<BagRecord, Long> {
      *
      * @param creator the username associated with the [Principal] who made the request
      * @param request the [BagCreate] request containing information about the package
-     * @return [BagCreateResult] with information about what occured during processing
+     * @return [BagCreateResult] with information about what occurred during processing
      * @since 3.2.0
      */
     fun processRequest(creator: String, request: BagCreate): BagCreateResult {

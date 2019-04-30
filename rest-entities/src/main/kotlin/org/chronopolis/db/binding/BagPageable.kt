@@ -22,8 +22,7 @@ class BagPageable() : Pageable() {
     }
 
     fun setDepositor(depositor: String) {
-        // how does this work? needs to be a join....
-        // which means when we query for bags we need to make sure all relevant tables are joined
+        // note: this will add a join on the depositor table
         conditions.add(bag.depositor().NAMESPACE.eq(depositor))
     }
 
