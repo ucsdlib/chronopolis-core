@@ -1,6 +1,7 @@
 package org.chronopolis.db
 
 import org.chronopolis.db.binding.BagPageable
+import org.chronopolis.db.result.CreateStatus
 import org.chronopolis.rest.entities.JPAContext
 import org.chronopolis.rest.models.create.BagCreate
 import org.jooq.DSLContext
