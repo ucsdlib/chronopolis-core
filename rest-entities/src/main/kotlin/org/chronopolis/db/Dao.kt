@@ -41,9 +41,9 @@ interface Dao<T, ID> {
 
 data class Limit(val limit: Int, val offset: Int)
 
-class BagDao(val context: DSLContext) : Dao<BagRecord, Long> {
+class BagDao(private val context: DSLContext) : Dao<BagRecord, Long> {
 
-    val log: Logger = LoggerFactory.getLogger(BagDao::class.java)
+    private val log: Logger = LoggerFactory.getLogger(BagDao::class.java)
 
     override fun findOne(id: Long): Optional<BagRecord> {
         val bag = Tables.BAG
