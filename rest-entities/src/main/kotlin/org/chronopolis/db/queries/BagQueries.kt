@@ -12,7 +12,7 @@ data class BagSummary(val size: Long, val count: Long, val status: String)
 data class BagsOverview(val stuck: Int, val summaries: List<BagSummary>)
 
 /**
- * Collection of functions used for querying the [Bag] table
+ * Collection of functions used for querying the [org.chronopolis.db.generated.tables.Bag] table
  *
  * @since 3.2.0
  * @author shake
@@ -20,7 +20,7 @@ data class BagsOverview(val stuck: Int, val summaries: List<BagSummary>)
 object BagQueries {
 
     /**
-     * Retrieve a list of all filenames which live in a [Bag]
+     * Retrieve a list of all filenames which are related to a [BagRecord]
      * No attempt to be lazy, just fetch all in to memory
      *
      * @param context the [DSLContext] to query the database
@@ -36,7 +36,8 @@ object BagQueries {
     }
 
     /**
-     * Retrieve the number of [AceToken]s registered for a [Bag]
+     * Retrieve the number of [org.chronopolis.db.generated.tables.records.AceTokenRecord]s
+     * registered to a [BagRecord]
      *
      * This isn't expected to overflow, but it's good to keep in mind that this returns an [Int]
      *
@@ -54,7 +55,9 @@ object BagQueries {
     }
 
     /**
-     * Retrieve [BagRecord]s which have an [AceToken] for each [File]
+     * Retrieve [BagRecord]s which have an
+     * [org.chronopolis.db.generated.tables.records.AceTokenRecord] for each
+     * [org.chronopolis.db.generated.tables.records.FileRecord]
      *
      * @param context the [DSLContext] to query the database
      * @return a [Stream] of [BagRecord]s which can be processed
@@ -65,7 +68,7 @@ object BagQueries {
         val aceToken = Tables.ACE_TOKEN
 
         return context.selectFrom(bag)
-                .where(bag.STATUS.eq(BagStatus.INITIALIZED.toString()))
+                .where(bag.STATUS.eq(BagStatus.INITIALIZED))
                 // we need to cast total_files to an int to compare it with the result of selectCount
                 .and(bag.TOTAL_FILES.cast(Int::class.java)
                         .eq(context.selectCount()
@@ -95,7 +98,7 @@ object BagQueries {
                 .on(bag.ID.eq(staging.BAG_ID)).and(staging.ACTIVE.isTrue)
                 .innerJoin(file)
                 .on(staging.FILE_ID.eq(file.ID)).and(file.DTYPE.eq("BAG"))
-                .where(bag.STATUS.eq(BagStatus.INITIALIZED.toString()))
+                .where(bag.STATUS.eq(BagStatus.INITIALIZED))
                 .and(bag.CREATOR.eq(creator))
                 .and(bag.TOTAL_FILES.cast(Int::class.java)
                         .eq(context.selectCount()
