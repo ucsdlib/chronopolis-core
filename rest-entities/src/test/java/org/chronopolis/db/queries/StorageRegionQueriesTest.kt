@@ -14,7 +14,6 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit4.SpringRunner
 import java.math.BigDecimal
 
-@DataJpaTest(excludeAutoConfiguration = [FlywayAutoConfiguration::class])
 @RunWith(SpringRunner::class)
 @ContextConfiguration(classes = [JPAContext::class])
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
