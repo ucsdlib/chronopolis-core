@@ -18,7 +18,7 @@ data class DepositorCount(val count: Int, val namespace: String)
 data class DepositorSummary(val avgSum: BigDecimal, val avgCount: BigDecimal, val total: Int)
 
 /**
- * Functions for querying the [Depositor] table
+ * Functions for querying the [org.chronopolis.db.generated.tables.Depositor] table
  *
  * @since 3.2.0
  * @author shake
