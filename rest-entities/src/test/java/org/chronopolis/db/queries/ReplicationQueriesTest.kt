@@ -12,7 +12,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit4.SpringRunner
 
-@DataJpaTest(excludeAutoConfiguration = [FlywayAutoConfiguration::class])
 @RunWith(SpringRunner::class)
 @ContextConfiguration(classes = [JPAContext::class])
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
