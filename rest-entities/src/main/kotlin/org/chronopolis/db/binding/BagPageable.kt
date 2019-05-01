@@ -27,7 +27,7 @@ class BagPageable() : Pageable() {
     }
 
     fun setStatus(status: List<BagStatus>) {
-        conditions.add(bag.STATUS.`in`(status.map { status::toString }))
+        conditions.add(bag.STATUS.`in`(status))
     }
 
 }

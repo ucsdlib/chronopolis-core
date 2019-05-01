@@ -106,7 +106,7 @@ class BagDao(private val context: DSLContext) : Dao<BagRecord, Long> {
             record.name = request.name
             record.depositorId = depositor.id
             record.totalFiles = request.totalFiles
-            record.status = BagStatus.DEPOSITED.toString()
+            record.status = BagStatus.DEPOSITED
             record.store()
             // does this need to happen? we want to use the id later
             record.refresh()
@@ -130,7 +130,7 @@ class BagDao(private val context: DSLContext) : Dao<BagRecord, Long> {
             log.debug("[{}] Creating distribution for []", record.name, distribution.nodeId)
             val distributionRecord: BagDistributionRecord = context.newRecord(bagDT)
             distributionRecord.bagId = record.id
-            distributionRecord.status = BagDistributionStatus.DISTRIBUTE.toString()
+            distributionRecord.status = BagDistributionStatus.DISTRIBUTE
             distributionRecord.nodeId = distribution.nodeId
             distributionRecord.store()
         }
