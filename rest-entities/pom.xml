@@ -198,10 +198,45 @@
                         <generate>
                             <javaTimeTypes>true</javaTimeTypes>
                         </generate>
+
                         <database>
                             <name>org.jooq.meta.postgres.PostgresDatabase</name>
                             <includes>.*</includes>
                             <inputSchema>public</inputSchema>
+
+                            <!-- Mappings for our enums to their generated types -->
+                            <forcedTypes>
+                                <forcedType>
+                                    <userType>org.chronopolis.rest.models.enums.BagStatus</userType>
+                                    <enumConverter>true</enumConverter>
+                                    <expression>.*bag\.status</expression>
+                                    <types>.*</types>
+                                </forcedType>
+                                <forcedType>
+                                    <userType>org.chronopolis.rest.models.enums.ReplicationStatus</userType>
+                                    <enumConverter>true</enumConverter>
+                                    <expression>.*replication\.status</expression>
+                                    <types>.*</types>
+                                </forcedType>
+                                <forcedType>
+                                    <userType>org.chronopolis.rest.entities.BagDistributionStatus</userType>
+                                    <enumConverter>true</enumConverter>
+                                    <expression>.*bag_distribution\.status</expression>
+                                    <types>.*</types>
+                                </forcedType>
+                                <forcedType>
+                                    <userType>org.chronopolis.rest.models.enums.RepairStatus</userType>
+                                    <enumConverter>true</enumConverter>
+                                    <expression>.*repair\.status</expression>
+                                    <types>.*</types>
+                                </forcedType>
+                                <forcedType>
+                                    <userType>org.chronopolis.rest.models.enums.AuditStatus</userType>
+                                    <enumConverter>true</enumConverter>
+                                    <expression>.*repair\.audit</expression>
+                                    <types>.*</types>
+                                </forcedType>
+                            </forcedTypes>
                         </database>
                         <target>
                             <packageName>org.chronopolis.db.generated</packageName>
