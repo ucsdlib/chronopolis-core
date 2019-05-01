@@ -11,6 +11,7 @@ import org.jooq.impl.DSL;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
@@ -26,7 +27,7 @@ import java.sql.SQLException;
  *
  * @author shake
  */
-@SpringBootApplication
+@SpringBootApplication(exclude = FlywayAutoConfiguration.class)
 @EntityScan(basePackageClasses = Bag.class)
 public class JPAContext {
 
