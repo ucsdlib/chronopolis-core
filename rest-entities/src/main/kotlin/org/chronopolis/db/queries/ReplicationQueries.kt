@@ -27,7 +27,7 @@ object ReplicationQueries {
         val oneWeek = LocalDateTime.now().minusWeeks(1)
         val twoWeeks = LocalDateTime.now().minusWeeks(2)
         val replication = Tables.REPLICATION
-        val states = ReplicationStatus.active().map { it.toString() }
+        val states = ReplicationStatus.active()
         val query = replication.STATUS.`in`(states)
 
         val total = ctx.selectCount()
